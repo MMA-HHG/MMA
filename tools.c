@@ -1,0 +1,821 @@
+#include<math.h>
+#include<malloc.h>
+#include<stdlib.h>
+#include<stdio.h>
+#include<time.h>
+#include<fftw3.h>
+
+#include"util.h"
+
+#define Pi acos(-1.)
+clock_t start, finish;
+clock_t start2, finish2;
+#pragma warning( disable : 4996 ) // warning for fopen in visual 2005
+
+extern double* timet,dipole;
+
+// extern struct Efield_var;
+
+
+void printresults(struct trg_def trg, struct Efield_var Efield, FILE *file1, int k, double *psi, int num_r, double *psi0, double tt, double *x, double dx, double Field, double Apot, double x_int, double dip_pre)
+{
+	double dip,pop_re,pop_im,pop_tot,current,position,ion_prob2, dum;
+	int j,k1,k2,k3,k4;
+
+		// printf("test2,\t%i\n",k);
+		// the population in the ground state (gauge dependent)
+		 pop_re=0.; pop_im=0.;
+		for(j = 0 ; j <= num_r ; j++) {pop_re = pop_re + psi[2*j]*psi0[2*j] + psi[2*j+1]*psi0[2*j+1]; pop_im = pop_im + psi[2*j]*psi0[2*j+1] - psi[2*j+1]*psi0[2*j];}
+		pop_tot = pop_re*pop_re + pop_im*pop_im;
+
+
+		// the gauge independent probability of the electron being between -x_int and x_int
+		k1 = 0; k2 = 0; k3 = 0; k4 = 0;
+		findinterval(num_r, -x_int, x, &k1, &k2);
+		findinterval(num_r, x_int, x, &k3, &k4);
+		ion_prob2 = 0;
+		for(j=k1;j<=k4;j++){ion_prob2 = ion_prob2 + psi[2*j]*psi[2*j] + psi[2*j+1]*psi[2*j+1];}
+
+		
+		/*
+		// calculation of <-grad(V)> (gauge independent dipole) !!!!!!!! SIGN?
+		dip=0.; // dip_im=0.;
+		
+		for(j = 0 ; j <= num_r ; j++) {dip = dip + (psi[2*j]*psi[2*j] + psi[2*j+1]*psi[2*j+1])*gradpot(x[j],trg); 
+		 // dip_im = dip_im + (psi[2*j]*psi[2*j+1] - psi[2*j+1]*psi[2*j])*gradpot(x[j]);
+		 }
+		*/
+		dip = dip_pre;
+		
+
+		// calculation of <x> (gauge independent)
+		position=0.;
+		
+		for(j = 0 ; j <= num_r ; j++)
+		{
+			position = position + (psi[2*j]*psi[2*j] + psi[2*j+1]*psi[2*j+1])*x[j]; 
+		}
+	       	
+
+		current = 0.; // (gauge dependent, current+Apot is gauge-independent) 
+		for(j = 1 ; j<= num_r-1 ; j++) 
+		{
+		current = current + psi[2*j]*(psi[2*(j+1)+1]-psi[2*(j-1)+1]) - psi[2*j+1]*(psi[2*(j+1)]-psi[2*(j-1)]);                 
+		}
+		current = current*0.5/dx;
+
+
+
+		dum = 0.; // test
+		for(j = 1 ; j<= num_r-1 ; j++) 
+		{
+		dum = dum + psi[2*j]*(psi[2*(j+1)+1]-psi[2*(j-1)+1]) + psi[2*j+1]*(psi[2*(j+1)]-psi[2*(j-1)]);                 
+		}
+		dum = dum*0.5/dx;
+
+	
+
+		//printf("test4,\t%i\n",k);
+		//dum = tt/41.34144728;
+
+		
+		
+		switch (Efield.fieldtype){
+		case 0: case 1:
+			fprintf(file1,"%e\t%e\t%e\t%e\t%e\t%e\t%e\t%e\t%e\n",tt,Field,pop_tot,dip,-dip+Field,current,position,ion_prob2,(1.-pop_tot)*Field);
+		break;
+		case 2: case 3:
+			fprintf(file1,"%e\t%e\t%e\t%e\t%e\t%e\t%e\t%e\t%e\t%e\t%e\n",tt,Field,Apot,pop_tot,dip,-dip+Field,current,position,ion_prob2,(1.-pop_tot)*Field,dum);
+		break;
+		}
+		
+
+		/*
+		switch (Efield.fieldtype){
+		case 0: case 1:
+			fprintf(file1,"%e\t%e\n",tt,pop_re*pop_re + pop_im*pop_im);
+		break;
+		case 2:
+			fprintf(file1,"%e\t%e\n",tt,pop_re*pop_re + pop_im*pop_im);
+		break;
+		}
+		*/
+
+		
+}
+
+
+
+double AField(struct Efield_var F, double t) // ANAlytic field is -dA/dt, the sign!
+{
+	
+	double omegap = F.trap.omega/((double)F.trap.nc),ts,Tf,A0;
+
+	double a,b;
+	double A,A1,A2,dum;
+	int k1;
+
+switch (F.fieldtype){
+
+	case 2:  // analytic 
+		A = 0.;
+		//for(k1 = 0 ; k1 <= F.Nflt1 ; k1++)
+		if (F.Nflt1 > 0)
+		{
+			for(k1 = 0 ; k1 <= (F.Nflt1-1) ; k1++)
+			{
+				A = A + Afieldflattop1(t, F.flt1[k1].ti, F.flt1[k1].ton, F.flt1[k1].toff, F.flt1[k1].T, F.flt1[k1].o, F.flt1[k1].phi, F.flt1[k1].A);
+			}
+		}
+
+		if (F.Nsin2 > 0)
+		{
+			for(k1 = 0 ; k1 <= (F.Nsin2-1) ; k1++)
+			{
+				// Afieldsin2(double t, double ti, double A0, double oc, double phi0, double o, double phi)
+				A = A + Afieldsin2(t , F.sin2[k1].ti , F.sin2[k1].A0 , F.sin2[k1].oc , F.sin2[k1].phi0 , F.sin2[k1].o , F.sin2[k1].phi);
+			}
+		}
+
+		if (F.NEsin2 > 0)
+		{
+			for(k1 = 0 ; k1 <= (F.NEsin2-1) ; k1++)
+			{
+				// Afieldsin2(double t, double ti, double A0, double oc, double phi0, double o, double phi)
+				A = A + AfieldEsin2(t , F.Esin2[k1].ti , F.Esin2[k1].A0 , F.Esin2[k1].oc , F.Esin2[k1].phi0 , F.Esin2[k1].o , F.Esin2[k1].phi);
+			}
+		}
+
+		if (F.Nflt1ch > 0)
+		{
+			for(k1 = 0 ; k1 <= (F.Nflt1ch-1) ; k1++)
+			{
+				A = A + Afieldflattop1ch(t, F.flt1ch[k1].ti, F.flt1ch[k1].ton, F.flt1ch[k1].toff, F.flt1ch[k1].T, F.flt1ch[k1].o, F.flt1ch[k1].phi, F.flt1ch[k1].A, F.flt1ch[k1].b, F.flt1ch[k1].c);
+			}
+		}
+
+		return A;	
+	break;
+
+
+	}
+
+
+}
+
+
+double AfieldEsin2(double t, double ti, double A0, double oc, double phi0, double o, double phi)
+{
+	if ( (t <= ti) )
+	{
+		return 0.;
+	} else if ( t >= (ti+Pi/oc) ){
+		return Primsin2cos(oc, o, phi, phi0, (ti+Pi/oc) ) - Primsin2cos(oc, o, phi, phi0, ti);
+	} else {
+		return Primsin2cos(oc, o, phi, phi0, t) - Primsin2cos(oc, o, phi, phi0, ti);
+	}
+
+	// oc, o, A0, nc1, nc2, phi, phi0, ti;
+
+	
+}
+
+
+double Primsin2cos(double a, double b, double c, double d, double t) // based on the antiderivative used in the SFA, not consistent notation... 
+{
+/*real*8 FUNCTION aDA(a,b,c,d,t);
+	real*8, intent(in) :: a,b,c,d,t;
+*/
+
+// antiderivative of sin^2 in 't' (normalized by A0) antiderivative of sin^2(a*t+d)*cos(b*t+c)
+	double aDA;
+
+	aDA = (2. * cos(b*t)*sin(c))/b;
+	aDA = aDA + (2.*cos(c)*sin(b*t))/b; 
+	aDA = aDA + sin(c - 2.*d - 2.*a*t + b*t)/(2.*a - b);
+	aDA = aDA - sin(c + 2.*d + 2.*a*t + b*t)/(2.*a + b);
+	aDA = aDA/4.;
+
+	return aDA;
+
+// end function aDA; 
+}
+
+
+double Afieldflattop1(double t, double ti, double ton, double toff, double T, double o, double phi, double A0)
+{
+	double envelope;
+
+	//oc2 = Pi/(2.*toff); phienvel = Pi - oc2*(T+ton+toff); tend = T+ton+toff;
+	//return A0*pow(sin(oc2*t+phienvel),2.)*sin(o*t+phi);
+	
+	
+	// envelope
+	envelope = smootherstep(ti,ti+ton,t)*smootherstep(0.,toff,ti+ton+T+toff-t);
+
+	return A0*envelope*sin(o*t+phi);	
+	
+}
+
+
+double Afieldflattop1ch(double t, double ti, double ton, double toff, double T, double o, double phi, double A0, double b , double c)
+{
+	double envelope;
+
+	//oc2 = Pi/(2.*toff); phienvel = Pi - oc2*(T+ton+toff); tend = T+ton+toff;
+	//return A0*pow(sin(oc2*t+phienvel),2.)*sin(o*t+phi);
+	
+	
+	// envelope
+	envelope = smootherstep(ti,ti+ton,t)*smootherstep(0.,toff,ti+ton+T+toff-t);
+
+	return (A0 + c*t) * envelope*sin(o*t+b*t*t+phi);	
+	
+}
+
+
+double Afieldsin2(double t, double ti, double A0, double oc, double phi0, double o, double phi)
+{
+	if ( (t <= ti) || ( t >= (ti+Pi/oc) ) )
+	{
+		return 0.;
+	} else {
+		return A0*( pow(sin(oc*t + phi0),2.) ) * cos(o*t + phi);
+	}
+
+	// oc, o, A0, nc1, nc2, phi, phi0, ti;
+
+	
+}
+
+
+// pi/2.0d0 - wc2*(delay+0.5d0*Tc2);
+
+// attempt to do exact envelope in the electric field
+/*
+double Afieldflattop3(double t, double ton, double toff, double T, double o, double phi, double A0)
+{
+	 double oc1, oc2, phienvel, A, dum1, dum2, tend;
+
+
+	if( (t >= ton ) && ( t <= (ton+T) ) )
+	{
+		oc1 = Pi/(2.*ton);
+		dum2 = (4*o*oc1*cos(phi + o*ton)*sin(2*oc1*ton) + 2*(pow(o,2) - 4*pow(oc1,2) - pow(o,2)*cos(2*oc1*ton))*sin(phi + o*ton))/(4.*(pow(o,3) - 4*o*pow(oc1,2))); // A(ton)
+		dum2 = o*dum2;
+		return A0*(sin(o*t+phi)-sin(o*ton+phi)+dum2);
+	} else if (t < ton) {
+		oc1 = Pi/(2.*ton);
+
+		A = (2*(-pow(o,2) + 4*pow(oc1,2) + pow(o,2)*cos(2*oc1*t))*cos(phi + o*t) + 4*o*oc1*sin(2*oc1*t)*sin(phi + o*t))/(4.*(pow(o,3) - 4*o*pow(oc1,2))); // undefinite integral result
+		dum1 = (2*pow(oc1,2)*cos(phi))/(pow(o,3) - 4*o*pow(oc1,2)); // A(0)
+		// dum2 = (4*o*oc1*cos(phi + o*ton)*sin(2*oc1*ton) + 2*(pow(o,2) - 4*pow(oc1,2) - pow(o,2)*cos(2*oc1*ton))*sin(phi + o*ton))/(4.*(pow(o,3) - 4*o*pow(oc1,2))); // A(ton)
+		return o*A0*(A-dum1); // shift to be 0 in 0
+	} else {
+		oc2 = Pi/(2.*toff); phienvel = (Pi/2) - oc2*(T+ton); tend = T+ton+toff;
+
+		A = ((-2*cos(phi + o*t))/o + cos(phi - 2*phienvel + o*t - 2*oc2*t)/(o - 2*oc2) + cos(phi + 2*phienvel + o*t + 2*oc2*t)/(o + 2*oc2))/4.; // undefinite integral result
+		dum1 = ((-2*cos(phi + o*tend))/o + cos(phi - 2*phienvel + o*tend - 2*oc2*tend)/(o - 2*oc2) + cos(phi + 2*phienvel + o*tend + 2*oc2*tend)/(o + 2*oc2))/4.; // A(tend)
+		return A0*(A-dum1);
+	}
+}
+*/
+
+
+// from wiki
+double smootherstep(double edge0, double edge1, double x) {
+  // Scale, and clamp x to 0..1 range
+  x = clamp((x - edge0) / (edge1 - edge0), 0.0, 1.0);
+  // Evaluate polynomial
+  return x * x * x * (x * (x * 6 - 15) + 10);
+}
+
+double clamp(double x, double lowerlimit, double upperlimit) {
+  if (x < lowerlimit)
+  {
+    x = lowerlimit;
+  } else if (x > upperlimit) {
+    x = upperlimit;
+  }
+  return x;
+}
+
+
+
+
+
+
+//// POTENTIAL SPECIFICATION
+
+double potential(double x, struct trg_def trg)
+{
+	return -1.0/sqrt(trg.a*trg.a+x*x);
+
+	//return 0.025*x*x;
+	
+	//double a0 = 0.695, a1 = 0.5, a2 = 1., a3 = 1.;  
+	//return -2.0/sqrt(a0*a0+x*x) + a1*exp(-pow( (x-a2)/a3 ,2));
+
+	//double q = 3.;
+	//return -pow((pow(trg.a,q)+pow(abs(x),q)), 1./q );
+	
+}
+
+
+double gradpot(double x, struct trg_def trg)
+{
+  
+  return x*pow(trg.a*trg.a+x*x,-1.5);
+
+
+  //return x*pow(c*c+(x-R*0.5)*(x-R*0.5),-1.5)+x*pow(c*c+(x+R*0.5)*(x+R*0.5),-1.5);
+
+  
+  //return 0.05*x;
+
+  //double a0 = 0.695, a1 = 0.5, a2 = 1., a3 = 1.;  
+  //return 2.0*x*pow(a0*a0+x*x,-1.5) - 2.*a0*(x-a2)*exp(-pow( (x-a2)/a3 ,2))/(a3*a3) ;
+  //double q = 3.;
+  //if ( x >= 0.){ return pow(abs(x),q-1) * pow((pow(trg.a,q)+pow(abs(x),q)), (1.+q)/q );}else{return -pow(abs(x),q-1) * pow((pow(trg.a,q)+pow(abs(x),q)), (1.+q)/q );}
+
+}
+
+
+
+
+
+// MANIPULATION WITH DATA
+
+void findinterval(int n, double x, double *x_grid, int *k1, int *k2) //! returns interval where is placed x value, if it is out of the range, 0 is used
+{
+//intervals are ordered: <..>(..>(..>...(..>
+	int i;
+	
+
+	// printf("x_grid[0],  %lf \n",x_grid[0]);
+	
+	if( x < x_grid[0] )
+	{
+			*k1 = -1;
+			*k2= 0;
+			return;
+	}
+
+	for(i=0;i< n;i++)
+	{
+		if ( x <= x_grid[i+1] )
+		{
+			*k1 = i;
+			*k2= i+1;
+			// printf("interval,  %i \n",*k1);
+			// printf("interval,  %i \n",*k2);
+			return;
+		}
+	}
+	
+ 	*k1=n; *k2=n+1;
+	// !write(*,*) "error in the interval subroutine"
+
+}
+
+
+
+
+
+// NUMERICS
+
+double interpolate( int n, double x, double *x_grid, double* y_grid) //!inputs: # of points, x(n), y(x(n)), x, returns y(x) (linearinterpolation), extrapolation by the boundary values
+{
+	int k1,k2;
+	double y;
+	
+	k1=0;
+	k2=0;
+	findinterval(n, x, x_grid, &k1, &k2);
+	// printf("\ninside interpolate \n");
+	// printf("interval,  %i \n",k1);
+	// printf("interval,  %i \n",k2);
+	if( k1 == -1 )
+	{
+		y=y_grid[0];
+	} else if( k2 == n+1 ){
+		y=y_grid[n];
+	} else {
+		y=y_grid[k1]+(x-x_grid[k1])*(y_grid[k2]-y_grid[k1])/(x_grid[k2]-x_grid[k1]);	
+	}
+	
+	//y = 0.;
+	//printf("interpolated value,  %lf \n",y);
+	//printf("\n");	
+	return y;
+
+}
+
+
+double findnextinterpolatedzero(int n, double x, double* x_grid, double* y_grid) // it next zero according to an input value
+{
+	int k1,k2,k3,k4;
+	double x_root,x1,x2,y1,y2;
+	
+	k1=0;
+	k2=0;
+	k3=0;
+	findinterval(n, x, x_grid, &k1, &k2);
+	// printf("\ninside interpolate \n");
+	// printf("interval,  %i \n",k1);
+	// printf("interval,  %i \n",k2);
+	if( ( k1 == -1 ) ||  ( k2 == n+1 ))
+	{
+		printf("Cannot find interpolated zero: out of range\n");
+	} else {
+		k4 = k1;
+		while (k4 < n)
+		{
+		if ( ( y_grid[k4]*y_grid[k4+1] ) < 0  )
+		{
+			x1 = x_grid[k4];
+			x2 = x_grid[k4+1];
+			y1 = y_grid[k4];
+			y2 = y_grid[k4+1];
+			x_root = (y2*x1-y1*x2)/(y2-y1);
+			return x_root;
+		}
+		k4 = k4+1;
+		}
+		printf("There is no zero \n");	
+	}
+	
+	//y = 0.;
+	//printf("interpolated value,  %lf \n",y);
+	//printf("\n");	
+}
+
+
+
+// FOURIER INTERPOLATION
+double* FourInterp(int k, double *signal, int N)
+{
+	FILE *file1, *file2, *newxgrid, *newygrid, *newgrid;
+	int Nc, N2, Nc2;
+	fftw_complex *out, *in2;
+	double *in, *out2;
+	fftw_plan p;
+	int k1;
+
+
+
+	Nc = floor(((double)N) / 2.); Nc++;
+
+	in = calloc(2*Nc,sizeof(double));	
+	
+	out = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * Nc);
+
+	for(k1 = 0; k1 <= (N-1); k1++){in[k1]=signal[k1];} // !!! REDUNDANT
+
+	
+	p = fftw_plan_dft_r2c_1d(N, in, out, FFTW_ESTIMATE); //fftw_plan_dft_r2c_1d(int n, double *in, fftw_complex *out, unsigned flags); // plan FFTW
+	fftw_execute(p); // run FFTW
+
+	/*
+	// WRITE RESULT	
+	file1 = fopen("ftransform.dat" , "w");	
+	for(k1 = 0; k1 <= (Nc-1); k1++){
+					fprintf(file1,"%e\t%e\n",out[k1][0],out[k1][1]);
+					} // !!!!!!!!!!! WHY POINTERS THING DOESN'T WORK?!
+	fclose(file1);
+	*/
+
+		
+	// INVERSE + PADDING
+	N2 = k*N;
+
+	Nc2 = floor(((double)N2) / 2.); Nc2++;
+	
+	in2 = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * Nc2);
+	out2 =  calloc(2*Nc2,sizeof(double));
+	
+	
+	// zeroes
+	for(k1 = 0; k1 <= (Nc2-1); k1++){in2[k1][0]=0.; in2[k1][1]=0.;}// zeroes initialised
+
+
+	//for(k1 = 0; k1 <= (1077-1); k1++){in2[k1][0]=out[k1][0]/N; in2[k1][1]=out[k1][1]/N;} // previous data + normalisation	!!! TEST FOR NOISE 0-PADDING
+	for(k1 = 0; k1 <= (Nc-1); k1++){in2[k1][0]=out[k1][0]/N; in2[k1][1]=out[k1][1]/N;} // previous data + normalisation	
+
+	p = fftw_plan_dft_c2r_1d(N2, in2, out2, FFTW_ESTIMATE); // plan iFFTW
+	fftw_execute(p); // run iFFTW
+
+	/*
+	// WRITE THE RESULTS
+	Nxnew = N2;
+	// dx = (xgrid[Nx-1]-xgrid[0])/((double)Nxnew);
+
+	// newxgrid = fopen( "newxgrid.dat", "w" );
+	
+	// newgrid = fopen( "newgrid.dat", "w" );
+
+	// x = xgrid[7990]+dx;
+	// printf("x,  %lf \n",x);
+
+	
+	printf("ftest1 \n");
+	newygrid = fopen( "newygrid.dat", "w" );;
+	for ( k1 = 0 ; k1 <= (N2-1); k1++)
+	{
+		fprintf(newygrid,"%e\n",out2[k1]);
+	}
+
+	fclose(newygrid);
+	printf("writting done \n");
+	*/
+	
+
+	return out2;
+
+}
+
+
+
+
+// PRINT FFTW3 of a signal
+void printFFTW3(FILE *sig, FILE *fsig, double *signal, int N, double dx) //takes real signal speced by given "dt" and it computes and prints its FFTW3
+{
+	int Nc;
+	fftw_complex *out, *in2;
+	double *in;
+	double dxi,coeff1,coeff2;
+	fftw_plan p;
+	int k1;
+
+
+	// print signal
+	for(k1 = 0; k1 <= (N-1); k1++){
+					fprintf(sig,"%e\t%e\n", ((double)k1)*dx , signal[k1]);
+					}
+	//fclose(file1);
+
+
+	Nc = floor(((double)N) / 2.); Nc++;
+
+	in = calloc(2*Nc,sizeof(double));	
+	
+	out = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * Nc);
+
+	for(k1 = 0; k1 <= (N-1); k1++){in[k1]=signal[k1];} // !!! REDUNDANT
+	
+	p = fftw_plan_dft_r2c_1d(N, in, out, FFTW_ESTIMATE); //fftw_plan_dft_r2c_1d(int n, double *in, fftw_complex *out, unsigned flags); // plan FFTW
+	fftw_execute(p); // run FFTW
+
+	
+	// print fourier transform
+	// file1 = fopen("ftransform.dat" , "w");
+
+	dxi = 2.*Pi/(  ((double)N) * dx); 
+
+	coeff1 = dx/ sqrt(2.*Pi); coeff2 = dx*dx/(2.*Pi);	
+
+	for(k1 = 0; k1 <= (Nc-1); k1++){
+					fprintf(fsig,"%e\t%e\t%e\t%e\n",((double)k1)*dxi,coeff1*out[k1][0], -coeff1*out[k1][1] , coeff2*(out[k1][0]*out[k1][0]+out[k1][1]*out[k1][1]));
+					}
+	//fclose(file1);
+
+	// !!!!! OUR CONVENTION OF ft IS COMLEX CONJUGATE WRT dft
+
+	return;
+
+}
+
+
+void print2FFTW3(FILE *sig, FILE *fsig, double *signal1, double *signal2, int N, double dx) //takes real signal speced by given "dt" and it computes and prints its FFTW3
+{
+	int Nc;
+	fftw_complex *out1, *out2, *in2;
+	double *in;
+	double dxi,coeff1,coeff2;
+	fftw_plan p;
+	int k1;
+
+
+	// print signal
+	for(k1 = 0; k1 <= (N-1); k1++){
+					fprintf(sig,"%e\t%e\t%e\n", ((double)k1)*dx , signal1[k1], signal2[k1]);
+					}
+	//fclose(file1);
+
+
+	Nc = floor(((double)N) / 2.); Nc++;
+
+	in = calloc(2*Nc,sizeof(double));	
+	
+	out1 = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * Nc); out2 = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * Nc);
+
+	for(k1 = 0; k1 <= (N-1); k1++){in[k1]=signal1[k1];} // !!! REDUNDANT
+	
+	p = fftw_plan_dft_r2c_1d(N, in, out1, FFTW_ESTIMATE); //fftw_plan_dft_r2c_1d(int n, double *in, fftw_complex *out, unsigned flags); // plan FFTW
+	fftw_execute(p); // run FFTW
+
+	for(k1 = 0; k1 <= (N-1); k1++){in[k1]=signal2[k1];} // !!! REDUNDANT
+
+	p = fftw_plan_dft_r2c_1d(N, in, out2, FFTW_ESTIMATE); //fftw_plan_dft_r2c_1d(int n, double *in, fftw_complex *out, unsigned flags); // plan FFTW
+	fftw_execute(p); // run FFTW
+	
+	// print fourier transform
+	// file1 = fopen("ftransform.dat" , "w");
+
+	dxi = 2.*Pi/(  ((double)N) * dx); 
+
+	coeff1 = dx/ sqrt(2.*Pi); coeff2 = dx*dx/(2.*Pi);	
+
+	for(k1 = 0; k1 <= (Nc-1); k1++){
+					fprintf(fsig,"%e\t%e\t%e\t%e\t%e\t%e\t%e\n",((double)k1)*dxi,coeff1*out1[k1][0], -coeff1*out1[k1][1] , coeff2*(out1[k1][0]*out1[k1][0]+out1[k1][1]*out1[k1][1]),coeff1*out2[k1][0], -coeff1*out2[k1][1] , coeff2*(out2[k1][0]*out2[k1][0]+out2[k1][1]*out2[k1][1]));
+					}
+	//fclose(file1);
+
+	// !!!!! OUR CONVENTION OF ft IS COMLEX CONJUGATE WRT dft
+
+	return;
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	/* case 3: // sin^2
+
+		
+		// printf("test2\n");
+		// components of the vec.pot. for both pulses in all cases
+		switch ( F.sin2.overlap ){
+
+		case 1:
+			if (t < F.sin2.tmax1)
+			{
+				//printf("case 1 \n");
+				A1 = F.sin2.A1*( pow(sin(F.sin2.oc1*t),2.) ) * cos(F.sin2.o1*t + F.sin2.phi1);
+				A2=0.;
+			} else if ((t >= F.sin2.tmax1) && (t < F.sin2.tmin2)){
+				//printf("case 2 \n");
+				A1=0.;
+				A2=0.;
+			} else if ((t >= F.sin2.tmin2) && (t <= F.sin2.tmax2)){
+				//printf("case 3 \n");
+				A1 = 0.;
+				A2 = F.sin2.A2*( pow(sin(F.sin2.oc2*t+F.sin2.phi0),2.) ) * cos(F.sin2.o2*t + F.sin2.phi2);
+			}
+			// printf("test2 %lf \n", A1);
+		break;
+
+		case 2:
+			if (t < F.sin2.tmin2)
+			{
+				A1 = F.sin2.A1*( pow(sin(F.sin2.oc1*t),2.) ) * cos(F.sin2.o1*t + F.sin2.phi1);
+				A2 = 0.;
+			} else if ((t >= F.sin2.tmin2) && (t < F.sin2.tmax1)){
+				A1 = F.sin2.A1*( pow(sin(F.sin2.oc1*t),2.) ) * cos( F.sin2.o1*t + F.sin2.phi1);
+				A2 = F.sin2.A2*( pow(sin(F.sin2.oc2*t + F.sin2.phi0),2.) ) * cos(F.sin2.o2*t + F.sin2.phi2);
+			} else if ((t >= F.sin2.tmax1) && (t <= F.sin2.tmax2)){
+				A1 = 0.;
+				A2 = F.sin2.A2*( pow(sin(F.sin2.oc2*t + F.sin2.phi0),2.) ) * cos(F.sin2.o2*t + F.sin2.phi2);	
+			}
+		break;
+
+		case 3:
+			if (t < F.sin2.tmin2)
+			{
+				A1 = F.sin2.A1*( pow(sin(F.sin2.oc1*t),2.) ) * cos(F.sin2.o1*t + F.sin2.phi1);
+				A2 = 0.;
+			} else if ((t >= F.sin2.tmin2) && (t < F.sin2.tmax2)){
+				A1 = F.sin2.A1*( pow(sin(F.sin2.oc1*t),2.) ) * cos(F.sin2.o1*t + F.sin2.phi1);
+				A2 = F.sin2.A2*( pow(sin(F.sin2.oc2*t + F.sin2.phi0),2.) ) * cos(F.sin2.o2*t + F.sin2.phi2);
+
+			} else if ((t >= F.sin2.tmax2) && (t <= F.sin2.tmax1)){
+				A1 = F.sin2.A1*( pow(sin(F.sin2.oc1*t),2.) ) * cos(F.sin2.o1*t + F.sin2.phi1);
+				A2 = 0.;
+			}
+
+		break;
+		}
+
+
+		// full vector potential
+		// dum = A1 + A2;
+		// printf("test2 %lf \n", dum);
+		return A1+A2; 
+
+	break;
+
+
+
+
+
+
+
+
+
+
+// interpolate by 2n-th order interpolation, uses 0's outside the grid, assuming uniform grid for extrapolation
+double interpolate2n( int n, double x, double *x_grid, double* y_grid, int n_int) //!inputs: # of points, x(n), y(x(n)), x, returns y(x) (linearinterpolation), extrapolation by the boundary values
+{
+	int k1,k2,k3,k4;
+	double dx,y;
+	double *a, *xdum, *ydum;
+
+	
+	
+	k1=0;
+	k2=0;
+	xdum = calloc(2*n_int,sizeof(double)); ydum = calloc(2*n_int,sizeof(double)); a = calloc(2*n_int,sizeof(double));
+	findinterval(n, x, x_grid, &k1, &k2);
+	// printf("\ninside interpolate \n");
+	// printf("interval,  %i \n",k1);
+	// printf("interval,  %i \n",k2);
+
+	if ( (k1 >= n_interp) && (k2 <= n-n_interp) )
+	{
+		for (k3 = 0 , k3 <= 2*n_int , k3++)
+		{
+			xdum[k3] = x[k1-n_int+k3];
+			ydum[k3] = y[k1-n_int+k3];
+		} 	
+	} else {
+		dx = x[1] - x[0];
+		for (k3 = 0 , k3 <= 2*n_int , k3++)
+		{
+			xdum[k3] = ( (k1-n_int+k3) >= 0 ) ? x[k1-n_int+k3] : x[k1]-((double)(k1-n_int+k3))*dx;
+			ydum[k3] = ( (k1-n_int+k3) >= 0 ) ? y[k1-n_int+k3] : 0. ;
+		} 		
+	}
+	
+	vander(xdum,a,ydum,2*n_interp); // compute vandermond
+
+	// evaluate polynomial
+	y = a[0];
+	for(k1 = 1, k1 <= 2*n_int , k1++)
+		
+	
+
+	
+	if( k1 == -1 )
+	{
+		y=y_grid[0];
+	} else if( k2 == n+1 ){
+		y=y_grid[n];
+	} else {
+		y=y_grid[k1]+(x-x_grid[k1])*(y_grid[k2]-y_grid[k1])/(x_grid[k2]-x_grid[k1]);	
+	}
+	
+	//y = 0.;
+	//printf("interpolated value,  %lf \n",y);
+	//printf("\n");	
+	return y;
+
+}
+
+void vander(double x[], double w[], double q[], int n)
+{
+	int i,j,k;
+	double b,s,t,xx;
+	double *c;
+
+	c = calloc(n,sizeof(double)); //dvector(1,n); 
+	if (n == 1) w[1]=q[1];
+	else {
+		for (i=1;i<=n;i++) c[i]=0.0;
+		c[n] = -x[1];
+		for (i=2;i<=n;i++) {
+			xx = -x[i];
+			for (j=(n+1-i);j<=(n-1);j++) c[j] += xx*c[j+1];
+			c[n] += xx;
+		}
+		for (i=1;i<=n;i++) {
+			xx=x[i];
+			t=b=1.0;
+			s=q[n];
+			for (k=n;k>=2;k--) {
+				b=c[k]+xx*b;
+				s += q[k-1]*b;
+				t=xx*t+b;
+			}
+			w[i]=s/t;
+		}
+	}
+	free(c);//free_dvector(c,1,n);
+}
+*/
+
