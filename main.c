@@ -52,8 +52,6 @@ int main(void)
 {	
 	Pi = acos(-1.);
 
-	printf("Hello World");
-
 	// Open the param.txt file for intialisation of the parameter
 	param = fopen("param.txt" , "r");
 	if(param == NULL) {printf("DATA could not be found in param.txt file\n");}
