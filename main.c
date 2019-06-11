@@ -49,8 +49,10 @@ char filename1[25], filename2[25];
 
 
 int main(void)
-{
+{	
 	Pi = acos(-1.);
+
+	printf("Hello World");
 
 	// Open the param.txt file for intialisation of the parameter
 	param = fopen("param.txt" , "r");
