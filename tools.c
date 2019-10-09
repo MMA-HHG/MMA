@@ -248,6 +248,81 @@ double Afieldsin2(double t, double ti, double A0, double oc, double phi0, double
 	
 }
 
+double dAField(struct Efield_var F, double t) // ANAlytic field is -dA/dt, the sign!
+{
+	
+	double omegap = F.trap.omega/((double)F.trap.nc),ts,Tf,A0;
+
+	double a,b;
+	double A,A1,A2,dum;
+	int k1;
+
+switch (F.fieldtype){
+
+	case 2:  // analytic 
+		A = 0.;
+		//for(k1 = 0 ; k1 <= F.Nflt1 ; k1++)
+		if (F.Nflt1 > 0)
+		{
+			perror("derivative of vectpot not implemented");
+/*			for(k1 = 0 ; k1 <= (F.Nflt1-1) ; k1++)*/
+/*			{*/
+/*				A = A + Afieldflattop1(t, F.flt1[k1].ti, F.flt1[k1].ton, F.flt1[k1].toff, F.flt1[k1].T, F.flt1[k1].o, F.flt1[k1].phi, F.flt1[k1].A);*/
+/*			}*/
+		}
+
+		if (F.Nsin2 > 0)
+		{
+			for(k1 = 0 ; k1 <= (F.Nsin2-1) ; k1++)
+			{
+				// Afieldsin2(double t, double ti, double A0, double oc, double phi0, double o, double phi)
+				A = A + dAfieldsin2(t , F.sin2[k1].ti , F.sin2[k1].A0 , F.sin2[k1].oc , F.sin2[k1].phi0 , F.sin2[k1].o , F.sin2[k1].phi);
+			}
+		}
+
+		if (F.NEsin2 > 0)
+		{
+			perror("derivative of vectpot not implemented");
+/*			for(k1 = 0 ; k1 <= (F.NEsin2-1) ; k1++)*/
+/*			{*/
+/*				// Afieldsin2(double t, double ti, double A0, double oc, double phi0, double o, double phi)*/
+/*				A = A + AfieldEsin2(t , F.Esin2[k1].ti , F.Esin2[k1].A0 , F.Esin2[k1].oc , F.Esin2[k1].phi0 , F.Esin2[k1].o , F.Esin2[k1].phi);*/
+/*			}*/
+		}
+
+		if (F.Nflt1ch > 0)
+		{
+			perror("derivative of vectpot not implemented");
+/*			for(k1 = 0 ; k1 <= (F.Nflt1ch-1) ; k1++)*/
+/*			{*/
+/*				A = A + Afieldflattop1ch(t, F.flt1ch[k1].ti, F.flt1ch[k1].ton, F.flt1ch[k1].toff, F.flt1ch[k1].T, F.flt1ch[k1].o, F.flt1ch[k1].phi, F.flt1ch[k1].A, F.flt1ch[k1].b, F.flt1ch[k1].c);*/
+/*			}*/
+		}
+
+		return A;	
+	break;
+
+
+	}
+
+
+}
+
+
+double dAfieldsin2(double t, double ti, double A0, double oc, double phi0, double o, double phi)
+{
+	if ( (t <= ti) || ( t >= (ti+Pi/oc) ) )
+	{
+		return 0.;
+	} else {
+		return A0*( oc * sin(2.*(oc*t + phi0)) * cos(o*t + phi) - o * pow(sin(oc*t + phi0),2.) * sin(o*t + phi));
+	}
+
+	// oc, o, A0, nc1, nc2, phi, phi0, ti;
+
+	
+}
+
 
 // pi/2.0d0 - wc2*(delay+0.5d0*Tc2);
 

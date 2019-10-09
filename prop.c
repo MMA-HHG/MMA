@@ -154,7 +154,8 @@ double* propagation(struct trg_def trg, struct Efield_var Efield, double tmin, i
 		fprintf(timef,"%e\t%e\t%e\t%e\t%e\t%e\t%e\t%e\t%e\n",tt,Field,1.0,0.0,0.0,0.0,0.0,ion_prob2,0.);
 	break;
 	case 2: case 3:
-		Field = -(AField(Efield,tt+dt)-AField(Efield,tt))/dt;
+/*		Field = -(AField(Efield,tt+dt)-AField(Efield,tt))/dt;*/
+		Field = -dAField(Efield,tt);
 		Apot = AField(Efield,tt);
 		// printf("Apot,  %lf \n", Apot);
 		fprintf(timef,"%e\t%e\t%e\t%e\t%e\t%e\t%e\t%e\t%e\t%e\n",tt,Field,Apot,1.0,0.0,0.0,0.0,0.0,ion_prob2,0.);
@@ -250,7 +251,8 @@ double* propagation(struct trg_def trg, struct Efield_var Efield, double tmin, i
 			Field = interpolate(Efield.Nt-1, tt, Efield.tgrid, Efield.Field);
 		break;
 		case 2: case 3:
-			Field = -(AField(Efield,tt+dt)-AField(Efield,tt))/dt;
+/*			Field = -(AField(Efield,tt+dt)-AField(Efield,tt))/dt;*/
+			Field = -dAField(Efield,tt);
 			Apot = AField(Efield,tt);
 		break;
 		}

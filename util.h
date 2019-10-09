@@ -71,6 +71,7 @@ double E_calculation(double *,double *,double *,double *,int);
 double E_calculation_numerov(struct trg_def, double *,double ,double *,int );
 double EField(double,double,double,double,int,double,double);
 double AField(struct Efield_var,double);
+double dAField(struct Efield_var,double);
 void gaussian(void);
 void volkov_state(void);
 void volkov_state_vg(void);
@@ -92,7 +93,9 @@ double Afieldflattop1(double, double, double , double , double , double , double
 double Afieldflattop1ch(double, double, double , double , double , double , double , double , double , double);
 double smootherstep(double , double, double);
 double clamp(double, double, double);
+
 double Afieldsin2(double, double, double, double, double, double, double);
+double dAfieldsin2(double, double, double, double, double, double, double);
 
 double Primsin2cos(double , double , double , double , double );
 double AfieldEsin2(double , double , double , double , double , double , double );
