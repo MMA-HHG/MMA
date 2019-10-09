@@ -16,7 +16,7 @@ double *y,*x,*a,*c,sum,*diagonal,*off_diagonal,*eigenvector,*u,*r,*vector;
 double *timet,*dipole;
 double dx,xmax,Eguess,Einit,CV,phi,omega,E0,period,Pi,tfinal,alpha,v,mod1,mod2,dE,Estep,norm_gauss,x_int,textend;
 
-int gauge,transformgauge,fieldinau,input0;
+int gauge,transformgauge,fieldinau,input0,Ntinterp,InterpByDTorNT;
 
 double dt, tmax,tmin;
 int Nt;
@@ -66,7 +66,9 @@ int main(void)
 	dumint=fscanf(param,"%i %*[^\n]\n",&num_r); // Number of points of the initial spatial grid 16000
 	dumint=fscanf(param,"%i %*[^\n]\n",&num_exp); // Number of points of the spatial grid for the expansion
 	dumint=fscanf(param,"%lf %*[^\n]\n",&dx); // resolution for the grid
+	dumint=fscanf(param,"%i %*[^\n]\n",&InterpByDTorNT); // Number of points of the spatial grid for the expansion
 	dumint=fscanf(param,"%lf %*[^\n]\n",&dt); // resolution in time
+	dumint=fscanf(param,"%i %*[^\n]\n",&Ntinterp); // Number of points of the spatial grid for the expansion
 	dumint=fscanf(param,"%lf %*[^\n]\n",&textend); // extension of the calculation after the last fields ends !!! NOW ONLY FOR ANALYTICAL FIELD //700
 	dumint=fscanf(param,"%i %*[^\n]\n",&analy.writewft); // writewavefunction (1-writting every tprint)
 	dumint=fscanf(param,"%lf %*[^\n]\n",&analy.tprint); // time spacing for writing the wavefunction	
@@ -169,7 +171,13 @@ int main(void)
 		file1 = fopen("inputs/InputField.dat" , "w"); file2 = fopen("inputs/InputFField.dat" , "w"); printFFTW3(file1, file2, Efield.Field, Efield.Nt, Efield.dt); fclose(file1); fclose(file2);
 		
 		// find the padding we need (now we assume coarser grid in the input, need an "if" otherwise)
-		k1 = floor(Efield.dt/dt); k1++;
+		if (InterpByDTorNT == 1)
+		{
+			k1 = Ntinterp + 1;
+		} else {
+			k1 = floor(Efield.dt/dt); Ntinterp = k1; k1++;
+		}
+
 		dt = Efield.dt/((double)k1); // redefine dt properly
 
 		Efield.Field = FourInterp(k1, Efield.Field, Efield.Nt); // make the interpolation !!!!!! tgrid does not correspond any more
@@ -183,6 +191,7 @@ int main(void)
 		num_t = floor((2*Pi)/(0.057*dt)); num_t++; 
 		printf("Efield.dt,  %lf \n",Efield.dt);
 		printf("points per interval  %i \n",num_t);
+		printf("number of interpolated points per interval  %i \n",Ntinterp);
 		
 	break;
 	case 1:
