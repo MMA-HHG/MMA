@@ -727,6 +727,9 @@ void printGaborFFTW3(FILE *Gsig, FILE *xgrid, FILE *xigrid, FILE *Gsigbin, doubl
 	double dxi,coeff1,coeff2;
 	fftw_plan p;
 	int k1,k2,kstep2;
+	
+	double dum;
+	double *dumptr;
 
 
 /*	// print signal*/
@@ -768,16 +771,18 @@ void printGaborFFTW3(FILE *Gsig, FILE *xgrid, FILE *xigrid, FILE *Gsigbin, doubl
 		// file1 = fopen("ftransform.dat" , "w");
 
 	
+		dumptr = calloc(1,sizeof(double));
 
 		for(k1 = 0; k1 <= (Ncprint-1); k1++){
+						dumptr[0] = sqrt( coeff2*(out[k1][0]*out[k1][0]+out[k1][1]*out[k1][1]));
+						fprintf(Gsig,"%e\t", dumptr[0]) ;
 
-						fprintf(Gsig,"%e\t", sqrt( coeff2*(out[k1][0]*out[k1][0]+out[k1][1]*out[k1][1])) ) ;
-
-						fwrite( sqrt(coeff2*(out[k1][0]*out[k1][0]+out[k1][1]*out[k1][1])) ,sizeof(double),1,Gsigbin);
+						fwrite( dumptr ,sizeof(double),1,Gsigbin);
 
 						}
-		fprintf(Gsig,"%e\n", sqrt( coeff2*(out[Ncprint][0]*out[Ncprint][0]+out[Ncprint][1]*out[Ncprint][1])) ) ;
-		fwrite( sqrt(coeff2*(out[Ncprint][0]*out[Ncprint][0]+out[Ncprint][1]*out[Ncprint][1])) ,sizeof(double),1,Gsigbin);
+		dumptr[0] = sqrt( coeff2*(out[Ncprint][0]*out[Ncprint][0]+out[Ncprint][1]*out[Ncprint][1]));
+		fprintf(Gsig,"%e\n", dumptr[0] ) ;
+		fwrite( dumptr,sizeof(double),1,Gsigbin);
 
 		
 
@@ -794,6 +799,68 @@ void printGaborFFTW3(FILE *Gsig, FILE *xgrid, FILE *xigrid, FILE *Gsigbin, doubl
 }
 
 
+void print2FFTW3binary(FILE *xgrid, FILE *sig1, FILE *sig2, FILE *xigrid, FILE *fsig1, FILE *fsig2, FILE *fsig1M2, FILE *fsig2M2, double *signal1, double *signal2, int N, double dx, double xmax) //takes real signal speced by given "dt" and it computes and prints its FFTW3
+{
+	int Nc;
+	fftw_complex *out1, *out2, *in2;
+	double *in, *dum;
+	double dxi,coeff1,coeff2;
+	fftw_plan p;
+	int k1;
+
+
+	// print signals
+	fwrite(signal1,sizeof(double),N,sig1);
+	fwrite(signal2,sizeof(double),N,sig2);
+	dum = calloc(1,sizeof(double));
+	for(k1 = 0; k1 <= (N-1); k1++){dum[0]=((double)k1)*dx; fwrite(dum,sizeof(double),1,xgrid);}
+
+/*	for(k1 = 0; k1 <= (N-1); k1++){*/
+/*					fprintf(sig,"%e\t%e\t%e\n", ((double)k1)*dx , signal1[k1], signal2[k1]);*/
+/*					}*/
+/*	//fclose(file1);*/
+
+
+	Nc = floor(((double)N) / 2.); Nc++;
+
+	in = calloc(2*Nc,sizeof(double));	
+	
+	out1 = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * Nc); out2 = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * Nc);
+
+	for(k1 = 0; k1 <= (N-1); k1++){in[k1]=signal1[k1];} // !!! REDUNDANT
+	
+	p = fftw_plan_dft_r2c_1d(N, in, out1, FFTW_ESTIMATE); //fftw_plan_dft_r2c_1d(int n, double *in, fftw_complex *out, unsigned flags); // plan FFTW
+	fftw_execute(p); // run FFTW
+
+	for(k1 = 0; k1 <= (N-1); k1++){in[k1]=signal2[k1];} // !!! REDUNDANT
+
+	p = fftw_plan_dft_r2c_1d(N, in, out2, FFTW_ESTIMATE); //fftw_plan_dft_r2c_1d(int n, double *in, fftw_complex *out, unsigned flags); // plan FFTW
+	fftw_execute(p); // run FFTW
+	
+	// print fourier transform
+	// file1 = fopen("ftransform.dat" , "w");
+
+/*	dxi = 2.*Pi/(  ((double)N) * dx); */
+	dxi = 2.*Pi/xmax; 
+
+	coeff1 = dx/ sqrt(2.*Pi); coeff2 = dx*dx/(2.*Pi);
+
+	for(k1 = 0; k1 <= (Nc-1); k1++){dum[0]=((double)k1)*dxi; fwrite(dum,sizeof(double),1,xigrid);}
+	for(k1 = 0; k1 <= (Nc-1); k1++){dum[0]=coeff1*out1[k1][0]; fwrite(dum,sizeof(double),1,fsig1);dum[0]=-coeff1*out1[k1][1]; fwrite(dum,sizeof(double),1,fsig1);}
+	for(k1 = 0; k1 <= (Nc-1); k1++){dum[0]=coeff1*out1[k1][0]; fwrite(dum,sizeof(double),1,fsig2);dum[0]=-coeff1*out1[k1][1]; fwrite(dum,sizeof(double),1,fsig2);}
+	for(k1 = 0; k1 <= (Nc-1); k1++){dum[0]=coeff2*(out1[k1][0]*out1[k1][0]+out1[k1][1]*out1[k1][1]); fwrite(dum,sizeof(double),1,fsig1M2)}	
+	for(k1 = 0; k1 <= (Nc-1); k1++){dum[0]=coeff2*(out2[k1][0]*out2[k1][0]+out2[k1][1]*out2[k1][1]); fwrite(dum,sizeof(double),1,fsig2M2)}
+
+/*	for(k1 = 0; k1 <= (Nc-1); k1++){*/
+/*					fprintf(fsig,"%e\t%e\t%e\t%e\t%e\t%e\t%e\n",((double)k1)*dxi,coeff1*out1[k1][0], -coeff1*out1[k1][1] , coeff2*(out1[k1][0]*out1[k1][0]+out1[k1][1]*out1[k1][1]),coeff1*out2[k1][0], -coeff1*out2[k1][1] , coeff2*(out2[k1][0]*out2[k1][0]+out2[k1][1]*out2[k1][1]));*/
+/*					}*/
+	//fclose(file1);
+
+	// !!!!! OUR CONVENTION OF ft IS COMLEX CONJUGATE WRT dft
+
+	return;
+
+}
 
 
 

@@ -42,7 +42,7 @@ char ch;
 
 int size_exp,shift;
 
-FILE *eingenvaluef,*eingenvectorf,*timef,*timef2,*gaussianwp,*volkovwp,*param,*pot,*file1,*file3,*file2,*file4,*newygrid;
+FILE *newygrid,*eingenvaluef,*eingenvectorf,*timef,*timef2,*gaussianwp,*volkovwp,*param,*pot,*file1,*file3,*file2,*file4,*file5,*file6,*file7,*file8;
 
 char filename1[25], filename2[25];
 
@@ -299,10 +299,38 @@ int main(void)
 
 
 	// TESTING WORKSPACE
+
+/*	printf("Test started \n");*/
+/*	double *testarray;*/
+/*	dum = 5.0;*/
+/*	testarray = calloc(1,sizeof(double));*/
+/*	testarray[0] = dum;*/
+
+/*	file1 = fopen("results/binaryfile1.bin" , "wb");*/
+/*	fwrite(testarray,sizeof(double),1,file1);*/
+/*	*/
+/*	fclose(file1);*/
+/*	*/
+/*	printf("test2 \n");*/
+
+/*	double *testarray2;*/
+/*	testarray2 = calloc(1,sizeof(double));*/
+
+/*	file2 = fopen("results/binaryfile1.bin" , "rb");*/
+/*	fread(testarray2,sizeof(double),1,file2);*/
+/*	fclose(file2);*/
+
+/*	printf("elem1  %lf \n",testarray2[0]);*/
+
+
+
+/*	printf("Test finished \n");*/
+/*	exit(0);*/
+
 /*	printf("Test started \n");*/
 /*	double *testarray;*/
 /*	testarray = calloc(3,sizeof(double));*/
-/*	testarray[1] = 0.5;  testarray[2] = 1.; testarray[3] = 1.5;*/
+/*	testarray[0] = 0.5;  testarray[2] = 1.; testarray[3] = 1.5;*/
 
 /*	file1 = fopen("results/binaryfile1.bin" , "wb");*/
 /*	fwrite(testarray,sizeof(double),3,file1);*/
@@ -316,13 +344,13 @@ int main(void)
 
 /*	double *testarray2;*/
 /*	testarray2 = calloc(6,sizeof(double));*/
-/*/*	testarray[1] = 0.5;  testarray[2] = 1.; testarray[3] = 1.5;*/*/
+
 
 /*	file2 = fopen("results/binaryfile1.bin" , "rb");*/
 /*	fread(testarray2,sizeof(double),6,file2);*/
 /*	fclose(file2);*/
 
-/*	printf("elem1  %lf \n",testarray2[1]);*/
+/*	printf("elem1  %lf \n",testarray2[0]);*/
 
 /*	printf("elem4  %lf \n",testarray2[4]);*/
 
@@ -436,10 +464,19 @@ int main(void)
 
 //	volkov_state_vg();
 
-	// PRINT field and source terms in both domains
+	// PRINT field and source terms in both domains // ADD switch to do one of them or both of them
+
 	file1 = fopen("results/TimeDomain.dat" , "w"); file2 = fopen("results/OmegaDomain.dat" , "w");
-	print2FFTW3(file1, file2, outputs.Efield, outputs.sourceterm, (Nt+1), dt, outputs.tgrid[Nt+1]);
+	print2FFTW3(file1, file2, outputs.Efield, outputs.sourceterm, (Nt+1), dt, outputs.tgrid[Nt]);
 	fclose(file1); fclose(file2);
+
+	file1 = fopen("results/tgrid.bin","wb"); file2 = fopen("results/Efield.bin","wb"); file3 = fopen("results/SourceTerm.bin","wb");
+	file4 = fopen("results/omegagrid.bin","wb"); file5 = fopen("results/FEfield.bin","wb"); file6 = fopen("results/FSourceTerm.bin","wb");
+	file7 = fopen("results/Spectrum2Efield.bin","wb"); file8 = fopen("results/Spectrum2SourceTerm.bin","wb");
+	print2FFTW3binary(file1, file2, outputs.Efield, outputs.sourceterm, (Nt+1), dt, outputs.tgrid[Nt]);
+	fclose(file1); fclose(file2); fclose(file3); fclose(file4); fclose(file5); fclose(file6); fclose(file7); fclose(file8);
+
+
 
 	printf("\n");
 	printf("Calculation of the HHG spectrum \n");
@@ -489,7 +526,6 @@ int main(void)
 
 /*	double *testarray2;*/
 /*	testarray2 = calloc(6,sizeof(double));*/
-/*/*	testarray[1] = 0.5;  testarray[2] = 1.; testarray[3] = 1.5;*/*/
 
 /*	file2 = fopen("results/binaryfile1.bin" , "rb");*/
 /*	fread(testarray2,sizeof(double),6,file2);*/
