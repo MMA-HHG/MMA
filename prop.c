@@ -440,6 +440,8 @@ double* propagation(struct trg_def trg, struct Efield_var Efield, double tmin, i
 
 		printresults(trg,Efield, timef,k,psi,num_r,psi0,tt,x,dx,Field,Apot,x_int,dip);
 
+/*		fprintf(testfile,"%e\n",Field);*/
+
 		if( transformgauge == 1)
 		{
 			

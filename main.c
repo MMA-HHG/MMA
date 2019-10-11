@@ -27,6 +27,8 @@ double E_start,ton,toff,dw;
 int num_E,num_exp,num_w,N_t,dumint;
 
 
+double a_Gabor, omegaMaxGabor, dtGabor, tmin1window, tmax1window, tmin2window, tmax2window;
+int PrintGaborAndSpectrum;
 
 
 double *test_expand;
@@ -40,7 +42,7 @@ char ch;
 
 int size_exp,shift;
 
-FILE *eingenvaluef,*eingenvectorf,*timef,*timef2,*gaussianwp,*volkovwp,*param,*pot,*file1,*file2,*newygrid;
+FILE *eingenvaluef,*eingenvectorf,*timef,*timef2,*gaussianwp,*volkovwp,*param,*pot,*file1,*file3,*file2,*newygrid;
 
 char filename1[25], filename2[25];
 
@@ -73,6 +75,14 @@ int main(void)
 	dumint=fscanf(param,"%i %*[^\n]\n",&analy.writewft); // writewavefunction (1-writting every tprint)
 	dumint=fscanf(param,"%lf %*[^\n]\n",&analy.tprint); // time spacing for writing the wavefunction	
 	dumint=fscanf(param,"%lf %*[^\n]\n",&x_int); // the limit of the integral for the ionisation //2 2 works fine with the lenth gauge and strong fields
+	dumint=fscanf(param,"%i %*[^\n]\n",&PrintGaborAndSpectrum); // print Gabor and partial spectra (1-yes)
+	dumint=fscanf(param,"%lf %*[^\n]\n",&a_Gabor); // the parameter of the gabor window [a.u.]
+	dumint=fscanf(param,"%lf %*[^\n]\n",&omegaMaxGabor); // maximal frequency in Gabor [a.u.]
+	dumint=fscanf(param,"%lf %*[^\n]\n",&dtGabor); // spacing in Gabor
+	dumint=fscanf(param,"%lf %*[^\n]\n",&tmin1window); // analyse 1st part of the dipole
+	dumint=fscanf(param,"%lf %*[^\n]\n",&tmax1window); // analyse 1st part of the dipole
+	dumint=fscanf(param,"%lf %*[^\n]\n",&tmin2window); // analyse 2nd part of the dipole
+	dumint=fscanf(param,"%lf %*[^\n]\n",&tmax2window); // analyse 2nd part of the dipole
 
 	dumint=fscanf(param, "%*[^\n]\n", NULL);
 
@@ -397,6 +407,32 @@ int main(void)
 
 	printf("\n");
 	printf("Calculation of the HHG spectrum \n");
+
+
+	// print Gabor and partial spectra
+	if (PrintGaborAndSpectrum == 1){
+	file1 = fopen("results/GaborDipole.dat" , "w"); file2 = fopen("results/GaborDipole_tgrid.dat" , "w"); file3 = fopen("results/GaborDipole_omegagrid.dat" , "w");
+	printGaborFFTW3(file1, file2, file3, outputs.sourceterm, (Nt+1), dt, dtGabor, a_Gabor, omegaMaxGabor);
+	fclose(file1); fclose(file2); fclose(file3);
+
+	file1 = fopen("results/OmegaDipolewindow1.dat" , "w"); 
+	printlimitedFFTW3(file1, outputs.sourceterm, (Nt+1), dt, tmin1window, tmax1window);
+	fclose(file1);
+
+	file1 = fopen("results/OmegaDipolewindow2.dat" , "w"); 
+	printlimitedFFTW3(file1, outputs.sourceterm, (Nt+1), dt, tmin2window, tmax2window);
+	fclose(file1);
+	}
+
+/*	dumint=fscanf(param,"%i %*[^\n]\n",&PrintGaborAndSpectrum); // print Gabor and partial spectra (1-yes)*/
+/*	dumint=fscanf(param,"%lf %*[^\n]\n",&a_Gabor); // the parameter of the gabor window [a.u.]*/
+/*	dumint=fscanf(param,"%lf %*[^\n]\n",&omegaMaxGabor); // maximal frequency in Gabor*/
+/*	dumint=fscanf(param,"%lf %*[^\n]\n",&dtGabor); // spacing in Gabor*/
+/*	dumint=fscanf(param,"%lf %*[^\n]\n",&tmin1window); // analyse 1st part of the dipole*/
+/*	dumint=fscanf(param,"%lf %*[^\n]\n",&tmax1window); // analyse 1st part of the dipole*/
+/*	dumint=fscanf(param,"%lf %*[^\n]\n",&tmin2window); // analyse 2nd part of the dipole*/
+/*	dumint=fscanf(param,"%lf %*[^\n]\n",&tmax2window); // analyse 2nd part of the dipole*/
+
 
 
 

@@ -717,18 +717,124 @@ void print2FFTW3(FILE *sig, FILE *fsig, double *signal1, double *signal2, int N,
 
 
 
+// PRINT Gabor of a signal
+void printGaborFFTW3(FILE *Gsig, FILE *xgrid, FILE *xigrid, double *signal, int N, double dx, double dxG, double a, double xiMaxPrint) // takes real signal speced by given "dx" and it computes and prints its Gabor transform, The parameters of the Gabor transform are new "dxG" (will be adjusted to a close one matching the points) and gabor parameter "a"
+{
+	int Nc, Ncprint;
+	fftw_complex *out, *in2;
+	double *in;
+	double dxi,coeff1,coeff2;
+	fftw_plan p;
+	int k1,k2,kstep2;
+
+
+/*	// print signal*/
+/*	for(k1 = 0; k1 <= (N-1); k1++){*/
+/*					fprintf(sig,"%e\t%e\n", ((double)k1)*dx , signal[k1]);*/
+/*					}*/
+/*	//fclose(file1);*/
+
+	a = 1.0/a;
+
+	Nc = floor(((double)N) / 2.); Nc++;
+
+	in = calloc(2*Nc,sizeof(double));	
+	
+	out = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * Nc);
+
+
+	dxi = 2.*Pi/(  ((double)N) * dx); // dimension-preserving coefficients
+	coeff1 = dx/ sqrt(2.*Pi); coeff2 = dx*dx/(2.*Pi);
+
+	Ncprint = floor( xiMaxPrint/dxi ); Ncprint++; if (Ncprint > (Nc-1) ){Ncprint = Nc-1;} // maximum frequency
+
+	
+	if (dxG > dx){kstep2=floor(dxG/dx);}else{kstep2=1;}
+
+
+
+
+	for(k2 = 0; k2 <= (N-1); k2 = k2 + kstep2) // gabor loop
+	{
+
+		for(k1 = 0; k1 <= (N-1); k1++){in[k1]= exp( -pow( a*dx*( ((double)k1)-((double)k2) ),2.)  ) * signal[k1];} // 
+		
+		p = fftw_plan_dft_r2c_1d(N, in, out, FFTW_ESTIMATE); //fftw_plan_dft_r2c_1d(int n, double *in, fftw_complex *out, unsigned flags); // plan FFTW
+		fftw_execute(p); // run FFTW
+
+		
+		// print fourier transform
+		// file1 = fopen("ftransform.dat" , "w");
+
+	
+
+		for(k1 = 0; k1 <= (Ncprint-1); k1++){
+						fprintf(Gsig,"%e\t", sqrt( coeff2*(out[k1][0]*out[k1][0]+out[k1][1]*out[k1][1])) ) ;
+						}
+		fprintf(Gsig,"%e\n", sqrt( coeff2*(out[Ncprint][0]*out[Ncprint][0]+out[Ncprint][1]*out[Ncprint][1])) ) ;
+		fprintf(xgrid,"%e\n", ((double)k2)*dx );
+
+		//fclose(file1);
+	}
+	for(k1 = 0; k1 <= Ncprint; k1++){fprintf(xigrid,"%e\n", ((double)k1)*dxi) ;}
+
+	// !!!!! OUR CONVENTION OF ft IS COMLEX CONJUGATE WRT dft
+
+	return;
+
+}
 
 
 
 
 
 
+// PRINT limited range FFTW3 of a signal (rectangular window), the result IS NOT PHASE SHIFTED !!!
+void printlimitedFFTW3(FILE *fsig, double *signal, int N, double dx, double xmin, double xmax) //takes real signal speced by given "dt" and it computes and prints its FFTW3
+{
+	int Nc, NF;
+	fftw_complex *out, *in2;
+	double *in;
+	double dxi,coeff1,coeff2;
+	fftw_plan p;
+	int k1,kmin,kmax;
 
 
 
+	kmin = floor( xmin/dx ); // maximum frequency
+	kmax = floor( xmax/dx ); kmax++; if (kmax > N-1){kmax = N;} // maximum frequency
+	NF = kmax - kmin;
 
 
+	Nc = floor(((double)NF) / 2.); Nc++;
 
+	in = calloc(2*Nc,sizeof(double));	
+	
+	out = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * Nc);
+
+	for(k1 = 0; k1 <= (NF-1); k1++){in[k1]=signal[k1+kmin];} // !!! NEEDED
+	
+	p = fftw_plan_dft_r2c_1d(NF, in, out, FFTW_ESTIMATE); //fftw_plan_dft_r2c_1d(int n, double *in, fftw_complex *out, unsigned flags); // plan FFTW
+	fftw_execute(p); // run FFTW
+
+	
+	// print fourier transform
+	// file1 = fopen("ftransform.dat" , "w");
+
+	dxi = 2.*Pi/(  ((double)NF) * dx); 
+
+	coeff1 = dx/ sqrt(2.*Pi); coeff2 = dx*dx/(2.*Pi);	
+
+	for(k1 = 0; k1 <= (Nc-1); k1++){
+					fprintf(fsig,"%e\t%e\t%e\t%e\n",((double)k1)*dxi,coeff1*out[k1][0], -coeff1*out[k1][1] , coeff2*(out[k1][0]*out[k1][0]+out[k1][1]*out[k1][1]));
+					}
+	//fclose(file1);
+
+	// !!!!! OUR CONVENTION OF ft IS COMLEX CONJUGATE WRT dft
+
+	return;
+
+}
 
 
 	/* case 3: // sin^2
