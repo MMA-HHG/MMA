@@ -298,9 +298,40 @@ int main(void)
 
 
 
-	// TESTING WORKSPACE	
+	// TESTING WORKSPACE
+/*	printf("Test started \n");*/
+/*	double *testarray;*/
+/*	testarray = calloc(3,sizeof(double));*/
+/*	testarray[1] = 0.5;  testarray[2] = 1.; testarray[3] = 1.5;*/
+
+/*	file1 = fopen("results/binaryfile1.bin" , "wb");*/
+/*	fwrite(testarray,sizeof(double),3,file1);*/
+/*	*/
+/*	testarray[1] = 2.0;  testarray[2] = 2.5; testarray[3] = 3.0;*/
+/*	fwrite(testarray,sizeof(double),3,file1);*/
+
+/*	fclose(file1);*/
+/*	*/
+/*	printf("test2 \n");*/
+
+/*	double *testarray2;*/
+/*	testarray2 = calloc(6,sizeof(double));*/
+/*/*	testarray[1] = 0.5;  testarray[2] = 1.; testarray[3] = 1.5;*/*/
+
+/*	file2 = fopen("results/binaryfile1.bin" , "rb");*/
+/*	fread(testarray2,sizeof(double),6,file2);*/
+/*	fclose(file2);*/
+
+/*	printf("elem1  %lf \n",testarray2[1]);*/
+
+/*	printf("elem4  %lf \n",testarray2[4]);*/
 
 
+/*	printf("Test finished \n");*/
+/*	exit(0);*/
+
+	
+	
 	
 
 	
@@ -400,8 +431,8 @@ int main(void)
 
 	psi = propagation(trg,Efield,tmin,Nt,num_t,dt,num_r,num_exp,dx,psi0,psi,x,timef,timef2,ton,toff,timet,dipole,gauge,transformgauge,x_int,analy,outputs);
 
-	printf("\ntmax test\n");	
-	printf("tmax,  %lf \n",*outputs.tmax);
+/*	printf("\ntmax test\n");	*/
+/*	printf("tmax,  %lf \n",*outputs.tmax);*/
 
 //	volkov_state_vg();
 

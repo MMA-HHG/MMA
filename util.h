@@ -51,7 +51,7 @@ struct outputs_def{
 	double *omegagrid;
 	double *FEfield;
 	double *Fsourceterm;
-	double *tmax;
+/*	double *tmax;*/
 };
 
 void tqli(double *,double *, int n,double *);
