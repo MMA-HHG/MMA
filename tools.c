@@ -719,7 +719,7 @@ void print2FFTW3(FILE *sig, FILE *fsig, double *signal1, double *signal2, int N,
 
 
 // PRINT Gabor of a signal
-void printGaborFFTW3(FILE *Gsig, FILE *xgrid, FILE *xigrid, double *signal, int N, double dx, double dxG, double a, double xiMaxPrint) // takes real signal speced by given "dx" and it computes and prints its Gabor transform, The parameters of the Gabor transform are new "dxG" (will be adjusted to a close one matching the points) and gabor parameter "a"
+void printGaborFFTW3(FILE *Gsig, FILE *xgrid, FILE *xigrid, FILE *Gsigbin, double *signal, int N, double dx, double dxG, double a, double xiMaxPrint) // takes real signal speced by given "dx" and it computes and prints its Gabor transform, The parameters of the Gabor transform are new "dxG" (will be adjusted to a close one matching the points) and gabor parameter "a"
 {
 	int Nc, Ncprint;
 	fftw_complex *out, *in2;
@@ -770,9 +770,17 @@ void printGaborFFTW3(FILE *Gsig, FILE *xgrid, FILE *xigrid, double *signal, int 
 	
 
 		for(k1 = 0; k1 <= (Ncprint-1); k1++){
+
 						fprintf(Gsig,"%e\t", sqrt( coeff2*(out[k1][0]*out[k1][0]+out[k1][1]*out[k1][1])) ) ;
+
+						fwrite( sqrt(coeff2*(out[k1][0]*out[k1][0]+out[k1][1]*out[k1][1])) ,sizeof(double),1,Gsigbin);
+
 						}
 		fprintf(Gsig,"%e\n", sqrt( coeff2*(out[Ncprint][0]*out[Ncprint][0]+out[Ncprint][1]*out[Ncprint][1])) ) ;
+		fwrite( sqrt(coeff2*(out[Ncprint][0]*out[Ncprint][0]+out[Ncprint][1]*out[Ncprint][1])) ,sizeof(double),1,Gsigbin);
+
+		
+
 		fprintf(xgrid,"%e\n", ((double)k2)*dx );
 
 		//fclose(file1);

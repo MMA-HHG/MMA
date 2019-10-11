@@ -42,7 +42,7 @@ char ch;
 
 int size_exp,shift;
 
-FILE *eingenvaluef,*eingenvectorf,*timef,*timef2,*gaussianwp,*volkovwp,*param,*pot,*file1,*file3,*file2,*newygrid;
+FILE *eingenvaluef,*eingenvectorf,*timef,*timef2,*gaussianwp,*volkovwp,*param,*pot,*file1,*file3,*file2,*file4,*newygrid;
 
 char filename1[25], filename2[25];
 
@@ -447,9 +447,9 @@ int main(void)
 
 	// print Gabor and partial spectra
 	if (PrintGaborAndSpectrum == 1){
-	file1 = fopen("results/GaborDipole.dat" , "w"); file2 = fopen("results/GaborDipole_tgrid.dat" , "w"); file3 = fopen("results/GaborDipole_omegagrid.dat" , "w");
-	printGaborFFTW3(file1, file2, file3, outputs.sourceterm, (Nt+1), dt, dtGabor, a_Gabor, omegaMaxGabor);
-	fclose(file1); fclose(file2); fclose(file3);
+	file1 = fopen("results/GaborDipole.dat" , "w"); file2 = fopen("results/GaborDipole_tgrid.dat" , "w"); file3 = fopen("results/GaborDipole_omegagrid.dat" , "w"); file4 = fopen("results/GaborDipole.bin" , "wb");
+	printGaborFFTW3(file1, file2, file3, file4, outputs.sourceterm, (Nt+1), dt, dtGabor, a_Gabor, omegaMaxGabor);
+	fclose(file1); fclose(file2); fclose(file3); fclose(file4);
 
 	file1 = fopen("results/OmegaDipolewindow1.dat" , "w"); 
 	printlimitedFFTW3(file1, outputs.sourceterm, (Nt+1), dt, tmin1window, tmax1window);
@@ -468,6 +468,40 @@ int main(void)
 /*	dumint=fscanf(param,"%lf %*[^\n]\n",&tmax1window); // analyse 1st part of the dipole*/
 /*	dumint=fscanf(param,"%lf %*[^\n]\n",&tmin2window); // analyse 2nd part of the dipole*/
 /*	dumint=fscanf(param,"%lf %*[^\n]\n",&tmax2window); // analyse 2nd part of the dipole*/
+
+
+/// howto write binary
+
+/*	printf("Test started \n");*/
+/*	double *testarray;*/
+/*	testarray = calloc(3,sizeof(double));*/
+/*	testarray[1] = 0.5;  testarray[2] = 1.; testarray[3] = 1.5;*/
+
+/*	file1 = fopen("results/binaryfile1.bin" , "wb");*/
+/*	fwrite(testarray,sizeof(double),3,file1);*/
+/*	*/
+/*	testarray[1] = 2.0;  testarray[2] = 2.5; testarray[3] = 3.0;*/
+/*	fwrite(testarray,sizeof(double),3,file1);*/
+
+/*	fclose(file1);*/
+/*	*/
+/*	printf("test2 \n");*/
+
+/*	double *testarray2;*/
+/*	testarray2 = calloc(6,sizeof(double));*/
+/*/*	testarray[1] = 0.5;  testarray[2] = 1.; testarray[3] = 1.5;*/*/
+
+/*	file2 = fopen("results/binaryfile1.bin" , "rb");*/
+/*	fread(testarray2,sizeof(double),6,file2);*/
+/*	fclose(file2);*/
+
+/*	printf("elem1  %lf \n",testarray2[1]);*/
+
+/*	printf("elem4  %lf \n",testarray2[4]);*/
+
+
+/*	printf("Test finished \n");*/
+/*	exit(0);*/
 
 
 

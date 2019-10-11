@@ -107,7 +107,7 @@ void vander(double *, double *, double *, int);
 double* FourInterp(int , double * , int );
 void printFFTW3(FILE *, FILE *, double *, int, double );
 void print2FFTW3(FILE *, FILE *, double *, double *, int, double, double);
-void printGaborFFTW3(FILE *, FILE *, FILE *, double *, int, double, double, double, double);
+void printGaborFFTW3(FILE *, FILE *, FILE *, FILE *, double *, int, double, double, double, double);
 void printlimitedFFTW3(FILE *, double *, int, double, double, double);
 
 void define_analytical(struct Efield_var *, FILE *);
