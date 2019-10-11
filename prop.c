@@ -119,6 +119,11 @@ double* propagation(struct trg_def trg, struct Efield_var Efield, double tmin, i
 	// interpolate(Efield.Nt-1, dum, Efield.tgrid, Efield.Field);
 	*/
 
+	printf("\ntmax test\n");
+	dum = 10.0;
+	outputs.tmax = &dum;	
+	printf("tmax,  %lf \n",*outputs.tmax);
+
 	timef = fopen( "results/time.dat", "w" );
 	timef2 = fopen( "results/time2.dat", "w" );
 	testfile = fopen( "results/thirdgauge.dat", "w" );

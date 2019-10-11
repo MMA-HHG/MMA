@@ -400,10 +400,15 @@ int main(void)
 
 	psi = propagation(trg,Efield,tmin,Nt,num_t,dt,num_r,num_exp,dx,psi0,psi,x,timef,timef2,ton,toff,timet,dipole,gauge,transformgauge,x_int,analy,outputs);
 
+	printf("\ntmax test\n");	
+	printf("tmax,  %lf \n",*outputs.tmax);
+
 //	volkov_state_vg();
 
 	// PRINT field and source terms in both domains
-	file1 = fopen("results/TimeDomain.dat" , "w"); file2 = fopen("results/OmegaDomain.dat" , "w"); print2FFTW3(file1, file2, outputs.Efield, outputs.sourceterm, (Nt+1), dt); fclose(file1); fclose(file2);
+	file1 = fopen("results/TimeDomain.dat" , "w"); file2 = fopen("results/OmegaDomain.dat" , "w");
+	print2FFTW3(file1, file2, outputs.Efield, outputs.sourceterm, (Nt+1), dt, outputs.tgrid[Nt+1]);
+	fclose(file1); fclose(file2);
 
 	printf("\n");
 	printf("Calculation of the HHG spectrum \n");

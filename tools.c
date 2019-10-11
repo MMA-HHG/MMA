@@ -661,7 +661,7 @@ void printFFTW3(FILE *sig, FILE *fsig, double *signal, int N, double dx) //takes
 }
 
 
-void print2FFTW3(FILE *sig, FILE *fsig, double *signal1, double *signal2, int N, double dx) //takes real signal speced by given "dt" and it computes and prints its FFTW3
+void print2FFTW3(FILE *sig, FILE *fsig, double *signal1, double *signal2, int N, double dx, double xmax) //takes real signal speced by given "dt" and it computes and prints its FFTW3
 {
 	int Nc;
 	fftw_complex *out1, *out2, *in2;
@@ -697,7 +697,8 @@ void print2FFTW3(FILE *sig, FILE *fsig, double *signal1, double *signal2, int N,
 	// print fourier transform
 	// file1 = fopen("ftransform.dat" , "w");
 
-	dxi = 2.*Pi/(  ((double)N) * dx); 
+/*	dxi = 2.*Pi/(  ((double)N) * dx); */
+	dxi = 2.*Pi/xmax; 
 
 	coeff1 = dx/ sqrt(2.*Pi); coeff2 = dx*dx/(2.*Pi);	
 
