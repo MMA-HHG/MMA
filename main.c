@@ -85,6 +85,7 @@ int main(void)
 	dumint=fscanf(param,"%lf %*[^\n]\n",&tmax1window); // analyse 1st part of the dipole
 	dumint=fscanf(param,"%lf %*[^\n]\n",&tmin2window); // analyse 2nd part of the dipole
 	dumint=fscanf(param,"%lf %*[^\n]\n",&tmax2window); // analyse 2nd part of the dipole
+	dumint=fscanf(param,"%i %*[^\n]\n",&PrintOutputMethod); // (0 - only text, 1 - only binaries, 2 - both)
 
 	dumint=fscanf(param, "%*[^\n]\n", NULL);
 
@@ -467,8 +468,10 @@ int main(void)
 //	volkov_state_vg();
 
 	// PRINT field and source terms in both domains // ADD switch to do one of them or both of them
+	
 
 	switch (PrintOutputMethod){
+	printf("\nPrintingResults\n");
 	case 0:
 		file1 = fopen("results/TimeDomain.dat" , "w"); file2 = fopen("results/OmegaDomain.dat" , "w");
 		print2FFTW3(file1, file2, outputs.Efield, outputs.sourceterm, (Nt+1), dt, outputs.tgrid[Nt]);
@@ -497,17 +500,14 @@ int main(void)
 
 
 
-
-
-
 	printf("\n");
 	printf("Calculation of the HHG spectrum \n");
 
 
 	// print Gabor and partial spectra
 	if (PrintGaborAndSpectrum == 1){
-	file1 = fopen("results/GaborDipole.dat" , "w"); file2 = fopen("results/GaborDipole_tgrid.dat" , "w"); file3 = fopen("results/GaborDipole_omegagrid.dat" , "w"); file4 = fopen("results/GaborDipole.bin" , "wb");
-	printGaborFFTW3(file1, file2, file3, file4, outputs.sourceterm, (Nt+1), dt, dtGabor, a_Gabor, omegaMaxGabor);
+	file1 = fopen("results/GaborDimensions.dat" , "w"); file2 = fopen("results/GaborDipole_tgrid.bin" , "wb"); file3 = fopen("results/GaborDipole_omegagrid.bin" , "wb"); file4 = fopen("results/GaborDipole.bin" , "wb");
+	printGaborFFTW3binary(file1, file2, file3, file4, outputs.sourceterm, (Nt+1), dt, dtGabor, a_Gabor, omegaMaxGabor);
 	fclose(file1); fclose(file2); fclose(file3); fclose(file4);
 
 	file1 = fopen("results/OmegaDipolewindow1.dat" , "w"); 
@@ -518,6 +518,13 @@ int main(void)
 	printlimitedFFTW3(file1, outputs.sourceterm, (Nt+1), dt, tmin2window, tmax2window);
 	fclose(file1);
 	}
+
+/*	if (PrintInputGabor==1){*/
+/*	file1 = fopen("results/GaborInput.dat" , "w"); file2 = fopen("results/GaborInput_tgrid.dat" , "w"); file3 = fopen("results/GaborInput_omegagrid.dat" , "w"); file4 = fopen("results/GaborDipole.bin" , "wb");*/
+/*	printGaborFFTW3(file1, file2, file3, file4, outputs.sourceterm, (Nt+1), dt, dtGabor, a_Gabor, omegaMaxGabor);*/
+/*	fclose(file1); fclose(file2); fclose(file3); fclose(file4);		*/
+/*	}*/
+
 
 /*	dumint=fscanf(param,"%i %*[^\n]\n",&PrintGaborAndSpectrum); // print Gabor and partial spectra (1-yes)*/
 /*	dumint=fscanf(param,"%lf %*[^\n]\n",&a_Gabor); // the parameter of the gabor window [a.u.]*/
