@@ -17,7 +17,7 @@ extern double* timet,dipole;
 // extern struct Efield_var;
 
 
-void printresults(struct trg_def trg, struct Efield_var Efield, FILE *file1, int k, double *psi, int num_r, double *psi0, double tt, double *x, double dx, double Field, double Apot, double x_int, double dip_pre)
+void printresults(struct trg_def trg, struct Efield_var Efield, FILE *file1, int k, double *psi, int num_r, double *psi0, double tt, double *x, double dx, double Field, double Apot, double x_int, double dip_pre, struct outputs_def outputs)
 {
 	double dip,pop_re,pop_im,pop_tot,current,position,ion_prob2, dum;
 	int j,k1,k2,k3,k4;
@@ -88,6 +88,9 @@ void printresults(struct trg_def trg, struct Efield_var Efield, FILE *file1, int
 			fprintf(file1,"%e\t%e\t%e\t%e\t%e\t%e\t%e\t%e\t%e\t%e\t%e\n",tt,Field,Apot,pop_tot,dip,-dip+Field,current,position,ion_prob2,(1.-pop_tot)*Field,dum);
 		break;
 		}
+
+		// save to outputs
+		outputs.PopTot[k+1]=pop_tot;
 		
 
 		/*
@@ -799,7 +802,7 @@ void printGaborFFTW3(FILE *Gsig, FILE *xgrid, FILE *xigrid, FILE *Gsigbin, doubl
 }
 
 
-void print2FFTW3binary(FILE *xgrid, FILE *sig1, FILE *sig2, FILE *xigrid, FILE *fsig1, FILE *fsig2, FILE *fsig1M2, FILE *fsig2M2, double *signal1, double *signal2, int N, double dx, double xmax) //takes real signal speced by given "dt" and it computes and prints its FFTW3
+void print2FFTW3binary(FILE *xgrid, FILE *sig1, FILE *sig2, FILE *xigrid, FILE *fsig1, FILE *fsig2, FILE *fsig1M2, FILE *fsig2M2, FILE *GridDimensions, double *signal1, double *signal2, int N, double dx, double xmax) //takes real signal speced by given "dt" and it computes and prints its FFTW3
 {
 	int Nc;
 	fftw_complex *out1, *out2, *in2;
@@ -850,6 +853,9 @@ void print2FFTW3binary(FILE *xgrid, FILE *sig1, FILE *sig2, FILE *xigrid, FILE *
 	for(k1 = 0; k1 <= (Nc-1); k1++){dum[0]=coeff1*out2[k1][0]; fwrite(dum,sizeof(double),1,fsig2);dum[0]=-coeff1*out2[k1][1]; fwrite(dum,sizeof(double),1,fsig2);}
 	for(k1 = 0; k1 <= (Nc-1); k1++){dum[0]=coeff2*(out1[k1][0]*out1[k1][0]+out1[k1][1]*out1[k1][1]); fwrite(dum,sizeof(double),1,fsig1M2);}	
 	for(k1 = 0; k1 <= (Nc-1); k1++){dum[0]=coeff2*(out2[k1][0]*out2[k1][0]+out2[k1][1]*out2[k1][1]); fwrite(dum,sizeof(double),1,fsig2M2);}
+
+	fprintf(GridDimensions,"%i\n", N);
+	fprintf(GridDimensions,"%i\n", Nc);
 
 /*	for(k1 = 0; k1 <= (Nc-1); k1++){*/
 /*					fprintf(fsig,"%e\t%e\t%e\t%e\t%e\t%e\t%e\n",((double)k1)*dxi,coeff1*out1[k1][0], -coeff1*out1[k1][1] , coeff2*(out1[k1][0]*out1[k1][0]+out1[k1][1]*out1[k1][1]),coeff1*out2[k1][0], -coeff1*out2[k1][1] , coeff2*(out2[k1][0]*out2[k1][0]+out2[k1][1]*out2[k1][1]));*/
@@ -923,7 +929,7 @@ void printGaborFFTW3binary(FILE *Gsize, FILE *xgrid, FILE *xigrid, FILE *Gsigbin
 	int k1,k2,kstep2,NxG;
 	
 	double dum;
-	double *dumptr;
+	double *dumptr1, *dumptr2;
 
 
 /*	// print signal*/
@@ -951,13 +957,18 @@ void printGaborFFTW3binary(FILE *Gsize, FILE *xgrid, FILE *xigrid, FILE *Gsigbin
 	if (dxG > dx){kstep2=floor(dxG/dx);}else{kstep2=1;}
 
 
+		
+
+	
 
 	NxG = 0; // counting the length of the loop
 	for(k2 = 0; k2 <= (N-1); k2 = k2 + kstep2) // gabor loop
 	{
 		NxG++;
-		for(k1 = 0; k1 <= (N-1); k1++){in[k1]= exp( -pow( a*dx*( ((double)k1)-((double)k2) ),2.)  ) * signal[k1];} //  
-		
+		for(k1 = 0; k1 <= (N-1); k1++){in[k1]= exp( -pow( a*dx*( ((double)k1)-((double)k2) ),2.)  ) * signal[k1];} // 
+ 
+		dumptr1 = calloc( (Ncprint+1) ,sizeof(double));
+		dumptr2 = calloc(1,sizeof(double));
 		p = fftw_plan_dft_r2c_1d(N, in, out, FFTW_ESTIMATE); //fftw_plan_dft_r2c_1d(int n, double *in, fftw_complex *out, unsigned flags); // plan FFTW
 		fftw_execute(p); // run FFTW
 
@@ -966,30 +977,36 @@ void printGaborFFTW3binary(FILE *Gsize, FILE *xgrid, FILE *xigrid, FILE *Gsigbin
 		// file1 = fopen("ftransform.dat" , "w");
 
 	
-		dumptr = calloc(1,sizeof(double));
+/*		dumptr1 = calloc(1,sizeof(double));*/
 
-		for(k1 = 0; k1 <= Ncprint; k1++){
-						dumptr[0] = sqrt( coeff2*(out[k1][0]*out[k1][0]+out[k1][1]*out[k1][1]));
-/*						fprintf(Gsig,"%e\t", dumptr[0]);*/
-						fwrite( dumptr ,sizeof(double),1,Gsigbin);
+		for(k1 = 0; k1 <= Ncprint; k1++){dumptr1[k1] = sqrt( coeff2*(out[k1][0]*out[k1][0]+out[k1][1]*out[k1][1]));}
+		fwrite( dumptr1 ,sizeof(double), (Ncprint+1) ,Gsigbin);
+		free(dumptr1);
 
-						}
+
+
 /*		dumptr[0] = sqrt( coeff2*(out[Ncprint][0]*out[Ncprint][0]+out[Ncprint][1]*out[Ncprint][1]));*/
 /*		fprintf(Gsig,"%e\n", dumptr[0] ) ;*/
 /*		fwrite( dumptr,sizeof(double),1,Gsigbin);*/
 
 		
-		dumptr[0] = ((double)k2)*dx;
-		fwrite(dumptr ,sizeof(double),1,xgrid);
+		dumptr2[0] = ((double)k2)*dx;
+		fwrite(dumptr2 ,sizeof(double),1,xgrid);
+		free(dumptr2);
+		 
 
 		//fclose(file1);
 	}
 	fprintf(Gsize,"%i\n", NxG);
-	for(k1 = 0; k1 <= Ncprint; k1++){dumptr[0] = ((double)k1)*dxi; fwrite(dumptr,sizeof(double),1,xigrid);}
+
+	dumptr1 = calloc( (Ncprint+1) ,sizeof(double));
+	for(k1 = 0; k1 <= Ncprint; k1++){dumptr1[k1] = ((double)k1)*dxi;}
+	fwrite( dumptr1 ,sizeof(double), (Ncprint+1) ,xigrid);
+	free(dumptr1);
 
 	// !!!!! OUR CONVENTION OF ft IS COMLEX CONJUGATE WRT dft
 
-	free(dumptr);
+	
 	return;
 
 }

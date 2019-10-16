@@ -44,7 +44,7 @@ char ch;
 
 int size_exp,shift;
 
-FILE *newygrid,*eingenvaluef,*eingenvectorf,*timef,*timef2,*gaussianwp,*volkovwp,*param,*pot,*file1,*file3,*file2,*file4,*file5,*file6,*file7,*file8;
+FILE *newygrid,*eingenvaluef,*eingenvectorf,*timef,*timef2,*gaussianwp,*volkovwp,*param,*pot,*file1,*file3,*file2,*file4,*file5,*file6,*file7,*file8,*file9;
 
 char filename1[25], filename2[25];
 
@@ -455,7 +455,7 @@ int main(void)
 	printf("\n");	
 
 
-	outputs.tgrid = calloc((Nt+1),sizeof(double)); outputs.Efield = calloc((Nt+1),sizeof(double)); outputs.sourceterm = calloc((Nt+1),sizeof(double));
+	outputs.tgrid = calloc((Nt+1),sizeof(double)); outputs.Efield = calloc((Nt+1),sizeof(double)); outputs.sourceterm = calloc((Nt+1),sizeof(double)); outputs.PopTot = calloc((Nt+1),sizeof(double));
 
 	start = clock();
 
@@ -476,24 +476,38 @@ int main(void)
 		file1 = fopen("results/TimeDomain.dat" , "w"); file2 = fopen("results/OmegaDomain.dat" , "w");
 		print2FFTW3(file1, file2, outputs.Efield, outputs.sourceterm, (Nt+1), dt, outputs.tgrid[Nt]);
 		fclose(file1); fclose(file2);
+		file1 = fopen("results/GS_population.dat" , "w");
+		for(k1 = 0; k1 <= (Nt+1); k1++){fprintf(sig,"%e\t%e\n", outputs.tgrid[k1] , outputs.PopTot[k1]);}
+		fclose(file1);
 	break;
 	case 1:
 		file1 = fopen("results/tgrid.bin","wb"); file2 = fopen("results/Efield.bin","wb"); file3 = fopen("results/SourceTerm.bin","wb");
 		file4 = fopen("results/omegagrid.bin","wb"); file5 = fopen("results/FEfield.bin","wb"); file6 = fopen("results/FSourceTerm.bin","wb");
-		file7 = fopen("results/Spectrum2Efield.bin","wb"); file8 = fopen("results/Spectrum2SourceTerm.bin","wb");
-		print2FFTW3binary(file1, file2, file3, file4, file5, file6, file7, file8, outputs.Efield, outputs.sourceterm, (Nt+1), dt, outputs.tgrid[Nt]);
-		fclose(file1); fclose(file2); fclose(file3); fclose(file4); fclose(file5); fclose(file6); fclose(file7); fclose(file8);
+		file7 = fopen("results/Spectrum2Efield.bin","wb"); file8 = fopen("results/Spectrum2SourceTerm.bin","wb"); file9 = fopen("results/GridDimensionsForBinaries.dat","w");
+		print2FFTW3binary(file1, file2, file3, file4, file5, file6, file7, file8, file9, outputs.Efield, outputs.sourceterm, (Nt+1), dt, outputs.tgrid[Nt]);
+		fclose(file1); fclose(file2); fclose(file3); fclose(file4); fclose(file5); fclose(file6); fclose(file7); fclose(file8); fclose(file9);
+
+		file1 = fopen("results/GS_population.bin","wb");
+		fwrite(outputs.PopTot,sizeof(double),(Nt+1),file1);
+		fclose(file1);
 	break;
 	case 2:
 		file1 = fopen("results/tgrid.bin","wb"); file2 = fopen("results/Efield.bin","wb"); file3 = fopen("results/SourceTerm.bin","wb");
 		file4 = fopen("results/omegagrid.bin","wb"); file5 = fopen("results/FEfield.bin","wb"); file6 = fopen("results/FSourceTerm.bin","wb");
-		file7 = fopen("results/Spectrum2Efield.bin","wb"); file8 = fopen("results/Spectrum2SourceTerm.bin","wb");
-		print2FFTW3binary(file1, file2, file3, file4, file5, file6, file7, file8, outputs.Efield, outputs.sourceterm, (Nt+1), dt, outputs.tgrid[Nt]);
-		fclose(file1); fclose(file2); fclose(file3); fclose(file4); fclose(file5); fclose(file6); fclose(file7); fclose(file8);
+		file7 = fopen("results/Spectrum2Efield.bin","wb"); file8 = fopen("results/Spectrum2SourceTerm.bin","wb"); file9 = fopen("results/GridDimensionsForBinaries.dat","w");
+		print2FFTW3binary(file1, file2, file3, file4, file5, file6, file7, file8, file9, outputs.Efield, outputs.sourceterm, (Nt+1), dt, outputs.tgrid[Nt]);
+		fclose(file1); fclose(file2); fclose(file3); fclose(file4); fclose(file5); fclose(file6); fclose(file7); fclose(file8); fclose(file9);
+
+		file1 = fopen("results/GS_population.bin","wb");
+		fwrite(outputs.PopTot,sizeof(double),(Nt+1),file1);
+		fclose(file1);
 
 		file1 = fopen("results/TimeDomain.dat" , "w"); file2 = fopen("results/OmegaDomain.dat" , "w");
 		print2FFTW3(file1, file2, outputs.Efield, outputs.sourceterm, (Nt+1), dt, outputs.tgrid[Nt]);
 		fclose(file1); fclose(file2);
+		file1 = fopen("results/GS_population.dat" , "w");
+		for(k1 = 0; k1 <= (Nt+1); k1++){fprintf(sig,"%e\t%e\n", outputs.tgrid[k1] , outputs.PopTot[k1]);}
+		fclose(file1);
 	break;
 	}
 
@@ -506,10 +520,6 @@ int main(void)
 
 	// print Gabor and partial spectra
 	if (PrintGaborAndSpectrum == 1){
-	file1 = fopen("results/GaborDimensions.dat" , "w"); file2 = fopen("results/GaborDipole_tgrid.bin" , "wb"); file3 = fopen("results/GaborDipole_omegagrid.bin" , "wb"); file4 = fopen("results/GaborDipole.bin" , "wb");
-	printGaborFFTW3binary(file1, file2, file3, file4, outputs.sourceterm, (Nt+1), dt, dtGabor, a_Gabor, omegaMaxGabor);
-	fclose(file1); fclose(file2); fclose(file3); fclose(file4);
-
 	file1 = fopen("results/OmegaDipolewindow1.dat" , "w"); 
 	printlimitedFFTW3(file1, outputs.sourceterm, (Nt+1), dt, tmin1window, tmax1window);
 	fclose(file1);
@@ -517,6 +527,10 @@ int main(void)
 	file1 = fopen("results/OmegaDipolewindow2.dat" , "w"); 
 	printlimitedFFTW3(file1, outputs.sourceterm, (Nt+1), dt, tmin2window, tmax2window);
 	fclose(file1);
+
+	file1 = fopen("results/GaborDimensions.dat" , "w"); file2 = fopen("results/GaborDipole_tgrid.bin" , "wb"); file3 = fopen("results/GaborDipole_omegagrid.bin" , "wb"); file4 = fopen("results/GaborDipole.bin" , "wb");
+	printGaborFFTW3binary(file1, file2, file3, file4, outputs.sourceterm, (Nt+1), dt, dtGabor, a_Gabor, omegaMaxGabor);
+	fclose(file1); fclose(file2); fclose(file3); fclose(file4);
 	}
 
 /*	if (PrintInputGabor==1){*/
