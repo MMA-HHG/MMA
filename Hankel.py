@@ -4,9 +4,29 @@ import numpy as np
 import struct
 import array
 import os
+import time
+#import ray
 #import matlab.engine
 #import string
+import multiprocessing as mp
+import math
 
+#ray.init()
+
+
+def n1n2mapping(k1,k2,N1): 
+  return k1+k2*N1
+
+def NumOfPointsInRange(N1,N2,k): #number of points between two integers following the Python's range logic (0,...,N-1), assumes N1<N2
+  if N1 != 0:
+    return NumOfPointsInRange(N1-N1,N2-N1,k);
+  else:
+    if (N2 % k) == 0:
+      return N2 // k;
+    else:
+      return (N2 // k) + 1;
+
+print("Number of procs: ", mp.cpu_count())
 
 def myfun():
   print("abc")
@@ -28,6 +48,8 @@ myfun()
 a = special.jn(0,1)
 
 print(a)
+
+print("J0=",a)
 
 
 ##file1=open("Spectrum.dat","w")
@@ -124,31 +146,47 @@ print(FField_r[0,0])
 #print(complex(xxx[1],z[1]))
 
 
-rmax_anal = 0.01; # [SI]
+rmax_anal = 0.00002; # [SI]
 Nr_anal=100;
 D = 1.0 # [SI], screen distance
 rgrid_anal = np.linspace(0.0,rmax_anal,Nr_anal)
 Nomega_anal = 3000 #3000
-omega_step = 1
+Nomega_anal_start = 2700
+omega_step = 2
 
-FHHGOnScreen = np.empty([Nomega_anal,Nr_anal], dtype=np.cdouble)
+Nomega_points = NumOfPointsInRange(Nomega_anal_start,Nomega_anal,omega_step);
+
+omegagrid_anal=[]
+
+FHHGOnScreen = np.empty([Nomega_points,Nr_anal], dtype=np.cdouble)
 integrand = np.empty([Nr], dtype=np.cdouble)
 
 
+pool = mp.Pool(mp.cpu_count())
+
 ## main integration, first list omegas
-for k1 in range(0,Nomega_anal,omega_step): #Nomega
+k4=0 # # of loops in omega 
+for k1 in range(Nomega_anal_start,Nomega_anal,omega_step): #Nomega
+  tic = time.clock()
   for k2 in range(Nr_anal): #Nomega
     k_omega =  omegagrid[k1]/(TIME*c_light); # omega divided by time: a.u. -> SI
-    for k3 in range(Nr): integrand[k3] = rgrid[k3]*FField_r[k1,k3]*special.jn(0,k_omega*rgrid[k3]*rgrid_anal[k2]/D) ;# rescale r to atomic units!
+    for k3 in range(Nr): integrand[k3] = rgrid[k3]*FField_r[k1,k3]*special.jn(0,k_omega*rgrid[k3]*rgrid_anal[k2]/D); # rescale r to atomic units for spectrum in atomic units! (only scaling)
 #    integrand = 
-    FHHGOnScreen[k1,k2] = integrate.trapz(integrand,rgrid);
-  print(k1)
+    FHHGOnScreen[k4,k2] = integrate.trapz(integrand,rgrid);
+#    FHHGOnScreen[k4,k2] = integrate.simps(integrand,rgrid);
+  toc = time.clock()
+  print('cycle',k1,'duration',toc-tic)
+  omegagrid_anal.append(omegagrid[k1]);
+  k4=k4+1
 
+omegagrid_anal=np.asarray(omegagrid_anal);
 
     
 #file1=open("Spectrum.dat","w")
 np.savetxt("Spectrumreal.dat",FHHGOnScreen.real,fmt="%e")
 np.savetxt("Spectrumimag.dat",FHHGOnScreen.imag,fmt="%e")
+np.savetxt("omegagrid_anal.dat",omegagrid_anal,fmt="%e")
+np.savetxt("rgrid_anal.dat",rgrid_anal,fmt="%e")
 
 
 
