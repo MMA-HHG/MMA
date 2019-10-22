@@ -168,7 +168,7 @@ Nomega_points = NumOfPointsInRange(Nomega_anal_start,Nomega_anal,omega_step);
 
 omegagrid_anal=[]
 
-#FHHGOnScreen = np.empty(Nomega_points*Nr_anal, dtype=np.cdouble)
+FHHGOnScreen = np.empty(Nomega_points*Nr_anal, dtype=np.cdouble)
 
 integrand = np.empty([Nr], dtype=np.cdouble)
 
@@ -182,27 +182,22 @@ def FieldOnScreen(omegagrid, omega_step, rgrid, Nr, FField_r, rgrid_anal, n, N1)
 #  res = integrate.trapz(integrand,rgrid);
   toc = time.clock()
 #  print('cycle',k1,'duration',toc-tic)
-  return n, 5.0
+  return res
 
 
-
+print("before pool")
 # parallel computing of all points
 pool = mp.Pool(mp.cpu_count())
-
-FHHGOnScreen_objects = [pool.apply_async(FieldOnScreen, args=(omegagrid, omega_step, rgrid, Nr, FField_r, rgrid_anal, n, Nomega_points)) for n in range(Nomega_points*Nr_anal)]
-
-#FHHGOnScreen = [r_obj.get()[1] for r_obj in FHHGOnScreen_objects]
-
-
+FHHGOnScreen = [pool.apply_async(FieldOnScreen, args=(omegagrid, omega_step, rgrid, Nr, FField_r, rgrid_anal, n, Nomega_points)) for n in range(Nomega_points*Nr_anal)]
 pool.close()
-pool.join()
+print("after pool")
 
 for k1 in range(Nomega_anal_start,Nomega_anal,omega_step): omegagrid_anal.append(omegagrid[k1])
 omegagrid_anal=np.asarray(omegagrid_anal);
 
 
-#print(FHHGOnScreen[0])
-print(FHHGOnScreen_objects[0])
+print(FHHGOnScreen[0])
+print(FHHGOnScreen.get()[0])
 
 
 
