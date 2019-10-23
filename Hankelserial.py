@@ -79,8 +79,8 @@ for line in lines: dum = line.split(); rgrid.append(float(dum[1])); k1=k1+1
 Nr = k1; rgrid=np.asarray(rgrid);  
 file1.close()  
 
-Nr = 512;
-rgrid = rgrid[:Nr]
+#Nr = 512;
+#rgrid = rgrid[:Nr]
 
 print(rgrid)
 #for k1 in range(Nr): print(z[k1])
@@ -170,41 +170,41 @@ Nomega_points = NumOfPointsInRange(Nomega_anal_start,Nomega_anal,omega_step);
 
 omegagrid_anal=[]
 
-#FHHGOnScreen = np.empty(Nomega_points*Nr_anal, dtype=np.cdouble)
+FHHGOnScreen = np.empty([Nomega_points,Nr_anal], dtype=np.cdouble)
 
 integrand = np.empty([Nr], dtype=np.cdouble)
 
 
-def FieldOnScreen(omegagrid, omega_step, rgrid, Nr, FField_r, rgrid_anal, n, N1):
-  tic = time.clock()
-  k1, k2 = n1n2mapping_inv(n,N1)
-  k_omega =  omegagrid[k1*omega_step]/(TIME*c_light); # omega divided by time: a.u. -> SI
-  for k3 in range(Nr): integrand[k3] = rgrid[k3]*FField_r[k1,k3]*special.jn(0,k_omega*rgrid[k3]*rgrid_anal[k2]/D); # rescale r to atomic units for spectrum in atomic units! (only scaling)
-  res = integrate.trapz(integrand,rgrid);
-  res = integrate.simps(integrand,rgrid);
-  toc = time.clock()
-  print(mp.current_process())
-  print('cycle',k1,'duration',toc-tic)
-  return (n, res)
+#def FieldOnScreen(omegagrid, omega_step, rgrid, Nr, FField_r, rgrid_anal, n, N1):
+#  tic = time.clock()
+#  k1, k2 = n1n2mapping_inv(n,N1)
+#  k_omega =  omegagrid[k1*omega_step]/(TIME*c_light); # omega divided by time: a.u. -> SI
+#  for k3 in range(Nr): integrand[k3] = rgrid[k3]*FField_r[k1,k3]*special.jn(0,k_omega*rgrid[k3]*rgrid_anal[k2]/D); # rescale r to atomic units for spectrum in atomic units! (only scaling)
+#  res = integrate.trapz(integrand,rgrid);
+#  res = integrate.simps(integrand,rgrid);
+#  toc = time.clock()
+#  print(mp.current_process())
+#  print('cycle',k1,'duration',toc-tic)
+#  return (n, res)
 
 
 
 tic1 = time.clock()
 
-# parallel computing of all points
-print('test1')
-pool = mp.Pool(16)
-
-print('test2')
-
-FHHGOnScreen = []
-
-FHHGOnScreen = [pool.apply(FieldOnScreen, args=(omegagrid, omega_step, rgrid, Nr, FField_r, rgrid_anal, n, Nomega_points)) for n in range(Nomega_points*Nr_anal)]
-
-#FHHGOnScreen = [r_obj.get()[1] for r_obj in FHHGOnScreen_objects]
-
-
-pool.close()
+## main integration, first list omegas
+k4=0 # # of loops in omega 
+for k1 in range(Nomega_anal_start,Nomega_anal,omega_step): #Nomega
+  tic = time.clock()
+  for k2 in range(Nr_anal): #Nomega
+    k_omega =  omegagrid[k1]/(TIME*c_light); # omega divided by time: a.u. -> SI
+    for k3 in range(Nr): integrand[k3] = rgrid[k3]*FField_r[k1,k3]*special.jn(0,k_omega*rgrid[k3]*rgrid_anal[k2]/D); # rescale r to atomic units for spectrum in atomic units! (only scaling)
+#    integrand = 
+    FHHGOnScreen[k4,k2] = integrate.trapz(integrand,rgrid);
+#    FHHGOnScreen[k4,k2] = integrate.simps(integrand,rgrid);
+  toc = time.clock()
+  print('cycle',k1,'duration',toc-tic)
+  omegagrid_anal.append(omegagrid[k1]);
+  k4=k4+1
 
 print(FHHGOnScreen)
 #print(FHHGOnScreen.get()[1])
