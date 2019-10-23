@@ -79,7 +79,7 @@ for line in lines: dum = line.split(); rgrid.append(float(dum[1])); k1=k1+1
 Nr = k1; rgrid=np.asarray(rgrid);  
 file1.close()  
 
-Nr = 512;
+Nr = 32;
 rgrid = rgrid[:Nr]
 
 print(rgrid)
@@ -159,59 +159,132 @@ print(FField_r[0,0])
 
 
 rmax_anal = 0.00002; # [SI]
-Nr_anal=5;
+Nr_anal=100;
 D = 1.0 # [SI], screen distance
 rgrid_anal = np.linspace(0.0,rmax_anal,Nr_anal)
 Nomega_anal = 3000 #3000
-Nomega_anal_start = 2980
+Nomega_anal_start = 2900
 omega_step = 1
 
 Nomega_points = NumOfPointsInRange(Nomega_anal_start,Nomega_anal,omega_step);
 
 omegagrid_anal=[]
 
-#FHHGOnScreen = np.empty(Nomega_points*Nr_anal, dtype=np.cdouble)
+print('Nomega_points = ', Nomega_points);
 
 integrand = np.empty([Nr], dtype=np.cdouble)
 
 
-def FieldOnScreen(omegagrid, omega_step, rgrid, Nr, FField_r, rgrid_anal, n, N1):
-  tic = time.clock()
-  k1, k2 = n1n2mapping_inv(n,N1)
-  k_omega =  omegagrid[k1*omega_step]/(TIME*c_light); # omega divided by time: a.u. -> SI
-  for k3 in range(Nr): integrand[k3] = rgrid[k3]*FField_r[k1,k3]*special.jn(0,k_omega*rgrid[k3]*rgrid_anal[k2]/D); # rescale r to atomic units for spectrum in atomic units! (only scaling)
-  res = integrate.trapz(integrand,rgrid);
-  res = integrate.simps(integrand,rgrid);
-  toc = time.clock()
-  print(mp.current_process())
-  print('cycle',k1,'duration',toc-tic)
-  return (n, res)
+#def FieldOnScreen(omegagrid, omega_step, rgrid, Nr, FField_r, rgrid_anal, n, N1):
+#  tic = time.clock()
+#  k1, k2 = n1n2mapping_inv(n,N1)
+#  k_omega =  omegagrid[k1*omega_step]/(TIME*c_light); # omega divided by time: a.u. -> SI
+#  for k3 in range(Nr): integrand[k3] = rgrid[k3]*FField_r[k1,k3]*special.jn(0,k_omega*rgrid[k3]*rgrid_anal[k2]/D); # rescale r to atomic units for spectrum in atomic units! (only scaling)
+#  res = integrate.trapz(integrand,rgrid);
+#  res = integrate.simps(integrand,rgrid);
+#  toc = time.clock()
+#  print(mp.current_process())
+#  print('cycle',k1,'duration',toc-tic)
+#  return (n, res)
+
+
 
 
 
 tic1 = time.clock()
-
-# parallel computing of all points
-print('test1')
-pool = mp.Pool(16)
-
-print('test2')
-
-FHHGOnScreen = []
-
-FHHGOnScreen = [pool.apply(FieldOnScreen, args=(omegagrid, omega_step, rgrid, Nr, FField_r, rgrid_anal, n, Nomega_points)) for n in range(Nomega_points*Nr_anal)]
-
-#FHHGOnScreen = [r_obj.get()[1] for r_obj in FHHGOnScreen_objects]
+ttic1 = time.time()
+# define output queue
+output = mp.Queue()
 
 
-pool.close()
+# define function
+def FieldOnScreen(omegagrid, omega_step, rgrid, Nr, FField_r, rgrid_anal, k_start, k_num):
+  FHHGOnScreen = np.empty([k_num,Nr_anal], dtype=np.cdouble)
+  k4=0 # # of loops in omega 
+  for k1 in range(k_num): #Nomega
+    k5 = k_start + k1*omega_step # accesing the grid
+    tic = time.clock()
+    for k2 in range(Nr_anal): #Nomega
+      k_omega =  omegagrid[k5]/(TIME*c_light); # omega divided by time: a.u. -> SI
+      for k3 in range(Nr): integrand[k3] = rgrid[k3]*FField_r[k5,k3]*special.jn(0,k_omega*rgrid[k3]*rgrid_anal[k2]/D); # rescale r to atomic units for spectrum in atomic units! (only scaling)
+      FHHGOnScreen[k4,k2] = integrate.trapz(integrand,rgrid);
+#      FHHGOnScreen[k4,k2] = integrate.simps(integrand,rgrid);
+    toc = time.clock()
+    print('cycle',k1,'duration',toc-tic)
+#    omegagrid_anal.append(omegagrid[k1]);
+    k4=k4+1
+  res = (k_start,FHHGOnScreen)
+  output.put(res)
 
-print(FHHGOnScreen)
-#print(FHHGOnScreen.get()[1])
+# Nomega_points is the number of simulations we want to perform
+
+
+W = mp.cpu_count() # this is the number of workers
+
+W = 8;
+
+# optimal workload is obhtained by the same amount of load for each woker, eventually one extra task for the last worker. Otherwise (NOT OPTIMAL!!!), every worker takes more load and some workers may be eventually not used. An optimal routine would be either balance the load among the workers or employ some sophisticated  parallel scheduler.
+if ( ( (Nomega_points % W)==0 ) or ( (Nomega_points % W)==1 ) ):
+  Nint = Nomega_points//W; # the number of points in an interval (beside the last interval...); NumOfPointsInRange(0,Nomega_points,W);
+  N_PointsGrid=[]; N_PointsForProcess=[];
+  for k1 in range(W): N_PointsGrid.append(k1*Nint);
+  N_PointsGrid.append(Nomega_points);
+  for k1 in range(W): N_PointsForProcess.append(N_PointsGrid[k1+1]-N_PointsGrid[k1])
+else:
+  Nint = (Nomega_points//W) + 1; 
+  N_PointsGrid=[]; N_PointsForProcess=[];
+  for k1 in range(W+1):
+    dum = k1*Nint
+    if dum >= Nomega_points:
+      print('dum', dum)
+      N_PointsGrid.append(Nomega_points);
+      W = k1;
+      break;
+    else:
+      N_PointsGrid.append(dum);
+  print(N_PointsGrid)
+  for k1 in range(W): N_PointsForProcess.append(N_PointsGrid[k1+1]-N_PointsGrid[k1])
+
+# optimal workload is now given by the number of processes
+
+print('process grids')
+print(N_PointsGrid)
+print(N_PointsForProcess)
+print('----')
+
+# now we need to retrieve the number of loops for each worker in general cases...
+# 
+
+
+
+# define processes
+processes = [mp.Process(target=FieldOnScreen, args=(omegagrid, omega_step, rgrid, Nr, FField_r, rgrid_anal, N_PointsGrid[k1], N_PointsForProcess[k1])) for k1 in range(W)]
+
+# run processes
+for p in processes: p.start();
+
+# exit the completed processes
+for p in processes: p.join();
+
+# append results
+results = [output.get() for p in processes]
 
 
 toc1 = time.clock()
+ttoc1 = time.time()
 print('duration',toc1-tic1)
+print('duration',ttoc1-ttic1)
+
+
+#print(results[0])
+#print(results[1])
+
+
+#print(FHHGOnScreen)
+#print(FHHGOnScreen.get()[1])
+
+
+
 
 
 for k1 in range(Nomega_anal_start,Nomega_anal,omega_step): omegagrid_anal.append(omegagrid[k1])
