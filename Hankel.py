@@ -215,7 +215,7 @@ def FieldOnScreen(omegagrid, omega_step, rgrid, Nr, FField_r, rgrid_anal, k_star
     print('cycle',k1,'duration',toc-tic)
 #    omegagrid_anal.append(omegagrid[k1]);
     k4=k4+1
-  res = (k_start,FHHGOnScreen)
+  res = (k_start,k_num,FHHGOnScreen)
   output.put(res)
 
 # Nomega_points is the number of simulations we want to perform
@@ -223,7 +223,7 @@ def FieldOnScreen(omegagrid, omega_step, rgrid, Nr, FField_r, rgrid_anal, k_star
 
 W = mp.cpu_count() # this is the number of workers
 
-W = 8;
+W = 32;
 
 # optimal workload is obhtained by the same amount of load for each woker, eventually one extra task for the last worker. Otherwise (NOT OPTIMAL!!!), every worker takes more load and some workers may be eventually not used. An optimal routine would be either balance the load among the workers or employ some sophisticated  parallel scheduler.
 if ( ( (Nomega_points % W)==0 ) or ( (Nomega_points % W)==1 ) ):
@@ -284,8 +284,8 @@ print('duration2',toc2-tic1)
 print('duration2',ttoc2-ttic1)
 
 
-print(results[0])
-print(results[1])
+#print(results[0])
+#print(results[1])
 
 
 #print(FHHGOnScreen)
@@ -299,14 +299,26 @@ omegagrid_anal=np.asarray(omegagrid_anal);
 
 
 ## now, conceneate the results
-FHHGOnScreen = np.empty(Nomega_points,Nr_anal, dtype=np.cdouble)
-for k1 in range(W)
-  for k2 in range
+FHHGOnScreen = np.empty([Nomega_points,Nr_anal], dtype=np.cdouble)
+for k1 in range(W): # loop over unsorted results
+  for k2 in range(results[k1][1]): #  # of omegas computed by this worker
+    for k3 in range(Nr_anal): # results in the radial grid
+      FHHGOnScreen[results[k1][0]+k2,k3] = results[k1][2][k2][k3] # we adjust the field index properly to the field it just sorts matrices the following way [A[1], A[2], ...], the indices are retrieved by the append mapping
   
 
 
 
 print(results[0][1])
+
+print(FHHGOnScreen[0,0])
+print(FHHGOnScreen[0,1])
+print(FHHGOnScreen[0,2])
+print(FHHGOnScreen[0,0])
+print(FHHGOnScreen[1,0])
+print(FHHGOnScreen[2,0])
+print(FHHGOnScreen[3,0])
+
+
 ### main integration, first list omegas
 #k4=0 # # of loops in omega 
 #for k1 in range(Nomega_anal_start,Nomega_anal,omega_step): #Nomega
