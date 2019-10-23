@@ -11,6 +11,8 @@ import time
 import multiprocessing as mp
 import math
 #import joblib
+#from mpi4py import MPI
+
 
 #ray.init()
 
@@ -149,7 +151,7 @@ for k1 in range(Nfiles):
   dum = array.array('d');
   dum.fromfile(file1,2*Nomega);
   for k2 in range(Nomega): FField_r[k2,k1] = dum[2*k2]+1j*dum[2*k2+1];
-  print(k1)
+#  print(k1)
 
 
 
@@ -162,8 +164,8 @@ rmax_anal = 0.00002; # [SI]
 Nr_anal=100;
 D = 1.0 # [SI], screen distance
 rgrid_anal = np.linspace(0.0,rmax_anal,Nr_anal)
-Nomega_anal = 3000 #3000
-Nomega_anal_start = 2900
+Nomega_anal = 16 #3000
+Nomega_anal_start = 0
 omega_step = 1
 
 Nomega_points = NumOfPointsInRange(Nomega_anal_start,Nomega_anal,omega_step);
@@ -264,20 +266,26 @@ processes = [mp.Process(target=FieldOnScreen, args=(omegagrid, omega_step, rgrid
 for p in processes: p.start();
 
 # exit the completed processes
-for p in processes: p.join();
+#for p in processes: p.join(); # officially recommended but causes some "dead-lock"-like stuff
+
+toc1 = time.clock()
+ttoc1 = time.time()
+print('duration1',toc1-tic1)
+print('duration1',ttoc1-ttic1)
+
 
 # append results
 results = [output.get() for p in processes]
 
 
-toc1 = time.clock()
-ttoc1 = time.time()
-print('duration',toc1-tic1)
-print('duration',ttoc1-ttic1)
+toc2 = time.clock()
+ttoc2 = time.time()
+print('duration2',toc2-tic1)
+print('duration2',ttoc2-ttic1)
 
 
-#print(results[0])
-#print(results[1])
+print(results[0])
+print(results[1])
 
 
 #print(FHHGOnScreen)
@@ -285,10 +293,38 @@ print('duration',ttoc1-ttic1)
 
 
 
-
-
 for k1 in range(Nomega_anal_start,Nomega_anal,omega_step): omegagrid_anal.append(omegagrid[k1])
 omegagrid_anal=np.asarray(omegagrid_anal);
+
+
+
+## now, conceneate the results
+FHHGOnScreen = np.empty(Nomega_points,Nr_anal, dtype=np.cdouble)
+for k1 in range(W)
+  for k2 in range
+  
+
+
+
+print(results[0][1])
+### main integration, first list omegas
+#k4=0 # # of loops in omega 
+#for k1 in range(Nomega_anal_start,Nomega_anal,omega_step): #Nomega
+#  tic = time.clock()
+#  for k2 in range(Nr_anal): #Nomega
+#    k_omega =  omegagrid[k1]/(TIME*c_light); # omega divided by time: a.u. -> SI
+#    for k3 in range(Nr): integrand[k3] = rgrid[k3]*FField_r[k1,k3]*special.jn(0,k_omega*rgrid[k3]*rgrid_anal[k2]/D); # rescale r to atomic units for spectrum in atomic units! (only scaling)
+##    integrand = 
+#    FHHGOnScreen[k4,k2] = integrate.trapz(integrand,rgrid);
+##    FHHGOnScreen[k4,k2] = integrate.simps(integrand,rgrid);
+#  toc = time.clock()
+#  print('cycle',k1,'duration',toc-tic)
+#  omegagrid_anal.append(omegagrid[k1]);
+#  k4=k4+1
+
+
+
+
 
 
 #print(FHHGOnScreen[0])
@@ -314,15 +350,6 @@ omegagrid_anal=np.asarray(omegagrid_anal);
 #np.savetxt("Spectrumimag.dat",FHHGOnScreen.imag,fmt="%e")
 #np.savetxt("omegagrid_anal.dat",omegagrid_anal,fmt="%e")
 #np.savetxt("rgrid_anal.dat",rgrid_anal,fmt="%e")
-
-
-
-
-
-
-
-
-
 
 
 
