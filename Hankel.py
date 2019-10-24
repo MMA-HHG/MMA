@@ -16,18 +16,18 @@ import math
 
 #ray.init()
 
-
-def n1n2mapping(k1,k2,N1): 
+## functions to work with indices
+def n1n2mapping(k1,k2,N1): ## a mapping from (0,...,N1-1) x (0,...,N2-1) -> (0,...,N1*N2)
   return k1+k2*N1
 
-def n1n2mapping_inv(n,N1): 
+def n1n2mapping_inv(n,N1): ## inverse to the previous one
   k1 = n % N1
   n = n - k1
   k2 = n // N1
   return k1,k2
 
 
-def NumOfPointsInRange(N1,N2,k): #number of points between two integers following the Python's range logic (0,...,N-1), assumes N1<N2
+def NumOfPointsInRange(N1,N2,k): #number of points between two integers following the Python's range-function logic (0,...,N-1), assumes N1<N2
   if N1 != 0:
     return NumOfPointsInRange(N1-N1,N2-N1,k);
   else:
@@ -36,44 +36,47 @@ def NumOfPointsInRange(N1,N2,k): #number of points between two integers followin
     else:
       return (N2 // k) + 1;
 
-print("Number of procs: ", mp.cpu_count())
-
-
-
-def myfun():
-  print("abc")
 
 ### physical constants
 hbar=1.0545718e-34; inverse_alpha_fine=137.035999139; c_light=299792458; elcharge=1.602176565e-19; elmass=9.10938356e-31;
+r_Bohr = hbar*inverse_alpha_fine/(c_light*elmass);
 
 # conversion factor to atomic units
 TIME = (inverse_alpha_fine**2)*hbar/(elmass*c_light**2);
-print(TIME)
-
-inpath = '35c/TDSEs2/'
 
 
-print("Hello world")
 
-myfun()
+#### THE MAIN PROGRAM #####
 
-a = special.jn(0,1)
-
-print(a)
-
-print("J0=",a)
+#print("Number of procs: ", mp.cpu_count()) # Actually, it should be adjusted by slurm-scheduler, it probably sees "physical HW" and not the allocated resources
 
 
-##file1=open("Spectrum.dat","w")
-#xxx = np.array([[1.0e25, 2.0], [3.0, 5.0]])
-#print(xxx)
-#print(xxx[0,1])
-##file1.fprint(xxx)
-#np.savetxt("Spectrum.dat",xxx,fmt="%e")
-##np.savetxt("Spectrum.dat",xxx)
-##file1.close();
+## parameters
 
-file1=open("35c/fields/rgrid.dat","r")
+inpath = '35c/TDSEs2/' # path for TDSEs
+inpath2 = '35c/fields/' # path for fields
+outpath = 'res1/' # path for results
+
+
+## parameters of the screen, etc.
+rmax_anal = 0.00002; # [SI] on screen
+Nr_anal=5;
+D = 1.0 # [SI], screen distance
+
+Nomega_anal = 3000 #3000
+Nomega_anal_start = 2980
+omega_step = 1
+
+## other parameters
+integrator = 0; #(0 - trapezoidal, 1 - Simpson) 
+W = mp.cpu_count() # this is the number of workers
+W = 4;
+
+
+### LOAD GRIDS AND FIELDS
+
+## load radial grid
+file1=open(inpath2+"rgrid.dat","r")
 #if file1.mode == "r":
 lines = file1.readlines()
 k1=0; rgrid=[]
@@ -81,67 +84,24 @@ for line in lines: dum = line.split(); rgrid.append(float(dum[1])); k1=k1+1
 Nr = k1; rgrid=np.asarray(rgrid);  
 file1.close()  
 
-#Nr = 32;
-#rgrid = rgrid[:Nr]
 
-print(rgrid)
-#for k1 in range(Nr): print(z[k1])
-
-
-#file1=open("GridDimensionsForBinaries.dat","r")
+## retrieve the dimension of TDSEs
 file1=open( (inpath+"z_000501_r_000001/GridDimensionsForBinaries.dat") ,"r")
 lines = file1.readlines()
 file1.close();
 Nomega = int(lines[1]);
-print(Nomega)
+#print(Nomega)
 
 
-
+## omega grid loaded directly in binary form
 file1=open( (inpath+"z_000501_r_000001/omegagrid.bin") ,"rb")
 omegagrid = array.array('d'); #[a.u.]
 omegagrid.fromfile(file1,Nomega);
 file1.close();
-#xxx = struct.unpack('d',file1.read(8))
-#print(xxx)
-
-file1=open("FSourceTerm.bin","rb")
-xxx = array.array('d');
-xxx.fromfile(file1,2*Nomega);
-#xxx = struct.unpack('d',file1.read(8))
-file1.close();
-#print(xxx)
-#for k1 in range(Nomega):
-#  print(z[k1])
-
-y=np.empty([Nomega], dtype=np.cdouble)
-for k1 in range(Nomega): y[k1] = xxx[2*k1]+1j*xxx[2*k1+1];
 
 
-print(y[Nomega-1])
-
-
-folders = []
-
-# r=root, d=directories, f = files
-#for r, d, f in os.walk("."):
-#    for folder in d:
-#        folders.append(os.path.join(r, folder))
-
-#for f in folders:
-#    print(f)
-
-
-dirs=os.listdir("35c/TDSEs2")
-#print(dirs)
-print(dirs[0])
-
-
-#tstr='xx'
-tstr=str(1)
-tstr='35c/z_000501_'+tstr.zfill(6)
-
-print(tstr)
-
+## read all fields in the binary form, it follows the padding andf naming of the files
+# binary fields are stored in the omega domain (real(1),imaginary(1),real(2),imaginary(2),...)
 Nfiles=Nr;
 FField_r=np.empty([Nomega,Nfiles], dtype=np.cdouble)
 for k1 in range(Nfiles):
@@ -155,51 +115,25 @@ for k1 in range(Nfiles):
 
 
 
-print(FField_r[0,0])
-
-#print(complex(xxx[1],z[1]))
-
-
-rmax_anal = 0.00002; # [SI]
-Nr_anal=5;
-D = 1.0 # [SI], screen distance
+## grids for analyses:
 rgrid_anal = np.linspace(0.0,rmax_anal,Nr_anal)
-Nomega_anal = 3000 #3000
-Nomega_anal_start = 2980
-omega_step = 1
-
-Nomega_points = NumOfPointsInRange(Nomega_anal_start,Nomega_anal,omega_step);
-
+Nomega_points = NumOfPointsInRange(Nomega_anal_start,Nomega_anal,omega_step); # Nomega_points is the number of simulations we want to perform
 omegagrid_anal=[]
 
 print('Nomega_points = ', Nomega_points);
 
-integrand = np.empty([Nr], dtype=np.cdouble)
-
-
-#def FieldOnScreen(omegagrid, omega_step, rgrid, Nr, FField_r, rgrid_anal, n, N1):
-#  tic = time.clock()
-#  k1, k2 = n1n2mapping_inv(n,N1)
-#  k_omega =  omegagrid[k1*omega_step]/(TIME*c_light); # omega divided by time: a.u. -> SI
-#  for k3 in range(Nr): integrand[k3] = rgrid[k3]*FField_r[k1,k3]*special.jn(0,k_omega*rgrid[k3]*rgrid_anal[k2]/D); # rescale r to atomic units for spectrum in atomic units! (only scaling)
-#  res = integrate.trapz(integrand,rgrid);
-#  res = integrate.simps(integrand,rgrid);
-#  toc = time.clock()
-#  print(mp.current_process())
-#  print('cycle',k1,'duration',toc-tic)
-#  return (n, res)
 
 
 
-
-
+#### MAIN INTEGRATION ####
 tic1 = time.clock()
 ttic1 = time.time()
+
 # define output queue
 output = mp.Queue()
 
 
-# define function
+# define function to integrate, there are some global variables! ## THE OUTPUT IS IN THE MIX OF ATOMIC UNITS (field) and SI UNITS (radial coordinate + dr in the integral)
 def FieldOnScreen(omegagrid, omega_step, rgrid, Nr, FField_r, rgrid_anal, k_start, k_num):
   FHHGOnScreen = np.empty([k_num,Nr_anal], dtype=np.cdouble)
   k4=0 # # of loops in omega 
@@ -208,24 +142,21 @@ def FieldOnScreen(omegagrid, omega_step, rgrid, Nr, FField_r, rgrid_anal, k_star
     tic = time.clock()
     for k2 in range(Nr_anal): #Nomega
       k_omega =  omegagrid[k5]/(TIME*c_light); # omega divided by time: a.u. -> SI
+      integrand = np.empty([Nr], dtype=np.cdouble)
       for k3 in range(Nr): integrand[k3] = rgrid[k3]*FField_r[k5,k3]*special.jn(0,k_omega*rgrid[k3]*rgrid_anal[k2]/D); # rescale r to atomic units for spectrum in atomic units! (only scaling)
-      FHHGOnScreen[k4,k2] = integrate.trapz(integrand,rgrid);
-#      FHHGOnScreen[k4,k2] = integrate.simps(integrand,rgrid);
+      if (integrator == 0):
+        FHHGOnScreen[k4,k2] = integrate.trapz(integrand,rgrid);
+      elif (integrator == 1):
+        FHHGOnScreen[k4,k2] = integrate.simps(integrand,rgrid);
     toc = time.clock()
     print('cycle',k1,'duration',toc-tic)
-#    omegagrid_anal.append(omegagrid[k1]);
     k4=k4+1
   res = (k_start,k_num,FHHGOnScreen)
   output.put(res)
 
-# Nomega_points is the number of simulations we want to perform
 
 
-W = mp.cpu_count() # this is the number of workers
-
-W = 4;
-
-# optimal workload is obhtained by the same amount of load for each woker, eventually one extra task for the last worker. Otherwise (NOT OPTIMAL!!!), every worker takes more load and some workers may be eventually not used. An optimal routine would be either balance the load among the workers or employ some sophisticated  parallel scheduler.
+# Optimal workload is obtained by the same amount of load for each woker if possible, eventually one extra task for the last worker. Otherwise (NOT OPTIMAL!!!), every worker takes more load and some workers may be eventually not used. An optimal routine would be either balance the load among the workers or employ some sophisticated  parallel scheduler.
 if ( ( (Nomega_points % W)==0 ) or ( (Nomega_points % W)==1 ) ):
   Nint = Nomega_points//W; # the number of points in an interval (beside the last interval...); NumOfPointsInRange(0,Nomega_points,W);
   N_PointsGrid=[]; N_PointsForProcess=[];
@@ -249,16 +180,16 @@ else:
 
 # optimal workload is now given by the number of processes
 
-print('process grids')
+print('----')
+print('process grids for workers: starting point + loads')
 print(N_PointsGrid)
 print(N_PointsForProcess)
 print('----')
 
 # now we need to retrieve the number of loops for each worker in general cases...
-# 
 
 
-
+### we use multiprocessing by assigning each part of the load as one process
 # define processes
 processes = [mp.Process(target=FieldOnScreen, args=(omegagrid, omega_step, rgrid, Nr, FField_r, rgrid_anal, Nomega_anal_start+N_PointsGrid[k1], N_PointsForProcess[k1])) for k1 in range(W)]
 
@@ -268,128 +199,119 @@ for p in processes: p.start();
 # exit the completed processes
 #for p in processes: p.join(); # officially recommended but causes some "dead-lock"-like stuff
 
+
 toc1 = time.clock()
 ttoc1 = time.time()
-print('duration1',toc1-tic1)
-print('duration1',ttoc1-ttic1)
+print('duration before merging 1',toc1-tic1)
+print('duration before merging 1',ttoc1-ttic1)
 
 
-# append results
+# append results, eventually some more complicated code for directly put in the final matrix
 results = [output.get() for p in processes]
 
 
 toc2 = time.clock()
 ttoc2 = time.time()
-print('duration2',toc2-tic1)
-print('duration2',ttoc2-ttic1)
+print('duration after merging 2',toc2-tic1)
+print('duration after merging 2',ttoc2-ttic1)
 
 
-#print(results[0])
-#print(results[1])
-
-
-#print(FHHGOnScreen)
-#print(FHHGOnScreen.get()[1])
-
-
-
+# create omega grid foe analyses
 for k1 in range(Nomega_anal_start,Nomega_anal,omega_step): omegagrid_anal.append(omegagrid[k1])
 omegagrid_anal=np.asarray(omegagrid_anal);
 
 
-
-## now, conceneate the results
+# conceneate the results
 FHHGOnScreen = np.empty([Nomega_points,Nr_anal], dtype=np.cdouble)
 for k1 in range(W): # loop over unsorted results
   for k2 in range(results[k1][1]): #  # of omegas computed by this worker
     for k3 in range(Nr_anal): # results in the radial grid
       FHHGOnScreen[ results[k1][0]-Nomega_anal_start+k2 , k3 ] = results[k1][2][k2][k3] # we adjust the field index properly to the field it just sorts matrices the following way [A[1], A[2], ...], the indices are retrieved by the append mapping
+#      FHHGOnScreen[ results[k1][0]-Nomega_anal_start+k2 , k3 ] = results[k1][2][k2][k3]/(r_Bohr**2) # eventually fully in atomic units for the integral, but there is still a prefactor of the integral!!!
   
 
 
 
-print(results[0][1])
+#### PROCESS OUTPUTS ####
 
-print(FHHGOnScreen[0,0])
-print(FHHGOnScreen[0,1])
-print(FHHGOnScreen[0,2])
-print(FHHGOnScreen[0,0])
-print(FHHGOnScreen[1,0])
-print(FHHGOnScreen[2,0])
-print(FHHGOnScreen[3,0])
-
-#    
+    
 #file1=open("Spectrum.dat","w")
-np.savetxt("Spectrumreal.dat",FHHGOnScreen.real,fmt="%e")
-np.savetxt("Spectrumimag.dat",FHHGOnScreen.imag,fmt="%e")
-np.savetxt("omegagrid_anal.dat",omegagrid_anal,fmt="%e")
-np.savetxt("rgrid_anal.dat",rgrid_anal,fmt="%e")
+np.savetxt(outpath+"Spectrumreal.dat",FHHGOnScreen.real,fmt="%e")
+np.savetxt(outpath+"Spectrumimag.dat",FHHGOnScreen.imag,fmt="%e")
+np.savetxt(outpath+"omegagrid_anal.dat",omegagrid_anal,fmt="%e")
+np.savetxt(outpath+"rgrid_anal.dat",rgrid_anal,fmt="%e")
 
 
 
 
-### main integration, first list omegas
-#k4=0 # # of loops in omega 
-#for k1 in range(Nomega_anal_start,Nomega_anal,omega_step): #Nomega
-#  tic = time.clock()
-#  for k2 in range(Nr_anal): #Nomega
-#    k_omega =  omegagrid[k1]/(TIME*c_light); # omega divided by time: a.u. -> SI
-#    for k3 in range(Nr): integrand[k3] = rgrid[k3]*FField_r[k1,k3]*special.jn(0,k_omega*rgrid[k3]*rgrid_anal[k2]/D); # rescale r to atomic units for spectrum in atomic units! (only scaling)
-##    integrand = 
-#    FHHGOnScreen[k4,k2] = integrate.trapz(integrand,rgrid);
-##    FHHGOnScreen[k4,k2] = integrate.simps(integrand,rgrid);
-#  toc = time.clock()
-#  print('cycle',k1,'duration',toc-tic)
-#  omegagrid_anal.append(omegagrid[k1]);
-#  k4=k4+1
+# some graphical outputs directly?
 
 
 
 
 
 
-#print(FHHGOnScreen[0])
-#print(FHHGOnScreen_objects[0])
-
-
-
-## eventually reshape to a matrix
-#dum = np.empty([Nomega_points,Nr_anal], dtype=np.cdouble)
-#k4=0;
-#for k1 in range(Nomega_anal_start,Nomega_anal,omega_step): #Nomega
-#  tic = time.clock()
-#  for k2 in range(Nr_anal): #Nomega
-#    dum[k4,k2] = FHHGOnScreen(n1n2mapping(k4,k2,NumOfPointsInRange(Nomega_anal_start,Nomega_anal,omega_step)))
-#  k4 = k4 + 1
-
-#FHHGOnScreen = dum;
-#del dum;
-
-#    
-##file1=open("Spectrum.dat","w")
-#np.savetxt("Spectrumreal.dat",FHHGOnScreen.real,fmt="%e")
-#np.savetxt("Spectrumimag.dat",FHHGOnScreen.imag,fmt="%e")
-#np.savetxt("omegagrid_anal.dat",omegagrid_anal,fmt="%e")
-#np.savetxt("rgrid_anal.dat",rgrid_anal,fmt="%e")
 
 
 
 
 
 
-### main integration, first list omegas
-#k4=0 # # of loops in omega 
-#for k1 in range(Nomega_anal_start,Nomega_anal,omega_step): #Nomega
-#  tic = time.clock()
-#  for k2 in range(Nr_anal): #Nomega
-#    k_omega =  omegagrid[k1]/(TIME*c_light); # omega divided by time: a.u. -> SI
-#    for k3 in range(Nr): integrand[k3] = rgrid[k3]*FField_r[k1,k3]*special.jn(0,k_omega*rgrid[k3]*rgrid_anal[k2]/D); # rescale r to atomic units for spectrum in atomic units! (only scaling)
-##    integrand = 
-#    FHHGOnScreen[k4,k2] = integrate.trapz(integrand,rgrid);
-##    FHHGOnScreen[k4,k2] = integrate.simps(integrand,rgrid);
-#  toc = time.clock()
-#  print('cycle',k1,'duration',toc-tic)
-#  omegagrid_anal.append(omegagrid[k1]);
-#  k4=k4+1
 
+
+
+
+
+
+############# examples of some pieces of code
+#file1=open("FSourceTerm.bin","rb")
+#xxx = array.array('d');
+#xxx.fromfile(file1,2*Nomega);
+##xxx = struct.unpack('d',file1.read(8))
+#file1.close();
+##print(xxx)
+##for k1 in range(Nomega):
+##  print(z[k1])
+
+#y=np.empty([Nomega], dtype=np.cdouble)
+#for k1 in range(Nomega): y[k1] = xxx[2*k1]+1j*xxx[2*k1+1];
+
+
+#print(y[Nomega-1])
+
+
+#folders = []
+# r=root, d=directories, f = files
+#for r, d, f in os.walk("."):
+#    for folder in d:
+#        folders.append(os.path.join(r, folder))
+
+#for f in folders:
+#    print(f)
+
+
+
+
+
+#dirs=os.listdir("35c/TDSEs2")
+##print(dirs)
+#print(dirs[0])
+
+
+##tstr='xx'
+#tstr=str(1)
+#tstr='35c/z_000501_'+tstr.zfill(6)
+
+#print(tstr)
+
+
+
+#print(results[0][1])
+#print(FHHGOnScreen[0,0])
+#print(FHHGOnScreen[0,1])
+#print(FHHGOnScreen[0,2])
+#print(FHHGOnScreen[0,0])
+#print(FHHGOnScreen[1,0])
+#print(FHHGOnScreen[2,0])
+#print(FHHGOnScreen[3,0])
 
