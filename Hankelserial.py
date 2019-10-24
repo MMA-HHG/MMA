@@ -217,6 +217,21 @@ print('duration',toc1-tic1)
 for k1 in range(Nomega_anal_start,Nomega_anal,omega_step): omegagrid_anal.append(omegagrid[k1])
 omegagrid_anal=np.asarray(omegagrid_anal);
 
+print(FHHGOnScreen[0,0])
+print(FHHGOnScreen[0,1])
+print(FHHGOnScreen[0,2])
+print(FHHGOnScreen[0,0])
+print(FHHGOnScreen[1,0])
+print(FHHGOnScreen[2,0])
+print(FHHGOnScreen[3,0])
+
+#    
+#file1=open("Spectrum.dat","w")
+np.savetxt("Spectrumreal.dat",FHHGOnScreen.real,fmt="%e")
+np.savetxt("Spectrumimag.dat",FHHGOnScreen.imag,fmt="%e")
+np.savetxt("omegagrid_anal.dat",omegagrid_anal,fmt="%e")
+np.savetxt("rgrid_anal.dat",rgrid_anal,fmt="%e")
+
 
 #print(FHHGOnScreen[0])
 #print(FHHGOnScreen_objects[0])
@@ -235,12 +250,7 @@ omegagrid_anal=np.asarray(omegagrid_anal);
 #FHHGOnScreen = dum;
 #del dum;
 
-#    
-##file1=open("Spectrum.dat","w")
-#np.savetxt("Spectrumreal.dat",FHHGOnScreen.real,fmt="%e")
-#np.savetxt("Spectrumimag.dat",FHHGOnScreen.imag,fmt="%e")
-#np.savetxt("omegagrid_anal.dat",omegagrid_anal,fmt="%e")
-#np.savetxt("rgrid_anal.dat",rgrid_anal,fmt="%e")
+
 
 
 

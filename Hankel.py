@@ -81,8 +81,8 @@ for line in lines: dum = line.split(); rgrid.append(float(dum[1])); k1=k1+1
 Nr = k1; rgrid=np.asarray(rgrid);  
 file1.close()  
 
-Nr = 32;
-rgrid = rgrid[:Nr]
+#Nr = 32;
+#rgrid = rgrid[:Nr]
 
 print(rgrid)
 #for k1 in range(Nr): print(z[k1])
@@ -161,11 +161,11 @@ print(FField_r[0,0])
 
 
 rmax_anal = 0.00002; # [SI]
-Nr_anal=100;
+Nr_anal=5;
 D = 1.0 # [SI], screen distance
 rgrid_anal = np.linspace(0.0,rmax_anal,Nr_anal)
-Nomega_anal = 16 #3000
-Nomega_anal_start = 0
+Nomega_anal = 3000 #3000
+Nomega_anal_start = 2980
 omega_step = 1
 
 Nomega_points = NumOfPointsInRange(Nomega_anal_start,Nomega_anal,omega_step);
@@ -223,7 +223,7 @@ def FieldOnScreen(omegagrid, omega_step, rgrid, Nr, FField_r, rgrid_anal, k_star
 
 W = mp.cpu_count() # this is the number of workers
 
-W = 32;
+W = 4;
 
 # optimal workload is obhtained by the same amount of load for each woker, eventually one extra task for the last worker. Otherwise (NOT OPTIMAL!!!), every worker takes more load and some workers may be eventually not used. An optimal routine would be either balance the load among the workers or employ some sophisticated  parallel scheduler.
 if ( ( (Nomega_points % W)==0 ) or ( (Nomega_points % W)==1 ) ):
@@ -260,7 +260,7 @@ print('----')
 
 
 # define processes
-processes = [mp.Process(target=FieldOnScreen, args=(omegagrid, omega_step, rgrid, Nr, FField_r, rgrid_anal, N_PointsGrid[k1], N_PointsForProcess[k1])) for k1 in range(W)]
+processes = [mp.Process(target=FieldOnScreen, args=(omegagrid, omega_step, rgrid, Nr, FField_r, rgrid_anal, Nomega_anal_start+N_PointsGrid[k1], N_PointsForProcess[k1])) for k1 in range(W)]
 
 # run processes
 for p in processes: p.start();
@@ -303,7 +303,7 @@ FHHGOnScreen = np.empty([Nomega_points,Nr_anal], dtype=np.cdouble)
 for k1 in range(W): # loop over unsorted results
   for k2 in range(results[k1][1]): #  # of omegas computed by this worker
     for k3 in range(Nr_anal): # results in the radial grid
-      FHHGOnScreen[results[k1][0]+k2,k3] = results[k1][2][k2][k3] # we adjust the field index properly to the field it just sorts matrices the following way [A[1], A[2], ...], the indices are retrieved by the append mapping
+      FHHGOnScreen[ results[k1][0]-Nomega_anal_start+k2 , k3 ] = results[k1][2][k2][k3] # we adjust the field index properly to the field it just sorts matrices the following way [A[1], A[2], ...], the indices are retrieved by the append mapping
   
 
 
@@ -317,6 +317,15 @@ print(FHHGOnScreen[0,0])
 print(FHHGOnScreen[1,0])
 print(FHHGOnScreen[2,0])
 print(FHHGOnScreen[3,0])
+
+#    
+#file1=open("Spectrum.dat","w")
+np.savetxt("Spectrumreal.dat",FHHGOnScreen.real,fmt="%e")
+np.savetxt("Spectrumimag.dat",FHHGOnScreen.imag,fmt="%e")
+np.savetxt("omegagrid_anal.dat",omegagrid_anal,fmt="%e")
+np.savetxt("rgrid_anal.dat",rgrid_anal,fmt="%e")
+
+
 
 
 ### main integration, first list omegas
