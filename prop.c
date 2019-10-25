@@ -174,7 +174,7 @@ double* propagation(struct trg_def trg, struct Efield_var Efield, double tmin, i
 	cpot = 1.;
 
 	
-	outputs.tgrid[0] = tt, outputs.sourceterm[0] = 0.; outputs.Efield[0]=Field; outputs.PopTot[0]=0.0;
+	outputs.tgrid[0] = tt, outputs.sourceterm[0] = 0.; outputs.Efield[0]=Field; outputs.PopTot[0]=1.0;
 
 	for(j = 0 ; j<= num_r ; j++) {psi[2*j] = psi0[2*j]; psi[2*j+1] = psi0[2*j+1];}
 
@@ -457,7 +457,7 @@ double* propagation(struct trg_def trg, struct Efield_var Efield, double tmin, i
 				psi2[2*j+1] = cos(Apot*x[j])*psi[2*j+1]+sin(Apot*x[j])*psi[2*j];
 			}
 			// if( gauge == 0){Apot = -Apot;} // transform back to be consistent in writting
-			printresults(trg,Efield, timef2,k,psi2,num_r,psi0,tt,x,dx,Field,Apot,x_int,0.);
+			printresults(trg,Efield, timef2,k,psi2,num_r,psi0,tt,x,dx,Field,Apot,x_int,0.,outputs);
 
 
 
@@ -471,7 +471,7 @@ double* propagation(struct trg_def trg, struct Efield_var Efield, double tmin, i
 			}
 			// if( gauge == 0){Apot = -Apot;} // transform back to be consistent in writting
 			if ( (tt <= 100.) || ( tt >= 500.) ){dum2=Field;}else{ dum2 = Field - Pi/400.*sin(2.*(tt-100.)*Pi/400.);} 
-			printresults(trg,Efield, testfile,k,psi2,num_r,psi0,tt,x,dx,dum2,dum,x_int,0.);
+			printresults(trg,Efield, testfile,k,psi2,num_r,psi0,tt,x,dx,dum2,dum,x_int,0.,outputs);
 		}
 
 

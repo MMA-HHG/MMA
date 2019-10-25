@@ -1,0 +1,39 @@
+// definition of calculation conditions for a numerical field
+0 : Efield.fieldtype // 0-numerical, loaded in femtosecons, 1-numerical, loaded in atomic units in whole grid, 2-analytical
+
+// definition of parameters
+-1. : Eguess // Energy of the initial state
+64000 : num_r // Number of points of the initial spatial grid 16000
+0 : num_exp // Number of points of the spatial grid for the expansion
+0.2 : dx // resolution for the grid
+0 : InterpByDTorNT // refine resolution only for numerical fields (0 - by dt, 1 - by number of points)
+1.0 : dt // resolution in time 0.0625
+1 : Ntinterp // number of intermediate points
+200. : textend // extension of the calculation after the last fields ends !!! NOW ONLY FOR ANALYTICAL FIELD //700
+0 : analy.writewft // writewavefunction (1-writting every tprint)
+10. : analy.tprint // time spacing for writing the wavefunction
+2. : x_int // the limit of the integral for the ionisation //2 2 works fine with the lenth gauge and strong fields
+1 : PrintGaborAndSpectrum // print Gabor and partial spectra (1-yes)
+8 : a_Gabor // the parameter of the gabor window [a.u.]
+60. : omegaMaxGabor // maximal frequency (source term) in Gabor [a.u.]
+10 : dtGabor // spacing in Gabor (source term) [a.u.]
+2000. : tmin1window); // analyse 1st part of the dipole
+5000. : tmax1window); // analyse 1st part of the dipole
+5250. : tmin2window // analyse 2nd part of the dipole
+10000. : tmax2window // analyse 2nd part of the dipole
+2 : PrintOutputMethod // (0 - only text, 1 - only binaries, 2 - both)
+1 : PrintInputGabor // print Gabor of the input field
+250 : a_GaborInput // the parameter of the gabor window [a.u.]
+60. : omegaMaxGaborInput // maximal frequency in Gabor [a.u.]
+10 : dtGaborInput // spacing in Gabor (input field) [a.u.]
+
+// TARGET definition:
+0.6015 : trg.a
+
+// FILENAMES
+inputs/tgrid.dat // time grid
+inputs/testfield.dat // Electric field
+
+// UNITS USED
+1 : fieldinau // 0-input inatomic units, 1 - in femto and GV/m
+1 : input0 // 0 field starts with 0, 1 in the middle of the file

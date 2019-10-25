@@ -477,7 +477,7 @@ int main(void)
 		print2FFTW3(file1, file2, outputs.Efield, outputs.sourceterm, (Nt+1), dt, outputs.tgrid[Nt]);
 		fclose(file1); fclose(file2);
 		file1 = fopen("results/GS_population.dat" , "w");
-		for(k1 = 0; k1 <= (Nt+1); k1++){fprintf(sig,"%e\t%e\n", outputs.tgrid[k1] , outputs.PopTot[k1]);}
+		for(k1 = 0; k1 <= Nt; k1++){fprintf(file1,"%e\t%e\n", outputs.tgrid[k1] , outputs.PopTot[k1]);}
 		fclose(file1);
 	break;
 	case 1:
@@ -506,7 +506,7 @@ int main(void)
 		print2FFTW3(file1, file2, outputs.Efield, outputs.sourceterm, (Nt+1), dt, outputs.tgrid[Nt]);
 		fclose(file1); fclose(file2);
 		file1 = fopen("results/GS_population.dat" , "w");
-		for(k1 = 0; k1 <= (Nt+1); k1++){fprintf(sig,"%e\t%e\n", outputs.tgrid[k1] , outputs.PopTot[k1]);}
+		for(k1 = 0; k1 <= Nt; k1++){fprintf(file1,"%e\t%e\n", outputs.tgrid[k1] , outputs.PopTot[k1]);}
 		fclose(file1);
 	break;
 	}
