@@ -38,14 +38,6 @@ def NumOfPointsInRange(N1,N2,k): #number of points between two integers followin
     else:
       return (N2 // k) + 1;
 
-def FindInterval(x,x0): # find an index corresponding to given x0 value interval. ordering <  ), < ),..., < >; throws error otherwise
-  N = len(x)
-  for k1 in range(N-2):
-    if ( (x[k1]<= x0) and (x0 < x[k1+1]) ): return k1
-  if ( (x[N-2]<= x0) and (x0 <= x[N-1]) ): return N-2
-  sys.exit('out of range in FindInterval')
-
-
 
 ### physical constants
 hbar=1.0545718e-34; inverse_alpha_fine=137.035999139; c_light=299792458; elcharge=1.602176565e-19; elmass=9.10938356e-31;
@@ -63,9 +55,9 @@ TIME = (inverse_alpha_fine**2)*hbar/(elmass*c_light**2);
 
 ## parameters
 
-inpath = os.path.join('sims6','z_000003') # path for TDSEs
-inpath2 = 'sims8' # path for fields
-outpath = 'res8-2' # path for results
+inpath = os.path.join('sims6','z_000001') # path for TDSEs
+inpath2 = 'sims6' # path for fields
+outpath = 'res6' # path for results
 
 if os.path.exists(outpath) and os.path.isdir(outpath):
   shutil.rmtree(outpath)
@@ -74,12 +66,12 @@ os.mkdir(outpath)
 
 
 ## parameters of the screen, etc.
-rmax_anal = 0.005; # [SI] on screen # 0.0001
-Nr_anal=50; #750
-D = 3.0 # [SI], screen distance 1
+rmax_anal = 0.0001; # [SI] on screen
+Nr_anal=750;
+D = 1.0 # [SI], screen distance
 
-omegamin_anal = 0.0;
-omegamax_anal = 0.057*35.0
+Nomega_anal = 3500 #3000
+Nomega_anal_start = 0
 omega_step = 1
 
 ## numerical params
@@ -91,9 +83,7 @@ W = mp.cpu_count() # this is the number of workers
 W = 32;
 
 
-
 ### LOAD GRIDS AND FIELDS
-print('loading started')
 
 ## load radial grid
 #file1=open(inpath2+"rgrid.dat","r")
@@ -101,7 +91,7 @@ file1=open(os.path.join(inpath2,'rgrid.dat'),"r")
 #if file1.mode == "r":
 lines = file1.readlines()
 k1=0; rgrid=[]
-for line in lines: dum = line.split(); rgrid.append(float(dum[0])); k1=k1+1
+for line in lines: dum = line.split(); rgrid.append(float(dum[1])); k1=k1+1
 Nr = k1; rgrid=np.asarray(rgrid);  
 file1.close()  
 
@@ -109,7 +99,7 @@ print(rgrid)
 
 ## retrieve the dimension of TDSEs
 #file1=open( (inpath+"z_000501_r_000001/GridDimensionsForBinaries.dat") ,"r")
-file1=open( os.path.join(inpath,'r_000001','GridDimensionsForBinaries.dat') ,"r")
+file1=open( os.path.join(inpath,'z_000001','r_000001','GridDimensionsForBinaries.dat') ,"r")
 lines = file1.readlines()
 file1.close();
 Nomega = int(lines[1]);
@@ -118,18 +108,10 @@ Nomega = int(lines[1]);
 
 ## omega grid loaded directly in binary form
 #file1=open( (inpath+"z_000501_r_000001/omegagrid.bin") ,"rb")
-file1=open( os.path.join(inpath,'r_000001','omegagrid.bin') ,"rb")
+file1=open( os.path.join(inpath,'z_000001','r_000001','omegagrid.bin') ,"rb")
 omegagrid = array.array('d'); #[a.u.]
 omegagrid.fromfile(file1,Nomega);
 file1.close();
-
-# define corresponding grid points to omegamina and omegamax
-#Nomega_anal = 1000 #3000 3000
-#Nomega_anal_start = 0
-Nomega_anal = FindInterval(omegagrid,omegamax_anal) #3000 3000 1000
-Nomega_anal_start = FindInterval(omegagrid,omegamin_anal)
-print('om_max', Nomega_anal)
-print('om_min', Nomega_anal_start)
 
 
 ## read all fields in the binary form, it follows the padding andf naming of the files
@@ -280,10 +262,10 @@ for k1 in range(W): # loop over unsorted results
 
     
 #file1=open("Spectrum.dat","w")
-np.savetxt(os.path.join(outpath,"Spectrumreal.dat"),FHHGOnScreen.real,fmt="%e")
-np.savetxt(os.path.join(outpath,"Spectrumimag.dat"),FHHGOnScreen.imag,fmt="%e")
-np.savetxt(os.path.join(outpath,"omegagrid_anal.dat"),omegagrid_anal,fmt="%e")
-np.savetxt(os.path.join(outpath,"rgrid_anal.dat"),rgrid_anal,fmt="%e")
+np.savetxt(outpath+"Spectrumreal.dat",FHHGOnScreen.real,fmt="%e")
+np.savetxt(outpath+"Spectrumimag.dat",FHHGOnScreen.imag,fmt="%e")
+np.savetxt(outpath+"omegagrid_anal.dat",omegagrid_anal,fmt="%e")
+np.savetxt(outpath+"rgrid_anal.dat",rgrid_anal,fmt="%e")
 
 
 
