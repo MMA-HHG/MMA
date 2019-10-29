@@ -63,9 +63,9 @@ TIME = (inverse_alpha_fine**2)*hbar/(elmass*c_light**2);
 
 ## parameters
 
-inpath = os.path.join('sims6','z_000003') # path for TDSEs
-inpath2 = 'sims8' # path for fields
-outpath = 'res8-2' # path for results
+inpath = os.path.join('sims9','z_000002') # path for TDSEs
+inpath2 = 'sims9' # path for fields
+outpath = 'res9-2' # path for results
 
 if os.path.exists(outpath) and os.path.isdir(outpath):
   shutil.rmtree(outpath)
@@ -74,12 +74,12 @@ os.mkdir(outpath)
 
 
 ## parameters of the screen, etc.
-rmax_anal = 0.005; # [SI] on screen # 0.0001
-Nr_anal=50; #750
+rmax_anal = 0.02; # [SI] on screen # 0.0001
+Nr_anal=200; #750
 D = 3.0 # [SI], screen distance 1
 
 omegamin_anal = 0.0;
-omegamax_anal = 0.057*35.0
+omegamax_anal = 0.057*55.0
 omega_step = 1
 
 ## numerical params

@@ -82,7 +82,7 @@ def FieldParams(r,z,p):
   else:
     invRz = 1.0/(z + (zR**2)/z)
   Erz = p['E0']*(p['w0z']/wz)*np.exp(-(r/wz)**2)
-  phase = p['phase0'] + 0.5*(r**2)*kwave*invRz - np.arctan(z/zR)
+  phase = p['phase0'] - 0.5*(r**2)*kwave*invRz + np.arctan(z/zR) # be careful with notation of the wave E = e^(-i*(omega*t-k*z)), it means that for a fixed z, phi should be nagative to correspond with E~sin(omega*t+phi0)
   return Erz, phase
   
 test = os.path.join('a','b')
