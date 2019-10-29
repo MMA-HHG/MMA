@@ -14,6 +14,7 @@ import math
 #from mpi4py import MPI
 #import oct2py
 import shutil
+#import h5py
 
 
 #ray.init()
@@ -63,9 +64,9 @@ TIME = (inverse_alpha_fine**2)*hbar/(elmass*c_light**2);
 
 ## parameters
 
-inpath = os.path.join('sims9','z_000002') # path for TDSEs
-inpath2 = 'sims9' # path for fields
-outpath = 'res9-2' # path for results
+inpath = os.path.join('sims8','z_000001') # path for TDSEs
+inpath2 = 'sims8' # path for fields
+outpath = 'res11-2-dr2rm2' # path for results
 
 if os.path.exists(outpath) and os.path.isdir(outpath):
   shutil.rmtree(outpath)
@@ -83,7 +84,8 @@ omegamax_anal = 0.057*55.0
 omega_step = 1
 
 ## numerical params
-Nr_step = 1 # reshape the grid for the integration in r usw every Nr_step point
+Nr_step = 2 # reshape the grid for the integration in r usw every Nr_step point
+rIntegrationFactor = 0.5;
 
 ## other parameters
 integrator = 0; #(0 - trapezoidal, 1 - Simpson) 
@@ -151,10 +153,11 @@ for k1 in range(0,Nfiles,Nr_step):
 # reshape rgrid if all points are not used
 if ( Nr_step != 1):
   rgridnew=[]
-  for k1 in range(0,Nfiles,Nr_step): rgridnew.append(rgrid[k1])
+  for k1 in range(0,int(round(rIntegrationFactor*Nfiles)),Nr_step): rgridnew.append(rgrid[k1])
   rgrid=np.asarray(rgridnew);
-  Nr = NumOfPointsInRange(0,Nfiles,Nr_step)
+  Nr = NumOfPointsInRange(0,int(round(rIntegrationFactor*Nfiles)),Nr_step)
   
+dr = rgrid[1]-rgrid[0]
 
 
 print('data loaded')
@@ -287,6 +290,16 @@ np.savetxt(os.path.join(outpath,"rgrid_anal.dat"),rgrid_anal,fmt="%e")
 
 
 
+
+
+## write params for reference
+file1=open( os.path.join(outpath,'paramHankel.txt') ,"a")
+content = "// parameters of Hankel transform\n"
+content = str(rgrid[Nr-1]) + " : rmax for the integral [SI]\n"
+content = str(dr) + " : dr for the integral [SI]\n"
+content = str(Nr) + " : # of points in r\n"
+file1.write(content)
+file1.close()
 
 # some graphical outputs directly?
 
