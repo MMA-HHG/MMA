@@ -27,8 +27,8 @@ double E_start,ton,toff,dw;
 int num_E,num_exp,num_w,N_t,dumint;
 
 
-double a_Gabor, omegaMaxGabor, dtGabor, tmin1window, tmax1window, tmin2window, tmax2window;
-int PrintGaborAndSpectrum;
+double a_Gabor, omegaMaxGabor, dtGabor, tmin1window, tmax1window, tmin2window, tmax2window, IonFilterThreshold;
+int PrintGaborAndSpectrum, IonisationFilterForTheSourceTerm;
 
 int PrintOutputMethod;
 
@@ -467,6 +467,18 @@ int main(void)
 
 //	volkov_state_vg();
 
+	
+	// TEST filtering for high ionisation // MORE EFFICIENT WOULD BE FILTER WHILE ASSIGNING VALUE
+	if(IonisationFilterForTheSourceTerm == 1){
+		outputs.sourcetermfiltered = calloc((Nt+1),sizeof(double)); outputs.sourcetermfiltered= outputs.sourceterm;
+		for(k1 = 0; k1 <= Nt; k1++){
+			if( outputs.PopTot[k1] < IonFilterThreshold){
+				for(k2 = k1; k2 <= Nt; k2++){outputs.sourcetermfiltered[k2]=0.0;}
+				break;
+			}
+		}
+	}
+
 	// PRINT field and source terms in both domains // ADD switch to do one of them or both of them
 	
 
@@ -479,6 +491,12 @@ int main(void)
 		file1 = fopen("results/GS_population.dat" , "w");
 		for(k1 = 0; k1 <= Nt; k1++){fprintf(file1,"%e\t%e\n", outputs.tgrid[k1] , outputs.PopTot[k1]);}
 		fclose(file1);
+
+                if(IonisationFilterForTheSourceTerm == 1){
+		file1 = fopen("results/TimeDomainFiltered.dat" , "w"); file2 = fopen("results/OmegaDomainFiltered.dat" , "w");
+		print2FFTW3(file1, file2, outputs.Efield, outputs.sourcetermfiltered, (Nt+1), dt, outputs.tgrid[Nt]);
+		fclose(file1); fclose(file2);
+		}
 	break;
 	case 1:
 		file1 = fopen("results/tgrid.bin","wb"); file2 = fopen("results/Efield.bin","wb"); file3 = fopen("results/SourceTerm.bin","wb");
@@ -490,6 +508,16 @@ int main(void)
 		file1 = fopen("results/GS_population.bin","wb");
 		fwrite(outputs.PopTot,sizeof(double),(Nt+1),file1);
 		fclose(file1);
+
+                if(IonisationFilterForTheSourceTerm == 1){
+		file1 = fopen("results/tmp1.bin","wb"); file2 = fopen("results/tmp2.bin","wb"); file3 = fopen("results/SourceTermFiltered.bin","wb"); // We just use the function as it is and remove redundant files... not optimal
+		file4 = fopen("results/tmp3.bin","wb"); file5 = fopen("results/tmp4.bin","wb"); file6 = fopen("results/FSourceTermFiltered.bin","wb");
+		file7 = fopen("results/tmp5.bin","wb"); file8 = fopen("results/Spectrum2SourceTermFiltered.bin","wb"); file9 = fopen("results/tmp1.dat","w");
+		print2FFTW3binary(file1, file2, file3, file4, file5, file6, file7, file8, file9, outputs.Efield, outputs.sourcetermfiltered, (Nt+1), dt, outputs.tgrid[Nt]);
+		fclose(file1); fclose(file2); fclose(file3); fclose(file4); fclose(file5); fclose(file6); fclose(file7); fclose(file8); fclose(file9);
+		dumint=remove("results/tmp1.bin"); dumint=remove("results/tmp2.bin"); dumint=remove("results/tmp3.bin"); dumint=remove("results/tmp4.bin");
+		dumint=remove("results/tmp5.bin"); dumint=remove("results/tmp1.bin"); dumint=remove("results/tmp1.dat");
+		}
 	break;
 	case 2:
 		file1 = fopen("results/tgrid.bin","wb"); file2 = fopen("results/Efield.bin","wb"); file3 = fopen("results/SourceTerm.bin","wb");
@@ -502,12 +530,28 @@ int main(void)
 		fwrite(outputs.PopTot,sizeof(double),(Nt+1),file1);
 		fclose(file1);
 
+                if(IonisationFilterForTheSourceTerm == 1){
+		file1 = fopen("results/tmp1.bin","wb"); file2 = fopen("results/tmp2.bin","wb"); file3 = fopen("results/SourceTermFiltered.bin","wb"); // We just use the function as it is and remove redundant files... not optimal
+		file4 = fopen("results/tmp3.bin","wb"); file5 = fopen("results/tmp4.bin","wb"); file6 = fopen("results/FSourceTermFiltered.bin","wb");
+		file7 = fopen("results/tmp5.bin","wb"); file8 = fopen("results/Spectrum2SourceTermFiltered.bin","wb"); file9 = fopen("results/tmp1.dat","w");
+		print2FFTW3binary(file1, file2, file3, file4, file5, file6, file7, file8, file9, outputs.Efield, outputs.sourcetermfiltered, (Nt+1), dt, outputs.tgrid[Nt]);
+		fclose(file1); fclose(file2); fclose(file3); fclose(file4); fclose(file5); fclose(file6); fclose(file7); fclose(file8); fclose(file9);
+		dumint=remove("results/tmp1.bin"); dumint=remove("results/tmp2.bin"); dumint=remove("results/tmp3.bin"); dumint=remove("results/tmp4.bin");
+		dumint=remove("results/tmp5.bin"); dumint=remove("results/tmp1.bin"); dumint=remove("results/tmp1.dat");
+		}
+
 		file1 = fopen("results/TimeDomain.dat" , "w"); file2 = fopen("results/OmegaDomain.dat" , "w");
 		print2FFTW3(file1, file2, outputs.Efield, outputs.sourceterm, (Nt+1), dt, outputs.tgrid[Nt]);
 		fclose(file1); fclose(file2);
 		file1 = fopen("results/GS_population.dat" , "w");
 		for(k1 = 0; k1 <= Nt; k1++){fprintf(file1,"%e\t%e\n", outputs.tgrid[k1] , outputs.PopTot[k1]);}
 		fclose(file1);
+
+                if(IonisationFilterForTheSourceTerm == 1){
+		file1 = fopen("results/TimeDomainFiltered.dat" , "w"); file2 = fopen("results/OmegaDomainFiltered.dat" , "w");
+		print2FFTW3(file1, file2, outputs.Efield, outputs.sourcetermfiltered, (Nt+1), dt, outputs.tgrid[Nt]);
+		fclose(file1); fclose(file2);
+		}
 	break;
 	}
 

@@ -52,6 +52,7 @@ struct outputs_def{
 	double *FEfield;
 	double *Fsourceterm;
 	double *PopTot;
+	double *sourcetermfiltered;
 /*	double *tmax;*/
 };
 
