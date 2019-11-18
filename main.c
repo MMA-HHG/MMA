@@ -86,6 +86,8 @@ int main(void)
 	dumint=fscanf(param,"%lf %*[^\n]\n",&tmin2window); // analyse 2nd part of the dipole
 	dumint=fscanf(param,"%lf %*[^\n]\n",&tmax2window); // analyse 2nd part of the dipole
 	dumint=fscanf(param,"%i %*[^\n]\n",&PrintOutputMethod); // (0 - only text, 1 - only binaries, 2 - both)
+	dumint=fscanf(param,"%i %*[^\n]\n",&IonisationFilterForTheSourceTerm); // filter source term by high-ionisation components (1-yes)
+	dumint=fscanf(param,"%lf %*[^\n]\n",&IonFilterThreshold); // threshold for the ionisation [-]
 
 	dumint=fscanf(param, "%*[^\n]\n", NULL);
 
@@ -470,7 +472,8 @@ int main(void)
 	
 	// TEST filtering for high ionisation // MORE EFFICIENT WOULD BE FILTER WHILE ASSIGNING VALUE
 	if(IonisationFilterForTheSourceTerm == 1){
-		outputs.sourcetermfiltered = calloc((Nt+1),sizeof(double)); outputs.sourcetermfiltered= outputs.sourceterm;
+		outputs.sourcetermfiltered = calloc((Nt+1),sizeof(double));
+		for(k1 = 0; k1 <= Nt; k1++){ outputs.sourcetermfiltered[k1] = outputs.sourceterm[k1];}
 		for(k1 = 0; k1 <= Nt; k1++){
 			if( outputs.PopTot[k1] < IonFilterThreshold){
 				for(k2 = k1; k2 <= Nt; k2++){outputs.sourcetermfiltered[k2]=0.0;}
