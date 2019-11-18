@@ -15,17 +15,27 @@ import math
 #import oct2py
 import shutil
 
+### physical constants
+hbar=1.0545718e-34; inverse_alpha_fine=137.035999139; c_light=299792458; elcharge=1.602176565e-19; elmass=9.10938356e-31;
+r_Bohr = hbar*inverse_alpha_fine/(c_light*elmass);
+
+# conversion factor to atomic units
+TIME = (inverse_alpha_fine**2)*hbar/(elmass*c_light**2);
+
+
+
 
 params={
-'Nsim': 32, # simulations in r #4096
+'Nsim': 4096, # simulations in r #4096
 'w0z' : 96.0e-6,
 'r_extend' : 4.0,
-'E0' : 0.2, 
+'E0' : 0.075, 
 'z' : 0.05,
 'lambda' : 810.0e-9,
-'phase0' : 0.0 # initial CEP
+'phase0' : 0.0, # initial CEP
+'N1cycles' : 20.0
 }
-dt=0.125
+dt=1
 
 
 
@@ -51,7 +61,7 @@ rgrid=np.asarray(rgrid);
 
 ## remove the directories eventually
 
-simpath = 'sims1'
+simpath = 'sims11'
 
 if os.path.exists(simpath) and os.path.isdir(simpath):
   shutil.rmtree(simpath)
@@ -72,7 +82,7 @@ def FieldParams(r,z,p):
   else:
     invRz = 1.0/(z + (zR**2)/z)
   Erz = p['E0']*(p['w0z']/wz)*np.exp(-(r/wz)**2)
-  phase = p['phase0'] + 0.5*(r**2)*kwave*invRz - np.arctan(z/zR)
+  phase = p['phase0'] - 0.5*(r**2)*kwave*invRz + np.arctan(z/zR) # be careful with notation of the wave E = e^(-i*(omega*t-k*z)), it means that for a fixed z, phi should be nagative to correspond with E~sin(omega*t+phi0)
   return Erz, phase
   
 test = os.path.join('a','b')
@@ -107,6 +117,15 @@ for k1 in range(Nz):
     content = content + "0 : analy.writewft // writewavefunction (1-writting every tprint)\n"
     content = content + "10. : analy.tprint // time spacing for writing the wavefunction\n"
     content = content + "2. : x_int // the limit of the integral for the ionisation //2 2 works fine with the lenth gauge and strong fields\n"
+    content = content + "0 : PrintGaborAndSpectrum // print Gabor and partial spectra (1-yes)\n"
+    content = content + "8 : a_Gabor // the parameter of the gabor window [a.u.]\n"
+    content = content + "15. : omegaMaxGabor // maximal frequency (source term) in Gabor [a.u.]\n"
+    content = content + "10 : dtGabor // spacing in Gabor (source term) [a.u.]\n"
+    content = content + "2000. : tmin1window); // analyse 1st part of the dipole\n"
+    content = content + "5000. : tmax1window); // analyse 1st part of the dipole\n"
+    content = content + "5250. : tmin2window // analyse 2nd part of the dipole\n"
+    content = content + "10000. : tmax2window // analyse 2nd part of the dipole\n"
+    content = content + "2 : PrintOutputMethod // (0 - only text, 1 - only binaries, 2 - both)\n"
     content = content + "\n"
     content = content + "// TARGET definition:\n"
     content = content + "1.189 : trg.a\n"
@@ -117,15 +136,44 @@ for k1 in range(Nz):
     content = content + "\n"
     content = content + "// PARAMETERS OF SIN2\n"
     content = content + str(Erz) + " : amplitude\n"
-    content = content + "0.057 : frequency\n"
+    omega_au = (2.0*np.pi*hbar*inverse_alpha_fine**2)/(params['lambda']*elmass*c_light)# find frequency in atomic units
+    content = content + str(omega_au) + " : frequency\n"
     content = content + "0.0 : initial time\n"
-    content = content + "10.0 : # of cycles\n"
+    content = content + str(params['N1cycles']) + " : # of cycles\n"
     content = content + str(phase) + " : CEP [in radians, reference is a cosine pulse in A]\n"
     file1.write(content)
     
 
 np.savetxt(os.path.join(simpath,'rgrid.dat'), rgrid, fmt="%e")
 shutil.copyfile('zgrid.dat',os.path.join(simpath,'zgrid.dat'))
+
+
+#// definition of calculation conditions for a numerical field
+#0 : Efield.fieldtype // 0-numerical, loaded in femtosecons, 1-numerical, loaded in atomic units in whole grid, 2-analytical
+
+
+
+#// definition of parameters
+#-1. : Eguess // Energy of the initial state
+#64000 : num_r // Number of points of the initial spatial grid 16000
+#0 : num_exp // Number of points of the spatial grid for the expansion
+#0.2 : dx // resolution for the grid
+#0 : InterpByDTorNT // refine resolution only for numerical fields (0 - by dt, 1 - by number of points)
+#2 : dt // resolution in time 0.0625
+#1 : Ntinterp // number of intermediate points
+#200. : textend // extension of the calculation after the last fields ends !!! NOW ONLY FOR ANALYTICAL FIELD //700
+#0 : analy.writewft // writewavefunction (1-writting every tprint)
+#10. : analy.tprint // time spacing for writing the wavefunction
+#2. : x_int // the limit of the integral for the ionisation //2 2 works fine with the lenth gauge and strong fields
+#1 : PrintGaborAndSpectrum // print Gabor and partial spectra (1-yes)
+#8 : a_Gabor // the parameter of the gabor window [a.u.]
+#15. : omegaMaxGabor // maximal frequency (source term) in Gabor [a.u.]
+#10 : dtGabor // spacing in Gabor (source term) [a.u.]
+#2000. : tmin1window); // analyse 1st part of the dipole
+#5000. : tmax1window); // analyse 1st part of the dipole
+#5250. : tmin2window // analyse 2nd part of the dipole
+#10000. : tmax2window // analyse 2nd part of the dipole
+#2 : PrintOutputMethod // (0 - only text, 1 - only binaries, 2 - both)
 
 
 
