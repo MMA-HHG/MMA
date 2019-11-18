@@ -1,7 +1,9 @@
 ###################
 # Jan Vabek - ELI-Beamlines, CELIA, CTU in Prague (FNSPE)
 
-# this code defines parameters for 1DTDSE calculation for a vacuum Gaussian beam,
+# this code defines parameters for 1DTDSE calculation for a vacuum Gaussian beam
+
+# !!! The variable parameters are allowed only to be reals! (floats)
 
 ###################
 
@@ -89,7 +91,7 @@ ParamsValue = dict([ (params[k1] , None )  for k1 in range(Nparams)]) # all para
 
 ### the definition of the beam
 BeamSpecification={
-'Nsim': 4096, # simulations in r #4096
+'Nrsim': 3, # simulations in r #4096
 'w0z' : 96.0e-6,
 'r_extend' : 4.0,
 'E0' : 0.075, 
@@ -98,6 +100,9 @@ BeamSpecification={
 'phase0' : 0.0, # initial CEP
 'N1cycles' : 20.0
 }
+
+zgrid = np.array([0.0, 0.025]);
+
 
 ### constant parameters list
 ## an example for an analytic field
@@ -139,11 +144,72 @@ ParamsValue['transformgauge']= 0; #		dumint=fscanf(param,"%i %*[^\n]\n",&transfo
 
 print(ParamsValue)
 
+
+# prepare hdf5 file
 f = h5py.File('data.h5','w')
+listingfile='This is the content of the listing file \nsecond row'
+f.create_dataset('listing', data=[np.string_(listingfile)])
+
+grp_root = f.create_group('micro') # root group for the paramteters is the miscroscopic group
+grp = grp_root.create_group('params') # parametrs gonna be in this group
+grptype = grp.create_group('type')
+
+# create scalar datasets with datatypes (const/var)
+#for k1 in range(Nparams): grptype.create_dataset(params[k1],ParamsType[str(params[k1])])
+
+for k1 in range(Nparams): grptype.create_dataset(params[k1],data=ParamsType[params[k1]])
+
+
 ### save constant parameters to scalar datasets in hdf5 file
+for k1 in range(Nparams):
+  if (ParamsType[params[k1]] == 0):
+    grp.create_dataset(params[k1],data=ParamsValue[str(params[k1])])
+
+
+## create rgrid
+Nr = BeamSpecification['Nrsim']
+Nz = len(zgrid)
+rgrid=[]
+for k2 in range(Nr): rgrid.append(k2*BeamSpecification['r_extend']*BeamSpecification['w0z']/Nr)
+rgrid=np.asarray(rgrid);
+
+# save both grids
+rgrid = grp_root.create_dataset('rgrid', data=rgrid)
+rgrid.attrs['units']=np.string_('[SI]')
+zgrid = grp_root.create_dataset('zgrid', data=zgrid)
+zgrid.attrs['units']=np.string_('[SI]')
+
+# create variable parameters: now we have to loop probably by hand... (Peak intensity and phase)
+
+## calculator of params
+def FieldParams(r,z,p):
+  kwave = 2.0*np.pi/p['lambda']
+  zR = (np.pi*(p['w0z'])**2)/p['lambda']
+  wz = p['w0z']*np.sqrt(1.0+(z/zR)**2)
+  if (z == 0.0):
+    invRz = 0.0
+  else:
+    invRz = 1.0/(z + (zR**2)/z)
+  Erz = p['E0']*(p['w0z']/wz)*np.exp(-(r/wz)**2)
+  phase = p['phase0'] - 0.5*(r**2)*kwave*invRz + np.arctan(z/zR) # be careful with notation of the wave E = e^(-i*(omega*t-k*z)), it means that for a fixed z, phi should be nagative to correspond with E~sin(omega*t+phi0)
+  return Erz, phase
+
+Erz = grp.create_dataset('sin2.E0', (Nz,Nr,1), dtype='float')
+phase = grp.create_dataset('sin2.phase', (Nz,Nr,1), dtype='float')
+for k1 in range(Nz):
+  for k2 in range(Nr):
+    Erz[k1,k2,0], phase[k1,k2,0] = FieldParams(rgrid[k2],zgrid[k1],BeamSpecification)
+    
+
+
+f.close()
 
 
 
+
+
+### store macroscopic properties for a refence
+# create macro group etc.
 
 #### THE MAIN PROGRAM #####
 #h5py.run_tests()
@@ -155,12 +221,10 @@ f = h5py.File('data.h5','w')
 
 #f = h5py.File('data.h5','w')
 
-## put listing file in the root folder
-#listingfile='This is the content of the listing file \nsecond row'
-#f.create_dataset('listing', data=[np.string_(listingfile)])
+# put listing file in the root folder
 
-#grp = f.create_group('micro')
-## we put in shared parameters for microscpic solvers, they're either floats or integers
+# we put in shared parameters for microscpic solvers, they're either floats or integers
+
 #params_real=[np.pi,np.e,5.0]; params_int=[0, 1, 2];
 #grp.create_dataset('SharedParamsReal',data=params_real); grp.create_dataset('SharedParamsInt',data=params_int)
 
