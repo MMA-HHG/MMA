@@ -54,6 +54,7 @@ r_Bohr = hbar*inverse_alpha_fine/(c_light*elmass);
 
 # conversion factor to atomic units
 TIME = (inverse_alpha_fine**2)*hbar/(elmass*c_light**2);
+INTENSITYau = (inverse_alpha_fine/(8.0*np.pi))*(hbar**3)/((elmass**2)*(r_Bohr**6));
 
 
 
@@ -72,6 +73,18 @@ if os.path.exists(outpath) and os.path.isdir(outpath):
   print('deleted previous results')
 os.mkdir(outpath)
 
+## the type of the field
+MicroscopicModelType = 1; # 0-TDSE, 1 -phenomenological 
+
+omega0 = 0.057; # [a.u.]
+omegawidth = 1;
+I0 = 2.5e18;
+w0 = 96e-6;
+PhenomParams =np.array([
+[29, 35, 45], # harmonics
+[500., 1775., 3600.], # alphas
+[omegawidth, omegawidth, omegawidth]
+])
 
 ## parameters of the screen, etc.
 rmax_anal = 0.02; # [SI] on screen # 0.0001
@@ -92,76 +105,23 @@ rIntegrationFactorMin = 0; # not implemented yet, need to redefine the integrati
 integrator = 0; #(0 - trapezoidal, 1 - Simpson) 
 W = mp.cpu_count() # this is the number of workers
 W = 32;
-
-
-
-### LOAD GRIDS AND FIELDS
-print('loading started')
-
-## load radial grid
-#file1=open(inpath2+"rgrid.dat","r")
-file1=open(os.path.join(inpath2,'rgrid.dat'),"r")
-#if file1.mode == "r":
-lines = file1.readlines()
-k1=0; rgrid=[]
-for line in lines: dum = line.split(); rgrid.append(float(dum[0])); k1=k1+1
-Nr = k1; rgrid=np.asarray(rgrid);  
-file1.close()  
-
-print(rgrid)
-
-## retrieve the dimension of TDSEs
-#file1=open( (inpath+"z_000501_r_000001/GridDimensionsForBinaries.dat") ,"r")
-file1=open( os.path.join(inpath,'r_000001','GridDimensionsForBinaries.dat') ,"r")
-lines = file1.readlines()
-file1.close();
-Nomega = int(lines[1]);
-#print(Nomega)
-
-
-## omega grid loaded directly in binary form
-#file1=open( (inpath+"z_000501_r_000001/omegagrid.bin") ,"rb")
-file1=open( os.path.join(inpath,'r_000001','omegagrid.bin') ,"rb")
-omegagrid = array.array('d'); #[a.u.]
-omegagrid.fromfile(file1,Nomega);
-file1.close();
-
-# define corresponding grid points to omegamina and omegamax
-#Nomega_anal = 1000 #3000 3000
-#Nomega_anal_start = 0
-Nomega_anal = FindInterval(omegagrid,omegamax_anal) #3000 3000 1000
-Nomega_anal_start = FindInterval(omegagrid,omegamin_anal)
-print('om_max', Nomega_anal)
-print('om_min', Nomega_anal_start)
-
-
-## read all fields in the binary form, it follows the padding andf naming of the files
-# binary fields are stored in the omega domain (real(1),imaginary(1),real(2),imaginary(2),...)
-Nfiles=Nr;
-FField_r=np.empty([Nomega,NumOfPointsInRange(0,Nfiles,Nr_step)], dtype=np.cdouble)
-k3=0
-for k1 in range(0,Nfiles,Nr_step):
-  fold=str(k1+1); fold = os.path.join(inpath,'r_'+fold.zfill(6)) # inpath + 'z_000501_r_' + fold.zfill(6) + '/'
-  FSourceTermPath = os.path.join(fold,'FSourceTerm.bin')
-  file1=open(FSourceTermPath,"rb")
-  dum = array.array('d');
-  dum.fromfile(file1,2*Nomega);
-  for k2 in range(Nomega): FField_r[k2,k3] = dum[2*k2]+1j*dum[2*k2+1];
-  k3 = k3+1
-#  print(k1)
-
-
-# reshape rgrid if all points are not used
-if ( Nr_step != 1):
-  rgridnew=[]
-  for k1 in range(int(round(rIntegrationFactorMin*Nfiles)),int(round(rIntegrationFactor*Nfiles)),Nr_step): rgridnew.append(rgrid[k1])
-  rgrid=np.asarray(rgridnew);
-  Nr = NumOfPointsInRange(int(round(rIntegrationFactorMin*Nfiles)),int(round(rIntegrationFactor*Nfiles)),Nr_step)
   
-dr = rgrid[1]-rgrid[0]
+  
+if (MicroscopicModelType == 0):
+  ## PUT LOADING the dipoles FROM MODULE HERE
+elif (MicroscopicModelType == 1):
+  ## maybe do nothing
 
+## define dipole function
+def dipoleph(omega,omega0,I,PhenomParams)
+  res = 0.0*1j;
+  for k1 in range(len(PhenomParams)):
+    res = res + np.exp(-1j*PhenomParams[2,k1]*I)*np.exp(-(PhenomParams[2,k1]*omega0-omega)**2);
+  return res
 
-print('data loaded')
+def I0rprofile(r,I0,w0r)
+  return I0*np.exp(-2.0*(r/w0r)**2)
+  
 
 ## grids for analyses:
 rgrid_anal = np.linspace(0.0,rmax_anal,Nr_anal)
@@ -191,7 +151,10 @@ def FieldOnScreen(omegagrid, omega_step, rgrid, Nr, FField_r, rgrid_anal, k_star
     for k2 in range(Nr_anal): #Nomega
       k_omega =  omegagrid[k5]/(TIME*c_light); # omega divided by time: a.u. -> SI
       integrand = np.empty([Nr], dtype=np.cdouble)
-      for k3 in range(Nr): integrand[k3] = rgrid[k3]*FField_r[k5,k3]*special.jn(0,k_omega*rgrid[k3]*rgrid_anal[k2]/D); # rescale r to atomic units for spectrum in atomic units! (only scaling)
+      if (MicroscopicModelType == 0):
+        for k3 in range(Nr): integrand[k3] = np.exp(-(rgrid[k3]**2)/(2.0*D))*rgrid[k3]*FField_r[k5,k3]*special.jn(0,k_omega*rgrid[k3]*rgrid_anal[k2]/D); # rescale r to atomic units for spectrum in atomic units! (only scaling)
+      elif (MicroscopicModelType == 1):
+        for k3 in range(Nr): integrand[k3] = np.exp(-(rgrid[k3]**2)/(2.0*D))*rgrid[k3]*dipoleph(omega[k5],omega0,I0rprofile(rgrid[k3],I0,w0),PhenomParams)*special.jn(0,k_omega*rgrid[k3]*rgrid_anal[k2]/D); # rescale r to atomic units for spectrum in atomic units! (only scaling)
       if (integrator == 0):
         FHHGOnScreen[k4,k2] = integrate.trapz(integrand,rgrid);
       elif (integrator == 1):
