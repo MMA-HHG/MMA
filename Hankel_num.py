@@ -13,8 +13,6 @@ import math
 #import joblib
 #from mpi4py import MPI
 #import oct2py
-import shutil
-#import h5py
 
 
 #ray.init()
@@ -39,14 +37,6 @@ def NumOfPointsInRange(N1,N2,k): #number of points between two integers followin
     else:
       return (N2 // k) + 1;
 
-def FindInterval(x,x0): # find an index corresponding to given x0 value interval. ordering <  ), < ),..., < >; throws error otherwise
-  N = len(x)
-  for k1 in range(N-2):
-    if ( (x[k1]<= x0) and (x0 < x[k1+1]) ): return k1
-  if ( (x[N-2]<= x0) and (x0 <= x[N-1]) ): return N-2
-  sys.exit('out of range in FindInterval')
-
-
 
 ### physical constants
 hbar=1.0545718e-34; inverse_alpha_fine=137.035999139; c_light=299792458; elcharge=1.602176565e-19; elmass=9.10938356e-31;
@@ -64,29 +54,22 @@ TIME = (inverse_alpha_fine**2)*hbar/(elmass*c_light**2);
 
 ## parameters
 
-inpath = os.path.join('sims11','z_000002') # path for TDSEs
-inpath2 = 'sims11' # path for fields
-outpath = 'res11-2-dr2rm2' #'res8-2-dr16rm4' # path for results -dr2dr2rm2
-if os.path.exists(outpath) and os.path.isdir(outpath):
-  shutil.rmtree(outpath)
-  print('deleted previous results')
-os.mkdir(outpath)
+inpath = '70/TDSEs3/' # path for TDSEs 35c/TDSEs2/
+inpath2 = '70/fields/' # path for fields
+outpath = 'res2/' # path for results
 
 
 ## parameters of the screen, etc.
-rmax_anal = 0.02; # [SI] on screen # 0.0001
-Nr_anal=200; #750
-D = 3.0 # [SI], screen distance 1
+rmax_anal = 0.03; # [SI] on screen
+Nr_anal= 1000; #750;
+D = 1.0 # [SI], screen distance
 
-omegamin_anal = 0.0;
-omegamax_anal = 0.057*55.0 # 0.057*40.0 # 0.057*55.0
+Nomega_anal = 3500 #3000
+Nomega_anal_start = 0
 omega_step = 1
 
 ## numerical params
-Nr_step = 2 # reshape the grid for the integration in r usw every Nr_step point
-rIntegrationFactor = 1.0/2.0;
-#rIntegrationFactorMin = 1.0/16.0;
-rIntegrationFactorMin = 0; # not implemented yet, need to redefine the integration function
+Nr_step = 1 # reshape the grid for the integration in r usw every Nr_step point
 
 ## other parameters
 integrator = 0; #(0 - trapezoidal, 1 - Simpson) 
@@ -94,25 +77,20 @@ W = mp.cpu_count() # this is the number of workers
 W = 32;
 
 
-
 ### LOAD GRIDS AND FIELDS
-print('loading started')
 
 ## load radial grid
-#file1=open(inpath2+"rgrid.dat","r")
-file1=open(os.path.join(inpath2,'rgrid.dat'),"r")
+file1=open(inpath2+"rgrid.dat","r")
 #if file1.mode == "r":
 lines = file1.readlines()
 k1=0; rgrid=[]
-for line in lines: dum = line.split(); rgrid.append(float(dum[0])); k1=k1+1
+for line in lines: dum = line.split(); rgrid.append(0.001*float(dum[1])); k1=k1+1
 Nr = k1; rgrid=np.asarray(rgrid);  
 file1.close()  
 
-print(rgrid)
 
 ## retrieve the dimension of TDSEs
-#file1=open( (inpath+"z_000501_r_000001/GridDimensionsForBinaries.dat") ,"r")
-file1=open( os.path.join(inpath,'r_000001','GridDimensionsForBinaries.dat') ,"r")
+file1=open( (inpath+"z_000501_r_000001/GridDimensionsForBinaries.dat") ,"r")
 lines = file1.readlines()
 file1.close();
 Nomega = int(lines[1]);
@@ -120,19 +98,10 @@ Nomega = int(lines[1]);
 
 
 ## omega grid loaded directly in binary form
-#file1=open( (inpath+"z_000501_r_000001/omegagrid.bin") ,"rb")
-file1=open( os.path.join(inpath,'r_000001','omegagrid.bin') ,"rb")
+file1=open( (inpath+"z_000501_r_000001/omegagrid.bin") ,"rb")
 omegagrid = array.array('d'); #[a.u.]
 omegagrid.fromfile(file1,Nomega);
 file1.close();
-
-# define corresponding grid points to omegamina and omegamax
-#Nomega_anal = 1000 #3000 3000
-#Nomega_anal_start = 0
-Nomega_anal = FindInterval(omegagrid,omegamax_anal) #3000 3000 1000
-Nomega_anal_start = FindInterval(omegagrid,omegamin_anal)
-print('om_max', Nomega_anal)
-print('om_min', Nomega_anal_start)
 
 
 ## read all fields in the binary form, it follows the padding andf naming of the files
@@ -141,8 +110,8 @@ Nfiles=Nr;
 FField_r=np.empty([Nomega,NumOfPointsInRange(0,Nfiles,Nr_step)], dtype=np.cdouble)
 k3=0
 for k1 in range(0,Nfiles,Nr_step):
-  fold=str(k1+1); fold = os.path.join(inpath,'r_'+fold.zfill(6)) # inpath + 'z_000501_r_' + fold.zfill(6) + '/'
-  FSourceTermPath = os.path.join(fold,'FSourceTerm.bin')
+  fold=str(k1+1); fold = inpath + 'z_000501_r_' + fold.zfill(6) + '/'
+  FSourceTermPath = fold+'FSourceTerm.bin'
   file1=open(FSourceTermPath,"rb")
   dum = array.array('d');
   dum.fromfile(file1,2*Nomega);
@@ -154,11 +123,10 @@ for k1 in range(0,Nfiles,Nr_step):
 # reshape rgrid if all points are not used
 if ( Nr_step != 1):
   rgridnew=[]
-  for k1 in range(int(round(rIntegrationFactorMin*Nfiles)),int(round(rIntegrationFactor*Nfiles)),Nr_step): rgridnew.append(rgrid[k1])
+  for k1 in range(0,Nfiles,Nr_step): rgridnew.append(rgrid[k1])
   rgrid=np.asarray(rgridnew);
-  Nr = NumOfPointsInRange(int(round(rIntegrationFactorMin*Nfiles)),int(round(rIntegrationFactor*Nfiles)),Nr_step)
+  Nr = NumOfPointsInRange(0,Nfiles,Nr_step)
   
-dr = rgrid[1]-rgrid[0]
 
 
 print('data loaded')
@@ -284,24 +252,13 @@ for k1 in range(W): # loop over unsorted results
 
     
 #file1=open("Spectrum.dat","w")
-np.savetxt(os.path.join(outpath,"Spectrumreal.dat"),FHHGOnScreen.real,fmt="%e")
-np.savetxt(os.path.join(outpath,"Spectrumimag.dat"),FHHGOnScreen.imag,fmt="%e")
-np.savetxt(os.path.join(outpath,"omegagrid_anal.dat"),omegagrid_anal,fmt="%e")
-np.savetxt(os.path.join(outpath,"rgrid_anal.dat"),rgrid_anal,fmt="%e")
+np.savetxt(outpath+"Spectrumreal.dat",FHHGOnScreen.real,fmt="%e")
+np.savetxt(outpath+"Spectrumimag.dat",FHHGOnScreen.imag,fmt="%e")
+np.savetxt(outpath+"omegagrid_anal.dat",omegagrid_anal,fmt="%e")
+np.savetxt(outpath+"rgrid_anal.dat",rgrid_anal,fmt="%e")
 
 
 
-
-
-## write params for reference
-file1=open( os.path.join(outpath,'paramHankel.txt') ,"a")
-content = "// parameters of Hankel transform\n"
-content = content + str(rgrid[Nr-1]) + " : rmax for the integral [SI]\n"
-content = content + str(rgrid[0]) + " : rmin for the integral [SI]\n"
-content = content + str(dr) + " : dr for the integral [SI]\n"
-content = content + str(Nr) + " : # of points in r\n"
-file1.write(content)
-file1.close()
 
 # some graphical outputs directly?
 
