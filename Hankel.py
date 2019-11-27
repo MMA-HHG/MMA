@@ -15,6 +15,7 @@ import math
 #import oct2py
 import shutil
 #import h5py
+import sys
 
 
 #ray.init()
@@ -93,12 +94,12 @@ NumHarm = 3; # numbero of harmonics
 #quit()
 
 ## parameters of the screen, etc.
-rmax_anal = 0.02; # [SI] on screen # 0.0001
-Nr_anal=200; #750
+rmax_anal = 0.008; # [SI] on screen # 0.0001
+Nr_anal=100; #750
 D = 3.0 # [SI], screen distance 1
 
-omegamin_anal = 0.057*34.0 ;
-omegamax_anal = 0.057*36.0 # 0.057*40.0 # 0.057*55.0
+omegamin_anal = 0.057*34.5 ;
+omegamax_anal = 0.057*35.5 # 0.057*40.0 # 0.057*55.0
 omega_step = 1
 
 ## numerical params
@@ -121,7 +122,7 @@ elif (MicroscopicModelType == 1):
   print('analytical model')
 
   rgrid = np.linspace(0.0,2*w0,1000)
-  tgrid = np.linspace(-tcoeff*0.5*TFWHM/TIMEau,tcoeff*0.5*TFWHM/TIMEau,10000)
+  tgrid = np.linspace(-tcoeff*0.5*TFWHM/TIMEau,tcoeff*0.5*TFWHM/TIMEau,100000)
   Nomega = len(tgrid)//2 + 1
   omegagrid = np.linspace(0,2.0*np.pi*Nomega/(tcoeff*TFWHM/TIMEau),Nomega)
   Nr = len(rgrid)
@@ -131,6 +132,8 @@ elif (MicroscopicModelType == 1):
   Nomega_anal_start = FindInterval(omegagrid,omegamin_anal)
   print('om_max', Nomega_anal)
   print('om_min', Nomega_anal_start)
+  print('tmax',tgrid[len(tgrid)-1])
+  print('omax',omegagrid[len(omegagrid)-1])
 
 
   
@@ -155,7 +158,7 @@ def dipoleTimeDomainApp(tgrid,r,I0,PhenomParams,tcoeff,rcoeff,omega0): # some gl
   for k1 in range(len(tgrid)):
     res1 = 0.0*1j;
     intens = I0*np.exp(-tcoeff*(tgrid[k1])**2 - rcoeff*r**2)
-    for k2 in range(NumHarm): res1 = res1 + intens*np.exp(1j*(omega0*PhenomParams[0,k2]-PhenomParams[1,k2]*intens)) 
+    for k2 in range(NumHarm): res1 = res1 + intens*np.exp(1j*(tgrid[k1]*omega0*PhenomParams[0,k2]-PhenomParams[1,k2]*intens)) 
     res.append(res1); ## various points in time
   return np.asarray(res)
 
@@ -178,10 +181,19 @@ if (MicroscopicModelType == 1):
 
   tcoeff = 4.0*np.log(2.0)*TIMEau**2 / ( TFWHM**2 )
   rcoeff = 2.0/(w0**2)
+  dt = tgrid[1]-tgrid[0]
 
   for k1 in range(Nr):    
-    dum = dipoleTimeDomainApp(tgrid,rgrid[k1],I0,PhenomParams,tcoeff,rcoeff,omega0)
-    dum = np.fft.fft(dum)
+    dum = dipoleTimeDomainApp(tgrid,rgrid[k1],I0/INTENSITYau,PhenomParams,tcoeff,rcoeff,omega0)
+    if (k1 == 0):
+      np.savetxt(os.path.join(outpath,"tgrid.dat"),tgrid,fmt="%e")
+      np.savetxt(os.path.join(outpath,"dipoler.dat"),dum.real,fmt="%e")
+      np.savetxt(os.path.join(outpath,"dipolei.dat"),dum.real,fmt="%e")
+    dum = (dt/np.sqrt(2.0*np.pi))*np.fft.fft(dum)
+    if (k1 == 0):
+      np.savetxt(os.path.join(outpath,"ogrid_full.dat"),omegagrid,fmt="%e")
+      np.savetxt(os.path.join(outpath,"Fdipoler.dat"),dum.real,fmt="%e")
+      np.savetxt(os.path.join(outpath,"Fdipolei.dat"),dum.imag,fmt="%e")
     for k2 in range(Nomega):
       FField_r[k2,k1] = dum[k2]
 
