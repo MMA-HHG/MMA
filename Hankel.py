@@ -53,7 +53,7 @@ hbar=1.0545718e-34; inverse_alpha_fine=137.035999139; c_light=299792458; elcharg
 r_Bohr = hbar*inverse_alpha_fine/(c_light*elmass);
 
 # conversion factor to atomic units
-TIME = (inverse_alpha_fine**2)*hbar/(elmass*c_light**2);
+TIMEau = (inverse_alpha_fine**2)*hbar/(elmass*c_light**2);
 INTENSITYau = (inverse_alpha_fine/(8.0*np.pi))*(hbar**3)/((elmass**2)*(r_Bohr**6));
 
 
@@ -67,7 +67,7 @@ INTENSITYau = (inverse_alpha_fine/(8.0*np.pi))*(hbar**3)/((elmass**2)*(r_Bohr**6
 
 inpath = os.path.join('sims11','z_000002') # path for TDSEs
 inpath2 = 'sims11' # path for fields
-outpath = 'res11-2-dr2rm2' #'res8-2-dr16rm4' # path for results -dr2dr2rm2
+outpath = 'res1' #'res8-2-dr16rm4' # path for results -dr2dr2rm2
 if os.path.exists(outpath) and os.path.isdir(outpath):
   shutil.rmtree(outpath)
   print('deleted previous results')
@@ -77,26 +77,30 @@ os.mkdir(outpath)
 MicroscopicModelType = 1; # 0-TDSE, 1 -phenomenological 
 
 omega0 = 0.057; # [a.u.]
-omegawidth = 1;
+TFWHM = 100e-15; # [SI]
+omegawidth = 4.0/np.sqrt(4000.0**2); # roughly corresponds to 100 fs
 I0 = 2.5e18;
 w0 = 96e-6;
 PhenomParams =np.array([
-[29, 35, 45], # harmonics
+[29, 35, 39], # harmonics
 [500., 1775., 3600.], # alphas
 [omegawidth, omegawidth, omegawidth]
 ])
+
+#print(PhenomParams)
+#quit()
 
 ## parameters of the screen, etc.
 rmax_anal = 0.02; # [SI] on screen # 0.0001
 Nr_anal=200; #750
 D = 3.0 # [SI], screen distance 1
 
-omegamin_anal = 0.0;
-omegamax_anal = 0.057*55.0 # 0.057*40.0 # 0.057*55.0
+omegamin_anal = 0.057*34.0 ;
+omegamax_anal = 0.057*36.0 # 0.057*40.0 # 0.057*55.0
 omega_step = 1
 
 ## numerical params
-Nr_step = 2 # reshape the grid for the integration in r usw every Nr_step point
+Nr_step = 1 # reshape the grid for the integration in r usw every Nr_step point
 rIntegrationFactor = 1.0/2.0;
 #rIntegrationFactorMin = 1.0/16.0;
 rIntegrationFactorMin = 0; # not implemented yet, need to redefine the integration function
@@ -108,18 +112,42 @@ W = 32;
   
   
 if (MicroscopicModelType == 0):
+  print('numerical model')
   ## PUT LOADING the dipoles FROM MODULE HERE
 elif (MicroscopicModelType == 1):
-  ## maybe do nothing
+  omegagrid = np.linspace(0.0,0.057*100.0,10000)
+  print('analytical model')
+  Nomega_anal = FindInterval(omegagrid,omegamax_anal) #3000 3000 1000
+  Nomega_anal_start = FindInterval(omegagrid,omegamin_anal)
+  print('om_max', Nomega_anal)
+  print('om_min', Nomega_anal_start)
+
+  rgrid = np.linspace(0.0,2*w0,1000)
+  Nr = len(rgrid)
+
+  FField_r = []; # computed on the fly in this case
+
+
+
+# reshape rgrid if all points are not used
+if ( Nr_step != 1):
+  rgridnew=[]
+  for k1 in range(int(round(rIntegrationFactorMin*Nfiles)),int(round(rIntegrationFactor*Nfiles)),Nr_step): rgridnew.append(rgrid[k1])
+  rgrid=np.asarray(rgridnew);
+  Nr = NumOfPointsInRange(int(round(rIntegrationFactorMin*Nfiles)),int(round(rIntegrationFactor*Nfiles)),Nr_step)
+  
+dr = rgrid[1]-rgrid[0]
+
 
 ## define dipole function
-def dipoleph(omega,omega0,I,PhenomParams)
-  res = 0.0*1j;
-  for k1 in range(len(PhenomParams)):
-    res = res + np.exp(-1j*PhenomParams[2,k1]*I)*np.exp(-(PhenomParams[2,k1]*omega0-omega)**2);
-  return res
+def dipoleTimeDomainApp(t,TFWHMSI,I0,PhenomParams): # some global variables involved
+  res = [];
+  coeff = 4.0*np.log(2.0)*TIMEau**2 / ( TFWHMSI**2 )
+  intens = I0 * I0*np.exp(-coeff*t**2)
+  for k1 in range(len(PhenomParams)): res.append(intens*np.exp(-PhenomParams[1,k1]*intens))    
+  return np.asarray(res)
 
-def I0rprofile(r,I0,w0r)
+def I0rprofile(r,I0,w0r):
   return I0*np.exp(-2.0*(r/w0r)**2)
   
 
@@ -149,12 +177,12 @@ def FieldOnScreen(omegagrid, omega_step, rgrid, Nr, FField_r, rgrid_anal, k_star
     k5 = k_start + k1*omega_step # accesing the grid
     tic = time.clock()
     for k2 in range(Nr_anal): #Nomega
-      k_omega =  omegagrid[k5]/(TIME*c_light); # omega divided by time: a.u. -> SI
+      k_omega =  omegagrid[k5]/(TIMEau*c_light); # omega divided by time: a.u. -> SI
       integrand = np.empty([Nr], dtype=np.cdouble)
       if (MicroscopicModelType == 0):
         for k3 in range(Nr): integrand[k3] = np.exp(-(rgrid[k3]**2)/(2.0*D))*rgrid[k3]*FField_r[k5,k3]*special.jn(0,k_omega*rgrid[k3]*rgrid_anal[k2]/D); # rescale r to atomic units for spectrum in atomic units! (only scaling)
       elif (MicroscopicModelType == 1):
-        for k3 in range(Nr): integrand[k3] = np.exp(-(rgrid[k3]**2)/(2.0*D))*rgrid[k3]*dipoleph(omega[k5],omega0,I0rprofile(rgrid[k3],I0,w0),PhenomParams)*special.jn(0,k_omega*rgrid[k3]*rgrid_anal[k2]/D); # rescale r to atomic units for spectrum in atomic units! (only scaling)
+        for k3 in range(Nr): integrand[k3] = np.exp(-(rgrid[k3]**2)/(2.0*D))*rgrid[k3]*dipoleph(omegagrid[k5],omega0,I0rprofile(rgrid[k3],I0,w0),PhenomParams)*special.jn(0,k_omega*rgrid[k3]*rgrid_anal[k2]/D); # rescale r to atomic units for spectrum in atomic units! (only scaling)
       if (integrator == 0):
         FHHGOnScreen[k4,k2] = integrate.trapz(integrand,rgrid);
       elif (integrator == 1):
