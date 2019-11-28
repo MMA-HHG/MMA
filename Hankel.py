@@ -14,7 +14,7 @@ import math
 #from mpi4py import MPI
 #import oct2py
 import shutil
-#import h5py
+import h5py
 import sys
 
 
@@ -79,7 +79,7 @@ MicroscopicModelType = 1; # 0-TDSE, 1 -phenomenological
 
 omega0 = 0.057; # [a.u.]
 TFWHM = 50e-15; # [SI]
-tcoeff = 2.0; # extension of tgrid 
+tcoeff = 4.0; # extension of tgrid 
 omegawidth = 4.0/np.sqrt(4000.0**2); # roughly corresponds to 100 fs
 I0 = 2.5e18;
 w0 = 96e-6;
@@ -104,7 +104,7 @@ omega_step = 1
 
 ## numerical params
 Nr_step = 1 # reshape the grid for the integration in r usw every Nr_step point
-rIntegrationFactor = 1.0/2.0;
+rIntegrationFactor = 1.0; #1.0/2.0;
 #rIntegrationFactorMin = 1.0/16.0;
 rIntegrationFactorMin = 0; # not implemented yet, need to redefine the integration function
 
@@ -121,8 +121,8 @@ elif (MicroscopicModelType == 1):
 #  omegagrid = np.linspace(0.0,0.057*100.0,10000)
   print('analytical model')
 
-  rgrid = np.linspace(0.0,2*w0,1000)
-  tgrid = np.linspace(-tcoeff*0.5*TFWHM/TIMEau,tcoeff*0.5*TFWHM/TIMEau,100000)
+  rgrid = np.linspace(0.0,w0,100)
+  tgrid = np.linspace(-tcoeff*0.5*TFWHM/TIMEau,tcoeff*0.5*TFWHM/TIMEau,10000)
   Nomega = len(tgrid)//2 + 1
   omegagrid = np.linspace(0,2.0*np.pi*Nomega/(tcoeff*TFWHM/TIMEau),Nomega)
   Nr = len(rgrid)
@@ -332,10 +332,10 @@ h5spectrum_r.attrs['units']=np.string_('[arb.u.]')
 h5spectrum_i = grp.create_dataset('Spectrum_i', data=FHHGOnScreen.imag)
 h5spectrum_i.attrs['units']=np.string_('[arb.u.]')
 
-h5_ogrid_anal = grp.create_dataset('tgrid', data=omegagrid_anal)
+h5_ogrid_anal = grp.create_dataset('omegagrid_screen', data=omegagrid_anal)
 h5_ogrid_anal.attrs['units']=np.string_('[a.u.]')
 
-h5_rgrid_anal = grp.create_dataset('tgrid', data=rgrid_anal)
+h5_rgrid_anal = grp.create_dataset('rgrid_screen', data=rgrid_anal)
 h5_rgrid_anal.attrs['units']=np.string_('[SI]')
 
 f.close()
