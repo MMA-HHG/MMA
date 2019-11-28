@@ -75,7 +75,22 @@ if os.path.exists(outpath) and os.path.isdir(outpath):
 os.mkdir(outpath)
 
 ## the type of the field
-MicroscopicModelType = 1; # 0-TDSE, 1 -phenomenological 
+MicroscopicModelType = 1; # 0-TDSE, 1 -phenomenological
+
+
+ 
+params={ ## define macroscopic gaussian beam
+'Nsim': 4096, # simulations in r #4096
+'w0z' : 96.0e-6,
+'r_extend' : 4.0,
+'E0' : 0.075, 
+'z' : 0.05,
+'lambda' : 810.0e-9,
+'phase0' : 0.0, # initial CEP
+'N1cycles' : 20.0
+}
+
+
 
 omega0 = 0.057; # [a.u.]
 TFWHM = 50e-15; # [SI]
