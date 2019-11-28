@@ -20,7 +20,7 @@
 
 #include "hdf5.h"
 
-#define H5FILE_NAME        "data.h5"
+#define H5FILE_NAME        
 #define DATASETNAME "IntArray"
 #define NX_SUB  3           /* hyperslab dimensions */
 #define NY_SUB  4
@@ -54,6 +54,8 @@ main (void)
     hsize_t      offset_out[3];         /* hyperslab offset in memory */
     int          i, j, k, status_n, rank;
 
+
+
     for (j = 0; j < NX; j++) {
 	for (i = 0; i < NY; i++) {
 	    for (k = 0; k < NZ ; k++)
@@ -64,85 +66,46 @@ main (void)
     /*
      * Open the file and the dataset.
      */
-    file = H5Fopen(H5FILE_NAME, H5F_ACC_RDONLY, H5P_DEFAULT);
-    dataset = H5Dopen2(file, DATASETNAME, H5P_DEFAULT);
+    file = H5Fopen("data.h5", H5F_ACC_RDONLY, H5P_DEFAULT);
+    dataset = H5Dopen2(file, "micro/params/dt", H5P_DEFAULT);
 
     /*
      * Get datatype and dataspace handles and then query
      * dataset class, order, size, rank and dimensions.
      */
+
+
     datatype  = H5Dget_type(dataset);     /* datatype handle */
     t_class     = H5Tget_class(datatype);
     if (t_class == H5T_INTEGER) printf("Data set has INTEGER type \n");
     order     = H5Tget_order(datatype);
     if (order == H5T_ORDER_LE) printf("Little endian order \n");
 
+    
     size  = H5Tget_size(datatype);
     printf(" Data size is %d \n", (int)size);
 
-    dataspace = H5Dget_space(dataset);    /* dataspace handle */
-    rank      = H5Sget_simple_extent_ndims(dataspace);
-    status_n  = H5Sget_simple_extent_dims(dataspace, dims_out, NULL);
-    printf("rank %d, dimensions %lu x %lu \n", rank,
-	   (unsigned long)(dims_out[0]), (unsigned long)(dims_out[1]));
+/*    memspace = H5Screate_simple(1,1,NULL);*/
 
-    /*
-     * Define hyperslab in the dataset.
-     */
-    offset[0] = 1;
-    offset[1] = 2;
-    count[0]  = NX_SUB;
-    count[1]  = NY_SUB;
-    status = H5Sselect_hyperslab(dataspace, H5S_SELECT_SET, offset, NULL,
-				 count, NULL);
 
-    /*
-     * Define the memory dataspace.
-     */
-    dimsm[0] = NX;
-    dimsm[1] = NY;
-    dimsm[2] = NZ ;
-    memspace = H5Screate_simple(RANK_OUT,dimsm,NULL);
+/*    status = H5Dread(dataset, H5T_NATIVE_INT, memspace, dataspace,*/
+/*		     H5P_DEFAULT, dt);*/
 
-    /*
-     * Define memory hyperslab.
-     */
-    offset_out[0] = 3;
-    offset_out[1] = 0;
-    offset_out[2] = 0;
-    count_out[0]  = NX_SUB;
-    count_out[1]  = NY_SUB;
-    count_out[2]  = 1;
-    status = H5Sselect_hyperslab(memspace, H5S_SELECT_SET, offset_out, NULL,
-				 count_out, NULL);
+    int pdumint[0];
+    double dt[0];
+/*    status = H5Dread(dataset,  H5T_STD_I64LE, H5S_ALL, H5S_ALL,*/
+/*		     H5P_DEFAULT, pdumint);*/
 
-    /*
-     * Read data from hyperslab in the file into the hyperslab in
-     * memory and display.
-     */
-    status = H5Dread(dataset, H5T_NATIVE_INT, memspace, dataspace,
-		     H5P_DEFAULT, data_out);
-    for (j = 0; j < NX; j++) {
-	for (i = 0; i < NY; i++) printf("%d ", data_out[j][i][0]);
-	printf("\n");
-    }
-    /*
-     * 0 0 0 0 0 0 0
-     * 0 0 0 0 0 0 0
-     * 0 0 0 0 0 0 0
-     * 3 4 5 6 0 0 0
-     * 4 5 6 7 0 0 0
-     * 5 6 7 8 0 0 0
-     * 0 0 0 0 0 0 0
-     */
+    status = H5Dread(dataset,  datatype, H5S_ALL, H5S_ALL,
+		     H5P_DEFAULT, dt);
 
-    /*
-     * Close/release resources.
-     */
+    printf(" Value is %lf \n", dt[0]);
+
+
     H5Tclose(datatype);
     H5Dclose(dataset);
-    H5Sclose(dataspace);
-    H5Sclose(memspace);
+/*    H5Sclose(dataspace);*/
+/*    H5Sclose(memspace);*/
     H5Fclose(file);
 
     return 0;

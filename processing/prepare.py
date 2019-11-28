@@ -77,10 +77,7 @@ def FieldParams(r,z,p):
   kwave = 2.0*np.pi/p['lambda']
   zR = (np.pi*(p['w0z'])**2)/p['lambda']
   wz = p['w0z']*np.sqrt(1.0+(z/zR)**2)
-  if (z == 0.0):
-    invRz = 0.0
-  else:
-    invRz = 1.0/(z + (zR**2)/z)
+  invRz = z/(z**2 + (zR**2))
   Erz = p['E0']*(p['w0z']/wz)*np.exp(-(r/wz)**2)
   phase = p['phase0'] - 0.5*(r**2)*kwave*invRz + np.arctan(z/zR) # be careful with notation of the wave E = e^(-i*(omega*t-k*z)), it means that for a fixed z, phi should be nagative to correspond with E~sin(omega*t+phi0)
   return Erz, phase
