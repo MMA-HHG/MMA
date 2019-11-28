@@ -68,7 +68,7 @@ INTENSITYau = (inverse_alpha_fine/(8.0*np.pi))*(hbar**3)/((elmass**2)*(r_Bohr**6
 
 inpath = os.path.join('sims11','z_000002') # path for TDSEs
 inpath2 = 'sims11' # path for fields
-outpath = 'res1' #'res8-2-dr16rm4' # path for results -dr2dr2rm2
+outpath = 'res' #'res8-2-dr16rm4' # path for results -dr2dr2rm2
 if os.path.exists(outpath) and os.path.isdir(outpath):
   shutil.rmtree(outpath)
   print('deleted previous results')
@@ -111,7 +111,7 @@ rIntegrationFactorMin = 0; # not implemented yet, need to redefine the integrati
 ## other parameters
 integrator = 0; #(0 - trapezoidal, 1 - Simpson) 
 W = mp.cpu_count() # this is the number of workers
-W = 1;
+W = 32;
   
   
 if (MicroscopicModelType == 0):
@@ -322,8 +322,23 @@ np.savetxt(os.path.join(outpath,"Spectrumimag.dat"),FHHGOnScreen.imag,fmt="%e")
 np.savetxt(os.path.join(outpath,"omegagrid_anal.dat"),omegagrid_anal,fmt="%e")
 np.savetxt(os.path.join(outpath,"rgrid_anal.dat"),rgrid_anal,fmt="%e")
 
+#HDF5 results
+f = h5py.File(os.path.join(outpath,"results.h5"),'a')
+grp = f.create_group('XUV')
 
+h5spectrum_r = grp.create_dataset('Spectrum_r', data=FHHGOnScreen.real)
+h5spectrum_r.attrs['units']=np.string_('[arb.u.]')
 
+h5spectrum_i = grp.create_dataset('Spectrum_i', data=FHHGOnScreen.imag)
+h5spectrum_i.attrs['units']=np.string_('[arb.u.]')
+
+h5_ogrid_anal = grp.create_dataset('tgrid', data=omegagrid_anal)
+h5_ogrid_anal.attrs['units']=np.string_('[a.u.]')
+
+h5_rgrid_anal = grp.create_dataset('tgrid', data=rgrid_anal)
+h5_rgrid_anal.attrs['units']=np.string_('[SI]')
+
+f.close()
 
 
 ## write params for reference
