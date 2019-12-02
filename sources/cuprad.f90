@@ -19,8 +19,14 @@ PROGRAM cuprad
   limit_s=timelimit*3600
   IF (.NOT.finished) THEN
      DO WHILE (z.LT.proplength)
+
+        IF(z_out.LE.z) THEN ! HDF5 printing
+           CALL HDF5_out! that's the printing
+!           z_outHD5=z_outHD5+outlengthHD5 !!!! WILL BE USED WHEN GRIDS DISATTACHED
+        ENDIF
+
         IF(z_out.LE.z) THEN
-           CALL matlab_out
+           CALL matlab_out ! that's the printing
            z_out=z_out+outlength
         ENDIF
         CALL propagation
@@ -58,7 +64,8 @@ PROGRAM cuprad
         ENDIF
      ENDIF
      CALL field_out
-     CALL matlab_out    
+     CALL matlab_out 
+     CALL HDF5_out   
      rhodist=count
      CALL propagation
      CALL finalize
