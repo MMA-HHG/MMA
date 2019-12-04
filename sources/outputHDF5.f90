@@ -88,7 +88,7 @@ CONTAINS
 	!close the file
 
 	
-
+	CALL h5close_f(error) ! close the HDF5 workspace
    
     !!! now, just append data 
 
