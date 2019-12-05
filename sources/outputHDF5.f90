@@ -23,10 +23,10 @@ CONTAINS
 	CHARACTER(LEN=10), PARAMETER :: filename = "results.h5"
 
 	!
-	!dataset rank is 2 and name is "ExtendibleArray"
+
 	!
 	CHARACTER(LEN=15), PARAMETER :: dsetname = "micro/FieldsForTDSEreal"
-	CHARACTER(LEN=15), PARAMETER :: dsetname = "micro/FieldsForTDSEimag"
+!	CHARACTER(LEN=15), PARAMETER :: dsetname = "micro/FieldsForTDSEimag"
 	INTEGER :: RANK = 2
 
 	INTEGER(HID_T) :: file_id       ! File identifier 
@@ -45,6 +45,10 @@ CONTAINS
 	ENDDO
 	ENDDO
 
+
+
+! At the end, this implemntation almost straightforwadly follows tutorial from HDF5 page. The only extension is our 3-dimensionality of the code
+! The idea to extend this to writing it in multiple files is not to use ctrl-c--ctrl-v for new quantities. Almost all operations may be done in loops on various files, except hereogeneous writing
 	IF (!FIRST RUN)
 
 
@@ -90,6 +94,7 @@ CONTAINS
 !	CALL h5pset_chunk_f(crp_list, field_dimensions, dimsc, error) ???????????? Do we need chunk it?
 
 	! Write the data collectivelly (we may try also to do it independently.... I think it could avoid some broadcast?)
+	dimsfi = (/1,dim_r,dim_t/) ! accorfing to the tuto, it seems that whole dataset dimension is required
 	CALL h5dwrite_f(dset_id , H5T_NATIVE_FLOAT, Fields, dimsfi, error,file_space_id=filespace,mem_space_id=memspace,xfer_prp = h5parameters)! data are written !!!( probably variable length)
 
 
@@ -113,7 +118,7 @@ CONTAINS
 	! open the dataset
   	CALL h5dopen_f(file_id, dsetname, dset_id, error) ! Open an existing dataset.
 
-	! recognise the dataset size now
+	! recognise the dataset size now (remember from previous run)
         CALL h5sget_simple_extent_dims(dataspace,dims,maxdims,error)
 	zdim = dims(1)
 	zdim = zdim + 1
