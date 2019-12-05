@@ -55,26 +55,35 @@ CONTAINS
 	!Create the dataspace with unlimited dimension in z. ! again, what should I use for parallel access?
 	maxdims = (/H5S_UNLIMITED_F, dim_r, dim_t/)
 	dims = (/1,dim_r,dim_t/)
-	CALL h5screate_simple_f(field_dimensions, dims, dataspace, error, maxdims) ! create dataspace, the dataspace is its identifier !!!(global dataspace for all the data)
+	CALL h5screate_simple_f(field_dimensions, dims, filespace, error, maxdims) ! dataset dimension in the file
 	dims = (1, dim_r_end(num_proc)-dim_r_start(num_proc), dim_t) ! dimension of my field
-	CALL h5screate_simple_f(field_dimensions, dims, dataspacelocal, error, maxdims) ! create dataspace, the dataspace is its identifier !!!(local dataspace for local data)
-
+	CALL h5screate_simple_f(field_dimensions, dims, dataspace, error, maxdims) ! dataset dimensions in memory (this worker)
 
 	! we create the dataset collectivelly
 	CALL h5dcreate_f(file_id, dsetname, H5T_NATIVE_FLOAT, filespace, dset_id, error) ! according to smilei, propabably optional args 
+	CALL h5sclose(filespace,error)
 
 	!we use hyperslab to assign part of the global dataset
 	!chunk data for each worker
+	stride = (/1,1,1/) ! we write a block of data directly in file, no skipped lines, rows, ...
+	block = (/1,dim_r_end(num_proc) - dim_r_start(num_proc),dim_t/) ! allows flush data at once 
 	offset = (/0,dim_r_start(num_proc),0/)
 	ccount = (/1, dim_r_end(num_proc) - dim_r_start(num_proc) , dim_t/)
-	CALL h5sselect_hyperslab_f(filespace, H5S_SELECT_SET_F, offset, count, error) ! we should have access to its part of the dataset for each worker
+	
+	CALL h5dget_space_f(dset_id,filespace,error)
+	CALL h5sselect_hyperslab_f(filespace, H5S_SELECT_SET_F, offset, count, error, stride, block) ! we should have access to its part of the dataset for each worker
 
-	!Finally, write data
+
+	!!!Finally, write data
+	! Create access parametwers
 	CALL h5pcreate_f(H5P_DATASET_XFER_F, h5parameters, error)
 	CALL h5pset_dxpl_mpio_f(h5parameters, H5FD_MPIO_COLLECTIVE_F, error) ! collective writting
+
 !	CALL h5pset_chunk_f(crp_list, field_dimensions, dimsc, error) ???????????? Do we need chunk it?
-	CALL h5dwrite_vl_f(dset_id , H5T_NATIVE_FLOAT, Fields, dimsfi, error, memspace,file_space_id=filespace,xfer_prp = h5parameters)! data are written !!!( probably variable length)
-	CALL h5pclose(h5parameters) ! parameters were used for MPI open, close them
+
+	! Write the data collectivelly (we may try also to do it independently.... I think it could avoid some broadcast?)
+	CALL h5dwrite_f(dset_id , H5T_NATIVE_FLOAT, Fields, dimsfi, error,file_space_id=filespace,mem_space_id=memspace,xfer_prp = h5parameters)! data are written !!!( probably variable length)
+
 	
 	DO k1=1,dim_t	
 	DO k2=1,dim_t
@@ -82,8 +91,12 @@ CONTAINS
 	ENDDO
 	ENDDO
 
-
-
+	!close the files etc.
+	CALL h5sclose_f(filespace,error)
+	CALL h5sclose_f(memspace,error)
+	CALL h5dclose_f(dset_id,error)
+	CALL h5pclose_f(h5parameters,error)
+	CALL h5fclose_f(file_id,error)
 	
 	CALL h5close_f(error) ! close the HDF5 workspace
    
