@@ -37,6 +37,14 @@ CONTAINS
 
     !!! in the first run, create extendible dataset and fill data
 	field_dimensions = 3;
+
+	r_offset = dim_r_start(num_proc)-1
+	DO k1=1, ( dim_r_end(num_proc)-dim_r_start(num_proc) )	
+	DO k2=1,dim_t
+		Fields(1,k1,k2) = REAL(e(k2,r_offset+k1));
+	ENDDO
+	ENDDO
+
 	IF (!FIRST RUN)
 
 
@@ -84,12 +92,6 @@ CONTAINS
 	! Write the data collectivelly (we may try also to do it independently.... I think it could avoid some broadcast?)
 	CALL h5dwrite_f(dset_id , H5T_NATIVE_FLOAT, Fields, dimsfi, error,file_space_id=filespace,mem_space_id=memspace,xfer_prp = h5parameters)! data are written !!!( probably variable length)
 
-	
-	DO k1=1,dim_t	
-	DO k2=1,dim_t
-		Fields(1,k1,k2) = REAL(e(k1,k2));
-	ENDDO
-	ENDDO
 
 	!close the files etc.
 	CALL h5sclose_f(filespace,error)
