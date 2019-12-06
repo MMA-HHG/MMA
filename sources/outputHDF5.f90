@@ -109,47 +109,76 @@ CONTAINS
    
     !!! now, just append data 
 
+
+	!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	ELSE (!ANOTHER RUN)
 
-	!Open file for reading and writing ! ? WHAT SHOULD I USE FOR PARALLEL
-	CALL h5fopen_f(filename, H5F_ACC_RDWR file_id, error)
 
 
-	! open the dataset
-  	CALL h5dopen_f(file_id, dsetname, dset_id, error) ! Open an existing dataset.
+	!Initialize HDF5
+	CALL h5open_f(error) 
 
-	! recognise the dataset size now (remember from previous run)
-        CALL h5sget_simple_extent_dims(dataspace,dims,maxdims,error)
-	zdim = dims(1)
-	zdim = zdim + 1
+	!define parameters of HDF5 workflow for MPI-access
+	CALL h5pcreate_f(H5P_DATASET_CREATE_F, h5parameters, error) ! create access parameters
+        CALL h5pset_dxpl_mpio_f(h5parameters, H5FD_MPIO_COLLECTIVE_F, error) ! allow MPI access (should it be here?)
 
-	newsize = (/zdim, dim_r, dim_t/)
+	!Open collectivelly the file
+	CALL h5fopen_f(filename, H5F_ACC_RDWR, file_id, error, access_prp = h5parameters ) ! open file collectivelly
+	CALL h5pclose(h5parameters) ! parameters were used for MPI open, close them
+	
 
-	!extend the dataset
-	CALL h5dset_extent_f(dset_id, newsize, error)
+	!open the datasets
+	CALL h5dopen_f(file_id, dsetname, dset_id, error) ! open collectivelly
+
+	! recognise its size.
+	CALL h5dget_space_f(dset_id,filespace, error) ! get filespace identifier
+	CALL h5sget_simple_extent_dims_f(filespace, dims, maxdims, error)  ! get filespace dimension
+
+	! extend it in the first dimension
+	Nz_dim_old = dims(1)
+	dims(1) = dims(1) + 1
+	CALL h5dset_extent_f(dset_id, dims, error)
 
 
-	! Now I use hyperslab to select proper plane
-!	offset = (/zdim,0,0/)
-!	ccount = (/1,dim_r,dim_t/)
+	! we need just memory space for each worker, global is already set
+	dims = (1, dim_r_end(num_proc)-dim_r_start(num_proc), dim_t) ! dimension of my field
+	CALL h5screate_simple_f(field_dimensions, dims, memspace, error, maxdims) ! dataset dimensions in memory (this worker)
+
+	! dataset is already created
+
+	!we use hyperslab to assign part of the global dataset
 	!chunk data for each worker
-	offset = (/zdim,dim_r_start(num_proc),0/)
+	stride = (/1,1,1/) ! we write a block of data directly in file, no skipped lines, rows, ...
+	block = (/1,dim_r_end(num_proc) - dim_r_start(num_proc),dim_t/) ! allows flush data at once 
+	offset = (/Nz_dim_old,dim_r_start(num_proc),0/) ! the contiguous shift in the dimenzion of z
 	ccount = (/1, dim_r_end(num_proc) - dim_r_start(num_proc) , dim_t/)
-
-	data_dims = (/1,dim_r,dim_t/)
-	CALL h5dget_space_f(dset_id, dataspace, error)
-	CALL h5sselect_hyperslab_f(dataspace, H5S_SELECT_SET_F, offset, count, error)
-
-	do k1 = dim_r_start(num_proc),dim_r_end(num_proc)
-		do k2 = 1, dim_t
-			data_append(k1,k2) = REAL(e(k2,k1))
-		enddo
-	enddo
-
-	!Write data to the dataset - hyperslab next plane
-	CALL H5dwrite_f(dset_id, H5T_NATIVE_FLOAT, data_append, data_dims, error, memspace, dataspace)
+	
+!	CALL h5dget_space_f(dset_id,filespace,error) !!! We done and kept from the extension?
+	CALL h5sselect_hyperslab_f(filespace, H5S_SELECT_SET_F, offset, count, error, stride, block) ! we should have access to its part of the dataset for each worker
 
 
+	!!!Finally, write data
+	! Create access parametwers
+	CALL h5pcreate_f(H5P_DATASET_XFER_F, h5parameters, error)
+	CALL h5pset_dxpl_mpio_f(h5parameters, H5FD_MPIO_COLLECTIVE_F, error) ! collective writting
+
+!	CALL h5pset_chunk_f(crp_list, field_dimensions, dimsc, error) ???????????? Do we need chunk it?
+
+	! Write the data collectivelly (we may try also to do it independently.... I think it could avoid some broadcast?)
+!	dimsfi = (/1,dim_r,dim_t/) ! accorfing to the tuto, it seems that whole dataset dimension is required
+	dimsfi = dims ! accorfing to the tuto, it seems that whole dataset dimension is required
+	CALL h5dwrite_f(dset_id , H5T_NATIVE_FLOAT, Fields, dimsfi, error,file_space_id=filespace,mem_space_id=memspace,xfer_prp = h5parameters)! data are written !!!( probably variable length)
+
+
+	!close the files etc.
+	CALL h5sclose_f(filespace,error)
+	CALL h5sclose_f(memspace,error)
+	CALL h5dclose_f(dset_id,error)
+	CALL h5pclose_f(h5parameters,error)
+	CALL h5fclose_f(file_id,error)
+	
+	CALL h5close_f(error) ! close the HDF5 workspace
+   
 
 
 
