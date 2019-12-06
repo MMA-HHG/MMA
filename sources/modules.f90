@@ -32,6 +32,7 @@ MODULE parameters
   INTEGER, parameter :: unit_peakmax=7,unit_rho=8,unit_logfile=9,unit_field=10,unit_energy=11,unit_rhomax=12, unit_rhoabs_max = 13
   REAL(8)    :: ionisation_potential_N2,residue_charge_N2,atomic_density_N2
   INTEGER(4) :: angular_momentum_N2
+  INTEGER(4) :: HDF5write_count
 END MODULE parameters
 
 MODULE mpi_stuff

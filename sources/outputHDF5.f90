@@ -14,26 +14,40 @@ CONTAINS
     INTEGER(4) j,k,l
     REAL(8) rhotemp,r,mpa
     COMPLEX(8) help
-    CHARACTER*10 iz,filename
+    CHARACTER*10 iz !,filename
 
 
 
+     CHARACTER(LEN=10), PARAMETER :: filename = "results.h5"  ! File name
+     CHARACTER(LEN=23), PARAMETER :: dsetname = "micro/FieldsForTDSEreal" ! Dataset name
 
-	!
-	CHARACTER(LEN=10), PARAMETER :: filename = "results.h5"
+     INTEGER(HID_T) :: file_id       ! File identifier 
+     INTEGER(HID_T) :: dset_id       ! Dataset identifier 
+     INTEGER(HID_T) :: filespace     ! Dataspace identifier in file 
+     INTEGER(HID_T) :: memspace      ! Dataspace identifier in memory
+     INTEGER(HID_T) :: h5parameters  ! Property list identifier 
 
-	!
+!     INTEGER(HSIZE_T), DIMENSION(3) :: dimsf  ! Dataset dimensions.
+!!     INTEGER, DIMENSION(7) :: dimsfi = (/5,8,0,0,0,0,0/)
+!     INTEGER(HSIZE_T), DIMENSION(3) :: dimsfi 
+     INTEGER(HSIZE_T), DIMENSION(3) :: dims,dimsfi,maxdims 
 
-	!
-	CHARACTER(LEN=15), PARAMETER :: dsetname = "micro/FieldsForTDSEreal"
-!	CHARACTER(LEN=15), PARAMETER :: dsetname = "micro/FieldsForTDSEimag"
-	INTEGER :: RANK = 2
+     INTEGER(HSIZE_T), DIMENSION(2) :: ccount  
+     INTEGER(HSIZE_T), DIMENSION(2) :: offset 
+     INTEGER :: field_dimensions ! Dataset rank 
 
-	INTEGER(HID_T) :: file_id       ! File identifier 
-	INTEGER(HID_T) :: dset_id       ! Dataset identifier 
-	INTEGER(HID_T) :: dataspace     ! Dataspace identifier 
-	INTEGER(HID_T) :: memspace      ! Memory dataspace identifier 
-	INTEGER(HID_T) :: h5parameters      ! Dataset creation property identifier 
+     INTEGER :: error, error_n  ! Error flags
+     !
+     ! MPI definitions and calls.
+     !
+
+     INTEGER :: comm, info
+
+
+     comm = MPI_COMM_WORLD
+     info = MPI_INFO_NULL
+
+
 
     !!! in the first run, create extendible dataset and fill data
 	field_dimensions = 3;
@@ -41,7 +55,7 @@ CONTAINS
 	r_offset = dim_r_start(num_proc)-1
 	DO k1=1, ( dim_r_end(num_proc)-dim_r_start(num_proc) )	
 	DO k2=1,dim_t
-		Fields(1,k1,k2) = REAL(e(k2,r_offset+k1));
+		Fields(1,k1,k2) = REAL(HDF5write_count+k1+k2) !REAL(e(k2,r_offset+k1));
 	ENDDO
 	ENDDO
 
@@ -49,7 +63,7 @@ CONTAINS
 
 ! At the end, this implemntation almost straightforwadly follows tutorial from HDF5 page. The only extension is our 3-dimensionality of the code
 ! The idea to extend this to writing it in multiple files is not to use ctrl-c--ctrl-v for new quantities. Almost all operations may be done in loops on various files, except hereogeneous writing
-	IF (!FIRST RUN)
+	IF ( HDF5write_count == 1) THEN
 
 
 	!Initialize HDF5
@@ -83,7 +97,7 @@ CONTAINS
 	ccount = (/1, dim_r_end(num_proc) - dim_r_start(num_proc) , dim_t/)
 	
 	CALL h5dget_space_f(dset_id,filespace,error)
-	CALL h5sselect_hyperslab_f(filespace, H5S_SELECT_SET_F, offset, count, error, stride, block) ! we should have access to its part of the dataset for each worker
+	CALL h5sselect_hyperslab_f(filespace, H5S_SELECT_SET_F, offset, ccount, error, stride, block) ! we should have access to its part of the dataset for each worker
 
 
 	!!!Finally, write data
@@ -111,7 +125,7 @@ CONTAINS
 
 
 	!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	ELSE (!ANOTHER RUN)
+	ELSE !ANOTHER RUN)
 
 
 
@@ -154,7 +168,7 @@ CONTAINS
 	ccount = (/1, dim_r_end(num_proc) - dim_r_start(num_proc) , dim_t/)
 	
 !	CALL h5dget_space_f(dset_id,filespace,error) !!! We done and kept from the extension?
-	CALL h5sselect_hyperslab_f(filespace, H5S_SELECT_SET_F, offset, count, error, stride, block) ! we should have access to its part of the dataset for each worker
+	CALL h5sselect_hyperslab_f(filespace, H5S_SELECT_SET_F, offset, ccount, error, stride, block) ! we should have access to its part of the dataset for each worker
 
 
 	!!!Finally, write data
@@ -183,6 +197,7 @@ CONTAINS
 
 
 	ENDIF
+	HDF5write_count = HDF5write_count + 1
 
 !       OPEN(unit_field,FILE=iz//'_FIELD_'//ip//'.DAT',STATUS='UNKNOWN',FORM='UNFORMATTED')
 !       WRITE(unit_field) dim_t,dim_r,num_proc
