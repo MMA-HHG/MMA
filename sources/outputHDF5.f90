@@ -1,4 +1,4 @@
-MODULE output
+MODULE outputHDF5
   USE fields
   USE parameters
   USE mpi_stuff
@@ -49,7 +49,7 @@ CONTAINS
 
 
 
-    !!! in the first run, create extendible dataset and fill data
+    !!! in the first run, create extendible dataset and fill random data
 	field_dimensions = 3;
 
 	r_offset = dim_r_start(num_proc)-1
@@ -424,4 +424,4 @@ CONTAINS
 !    RETURN
 !  END SUBROUTINE field_out
 
-END MODULE output
+END MODULE outputHDF5
