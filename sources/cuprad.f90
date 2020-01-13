@@ -3,6 +3,7 @@ PROGRAM cuprad
   USE parameters
   USE first_step
   USE output
+  USE outputHDF5
   USE long_step
   USE mpi_stuff
   USE run_status
