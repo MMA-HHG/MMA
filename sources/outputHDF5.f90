@@ -12,6 +12,7 @@ CONTAINS
     IMPLICIT NONE
 
     INTEGER(4) j,k,l
+    INTEGER(4) k1,k2,k3,k4,k5
     REAL(8) rhotemp,r,mpa
     COMPLEX(8) help
     CHARACTER*10 iz !,filename
@@ -23,7 +24,8 @@ CONTAINS
 
      INTEGER(HID_T) :: file_id       ! File identifier 
      INTEGER(HID_T) :: dset_id       ! Dataset identifier 
-     INTEGER(HID_T) :: filespace     ! Dataspace identifier in file 
+     INTEGER(HID_T) :: dataspace     ! Dataspace identifier in file 
+     INTEGER(HID_T) :: filespace     ! Filespace identifier
      INTEGER(HID_T) :: memspace      ! Dataspace identifier in memory
      INTEGER(HID_T) :: h5parameters  ! Property list identifier 
 
@@ -32,8 +34,11 @@ CONTAINS
 !     INTEGER(HSIZE_T), DIMENSION(3) :: dimsfi 
      INTEGER(HSIZE_T), DIMENSION(3) :: dims,dimsfi,maxdims 
 
-     INTEGER(HSIZE_T), DIMENSION(2) :: ccount  
-     INTEGER(HSIZE_T), DIMENSION(2) :: offset 
+     INTEGER(HSIZE_T), DIMENSION(3) :: ccount  
+     INTEGER(HSIZE_T), DIMENSION(3) :: offset 
+     INTEGER(HSIZE_T), DIMENSION(3) :: stride
+     INTEGER(HSIZE_T), DIMENSION(3) :: cblock
+     INTEGER(HSIZE_T)               :: r_offset
      INTEGER :: field_dimensions ! Dataset rank 
 
      INTEGER :: error, error_n  ! Error flags
@@ -43,21 +48,26 @@ CONTAINS
 
      INTEGER :: comm, info
 
+     REAL(8), ALLOCATABLE :: Fields(:,:,:)
+     INTEGER :: Nz_dim_old
+
 
      comm = MPI_COMM_WORLD
      info = MPI_INFO_NULL
 
 
-
-    !!! in the first run, create extendible dataset and fill random data
+    !!! in the first run, create dataset and fill random data
 	field_dimensions = 3;
+	allocate(Fields(1,dim_r_end(num_proc)-dim_r_start(num_proc),dim_t))
 
 	r_offset = dim_r_start(num_proc)-1
 	DO k1=1, ( dim_r_end(num_proc)-dim_r_start(num_proc) )	
 	DO k2=1,dim_t
-		Fields(1,k1,k2) = REAL(HDF5write_count+k1+k2) !REAL(e(k2,r_offset+k1));
+		Fields(1,k1,k2) = REAL(HDF5write_count+k1+k2,8) !REAL(e(k2,r_offset+k1));
 	ENDDO
 	ENDDO
+
+
 
 
 
@@ -74,30 +84,30 @@ CONTAINS
         CALL h5pset_dxpl_mpio_f(h5parameters, H5FD_MPIO_COLLECTIVE_F, error) ! allow MPI access (should it be here?)
 
 	!Open collectivelly the file
-	CALL h5fopen_f(filename, H5F_ACC_RDWR, file_id, error, access_prp = h5parameters ) ! open file collectivelly
+	CALL h5fopen_f(filename, H5F_ACC_RDWR_F, file_id, error, access_prp = h5parameters ) ! open file collectivelly
 	CALL h5pclose(h5parameters) ! parameters were used for MPI open, close them
 	
 
 	!Create the dataspace with unlimited dimension in z. ! again, what should I use for parallel access?
-	maxdims = (/H5S_UNLIMITED_F, dim_r, dim_t/)
-	dims = (/1,dim_r,dim_t/)
+	maxdims = (/H5S_UNLIMITED_F, int(dim_r,HSIZE_T), int(dim_t,HSIZE_T)/) 
+	dims = (/int(1,HSIZE_T),int(dim_r,HSIZE_T), int(dim_t,HSIZE_T)/)
 	CALL h5screate_simple_f(field_dimensions, dims, filespace, error, maxdims) ! dataset dimension in the file
-	dims = (1, dim_r_end(num_proc)-dim_r_start(num_proc), dim_t) ! dimension of my field
+	dims = (/1, dim_r_end(num_proc)-dim_r_start(num_proc), dim_t/) ! dimension of my field
 	CALL h5screate_simple_f(field_dimensions, dims, dataspace, error, maxdims) ! dataset dimensions in memory (this worker)
 
 	! we create the dataset collectivelly
-	CALL h5dcreate_f(file_id, dsetname, H5T_NATIVE_FLOAT, filespace, dset_id, error) ! according to smilei, propabably optional args 
+	CALL h5dcreate_f(file_id, dsetname, H5T_NATIVE_REAL, filespace, dset_id, error)
 	CALL h5sclose(filespace,error)
 
 	!we use hyperslab to assign part of the global dataset
 	!chunk data for each worker
 	stride = (/1,1,1/) ! we write a block of data directly in file, no skipped lines, rows, ...
-	block = (/1,dim_r_end(num_proc) - dim_r_start(num_proc),dim_t/) ! allows flush data at once 
+	cblock = (/1,dim_r_end(num_proc) - dim_r_start(num_proc),dim_t/) ! allows flush data at once 
 	offset = (/0,dim_r_start(num_proc),0/)
 	ccount = (/1, dim_r_end(num_proc) - dim_r_start(num_proc) , dim_t/)
 	
 	CALL h5dget_space_f(dset_id,filespace,error)
-	CALL h5sselect_hyperslab_f(filespace, H5S_SELECT_SET_F, offset, ccount, error, stride, block) ! we should have access to its part of the dataset for each worker
+	CALL h5sselect_hyperslab_f(filespace, H5S_SELECT_SET_F, offset, ccount, error, stride, cblock) ! we should have access to its part of the dataset for each worker
 
 
 	!!!Finally, write data
@@ -109,7 +119,7 @@ CONTAINS
 
 	! Write the data collectivelly (we may try also to do it independently.... I think it could avoid some broadcast?)
 	dimsfi = (/1,dim_r,dim_t/) ! accorfing to the tuto, it seems that whole dataset dimension is required
-	CALL h5dwrite_f(dset_id , H5T_NATIVE_FLOAT, Fields, dimsfi, error,file_space_id=filespace,mem_space_id=memspace,xfer_prp = h5parameters)! data are written !!!( probably variable length)
+	CALL h5dwrite_f(dset_id , H5T_NATIVE_REAL, Fields, dimsfi, error,file_space_id=filespace,mem_space_id=memspace,xfer_prp = h5parameters)! data are written !!!( probably variable length)
 
 
 	!close the files etc.
@@ -137,7 +147,7 @@ CONTAINS
         CALL h5pset_dxpl_mpio_f(h5parameters, H5FD_MPIO_COLLECTIVE_F, error) ! allow MPI access (should it be here?)
 
 	!Open collectivelly the file
-	CALL h5fopen_f(filename, H5F_ACC_RDWR, file_id, error, access_prp = h5parameters ) ! open file collectivelly
+	CALL h5fopen_f(filename, H5F_ACC_RDWR_F, file_id, error, access_prp = h5parameters ) ! open file collectivelly
 	CALL h5pclose(h5parameters) ! parameters were used for MPI open, close them
 	
 
@@ -155,7 +165,7 @@ CONTAINS
 
 
 	! we need just memory space for each worker, global is already set
-	dims = (1, dim_r_end(num_proc)-dim_r_start(num_proc), dim_t) ! dimension of my field
+	dims = (/1, dim_r_end(num_proc)-dim_r_start(num_proc), dim_t/) ! dimension of my field
 	CALL h5screate_simple_f(field_dimensions, dims, memspace, error, maxdims) ! dataset dimensions in memory (this worker)
 
 	! dataset is already created
@@ -163,12 +173,12 @@ CONTAINS
 	!we use hyperslab to assign part of the global dataset
 	!chunk data for each worker
 	stride = (/1,1,1/) ! we write a block of data directly in file, no skipped lines, rows, ...
-	block = (/1,dim_r_end(num_proc) - dim_r_start(num_proc),dim_t/) ! allows flush data at once 
+	cblock = (/1,dim_r_end(num_proc) - dim_r_start(num_proc),dim_t/) ! allows flush data at once 
 	offset = (/Nz_dim_old,dim_r_start(num_proc),0/) ! the contiguous shift in the dimenzion of z
 	ccount = (/1, dim_r_end(num_proc) - dim_r_start(num_proc) , dim_t/)
 	
 !	CALL h5dget_space_f(dset_id,filespace,error) !!! We done and kept from the extension?
-	CALL h5sselect_hyperslab_f(filespace, H5S_SELECT_SET_F, offset, ccount, error, stride, block) ! we should have access to its part of the dataset for each worker
+	CALL h5sselect_hyperslab_f(filespace, H5S_SELECT_SET_F, offset, ccount, error, stride, cblock) ! we should have access to its part of the dataset for each worker
 
 
 	!!!Finally, write data
@@ -181,7 +191,7 @@ CONTAINS
 	! Write the data collectivelly (we may try also to do it independently.... I think it could avoid some broadcast?)
 !	dimsfi = (/1,dim_r,dim_t/) ! accorfing to the tuto, it seems that whole dataset dimension is required
 	dimsfi = dims ! accorfing to the tuto, it seems that whole dataset dimension is required
-	CALL h5dwrite_f(dset_id , H5T_NATIVE_FLOAT, Fields, dimsfi, error,file_space_id=filespace,mem_space_id=memspace,xfer_prp = h5parameters)! data are written !!!( probably variable length)
+	CALL h5dwrite_f(dset_id , H5T_NATIVE_REAL, Fields, dimsfi, error,file_space_id=filespace,mem_space_id=memspace,xfer_prp = h5parameters)! data are written !!!( probably variable length)
 
 
 	!close the files etc.
@@ -197,7 +207,8 @@ CONTAINS
 
 
 	ENDIF
-	HDF5write_count = HDF5write_count + 1
+	HDF5write_count = HDF5write_count + 1 !increase counter in all cases
+	deallocate(Fields)
 
 !       OPEN(unit_field,FILE=iz//'_FIELD_'//ip//'.DAT',STATUS='UNKNOWN',FORM='UNFORMATTED')
 !       WRITE(unit_field) dim_t,dim_r,num_proc
