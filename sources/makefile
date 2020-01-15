@@ -92,7 +92,7 @@ ifneq (,$(findstring occigen,$(HOSTNAME)))
   MPIF90 = mpiifort
   F90    = ifort
 #  FFLAGS =  -check all -warn all -traceback -fpe0
-  FFLAGS =  -O3 -ansi_alias -lhdf5
+  FFLAGS =  -O3 -ansi_alias -lhdf5 -lz -L/opt/software/occigen/modulefiles/libraries/hdf5/1.10.5-intel-19.0.3-intelmpi-2019.3.199
   FFTPATH    = $(MKL_LIBS_MT)
 #  FFT     = -lfftw3
   PROPAGATION       = cuprad_occigen.e
