@@ -97,7 +97,7 @@ ifneq (,$(findstring occigen,$(HOSTNAME)))
 #  FFT     = -lfftw3
   PROPAGATION       = cuprad_occigen.e
   S_PROPAGATION       =  modules.f90 code_ionisation.f90 fft_rk.f90 finalize.f90 \
-                        firststep.f90 longstep_rk.f90 output.f90 cuprad.f90
+                        firststep.f90 longstep_rk.f90 output.f90 outputHDF5.f90 cuprad.f90
   MAKE_START	   = make_start_occigen.e
   S_MAKE_START       = write_start.f90 calc_start.f90 normalisation.f90 \
                        write_listing.f90 make_start.f90
