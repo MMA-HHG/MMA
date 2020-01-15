@@ -86,7 +86,10 @@ ifneq (,$(findstring curie,$(HOSTNAME)))
   S_CALC_FT	  = modules.f90 fft.f90 calc_ft.f90
 endif
 ifneq (,$(findstring occigen,$(HOSTNAME)))
-  MPIF90 = mpif90
+#CINES correction   MPIF90 = mpif90
+#CINES commentaire : mpif90 est A utiliser avec openmpi
+#CINES commentaire : mpiifort est A utiliser avec intelmpi
+  MPIF90 = mpiifort
   F90    = ifort
 #  FFLAGS =  -check all -warn all -traceback -fpe0
   FFLAGS =  -O3 -ansi_alias
@@ -94,7 +97,7 @@ ifneq (,$(findstring occigen,$(HOSTNAME)))
 #  FFT     = -lfftw3
   PROPAGATION       = cuprad_occigen.e
   S_PROPAGATION       =  modules.f90 code_ionisation.f90 fft_rk.f90 finalize.f90 \
-                        firststep.f90 longstep_rk.f90 output.f90 outputHDF5.f90 cuprad.f90
+                        firststep.f90 longstep_rk.f90 output.f90 cuprad.f90
   MAKE_START	   = make_start_occigen.e
   S_MAKE_START       = write_start.f90 calc_start.f90 normalisation.f90 \
                        write_listing.f90 make_start.f90
