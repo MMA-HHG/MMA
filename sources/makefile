@@ -92,7 +92,7 @@ ifneq (,$(findstring occigen,$(HOSTNAME)))
   MPIF90 = mpiifort
   F90    = ifort
 #  FFLAGS =  -check all -warn all -traceback -fpe0
-  FFLAGS =  -O3 -ansi_alias
+  FFLAGS =  -O3 -ansi_alias -lhdf5
   FFTPATH    = $(MKL_LIBS_MT)
 #  FFT     = -lfftw3
   PROPAGATION       = cuprad_occigen.e
