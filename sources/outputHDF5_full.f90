@@ -51,19 +51,36 @@ CONTAINS
      REAL(8), ALLOCATABLE :: Fields(:,:,:)
      INTEGER :: Nz_dim_old
 
+    ! params for conversions
+     REAL(8), PARAMETER   :: PI = 3.14159265d0
+     COMPLEX(8), PARAMETER   :: XI = (0.0d0,1.0d0)
+     COMPLEX(8) :: dumc
+     REAL(8)    :: coeff
+     REAL(8), PARAMETER  :: c_ligh = 299792458.0D0 !speedlight
+
+
 
      comm = MPI_COMM_WORLD
      info = MPI_INFO_NULL
 
 
-    !!! in the first run, create dataset and fill random data
+    !!! convert data to physical units to print. 
+    !!! COMPUTING complex EXP is costly, can we avoid?
+    ! this is the original procedure:
+    !  DO j=dim_r_start(num_proc),dim_r_end(num_proc)
+    !      WRITE(unit_field) CMPLX(e(1:dim_t,j),KIND=4)
+    !  ENDDO
+
 	field_dimensions = 3;
 	allocate(Fields(1,dim_r_end(num_proc)-dim_r_start(num_proc),dim_t))
 
 	r_offset = dim_r_start(num_proc)-1
+    coeff = sqrt(PcrGW*1.0D9*c_ligh*4.0d0*PI*1.0D-7 / (4*3.1415*w0cm^2*1e-4*2*n0) )*1.0D-9 ! transfer the values from normalisation module?
 	DO k1=1, ( dim_r_end(num_proc)-dim_r_start(num_proc) )	
 	DO k2=1,dim_t
-		Fields(1,k1,k2) = REAL(HDF5write_count+k1+k2,8) !REAL(e(k2,r_offset+k1));
+        dumc = exp(-XI*omega_uppe*TIME(k2))*e(k2,k1) ! add the oscillating phase
+        dumc = exp(-XI*omega_uppe*TIME(k2))*e(k2,k1) ! convert to SI units
+		Fields(1,k1,k2) = 
 	ENDDO
 	ENDDO
 
