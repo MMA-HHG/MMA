@@ -56,7 +56,7 @@ CONTAINS
 	 ! testing variables
 	 INTEGER, DIMENSION(4,6) :: dset_data, data_out ! Data buffers
      INTEGER(HSIZE_T), DIMENSION(2) :: data_dims
-	 CHARACTER(LEN=16), PARAMETER :: dsetname = "TestCUPRADSingle" ! Dataset name
+	 CHARACTER(LEN=16), PARAMETER :: dsetname2 = "TestCUPRADSingle" ! Dataset name
 
 
      comm = MPI_COMM_WORLD
