@@ -48,8 +48,15 @@ CONTAINS
 
      INTEGER :: comm, info
 
+
+     ! code variables
      REAL(8), ALLOCATABLE :: Fields(:,:,:)
      INTEGER :: Nz_dim_old
+
+	 ! testing variables
+	 INTEGER, DIMENSION(4,6) :: dset_data, data_out ! Data buffers
+     INTEGER(HSIZE_T), DIMENSION(2) :: data_dims
+	 CHARACTER(LEN=16), PARAMETER :: dsetname = "TestCUPRADSingle" ! Dataset name
 
 
      comm = MPI_COMM_WORLD
@@ -74,6 +81,32 @@ CONTAINS
 ! At the end, this implemntation almost straightforwadly follows tutorial from HDF5 page. The only extension is our 3-dimensionality of the code
 ! The idea to extend this to writing it in multiple files is not to use ctrl-c--ctrl-v for new quantities. Almost all operations may be done in loops on various files, except hereogeneous writing
 	IF ( HDF5write_count == 1) THEN
+
+
+  !!!!!!!!!!!! HDF5 testing 
+  ! I test HDF dunctionality just in single-writer opearation
+  IF (my_rank.EQ.0) THEN ! only one worker
+	! Initialize the dset_data array.
+	DO k1 = 1, 4
+		DO k2 = 1, 6
+			dset_data(k1,k2) = (k1-1)*6 + k2
+		END DO
+	END DO
+
+	!
+	! Initialize FORTRAN interface.
+	CALL h5open_f(error)
+	CALL h5fopen_f (filename, H5F_ACC_RDWR_F, file_id, error) ! Open an existing file.
+	CALL h5dopen_f(file_id, dsetname2, dset_id, error)  ! Open an existing dataset.
+
+	data_dims(1) = 4
+	data_dims(2) = 6
+	CALL h5dwrite_f(dset_id, H5T_NATIVE_INTEGER, dset_data, data_dims, error) ! Write the dataset.
+	CALL h5dclose_f(dset_id, error) ! Close the dataset.
+	CALL h5fclose_f(file_id, error) ! Close the file.
+	CALL h5close_f(error) ! Close FORTRAN interface.
+	!!!!!!!!!!!! HDF5 testing 
+  ENDIF
 
 
 	!Initialize HDF5
