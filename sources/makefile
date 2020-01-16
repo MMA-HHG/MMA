@@ -7,12 +7,13 @@
   MPIF90 = mpiifort
   F90    = ifort
 #  FFLAGS =  -check all -warn all -traceback -fpe0
-  FFLAGS =  -O3 -ansi_alias -lhdf5 -lz -L/opt/software/occigen/spack/linux-rhel7-x86_64/intel-19.0.3/hdf5-1.10.5-2cfj/lib
+  FFLAGS =  -O3 -ansi_alias -I/opt/software/occigen/spack/linux-rhel7-x86_64/intel-19.0.3/hdf5-1.10.5-2cfj/include
+  LFLAGS =  -O3 -ansi_alias -lhdf5 -lhdf5_hl -lhdf5_fortran -lhdf5hl_fortran -lz -L/opt/software/occigen/spack/linux-rhel7-x86_64/intel-19.0.3/hdf5-1.10.5-2cfj/lib
   FFTPATH    = $(MKL_LIBS_MT)
 #  FFT     = -lfftw3
   PROPAGATION       = cuprad_occigen.e
   S_PROPAGATION       =  modules.f90 code_ionisation.f90 fft_rk.f90 finalize.f90 \
-                        firststep.f90 longstep_rk.f90 output.f90 outputHDF5.f90 cuprad.f90
+                        firststep.f90 longstep_rk.f90 output.f90 outputHDF5_occigen.f90 cuprad.f90
   MAKE_START	   = make_start_occigen.e
   S_MAKE_START       = write_start.f90 calc_start.f90 normalisation.f90 \
                        write_listing.f90 make_start.f90
@@ -28,7 +29,8 @@
 #       Make definition
 #
 $(PROPAGATION) : $(S_PROPAGATION)
-	${MPIF90} -o $(PROPAGATION) $(S_PROPAGATION) ${FFTPATH} ${FFT} ${FFLAGS}
+	${MPIF90} -o $(PROPAGATION) $(S_PROPAGATION) ${FFTPATH} ${FFT} ${FFLAGS} ${LFLAGS}
+#	${MPIF90} -o $(PROPAGATION) $(S_PROPAGATION) ${FFTPATH} ${FFT} ${FFLAGS}
 $(PROPAGATION_DEFOK) : $(S_PROPAGATION_DEFOK)
 	${MPIF90} -o $(PROPAGATION_DEFOK) $(S_PROPAGATION_DEFOK) ${FFTPATH} ${FFT} ${FFLAGS}
 $(PROPAGATION_MICKAEL) : $(S_PROPAGATION_MICKAEL)
