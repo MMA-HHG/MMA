@@ -1,91 +1,6 @@
 #
 #       Definitions
 #
-
-ifneq (,$(findstring login,$(HOSTNAME)))
-  MPIF90 = mpiifort
-#  MPIF90 = mpif90
-  F90    = ifort
-#  FFLAGS =  -check all -traceback -fpe0
-  FFLAGS =  -O3 -ansi_alias
-  FFTPATH    = -L$(MKLROOT)/lib/intel64
-  FFT     = -lmkl_rt -liomp5 -lm
-  PROPAGATION       = cuprad_curta.e
-  S_PROPAGATION       =  modules.f90 code_ionisation.f90 fft_rk.f90 finalize.f90 \
-                        firststep.f90 longstep_rk.f90 output.f90 cuprad.f90
-  MAKE_START	   = make_start_curta.e
-  S_MAKE_START       = write_start.f90 calc_start.f90 normalisation.f90 \
-                       write_listing.f90 make_start.f90
-  CLEAN       = clean_curta.e
-  S_CLEAN	= clean.f90
-  MERGE       = merge_curta.e
-  S_MERGE	= merge.f90
-  CALC_FT	= calc_ft_curta.e
-  S_CALC_FT	  = modules.f90 fft.f90 calc_ft.f90
-endif
-
-ifneq (,$(findstring avakas,$(HOSTNAME)))
-  MPIF90 = mpiifort
-  F90    = ifort
-#  FFLAGS =  -check all -traceback -fpe0
-  FFLAGS =  -O3 -ansi_alias
-  FFTPATH    = -L$(FFTWDIR)
-  FFT     = -lfftw3
-  PROPAGATION       = cuprad_avakas.e
-  S_PROPAGATION       =  modules.f90 code_ionisation.f90 fft_rk.f90 finalize.f90 \
-                        firststep.f90 longstep_rk.f90 output.f90 cuprad.f90
-  MAKE_START	   = make_start_avakas.e
-  S_MAKE_START       = write_start.f90 calc_start.f90 normalisation.f90 \
-                       write_listing.f90 make_start.f90
-  CLEAN       = clean_avakas.e
-  S_CLEAN	= clean.f90
-  MERGE       = merge_avakas.e
-  S_MERGE	= merge.f90
-  CALC_FT	= calc_ft_avakas.e
-  S_CALC_FT	  = modules.f90 fft.f90 calc_ft.f90
-endif
-
-ifneq (,$(findstring airain,$(HOSTNAME)))
-  MPIF90 = mpif90
-  F90    = ifort
-#  FFLAGS =  -check all -warn all -traceback -fpe0
-  FFLAGS =  -O3 -ansi_alias
-  FFTPATH    = -L$(FFTW3_LIBDIR)
-  FFT     = -lfftw3
-  PROPAGATION       = cuprad_airain.e
-  S_PROPAGATION       =  modules.f90 code_ionisation.f90 fft_rk.f90 finalize.f90 \
-                        firststep.f90 longstep_rk.f90 output.f90 cuprad.f90
-  MAKE_START	   = make_start_airain.e
-  S_MAKE_START       = write_start.f90 calc_start.f90 normalisation.f90 \
-                       write_listing.f90 make_start.f90
-  CLEAN       = clean_airain.e
-  S_CLEAN	= clean.f90
-  MERGE       = merge_airain.e
-  S_MERGE	= merge.f90
-  CALC_FT	= calc_ft_airain.e
-  S_CALC_FT	  = modules.f90 fft.f90 calc_ft.f90
-endif
-ifneq (,$(findstring curie,$(HOSTNAME)))
-  MPIF90 = mpif90
-  F90    = ifort
-  FFLAGS =  -check all -warn all -traceback -fpe0
-#  FFLAGS =  -O3 -ansi_alias
-  FFTPATH    = -L$(FFTW3_LIBDIR)
-  FFT     = -lfftw3
-  PROPAGATION       = cuprad_curie.e
-  S_PROPAGATION       =  modules.f90 code_ionisation.f90 fft_rk.f90 finalize.f90 \
-                        firststep.f90 longstep_rk.f90 output.f90 cuprad.f90
-  MAKE_START	   = make_start_curie.e
-  S_MAKE_START       = write_start.f90 calc_start.f90 normalisation.f90 \
-                       write_listing.f90 make_start.f90
-  CLEAN       = clean_curie.e
-  S_CLEAN	= clean.f90
-  MERGE       = merge_curie.e
-  S_MERGE	= merge.f90
-  CALC_FT	= calc_ft_curie.e
-  S_CALC_FT	  = modules.f90 fft.f90 calc_ft.f90
-endif
-ifneq (,$(findstring occigen,$(HOSTNAME)))
 #CINES correction   MPIF90 = mpif90
 #CINES commentaire : mpif90 est A utiliser avec openmpi
 #CINES commentaire : mpiifort est A utiliser avec intelmpi
@@ -107,7 +22,7 @@ ifneq (,$(findstring occigen,$(HOSTNAME)))
   S_MERGE	= merge.f90
   CALC_FT	= calc_ft_occigen.e
   S_CALC_FT	  = modules.f90 fft.f90 calc_ft.f90
-endif
+
 
 #
 #       Make definition
