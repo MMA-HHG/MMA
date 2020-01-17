@@ -67,8 +67,8 @@ CONTAINS
 	 print *, "HDF5 output accessed, proc", my_rank
 
 	 IF (my_rank.EQ.0) THEN
-	 print *, "writting interation: ", HDF5write_count
-	 END
+	   print *, "writting interation: ", HDF5write_count
+	 ENDIF
 
 
     !!! in the first run, create dataset and fill random data
