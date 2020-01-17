@@ -50,7 +50,7 @@ CONTAINS
 
 
      ! code variables
-     REAL(8), ALLOCATABLE :: Fields(:,:,:)
+     REAL(4), ALLOCATABLE :: Fields(:,:,:)
      INTEGER :: Nz_dim_old
 
 	 ! testing variables
