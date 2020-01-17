@@ -56,6 +56,7 @@ CONTAINS
 	 ! testing variables
 	 INTEGER, DIMENSION(4,6) :: dset_data, data_out ! Data buffers
      INTEGER(HSIZE_T), DIMENSION(2) :: data_dims
+	 CHARACTER(LEN=7), PARAMETER :: filename2 = "test.h5" ! Dataset name
 	 CHARACTER(LEN=16), PARAMETER :: dsetname2 = "TestCUPRADSingle" ! Dataset name
 
 
@@ -96,7 +97,8 @@ CONTAINS
 	!
 	! Initialize FORTRAN interface.
 	CALL h5open_f(error)
-	CALL h5fopen_f (filename, H5F_ACC_RDWR_F, file_id, error) ! Open an existing file.
+	CALL h5fcreate_f(filename2, H5F_ACC_TRUNC_F, file_id, error) ! create test file
+	! CALL h5fopen_f (filename, H5F_ACC_RDWR_F, file_id, error) ! Open an existing file.
 	CALL h5dopen_f(file_id, dsetname2, dset_id, error)  ! Open an existing dataset.
 
 	data_dims(1) = 4
