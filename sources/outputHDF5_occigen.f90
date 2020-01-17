@@ -50,7 +50,7 @@ CONTAINS
 
 
      ! code variables
-     REAL(4), ALLOCATABLE :: Fields(:,:,:)
+     REAL(4), ALLOCATABLE :: Fields(:,:,:) ! the kind of this variable has to correspond with the precision stored in HDF5-file
      INTEGER :: Nz_dim_old
 
 	 ! testing variables
