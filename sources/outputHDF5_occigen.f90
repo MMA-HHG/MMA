@@ -106,8 +106,8 @@ CONTAINS
 	CALL h5open_f(error)
 	CALL h5fcreate_f(filename2, H5F_ACC_TRUNC_F, file_id, error) ! create test file
 	! CALL h5fopen_f (filename, H5F_ACC_RDWR_F, file_id, error) ! Open an existing file.
-    CALL h5screate_simple_f(2, data_dims, dspace_id, error) ! Create the dataspace.
-	CALL h5dcreate_f(file_id, dsetname2, H5T_NATIVE_INTEGER, dspace_id, dset_id, error) ! create the dataset
+    CALL h5screate_simple_f(2, data_dims, dataspace, error) ! Create the dataspace.
+	CALL h5dcreate_f(file_id, dsetname2, H5T_NATIVE_INTEGER, dataspace, dset_id, error) ! create the dataset
 	! CALL h5dopen_f(file_id, dsetname2, dset_id, error)  ! Open an existing dataset.
 
 	data_dims(1) = 4
