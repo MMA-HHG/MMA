@@ -64,6 +64,9 @@ CONTAINS
      info = MPI_INFO_NULL
 
 
+	 print *, "HDF5 output accessed"
+
+
     !!! in the first run, create dataset and fill random data
 	field_dimensions = 3;
 	allocate(Fields(1,dim_r_end(num_proc)-dim_r_start(num_proc),dim_t))
@@ -87,6 +90,8 @@ CONTAINS
   !!!!!!!!!!!! HDF5 testing 
   ! I test HDF dunctionality just in single-writer opearation
   IF (my_rank.EQ.0) THEN ! only one worker
+
+    print *, "HDF5 testfile IF accessed"
 	! Initialize the dset_data array.
 	DO k1 = 1, 4
 		DO k2 = 1, 6
