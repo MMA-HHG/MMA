@@ -111,7 +111,7 @@ CONTAINS
 	! Initialize FORTRAN interface.
 	CALL h5open_f(error)
 	! CALL h5fcreate_f(filename2, H5F_ACC_TRUNC_F, file_id, error) ! create test file 
-	CALL h5fopen_f (filename, H5F_ACC_RDWR_F, file_id, error) ! Open an existing file.
+	CALL h5fopen_f (filename, H5F_ACC_RDWR_F, file_id, error) ! Open an existing file. 
     CALL h5screate_simple_f(3, data_dims, dataspace, error) ! Create the dataspace.
 	CALL h5dcreate_f(file_id, dsetname2, H5T_NATIVE_REAL, dataspace, dset_id, error) ! create the dataset
 	! CALL h5dopen_f(file_id, dsetname2, dset_id, error)  ! Open an existing dataset.
