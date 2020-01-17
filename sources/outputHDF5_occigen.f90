@@ -71,14 +71,14 @@ CONTAINS
 	field_dimensions = 3;
 	allocate(Fields(1,dim_r_end(num_proc)-dim_r_start(num_proc),dim_t))
 
-	r_offset = dim_r_start(num_proc)-1
-	DO k1=1, ( dim_r_end(num_proc)-dim_r_start(num_proc) )	
-	DO k2=1,dim_t
-		Fields(1,k1,k2) = REAL(my_rank+HDF5write_count+k1+k2,8) !REAL(e(k2,r_offset+k1));
-	ENDDO
-	ENDDO
+	! r_offset = dim_r_start(num_proc)-1
+	! DO k1=1, ( dim_r_end(num_proc)-dim_r_start(num_proc) )	
+	! DO k2=1,dim_t
+	! 	Fields(1,k1,k2) = REAL(my_rank+HDF5write_count+k1+k2,8) !REAL(e(k2,r_offset+k1));
+	! ENDDO
+	! ENDDO
 
-	print *, "fields created"
+	print *, "fields allocated"
 
 
 
@@ -116,6 +116,8 @@ CONTAINS
 	CALL h5close_f(error) ! Close FORTRAN interface.
 	!!!!!!!!!!!! HDF5 testing 
   ENDIF
+
+  ENDIF ! it ends the first access case
 
 
 ! 	!Initialize HDF5
