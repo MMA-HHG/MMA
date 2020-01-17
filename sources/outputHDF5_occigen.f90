@@ -100,6 +100,8 @@ CONTAINS
 			dset_data(k1,k2) = (k1-1)*6 + k2
 		END DO
 	END DO
+	data_dims(1) = 4
+	data_dims(2) = 6
 
 	!
 	! Initialize FORTRAN interface.
@@ -110,8 +112,7 @@ CONTAINS
 	CALL h5dcreate_f(file_id, dsetname2, H5T_NATIVE_INTEGER, dataspace, dset_id, error) ! create the dataset
 	! CALL h5dopen_f(file_id, dsetname2, dset_id, error)  ! Open an existing dataset.
 
-	data_dims(1) = 4
-	data_dims(2) = 6
+
 	CALL h5dwrite_f(dset_id, H5T_NATIVE_INTEGER, dset_data, data_dims, error) ! Write the dataset.
 	CALL h5dclose_f(dset_id, error) ! Close the dataset.
 	CALL h5fclose_f(file_id, error) ! Close the file.
