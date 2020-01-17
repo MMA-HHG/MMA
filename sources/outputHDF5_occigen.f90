@@ -158,18 +158,19 @@ CONTAINS
 	maxdims = (/H5S_UNLIMITED_F, int(128,HSIZE_T), int(dim_t,HSIZE_T)/) ! maxdims = (/H5S_UNLIMITED_F, int(dim_r,HSIZE_T), int(dim_t,HSIZE_T)/) 
 	dims = (/int(1,HSIZE_T),int(128,HSIZE_T), int(dim_t,HSIZE_T)/) !dims = (/int(1,HSIZE_T),int(dim_r,HSIZE_T), int(dim_t,HSIZE_T)/) ! only line per proc. now, code runned on 128
 	
-	! CALL h5screate_simple_f(field_dimensions, dims, filespace, error) ! Create the data space for the  dataset. ! maybe problem with the exension??? !!!!!!
+	print *, "before h5 dataspace creation, proc", my_rank
+	CALL h5screate_simple_f(field_dimensions, dims, filespace, error) ! Create the data space for the  dataset. ! maybe problem with the exension??? !!!!!!
 	! CALL h5screate_simple_f(field_dimensions, dims, filespace, error, maxdims) ! Create the data space for the  dataset. 
 
 
 	! Maybe we don't need do this
 	! dims = (/1, 1, dim_t/) !dims = (/1, dim_r_end(num_proc)-dim_r_start(num_proc), dim_t/) ! dimension of my field
 	! CALL h5screate_simple_f(field_dimensions, dims, dataspace, error, maxdims) ! dataset dimensions in memory (this worker)
-
+    print *, "before h5 dataset creation, proc", my_rank
 	! we create the dataset collectivelly
-	! CALL h5dcreate_f(file_id, dsetname2, H5T_NATIVE_REAL, filespace, dset_id, error)
+	CALL h5dcreate_f(file_id, dsetname2, H5T_NATIVE_REAL, filespace, dset_id, error)
 !CINES correction	CALL h5sclose(filespace,error)
-	! CALL h5sclose_f(filespace,error)
+	CALL h5sclose_f(filespace,error)
 
 
 !!!!! TEST ONLY CREATING EMPTY DATASET
