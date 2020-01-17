@@ -129,6 +129,7 @@ CONTAINS
 
 
 
+    CALL MPI_Barrier(MPI_COMM_WORLD,ierr) !! try barrier here
 	!Initialize HDF5
 	CALL h5open_f(error) 
     
