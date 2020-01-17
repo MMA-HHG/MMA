@@ -131,13 +131,18 @@ CONTAINS
 
 	!Initialize HDF5
 	CALL h5open_f(error) 
-
+    
 	!define parameters of HDF5 workflow for MPI-access
 	CALL h5pcreate_f(H5P_DATASET_CREATE_F, h5parameters, error) ! create access parameters
-        CALL h5pset_dxpl_mpio_f(h5parameters, H5FD_MPIO_COLLECTIVE_F, error) ! allow MPI access (should it be here?)
+    CALL h5pset_dxpl_mpio_f(h5parameters, H5FD_MPIO_COLLECTIVE_F, error) ! allow MPI access (should it be here?)
 
 	!Open collectivelly the file
-	CALL h5fopen_f(filename, H5F_ACC_RDWR_F, file_id, error, access_prp = h5parameters ) ! open file collectivelly
+	CALL h5fcreate_f(filename2, H5F_ACC_TRUNC_F, file_id, error, access_prp = h5parameters) ! we again first test creating the file collectivelly
+	! CALL h5fcreate_f(filename2, H5F_ACC_TRUNC_F, file_id, error)  ! single - version
+	! CALL h5fopen_f(filename, H5F_ACC_RDWR_F, file_id, error, access_prp = h5parameters ) ! open file collectivelly
+
+
+
 !CINES correction:	CALL h5pclose(h5parameters) ! parameters were used for MPI open, close them
 !CINES h5pclose_f is the correct interface for fortran90
 	CALL h5pclose_f(h5parameters,error) ! parameters were used for MPI open, close them
