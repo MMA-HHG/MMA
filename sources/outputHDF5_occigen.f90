@@ -151,7 +151,8 @@ CONTAINS
 	!Create the dataspace with unlimited dimension in z. ! again, what should I use for parallel access?
 	maxdims = (/H5S_UNLIMITED_F, int(128,HSIZE_T), int(dim_t,HSIZE_T)/) ! maxdims = (/H5S_UNLIMITED_F, int(dim_r,HSIZE_T), int(dim_t,HSIZE_T)/) 
 	dims = (/int(1,HSIZE_T),int(128,HSIZE_T), int(dim_t,HSIZE_T)/) !dims = (/int(1,HSIZE_T),int(dim_r,HSIZE_T), int(dim_t,HSIZE_T)/) ! only line per proc. now, code runned on 128
-	CALL h5screate_simple_f(field_dimensions, dims, filespace, error, maxdims) ! Create the data space for the  dataset. 
+	CALL h5screate_simple_f(field_dimensions, dims, filespace, error) ! Create the data space for the  dataset. ! maybe problem with the exension???
+	! CALL h5screate_simple_f(field_dimensions, dims, filespace, error, maxdims) ! Create the data space for the  dataset. 
 
 
 	! Maybe we don't need do this
