@@ -64,7 +64,7 @@ CONTAINS
      info = MPI_INFO_NULL
 
 
-	 print *, "HDF5 output accessed"
+	 print *, "HDF5 output accessed, proc", my_rank
 
 
     !!! in the first run, create dataset and fill random data
@@ -78,7 +78,7 @@ CONTAINS
 	! ENDDO
 	! ENDDO
 
-	print *, "fields allocated"
+	print *, "fields allocated, proc", my_rank
 
 
 
@@ -106,7 +106,9 @@ CONTAINS
 	CALL h5open_f(error)
 	CALL h5fcreate_f(filename2, H5F_ACC_TRUNC_F, file_id, error) ! create test file
 	! CALL h5fopen_f (filename, H5F_ACC_RDWR_F, file_id, error) ! Open an existing file.
-	CALL h5dopen_f(file_id, dsetname2, dset_id, error)  ! Open an existing dataset.
+    CALL h5screate_simple_f(2, data_dims, dspace_id, error) ! Create the dataspace.
+	CALL h5dcreate_f(file_id, dsetname2, H5T_NATIVE_INTEGER, dspace_id, dset_id, error) ! create the dataset
+	! CALL h5dopen_f(file_id, dsetname2, dset_id, error)  ! Open an existing dataset.
 
 	data_dims(1) = 4
 	data_dims(2) = 6
