@@ -75,7 +75,8 @@ CONTAINS
 	DO k1=1, ( dim_r_end(num_proc)-dim_r_start(num_proc) )	
 	DO k2=1,dim_t
 		! Fields(1,k1,k2) = REAL(my_rank+HDF5write_count+k1+k2,8) !REAL(e(k2,r_offset+k1));
-		Fields(1,k1,k2) = REAL(k2,8) !REAL(e(k2,r_offset+k1));
+		Fields(1,k1,k2) = REAL(k2,4) !REAL(e(k2,r_offset+k1));  ! SINGEL PRECISION, corresponding H5T_NATIVE_REAL
+		! Fields(1,k1,k2) = REAL(k2,8) !REAL(e(k2,r_offset+k1)); ! SINGEL PRECISION, corresponding H5T_NATIVE_DOUBLE
 	ENDDO
 	ENDDO
 
