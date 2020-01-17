@@ -136,7 +136,7 @@ CONTAINS
 	CALL h5open_f(error) 
     
 	!define parameters of HDF5 workflow for MPI-access
-	print *, "before h5 param create, proc", my_rank
+	print *, "before h5 param create, proc", my_rank  
 	CALL h5pcreate_f(H5P_FILE_ACCESS_F, h5parameters, error) ! create access parameters
 	print *, "before h5 param set, proc", my_rank
     CALL h5pset_fapl_mpio_f(h5parameters, comm, info, error) ! allow MPI access (should it be here?)
