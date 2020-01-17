@@ -161,7 +161,7 @@ CONTAINS
 	! CALL h5screate_simple_f(field_dimensions, dims, dataspace, error, maxdims) ! dataset dimensions in memory (this worker)
 
 	! we create the dataset collectivelly
-	CALL h5dcreate_f(file_id, dsetname2, H5T_NATIVE_REAL, filespace, dset_id, error)
+	! CALL h5dcreate_f(file_id, dsetname2, H5T_NATIVE_REAL, filespace, dset_id, error)
 !CINES correction	CALL h5sclose(filespace,error)
 	CALL h5sclose_f(filespace,error)
 
@@ -194,7 +194,7 @@ CONTAINS
 	!close the files etc.
 	! CALL h5sclose_f(filespace,error)
 	! CALL h5sclose_f(memspace,error)
-	CALL h5dclose_f(dset_id,error)
+	! CALL h5dclose_f(dset_id,error)
 	! CALL h5pclose_f(h5parameters,error)
 	CALL h5fclose_f(file_id,error)
 	
