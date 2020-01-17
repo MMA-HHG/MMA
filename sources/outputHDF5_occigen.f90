@@ -46,7 +46,7 @@ CONTAINS
      ! MPI definitions and calls.
      !
 
-     INTEGER :: comm, info
+    !  INTEGER :: comm, info
 
 
      ! code variables
@@ -60,8 +60,8 @@ CONTAINS
 	 CHARACTER(LEN=16), PARAMETER :: dsetname2 = "TestCUPRADSingle" ! Dataset name
 
 
-     comm = MPI_COMM_WORLD
-     info = MPI_INFO_NULL
+    !  comm = MPI_COMM_WORLD
+    !  info = MPI_INFO_NULL
 
 
 	 print *, "HDF5 output accessed, proc", my_rank
@@ -139,7 +139,7 @@ CONTAINS
 	print *, "before h5 param create, proc", my_rank  
 	CALL h5pcreate_f(H5P_FILE_ACCESS_F, h5parameters, error) ! create access parameters
 	print *, "before h5 param set, proc", my_rank
-    CALL h5pset_fapl_mpio_f(h5parameters, comm, info, error) ! allow MPI access (should it be here?)
+    CALL h5pset_fapl_mpio_f(h5parameters, MPI_COMM_WORLD, MPI_INFO_NULL, error) ! allow MPI access (should it be here?)
 
 	!Open collectivelly the file
 	print *, "before h5 filecreation, proc", my_rank
