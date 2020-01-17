@@ -146,19 +146,25 @@ CONTAINS
 	CALL h5pclose_f(h5parameters,error) ! parameters were used for MPI open, close them
 	
 
-!!!!! TEST ONLY CREATING THE FILE
 
-! 	!Create the dataspace with unlimited dimension in z. ! again, what should I use for parallel access?
-! 	maxdims = (/H5S_UNLIMITED_F, int(128,HSIZE_T), int(dim_t,HSIZE_T)/) ! maxdims = (/H5S_UNLIMITED_F, int(dim_r,HSIZE_T), int(dim_t,HSIZE_T)/) 
-! 	dims = (/int(1,HSIZE_T),int(128,HSIZE_T), int(dim_t,HSIZE_T)/) !dims = (/int(1,HSIZE_T),int(dim_r,HSIZE_T), int(dim_t,HSIZE_T)/) ! only line per proc. now, code runned on 128
-! 	CALL h5screate_simple_f(field_dimensions, dims, filespace, error, maxdims) ! dataset dimension in the file
-! 	dims = (/1, 1, dim_t/) !dims = (/1, dim_r_end(num_proc)-dim_r_start(num_proc), dim_t/) ! dimension of my field
-! 	CALL h5screate_simple_f(field_dimensions, dims, dataspace, error, maxdims) ! dataset dimensions in memory (this worker)
 
-! 	! we create the dataset collectivelly
-! 	CALL h5dcreate_f(file_id, dsetname, H5T_NATIVE_REAL, filespace, dset_id, error)
-! !CINES correction	CALL h5sclose(filespace,error)
-! 	CALL h5sclose_f(filespace,error)
+	!Create the dataspace with unlimited dimension in z. ! again, what should I use for parallel access?
+	maxdims = (/H5S_UNLIMITED_F, int(128,HSIZE_T), int(dim_t,HSIZE_T)/) ! maxdims = (/H5S_UNLIMITED_F, int(dim_r,HSIZE_T), int(dim_t,HSIZE_T)/) 
+	dims = (/int(1,HSIZE_T),int(128,HSIZE_T), int(dim_t,HSIZE_T)/) !dims = (/int(1,HSIZE_T),int(dim_r,HSIZE_T), int(dim_t,HSIZE_T)/) ! only line per proc. now, code runned on 128
+	CALL h5screate_simple_f(field_dimensions, dims, filespace, error, maxdims) ! Create the data space for the  dataset. 
+
+
+	! Maybe we don't need do this
+	! dims = (/1, 1, dim_t/) !dims = (/1, dim_r_end(num_proc)-dim_r_start(num_proc), dim_t/) ! dimension of my field
+	! CALL h5screate_simple_f(field_dimensions, dims, dataspace, error, maxdims) ! dataset dimensions in memory (this worker)
+
+	! we create the dataset collectivelly
+	CALL h5dcreate_f(file_id, dsetname, H5T_NATIVE_REAL, filespace, dset_id, error)
+!CINES correction	CALL h5sclose(filespace,error)
+	CALL h5sclose_f(filespace,error)
+
+
+!!!!! TEST ONLY CREATING EMPTY DATASET
 
 ! 	!we use hyperslab to assign part of the global dataset
 ! 	!chunk data for each worker
