@@ -86,7 +86,7 @@ CONTAINS
 
 
 
-! At the end, this implemntation almost straightforwadly follows tutorial from HDF5 page. The only extension is our 3-dimensionality of the code
+! At the end, this implementation almost straightforwadly follows tutorial from HDF5 page. The only extension is our 3-dimensionality of the code
 ! The idea to extend this to writing it in multiple files is not to use ctrl-c--ctrl-v for new quantities. Almost all operations may be done in loops on various files, except hereogeneous writing
 	IF ( HDF5write_count == 1) THEN
 
@@ -110,8 +110,8 @@ CONTAINS
 	!
 	! Initialize FORTRAN interface.
 	CALL h5open_f(error)
-	CALL h5fcreate_f(filename2, H5F_ACC_TRUNC_F, file_id, error) ! create test file 
-	! CALL h5fopen_f (filename, H5F_ACC_RDWR_F, file_id, error) ! Open an existing file.
+	! CALL h5fcreate_f(filename2, H5F_ACC_TRUNC_F, file_id, error) ! create test file 
+	CALL h5fopen_f (filename, H5F_ACC_RDWR_F, file_id, error) ! Open an existing file.
     CALL h5screate_simple_f(3, data_dims, dataspace, error) ! Create the dataspace.
 	CALL h5dcreate_f(file_id, dsetname2, H5T_NATIVE_REAL, dataspace, dset_id, error) ! create the dataset
 	! CALL h5dopen_f(file_id, dsetname2, dset_id, error)  ! Open an existing dataset.
