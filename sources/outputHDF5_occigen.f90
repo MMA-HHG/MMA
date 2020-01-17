@@ -71,12 +71,12 @@ CONTAINS
 	field_dimensions = 3;
 	allocate(Fields(1,dim_r_end(num_proc)-dim_r_start(num_proc),dim_t))
 
-	! r_offset = dim_r_start(num_proc)-1
-	! DO k1=1, ( dim_r_end(num_proc)-dim_r_start(num_proc) )	
-	! DO k2=1,dim_t
-	! 	Fields(1,k1,k2) = REAL(my_rank+HDF5write_count+k1+k2,8) !REAL(e(k2,r_offset+k1));
-	! ENDDO
-	! ENDDO
+	r_offset = dim_r_start(num_proc)-1
+	DO k1=1, ( dim_r_end(num_proc)-dim_r_start(num_proc) )	
+	DO k2=1,dim_t
+		Fields(1,k1,k2) = REAL(my_rank+HDF5write_count+k1+k2,8) !REAL(e(k2,r_offset+k1));
+	ENDDO
+	ENDDO
 
 	print *, "fields allocated, proc", my_rank
 
@@ -95,25 +95,26 @@ CONTAINS
 
     print *, "HDF5 testfile IF accessed"
 	! Initialize the dset_data array.
-	DO k1 = 1, 4
-		DO k2 = 1, 6
-			dset_data(k1,k2) = (k1-1)*6 + k2
-		END DO
-	END DO
-	data_dims(1) = 4
-	data_dims(2) = 6
+	! DO k1 = 1, 4
+	! 	DO k2 = 1, 6
+	! 		dset_data(k1,k2) = (k1-1)*6 + k2
+	! 	END DO
+	! END DO
+
+	data_dims(1) = 1
+	data_dims(2) = dim_r_end(num_proc)-dim_r_start(num_proc)
+	data_dims(3) = dim_t
 
 	!
 	! Initialize FORTRAN interface.
 	CALL h5open_f(error)
 	CALL h5fcreate_f(filename2, H5F_ACC_TRUNC_F, file_id, error) ! create test file 
 	! CALL h5fopen_f (filename, H5F_ACC_RDWR_F, file_id, error) ! Open an existing file.
-    CALL h5screate_simple_f(2, data_dims, dataspace, error) ! Create the dataspace.
-	CALL h5dcreate_f(file_id, dsetname2, H5T_NATIVE_INTEGER, dataspace, dset_id, error) ! create the dataset
+    CALL h5screate_simple_f(3, data_dims, dataspace, error) ! Create the dataspace.
+	CALL h5dcreate_f(file_id, dsetname2, H5T_NATIVE_REAL, dataspace, dset_id, error) ! create the dataset
 	! CALL h5dopen_f(file_id, dsetname2, dset_id, error)  ! Open an existing dataset.
 
-
-	CALL h5dwrite_f(dset_id, H5T_NATIVE_INTEGER, dset_data, data_dims, error) ! Write the dataset.
+	CALL h5dwrite_f(dset_id, H5T_NATIVE_REAL, Fields, data_dims, error) ! Write the dataset.
 	CALL h5dclose_f(dset_id, error) ! Close the dataset.
 	CALL h5fclose_f(file_id, error) ! Close the file.
 	CALL h5close_f(error) ! Close FORTRAN interface.
