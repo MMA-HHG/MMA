@@ -66,6 +66,10 @@ CONTAINS
 
 	 print *, "HDF5 output accessed, proc", my_rank
 
+	 IF (my_rank.EQ.0) THEN
+	 print *, "writting interation: ", HDF5write_count
+	 END
+
 
     !!! in the first run, create dataset and fill random data
 	field_dimensions = 3;
@@ -97,7 +101,7 @@ CONTAINS
   IF (my_rank.EQ.0) THEN ! only one worker
 
     print *, "HDF5 testfile IF accessed"
-	Initialize the dset_data array.
+	! Initialize the dset_data array.
 	DO k1 = 1, 4
 		DO k2 = 1, 6
 			dset_data(k1,k2) = (k1-1)*6 + k2
