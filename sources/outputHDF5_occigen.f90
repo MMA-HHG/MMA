@@ -143,9 +143,9 @@ CONTAINS
 
 	!Open collectivelly the file
 	print *, "before h5 filecreation, proc", my_rank
-	CALL h5fcreate_f(filename2, H5F_ACC_TRUNC_F, file_id, error, access_prp = h5parameters) ! we again first test creating the file collectivelly
+	! CALL h5fcreate_f(filename2, H5F_ACC_TRUNC_F, file_id, error, access_prp = h5parameters) ! we again first test creating the file collectivelly
 	! CALL h5fcreate_f(filename2, H5F_ACC_TRUNC_F, file_id, error)  ! single - version
-	! CALL h5fopen_f(filename, H5F_ACC_RDWR_F, file_id, error, access_prp = h5parameters ) ! open file collectivelly
+	CALL h5fopen_f(filename, H5F_ACC_RDWR_F, file_id, error, access_prp = h5parameters ) ! open file collectivelly
 
 !CINES correction:	CALL h5pclose(h5parameters) ! parameters were used for MPI open, close them
 !CINES h5pclose_f is the correct interface for fortran90
