@@ -164,6 +164,43 @@ CONTAINS
 	! CALL h5screate_simple_f(field_dimensions, dims, filespace, error) ! Create the data space for the  dataset. ! maybe problem with the exension??? !!!!!!
 	CALL h5screate_simple_f(field_dimensions, dims, filespace, error, maxdims) ! Create the data space for the  dataset. 
 
+	!!! EXTENDIBLE DATASETS ARE PROBABLY A PROBLEM THIS is an error message from this version
+! 	HDF5-DIAG: Error detected in HDF5 (1.10.5) MPI-process 21:
+!   #000: H5D.c line 145 in H5Dcreate2(): unable to create dataset
+!     major: Dataset
+!     minor: Unable to initialize object
+!   #001: H5Dint.c line 329 in H5D__create_named(): unable to create and link to dataset
+!     major: Dataset
+!     minor: Unable to initialize object
+!   #002: H5L.c line 1557 in H5L_link_object(): unable to create new link to object
+!     major: Links
+!     minor: Unable to initialize object
+!   #003: H5L.c line 1798 in H5L__create_real(): can't insert link
+!     major: Links
+!     minor: Unable to insert object
+!   #004: H5Gtraverse.c line 851 in H5G_traverse(): internal path traversal failed
+!     major: Symbol table
+!     minor: Object not found
+!   #005: H5Gtraverse.c line 627 in H5G__traverse_real(): traversal operator failed
+!     major: Symbol table
+!     minor: Callback failed
+!   #006: H5L.c line 1604 in H5L__link_cb(): unable to create object
+!     major: Links
+!     minor: Unable to initialize object
+!   #007: H5Oint.c line 2453 in H5O_obj_create(): unable to open object
+!     major: Object header
+!     minor: Can't open object
+!   #008: H5Doh.c line 300 in H5O__dset_create(): unable to create dataset
+!     major: Dataset
+!     minor: Unable to initialize object
+!   #009: H5Dint.c line 1274 in H5D__create(): unable to construct layout information
+!     major: Dataset
+!     minor: Unable to initialize object
+!   #010: H5Dcontig.c line 402 in H5D__contig_construct(): extendible contiguous non-external dataset not allowed
+!     major: Dataset
+!     minor: Feature is unsupported
+
+
 
 	! Maybe we don't need do this
 	! dims = (/1, 1, dim_t/) !dims = (/1, dim_r_end(num_proc)-dim_r_start(num_proc), dim_t/) ! dimension of my field
