@@ -58,6 +58,7 @@ CONTAINS
      INTEGER(HSIZE_T), DIMENSION(2) :: data_dims
 	 CHARACTER(LEN=7), PARAMETER :: filename2 = "test.h5" ! Dataset name
 	 CHARACTER(LEN=16), PARAMETER :: dsetname2 = "TestCUPRADSingle" ! Dataset name
+	 CHARACTER(LEN=18), PARAMETER :: dsetname3 = "TestCUPRADParallel" ! Dataset name
 
 
     !  comm = MPI_COMM_WORLD
@@ -168,7 +169,7 @@ CONTAINS
 	! CALL h5screate_simple_f(field_dimensions, dims, dataspace, error, maxdims) ! dataset dimensions in memory (this worker)
     print *, "before h5 dataset creation, proc", my_rank
 	! we create the dataset collectivelly
-	CALL h5dcreate_f(file_id, dsetname2, H5T_NATIVE_REAL, filespace, dset_id, error)
+	CALL h5dcreate_f(file_id, dsetname3, H5T_NATIVE_REAL, filespace, dset_id, error)
 !CINES correction	CALL h5sclose(filespace,error)
 	CALL h5sclose_f(filespace,error)
 
