@@ -186,6 +186,9 @@ CONTAINS
 
 	offset = (/int(0,HSIZE_T),int(my_rank,HSIZE_T),int(0,HSIZE_T)/) ! offset = (/0,dim_r_start(num_proc),0/)
 	ccount = (/int(1,HSIZE_T), int(1,HSIZE_T) , int(2,HSIZE_T)/) ! ccount = (/1, dim_r_end(num_proc) - dim_r_start(num_proc) , dim_t/)
+
+	! memory space allocated for each worr is here
+	CALL h5screate_simple_f(rank, count, memspace, error)
 	
 	! CALL h5dget_space_f(dset_id,filespace,error)
 	print *, "before h5 hyperslab, proc", my_rank
@@ -204,7 +207,8 @@ CONTAINS
 	! Write the data collectivelly (we may try also to do it independently.... I think it could avoid some broadcast?)
 	dimsfi = (/1,128,2/) ! dimsfi = (/1,dim_r,dim_t/) ! according to the tuto, it seems that whole dataset dimension is required
 	print *, "before h5 parallel write, proc", my_rank
-	CALL h5dwrite_f(dset_id , H5T_NATIVE_REAL, Fields, dimsfi, error,file_space_id=filespace,mem_space_id=memspace,xfer_prp = h5parameters)! data are written !!!( probably variable length)
+	CALL h5dwrite_f(dset_id , H5T_NATIVE_REAL, Fields, dimsfi, error,file_space_id=filespace,mem_space_id=memspace,xfer_prp = h5parameters)
+	! CALL h5dwrite_f(dset_id , H5T_NATIVE_REAL, Fields, dimsfi, error,file_space_id=filespace,mem_space_id=memspace,xfer_prp = h5parameters)! general params, data are written !!!( probably variable length)
 
     print *, "before h5 closing, proc", my_rank
 	CALL h5dclose_f(dset_id,error)
