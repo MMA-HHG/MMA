@@ -157,7 +157,7 @@ CONTAINS
 
 
 	!Create the dataspace with unlimited dimension in z. ! again, what should I use for parallel access?
-	maxdims = (/H5S_UNLIMITED_F, int(128,HSIZE_T), int(2,HSIZE_T)/) ! maxdims = (/H5S_UNLIMITED_F, int(dim_r,HSIZE_T), int(dim_t,HSIZE_T)/) 
+	maxdims = (/int(3,HSIZE_T), int(128,HSIZE_T), int(2,HSIZE_T)/) ! maxdims = (/H5S_UNLIMITED_F, int(dim_r,HSIZE_T), int(dim_t,HSIZE_T)/) 
 	dims = (/int(1,HSIZE_T),int(128,HSIZE_T), int(2,HSIZE_T)/) !dims = (/int(1,HSIZE_T),int(dim_r,HSIZE_T), int(dim_t,HSIZE_T)/) ! only line per proc. now, code runned on 128
 	
 	print *, "before h5 dataspace creation, proc", my_rank
@@ -168,6 +168,7 @@ CONTAINS
 	! Maybe we don't need do this
 	! dims = (/1, 1, dim_t/) !dims = (/1, dim_r_end(num_proc)-dim_r_start(num_proc), dim_t/) ! dimension of my field
 	! CALL h5screate_simple_f(field_dimensions, dims, dataspace, error, maxdims) ! dataset dimensions in memory (this worker)
+
     print *, "before h5 dataset creation, proc", my_rank
 	! we create the dataset collectivelly
 	CALL h5dcreate_f(file_id, dsetname3, H5T_NATIVE_REAL, filespace, dset_id, error)
@@ -188,7 +189,7 @@ CONTAINS
 	ccount = (/int(1,HSIZE_T), int(1,HSIZE_T) , int(2,HSIZE_T)/) ! ccount = (/1, dim_r_end(num_proc) - dim_r_start(num_proc) , dim_t/)
 
 	! memory space allocated for each worr is here
-	CALL h5screate_simple_f(field_dimensions, ccount, memspace, error)
+	CALL h5screate_simple_f(field_dimensions, ccount, memspace, error) ! dataset dimensions in memory (this worker)
 	
 	! CALL h5dget_space_f(dset_id,filespace,error)
 	print *, "before h5 hyperslab, proc", my_rank
