@@ -76,6 +76,7 @@ CONTAINS
 	field_dimensions = 3;
 	allocate(Fields(1,1,2)) !allocate(Fields(1,dim_r_end(num_proc)-dim_r_start(num_proc),dim_t))
 
+	! AFTER discussion with Jiri Vyskocil, he pointed out the column-majorness or row-majorness could a serious performance issue (note that c and FORTAN differs, h5 is a c-lib)
 	r_offset = dim_r_start(num_proc)-1
 	DO k1=1, 1 !( dim_r_end(num_proc)-dim_r_start(num_proc) )	
 	DO k2=1, 2 !dim_t
@@ -171,21 +172,25 @@ CONTAINS
 	! we create the dataset collectivelly
 	CALL h5dcreate_f(file_id, dsetname3, H5T_NATIVE_REAL, filespace, dset_id, error)
 !CINES correction	CALL h5sclose(filespace,error)
-	CALL h5sclose_f(filespace,error)
-	CALL h5dclose_f(dset_id,error) !! remove this now
+	! CALL h5sclose_f(filespace,error)
+	! CALL h5dclose_f(dset_id,error) !! remove this now
 
   
 
 	!we use hyperslab to assign part of the global dataset
 	!chunk data for each worker
-	stride = (/1,1,1/) ! we write a block of data directly in file, no skipped lines, rows, ...
-	cblock = (/1,1,2/) ! cblock = (/1,dim_r_end(num_proc) - dim_r_start(num_proc),dim_t/) ! allows flush data at once 
-	offset = (/0,my_rank,0/) ! offset = (/0,dim_r_start(num_proc),0/)
-	ccount = (/1, 1 , 2/) ! ccount = (/1, dim_r_end(num_proc) - dim_r_start(num_proc) , dim_t/)
+
+	! the following two lines should be inspected for performance
+	! stride = (/1,1,1/) ! we write a block of data directly in file, no skipped lines, rows, ...
+	! cblock = (/1,1,2/) ! cblock = (/1,dim_r_end(num_proc) - dim_r_start(num_proc),dim_t/) ! allows flush data at once 
+
+	offset = (/int(0,HSIZE_T),int(my_rank,HSIZE_T),int(0,HSIZE_T)/) ! offset = (/0,dim_r_start(num_proc),0/)
+	ccount = (/int(1,HSIZE_T), int(1,HSIZE_T) , int(2,HSIZE_T)/) ! ccount = (/1, dim_r_end(num_proc) - dim_r_start(num_proc) , dim_t/)
 	
-	CALL h5dget_space_f(dset_id,filespace,error)
+	! CALL h5dget_space_f(dset_id,filespace,error)
 	print *, "before h5 hyperslab, proc", my_rank
-	CALL h5sselect_hyperslab_f(filespace, H5S_SELECT_SET_F, offset, ccount, error, stride, cblock) ! we should have access to its part of the dataset for each worker
+	CALL h5sselect_hyperslab_f(filespace, H5S_SELECT_SET_F, offset, ccount, error) ! we should have access to its part of the dataset for each worker
+	!CALL h5sselect_hyperslab_f(filespace, H5S_SELECT_SET_F, offset, ccount, error, stride, cblock) ! these extra parameters should be possible in a genralised case
 
 
 	!!!Finally, write data
