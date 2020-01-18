@@ -206,11 +206,16 @@ CONTAINS
 	print *, "before h5 parallel write, proc", my_rank
 	CALL h5dwrite_f(dset_id , H5T_NATIVE_REAL, Fields, dimsfi, error,file_space_id=filespace,mem_space_id=memspace,xfer_prp = h5parameters)! data are written !!!( probably variable length)
 
+    print *, "before h5 closing, proc", my_rank
+	CALL h5dclose_f(dset_id,error)
+	print *, "h5 dset close done, proc", my_rank
 
 	!close the files etc.
 	CALL h5sclose_f(filespace,error)
 	CALL h5sclose_f(memspace,error)
+	print *, "before h5 closing-dataset, proc", my_rank
 	CALL h5dclose_f(dset_id,error)
+	print *, "after h5 closing-dataset, proc", my_rank
 	CALL h5pclose_f(h5parameters,error)
 	CALL h5fclose_f(file_id,error)
 	
