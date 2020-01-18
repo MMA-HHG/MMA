@@ -188,7 +188,7 @@ CONTAINS
 	ccount = (/int(1,HSIZE_T), int(1,HSIZE_T) , int(2,HSIZE_T)/) ! ccount = (/1, dim_r_end(num_proc) - dim_r_start(num_proc) , dim_t/)
 
 	! memory space allocated for each worr is here
-	CALL h5screate_simple_f(rank, count, memspace, error)
+	CALL h5screate_simple_f(rank, ccount, memspace, error)
 	
 	! CALL h5dget_space_f(dset_id,filespace,error)
 	print *, "before h5 hyperslab, proc", my_rank
