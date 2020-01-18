@@ -174,7 +174,7 @@ CONTAINS
 	CALL h5sclose_f(filespace,error)
 
 
-!!!!! TEST ONLY CREATING EMPTY DATASET
+!!!!! TEST ONLY CREATING EMPTY DATASET  
 
 ! 	!we use hyperslab to assign part of the global dataset
 ! 	!chunk data for each worker
