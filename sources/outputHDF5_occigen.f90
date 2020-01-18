@@ -172,7 +172,7 @@ CONTAINS
 	CALL h5dcreate_f(file_id, dsetname3, H5T_NATIVE_REAL, filespace, dset_id, error)
 !CINES correction	CALL h5sclose(filespace,error)
 	CALL h5sclose_f(filespace,error)
-	CALL h5dclose_f(dset_id,error)
+	CALL h5dclose_f(dset_id,error) !! remove this now
 
   
 
