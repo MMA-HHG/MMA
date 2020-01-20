@@ -164,6 +164,11 @@ CONTAINS
 	! CALL h5screate_simple_f(field_dimensions, dims, filespace, error) ! Create the data space for the  dataset. ! maybe problem with the exension??? !!!!!!
 	CALL h5screate_simple_f(field_dimensions, dims, filespace, error, maxdims) ! Create the data space for the  dataset. 
 
+	! ! the caused error are discussed in the following forums
+	! https://github.com/h5py/h5py/issues/115
+	! https://www.mathworks.com/matlabcentral/answers/161779-why-do-i-get-an-error-from-the-hdf5-library-when-i-try-to-create-an-hdf5-dataset-with-one-of-the-dim
+	! http://hdf-forum.184993.n3.nabble.com/Errors-when-creating-dataset-when-dataspace-has-a-max-dimension-of-H5S-UNLIMITED-td2900828.html
+
 	!!! EXTENDIBLE DATASETS ARE PROBABLY A PROBLEM THIS is an error message from this version
 ! 	HDF5-DIAG: Error detected in HDF5 (1.10.5) MPI-process 21:
 !   #000: H5D.c line 145 in H5Dcreate2(): unable to create dataset
