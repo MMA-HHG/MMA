@@ -141,7 +141,7 @@ CONTAINS
 	CALL h5pcreate_f(H5P_DATASET_CREATE_F, h5parameters, error)   !Modify dataset creation properties, i.e. enable chunking
 	CALL h5pset_chunk_f(h5parameters, 1, dumh51D, error)
 	CALL h5dcreate_f(file_id, dsetname4, H5T_NATIVE_REAL, dataspace, dset_id, error, h5parameters)
-	CALL h5dwrite_f(dset_id, H5T_NATIVE_INTEGER, REAL(HDF5write_count,4), data_dims, error)
+	CALL h5dwrite_f(dset_id, H5T_NATIVE_REAL, REAL(HDF5write_count,4), data_dims, error)
 	CALL h5sclose_f(dataspace, error)
     CALL h5pclose_f(h5parameters, error)
     CALL h5dclose_f(dset_id, error)
@@ -321,7 +321,7 @@ CONTAINS
 	CALL h5screate_simple_f (1, dumh51D, memspace, error)
 
 	CALL h5sselect_hyperslab_f(dataspace, H5S_SELECT_SET_F, (/int(HDF5write_count-1,HSIZE_T)/), (/int(1,HSIZE_T)/), error)
-	CALL h5dwrite_f(dset_id, H5T_NATIVE_INTEGER, REAL(HDF5write_count,4), data_dims, error)
+	CALL h5dwrite_f(dset_id, H5T_NATIVE_REAL, REAL(HDF5write_count,4), data_dims, error)
 	CALL h5sclose_f(dataspace, error)
     CALL h5dclose_f(dset_id, error)
     CALL h5fclose_f(file_id, error)
