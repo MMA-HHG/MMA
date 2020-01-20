@@ -6,9 +6,9 @@
 #CINES commentaire : mpiifort est A utiliser avec intelmpi
   MPIF90 = mpiifort
   F90    = ifort
-#  FFLAGS =  -check all -warn all -traceback -fpe0
-  FFLAGS =  -O3 -ansi_alias #-I/opt/software/occigen/spack/linux-rhel7-x86_64/intel-19.0.3/hdf5-1.10.5-2cfj/include
-  LFLAGS =  -lhdf5 -lhdf5_hl -lhdf5_fortran -lhdf5hl_fortran -lz #-L/opt/software/occigen/spack/linux-rhel7-x86_64/intel-19.0.3/hdf5-1.10.5-2cfj/lib
+  FFLAGS =  -check all -warn all -traceback -fpe0
+#  FFLAGS =  -O3 -ansi_alias 
+  LFLAGS =  -lhdf5 -lhdf5_hl -lhdf5_fortran -lhdf5hl_fortran -lz 
   FFTPATH    = $(MKL_LIBS_MT)
 #  FFT     = -lfftw3
   PROPAGATION       = cuprad_occigen.e
