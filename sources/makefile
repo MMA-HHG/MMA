@@ -6,8 +6,8 @@
 #CINES commentaire : mpiifort est A utiliser avec intelmpi
   MPIF90 = mpiifort
   F90    = ifort
-  FFLAGS =  -check all -warn all -traceback -fpe0
-#  FFLAGS =  -O3 -ansi_alias 
+  # FFLAGS =  -check all -warn all -traceback -fpe0
+  FFLAGS =  -O3 -ansi_alias 
   LFLAGS =  -lhdf5 -lhdf5_hl -lhdf5_fortran -lhdf5hl_fortran -lz 
   FFTPATH    = $(MKL_LIBS_MT)
 #  FFT     = -lfftw3
