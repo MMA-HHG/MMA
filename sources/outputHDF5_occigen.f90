@@ -39,7 +39,7 @@ CONTAINS
      INTEGER(HSIZE_T), DIMENSION(3) :: stride
      INTEGER(HSIZE_T), DIMENSION(3) :: cblock
      INTEGER(HSIZE_T)               :: r_offset
-     INTEGER :: field_dimensions ! Dataset rank 
+     INTEGER :: field_dimensions, Nz_points ! Dataset rank & # of points in z
 
      INTEGER :: error, error_n  ! Error flags
      !
@@ -61,9 +61,10 @@ CONTAINS
 	 CHARACTER(LEN=18), PARAMETER :: dsetname3 = "TestCUPRADParallel" ! Dataset name
 
 
-    !  comm = MPI_COMM_WORLD
-    !  info = MPI_INFO_NULL
+     !  comm = MPI_COMM_WORLD
+     !  info = MPI_INFO_NULL
 
+     Nz_points = 2 !! remove ehn coupled
 
 	 print *, "HDF5 output accessed, proc", my_rank
 
@@ -156,18 +157,24 @@ CONTAINS
 
 
 
-	!Create the dataspace with unlimited dimension in z. ! again, what should I use for parallel access?
-	maxdims = (/int(3,HSIZE_T), int(128,HSIZE_T), int(2,HSIZE_T)/) ! maxdims = (/H5S_UNLIMITED_F, int(dim_r,HSIZE_T), int(dim_t,HSIZE_T)/) 
-	dims = (/int(1,HSIZE_T),int(128,HSIZE_T), int(2,HSIZE_T)/) !dims = (/int(1,HSIZE_T),int(dim_r,HSIZE_T), int(dim_t,HSIZE_T)/) ! only line per proc. now, code runned on 128
+	! Extendible dataset seems to be a serious issue. We stick to pre-computing dataset size for now	
+	dims = (/int(Nz_points,HSIZE_T),int(128,HSIZE_T), int(2,HSIZE_T)/) !dims = (/int(1,HSIZE_T),int(dim_r,HSIZE_T), int(dim_t,HSIZE_T)/) ! only line per proc. now, code runned on 128
+	print *, "before h5 dataspace creation, proc", my_rank	
+	CALL h5screate_simple_f(field_dimensions, dims, filespace, error) ! Create the data space for the  dataset. ! maybe problem with the exension??? !!!!!!
 	
-	print *, "before h5 dataspace creation, proc", my_rank
-	! CALL h5screate_simple_f(field_dimensions, dims, filespace, error) ! Create the data space for the  dataset. ! maybe problem with the exension??? !!!!!!
-	CALL h5screate_simple_f(field_dimensions, dims, filespace, error, maxdims) ! Create the data space for the  dataset. 
 
+    ! This is the research I did about the implentation of extendible datesets:
+	! maxdims = (/int(3,HSIZE_T), int(128,HSIZE_T), int(2,HSIZE_T)/) ! maxdims = (/H5S_UNLIMITED_F, int(dim_r,HSIZE_T), int(dim_t,HSIZE_T)/) 
+	! CALL h5screate_simple_f(field_dimensions, dims, filespace, error, maxdims) ! Create the data space for the  dataset. 
 	! ! the caused error are discussed in the following forums
 	! https://github.com/h5py/h5py/issues/115
 	! https://www.mathworks.com/matlabcentral/answers/161779-why-do-i-get-an-error-from-the-hdf5-library-when-i-try-to-create-an-hdf5-dataset-with-one-of-the-dim
 	! http://hdf-forum.184993.n3.nabble.com/Errors-when-creating-dataset-when-dataspace-has-a-max-dimension-of-H5S-UNLIMITED-td2900828.html
+	! According to a discussion with Jiri Vyskocil, the solution can be also in the chunking
+	! (see also Jiri's recommends': 
+	! https://forum.hdfgroup.org/t/writing-to-an-extendable-dataset-in-a-loop-c-c/5793?fbclid=IwAR3M_kX4L6ZqC1teRWGQuslaToFCIYi7qPUCb8uA5Gerh4rrlfgJvco5dFk
+	! https://forum.hdfgroup.org/t/parallel-dataset-resizing-strategies/3826?fbclid=IwAR1DlG6xXlYLp7XmAET3IrP4gbcdDIzaTTKI31ZsDW9h_AHScEDmLrdOFek
+	! )
 
 	!!! EXTENDIBLE DATASETS ARE PROBABLY A PROBLEM THIS is an error message from this version
 ! 	HDF5-DIAG: Error detected in HDF5 (1.10.5) MPI-process 21:
@@ -206,6 +213,8 @@ CONTAINS
 !     minor: Feature is unsupported
 
 
+    !! Code continuation
+
 
 	! Maybe we don't need do this
 	! dims = (/1, 1, dim_t/) !dims = (/1, dim_r_end(num_proc)-dim_r_start(num_proc), dim_t/) ! dimension of my field
@@ -227,10 +236,10 @@ CONTAINS
 	! stride = (/1,1,1/) ! we write a block of data directly in file, no skipped lines, rows, ...
 	! cblock = (/1,1,2/) ! cblock = (/1,dim_r_end(num_proc) - dim_r_start(num_proc),dim_t/) ! allows flush data at once 
 
-	offset = (/int(0,HSIZE_T),int(my_rank,HSIZE_T),int(0,HSIZE_T)/) ! offset = (/0,dim_r_start(num_proc),0/)
+	offset = (/int(HDF5write_count-1,HSIZE_T),int(my_rank,HSIZE_T),int(0,HSIZE_T)/) ! offset = (/0,dim_r_start(num_proc),0/) ! c-indexing from 0
 	ccount = (/int(1,HSIZE_T), int(1,HSIZE_T) , int(2,HSIZE_T)/) ! ccount = (/1, dim_r_end(num_proc) - dim_r_start(num_proc) , dim_t/)
 
-	! memory space allocated for each worr is here
+	! memory space allocated for each worker is here
 	CALL h5screate_simple_f(field_dimensions, ccount, memspace, error) ! dataset dimensions in memory (this worker)
 	
 	! CALL h5dget_space_f(dset_id,filespace,error)
@@ -248,7 +257,7 @@ CONTAINS
 !	CALL h5pset_chunk_f(crp_list, field_dimensions, dimsc, error) ???????????? Do we need chunk it?
 
 	! Write the data collectivelly (we may try also to do it independently.... I think it could avoid some broadcast?)
-	dimsfi = (/1,128,2/) ! dimsfi = (/1,dim_r,dim_t/) ! according to the tuto, it seems that whole dataset dimension is required
+	dimsfi = (/Nz_points,128,2/) ! dimsfi = (/1,dim_r,dim_t/) ! according to the tuto, it seems that whole dataset dimension is required
 	print *, "before h5 parallel write, proc", my_rank
 	CALL h5dwrite_f(dset_id , H5T_NATIVE_REAL, Fields, dimsfi, error,file_space_id=filespace,mem_space_id=memspace,xfer_prp = h5parameters)
 	! CALL h5dwrite_f(dset_id , H5T_NATIVE_REAL, Fields, dimsfi, error,file_space_id=filespace,mem_space_id=memspace,xfer_prp = h5parameters)! general params, data are written !!!( probably variable length)
@@ -272,77 +281,47 @@ CONTAINS
 
 
 ! 	!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-! 	ELSE !ANOTHER RUN)
 
+	ELSE ! We're just appending the data now
 
-
-! 	!Initialize HDF5
-! 	CALL h5open_f(error) 
-
-! 	!define parameters of HDF5 workflow for MPI-access
-! 	CALL h5pcreate_f(H5P_DATASET_CREATE_F, h5parameters, error) ! create access parameters
-!         CALL h5pset_dxpl_mpio_f(h5parameters, H5FD_MPIO_COLLECTIVE_F, error) ! allow MPI access (should it be here?)
-
-! 	!Open collectivelly the file
-! 	CALL h5fopen_f(filename, H5F_ACC_RDWR_F, file_id, error, access_prp = h5parameters ) ! open file collectivelly
-! !CINES	CALL h5pclose(h5parameters) ! parameters were used for MPI open, close them
-! 	CALL h5pclose_f(h5parameters,error) ! parameters were used for MPI open, close them
+    
+	CALL h5open_f(error)  !Initialize HDF5
+	CALL h5pcreate_f(H5P_FILE_ACCESS_F, h5parameters, error) !define parameters of HDF5 workflow for MPI-access
+    CALL h5pset_fapl_mpio_f(h5parameters, MPI_COMM_WORLD, MPI_INFO_NULL, error) ! allow MPI access
+	CALL h5fopen_f(filename, H5F_ACC_RDWR_F, file_id, error, access_prp = h5parameters ) !Open collectivelly the file
+	CALL h5pclose_f(h5parameters,error) ! parameters were used for MPI open, close them
 	
 
-! 	!open the datasets
-! 	CALL h5dopen_f(file_id, dsetname, dset_id, error) ! open collectivelly
+    ! The code should differ now, since dataset is already created, we should be able to get filespace from it without creating it
+	! first, we open the dataset
 
-! 	! recognise its size.
-! 	CALL h5dget_space_f(dset_id,filespace, error) ! get filespace identifier
-! 	CALL h5sget_simple_extent_dims_f(filespace, dims, maxdims, error)  ! get filespace dimension
+	CALL h5dopen_f(file_id, dsetname3, dset_id, error) ! this should be enough !h5dcreate_f(file_id, dsetname3, H5T_NATIVE_REAL, filespace, dset_id, error)
 
-! 	! extend it in the first dimension
-! 	Nz_dim_old = dims(1)
-! 	dims(1) = dims(1) + 1
-! 	CALL h5dset_extent_f(dset_id, dims, error)
+    CALL h5dget_space_f(dset_id,filespace,error) ! filespace shoulb be obtained now from the file ! CALL h5screate_simple_f(field_dimensions, dims, filespace, error) ! Create the data space for the  dataset. ! maybe problem with the exension??? !!!!!!
 
+    ! the only change is the offset, but linked with the cummulative HDF5write_count
+	offset = (/int(HDF5write_count-1,HSIZE_T),int(my_rank,HSIZE_T),int(0,HSIZE_T)/) ! offset = (/0,dim_r_start(num_proc),0/) ! c-indexing from 0
+	ccount = (/int(1,HSIZE_T), int(1,HSIZE_T) , int(2,HSIZE_T)/) ! ccount = (/1, dim_r_end(num_proc) - dim_r_start(num_proc) , dim_t/)
 
-! 	! we need just memory space for each worker, global is already set
-! 	dims = (/1, dim_r_end(num_proc)-dim_r_start(num_proc), dim_t/) ! dimension of my field
-! 	CALL h5screate_simple_f(field_dimensions, dims, memspace, error, maxdims) ! dataset dimensions in memory (this worker)
+	! we select the hyperslab
+	CALL h5sselect_hyperslab_f(filespace, H5S_SELECT_SET_F, offset, ccount, error) ! we should have access to its part of the dataset for each worker
 
-! 	! dataset is already created
+    print *, "before h5 writing, proc", my_rank, "iteration", HDF5write_count
 
-! 	!we use hyperslab to assign part of the global dataset
-! 	!chunk data for each worker
-! 	stride = (/1,1,1/) ! we write a block of data directly in file, no skipped lines, rows, ...
-! 	cblock = (/1,dim_r_end(num_proc) - dim_r_start(num_proc),dim_t/) ! allows flush data at once 
-! 	offset = (/Nz_dim_old,dim_r_start(num_proc),0/) ! the contiguous shift in the dimenzion of z
-! 	ccount = (/1, dim_r_end(num_proc) - dim_r_start(num_proc) , dim_t/)
-	
-! !	CALL h5dget_space_f(dset_id,filespace,error) !!! We done and kept from the extension?
-! 	CALL h5sselect_hyperslab_f(filespace, H5S_SELECT_SET_F, offset, ccount, error, stride, cblock) ! we should have access to its part of the dataset for each worker
+	!!!Finally, write data	
+	CALL h5pcreate_f(H5P_DATASET_XFER_F, h5parameters, error) ! Create access parametwers
+	CALL h5pset_dxpl_mpio_f(h5parameters, H5FD_MPIO_COLLECTIVE_F, error) ! collective writting
+	dimsfi = (/Nz_points,128,2/) ! dimsfi = (/1,dim_r,dim_t/) ! according to the tuto, it seems that whole dataset dimension is required
+	CALL h5dwrite_f(dset_id , H5T_NATIVE_REAL, Fields, dimsfi, error,file_space_id=filespace,mem_space_id=memspace,xfer_prp = h5parameters)
 
-
-! 	!!!Finally, write data
-! 	! Create access parametwers
-! 	CALL h5pcreate_f(H5P_DATASET_XFER_F, h5parameters, error)
-! 	CALL h5pset_dxpl_mpio_f(h5parameters, H5FD_MPIO_COLLECTIVE_F, error) ! collective writting
-
-! !	CALL h5pset_chunk_f(crp_list, field_dimensions, dimsc, error) ???????????? Do we need chunk it?
-
-! 	! Write the data collectivelly (we may try also to do it independently.... I think it could avoid some broadcast?)
-! !	dimsfi = (/1,dim_r,dim_t/) ! accorfing to the tuto, it seems that whole dataset dimension is required
-! 	dimsfi = dims ! accorfing to the tuto, it seems that whole dataset dimension is required
-! 	CALL h5dwrite_f(dset_id , H5T_NATIVE_REAL, Fields, dimsfi, error,file_space_id=filespace,mem_space_id=memspace,xfer_prp = h5parameters)! data are written !!!( probably variable length)
-
-
-! 	!close the files etc.
-! 	CALL h5sclose_f(filespace,error)
-! 	CALL h5sclose_f(memspace,error)
-! 	CALL h5dclose_f(dset_id,error)
-! 	CALL h5pclose_f(h5parameters,error)
-! 	CALL h5fclose_f(file_id,error)
-	
-! 	CALL h5close_f(error) ! close the HDF5 workspace
-   
-
-
+    ! closing
+	CALL h5dclose_f(dset_id,error)
+	CALL h5sclose_f(filespace,error)
+	CALL h5sclose_f(memspace,error)
+	CALL h5dclose_f(dset_id,error)
+	CALL h5pclose_f(h5parameters,error)
+	CALL h5fclose_f(file_id,error)	
+	CALL h5close_f(error) ! close the HDF5 workspace
 
 	ENDIF
 	HDF5write_count = HDF5write_count + 1 !increase counter in all cases
