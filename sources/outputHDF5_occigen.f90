@@ -33,6 +33,7 @@ CONTAINS
 !!     INTEGER, DIMENSION(7) :: dimsfi = (/5,8,0,0,0,0,0/)
 !     INTEGER(HSIZE_T), DIMENSION(3) :: dimsfi 
      INTEGER(HSIZE_T), DIMENSION(3) :: dims,dimsfi,maxdims 
+	 INTEGER(HSIZE_T), DIMENSION(1):: dumh51D, dumh51D2
 
      INTEGER(HSIZE_T), DIMENSION(3) :: ccount  
      INTEGER(HSIZE_T), DIMENSION(3) :: offset 
@@ -59,6 +60,7 @@ CONTAINS
 	 CHARACTER(LEN=7), PARAMETER :: filename2 = "test.h5" ! Dataset name
 	 CHARACTER(LEN=16), PARAMETER :: dsetname2 = "TestCUPRADSingle" ! Dataset name
 	 CHARACTER(LEN=18), PARAMETER :: dsetname3 = "TestCUPRADParallel" ! Dataset name
+	 CHARACTER(LEN=5), PARAMETER :: dsetname4 = "zgrid" ! Dataset name
 
 
      !  comm = MPI_COMM_WORLD
@@ -128,7 +130,26 @@ CONTAINS
 	CALL h5fclose_f(file_id, error) ! Close the file.
 	CALL h5close_f(error) ! Close FORTRAN interface.
 	!!!!!!!!!!!! HDF5 testing 
-  ENDIF ! dummy-write end
+
+	!!! extendible dataset for single-writter (following the tuto https://portal.hdfgroup.org/display/HDF5/Examples+from+Learning+the+Basics#ExamplesfromLearningtheBasics-changingex https://bitbucket.hdfgroup.org/projects/HDFFV/repos/hdf5/browse/fortran/examples/h5_extend.f90?at=89fbe00dec8187305b518d91c3ddb7d910665f79&raw )
+	CALL h5open_f(error)
+	CALL h5fopen_f (filename, H5F_ACC_RDWR_F, file_id, error) ! Open an existing file. 
+
+	maxdims = (/H5S_UNLIMITED_F/) !Create the data space with unlimited dimensions.
+	CALL h5screate_simple_f(RANK, dims, dataspace, error, maxdims)
+	CALL h5pcreate_f(H5P_DATASET_CREATE_F, h5parameters, error)   !Modify dataset creation properties, i.e. enable chunking
+	dumh51D = (/int(1,HSIZE_T)/)
+	CALL h5pset_chunk_f(h5parameters, 1, dumh51D, error)
+	CALL h5dcreate_f(file_id, dsetname, H5T_NATIVE_REAL, dataspace, dset_id, error, h5parameters)
+	CALL h5dwrite_f(dset_id, H5T_NATIVE_INTEGER, REAL(HDF5write_count,4), data_dims, error)
+	CALL h5sclose_f(dataspace, error)
+    CALL h5pclose_f(h5parameters, error)
+    CALL h5dclose_f(dset_id, error)
+    CALL h5fclose_f(file_id, error)
+	CALL h5close_f(error) ! Close FORTRAN interface.
+
+
+  ENDIF ! single-write end
 
 
 
@@ -280,6 +301,42 @@ CONTAINS
 
 	ELSE ! We're just appending the data now
 
+  IF (my_rank.EQ.0) THEN ! only one worker
+
+    print *, "HDF5 z-extension accessed"
+
+	!!! extendible dataset for single-writter 
+	CALL h5open_f(error)
+	CALL h5fopen_f (filename, H5F_ACC_RDWR_F, file_id, error) ! Open an existing file. 
+
+	! maxdims = (/H5S_UNLIMITED_F/) !Create the data space with unlimited dimensions.
+	! CALL h5screate_simple_f(RANK, dims, dataspace, error, maxdims)
+	! CALL h5pcreate_f(H5P_DATASET_CREATE_F, h5parameters, error)   !Modify dataset creation properties, i.e. enable chunking
+	! dumh51D = (/int(1,HSIZE_T)/)
+	! CALL h5pset_chunk_f(h5parameters, 1, dumh51D, error)
+	! CALL h5dcreate_f(file_id, dsetname, H5T_NATIVE_REAL, dataspace, dset_id, error, h5parameters)
+	CALL h5dopen_f(file_id, dsetname, dset_id, error)   !Open the  dataset
+	CALL h5dset_extent_f(dset_id, (/int(HDF5write_count,HSIZE_T)/), error)
+	dumh51D = (/int(1,HSIZE_T)/)
+	CALL h5screate_simple_f (1, dumh51D, memspace, error)
+
+	CALL h5sselect_hyperslab_f(dataspace, H5S_SELECT_SET_F, (/int(HDF5write_count-1,HSIZE_T)/), (/int(1,HSIZE_T)/), error)
+	CALL h5dwrite_f(dset_id, H5T_NATIVE_INTEGER, REAL(HDF5write_count,4), data_dims, error)
+	CALL h5sclose_f(dataspace, error)
+    CALL h5dclose_f(dset_id, error)
+    CALL h5fclose_f(file_id, error)
+	CALL h5close_f(error) ! Close FORTRAN interface.
+
+
+	! CALL h5dget_space_f(dset_id, dataspace, error)  !Get dataset's dataspace handle.
+
+	! !CALL h5sget_simple_extent_ndims_f(dataspace, rankr, error)   !Get dataspace's rank. ! that's in the tuto, we already know it's 1
+    
+    ! CALL h5sget_simple_extent_dims_f(dataspace, dumh51D, dumh51D2, error)   !Get dataspace's dimensions.
+
+
+  ENDIF ! single-write end
+
     
 	CALL h5open_f(error)  !Initialize HDF5
 	CALL h5pcreate_f(H5P_FILE_ACCESS_F, h5parameters, error) !define parameters of HDF5 workflow for MPI-access
@@ -290,7 +347,7 @@ CONTAINS
 
     ! The code should differ now, since dataset is already created, we should be able to get filespace from it without creating it
 	! first, we open the dataset
-
+    print *, "before h5 dataset open, proc", my_rank, "iteration", HDF5write_count
 	CALL h5dopen_f(file_id, dsetname3, dset_id, error) ! this should be enough !h5dcreate_f(file_id, dsetname3, H5T_NATIVE_REAL, filespace, dset_id, error)
 
     CALL h5dget_space_f(dset_id,filespace,error) ! filespace shoulb be obtained now from the file ! CALL h5screate_simple_f(field_dimensions, dims, filespace, error) ! Create the data space for the  dataset. ! maybe problem with the exension??? !!!!!!
