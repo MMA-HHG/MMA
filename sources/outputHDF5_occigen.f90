@@ -135,10 +135,10 @@ CONTAINS
 	CALL h5open_f(error)
 	CALL h5fopen_f (filename, H5F_ACC_RDWR_F, file_id, error) ! Open an existing file. 
 
-	maxdims = (/H5S_UNLIMITED_F/) !Create the data space with unlimited dimensions.
-	CALL h5screate_simple_f(RANK, dims, dataspace, error, maxdims)
+    dumh51D = (/int(1,HSIZE_T)/)
+	dumh51D2 = (/H5S_UNLIMITED_F/) !Create the data space with unlimited dimensions.
+	CALL h5screate_simple_f(1, dumh51D, dataspace, error, dumh51D2 )
 	CALL h5pcreate_f(H5P_DATASET_CREATE_F, h5parameters, error)   !Modify dataset creation properties, i.e. enable chunking
-	dumh51D = (/int(1,HSIZE_T)/)
 	CALL h5pset_chunk_f(h5parameters, 1, dumh51D, error)
 	CALL h5dcreate_f(file_id, dsetname, H5T_NATIVE_REAL, dataspace, dset_id, error, h5parameters)
 	CALL h5dwrite_f(dset_id, H5T_NATIVE_INTEGER, REAL(HDF5write_count,4), data_dims, error)
