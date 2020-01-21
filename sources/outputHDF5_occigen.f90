@@ -55,10 +55,9 @@ CONTAINS
      INTEGER(HID_T) :: attr_id       ! Attribute identifier
      INTEGER(HID_T) :: aspace_id     ! Attribute Dataspace identifier
      INTEGER(HID_T) :: atype_id      ! Attribute Dataspace identifier
-	 INTEGER(HSIZE_T), DIMENSION(1) :: adims = (/2/) ! Attribute dimension
      INTEGER     ::   arank = 1                      ! Attribure rank
      INTEGER(SIZE_T) :: attrlen    ! Length of the attribute string
-     CHARACTER(LEN=80), DIMENSION(2) ::  attr_data  ! Attribute data
+     CHARACTER(LEN=10), DIMENSION(1) ::  attr_data  ! Attribute data
      !  INTEGER :: comm, info
 
 
@@ -137,18 +136,17 @@ CONTAINS
 
 	! add attributes ( https://support.hdfgroup.org/ftp/HDF5/current/src/unpacked/fortran/examples/h5_crtatt.f90 )
 
-    dumh51D = (/int(2,HSIZE_T)/) ! attribute dimension
+    dumh51D = (/int(1,HSIZE_T)/) ! attribute dimension
     CALL h5screate_simple_f(1, dumh51D, aspace_id, error) ! Create scalar data space for the attribute. 1 stands for the rank
     CALL h5tcopy_f(H5T_NATIVE_CHARACTER, atype_id, error) ! Create datatype for the attribute.
-    CALL h5tset_size_f(atype_id, int(80,HSIZE_T), error) ! 80 is attribute length	
+    CALL h5tset_size_f(atype_id, int(10,HSIZE_T), error) ! 10 is attribute length	
     CALL h5acreate_f(dset_id, aname, atype_id, aspace_id, attr_id, error) ! Create dataset attribute.
-    dumh51D = (/int(2,HSIZE_T)/) ! for specification and its values
-	attr_data(1) = "units"
-    attr_data(2) = "[SI]"    
-    CALL h5awrite_f(attr_id, atype_id, attr_data, data_dims, error)
+    dumh51D = (/int(1,HSIZE_T)/) ! dimension of attributes
+	attr_data(1) = "[SI]" 
+    CALL h5awrite_f(attr_id, atype_id, attr_data, dumh51D, error)
     CALL h5aclose_f(attr_id, error)  ! Close the attribute.
     CALL h5tclose_f(atype_id, error)  ! Close the attribute datatype.
-    CALL h5sclose_f(aspace_id, error) ! Terminate access to the data space.
+    CALL h5sclose_f(aspace_id, error) ! Terminate access to the attributes data space.
 
 	CALL h5sclose_f(dataspace, error)
     CALL h5pclose_f(h5parameters, error)
@@ -616,3 +614,20 @@ CONTAINS
 !  END SUBROUTINE field_out
 
 END MODULE outputHDF5
+
+
+
+
+!!!!! 2d attributes version
+    ! dumh51D = (/int(2,HSIZE_T)/) ! attribute dimension
+    ! CALL h5screate_simple_f(1, dumh51D, aspace_id, error) ! Create scalar data space for the attribute. 1 stands for the rank
+    ! CALL h5tcopy_f(H5T_NATIVE_CHARACTER, atype_id, error) ! Create datatype for the attribute.
+    ! CALL h5tset_size_f(atype_id, int(80,HSIZE_T), error) ! 80 is attribute length	
+    ! CALL h5acreate_f(dset_id, aname, atype_id, aspace_id, attr_id, error) ! Create dataset attribute.
+    ! dumh51D = (/int(2,HSIZE_T)/) ! for specification and its values
+	! attr_data(1) = "units"
+    ! attr_data(2) = "[SI]"    
+    ! CALL h5awrite_f(attr_id, atype_id, attr_data, data_dims, error)
+    ! CALL h5aclose_f(attr_id, error)  ! Close the attribute.
+    ! CALL h5tclose_f(atype_id, error)  ! Close the attribute datatype.
+    ! CALL h5sclose_f(aspace_id, error) ! Terminate access to the attributes data space.
