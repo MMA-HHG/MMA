@@ -4,6 +4,7 @@ MODULE outputHDF5
   USE mpi_stuff
   USE long_step
   USE run_status
+  USE normalization
 CONTAINS
 
   SUBROUTINE HDF5_out
