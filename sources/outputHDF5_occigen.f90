@@ -55,6 +55,8 @@ CONTAINS
      REAL(4), ALLOCATABLE :: Fields(:,:,:) ! the kind of this variable has to correspond with the precision stored in HDF5-file
      INTEGER :: Nz_dim_old
 
+	 INTEGER(HSIZE_T), DIMENSION(1) :: z_dims
+
 	 ! testing variables
 	 INTEGER, DIMENSION(4,6) :: dset_data, data_out ! Data buffers
      INTEGER(HSIZE_T), DIMENSION(2) :: data_dims
@@ -141,7 +143,8 @@ CONTAINS
 	CALL h5pcreate_f(H5P_DATASET_CREATE_F, h5parameters, error)   !Modify dataset creation properties, i.e. enable chunking
 	CALL h5pset_chunk_f(h5parameters, 1, dumh51D, error)
 	CALL h5dcreate_f(file_id, dsetname4, H5T_NATIVE_REAL, dataspace, dset_id, error, h5parameters)
-	CALL h5dwrite_f(dset_id, H5T_NATIVE_REAL, REAL(HDF5write_count,4), data_dims, error)
+	dumh51D = (/int(1,HSIZE_T)/)
+	CALL h5dwrite_f(dset_id, H5T_NATIVE_REAL, REAL(HDF5write_count,4), dumh51D = (/int(1,HSIZE_T)/), error)
 	CALL h5sclose_f(dataspace, error)
     CALL h5pclose_f(h5parameters, error)
     CALL h5dclose_f(dset_id, error)
@@ -166,23 +169,24 @@ CONTAINS
 	dumh51D = (/int(2,HSIZE_T)/)
 	CALL h5dset_extent_f(dset_id, dumh51D, error)
 	CALL h5dget_space_f(dset_id, dataspace, error)
-	
+
 	dumh51D = (/int(1,HSIZE_T)/)
 	CALL h5screate_simple_f (1, dumh51D, memspace, error)
 
     dumh51D = (/int(1,HSIZE_T)/)
 	dumh51D2 = (/int(1,HSIZE_T)/)
 	CALL h5sselect_hyperslab_f(dataspace, H5S_SELECT_SET_F, dumh51D, dumh51D2, error)
-	CALL h5dwrite_f(dset_id, H5T_NATIVE_REAL, 2.0d0, data_dims, error, memspace, dataspace)
+	dumh51D = (/int(1,HSIZE_T)/)
+	CALL h5dwrite_f(dset_id, H5T_NATIVE_REAL, REAL(2.0d0,4), dumh51D, error, memspace, dataspace)
 	CALL h5sclose_f(dataspace, error)
     CALL h5dclose_f(dset_id, error)
     CALL h5fclose_f(file_id, error)
 	CALL h5close_f(error) ! Close FORTRAN interface.
 
-	print *, "append2"
+
 
 	!! test appending at the instant
-	print *, "append1"
+	print *, "append2"
 	CALL h5open_f(error)
 	CALL h5fopen_f (filename, H5F_ACC_RDWR_F, file_id, error) ! Open an existing file. 
 
