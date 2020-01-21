@@ -342,6 +342,7 @@ CONTAINS
 	CALL h5dset_extent_f(dset_id, (/int(HDF5write_count,HSIZE_T)/), error)
 	dumh51D = (/int(1,HSIZE_T)/)
 	CALL h5screate_simple_f (1, dumh51D, memspace, error)
+	CALL h5dget_space_f(dset_id, dataspace, error)
 	CALL h5sselect_hyperslab_f(dataspace, H5S_SELECT_SET_F, (/int(HDF5write_count-1,HSIZE_T)/), (/int(1,HSIZE_T)/), error)
 	CALL h5dwrite_f(dset_id, H5T_NATIVE_REAL, REAL(HDF5write_count,4), data_dims, error, memspace, dataspace)
 	CALL h5sclose_f(memspace, error)
