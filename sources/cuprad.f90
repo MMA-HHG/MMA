@@ -57,6 +57,7 @@ PROGRAM cuprad
         !     IF (TREM.LE.3600) EXIT     
      ENDDO
      IF (z.GE.proplength) THEN
+        CALL HDF5_out
         finished = .TRUE.
      ELSE
         IF (my_rank.EQ.0) THEN
@@ -66,7 +67,6 @@ PROGRAM cuprad
      ENDIF
      CALL field_out
      CALL matlab_out 
-     CALL HDF5_out   
      rhodist=count
      CALL propagation
      CALL finalize
