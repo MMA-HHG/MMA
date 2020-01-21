@@ -44,10 +44,10 @@ END MODULE mpi_Stuff
 
 MODULE normalization
   INTEGER(4) :: Nz_points ! expected number of hdf5 output along z
-  REAL(8) :: tpfs,w0cm ! pulse duration in fs and beam width in cm (normalization factor for time and transverse length)
+  REAL(8) :: tps,w0m ! pulse duration in s and beam width in m (normalization factor for time and transverse length)
   REAL(8) :: lambdanm ! center wavelength in nm
   REAL(8) :: four_z_Rayleigh ! 4 times the rayleigh length in m (normalization factor for z)
-  REAL(8) :: efield_factor ! normalization factor electric field GV/m
+  REAL(8) :: efield_factor ! normalization factor electric field V/m
   COMPLEX(8), ALLOCATABLE  :: efield_osc(:) ! fast oscillating term exp(-i*omegauppe*t)
 END MODULE normalization
 
