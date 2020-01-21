@@ -363,43 +363,46 @@ CONTAINS
   ENDIF ! single-write end
 
     
-	CALL h5open_f(error)  !Initialize HDF5
-	CALL h5pcreate_f(H5P_FILE_ACCESS_F, h5parameters, error) !define parameters of HDF5 workflow for MPI-access
-    CALL h5pset_fapl_mpio_f(h5parameters, MPI_COMM_WORLD, MPI_INFO_NULL, error) ! allow MPI access
-	CALL h5fopen_f(filename, H5F_ACC_RDWR_F, file_id, error, access_prp = h5parameters ) !Open collectivelly the file
-	CALL h5pclose_f(h5parameters,error) ! parameters were used for MPI open, close them
+	! CALL h5open_f(error)  !Initialize HDF5
+	! CALL h5pcreate_f(H5P_FILE_ACCESS_F, h5parameters, error) !define parameters of HDF5 workflow for MPI-access
+    ! CALL h5pset_fapl_mpio_f(h5parameters, MPI_COMM_WORLD, MPI_INFO_NULL, error) ! allow MPI access
+	! CALL h5fopen_f(filename, H5F_ACC_RDWR_F, file_id, error, access_prp = h5parameters ) !Open collectivelly the file
+	! CALL h5pclose_f(h5parameters,error) ! parameters were used for MPI open, close them
 	
 
-    ! The code should differ now, since dataset is already created, we should be able to get filespace from it without creating it
-	! first, we open the dataset
-    ! print *, "before h5 dataset open, proc", my_rank, "iteration", HDF5write_count
-	CALL h5dopen_f(file_id, dsetname3, dset_id, error) ! this should be enough !h5dcreate_f(file_id, dsetname3, H5T_NATIVE_REAL, filespace, dset_id, error)
+    ! ! The code should differ now, since dataset is already created, we should be able to get filespace from it without creating it
+	! ! first, we open the dataset
+    ! ! print *, "before h5 dataset open, proc", my_rank, "iteration", HDF5write_count
+	! CALL h5dopen_f(file_id, dsetname3, dset_id, error) ! this should be enough !h5dcreate_f(file_id, dsetname3, H5T_NATIVE_REAL, filespace, dset_id, error)
 
-    CALL h5dget_space_f(dset_id,filespace,error) ! filespace shoulb be obtained now from the file ! CALL h5screate_simple_f(field_dimensions, dims, filespace, error) ! Create the data space for the  dataset. ! maybe problem with the exension??? !!!!!!
+    ! CALL h5dget_space_f(dset_id,filespace,error) ! filespace shoulb be obtained now from the file ! CALL h5screate_simple_f(field_dimensions, dims, filespace, error) ! Create the data space for the  dataset. ! maybe problem with the exension??? !!!!!!
 
-    ! the only change is the offset, but linked with the cummulative HDF5write_count
-	offset = (/int(HDF5write_count-1,HSIZE_T),int(my_rank,HSIZE_T),int(0,HSIZE_T)/) ! offset = (/0,dim_r_start(num_proc),0/) ! c-indexing from 0
-	ccount = (/int(1,HSIZE_T), int(1,HSIZE_T) , int(2,HSIZE_T)/) ! ccount = (/1, dim_r_end(num_proc) - dim_r_start(num_proc) , dim_t/)
+    ! ! the only change is the offset, but linked with the cummulative HDF5write_count
+	! offset = (/int(HDF5write_count-1,HSIZE_T),int(my_rank,HSIZE_T),int(0,HSIZE_T)/) ! offset = (/0,dim_r_start(num_proc),0/) ! c-indexing from 0
+	! ccount = (/int(1,HSIZE_T), int(1,HSIZE_T) , int(2,HSIZE_T)/) ! ccount = (/1, dim_r_end(num_proc) - dim_r_start(num_proc) , dim_t/)
 
-	! we select the hyperslab
-	CALL h5sselect_hyperslab_f(filespace, H5S_SELECT_SET_F, offset, ccount, error) ! we should have access to its part of the dataset for each worker
+	! ! we select the hyperslab
+	! CALL h5sselect_hyperslab_f(filespace, H5S_SELECT_SET_F, offset, ccount, error) ! we should have access to its part of the dataset for each worker
 
-    ! print *, "before h5 writing, proc", my_rank, "iteration", HDF5write_count
+    ! ! print *, "before h5 writing, proc", my_rank, "iteration", HDF5write_count
 
-	!!!Finally, write data	
-	CALL h5pcreate_f(H5P_DATASET_XFER_F, h5parameters, error) ! Create access parametwers
-	CALL h5pset_dxpl_mpio_f(h5parameters, H5FD_MPIO_COLLECTIVE_F, error) ! collective writting
-	dimsfi = (/Nz_points,128,2/) ! dimsfi = (/1,dim_r,dim_t/) ! according to the tuto, it seems that whole dataset dimension is required
-	CALL h5dwrite_f(dset_id , H5T_NATIVE_REAL, Fields, dimsfi, error,file_space_id=filespace,mem_space_id=memspace,xfer_prp = h5parameters)
+	! !!!Finally, write data	
+	! CALL h5pcreate_f(H5P_DATASET_XFER_F, h5parameters, error) ! Create access parametwers
+	! CALL h5pset_dxpl_mpio_f(h5parameters, H5FD_MPIO_COLLECTIVE_F, error) ! collective writting
+	! dimsfi = (/Nz_points,128,2/) ! dimsfi = (/1,dim_r,dim_t/) ! according to the tuto, it seems that whole dataset dimension is required
+	! CALL h5dwrite_f(dset_id , H5T_NATIVE_REAL, Fields, dimsfi, error,file_space_id=filespace,mem_space_id=memspace,xfer_prp = h5parameters)
 
-    ! closing
-	CALL h5dclose_f(dset_id,error)
-	CALL h5sclose_f(filespace,error)
-	CALL h5sclose_f(memspace,error)
-	CALL h5dclose_f(dset_id,error)
-	CALL h5pclose_f(h5parameters,error)
-	CALL h5fclose_f(file_id,error)	
-	CALL h5close_f(error) ! close the HDF5 workspace
+    ! ! closing
+	! CALL h5dclose_f(dset_id,error)
+	! CALL h5sclose_f(filespace,error)
+	! CALL h5sclose_f(memspace,error)
+	! CALL h5dclose_f(dset_id,error)
+	! CALL h5pclose_f(h5parameters,error)
+	! CALL h5fclose_f(file_id,error)	
+	! CALL h5close_f(error) ! close the HDF5 workspace
+
+
+	! !!!!!!!!!!!!! PARAL WRITE
 
 	ENDIF
 	HDF5write_count = HDF5write_count + 1 !increase counter in all cases
