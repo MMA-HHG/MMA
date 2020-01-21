@@ -144,7 +144,7 @@ CONTAINS
 	CALL h5pset_chunk_f(h5parameters, 1, dumh51D, error)
 	CALL h5dcreate_f(file_id, dsetname4, H5T_NATIVE_REAL, dataspace, dset_id, error, h5parameters)
 	dumh51D = (/int(1,HSIZE_T)/)
-	CALL h5dwrite_f(dset_id, H5T_NATIVE_REAL, REAL(HDF5write_count,4), dumh51D = (/int(1,HSIZE_T)/), error)
+	CALL h5dwrite_f(dset_id, H5T_NATIVE_REAL, REAL(HDF5write_count,4), dumh51D, error)
 	CALL h5sclose_f(dataspace, error)
     CALL h5pclose_f(h5parameters, error)
     CALL h5dclose_f(dset_id, error)
@@ -173,7 +173,7 @@ CONTAINS
 	dumh51D = (/int(1,HSIZE_T)/)
 	CALL h5screate_simple_f (1, dumh51D, memspace, error)
 
-    dumh51D = (/int(0,HSIZE_T)/) ! offset
+    dumh51D = (/int(1,HSIZE_T)/) ! offset
 	dumh51D2 = (/int(1,HSIZE_T)/) ! count
 	CALL h5sselect_hyperslab_f(dataspace, H5S_SELECT_SET_F, dumh51D, dumh51D2, error)
 	dumh51D = (/int(1,HSIZE_T)/)
