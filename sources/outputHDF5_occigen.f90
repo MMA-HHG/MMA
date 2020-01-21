@@ -173,8 +173,8 @@ CONTAINS
 	dumh51D = (/int(1,HSIZE_T)/)
 	CALL h5screate_simple_f (1, dumh51D, memspace, error)
 
-    dumh51D = (/int(1,HSIZE_T)/)
-	dumh51D2 = (/int(1,HSIZE_T)/)
+    dumh51D = (/int(0,HSIZE_T)/) ! offset
+	dumh51D2 = (/int(1,HSIZE_T)/) ! count
 	CALL h5sselect_hyperslab_f(dataspace, H5S_SELECT_SET_F, dumh51D, dumh51D2, error)
 	dumh51D = (/int(1,HSIZE_T)/)
 	CALL h5dwrite_f(dset_id, H5T_NATIVE_REAL, REAL(2.0d0,4), dumh51D, error, memspace, dataspace)
