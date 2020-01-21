@@ -49,7 +49,13 @@ CONTAINS
      ! MPI definitions and calls.
      !
 
-    !  INTEGER :: comm, info
+
+     ! ATTRIBUTES OF HDF5 DATASETS
+	 INTEGER(HSIZE_T), DIMENSION(1) :: adims = (/2/) ! Attribute dimension
+     INTEGER     ::   arank = 1                      ! Attribure rank
+     INTEGER(SIZE_T) :: attrlen    ! Length of the attribute string
+     CHARACTER(LEN=80), DIMENSION(2) ::  attr_data  ! Attribute data
+     !  INTEGER :: comm, info
 
 
      ! code variables
@@ -108,112 +114,44 @@ CONTAINS
   ! in one relase we wrote data here, we keep it now as a dummy write
   IF (my_rank.EQ.0) THEN ! only one worker
 
-    print *, "HDF5 testfile IF accessed"
-	! Initialize the dset_data array.
-	DO k1 = 1, 4
-		DO k2 = 1, 6
-			dset_data(k1,k2) = (k1-1)*6 + k2
-		END DO
-	END DO
-
-	data_dims(1) = 4
-	data_dims(2) = 6
-
-	!
-	! Initialize FORTRAN interface.
-	CALL h5open_f(error)
-	! CALL h5fcreate_f(filename2, H5F_ACC_TRUNC_F, file_id, error) ! create test file 
-	CALL h5fopen_f (filename, H5F_ACC_RDWR_F, file_id, error) ! Open an existing file. 
-    CALL h5screate_simple_f(2, data_dims, dataspace, error) ! Create the dataspace.
-	CALL h5dcreate_f(file_id, dsetname2, H5T_NATIVE_INTEGER, dataspace, dset_id, error) ! create the dataset
-	! CALL h5dopen_f(file_id, dsetname2, dset_id, error)  ! Open an existing dataset.
-
-	CALL h5dwrite_f(dset_id, H5T_NATIVE_INTEGER, dset_data, data_dims, error) ! Write the dataset.
-	CALL h5dclose_f(dset_id, error) ! Close the dataset.
-	CALL h5fclose_f(file_id, error) ! Close the file.
-	CALL h5close_f(error) ! Close FORTRAN interface.
-	!!!!!!!!!!!! HDF5 testing 
+    ! now, we add the actual z-coordinate in SI units
+	dumr4 = REAL(four_z_Rayleigh*z,4) !z in SI units
 
 	!!! extendible dataset for single-writter (following the tuto https://portal.hdfgroup.org/display/HDF5/Examples+from+Learning+the+Basics#ExamplesfromLearningtheBasics-changingex https://bitbucket.hdfgroup.org/projects/HDFFV/repos/hdf5/browse/fortran/examples/h5_extend.f90?at=89fbe00dec8187305b518d91c3ddb7d910665f79&raw )
-	CALL h5open_f(error)
+	
+	CALL h5open_f(error) ! HDF5 initialise
 	CALL h5fopen_f (filename, H5F_ACC_RDWR_F, file_id, error) ! Open an existing file. 
 
-    dumh51D = (/int(1,HSIZE_T)/)
-	dumh51D2 = (/H5S_UNLIMITED_F/) !Create the data space with unlimited dimensions.
-	CALL h5screate_simple_f(1, dumh51D, dataspace, error, dumh51D2 )
-	CALL h5pcreate_f(H5P_DATASET_CREATE_F, h5parameters, error)   !Modify dataset creation properties, i.e. enable chunking
-	CALL h5pset_chunk_f(h5parameters, 1, dumh51D, error)
-	CALL h5dcreate_f(file_id, dsetname4, H5T_NATIVE_REAL, dataspace, dset_id, error, h5parameters)
-	dumh51D = (/int(1,HSIZE_T)/)
-	CALL h5dwrite_f(dset_id, H5T_NATIVE_REAL, REAL(HDF5write_count,4), dumh51D, error)
+    dumh51D = (/int(1,HSIZE_T)/) ! dim
+	dumh51D2 = (/H5S_UNLIMITED_F/) ! maxdim
+	CALL h5screate_simple_f(1, dumh51D, dataspace, error, dumh51D2 ) ! Create the data space with unlimited dimensions.
+	CALL h5pcreate_f(H5P_DATASET_CREATE_F, h5parameters, error) ! Modify dataset creation properties, i.e. enable chunking
+	CALL h5pset_chunk_f(h5parameters, 1, dumh51D, error) ! enable chunking (1 is the dimension of the dataset)
+	CALL h5dcreate_f(file_id, dsetname4, H5T_NATIVE_REAL, dataspace, dset_id, error, h5parameters) ! create dataset
+	dumh51D = (/int(1,HSIZE_T)/) ! dimension of data
+	CALL h5dwrite_f(dset_id, H5T_NATIVE_REAL, dumr4, dumh51D, error)
+
+	! add attributes ( https://support.hdfgroup.org/ftp/HDF5/current/src/unpacked/fortran/examples/h5_crtatt.f90 )
+
+    dumh51D = (/int(2,HSIZE_T)/) ! attribute dimension
+    CALL h5screate_simple_f(1, dumh51D, aspace_id, error) ! Create scalar data space for the attribute. 1 stands for the rank
+    CALL h5tcopy_f(H5T_NATIVE_CHARACTER, atype_id, error) ! Create datatype for the attribute.
+	dumh51D = (/int(80,HSIZE_T)/) ! attribute length
+    CALL h5tset_size_f(atype_id, dumh51D, error)	
+    CALL h5acreate_f(dset_id, aname, atype_id, aspace_id, attr_id, error) ! Create dataset attribute.
+    dumh51D = (/int(2,HSIZE_T)/) ! for specification and its values
+	attr_data(1) = "units"
+    attr_data(2) = "[SI]"    
+    CALL h5awrite_f(attr_id, atype_id, attr_data, data_dims, error)
+    CALL h5aclose_f(attr_id, error)  ! Close the attribute.
+    CALL h5tclose_f(atype_id, error)  ! Close the attribute datatype.
+    CALL h5sclose_f(aspace_id, error) ! Terminate access to the data space.
+
 	CALL h5sclose_f(dataspace, error)
     CALL h5pclose_f(h5parameters, error)
     CALL h5dclose_f(dset_id, error)
     CALL h5fclose_f(file_id, error)
 	CALL h5close_f(error) ! Close FORTRAN interface.
-
-
-	! !! test appending at the instant
-	! print *, "append1"
-	! CALL h5open_f(error)
-	! CALL h5fopen_f (filename, H5F_ACC_RDWR_F, file_id, error) ! Open an existing file. 
-
-	! ! maxdims = (/H5S_UNLIMITED_F/) !Create the data space with unlimited dimensions.
-	! ! CALL h5screate_simple_f(RANK, dims, dataspace, error, maxdims)
-	! ! CALL h5pcreate_f(H5P_DATASET_CREATE_F, h5parameters, error)   !Modify dataset creation properties, i.e. enable chunking
-	! ! dumh51D = (/int(1,HSIZE_T)/)
-	! ! CALL h5pset_chunk_f(h5parameters, 1, dumh51D, error)
-	! ! CALL h5dcreate_f(file_id, dsetname4, H5T_NATIVE_REAL, dataspace, dset_id, error, h5parameters)
-
-	! CALL h5dopen_f(file_id, dsetname4, dset_id, error)   !Open the  dataset
-
-	! dumh51D = (/int(2,HSIZE_T)/)
-	! CALL h5dset_extent_f(dset_id, dumh51D, error)
-	! CALL h5dget_space_f(dset_id, dataspace, error)
-
-	! dumh51D = (/int(1,HSIZE_T)/)
-	! CALL h5screate_simple_f (1, dumh51D, memspace, error)
-
-    ! dumh51D = (/int(1,HSIZE_T)/) ! offset
-	! dumh51D2 = (/int(1,HSIZE_T)/) ! count
-	! CALL h5sselect_hyperslab_f(dataspace, H5S_SELECT_SET_F, dumh51D, dumh51D2, error)
-	! dumh51D = (/int(1,HSIZE_T)/)
-	! CALL h5dwrite_f(dset_id, H5T_NATIVE_REAL, REAL(2.0d0,4), dumh51D, error, memspace, dataspace)
-	! CALL h5sclose_f(dataspace, error)
-    ! CALL h5dclose_f(dset_id, error)
-    ! CALL h5fclose_f(file_id, error)
-	! CALL h5close_f(error) ! Close FORTRAN interface.
-
-
-
-	! !! test appending at the instant
-	! print *, "append2"
-	! CALL h5open_f(error)
-	! CALL h5fopen_f (filename, H5F_ACC_RDWR_F, file_id, error) ! Open an existing file. 
-
-	! ! maxdims = (/H5S_UNLIMITED_F/) !Create the data space with unlimited dimensions.
-	! ! CALL h5screate_simple_f(RANK, dims, dataspace, error, maxdims)
-	! ! CALL h5pcreate_f(H5P_DATASET_CREATE_F, h5parameters, error)   !Modify dataset creation properties, i.e. enable chunking
-	! ! dumh51D = (/int(1,HSIZE_T)/)
-	! ! CALL h5pset_chunk_f(h5parameters, 1, dumh51D, error)
-	! ! CALL h5dcreate_f(file_id, dsetname4, H5T_NATIVE_REAL, dataspace, dset_id, error, h5parameters)
-
-	! CALL h5dopen_f(file_id, dsetname4, dset_id, error)   !Open the  dataset
-
-	! dumh51D = (/int(3,HSIZE_T)/)
-	! CALL h5dset_extent_f(dset_id, dumh51D, error)
-	! dumh51D = (/int(1,HSIZE_T)/)
-	! CALL h5screate_simple_f (1, dumh51D, memspace, error)
-
-    ! dumh51D = (/int(2,HSIZE_T)/)
-	! dumh51D2 = (/int(1,HSIZE_T)/)
-	! CALL h5sselect_hyperslab_f(dataspace, H5S_SELECT_SET_F, dumh51D, dumh51D2, error)
-	! CALL h5dwrite_f(dset_id, H5T_NATIVE_REAL, 3.0d0, data_dims, error, memspace, dataspace)
-	! CALL h5sclose_f(dataspace, error)
-    ! CALL h5dclose_f(dset_id, error)
-    ! CALL h5fclose_f(file_id, error)
-	! CALL h5close_f(error) ! Close FORTRAN interface.
-
 
   ENDIF ! single-write end
 
@@ -396,7 +334,6 @@ CONTAINS
     CALL h5dclose_f(dset_id, error)
     CALL h5fclose_f(file_id, error)
 	CALL h5close_f(error) ! Close FORTRAN interface.
-
 
   ENDIF ! single-write end
 
