@@ -91,11 +91,11 @@ CONTAINS
 	field_dimensions = 3;
 	allocate(Fields(1,1,2)) !allocate(Fields(1,dim_r_end(num_proc)-dim_r_start(num_proc),dim_t))
 
-	! AFTER discussion with Jiri Vyskocil, he pointed out the column-majorness or row-majorness could a serious performance issue (note that c and FORTAN differs, h5 is a c-lib)
+	! AFTER discussion with Jiri Vyskocil, he pointed out the column-majorness or row-majorness could a serious performance issue (note that c and FORTAN differ, h5 is a c-lib)
 	r_offset = dim_r_start(num_proc)-1
 	DO k1=1, 1 !( dim_r_end(num_proc)-dim_r_start(num_proc) )	
 	DO k2=1, 2 !dim_t
-		! Fields(1,k1,k2) = REAL(my_rank+HDF5write_count+k1+k2,8) !REAL(e(k2,r_offset+k1));
+		! Fields(1,k1,k2) = REAL(my_rank+HDF5write_count+k1+k2,4) !REAL( (efield_factor*efield_osc(k2)*e(k2,r_offset+k1)),4);
 		Fields(1,k1,k2) = REAL(my_rank,4) !REAL(e(k2,r_offset+k1));  ! SINGEL PRECISION, corresponding H5T_NATIVE_REAL
 		! Fields(1,k1,k2) = REAL(k2,8) !REAL(e(k2,r_offset+k1)); ! SINGEL PRECISION, corresponding H5T_NATIVE_DOUBLE
 	ENDDO
@@ -183,13 +183,179 @@ CONTAINS
 
 
 
-	! Extendible dataset seems to be a serious issue. We stick to pre-computing dataset size for now	
+	! Extendible dataset seems to be a serious issue. We stick to pre-computing dataset size for now (see the piece ofthe code at the end of this file for details)
 	dims = (/int(Nz_points,HSIZE_T),int(128,HSIZE_T), int(2,HSIZE_T)/) !dims = (/int(1,HSIZE_T),int(dim_r,HSIZE_T), int(dim_t,HSIZE_T)/) ! only line per proc. now, code runned on 128
 	! print *, "before h5 dataspace creation, proc", my_rank	
 	CALL h5screate_simple_f(field_dimensions, dims, filespace, error) ! Create the data space for the  dataset. ! maybe problem with the exension??? !!!!!!
 	
 
-    ! This is the research I did about the implentation of extendible datesets:
+
+
+
+    !! Code continuation
+	
+	CALL h5dcreate_f(file_id, dsetname3, H5T_NATIVE_REAL, filespace, dset_id, error)  ! create the dataset collectivelly
+
+
+	offset = (/int(HDF5write_count-1,HSIZE_T),int(my_rank,HSIZE_T),int(0,HSIZE_T)/) ! offset = (/0,dim_r_start(num_proc),0/) ! c-indexing from 0
+	ccount = (/int(1,HSIZE_T), int(1,HSIZE_T) , int(2,HSIZE_T)/) ! ccount = (/1, dim_r_end(num_proc) - dim_r_start(num_proc) , dim_t/)
+
+	! memory space allocated for each worker is here
+	CALL h5screate_simple_f(field_dimensions, ccount, memspace, error) ! dataset dimensions in memory (this worker)
+	
+	! CALL h5dget_space_f(dset_id,filespace,error)
+	! print *, "before h5 hyperslab, proc", my_rank
+	CALL h5sselect_hyperslab_f(filespace, H5S_SELECT_SET_F, offset, ccount, error) ! we should have access to its part of the dataset for each worker
+	!CALL h5sselect_hyperslab_f(filespace, H5S_SELECT_SET_F, offset, ccount, error, stride, cblock) ! these extra parameters should be possible in a genralised case
+
+
+	!!!Finally, write data
+	! Create access parametwers
+	CALL h5pcreate_f(H5P_DATASET_XFER_F, h5parameters, error)
+	! print *, "before h5 dxpl mpio, proc", my_rank
+	CALL h5pset_dxpl_mpio_f(h5parameters, H5FD_MPIO_COLLECTIVE_F, error) ! collective writting
+
+!	CALL h5pset_chunk_f(crp_list, field_dimensions, dimsc, error) ???????????? Do we need chunk it?
+
+	! Write the data collectivelly (we may try also to do it independently.... I think it could avoid some broadcast?)
+	dimsfi = (/Nz_points,128,2/) ! dimsfi = (/1,dim_r,dim_t/) ! according to the tuto, it seems that whole dataset dimension is required
+	! print *, "before h5 parallel write, proc", my_rank
+	CALL h5dwrite_f(dset_id , H5T_NATIVE_REAL, Fields, dimsfi, error,file_space_id=filespace,mem_space_id=memspace,xfer_prp = h5parameters)
+	! CALL h5dwrite_f(dset_id , H5T_NATIVE_REAL, Fields, dimsfi, error,file_space_id=filespace,mem_space_id=memspace,xfer_prp = h5parameters)! general params, data are written !!!( probably variable length)
+
+
+	!close the files etc.
+	CALL h5sclose_f(filespace,error)
+	CALL h5sclose_f(memspace,error)
+	CALL h5dclose_f(dset_id,error)
+	CALL h5pclose_f(h5parameters,error)
+	CALL h5fclose_f(file_id,error)	
+	CALL h5close_f(error) ! close the HDF5 workspace
+
+
+! 	!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+	ELSE ! We're just appending the data now
+
+  IF (my_rank.EQ.0) THEN ! only one worker is extending the zgrid
+
+	dumr4 = REAL(four_z_Rayleigh*z,4) ! the actual z-coordinate in SI units
+    
+
+	CALL h5open_f(error)
+	CALL h5fopen_f (filename, H5F_ACC_RDWR_F, file_id, error) ! Open an existing file.
+	CALL h5dopen_f(file_id, dsetname4, dset_id, error)   !Open the  dataset
+
+	dumh51D = (/int(HDF5write_count,HSIZE_T)/) ! new dimension of the dataset
+	CALL h5dset_extent_f(dset_id, dumh51D, error) ! extend the dataset
+	CALL h5dget_space_f(dset_id, dataspace, error) ! get the dataspace of the dataset
+
+	dumh51D = (/int(1,HSIZE_T)/) ! dimension of the memspace (it's the chunk that is appended to the dataset)
+	CALL h5screate_simple_f (1, dumh51D, memspace, error) ! create memory space
+
+    dumh51D = (/int(HDF5write_count-1,HSIZE_T)/) ! offset
+	dumh51D2 = (/int(1,HSIZE_T)/) ! count
+	CALL h5sselect_hyperslab_f(dataspace, H5S_SELECT_SET_F, dumh51D, dumh51D2, error) ! choose the hyperslab in the file
+	dumh51D = (/int(1,HSIZE_T)/) ! the dimension of data written
+	CALL h5dwrite_f(dset_id, H5T_NATIVE_REAL, dumr4, dumh51D, error, memspace, dataspace) ! wrtiting the data
+
+	CALL h5sclose_f(memspace, error)
+	CALL h5sclose_f(dataspace, error)
+    CALL h5dclose_f(dset_id, error)
+    CALL h5fclose_f(file_id, error)
+	CALL h5close_f(error) ! Close FORTRAN interface.
+
+  ENDIF ! single-write end
+
+    
+	CALL h5open_f(error)  !Initialize HDF5
+	CALL h5pcreate_f(H5P_FILE_ACCESS_F, h5parameters, error) !define parameters of HDF5 workflow for MPI-access
+    CALL h5pset_fapl_mpio_f(h5parameters, MPI_COMM_WORLD, MPI_INFO_NULL, error) ! allow MPI access
+	CALL h5fopen_f(filename, H5F_ACC_RDWR_F, file_id, error, access_prp = h5parameters ) !Open collectivelly the file
+	CALL h5pclose_f(h5parameters,error) ! parameters were used for MPI open, close them
+	
+
+    ! The code should differ now, since dataset is already created, we should be able to get filespace from it without creating it
+	! first, we open the dataset
+    ! print *, "before h5 dataset open, proc", my_rank, "iteration", HDF5write_count
+	CALL h5dopen_f(file_id, dsetname3, dset_id, error) ! this should be enough !h5dcreate_f(file_id, dsetname3, H5T_NATIVE_REAL, filespace, dset_id, error)
+
+    CALL h5dget_space_f(dset_id,filespace,error) ! filespace shoulb be obtained now from the file ! CALL h5screate_simple_f(field_dimensions, dims, filespace, error) ! Create the data space for the  dataset. ! maybe problem with the exension??? !!!!!!
+
+    ! the only change is the offset, but linked with the cummulative HDF5write_count
+	offset = (/int(HDF5write_count-1,HSIZE_T),int(my_rank,HSIZE_T),int(0,HSIZE_T)/) ! offset = (/0,dim_r_start(num_proc),0/) ! c-indexing from 0
+	ccount = (/int(1,HSIZE_T), int(1,HSIZE_T) , int(2,HSIZE_T)/) ! ccount = (/1, dim_r_end(num_proc) - dim_r_start(num_proc) , dim_t/)
+
+	! we select the hyperslab
+	CALL h5sselect_hyperslab_f(filespace, H5S_SELECT_SET_F, offset, ccount, error) ! we should have access to its part of the dataset for each worker
+
+    ! print *, "before h5 writing, proc", my_rank, "iteration", HDF5write_count
+
+	!!!Finally, write data	
+	CALL h5pcreate_f(H5P_DATASET_XFER_F, h5parameters, error) ! Create access parametwers
+	CALL h5pset_dxpl_mpio_f(h5parameters, H5FD_MPIO_COLLECTIVE_F, error) ! collective writting
+	dimsfi = (/Nz_points,128,2/) ! dimsfi = (/1,dim_r,dim_t/) ! according to the tuto, it seems that whole dataset dimension is required
+	CALL h5dwrite_f(dset_id , H5T_NATIVE_REAL, Fields, dimsfi, error,file_space_id=filespace,mem_space_id=memspace,xfer_prp = h5parameters)
+
+    ! closing
+	CALL h5dclose_f(dset_id,error)
+	CALL h5sclose_f(filespace,error)
+	CALL h5sclose_f(memspace,error)
+	CALL h5dclose_f(dset_id,error)
+	CALL h5pclose_f(h5parameters,error)
+	CALL h5fclose_f(file_id,error)	
+	CALL h5close_f(error) ! close the HDF5 workspace
+
+
+	!!!!!!!!!!!!! PARAL WRITE
+
+	ENDIF
+	HDF5write_count = HDF5write_count + 1 !increase counter in all cases
+	deallocate(Fields)
+
+	IF (my_rank.EQ.0) THEN
+	  print *, "finished", my_rank, "iteration+1", HDF5write_count
+	ENDIF
+
+!       OPEN(unit_field,FILE=iz//'_FIELD_'//ip//'.DAT',STATUS='UNKNOWN',FORM='UNFORMATTED')
+!       WRITE(unit_field) dim_t,dim_r,num_proc
+!       WRITE(unit_field) REAL(delta_t,4),REAL(delta_r,4),REAL(tlo,4)
+!       DO j=dim_r_start(num_proc),dim_r_end(num_proc)
+!          WRITE(unit_field) CMPLX(e(1:dim_t,j),KIND=4)
+!       ENDDO
+!       CLOSE(unit_field)
+
+
+    RETURN
+  END SUBROUTINE  HDF5_out
+
+END MODULE outputHDF5
+
+
+
+
+!!!!! 2d attributes version
+    ! dumh51D = (/int(2,HSIZE_T)/) ! attribute dimension
+    ! CALL h5screate_simple_f(1, dumh51D, aspace_id, error) ! Create scalar data space for the attribute. 1 stands for the rank
+    ! CALL h5tcopy_f(H5T_NATIVE_CHARACTER, atype_id, error) ! Create datatype for the attribute.
+    ! CALL h5tset_size_f(atype_id, int(80,HSIZE_T), error) ! 80 is attribute length	
+    ! CALL h5acreate_f(dset_id, aname, atype_id, aspace_id, attr_id, error) ! Create dataset attribute.
+    ! dumh51D = (/int(2,HSIZE_T)/) ! for specification and its values
+	! attr_data(1) = "units"
+    ! attr_data(2) = "[SI]"    
+    ! CALL h5awrite_f(attr_id, atype_id, attr_data, data_dims, error)
+    ! CALL h5aclose_f(attr_id, error)  ! Close the attribute.
+    ! CALL h5tclose_f(atype_id, error)  ! Close the attribute datatype.
+    ! CALL h5sclose_f(aspace_id, error) ! Terminate access to the attributes data space.
+
+
+
+
+
+
+
+
+	    ! This is the research I did about the implentation of extendible datesets:
 	! maxdims = (/int(3,HSIZE_T), int(128,HSIZE_T), int(2,HSIZE_T)/) ! maxdims = (/H5S_UNLIMITED_F, int(dim_r,HSIZE_T), int(dim_t,HSIZE_T)/) 
 	! CALL h5screate_simple_f(field_dimensions, dims, filespace, error, maxdims) ! Create the data space for the  dataset. 
 	! ! the caused error are discussed in the following forums
@@ -237,397 +403,3 @@ CONTAINS
 !   #010: H5Dcontig.c line 402 in H5D__contig_construct(): extendible contiguous non-external dataset not allowed
 !     major: Dataset
 !     minor: Feature is unsupported
-
-
-    !! Code continuation
-
-
-	! Maybe we don't need do this
-	! dims = (/1, 1, dim_t/) !dims = (/1, dim_r_end(num_proc)-dim_r_start(num_proc), dim_t/) ! dimension of my field
-	! CALL h5screate_simple_f(field_dimensions, dims, dataspace, error, maxdims) ! dataset dimensions in memory (this worker)
-
-    ! print *, "before h5 dataset creation, proc", my_rank
-	! we create the dataset collectivelly
-	CALL h5dcreate_f(file_id, dsetname3, H5T_NATIVE_REAL, filespace, dset_id, error)
-!CINES correction	CALL h5sclose(filespace,error)
-	! CALL h5sclose_f(filespace,error)
-	! CALL h5dclose_f(dset_id,error) !! remove this now
-
-  
-
-	!we use hyperslab to assign part of the global dataset
-	!chunk data for each worker
-
-	! the following two lines should be inspected for performance
-	! stride = (/1,1,1/) ! we write a block of data directly in file, no skipped lines, rows, ...
-	! cblock = (/1,1,2/) ! cblock = (/1,dim_r_end(num_proc) - dim_r_start(num_proc),dim_t/) ! allows flush data at once 
-
-	offset = (/int(HDF5write_count-1,HSIZE_T),int(my_rank,HSIZE_T),int(0,HSIZE_T)/) ! offset = (/0,dim_r_start(num_proc),0/) ! c-indexing from 0
-	ccount = (/int(1,HSIZE_T), int(1,HSIZE_T) , int(2,HSIZE_T)/) ! ccount = (/1, dim_r_end(num_proc) - dim_r_start(num_proc) , dim_t/)
-
-	! memory space allocated for each worker is here
-	CALL h5screate_simple_f(field_dimensions, ccount, memspace, error) ! dataset dimensions in memory (this worker)
-	
-	! CALL h5dget_space_f(dset_id,filespace,error)
-	! print *, "before h5 hyperslab, proc", my_rank
-	CALL h5sselect_hyperslab_f(filespace, H5S_SELECT_SET_F, offset, ccount, error) ! we should have access to its part of the dataset for each worker
-	!CALL h5sselect_hyperslab_f(filespace, H5S_SELECT_SET_F, offset, ccount, error, stride, cblock) ! these extra parameters should be possible in a genralised case
-
-
-	!!!Finally, write data
-	! Create access parametwers
-	CALL h5pcreate_f(H5P_DATASET_XFER_F, h5parameters, error)
-	! print *, "before h5 dxpl mpio, proc", my_rank
-	CALL h5pset_dxpl_mpio_f(h5parameters, H5FD_MPIO_COLLECTIVE_F, error) ! collective writting
-
-!	CALL h5pset_chunk_f(crp_list, field_dimensions, dimsc, error) ???????????? Do we need chunk it?
-
-	! Write the data collectivelly (we may try also to do it independently.... I think it could avoid some broadcast?)
-	dimsfi = (/Nz_points,128,2/) ! dimsfi = (/1,dim_r,dim_t/) ! according to the tuto, it seems that whole dataset dimension is required
-	! print *, "before h5 parallel write, proc", my_rank
-	CALL h5dwrite_f(dset_id , H5T_NATIVE_REAL, Fields, dimsfi, error,file_space_id=filespace,mem_space_id=memspace,xfer_prp = h5parameters)
-	! CALL h5dwrite_f(dset_id , H5T_NATIVE_REAL, Fields, dimsfi, error,file_space_id=filespace,mem_space_id=memspace,xfer_prp = h5parameters)! general params, data are written !!!( probably variable length)
-
-
-	!close the files etc.
-	CALL h5sclose_f(filespace,error)
-	CALL h5sclose_f(memspace,error)
-	CALL h5dclose_f(dset_id,error)
-	CALL h5pclose_f(h5parameters,error)
-	CALL h5fclose_f(file_id,error)	
-	CALL h5close_f(error) ! close the HDF5 workspace
-
-	! print *, "after h5 fileclose, proc", my_rank
-   
-!     !!! now, just append data 
-
-
-! 	!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-	ELSE ! We're just appending the data now
-
-  IF (my_rank.EQ.0) THEN ! only one worker
-    ! print *, "HDF5 z-extension accessed"
-
-    ! now, we add the actual z-coordinate in SI units
-	dumr4 = REAL(four_z_Rayleigh*z,4) !z in SI units
-    
-
-	CALL h5open_f(error)
-	CALL h5fopen_f (filename, H5F_ACC_RDWR_F, file_id, error) ! Open an existing file.
-	CALL h5dopen_f(file_id, dsetname4, dset_id, error)   !Open the  dataset
-
-	dumh51D = (/int(HDF5write_count,HSIZE_T)/) ! new dimension of the dataset
-	CALL h5dset_extent_f(dset_id, dumh51D, error) ! extend the dataset
-	CALL h5dget_space_f(dset_id, dataspace, error) ! get the dataspace of the dataset
-
-	dumh51D = (/int(1,HSIZE_T)/) ! dimension of the memspace (it's the chunk that is appended to the dataset)
-	CALL h5screate_simple_f (1, dumh51D, memspace, error) ! create memory space
-
-    dumh51D = (/int(HDF5write_count-1,HSIZE_T)/) ! offset
-	dumh51D2 = (/int(1,HSIZE_T)/) ! count
-	CALL h5sselect_hyperslab_f(dataspace, H5S_SELECT_SET_F, dumh51D, dumh51D2, error) ! choose the hyperslab in the file
-	dumh51D = (/int(1,HSIZE_T)/) ! the dimension of data written
-	CALL h5dwrite_f(dset_id, H5T_NATIVE_REAL, dumr4, dumh51D, error, memspace, dataspace) ! wrtiting the data
-
-	CALL h5sclose_f(memspace, error)
-	CALL h5sclose_f(dataspace, error)
-    CALL h5dclose_f(dset_id, error)
-    CALL h5fclose_f(file_id, error)
-	CALL h5close_f(error) ! Close FORTRAN interface.
-
-  ENDIF ! single-write end
-
-    
-	! CALL h5open_f(error)  !Initialize HDF5
-	! CALL h5pcreate_f(H5P_FILE_ACCESS_F, h5parameters, error) !define parameters of HDF5 workflow for MPI-access
-    ! CALL h5pset_fapl_mpio_f(h5parameters, MPI_COMM_WORLD, MPI_INFO_NULL, error) ! allow MPI access
-	! CALL h5fopen_f(filename, H5F_ACC_RDWR_F, file_id, error, access_prp = h5parameters ) !Open collectivelly the file
-	! CALL h5pclose_f(h5parameters,error) ! parameters were used for MPI open, close them
-	
-
-    ! ! The code should differ now, since dataset is already created, we should be able to get filespace from it without creating it
-	! ! first, we open the dataset
-    ! ! print *, "before h5 dataset open, proc", my_rank, "iteration", HDF5write_count
-	! CALL h5dopen_f(file_id, dsetname3, dset_id, error) ! this should be enough !h5dcreate_f(file_id, dsetname3, H5T_NATIVE_REAL, filespace, dset_id, error)
-
-    ! CALL h5dget_space_f(dset_id,filespace,error) ! filespace shoulb be obtained now from the file ! CALL h5screate_simple_f(field_dimensions, dims, filespace, error) ! Create the data space for the  dataset. ! maybe problem with the exension??? !!!!!!
-
-    ! ! the only change is the offset, but linked with the cummulative HDF5write_count
-	! offset = (/int(HDF5write_count-1,HSIZE_T),int(my_rank,HSIZE_T),int(0,HSIZE_T)/) ! offset = (/0,dim_r_start(num_proc),0/) ! c-indexing from 0
-	! ccount = (/int(1,HSIZE_T), int(1,HSIZE_T) , int(2,HSIZE_T)/) ! ccount = (/1, dim_r_end(num_proc) - dim_r_start(num_proc) , dim_t/)
-
-	! ! we select the hyperslab
-	! CALL h5sselect_hyperslab_f(filespace, H5S_SELECT_SET_F, offset, ccount, error) ! we should have access to its part of the dataset for each worker
-
-    ! ! print *, "before h5 writing, proc", my_rank, "iteration", HDF5write_count
-
-	! !!!Finally, write data	
-	! CALL h5pcreate_f(H5P_DATASET_XFER_F, h5parameters, error) ! Create access parametwers
-	! CALL h5pset_dxpl_mpio_f(h5parameters, H5FD_MPIO_COLLECTIVE_F, error) ! collective writting
-	! dimsfi = (/Nz_points,128,2/) ! dimsfi = (/1,dim_r,dim_t/) ! according to the tuto, it seems that whole dataset dimension is required
-	! CALL h5dwrite_f(dset_id , H5T_NATIVE_REAL, Fields, dimsfi, error,file_space_id=filespace,mem_space_id=memspace,xfer_prp = h5parameters)
-
-    ! ! closing
-	! CALL h5dclose_f(dset_id,error)
-	! CALL h5sclose_f(filespace,error)
-	! CALL h5sclose_f(memspace,error)
-	! CALL h5dclose_f(dset_id,error)
-	! CALL h5pclose_f(h5parameters,error)
-	! CALL h5fclose_f(file_id,error)	
-	! CALL h5close_f(error) ! close the HDF5 workspace
-
-
-	! !!!!!!!!!!!!! PARAL WRITE
-
-	ENDIF
-	HDF5write_count = HDF5write_count + 1 !increase counter in all cases
-	deallocate(Fields)
-
-	IF (my_rank.EQ.0) THEN
-	  print *, "finished", my_rank, "iteration+1", HDF5write_count
-	ENDIF
-
-!       OPEN(unit_field,FILE=iz//'_FIELD_'//ip//'.DAT',STATUS='UNKNOWN',FORM='UNFORMATTED')
-!       WRITE(unit_field) dim_t,dim_r,num_proc
-!       WRITE(unit_field) REAL(delta_t,4),REAL(delta_r,4),REAL(tlo,4)
-!       DO j=dim_r_start(num_proc),dim_r_end(num_proc)
-!          WRITE(unit_field) CMPLX(e(1:dim_t,j),KIND=4)
-!       ENDDO
-!       CLOSE(unit_field)
-
-
-    RETURN
-  END SUBROUTINE  HDF5_out
-
-!  SUBROUTINE  field_out
-!    USE ppt
-!    IMPLICIT  NONE
-
-!    INTEGER(4) j,k,i_x,i_z
-!    CHARACTER*10  iz,id,filename
-
-!    WRITE(iz,920) z
-!    DO  k=1,10
-!       IF (iz(k:k).EQ.' ') iz(k:k)='0'
-!       IF (iz(k:k).EQ.'.') iz(k:k)='_'
-!    ENDDO
-!    IF (my_rank.EQ.0) THEN
-!       filename='non'
-!       OPEN(unit_logfile,FILE='PROP_RAD.LOG',STATUS='UNKNOWN')
-!       DO
-!          READ(unit_logfile,*,END=999) filename
-!       ENDDO
-!999    CONTINUE
-!       CLOSE(unit_logfile)
-!    ENDIF
-!    CALL MPI_BCAST(filename,10,MPI_CHARACTER,0,MPI_COMM_WORLD,ierr)
-!    IF (filename.NE.iz) THEN
-!       IF(my_rank.EQ.0) THEN
-!          OPEN(unit_logfile,FILE='PROP_RAD.LOG',STATUS='UNKNOWN',POSITION='APPEND')
-!          WRITE(unit_logfile,*) iz    
-!          CLOSE(unit_logfile)
-!       ENDIF
-!       OPEN(unit_field,FILE=iz//'_'//ip//'.DAT',STATUS='UNKNOWN',FORM='UNFORMATTED')
-!       id='num_proc'
-!       WRITE(unit_field) id,num_proc
-!       id='dim_t'
-!       WRITE(unit_field) id,dim_t
-!       id='dim_r'
-!       WRITE(unit_field) id,dim_r
-!       id='rek0'
-!       WRITE(unit_field) id,rek0
-!       id='rekp'
-!       WRITE(unit_field) id,rekp
-!       id='c3'
-!       WRITE(unit_field) id,c3
-!       id='c5'
-!       WRITE(unit_field) id,c5
-!       id='gamma1'
-!       WRITE(unit_field) id,gamma1
-!       id='gamma2'
-!       WRITE(unit_field) id,gamma2
-!       id='muk'
-!       WRITE(unit_field) id,muk
-!       id='betainv2KK'
-!       WRITE(unit_field) id,beta_inv_2KK
-!       id='KK'
-!       WRITE(unit_field) id,KK
-!       id='rho0'
-!       WRITE(unit_field) id,rho0
-!       id='nu'
-!       WRITE(unit_field) id,nu
-!       id='alpha'
-!       WRITE(unit_field) id,alpha
-!       id='alphaquad'
-!       WRITE(unit_field) id,alphaquad
-!       id='rhoat_inv'
-!       WRITE(unit_field) id,rhoat_inv
-!       id='xdk'
-!       WRITE(unit_field) id,xdk
-!       id='tdk'
-!       WRITE(unit_field) id,tdk
-!       id='raman'
-!       WRITE(unit_field) id,raman
-!       id='omega'
-!       WRITE(unit_field) id,omega
-!       id='komega'
-!       WRITE(unit_field) id,komega(1:dim_t)
-!       id='NN'
-!       WRITE(unit_field) id,NN
-!       id='eta1'
-!       WRITE(unit_field) id,eta1
-!       id='eta2'
-!       WRITE(unit_field) id,eta2
-!       id='lt'
-!       WRITE(unit_field) id,lt
-!       id='lr'
-!       WRITE(unit_field) id,lr
-!       id='proplength'
-!       WRITE(unit_field) id,proplength
-!       id='outlength'
-!       WRITE(unit_field) id,outlength
-!       id='delta_z'
-!       WRITE(unit_field) id,delta_z
-!       id='z'
-!       WRITE(unit_field) id,z
-!       id='z_out'
-!       WRITE(unit_field) id,z_out
-!       id='rfil'
-!       WRITE(unit_field) id,rfil
-!       id='switch_rho'
-!       WRITE(unit_field) id,switch_rho
-!       id='switchKerr'
-!       WRITE(unit_field) id,switch_dKerr
-!       id='switch_T'
-!       WRITE(unit_field) id,switch_T
-!       id='absorb'
-!       WRITE(unit_field) id,absorb
-!       id='increase'
-!       WRITE(unit_field) id,increase
-!       id='decrease'
-!       WRITE(unit_field) id,decrease
-!       id='rhodist'
-!       WRITE(unit_field) id,rhodist
-!       id='timelimit'
-!       WRITE(unit_field) id,timelimit
-!       id='photenergy'
-!       WRITE(unit_field) id,photon_energy
-!       id='pulsedurat'
-!       WRITE(unit_field) id,pulse_duration
-!       id='critpower'
-!       WRITE(unit_field) id,critical_power
-!       id='beam_waist'
-!       WRITE(unit_field) id,beam_waist
-!       id='ionpot'
-!       WRITE(unit_field) id,ionisation_potential
-!       id='rescharge'
-!       WRITE(unit_field) id,residue_charge
-!       id='n0_indice'
-!       WRITE(unit_field) id,n0_indice
-!       id='critdens'
-!       WRITE(unit_field) id,critical_density
-!       id='atomdens'
-!       WRITE(unit_field) id,atomic_density
-!       id='reducmass'
-!       WRITE(unit_field) id,reduced_mass
-!       id='angmom'
-!       WRITE(unit_field) id,angular_momentum
-!       id='KKp'
-!       WRITE(unit_field) id,KKp
-!       id='beta_inv_2KKp'
-!       WRITE(unit_field) id,beta_inv_2KKp
-!       id='mukp'
-!       WRITE(unit_field) id,mukp
-!       id='beta_inv_2'
-!       WRITE(unit_field) id,beta_inv_2
-!       id='mu'
-!       WRITE(unit_field) id,mu
-!       id='KKpp'
-!       WRITE(unit_field) id,KKpp
-!       id='beta_inv_2KKpp'
-!       WRITE(unit_field) id,beta_inv_2KKpp
-!       id='mukpp'
-!       WRITE(unit_field) id,mukpp
-!       id='eti_ref'
-!       WRITE(unit_field) id,eti_ref
-!       id='exp_ref'
-!       WRITE(unit_field) id,exp_ref
-!       id='alpha1'
-!       WRITE(unit_field) id,alpha1
-!       id='alpha2'
-!       WRITE(unit_field) id,alpha2
-!       id='alphah'
-!       WRITE(unit_field) id,alphah
-!       id='rhosat'
-!       WRITE(unit_field) id,rhosat
-!       id='finished'
-!       WRITE(unit_field) id,finished
-!       id='omega_uppe'
-!       WRITE(unit_field) id,omega_uppe
-!       id='gamma1e'
-!       WRITE(10) id,gamma1e
-!       id='nuO2'
-!       WRITE(10) id,nuO2
-!       id='nuN2'
-!       WRITE(10) id,nuN2
-!       id='T_init_eV_phys'
-!       WRITE(10) id,T_init_eV_phys
-!       id='nukB'
-!       WRITE(10) id,nukB
-!       id='nucp'
-!       WRITE(10) id,nucp
-!       id='nucO2'
-!       WRITE(10) id,nucO2
-!       id='nucN2'
-!       WRITE(10) id,nucN2
-!       id='rhoat_N2_inv'
-!       WRITE(10) id,rhoat_N2_inv
-!       id='ionpotN2'
-!       WRITE(10) id,ionisation_potential_N2
-!       id='rescharge_N2'
-!       WRITE(10) id,residue_charge_N2
-!       id='atomdens_N2'
-!       WRITE(10) id,atomic_density_N2
-!       id='angmom_N2'
-!       WRITE(10) id,angular_momentum_N2
-!       id='startfield'
-!       WRITE(unit_field) id
-!       DO j=dim_r_start(num_proc),dim_r_end(num_proc)
-!          WRITE(unit_field) e(1:dim_t,j)
-!       ENDDO
-!       id='index'
-!       WRITE(unit_field) id
-!       WRITE(unit_field) i_x_max, i_z_max
-!       WRITE(unit_field) (xx(i_x),i_x=1,i_x_max)
-!       DO i_z = 1, i_z_max
-!          WRITE(unit_field) zz(i_z)
-!          WRITE(unit_field) (Indice_norm(i_x,i_z),i_x=1,i_x_max)
-!       ENDDO
-!       CLOSE(unit_field)
-!       CALL MPI_Barrier(MPI_COMM_WORLD,ierr)
-!    ENDIF
-
-!920 FORMAT (F10.6)
-
-!    RETURN
-!  END SUBROUTINE field_out
-
-END MODULE outputHDF5
-
-
-
-
-!!!!! 2d attributes version
-    ! dumh51D = (/int(2,HSIZE_T)/) ! attribute dimension
-    ! CALL h5screate_simple_f(1, dumh51D, aspace_id, error) ! Create scalar data space for the attribute. 1 stands for the rank
-    ! CALL h5tcopy_f(H5T_NATIVE_CHARACTER, atype_id, error) ! Create datatype for the attribute.
-    ! CALL h5tset_size_f(atype_id, int(80,HSIZE_T), error) ! 80 is attribute length	
-    ! CALL h5acreate_f(dset_id, aname, atype_id, aspace_id, attr_id, error) ! Create dataset attribute.
-    ! dumh51D = (/int(2,HSIZE_T)/) ! for specification and its values
-	! attr_data(1) = "units"
-    ! attr_data(2) = "[SI]"    
-    ! CALL h5awrite_f(attr_id, atype_id, attr_data, data_dims, error)
-    ! CALL h5aclose_f(attr_id, error)  ! Close the attribute.
-    ! CALL h5tclose_f(atype_id, error)  ! Close the attribute datatype.
-    ! CALL h5sclose_f(aspace_id, error) ! Terminate access to the attributes data space.
