@@ -68,7 +68,7 @@ CONTAINS
      !  info = MPI_INFO_NULL
 
 
-	 print *, "HDF5 output accessed, proc", my_rank
+	!  print *, "HDF5 output accessed, proc", my_rank
 
 	 IF (my_rank.EQ.0) THEN
 	   print *, "writting interation: ", HDF5write_count
@@ -89,7 +89,7 @@ CONTAINS
 	ENDDO
 	ENDDO
 
-	print *, "fields allocated, proc", my_rank
+	! print *, "fields allocated, proc", my_rank
 
 
 
@@ -179,17 +179,17 @@ CONTAINS
     ! CALL MPI_Barrier(MPI_COMM_WORLD,ierr) !! try barrier here
 	!Initialize HDF5
 
-	print *, "before h5 init, proc", my_rank
+	! print *, "before h5 init, proc", my_rank
 	CALL h5open_f(error) 
     
 	!define parameters of HDF5 workflow for MPI-access
-	print *, "before h5 param create, proc", my_rank  
+	! print *, "before h5 param create, proc", my_rank  
 	CALL h5pcreate_f(H5P_FILE_ACCESS_F, h5parameters, error) ! create access parameters
-	print *, "before h5 param set, proc", my_rank
+	! print *, "before h5 param set, proc", my_rank
     CALL h5pset_fapl_mpio_f(h5parameters, MPI_COMM_WORLD, MPI_INFO_NULL, error) ! allow MPI access (should it be here?)
 
 	!Open collectivelly the file
-	print *, "before h5 filecreation, proc", my_rank
+	! print *, "before h5 filecreation, proc", my_rank
 	! CALL h5fcreate_f(filename2, H5F_ACC_TRUNC_F, file_id, error, access_prp = h5parameters) ! we again first test creating the file collectivelly
 	! CALL h5fcreate_f(filename2, H5F_ACC_TRUNC_F, file_id, error)  ! single - version
 	CALL h5fopen_f(filename, H5F_ACC_RDWR_F, file_id, error, access_prp = h5parameters ) ! open file collectivelly
@@ -203,7 +203,7 @@ CONTAINS
 
 	! Extendible dataset seems to be a serious issue. We stick to pre-computing dataset size for now	
 	dims = (/int(Nz_points,HSIZE_T),int(128,HSIZE_T), int(2,HSIZE_T)/) !dims = (/int(1,HSIZE_T),int(dim_r,HSIZE_T), int(dim_t,HSIZE_T)/) ! only line per proc. now, code runned on 128
-	print *, "before h5 dataspace creation, proc", my_rank	
+	! print *, "before h5 dataspace creation, proc", my_rank	
 	CALL h5screate_simple_f(field_dimensions, dims, filespace, error) ! Create the data space for the  dataset. ! maybe problem with the exension??? !!!!!!
 	
 
@@ -264,7 +264,7 @@ CONTAINS
 	! dims = (/1, 1, dim_t/) !dims = (/1, dim_r_end(num_proc)-dim_r_start(num_proc), dim_t/) ! dimension of my field
 	! CALL h5screate_simple_f(field_dimensions, dims, dataspace, error, maxdims) ! dataset dimensions in memory (this worker)
 
-    print *, "before h5 dataset creation, proc", my_rank
+    ! print *, "before h5 dataset creation, proc", my_rank
 	! we create the dataset collectivelly
 	CALL h5dcreate_f(file_id, dsetname3, H5T_NATIVE_REAL, filespace, dset_id, error)
 !CINES correction	CALL h5sclose(filespace,error)
@@ -287,7 +287,7 @@ CONTAINS
 	CALL h5screate_simple_f(field_dimensions, ccount, memspace, error) ! dataset dimensions in memory (this worker)
 	
 	! CALL h5dget_space_f(dset_id,filespace,error)
-	print *, "before h5 hyperslab, proc", my_rank
+	! print *, "before h5 hyperslab, proc", my_rank
 	CALL h5sselect_hyperslab_f(filespace, H5S_SELECT_SET_F, offset, ccount, error) ! we should have access to its part of the dataset for each worker
 	!CALL h5sselect_hyperslab_f(filespace, H5S_SELECT_SET_F, offset, ccount, error, stride, cblock) ! these extra parameters should be possible in a genralised case
 
@@ -295,14 +295,14 @@ CONTAINS
 	!!!Finally, write data
 	! Create access parametwers
 	CALL h5pcreate_f(H5P_DATASET_XFER_F, h5parameters, error)
-	print *, "before h5 dxpl mpio, proc", my_rank
+	! print *, "before h5 dxpl mpio, proc", my_rank
 	CALL h5pset_dxpl_mpio_f(h5parameters, H5FD_MPIO_COLLECTIVE_F, error) ! collective writting
 
 !	CALL h5pset_chunk_f(crp_list, field_dimensions, dimsc, error) ???????????? Do we need chunk it?
 
 	! Write the data collectivelly (we may try also to do it independently.... I think it could avoid some broadcast?)
 	dimsfi = (/Nz_points,128,2/) ! dimsfi = (/1,dim_r,dim_t/) ! according to the tuto, it seems that whole dataset dimension is required
-	print *, "before h5 parallel write, proc", my_rank
+	! print *, "before h5 parallel write, proc", my_rank
 	CALL h5dwrite_f(dset_id , H5T_NATIVE_REAL, Fields, dimsfi, error,file_space_id=filespace,mem_space_id=memspace,xfer_prp = h5parameters)
 	! CALL h5dwrite_f(dset_id , H5T_NATIVE_REAL, Fields, dimsfi, error,file_space_id=filespace,mem_space_id=memspace,xfer_prp = h5parameters)! general params, data are written !!!( probably variable length)
 
@@ -315,7 +315,7 @@ CONTAINS
 	CALL h5fclose_f(file_id,error)	
 	CALL h5close_f(error) ! close the HDF5 workspace
 
-	print *, "after h5 fileclose, proc", my_rank
+	! print *, "after h5 fileclose, proc", my_rank
    
 !     !!! now, just append data 
 
@@ -370,7 +370,7 @@ CONTAINS
 
     ! The code should differ now, since dataset is already created, we should be able to get filespace from it without creating it
 	! first, we open the dataset
-    print *, "before h5 dataset open, proc", my_rank, "iteration", HDF5write_count
+    ! print *, "before h5 dataset open, proc", my_rank, "iteration", HDF5write_count
 	CALL h5dopen_f(file_id, dsetname3, dset_id, error) ! this should be enough !h5dcreate_f(file_id, dsetname3, H5T_NATIVE_REAL, filespace, dset_id, error)
 
     CALL h5dget_space_f(dset_id,filespace,error) ! filespace shoulb be obtained now from the file ! CALL h5screate_simple_f(field_dimensions, dims, filespace, error) ! Create the data space for the  dataset. ! maybe problem with the exension??? !!!!!!
@@ -382,7 +382,7 @@ CONTAINS
 	! we select the hyperslab
 	CALL h5sselect_hyperslab_f(filespace, H5S_SELECT_SET_F, offset, ccount, error) ! we should have access to its part of the dataset for each worker
 
-    print *, "before h5 writing, proc", my_rank, "iteration", HDF5write_count
+    ! print *, "before h5 writing, proc", my_rank, "iteration", HDF5write_count
 
 	!!!Finally, write data	
 	CALL h5pcreate_f(H5P_DATASET_XFER_F, h5parameters, error) ! Create access parametwers
@@ -402,7 +402,10 @@ CONTAINS
 	ENDIF
 	HDF5write_count = HDF5write_count + 1 !increase counter in all cases
 	deallocate(Fields)
-	print *, "finished", my_rank, "iteration+1", HDF5write_count
+
+	IF (my_rank.EQ.0) THEN
+	  print *, "finished", my_rank, "iteration+1", HDF5write_count
+	ENDIF
 
 !       OPEN(unit_field,FILE=iz//'_FIELD_'//ip//'.DAT',STATUS='UNKNOWN',FORM='UNFORMATTED')
 !       WRITE(unit_field) dim_t,dim_r,num_proc
