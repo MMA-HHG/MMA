@@ -457,7 +457,7 @@ CONTAINS
 integer FUNCTION filelength(filename); 
 	character(*), intent(in) :: filename;
 
-	integer :: IO, k, N_load;
+	integer :: IO, N_load;
 	
 	open(UNIT=1,FILE=filename,FORM="FORMATTED",action='read');
 	N_load = 0; IO = 0;
@@ -544,7 +544,7 @@ CONTAINS
 	    open(UNIT=3,FILE='rates_atomic.dat',FORM="FORMATTED",action='read');    
 	    open(UNIT=4,FILE='reference_table.dat',FORM="FORMATTED",action='write');
 
-	    DO i = 1, DIMENSION_CPR
+	    DO i = 2, DIMENSION_CPR
 	       read(unit=3,fmt=*) intensity, ionisation_rate !the organisation:  ||field omplitude imag. part of eigenerg. || all in atomic units
 	       intensity = intensity * intensity * field_intensity_au !rescale intensity intensity from atomic units to W/cm^2 (not SI)
 	       
