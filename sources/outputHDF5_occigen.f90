@@ -391,7 +391,7 @@ CONTAINS
 	dumh51D = (/int(1,HSIZE_T)/) ! the dimension of data written
 	CALL h5dwrite_f(dset_id, H5T_NATIVE_REAL, dumr4, dumh51D, error, memspace, dataspace) ! wrtiting the data
 
-	CALL h5sclose_f(memspace error)
+	CALL h5sclose_f(memspace, error)
 	CALL h5sclose_f(dataspace, error)
     CALL h5dclose_f(dset_id, error)
     CALL h5fclose_f(file_id, error)
