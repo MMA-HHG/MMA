@@ -409,6 +409,7 @@ CONTAINS
     ! electric field: REAL(efield_factor*e(:,k)*efield_osc,4) : one temporal profile in GV/m
     lambdanm = 6.634D-34*3.D17/photon_energy/4.359d-18 ! center wavelength in nm
     four_z_Rayleigh = 4.D0*3.1415D0*n0_indice/(lambdanm*1.D-9)*(w0cm/100.D0)**2 ! 4 times the rayleigh length in m (normalization factor for z)
+    Nz_points = CEILING(proplength/outlenght)+1 ! expected number of hdf5 output along z (with safety)
     
     RETURN
   END SUBROUTINE initialize

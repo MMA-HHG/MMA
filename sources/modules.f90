@@ -43,6 +43,7 @@ MODULE mpi_stuff
 END MODULE mpi_Stuff
 
 MODULE normalization
+  INTEGER(4) :: Nz_points ! expected number of hdf5 output along z
   REAL(8) :: tpfs,w0cm ! pulse duration in fs and beam width in cm (normalization factor for time and transverse length)
   REAL(8) :: lambdanm ! center wavelength in nm
   REAL(8) :: four_z_Rayleigh ! 4 times the rayleigh length in m (normalization factor for z)
