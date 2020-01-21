@@ -51,6 +51,10 @@ CONTAINS
 
 
      ! ATTRIBUTES OF HDF5 DATASETS
+	 CHARACTER(LEN=5), PARAMETER :: aname = "units"   ! Attribute name
+     INTEGER(HID_T) :: attr_id       ! Attribute identifier
+     INTEGER(HID_T) :: aspace_id     ! Attribute Dataspace identifier
+     INTEGER(HID_T) :: atype_id      ! Attribute Dataspace identifier
 	 INTEGER(HSIZE_T), DIMENSION(1) :: adims = (/2/) ! Attribute dimension
      INTEGER     ::   arank = 1                      ! Attribure rank
      INTEGER(SIZE_T) :: attrlen    ! Length of the attribute string
@@ -136,8 +140,7 @@ CONTAINS
     dumh51D = (/int(2,HSIZE_T)/) ! attribute dimension
     CALL h5screate_simple_f(1, dumh51D, aspace_id, error) ! Create scalar data space for the attribute. 1 stands for the rank
     CALL h5tcopy_f(H5T_NATIVE_CHARACTER, atype_id, error) ! Create datatype for the attribute.
-	dumh51D = (/int(80,HSIZE_T)/) ! attribute length
-    CALL h5tset_size_f(atype_id, dumh51D, error)	
+    CALL h5tset_size_f(atype_id, int(80,HSIZE_T), error) ! 80 is attribute length	
     CALL h5acreate_f(dset_id, aname, atype_id, aspace_id, attr_id, error) ! Create dataset attribute.
     dumh51D = (/int(2,HSIZE_T)/) ! for specification and its values
 	attr_data(1) = "units"
