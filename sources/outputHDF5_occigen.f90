@@ -165,6 +165,8 @@ CONTAINS
 
 	dumh51D = (/int(2,HSIZE_T)/)
 	CALL h5dset_extent_f(dset_id, dumh51D, error)
+	CALL h5dget_space_f(dset_id, dataspace, error)
+	
 	dumh51D = (/int(1,HSIZE_T)/)
 	CALL h5screate_simple_f (1, dumh51D, memspace, error)
 
