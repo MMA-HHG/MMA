@@ -339,7 +339,8 @@ CONTAINS
 	! CALL h5pset_chunk_f(h5parameters, 1, dumh51D, error)
 	! CALL h5dcreate_f(file_id, dsetname4, H5T_NATIVE_REAL, dataspace, dset_id, error, h5parameters)
 	CALL h5dopen_f(file_id, dsetname4, dset_id, error)   !Open the  dataset
-	CALL h5dset_extent_f(dset_id, (/int(HDF5write_count,HSIZE_T)/), error)
+	dumh51D = (/int(HDF5write_count,HSIZE_T)/)
+	CALL h5dset_extent_f(dset_id, dumh51D, error)
 	dumh51D = (/int(1,HSIZE_T)/)
 	CALL h5screate_simple_f (1, dumh51D, memspace, error)
 	CALL h5dget_space_f(dset_id, dataspace, error)
