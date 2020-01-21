@@ -328,38 +328,38 @@ CONTAINS
 
     print *, "HDF5 z-extension accessed"
 
-	!!! extendible dataset for single-writter 
-	CALL h5open_f(error)
-	CALL h5fopen_f (filename, H5F_ACC_RDWR_F, file_id, error) ! Open an existing file. 
+	! !!! extendible dataset for single-writter 
+	! CALL h5open_f(error)
+	! CALL h5fopen_f (filename, H5F_ACC_RDWR_F, file_id, error) ! Open an existing file. 
 
-	! maxdims = (/H5S_UNLIMITED_F/) !Create the data space with unlimited dimensions.
-	! CALL h5screate_simple_f(RANK, dims, dataspace, error, maxdims)
-	! CALL h5pcreate_f(H5P_DATASET_CREATE_F, h5parameters, error)   !Modify dataset creation properties, i.e. enable chunking
+	! ! maxdims = (/H5S_UNLIMITED_F/) !Create the data space with unlimited dimensions.
+	! ! CALL h5screate_simple_f(RANK, dims, dataspace, error, maxdims)
+	! ! CALL h5pcreate_f(H5P_DATASET_CREATE_F, h5parameters, error)   !Modify dataset creation properties, i.e. enable chunking
+	! ! dumh51D = (/int(1,HSIZE_T)/)
+	! ! CALL h5pset_chunk_f(h5parameters, 1, dumh51D, error)
+	! ! CALL h5dcreate_f(file_id, dsetname4, H5T_NATIVE_REAL, dataspace, dset_id, error, h5parameters)
+
+	! CALL h5dopen_f(file_id, dsetname4, dset_id, error)   !Open the  dataset
+	! dumh51D = (/int(HDF5write_count,HSIZE_T)/)
+	! CALL h5dset_extent_f(dset_id, dumh51D, error)
 	! dumh51D = (/int(1,HSIZE_T)/)
-	! CALL h5pset_chunk_f(h5parameters, 1, dumh51D, error)
-	! CALL h5dcreate_f(file_id, dsetname4, H5T_NATIVE_REAL, dataspace, dset_id, error, h5parameters)
+	! CALL h5screate_simple_f (1, dumh51D, memspace, error)
+	! CALL h5dget_space_f(dset_id, dataspace, error)
+	! CALL h5sselect_hyperslab_f(dataspace, H5S_SELECT_SET_F, (/int(HDF5write_count-1,HSIZE_T)/), (/int(1,HSIZE_T)/), error)
+	! CALL h5dwrite_f(dset_id, H5T_NATIVE_REAL, REAL(HDF5write_count,4), data_dims, error, memspace, dataspace)
 
-	CALL h5dopen_f(file_id, dsetname4, dset_id, error)   !Open the  dataset
-	dumh51D = (/int(HDF5write_count,HSIZE_T)/)
-	CALL h5dset_extent_f(dset_id, dumh51D, error)
-	dumh51D = (/int(1,HSIZE_T)/)
-	CALL h5screate_simple_f (1, dumh51D, memspace, error)
-	CALL h5dget_space_f(dset_id, dataspace, error)
-	CALL h5sselect_hyperslab_f(dataspace, H5S_SELECT_SET_F, (/int(HDF5write_count-1,HSIZE_T)/), (/int(1,HSIZE_T)/), error)
-	CALL h5dwrite_f(dset_id, H5T_NATIVE_REAL, REAL(HDF5write_count,4), data_dims, error, memspace, dataspace)
-
-	CALL h5sclose_f(memspace, error)
-	CALL h5sclose_f(dataspace, error)
-    CALL h5dclose_f(dset_id, error)
-    CALL h5fclose_f(file_id, error)
-	CALL h5close_f(error) ! Close FORTRAN interface.
+	! CALL h5sclose_f(memspace, error)
+	! CALL h5sclose_f(dataspace, error)
+    ! CALL h5dclose_f(dset_id, error)
+    ! CALL h5fclose_f(file_id, error)
+	! CALL h5close_f(error) ! Close FORTRAN interface.
 
 
-	! CALL h5dget_space_f(dset_id, dataspace, error)  !Get dataset's dataspace handle.
+	! ! CALL h5dget_space_f(dset_id, dataspace, error)  !Get dataset's dataspace handle.
 
-	! !CALL h5sget_simple_extent_ndims_f(dataspace, rankr, error)   !Get dataspace's rank. ! that's in the tuto, we already know it's 1
+	! ! !CALL h5sget_simple_extent_ndims_f(dataspace, rankr, error)   !Get dataspace's rank. ! that's in the tuto, we already know it's 1
     
-    ! CALL h5sget_simple_extent_dims_f(dataspace, dumh51D, dumh51D2, error)   !Get dataspace's dimensions.
+    ! ! CALL h5sget_simple_extent_dims_f(dataspace, dumh51D, dumh51D2, error)   !Get dataspace's dimensions.
 
 
   ENDIF ! single-write end
