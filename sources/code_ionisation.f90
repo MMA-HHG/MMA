@@ -556,7 +556,11 @@ CONTAINS
 	!       ionisation_rate = ionisation_rate_PPT(intensity)
 	       CPR_TABLE(i, 1) = intensity * intensity_factor 		! Normalised Intensity
 	       CPR_TABLE(i, 2) = ionisation_rate * rate_factor                   		! Gamma
-	       CPR_TABLE(i, 3) = MPA_factor * ( ionisation_rate  * rate_factor/ intensity )	! Normalised MPA
+	       IF ionisation_rate.EQ.0.D0 THEN
+	          CPR_TABLE(i, 3) = 0.D0
+           ELSE
+	          CPR_TABLE(i, 3) = MPA_factor * ( ionisation_rate  * rate_factor/ intensity )	! Normalised MPA
+           ENDIF
 	    ENDDO
 
 	    CPR_TABLE(1, 1) = 0.d0   ! first row in input stores the result of CPR for zero field, not meaningful + division                
