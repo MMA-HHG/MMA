@@ -556,7 +556,7 @@ CONTAINS
 	!       ionisation_rate = ionisation_rate_PPT(intensity)
 	       CPR_TABLE(i, 1) = intensity * intensity_factor 		! Normalised Intensity
 	       CPR_TABLE(i, 2) = ionisation_rate * rate_factor                   		! Gamma
-	       IF ionisation_rate.EQ.0.D0 THEN
+	       IF (ionisation_rate.EQ.0.D0) THEN
 	          CPR_TABLE(i, 3) = 0.D0
            ELSE
 	          CPR_TABLE(i, 3) = MPA_factor * ( ionisation_rate  * rate_factor/ intensity )	! Normalised MPA
