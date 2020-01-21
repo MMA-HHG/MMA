@@ -401,14 +401,14 @@ CONTAINS
     tpfs = pulse_duration ! pulse duration in fs (tpfs in octace files)
     w0cm = beam_waist ! beam width in cm (w0cm in octave files)
     ! n0_indice : refractive index at center frequency (n0 in octave files)
-    efield_factor = SQRT(critical_power*1.D9*3.D8*4.D0*3.1415D-7/(4.D0*3.1415D0*beam_waist**2*1.D-4*2.D0*n0_indice))*2.D0*1.D-9) ! normalization factor electric field GV/m
+    efield_factor = SQRT(critical_power*1.D9*3.D8*4.D0*3.1415D-7/(4.D0*3.1415D0*beam_waist**2*1.D-4*2.D0*n0_indice))*2.D0*1.D-9 ! normalization factor electric field GV/m
     ALLOCATE(efield_osc(dim_t))
     DO j=1,dim_t
-       efield_osc(j) = exp(CMPLX(0.D0,-omega_uppe(tlo+REAL(j,8)*delta_t),8)) ! fast oscillating term exp(-i*omegauppe*t)
+       efield_osc(j) = exp(CMPLX(0.D0,-omega_uppe*(tlo+REAL(j,8)*delta_t),8)) ! fast oscillating term exp(-i*omegauppe*t)
     ENDDO
     ! electric field: REAL(efield_factor*e(:,k)*efield_osc,4) : one temporal profile in GV/m
     lambdanm = 6.634D-34*3.D17/photon_energy/4.359d-18 ! center wavelength in nm
-    four_z_Rayleigh = 4.D0*3.1415.D0*n0_indice/(lambdanm*1D-9)*(w0cm/100.D0)**2 ! 4 times the rayleigh length in m (normalization factor for z)
+    four_z_Rayleigh = 4.D0*3.1415D0*n0_indice/(lambdanm*1.D-9)*(w0cm/100.D0)**2 ! 4 times the rayleigh length in m (normalization factor for z)
     
     RETURN
   END SUBROUTINE initialize

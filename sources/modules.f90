@@ -47,7 +47,7 @@ MODULE normalization
   REAL(8) :: lambdanm ! center wavelength in nm
   REAL(8) :: four_z_Rayleigh ! 4 times the rayleigh length in m (normalization factor for z)
   REAL(8) :: efield_factor ! normalization factor electric field GV/m
-  COMPLEX(8), ALLOCATABLE  :: efield_osc ! fast oscillating term exp(-i*omegauppe*t)
+  COMPLEX(8), ALLOCATABLE  :: efield_osc(:) ! fast oscillating term exp(-i*omegauppe*t)
 END MODULE normalization
 
 MODULE run_status
