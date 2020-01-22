@@ -93,15 +93,12 @@ CONTAINS
 
 	! AFTER discussion with Jiri Vyskocil, he pointed out the column-majorness or row-majorness could a serious performance issue (note that c and FORTAN differ, h5 is a c-lib)
 	r_offset = dim_r_start(num_proc)-1
-	DO k1=1, 1 !( dim_r_end(num_proc)-dim_r_start(num_proc) )	
-	DO k2=1, 2 !dim_t
-		! Fields(1,k1,k2) = REAL(my_rank+HDF5write_count+k1+k2,4) !REAL( (efield_factor*efield_osc(k2)*e(k2,r_offset+k1)),4);
-		Fields(1,k1,k2) = REAL(my_rank-1+HDF5write_count,4) !REAL(e(k2,r_offset+k1));  ! SINGEL PRECISION, corresponding H5T_NATIVE_REAL 
-		! Fields(1,k1,k2) = REAL(k2,8) !REAL(e(k2,r_offset+k1)); ! SINGEL PRECISION, corresponding H5T_NATIVE_DOUBLE
+	DO k1=1, ( dim_r_end(num_proc)-dim_r_start(num_proc) )	
+	DO k2=1, dim_t
+		REAL( (efield_factor*efield_osc(k2)*e(k2,r_offset+k1)) , 4 ) ! SINGLE PRECISION, corresponding H5T_NATIVE_REAL (REAL(.,8) corresponds to H5T_NATIVE_DOUBLE)
 	ENDDO
 	ENDDO
 
-	! print *, "fields allocated, proc", my_rank
 
 
 
@@ -170,18 +167,18 @@ CONTAINS
 	CALL h5pclose_f(h5parameters,error) ! close the parameters
 
 	! Extendible dataset seems to be a serious issue. We stick to pre-computing dataset size for now (see the piece ofthe code at the end of this file for details)
-	dims = (/int(Nz_points,HSIZE_T),int(128,HSIZE_T), int(2,HSIZE_T)/) !dims = (/int(1,HSIZE_T),int(dim_r,HSIZE_T), int(dim_t,HSIZE_T)/) ! only line per proc. now, code runned on 128
+	dims = (/int(Nz_points,HSIZE_T),int(dim_r,HSIZE_T), int(dim_t,HSIZE_T)/) ! full prealocated dimension
 	CALL h5screate_simple_f(field_dimensions, dims, filespace, error) ! Create the dataspace for the  dataset	
 	CALL h5dcreate_f(file_id, dsetname3, H5T_NATIVE_REAL, filespace, dset_id, error)  ! create the dataset collectivelly
 
-	offset = (/int(HDF5write_count-1,HSIZE_T),int(my_rank,HSIZE_T),int(0,HSIZE_T)/) ! offset = (/0,dim_r_start(num_proc),0/) ! set offset (c-indexing from 0)
-	ccount = (/int(1,HSIZE_T), int(1,HSIZE_T) , int(2,HSIZE_T)/) ! ccount = (/1, dim_r_end(num_proc) - dim_r_start(num_proc) , dim_t/) ! size of the chunk used by this MPI-worker
+	offset = (/int(HDF5write_count-1,HSIZE_T),dim_r_start(num_proc),0/) ! set offset (c-indexing from 0)
+	ccount = (/1, dim_r_end(num_proc) - dim_r_start(num_proc) , dim_t/) ! size of the chunk used by this MPI-worker
 	CALL h5screate_simple_f(field_dimensions, ccount, memspace, error) ! dataset dimensions in memory (this worker)
 	
 	CALL h5sselect_hyperslab_f(filespace, H5S_SELECT_SET_F, offset, ccount, error) ! hyperslab = part of the array acessed by this MPI-worker
 	CALL h5pcreate_f(H5P_DATASET_XFER_F, h5parameters, error) ! Create access parametwers for writing
 	CALL h5pset_dxpl_mpio_f(h5parameters, H5FD_MPIO_COLLECTIVE_F, error) ! specify the collective writting
-	dimsfi = (/Nz_points,128,2/) ! dimsfi = (/1,dim_r,dim_t/) ! according to the tuto, it seems that whole dataset dimension is required
+	dimsfi = (/int(Nz_points,HSIZE_T),int(dim_r,HSIZE_T), int(dim_t,HSIZE_T)/) ! according to the tuto, it seems that whole dataset dimension is required
 	CALL h5dwrite_f(dset_id , H5T_NATIVE_REAL, Fields, dimsfi, error,file_space_id=filespace,mem_space_id=memspace,xfer_prp = h5parameters) ! Write the data collectivelly (we may try also to do it independently.... I think it could avoid some broadcast?)
 
 	!close the files etc.
@@ -250,7 +247,7 @@ CONTAINS
 	!!!Finally, write data	
 	CALL h5pcreate_f(H5P_DATASET_XFER_F, h5parameters, error) ! Create access parametwers
 	CALL h5pset_dxpl_mpio_f(h5parameters, H5FD_MPIO_COLLECTIVE_F, error) ! collective writting
-	dimsfi = (/Nz_points,128,2/) ! dimsfi = (/1,dim_r,dim_t/) ! according to the tuto, it seems that whole dataset dimension is required
+	dimsfi = (/int(Nz_points,HSIZE_T),int(dim_r,HSIZE_T), int(dim_t,HSIZE_T)/) ! dimsfi = (/1,dim_r,dim_t/) ! according to the tuto, it seems that whole dataset dimension is required
 	CALL h5dwrite_f(dset_id , H5T_NATIVE_REAL, Fields, dimsfi, error,file_space_id=filespace,mem_space_id=memspace,xfer_prp = h5parameters)
 
     ! closing
