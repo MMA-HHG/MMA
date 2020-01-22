@@ -241,8 +241,8 @@ CONTAINS
     CALL h5dget_space_f(dset_id,filespace,error) ! filespace shoulb be obtained now from the file ! CALL h5screate_simple_f(field_dimensions, dims, filespace, error) ! Create the data space for the  dataset. ! maybe problem with the exension??? !!!!!!
 
     ! the only change is the offset, but linked with the cummulative HDF5write_count
-	offset = (/int(HDF5write_count-1,HSIZE_T),int(my_rank,HSIZE_T),int(0,HSIZE_T)/) ! offset = (/0,dim_r_start(num_proc),0/) ! c-indexing from 0
-	ccount = (/int(1,HSIZE_T), int(1,HSIZE_T) , int(2,HSIZE_T)/) ! ccount = (/1, dim_r_end(num_proc) - dim_r_start(num_proc) , dim_t/)
+	offset = (/int(HDF5write_count-1,HSIZE_T),dim_r_start(num_proc),0/) ! c-indexing from 0
+	ccount = (/1, dim_r_end(num_proc) - dim_r_start(num_proc) , dim_t/) ! size of the chunk used by this MPI-worker
     CALL h5screate_simple_f(field_dimensions, ccount, memspace, error) ! dataset dimensions in memory (this worker)
 	! we select the hyperslab
 	CALL h5sselect_hyperslab_f(filespace, H5S_SELECT_SET_F, offset, ccount, error) ! we should have access to its part of the dataset for each worker
