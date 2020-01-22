@@ -15,8 +15,6 @@ SUBROUTINE h5_add_units_1D(dset_id, units_value,error)
      INTEGER(HID_T) :: attr_id       ! Attribute identifier
      INTEGER(HID_T) :: aspace_id     ! Attribute Dataspace identifier
      INTEGER(HID_T) :: atype_id      ! Attribute Dataspace identifier
-     INTEGER     ::   arank = 1                      ! Attribure rank
-     INTEGER(SIZE_T) :: attrlen    ! Length of the attribute string
      CHARACTER(LEN=10), DIMENSION(1) ::  attr_data  ! Attribute data
 
 	
@@ -63,69 +61,45 @@ CONTAINS
     USE HDF5
     IMPLICIT NONE
 
-    INTEGER(4) j,k,l
-    INTEGER(4) k1,k2,k3,k4,k5
-    REAL(8) rhotemp,r,mpa
-    COMPLEX(8) help
-    CHARACTER*10 iz !,filename
+    ! General purpose variables: looping, dummy variables
+    INTEGER(4) k1,k2
 	REAL(4) dumr4
+	INTEGER(HSIZE_T), DIMENSION(1):: dumh51D, dumh51D2
 	
-
-
-
-     CHARACTER(LEN=10), PARAMETER :: filename = "results.h5"  ! File name
-     CHARACTER(LEN=23), PARAMETER :: dsetname = "micro/FieldsForTDSEreal" ! Dataset name
-
+    ! HDF5 general purpose variables
      INTEGER(HID_T) :: file_id       ! File identifier 
      INTEGER(HID_T) :: dset_id       ! Dataset identifier 
      INTEGER(HID_T) :: dataspace     ! Dataspace identifier in file 
      INTEGER(HID_T) :: filespace     ! Filespace identifier
      INTEGER(HID_T) :: memspace      ! Dataspace identifier in memory
      INTEGER(HID_T) :: h5parameters  ! Property list identifier 
-
-!     INTEGER(HSIZE_T), DIMENSION(3) :: dimsf  ! Dataset dimensions.
-!!     INTEGER, DIMENSION(7) :: dimsfi = (/5,8,0,0,0,0,0/)
-!     INTEGER(HSIZE_T), DIMENSION(3) :: dimsfi 
-     INTEGER(HSIZE_T), DIMENSION(3) :: dims,dimsfi,maxdims 
-	 INTEGER(HSIZE_T), DIMENSION(1):: dumh51D, dumh51D2
-
+     INTEGER(HSIZE_T), DIMENSION(3) :: dims,dimsfi
      INTEGER(HSIZE_T), DIMENSION(3) :: ccount  
      INTEGER(HSIZE_T), DIMENSION(3) :: offset 
      INTEGER(HSIZE_T), DIMENSION(3) :: stride
-     INTEGER(HSIZE_T), DIMENSION(3) :: cblock
+	 INTEGER :: error ! Error flags
+
+	! HDF specific variables
      INTEGER(HSIZE_T)               :: r_offset
+
+    ! code variables: the physical quantities etc.
      INTEGER :: field_dimensions ! Dataset rank & # of points in z
-
-     INTEGER :: error, error_n  ! Error flags
-     !
-     ! MPI definitions and calls.
-     !
+	 REAL(4), ALLOCATABLE :: Fields(:,:,:), rgrid(:), tgrid(:) ! the kind of this variable has to correspond with the precision stored in HDF5-file
 
 
-
-
-
-
-     ! code variables
-     REAL(4), ALLOCATABLE :: Fields(:,:,:), rgrid(:), tgrid(:) ! the kind of this variable has to correspond with the precision stored in HDF5-file
-     INTEGER :: Nz_dim_old
-
-	 INTEGER(HSIZE_T), DIMENSION(1) :: z_dims
-
-	 ! testing variables
-	 INTEGER, DIMENSION(4,6) :: dset_data, data_out ! Data buffers
-     INTEGER(HSIZE_T), DIMENSION(2) :: data_dims
-	 CHARACTER(LEN=7), PARAMETER :: filename2 = "test.h5" ! Dataset name
-	 CHARACTER(LEN=16), PARAMETER :: dsetname2 = "TestCUPRADSingle" ! Dataset name
+    ! file & dataset names
+     CHARACTER(LEN=10), PARAMETER :: filename = "results.h5"  ! File name
 	 CHARACTER(LEN=17), PARAMETER :: Fields_dset_name = "IRprop/Fields_rzt" ! Dataset name
 	 CHARACTER(LEN=12), PARAMETER :: zgrid_dset_name = "IRprop/zgrid" ! Dataset name
 	 CHARACTER(LEN=12), PARAMETER :: tgrid_dset_name = "IRprop/tgrid" ! Dataset name
 	 CHARACTER(LEN=12), PARAMETER :: rgrid_dset_name = "IRprop/rgrid" ! Dataset name
 
-	 IF (my_rank.EQ.0) THEN
+  
+    ! THE CODE
+    
+	 IF (my_rank.EQ.0) THEN ! still in development mode, keep for the instant
 	   print *, "HDF5 writting interation: ", HDF5write_count
 	 ENDIF
-
 
     
 	!!! ALLOCATING SPACE FOR GRIDS AND FIELDS
@@ -153,8 +127,6 @@ CONTAINS
 			rgrid(k1) = REAL( w0m*(REAL(k1-1,8)*delta_r) , 4)
 	    ENDDO
 	ENDIF
-
-
 
 
 
