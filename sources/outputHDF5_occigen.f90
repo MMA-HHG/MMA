@@ -187,7 +187,7 @@ IF ( HDF5write_count == 1) THEN
 	dumh51D = (/int(1,HSIZE_T)/) ! dimension of data
 	dumr4 = REAL(four_z_Rayleigh*z,4) ! the actual z-coordinate in SI units 
 	CALL h5dwrite_f(dset_id, H5T_NATIVE_REAL, dumr4, dumh51D, error)
-    CALL h5_add_units_1D(dset_id, '[SI]')
+    CALL h5_add_units_1D(dset_id, '[SI]',error)
 	CALL h5sclose_f(dataspace, error)
     CALL h5pclose_f(h5parameters, error)
     CALL h5dclose_f(dset_id, error)
@@ -198,7 +198,7 @@ IF ( HDF5write_count == 1) THEN
 	CALL h5screate_simple_f(1, dumh51D, dataspace, error) ! Create the dataspace.
 	CALL h5dcreate_f(file_id, rgrid_dset_name, H5T_NATIVE_REAL, dataspace, dset_id, error) ! create dataset
 	CALL h5dwrite_f(dset_id, H5T_NATIVE_REAL, rgrid, dumh51D, error) ! write the data
-	CALL h5_add_units_1D(dset_id, '[SI]')
+	CALL h5_add_units_1D(dset_id, '[SI]',error)
 	CALL h5sclose_f(dataspace, error)
 	CALL h5dclose_f(dset_id, error)
 
@@ -206,7 +206,7 @@ IF ( HDF5write_count == 1) THEN
 	CALL h5screate_simple_f(1, dumh51D, dataspace, error) ! Create the dataspace.
 	CALL h5dcreate_f(file_id, tgrid_dset_name, H5T_NATIVE_REAL, dataspace, dset_id, error) ! create dataset
 	CALL h5dwrite_f(dset_id, H5T_NATIVE_REAL, tgrid, dumh51D, error) ! write the data
-	CALL h5_add_units_1D(dset_id, '[SI]')
+	CALL h5_add_units_1D(dset_id, '[SI]',error)
 	CALL h5sclose_f(dataspace, error)
 	CALL h5dclose_f(dset_id, error)
 
