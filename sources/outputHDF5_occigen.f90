@@ -95,11 +95,12 @@ CONTAINS
 
 
     print *, "range for this worker in the original code is", dim_r_start(num_proc), dim_r_end(num_proc), "proc", my_rank
+	
 	! AFTER discussion with Jiri Vyskocil, he pointed out the column-majorness or row-majorness could a serious performance issue (note that c and FORTAN differ, h5 is a c-lib)
 	r_offset = dim_r_start(num_proc)-1
 	DO k1=1, ( dim_r_end(num_proc)-dim_r_start(num_proc) )	
 	DO k2=1, dim_t
-		Fields(1,k1,k2) = !REAL( REAL( (efield_factor*efield_osc(k2)*e(k2,r_offset+k1)) ) , 4 ) ! SINGLE PRECISION, corresponding H5T_NATIVE_REAL (REAL(.,8) corresponds to H5T_NATIVE_DOUBLE)
+		Fields(1,k1,k2) = REAL( REAL( (efield_factor*efield_osc(k2)*e(k2,k1)) ) , 4 ) ! SINGLE PRECISION, corresponding H5T_NATIVE_REAL (REAL(.,8) corresponds to H5T_NATIVE_DOUBLE)
 	ENDDO
 	ENDDO
 
