@@ -221,8 +221,16 @@ IF ( HDF5write_count == 1) THEN
 	CALL h5fclose_f(file_id,error)	
 	CALL h5close_f(error) ! close the HDF5 workspace
 
-
-
+    !!! attributes are probably not well handled by MPI... ( https://forum.hdfgroup.org/t/write-attributes-collectively-in-mpi-run/4902/2 ), just add them once by one worker
+    IF (my_rank.EQ.0) THEN
+    CALL h5open_f(error) 
+	CALL h5fopen_f (filename, H5F_ACC_RDWR_F, file_id, error) ! Open an existing file.
+	CALL h5dopen_f(file_id, Fields_dset_name, dset_id, error)   !Open the  dataset
+	CALL h5_add_units_1D(dset_id, '[V/m]',error) ! add units
+	CALL h5dclose_f(dset_id,error)
+	CALL h5fclose_f(file_id,error)
+	CALL h5close_f(error) ! close the HDF5 workspace
+	ENDIF
 
 ELSE !!!! APPENDING THE DATA IN NEXT ITERATIONS
 
