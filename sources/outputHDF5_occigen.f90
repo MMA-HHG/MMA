@@ -164,65 +164,25 @@ CONTAINS
 	! print *, "before h5 init, proc", my_rank
 	CALL h5open_f(error) 
     
-	!define parameters of HDF5 workflow for MPI-access
-	! print *, "before h5 param create, proc", my_rank  
-	CALL h5pcreate_f(H5P_FILE_ACCESS_F, h5parameters, error) ! create access parameters
-	! print *, "before h5 param set, proc", my_rank
-    CALL h5pset_fapl_mpio_f(h5parameters, MPI_COMM_WORLD, MPI_INFO_NULL, error) ! allow MPI access (should it be here?)
-
-	!Open collectivelly the file
-	! print *, "before h5 filecreation, proc", my_rank
-	! CALL h5fcreate_f(filename2, H5F_ACC_TRUNC_F, file_id, error, access_prp = h5parameters) ! we again first test creating the file collectivelly
-	! CALL h5fcreate_f(filename2, H5F_ACC_TRUNC_F, file_id, error)  ! single - version
-	CALL h5fopen_f(filename, H5F_ACC_RDWR_F, file_id, error, access_prp = h5parameters ) ! open file collectivelly
-
-!CINES correction:	CALL h5pclose(h5parameters) ! parameters were used for MPI open, close them
-!CINES h5pclose_f is the correct interface for fortran90
-	CALL h5pclose_f(h5parameters,error) ! parameters were used for MPI open, close them
-	
-
-
+	CALL h5pcreate_f(H5P_FILE_ACCESS_F, h5parameters, error) ! create HDF5 access parameters
+    CALL h5pset_fapl_mpio_f(h5parameters, MPI_COMM_WORLD, MPI_INFO_NULL, error) ! set parameters for MPI access
+	CALL h5fopen_f(filename, H5F_ACC_RDWR_F, file_id, error, access_prp = h5parameters ) ! Open collectivelly the file
+	CALL h5pclose_f(h5parameters,error) ! close the parameters
 
 	! Extendible dataset seems to be a serious issue. We stick to pre-computing dataset size for now (see the piece ofthe code at the end of this file for details)
 	dims = (/int(Nz_points,HSIZE_T),int(128,HSIZE_T), int(2,HSIZE_T)/) !dims = (/int(1,HSIZE_T),int(dim_r,HSIZE_T), int(dim_t,HSIZE_T)/) ! only line per proc. now, code runned on 128
-	! print *, "before h5 dataspace creation, proc", my_rank	
-	CALL h5screate_simple_f(field_dimensions, dims, filespace, error) ! Create the data space for the  dataset. ! maybe problem with the exension??? !!!!!!
-	
-
-
-
-
-    !! Code continuation
-	
+	CALL h5screate_simple_f(field_dimensions, dims, filespace, error) ! Create the dataspace for the  dataset	
 	CALL h5dcreate_f(file_id, dsetname3, H5T_NATIVE_REAL, filespace, dset_id, error)  ! create the dataset collectivelly
 
-
-	offset = (/int(HDF5write_count-1,HSIZE_T),int(my_rank,HSIZE_T),int(0,HSIZE_T)/) ! offset = (/0,dim_r_start(num_proc),0/) ! c-indexing from 0
-	ccount = (/int(1,HSIZE_T), int(1,HSIZE_T) , int(2,HSIZE_T)/) ! ccount = (/1, dim_r_end(num_proc) - dim_r_start(num_proc) , dim_t/)
-
-	! memory space allocated for each worker is here
+	offset = (/int(HDF5write_count-1,HSIZE_T),int(my_rank,HSIZE_T),int(0,HSIZE_T)/) ! offset = (/0,dim_r_start(num_proc),0/) ! set offset (c-indexing from 0)
+	ccount = (/int(1,HSIZE_T), int(1,HSIZE_T) , int(2,HSIZE_T)/) ! ccount = (/1, dim_r_end(num_proc) - dim_r_start(num_proc) , dim_t/) ! size of the chunk used by this MPI-worker
 	CALL h5screate_simple_f(field_dimensions, ccount, memspace, error) ! dataset dimensions in memory (this worker)
 	
-	! CALL h5dget_space_f(dset_id,filespace,error)
-	! print *, "before h5 hyperslab, proc", my_rank
-	CALL h5sselect_hyperslab_f(filespace, H5S_SELECT_SET_F, offset, ccount, error) ! we should have access to its part of the dataset for each worker
-	!CALL h5sselect_hyperslab_f(filespace, H5S_SELECT_SET_F, offset, ccount, error, stride, cblock) ! these extra parameters should be possible in a genralised case
-
-
-	!!!Finally, write data
-	! Create access parametwers
-	CALL h5pcreate_f(H5P_DATASET_XFER_F, h5parameters, error)
-	! print *, "before h5 dxpl mpio, proc", my_rank
-	CALL h5pset_dxpl_mpio_f(h5parameters, H5FD_MPIO_COLLECTIVE_F, error) ! collective writting
-
-!	CALL h5pset_chunk_f(crp_list, field_dimensions, dimsc, error) ???????????? Do we need chunk it?
-
-	! Write the data collectivelly (we may try also to do it independently.... I think it could avoid some broadcast?)
+	CALL h5sselect_hyperslab_f(filespace, H5S_SELECT_SET_F, offset, ccount, error) ! hyperslab = part of the array acessed by this MPI-worker
+	CALL h5pcreate_f(H5P_DATASET_XFER_F, h5parameters, error) ! Create access parametwers for writing
+	CALL h5pset_dxpl_mpio_f(h5parameters, H5FD_MPIO_COLLECTIVE_F, error) ! specify the collective writting
 	dimsfi = (/Nz_points,128,2/) ! dimsfi = (/1,dim_r,dim_t/) ! according to the tuto, it seems that whole dataset dimension is required
-	! print *, "before h5 parallel write, proc", my_rank
-	CALL h5dwrite_f(dset_id , H5T_NATIVE_REAL, Fields, dimsfi, error,file_space_id=filespace,mem_space_id=memspace,xfer_prp = h5parameters)
-	! CALL h5dwrite_f(dset_id , H5T_NATIVE_REAL, Fields, dimsfi, error,file_space_id=filespace,mem_space_id=memspace,xfer_prp = h5parameters)! general params, data are written !!!( probably variable length)
-
+	CALL h5dwrite_f(dset_id , H5T_NATIVE_REAL, Fields, dimsfi, error,file_space_id=filespace,mem_space_id=memspace,xfer_prp = h5parameters) ! Write the data collectivelly (we may try also to do it independently.... I think it could avoid some broadcast?)
 
 	!close the files etc.
 	CALL h5sclose_f(filespace,error)
@@ -232,15 +192,11 @@ CONTAINS
 	CALL h5fclose_f(file_id,error)	
 	CALL h5close_f(error) ! close the HDF5 workspace
 
-
-! 	!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
 	ELSE ! We're just appending the data now
 
   IF (my_rank.EQ.0) THEN ! only one worker is extending the zgrid
 
-	dumr4 = REAL(four_z_Rayleigh*z,4) ! the actual z-coordinate in SI units
-    
+	dumr4 = REAL(four_z_Rayleigh*z,4) ! the actual z-coordinate in SI units    
 
 	CALL h5open_f(error)
 	CALL h5fopen_f (filename, H5F_ACC_RDWR_F, file_id, error) ! Open an existing file.
@@ -285,7 +241,7 @@ CONTAINS
     ! the only change is the offset, but linked with the cummulative HDF5write_count
 	offset = (/int(HDF5write_count-1,HSIZE_T),int(my_rank,HSIZE_T),int(0,HSIZE_T)/) ! offset = (/0,dim_r_start(num_proc),0/) ! c-indexing from 0
 	ccount = (/int(1,HSIZE_T), int(1,HSIZE_T) , int(2,HSIZE_T)/) ! ccount = (/1, dim_r_end(num_proc) - dim_r_start(num_proc) , dim_t/)
-
+    CALL h5screate_simple_f(field_dimensions, ccount, memspace, error) ! dataset dimensions in memory (this worker)
 	! we select the hyperslab
 	CALL h5sselect_hyperslab_f(filespace, H5S_SELECT_SET_F, offset, ccount, error) ! we should have access to its part of the dataset for each worker
 
