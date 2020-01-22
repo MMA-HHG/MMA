@@ -76,7 +76,6 @@ CONTAINS
      INTEGER(HSIZE_T), DIMENSION(3) :: dims,dimsfi
      INTEGER(HSIZE_T), DIMENSION(3) :: ccount  
      INTEGER(HSIZE_T), DIMENSION(3) :: offset 
-     INTEGER(HSIZE_T), DIMENSION(3) :: stride
 	 INTEGER :: error ! Error flags
 
 	! HDF specific variables
