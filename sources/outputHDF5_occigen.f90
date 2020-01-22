@@ -76,7 +76,7 @@ CONTAINS
 	 CHARACTER(LEN=18), PARAMETER :: dsetname3 = "TestCUPRADParallel" ! Dataset name
 	 CHARACTER(LEN=12), PARAMETER :: dsetname4 = "IRprop/zgrid" ! Dataset name
 	 CHARACTER(LEN=12), PARAMETER :: tgrid_dset_name = "IRprop/tgrid" ! Dataset name
-	 CHARACTER(LEN=12), PARAMETER :: rgrid_dset_name = "IRprop/zgrid" ! Dataset name
+	 CHARACTER(LEN=12), PARAMETER :: rgrid_dset_name = "IRprop/rgrid" ! Dataset name
 
 
 
