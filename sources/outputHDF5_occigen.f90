@@ -90,7 +90,7 @@ CONTAINS
 
     !!! in the first run, create dataset and fill random data
 	field_dimensions = 3;
-	allocate(Fields(1,1,2)) !allocate(Fields(1,dim_r_end(num_proc)-dim_r_start(num_proc),dim_t))
+	allocate(Fields(1,dim_r_end(num_proc)-dim_r_start(num_proc),dim_t))
 
 	! AFTER discussion with Jiri Vyskocil, he pointed out the column-majorness or row-majorness could a serious performance issue (note that c and FORTAN differ, h5 is a c-lib)
 	r_offset = dim_r_start(num_proc)-1
