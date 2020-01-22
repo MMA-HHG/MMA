@@ -257,7 +257,6 @@ CONTAINS
 	CALL h5dclose_f(dset_id,error)
 	CALL h5sclose_f(filespace,error)
 	CALL h5sclose_f(memspace,error)
-	CALL h5dclose_f(dset_id,error)
 	CALL h5pclose_f(h5parameters,error)
 	CALL h5fclose_f(file_id,error)	
 	CALL h5close_f(error) ! close the HDF5 workspace
