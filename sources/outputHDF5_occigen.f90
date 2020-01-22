@@ -95,7 +95,7 @@ CONTAINS
 	r_offset = dim_r_start(num_proc)-1
 	DO k1=1, ( dim_r_end(num_proc)-dim_r_start(num_proc) )	
 	DO k2=1, dim_t
-		REAL( (efield_factor*efield_osc(k2)*e(k2,r_offset+k1)) , 4 ) ! SINGLE PRECISION, corresponding H5T_NATIVE_REAL (REAL(.,8) corresponds to H5T_NATIVE_DOUBLE)
+		REAL( REAL( (efield_factor*efield_osc(k2)*e(k2,r_offset+k1)) ) , 4 ) ! SINGLE PRECISION, corresponding H5T_NATIVE_REAL (REAL(.,8) corresponds to H5T_NATIVE_DOUBLE)
 	ENDDO
 	ENDDO
 
