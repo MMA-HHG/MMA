@@ -145,7 +145,7 @@ CONTAINS
 	ENDDO
 	ENDDO
 
-	IF (my_rank.EQ.0) THEN ! fill tables during the first call, proc # 0
+	IF ( ( my_rank .EQ. 0 ) .AND. ( HDF5write_count .EQ. 1) ) THEN ! fill tables during the first call, proc # 0
 	   	DO k1=1, dim_t
 			tgrid(k1) = REAL( tps*(tlo+REAL(k1,8)*delta_t) , 4)
 	    ENDDO
