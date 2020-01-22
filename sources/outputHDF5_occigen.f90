@@ -3,11 +3,12 @@ USE HDF5
 IMPLICIT NONE
 CONTAINS
 
-SUBROUTINE h5_add_units_1D(dset_id, units_value)
+SUBROUTINE h5_add_units_1D(dset_id, units_value,error)
  
     IMPLICIT NONE
 	INTEGER(HID_T) :: dset_id       ! Dataset identifier 
 	character(*) :: units_value
+	INTEGER :: error
 	INTEGER(HSIZE_T), DIMENSION(1):: dumh51D
 	! ATTRIBUTES OF HDF5 DATASETS
 	 CHARACTER(LEN=5), PARAMETER :: aname = "units"   ! Attribute name
