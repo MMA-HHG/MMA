@@ -179,7 +179,7 @@ CONTAINS
 
     dumh51D = (/int(dim_t,HSIZE_T)/) ! lengtsh of the grid
 	CALL h5screate_simple_f(1, dumh51D, dataspace, error) ! Create the dataspace.
-	CALL h5dcreate_f(file_id, rgrid_dset_name, H5T_NATIVE_REAL, dataspace, dset_id, error) ! create dataset
+	CALL h5dcreate_f(file_id, tgrid_dset_name, H5T_NATIVE_REAL, dataspace, dset_id, error) ! create dataset
 	CALL h5dwrite_f(dset_id, H5T_NATIVE_REAL, tgrid, dumh51D, error) ! write the data
 	CALL h5sclose_f(dataspace, error)
 	CALL h5dclose_f(dset_id, error)
