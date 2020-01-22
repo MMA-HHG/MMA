@@ -63,7 +63,7 @@ CONTAINS
 
 
      ! code variables
-     REAL(4), ALLOCATABLE :: Fields(:,:,:) ! the kind of this variable has to correspond with the precision stored in HDF5-file
+     REAL(4), ALLOCATABLE :: Fields(:,:,:), rgrid(:), tgrid(:) ! the kind of this variable has to correspond with the precision stored in HDF5-file
      INTEGER :: Nz_dim_old
 
 	 INTEGER(HSIZE_T), DIMENSION(1) :: z_dims
@@ -74,7 +74,10 @@ CONTAINS
 	 CHARACTER(LEN=7), PARAMETER :: filename2 = "test.h5" ! Dataset name
 	 CHARACTER(LEN=16), PARAMETER :: dsetname2 = "TestCUPRADSingle" ! Dataset name
 	 CHARACTER(LEN=18), PARAMETER :: dsetname3 = "TestCUPRADParallel" ! Dataset name
-	 CHARACTER(LEN=5), PARAMETER :: dsetname4 = "zgrid" ! Dataset name
+	 CHARACTER(LEN=12), PARAMETER :: dsetname4 = "IRprop/zgrid" ! Dataset name
+	 CHARACTER(LEN=12), PARAMETER :: tgrid_dset_name = "IRprop/tgrid" ! Dataset name
+	 CHARACTER(LEN=12), PARAMETER :: rgrid_dset_name = "IRprop/zgrid" ! Dataset name
+
 
 
      !  comm = MPI_COMM_WORLD
@@ -91,7 +94,9 @@ CONTAINS
     !!! in the first run, create dataset and fill random data
 	field_dimensions = 3;
 	allocate(Fields(1,dim_r_end(num_proc)-dim_r_start(num_proc),dim_t))
-
+	IF (my_rank.EQ.0) THEN
+	   allocate(tgrid(dim_t),rgrid(dim_r))
+	ENDIF
 
 
     ! print *, "range for this worker in the original code is", dim_r_start(num_proc), dim_r_end(num_proc), "proc", my_rank
@@ -101,9 +106,18 @@ CONTAINS
 	DO k1=1, ( dim_r_end(num_proc)-dim_r_start(num_proc) )	
 	DO k2=1, dim_t
 		Fields(1,k1,k2) = REAL( REAL( (efield_factor*efield_osc(k2)*e(k2,r_offset+k1)) ) , 4 ) ! SINGLE PRECISION, corresponding H5T_NATIVE_REAL (REAL(.,8) corresponds to H5T_NATIVE_DOUBLE)
+	    ! e(t,r)
 	ENDDO
 	ENDDO
 
+	IF (my_rank.EQ.0) THEN
+	   	DO k1=1, dim_t
+			tgrid(k1) = REAL( tps*(tlo+REAL(k1,8)*delta_t) , 4)
+	    ENDDO
+		DO k1=1, dim_r
+			rgrid(k1) = REAL( w0m*(REAL(k1-1,8)*delta_r) , 4)
+	    ENDDO
+	ENDIF
 
 
 
@@ -153,8 +167,27 @@ CONTAINS
 	CALL h5sclose_f(dataspace, error)
     CALL h5pclose_f(h5parameters, error)
     CALL h5dclose_f(dset_id, error)
-    CALL h5fclose_f(file_id, error)
+	! we will still be working with the file
+
+	!!! we create rgrid and tgrid only in the first iteration
+	dumh51D = (/int(dim_r,HSIZE_T)/) ! lengtsh of the grid
+	CALL h5screate_simple_f(1, dumh51D, dataspace, error) ! Create the dataspace.
+	CALL h5dcreate_f(file_id, rgrid_dset_name, H5T_NATIVE_REAL, dataspace, dset_id, error) ! create dataset
+	CALL h5dwrite_f(dset_id, H5T_NATIVE_REAL, rgrid, dumh51D, error) ! write the data
+	CALL h5sclose_f(dataspace, error)
+	CALL h5dclose_f(dset_id, error)
+
+    dumh51D = (/int(dim_t,HSIZE_T)/) ! lengtsh of the grid
+	CALL h5screate_simple_f(1, dumh51D, dataspace, error) ! Create the dataspace.
+	CALL h5dcreate_f(file_id, rgrid_dset_name, H5T_NATIVE_REAL, dataspace, dset_id, error) ! create dataset
+	CALL h5dwrite_f(dset_id, H5T_NATIVE_REAL, tgrid, dumh51D, error) ! write the data
+	CALL h5sclose_f(dataspace, error)
+	CALL h5dclose_f(dset_id, error)
+
+
+	CALL h5fclose_f(file_id, error)
 	CALL h5close_f(error) ! Close FORTRAN interface.
+	deallocate(rgrid,tgrid)
 
   ENDIF ! single-write end
 
