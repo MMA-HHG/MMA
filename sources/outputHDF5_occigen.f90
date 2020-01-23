@@ -210,8 +210,8 @@ IF ( HDF5write_count == 1) THEN
 	CALL h5screate_simple_f(field_dimensions, dims, filespace, error) ! Create the dataspace for the  dataset	
 	CALL h5dcreate_f(file_id, Fields_dset_name, H5T_NATIVE_REAL, filespace, dset_id, error)  ! create the dataset collectivelly
 
-	offset = (/int(HDF5write_count-1,HSIZE_T),int(dim_r_start(num_proc),HSIZE_T),int(0,HSIZE_T)/) ! set offset (c-indexing from 0)
-	ccount = (/1, dim_r_end(num_proc) - dim_r_start(num_proc) , dim_t/) ! size of the chunk used by this MPI-worker
+	offset = (/int(HDF5write_count-1,HSIZE_T),int(dim_r_start(num_proc)-1,HSIZE_T),int(0,HSIZE_T)/) ! set offset (c-indexing from 0)
+	ccount = (/int(1,HSIZE_T), int(dim_r_end(num_proc) - dim_r_start(num_proc) + 1,HSIZE_T) , int(dim_t,HSIZE_T)/) ! size of the chunk used by this MPI-worker
 	CALL h5screate_simple_f(field_dimensions, ccount, memspace, error) ! dataset dimensions in memory (this worker)
 	
 	CALL h5sselect_hyperslab_f(filespace, H5S_SELECT_SET_F, offset, ccount, error) ! hyperslab = part of the array acessed by this MPI-worker
@@ -280,8 +280,8 @@ ELSE !!!! APPENDING THE DATA IN NEXT ITERATIONS
 	CALL h5dopen_f(file_id, Fields_dset_name, dset_id, error) ! open the dataset (already created)
     CALL h5dget_space_f(dset_id,filespace,error) ! filespace from the dataset (get instead of create)
 
-	offset = (/int(HDF5write_count-1,HSIZE_T),int(dim_r_start(num_proc),HSIZE_T),int(0,HSIZE_T)/) ! (c-indexing from 0)
-	ccount = (/int(1,HSIZE_T), int(dim_r_end(num_proc) - dim_r_start(num_proc),HSIZE_T) , int(dim_t,HSIZE_T)/) ! size of the chunk used by this MPI-worker
+	offset = (/int(HDF5write_count-1,HSIZE_T),int(dim_r_start(num_proc)-1,HSIZE_T),int(0,HSIZE_T)/) ! (c-indexing from 0)
+	ccount = (/int(1,HSIZE_T), int(dim_r_end(num_proc) - dim_r_start(num_proc) + 1,HSIZE_T) , int(dim_t,HSIZE_T)/) ! size of the chunk used by this MPI-worker
     CALL h5screate_simple_f(field_dimensions, ccount, memspace, error) ! dataset dimensions in memory (this worker)
 
 	CALL h5sselect_hyperslab_f(filespace, H5S_SELECT_SET_F, offset, ccount, error) ! hyperslab = part of the array acessed by this MPI-worker	
