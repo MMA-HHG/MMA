@@ -94,14 +94,6 @@ CONTAINS
 
     ! THE CODE
 
-	! testing 
-	print *, "dim_r_start(num_proc)", dim_r_start(num_proc), "myproc", my_rank
-	print *, "dim_r_end(num_proc)", dim_r_end(num_proc), "myproc", my_rank
-	print *, "dim_r_start(my_rank)", dim_r_start(my_rank), "myproc", my_rank
-	print *, "dim_r_end(my_rank)", dim_r_end(my_rank), "myproc", my_rank
-    
-
-    !
     
 	 IF (my_rank.EQ.0) THEN ! still in development mode, keep for the instant
 	   print *, "HDF5 writting interation: ", HDF5write_count
