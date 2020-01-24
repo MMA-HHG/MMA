@@ -213,7 +213,7 @@ IF ( HDF5write_count == 1) THEN
 	dimsfi = (/int(Nz_points,HSIZE_T),int(dim_r,HSIZE_T), int(dim_t,HSIZE_T)/) ! according to the tuto, it seems that whole dataset dimension is required
 	CALL h5dwrite_f(dset_id , H5T_NATIVE_REAL, Fields, dimsfi, error,file_space_id=filespace,mem_space_id=memspace,xfer_prp = h5parameters) ! Write the data collectivelly (we may try also to do it independently.... I think it could avoid some broadcast?)
 
-    IF (my_rank.EQ.0) THEN
+    IF (my_rank.EQ.0) THEN !! testing
        OPEN(15,FILE='test.DAT',STATUS='UNKNOWN')
 	   DO k1 = 1,dim_r_local
 	      WRITE(15,*) FIELDS(1,k1,1024)
@@ -241,6 +241,15 @@ IF ( HDF5write_count == 1) THEN
 	ENDIF
 
 ELSE !!!! APPENDING THE DATA IN NEXT ITERATIONS
+
+   IF ( (my_rank.EQ.0) .AND. (HDF5write_count .EQ. 2)) THEN !! testing
+       OPEN(15,FILE='test2.DAT',STATUS='UNKNOWN')
+	   DO k1 = 1,dim_r_local
+	      WRITE(15,*) FIELDS(1,k1,1024)
+	   ENDDO
+       CLOSE(15)
+    ENDIF
+
 
   IF (my_rank.EQ.0) THEN ! only one worker is extending the zgrid
 
