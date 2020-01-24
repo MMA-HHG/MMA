@@ -202,8 +202,9 @@ IF ( HDF5write_count == 1) THEN
 	CALL h5screate_simple_f(field_dimensions, dims, filespace, error) ! Create the dataspace for the  dataset	
 	CALL h5dcreate_f(file_id, Fields_dset_name, H5T_NATIVE_REAL, filespace, dset_id, error)  ! create the dataset collectivelly
 
-	offset = (/int(HDF5write_count-1,HSIZE_T),int(dim_r_start(num_proc)-1,HSIZE_T),int(0,HSIZE_T)/) ! set offset (c-indexing from 0)
+	offset = (/int(HDF5write_count-1,HSIZE_T),int(dim_r_start(num_proc)-1,HSIZE_T),int(0,HSIZE_T)/) ! (c-indexing from 0)
 	ccount = (/int(1,HSIZE_T), int(dim_r_local,HSIZE_T) , int(dim_t,HSIZE_T)/) ! size of the chunk used by this MPI-worker
+
 	CALL h5screate_simple_f(field_dimensions, ccount, memspace, error) ! dataset dimensions in memory (this worker)
 	
 	CALL h5sselect_hyperslab_f(filespace, H5S_SELECT_SET_F, offset, ccount, error) ! hyperslab = part of the array acessed by this MPI-worker
@@ -211,6 +212,12 @@ IF ( HDF5write_count == 1) THEN
 	CALL h5pset_dxpl_mpio_f(h5parameters, H5FD_MPIO_COLLECTIVE_F, error) ! specify the collective writting
 	dimsfi = (/int(Nz_points,HSIZE_T),int(dim_r,HSIZE_T), int(dim_t,HSIZE_T)/) ! according to the tuto, it seems that whole dataset dimension is required
 	CALL h5dwrite_f(dset_id , H5T_NATIVE_REAL, Fields, dimsfi, error,file_space_id=filespace,mem_space_id=memspace,xfer_prp = h5parameters) ! Write the data collectivelly (we may try also to do it independently.... I think it could avoid some broadcast?)
+
+    IF (my_rank.EQ.0) THEN
+       OPEN(15,FILE='test.DAT',STATUS='UNKNOWN')
+	   WRITE(15,*) (FIELDS(1,1024,:))
+       CLOSE(15)
+    ENDIF
 
 	!close the files etc.
 	CALL h5sclose_f(filespace,error)
