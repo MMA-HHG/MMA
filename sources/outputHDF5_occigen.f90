@@ -102,7 +102,7 @@ CONTAINS
     
 	!!! ALLOCATING SPACE FOR GRIDS AND FIELDS
 	field_dimensions = 3; ! total # of dims
-	allocate(Fields(1,dim_r_end(num_proc)-dim_r_start(num_proc),dim_t)) ! space for fields in every itaration
+	allocate(Fields(1,dim_r_local,dim_t)) ! space for fields in every itaration
 	IF ( ( my_rank .EQ. 0 ) .AND. ( HDF5write_count .EQ. 1) ) THEN
 	   allocate(tgrid(dim_t),rgrid(dim_r)) ! space for grids: first itration, proc # 0
 	ENDIF
@@ -110,7 +110,7 @@ CONTAINS
 
 	! AFTER discussion with Jiri Vyskocil, he pointed out the column-majorness or row-majorness could a serious performance issue (note that c and FORTAN differ, h5 is a c-lib)
 	r_offset = dim_r_start(num_proc)-1
-	DO k1=1, ( dim_r_end(num_proc)-dim_r_start(num_proc) )	
+	DO k1=1, dim_r_local	
 	DO k2=1, dim_t
 		Fields(1,k1,k2) = REAL( REAL( (efield_factor*efield_osc(k2)*e(k2,r_offset+k1)) ) , 4 ) ! SINGLE PRECISION, corresponding H5T_NATIVE_REAL (REAL(.,8) corresponds to H5T_NATIVE_DOUBLE)
 	    ! e(t,r)
@@ -203,7 +203,7 @@ IF ( HDF5write_count == 1) THEN
 	CALL h5dcreate_f(file_id, Fields_dset_name, H5T_NATIVE_REAL, filespace, dset_id, error)  ! create the dataset collectivelly
 
 	offset = (/int(HDF5write_count-1,HSIZE_T),int(dim_r_start(num_proc)-1,HSIZE_T),int(0,HSIZE_T)/) ! set offset (c-indexing from 0)
-	ccount = (/int(1,HSIZE_T), int(dim_r_end(num_proc) - dim_r_start(num_proc) + 1,HSIZE_T) , int(dim_t,HSIZE_T)/) ! size of the chunk used by this MPI-worker
+	ccount = (/int(1,HSIZE_T), int(dim_r_local,HSIZE_T) , int(dim_t,HSIZE_T)/) ! size of the chunk used by this MPI-worker
 	CALL h5screate_simple_f(field_dimensions, ccount, memspace, error) ! dataset dimensions in memory (this worker)
 	
 	CALL h5sselect_hyperslab_f(filespace, H5S_SELECT_SET_F, offset, ccount, error) ! hyperslab = part of the array acessed by this MPI-worker
@@ -273,7 +273,7 @@ ELSE !!!! APPENDING THE DATA IN NEXT ITERATIONS
     CALL h5dget_space_f(dset_id,filespace,error) ! filespace from the dataset (get instead of create)
 
 	offset = (/int(HDF5write_count-1,HSIZE_T),int(dim_r_start(num_proc)-1,HSIZE_T),int(0,HSIZE_T)/) ! (c-indexing from 0)
-	ccount = (/int(1,HSIZE_T), int(dim_r_end(num_proc) - dim_r_start(num_proc) + 1,HSIZE_T) , int(dim_t,HSIZE_T)/) ! size of the chunk used by this MPI-worker
+	ccount = (/int(1,HSIZE_T), int(dim_r_local,HSIZE_T) , int(dim_t,HSIZE_T)/) ! size of the chunk used by this MPI-worker
     CALL h5screate_simple_f(field_dimensions, ccount, memspace, error) ! dataset dimensions in memory (this worker)
 
 	CALL h5sselect_hyperslab_f(filespace, H5S_SELECT_SET_F, offset, ccount, error) ! hyperslab = part of the array acessed by this MPI-worker	
