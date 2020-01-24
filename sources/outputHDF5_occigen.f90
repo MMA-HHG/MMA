@@ -263,8 +263,6 @@ ELSE !!!! APPENDING THE DATA IN NEXT ITERATIONS
 	IF (my_rank.EQ.0) THEN ! only one worker is extending the zgrid
 
       ! only z-grid in 1D
-	  CALL h5open_f(error)
-	  CALL h5fopen_f (filename, H5F_ACC_RDWR_F, file_id, error) ! Open an existing file.
 	  CALL h5dopen_f(file_id, zgrid_dset_name, dset_id, error)   !Open the  dataset
 
 	  dumh51D = (/int(HDF5write_count,HSIZE_T)/) ! new dimension of the dataset
@@ -284,8 +282,6 @@ ELSE !!!! APPENDING THE DATA IN NEXT ITERATIONS
 	  CALL h5sclose_f(memspace, error)
 	  CALL h5sclose_f(dataspace, error)
       CALL h5dclose_f(dset_id, error)
-      CALL h5fclose_f(file_id, error)
-	  CALL h5close_f(error) ! Close FORTRAN interface.
 
     ENDIF ! single-write end
 	
