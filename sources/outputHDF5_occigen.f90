@@ -140,48 +140,8 @@ CONTAINS
 
 IF ( HDF5write_count == 1) THEN 
 
-    !! THE WRITING OF THE FIELDS IS HERE
 
-	CALL h5open_f(error) 
-    
-	CALL h5pcreate_f(H5P_FILE_ACCESS_F, h5parameters, error) ! create HDF5 access parameters
-    CALL h5pset_fapl_mpio_f(h5parameters, MPI_COMM_WORLD, MPI_INFO_NULL, error) ! set parameters for MPI access
-	CALL h5fopen_f(filename, H5F_ACC_RDWR_F, file_id, error, access_prp = h5parameters ) ! Open collectivelly the file
-	CALL h5pclose_f(h5parameters,error) ! close the parameters
-    !!!!!
-	!!!!! An extendible dataset seems to be a serious issue. We stick to pre-computing dataset size for now (see the piece ofthe code at the end of this file for details)
-	!!!!! 
-	dims = (/int(Nz_points,HSIZE_T),int(dim_r,HSIZE_T), int(dim_t,HSIZE_T)/) ! full prealocated dimension
-	CALL h5screate_simple_f(field_dimensions, dims, filespace, error) ! Create the dataspace for the  dataset	
-	CALL h5dcreate_f(file_id, Fields_dset_name, H5T_NATIVE_REAL, filespace, dset_id, error)  ! create the dataset collectivelly
-
-	offset = (/int(HDF5write_count-1,HSIZE_T),int(dim_r_start(num_proc)-1,HSIZE_T),int(0,HSIZE_T)/) ! (c-indexing from 0)
-	ccount = (/int(1,HSIZE_T), int(dim_r_local,HSIZE_T) , int(dim_t,HSIZE_T)/) ! size of the chunk used by this MPI-worker
-
-	CALL h5screate_simple_f(field_dimensions, ccount, memspace, error) ! dataset dimensions in memory (this worker)
-	
-	CALL h5sselect_hyperslab_f(filespace, H5S_SELECT_SET_F, offset, ccount, error) ! hyperslab = part of the array acessed by this MPI-worker
-	CALL h5pcreate_f(H5P_DATASET_XFER_F, h5parameters, error) ! Create access parametwers for writing
-	CALL h5pset_dxpl_mpio_f(h5parameters, H5FD_MPIO_COLLECTIVE_F, error) ! specify the collective writting
-	dimsfi = (/int(Nz_points,HSIZE_T),int(dim_r,HSIZE_T), int(dim_t,HSIZE_T)/) ! according to the tuto, it seems that whole dataset dimension is required
-	CALL h5dwrite_f(dset_id , H5T_NATIVE_REAL, Fields, dimsfi, error,file_space_id=filespace,mem_space_id=memspace,xfer_prp = h5parameters) ! Write the data collectivelly (we may try also to do it independently.... I think it could avoid some broadcast?)
-
-    ! IF (my_rank.EQ.0) THEN !! testing
-    !    OPEN(15,FILE='test.DAT',STATUS='UNKNOWN')
-	!    DO k1 = 1,dim_r_local
-	!       WRITE(15,*) FIELDS(1,k1,1024)
-	!    ENDDO
-    !    CLOSE(15)
-    ! ENDIF
-
-	!close the files etc.
-	CALL h5sclose_f(filespace,error)
-	CALL h5sclose_f(memspace,error)
-	CALL h5dclose_f(dset_id,error)
-	CALL h5pclose_f(h5parameters,error)
-
-
-	  IF (my_rank.EQ.0) THEN ! only proc # 0 writes zgrid and other stuff in the first iteration
+IF (my_rank.EQ.0) THEN ! only proc # 0 writes zgrid and other stuff in the first iteration
 
     !!!! HERE WE WRITE z-grid, appended in each iteration
 	!!! extendible dataset for single-writter (following the tuto https://portal.hdfgroup.org/display/HDF5/Examples+from+Learning+the+Basics#ExamplesfromLearningtheBasics-changingex https://bitbucket.hdfgroup.org/projects/HDFFV/repos/hdf5/browse/fortran/examples/h5_extend.f90?at=89fbe00dec8187305b518d91c3ddb7d910665f79&raw )
@@ -226,7 +186,49 @@ IF ( HDF5write_count == 1) THEN
 	deallocate(rgrid,tgrid)
 
   ENDIF ! single-write end
+  
 
+    !! THE WRITING OF THE FIELDS IS HERE
+
+	CALL h5open_f(error) 
+    
+	CALL h5pcreate_f(H5P_FILE_ACCESS_F, h5parameters, error) ! create HDF5 access parameters
+    CALL h5pset_fapl_mpio_f(h5parameters, MPI_COMM_WORLD, MPI_INFO_NULL, error) ! set parameters for MPI access
+	CALL h5fopen_f(filename, H5F_ACC_RDWR_F, file_id, error, access_prp = h5parameters ) ! Open collectivelly the file
+	CALL h5pclose_f(h5parameters,error) ! close the parameters
+    !!!!!
+	!!!!! An extendible dataset seems to be a serious issue. We stick to pre-computing dataset size for now (see the piece ofthe code at the end of this file for details)
+	!!!!! 
+	dims = (/int(Nz_points,HSIZE_T),int(dim_r,HSIZE_T), int(dim_t,HSIZE_T)/) ! full prealocated dimension
+	CALL h5screate_simple_f(field_dimensions, dims, filespace, error) ! Create the dataspace for the  dataset	
+	CALL h5dcreate_f(file_id, Fields_dset_name, H5T_NATIVE_REAL, filespace, dset_id, error)  ! create the dataset collectivelly
+
+	offset = (/int(HDF5write_count-1,HSIZE_T),int(dim_r_start(num_proc)-1,HSIZE_T),int(0,HSIZE_T)/) ! (c-indexing from 0)
+	ccount = (/int(1,HSIZE_T), int(dim_r_local,HSIZE_T) , int(dim_t,HSIZE_T)/) ! size of the chunk used by this MPI-worker
+
+	CALL h5screate_simple_f(field_dimensions, ccount, memspace, error) ! dataset dimensions in memory (this worker)
+	
+	CALL h5sselect_hyperslab_f(filespace, H5S_SELECT_SET_F, offset, ccount, error) ! hyperslab = part of the array acessed by this MPI-worker
+	CALL h5pcreate_f(H5P_DATASET_XFER_F, h5parameters, error) ! Create access parametwers for writing
+	CALL h5pset_dxpl_mpio_f(h5parameters, H5FD_MPIO_COLLECTIVE_F, error) ! specify the collective writting
+	dimsfi = (/int(Nz_points,HSIZE_T),int(dim_r,HSIZE_T), int(dim_t,HSIZE_T)/) ! according to the tuto, it seems that whole dataset dimension is required
+	CALL h5dwrite_f(dset_id , H5T_NATIVE_REAL, Fields, dimsfi, error,file_space_id=filespace,mem_space_id=memspace,xfer_prp = h5parameters) ! Write the data collectivelly (we may try also to do it independently.... I think it could avoid some broadcast?)
+
+    ! IF (my_rank.EQ.0) THEN !! testing
+    !    OPEN(15,FILE='test.DAT',STATUS='UNKNOWN')
+	!    DO k1 = 1,dim_r_local
+	!       WRITE(15,*) FIELDS(1,k1,1024)
+	!    ENDDO
+    !    CLOSE(15)
+    ! ENDIF
+
+	!close the files etc.
+	CALL h5sclose_f(filespace,error)
+	CALL h5sclose_f(memspace,error)
+	CALL h5dclose_f(dset_id,error)
+	CALL h5pclose_f(h5parameters,error)
+	CALL h5fclose_f(file_id,error)	
+	CALL h5close_f(error) ! close the HDF5 workspace
 
 
     !!! attributes are probably not well handled by MPI... ( https://forum.hdfgroup.org/t/write-attributes-collectively-in-mpi-run/4902/2 ), just add them once by one worker
@@ -240,9 +242,6 @@ IF ( HDF5write_count == 1) THEN
 	CALL h5close_f(error) ! close the HDF5 workspace
 	ENDIF
 
-
-	CALL h5fclose_f(file_id,error)	
-	CALL h5close_f(error) ! close the HDF5 workspace
 
 	
 ELSE !!!! APPENDING THE DATA IN NEXT ITERATIONS
