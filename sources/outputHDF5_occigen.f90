@@ -215,7 +215,9 @@ IF ( HDF5write_count == 1) THEN
 
     IF (my_rank.EQ.0) THEN
        OPEN(15,FILE='test.DAT',STATUS='UNKNOWN')
-	   WRITE(15,*) (FIELDS(1,1024,:))
+	   DO k1 = 1:dim_r
+	      WRITE(15,*) FIELDS(1,1024,k1)
+	   ENDDO
        CLOSE(15)
     ENDIF
 
