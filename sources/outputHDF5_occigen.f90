@@ -141,7 +141,20 @@ CONTAINS
 IF ( HDF5write_count == 1) THEN 
 
 
-IF (my_rank.EQ.0) THEN ! only proc # 0 writes zgrid and other stuff in the first iteration
+
+  
+
+    !! THE WRITING OF THE FIELDS IS HERE
+
+	CALL h5open_f(error) 
+    
+	CALL h5pcreate_f(H5P_FILE_ACCESS_F, h5parameters, error) ! create HDF5 access parameters
+    CALL h5pset_fapl_mpio_f(h5parameters, MPI_COMM_WORLD, MPI_INFO_NULL, error) ! set parameters for MPI access
+	CALL h5fopen_f(filename, H5F_ACC_RDWR_F, file_id, error, access_prp = h5parameters ) ! Open collectivelly the file
+	CALL h5pclose_f(h5parameters,error) ! close the parameters
+
+
+	IF (my_rank.EQ.0) THEN ! only proc # 0 writes zgrid and other stuff in the first iteration
 
     !!!! HERE WE WRITE z-grid, appended in each iteration
 	!!! extendible dataset for single-writter (following the tuto https://portal.hdfgroup.org/display/HDF5/Examples+from+Learning+the+Basics#ExamplesfromLearningtheBasics-changingex https://bitbucket.hdfgroup.org/projects/HDFFV/repos/hdf5/browse/fortran/examples/h5_extend.f90?at=89fbe00dec8187305b518d91c3ddb7d910665f79&raw )
@@ -186,16 +199,8 @@ IF (my_rank.EQ.0) THEN ! only proc # 0 writes zgrid and other stuff in the first
 	deallocate(rgrid,tgrid)
 
   ENDIF ! single-write end
+
   
-
-    !! THE WRITING OF THE FIELDS IS HERE
-
-	CALL h5open_f(error) 
-    
-	CALL h5pcreate_f(H5P_FILE_ACCESS_F, h5parameters, error) ! create HDF5 access parameters
-    CALL h5pset_fapl_mpio_f(h5parameters, MPI_COMM_WORLD, MPI_INFO_NULL, error) ! set parameters for MPI access
-	CALL h5fopen_f(filename, H5F_ACC_RDWR_F, file_id, error, access_prp = h5parameters ) ! Open collectivelly the file
-	CALL h5pclose_f(h5parameters,error) ! close the parameters
     !!!!!
 	!!!!! An extendible dataset seems to be a serious issue. We stick to pre-computing dataset size for now (see the piece ofthe code at the end of this file for details)
 	!!!!! 
