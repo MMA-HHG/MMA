@@ -8,6 +8,10 @@ The *.output files should be stacked somewhere.
 
 https://support.hdfgroup.org/HDF5/Tutor/selectsimple.html
 
+
+After discussions, we try to use mutex https://www.thegeekstuff.com/2012/05/c-mutex-examples/ https://www.geeksforgeeks.org/mutex-lock-for-linux-thread-synchronization/ .
+All the code will be encapsulated in an MPI-loop.
+
 */
 #include<time.h> 
 #include<stdio.h>
