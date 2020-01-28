@@ -1,3 +1,14 @@
+/*
+The HDF5 version will implement the following idea:
+
+There is one parameter file shared by all simulations, and also only one I/O hdf5 file.
+The parameters given to the code by slurm are two integers defining the indices in r and z.
+There should be a logfile for noting succesful/failed simulations.
+The *.output files should be stacked somewhere.
+
+https://support.hdfgroup.org/HDF5/Tutor/selectsimple.html
+
+*/
 #include<time.h> 
 #include<stdio.h>
 #include<stdlib.h>
@@ -97,7 +108,11 @@ int main(void)
 
 
 	// paramters either for numerical field or analytic
+	// we extend it for now as new functionality and then resort it
 	switch (Efield.fieldtype){
+	case 3:
+		// HDF5, filename given directly when loading
+	break;
 	case 2:
 		// GAUGES
 		dumint=fscanf(param,"%i %*[^\n]\n",&gauge); // 0-length, otherwise velocity, velocity available only for analytic field (A needed)
@@ -146,6 +161,82 @@ int main(void)
 
 	// !!!!! loading procedure
 	switch (Efield.fieldtype){
+
+	case 3:
+		// OPEN HDF5 file	
+        file_id = H5Fopen ("results.h5", H5F_ACC_RDWR, H5P_DEFAULT); // open file
+
+		// find dimensions	
+		dataset_id = H5Dopen2 (file_id, "IRprop/tgrid ", H5P_DEFAULT); // open dataset	     
+        dspace_id=h5dget_space(dset_id); // Get the dataspace ID     
+        h5sget_simple_extent_dims(dspace_id, dims, maxdims)  //Getting dims from dataspace
+
+		// allocate fields
+
+		// set hyperslab
+		dataset_id = H5Dopen2 (file_id, "IRprop/Fields_rzt", H5P_DEFAULT); // open dataset
+
+		// load fields
+
+		// close field
+		
+		Efield.Nt = 0;	
+		while((ch=fgetc(file1))!=EOF)
+		{if(ch == '\n'){Efield.Nt++;}}
+		rewind(file1);
+		printf("Efield.Nt,  %i \n",Efield.Nt);		
+			
+		Efield.tgrid = calloc(Efield.Nt,sizeof(double)); 
+		Efield.Field = calloc(Efield.Nt,sizeof(double)); 
+
+		// LOAD FILES		
+		for(k1 = 0 ; k1 <= Efield.Nt-1 ; k1++) //Efield.Nt-1
+		{
+			dumint = fscanf(file1,"%lf",&Efield.tgrid[k1]); // file in femtoseconts and GV/m;
+			dumint = fscanf(file2,"%lf",&Efield.Field[k1]);
+			if (!(fieldinau == 0))
+			{
+				Efield.tgrid[k1] = Efield.tgrid[k1]*41.34144728; // timegrid in a.u.
+				Efield.Field[k1] = Efield.Field[k1]*0.001944689151; // corresponding field
+			}
+		}	
+		fclose(file1);
+		fclose(file2);		
+
+		// k1 = 0; k2 = 0;	findinterval(Efield.Nt, 0., Efield.tgrid, &k1, &k2);// find zero of the grid, the best resolution is around
+		switch ( input0 ){case 0: dumint = 0; break; case 1: dumint = round(Efield.Nt/2.); /* field centered around 0 */ break;} // original definition
+	
+		Efield.dt = Efield.tgrid[dumint+1]-Efield.tgrid[dumint]; // Efield.dt = Efield.tgrid[1+round(Efield.Nt/2.)]-Efield.tgrid[round(Efield.Nt/2.)];
+		tmax = Efield.tgrid[Efield.Nt]-Efield.tgrid[0];
+
+		// PRINT field and its transform
+		file1 = fopen("inputs/InputField.dat" , "w"); file2 = fopen("inputs/InputFField.dat" , "w"); printFFTW3(file1, file2, Efield.Field, Efield.Nt, Efield.dt); fclose(file1); fclose(file2);
+		
+		// find the padding we need (now we assume coarser grid in the input, need an "if" otherwise)
+		if (InterpByDTorNT == 1)
+		{
+			k1 = Ntinterp + 1;
+		} else {
+			k1 = floor(Efield.dt/dt); Ntinterp = k1; k1++;
+		}
+
+		dt = Efield.dt/((double)k1); // redefine dt properly
+
+		Efield.Field = FourInterp(k1, Efield.Field, Efield.Nt); // make the interpolation !!!!!! tgrid does not correspond any more
+
+		Nt = k1*Efield.Nt + 1;
+
+		// PRINT new field and its transform
+		file1 = fopen("inputs/InputField2.dat" , "w"); file2 = fopen("inputs/InputFField2.dat" , "w"); printFFTW3(file1, file2, Efield.Field, Nt, dt); fclose(file1); fclose(file2);
+
+		
+		num_t = floor((2*Pi)/(0.057*dt)); num_t++; 
+		printf("Efield.dt,  %lf \n",Efield.dt);
+		printf("points per interval  %i \n",num_t);
+		printf("number of interpolated points per interval  %i \n",Ntinterp);
+		
+	break;
+
 	case 0:
 		// LOAD THE FILES		
 		
