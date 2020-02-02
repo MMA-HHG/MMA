@@ -322,7 +322,7 @@ double* propagation(struct trg_def trg, struct Efield_var Efield, double tmin, i
 
 		psi_inter1[2*num_r+1] = (10/12.)*psi[2*num_r+1]-coef*psi[2*num_r]+1/12.*psi[2*(num_r-1)+1]+0.5*coef*psi[2*(num_r-1)];
 		psi_inter1[2*num_r+1] = psi_inter1[2*num_r+1]-0.5*dt*((10/12.)*psi[2*num_r]*(cpot*potential(x[num_r],trg))
-							  +(1/12.)*psi[2*(num_r-1)]*(cpot*potential(x[num_r-1],trg)));
+							    +(1/12.)*psi[2*(num_r-1)]*(cpot*potential(x[num_r-1],trg)));
 
 
 		Inv_Tridiagonal_Matrix_complex(dinfnew1,dnew1,dsupnew1,psi_inter1,res1,num_r+1);

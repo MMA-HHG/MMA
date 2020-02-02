@@ -9,11 +9,20 @@ The *.output files should be stacked somewhere.
 https://support.hdfgroup.org/HDF5/Tutor/selectsimple.html
 
 
-After discussions, we try to use mutex 
+After discussions, we try to test
+
+a)mutex 
 https://www.thegeekstuff.com/2012/05/c-mutex-examples/ https://www.geeksforgeeks.org/mutex-lock-for-linux-thread-synchronization/ .
 https://computing.llnl.gov/tutorials/pthreads/#Mutexes
 https://www.mcs.anl.gov/~robl/papers/ross_atomic-mpiio.pdf
 https://stackoverflow.com/questions/37236499/mpi-ensure-an-exclusive-access-to-a-shared-memory-rma
+
+b) temporary files
+Each process writes in its own hdf5 file. There should be a way to do a "virtual" merging procedure: by using virtual datasets
+https://portal.hdfgroup.org/display/HDF5/Introduction+to+the+Virtual+Dataset++-+VDS
+For the instant, we may use a more direct method-store data in binary files etc. It may be easier for testing & debugging.
+
+
 
 All the code will be encapsulated in an MPI-loop.
 
