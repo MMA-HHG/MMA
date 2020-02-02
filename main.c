@@ -6,6 +6,7 @@ The parameters given to the code by slurm are two integers defining the indices 
 There should be a logfile for noting succesful/failed simulations.
 The *.output files should be stacked somewhere.
 
+For reading, it should be easy. ** R/W may occur simultaneously in in the MPI loop. Separate I/O at the instant or ensure it will work (R/W from independent datasets may be fine???).
 https://support.hdfgroup.org/HDF5/Tutor/selectsimple.html
 
 
