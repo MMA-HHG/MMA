@@ -117,14 +117,14 @@ CONTAINS
 	ENDDO
 	ENDDO
 
-	! IF ( ( my_rank .EQ. 0 ) .AND. ( HDF5write_count .EQ. 1) ) THEN ! fill tables during the first call, proc # 0
-	!    	DO k1=1, dim_t
-	! 		tgrid(k1) = REAL( tps*(tlo+REAL(k1,8)*delta_t) , 4)
-	!     ENDDO
-	! 	DO k1=1, dim_r
-	! 		rgrid(k1) = REAL( w0m*(REAL(k1-1,8)*delta_r) , 4)
-	!     ENDDO
-	! ENDIF
+	IF ( ( my_rank .EQ. 0 ) .AND. ( HDF5write_count .EQ. 1) ) THEN ! fill tables during the first call, proc # 0
+	   	DO k1=1, dim_t
+			tgrid(k1) = REAL( tps*(tlo+REAL(k1,8)*delta_t) , 4)
+	    ENDDO
+		DO k1=1, dim_r
+			rgrid(k1) = REAL( w0m*(REAL(k1-1,8)*delta_r) , 4)
+	    ENDDO
+	ENDIF
 
 
 
@@ -140,10 +140,6 @@ CONTAINS
 
 IF ( HDF5write_count == 1) THEN 
 
-
-
-  
-
     !! THE WRITING OF THE FIELDS IS HERE
 
 	CALL h5open_f(error) 
@@ -152,8 +148,6 @@ IF ( HDF5write_count == 1) THEN
     CALL h5pset_fapl_mpio_f(h5parameters, MPI_COMM_WORLD, MPI_INFO_NULL, error) ! set parameters for MPI access
 	CALL h5fopen_f(filename, H5F_ACC_RDWR_F, file_id, error, access_prp = h5parameters ) ! Open collectivelly the file
 	CALL h5pclose_f(h5parameters,error) ! close the parameters
-
-
 
   
     !!!!!
