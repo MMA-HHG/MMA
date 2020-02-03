@@ -198,51 +198,51 @@ IF ( HDF5write_count == 1) THEN
 
 
 
-	IF (my_rank.EQ.0) THEN ! only proc # 0 writes zgrid and other stuff in the first iteration
+! 	IF (my_rank.EQ.0) THEN ! only proc # 0 writes zgrid and other stuff in the first iteration
 
-    !!!! HERE WE WRITE z-grid, appended in each iteration
-	!!! extendible dataset for single-writter (following the tuto https://portal.hdfgroup.org/display/HDF5/Examples+from+Learning+the+Basics#ExamplesfromLearningtheBasics-changingex https://bitbucket.hdfgroup.org/projects/HDFFV/repos/hdf5/browse/fortran/examples/h5_extend.f90?at=89fbe00dec8187305b518d91c3ddb7d910665f79&raw )
+!     !!!! HERE WE WRITE z-grid, appended in each iteration
+! 	!!! extendible dataset for single-writter (following the tuto https://portal.hdfgroup.org/display/HDF5/Examples+from+Learning+the+Basics#ExamplesfromLearningtheBasics-changingex https://bitbucket.hdfgroup.org/projects/HDFFV/repos/hdf5/browse/fortran/examples/h5_extend.f90?at=89fbe00dec8187305b518d91c3ddb7d910665f79&raw )
 
-	CALL h5open_f(error) ! HDF5 initialise
-	CALL h5fopen_f (filename, H5F_ACC_RDWR_F, file_id, error) ! Open an existing file. 
+! 	CALL h5open_f(error) ! HDF5 initialise
+! 	CALL h5fopen_f (filename, H5F_ACC_RDWR_F, file_id, error) ! Open an existing file. 
 
-    dumh51D = (/int(1,HSIZE_T)/) ! dim
-	dumh51D2 = (/H5S_UNLIMITED_F/) ! maxdim
-	CALL h5screate_simple_f(1, dumh51D, dataspace, error, dumh51D2 ) ! Create the data space with unlimited dimensions.
-	CALL h5pcreate_f(H5P_DATASET_CREATE_F, h5parameters, error) ! Modify dataset creation properties, i.e. enable chunking
-	CALL h5pset_chunk_f(h5parameters, 1, dumh51D, error) ! enable chunking (1 is the dimension of the dataset)
-	CALL h5dcreate_f(file_id, zgrid_dset_name, H5T_NATIVE_REAL, dataspace, dset_id, error, h5parameters) ! create dataset
-	dumh51D = (/int(1,HSIZE_T)/) ! dimension of data
-	dumr4 = REAL(four_z_Rayleigh*z,4) ! the actual z-coordinate in SI units 
-	CALL h5dwrite_f(dset_id, H5T_NATIVE_REAL, dumr4, dumh51D, error)
-    CALL h5_add_units_1D(dset_id, '[SI]',error)
-	CALL h5sclose_f(dataspace, error)
-    CALL h5pclose_f(h5parameters, error)
-    CALL h5dclose_f(dset_id, error)
-	! we will still be working with the file
+!     dumh51D = (/int(1,HSIZE_T)/) ! dim
+! 	dumh51D2 = (/H5S_UNLIMITED_F/) ! maxdim
+! 	CALL h5screate_simple_f(1, dumh51D, dataspace, error, dumh51D2 ) ! Create the data space with unlimited dimensions.
+! 	CALL h5pcreate_f(H5P_DATASET_CREATE_F, h5parameters, error) ! Modify dataset creation properties, i.e. enable chunking
+! 	CALL h5pset_chunk_f(h5parameters, 1, dumh51D, error) ! enable chunking (1 is the dimension of the dataset)
+! 	CALL h5dcreate_f(file_id, zgrid_dset_name, H5T_NATIVE_REAL, dataspace, dset_id, error, h5parameters) ! create dataset
+! 	dumh51D = (/int(1,HSIZE_T)/) ! dimension of data
+! 	dumr4 = REAL(four_z_Rayleigh*z,4) ! the actual z-coordinate in SI units 
+! 	CALL h5dwrite_f(dset_id, H5T_NATIVE_REAL, dumr4, dumh51D, error)
+!     CALL h5_add_units_1D(dset_id, '[SI]',error)
+! 	CALL h5sclose_f(dataspace, error)
+!     CALL h5pclose_f(h5parameters, error)
+!     CALL h5dclose_f(dset_id, error)
+! 	! we will still be working with the file
 
-	!!! we create rgrid and tgrid only in the first iteration
-	dumh51D = (/int(dim_r,HSIZE_T)/) ! lengtsh of the grid
-	CALL h5screate_simple_f(1, dumh51D, dataspace, error) ! Create the dataspace.
-	CALL h5dcreate_f(file_id, rgrid_dset_name, H5T_NATIVE_REAL, dataspace, dset_id, error) ! create dataset
-	CALL h5dwrite_f(dset_id, H5T_NATIVE_REAL, rgrid, dumh51D, error) ! write the data
-	CALL h5_add_units_1D(dset_id, '[SI]',error)
-	CALL h5sclose_f(dataspace, error)
-	CALL h5dclose_f(dset_id, error)
+! 	!!! we create rgrid and tgrid only in the first iteration
+! 	dumh51D = (/int(dim_r,HSIZE_T)/) ! lengtsh of the grid
+! 	CALL h5screate_simple_f(1, dumh51D, dataspace, error) ! Create the dataspace.
+! 	CALL h5dcreate_f(file_id, rgrid_dset_name, H5T_NATIVE_REAL, dataspace, dset_id, error) ! create dataset
+! 	CALL h5dwrite_f(dset_id, H5T_NATIVE_REAL, rgrid, dumh51D, error) ! write the data
+! 	CALL h5_add_units_1D(dset_id, '[SI]',error)
+! 	CALL h5sclose_f(dataspace, error)
+! 	CALL h5dclose_f(dset_id, error)
 
-    dumh51D = (/int(dim_t,HSIZE_T)/) ! lengtsh of the grid
-	CALL h5screate_simple_f(1, dumh51D, dataspace, error) ! Create the dataspace.
-	CALL h5dcreate_f(file_id, tgrid_dset_name, H5T_NATIVE_REAL, dataspace, dset_id, error) ! create dataset
-	CALL h5dwrite_f(dset_id, H5T_NATIVE_REAL, tgrid, dumh51D, error) ! write the data
-	CALL h5_add_units_1D(dset_id, '[SI]',error)
-	CALL h5sclose_f(dataspace, error)
-	CALL h5dclose_f(dset_id, error)
+!     dumh51D = (/int(dim_t,HSIZE_T)/) ! lengtsh of the grid
+! 	CALL h5screate_simple_f(1, dumh51D, dataspace, error) ! Create the dataspace.
+! 	CALL h5dcreate_f(file_id, tgrid_dset_name, H5T_NATIVE_REAL, dataspace, dset_id, error) ! create dataset
+! 	CALL h5dwrite_f(dset_id, H5T_NATIVE_REAL, tgrid, dumh51D, error) ! write the data
+! 	CALL h5_add_units_1D(dset_id, '[SI]',error)
+! 	CALL h5sclose_f(dataspace, error)
+! 	CALL h5dclose_f(dset_id, error)
 
-	CALL h5fclose_f(file_id, error)
-	CALL h5close_f(error) ! Close FORTRAN interface.
-	deallocate(rgrid,tgrid)
+! 	CALL h5fclose_f(file_id, error)
+! 	CALL h5close_f(error) ! Close FORTRAN interface.
+! 	deallocate(rgrid,tgrid)
 
-  ENDIF ! single-write end
+!   ENDIF ! single-write end
 
 
 	
