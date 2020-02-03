@@ -96,7 +96,7 @@ CONTAINS
 
     
 	 IF (my_rank.EQ.0) THEN ! still in development mode, keep for the instant
-	   print *, "HDF5 writting interation: ", HDF5write_count
+	   print *, "HDF5 writting iteration: ", HDF5write_count
 	 ENDIF
 
     
