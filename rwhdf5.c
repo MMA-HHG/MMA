@@ -66,9 +66,10 @@ int main(void)
 
 		const int ndims = H5Sget_simple_extent_ndims(dspace_id);
 		hsize_t dims[ndims];
+		printf("ndim is: %i \n",ndims);
 		H5Sget_simple_extent_dims(dspace_id, dims, NULL);
 
-		printf("Size is: %i \n",dims[*]);
+		printf("Size is: %i \n",dims[1]);
 
         // h5sget_simple_extent_dims(dspace_id, dims, maxdims)  //Getting dims from dataspace
 
