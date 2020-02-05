@@ -82,7 +82,7 @@ int main(void)
 		// read data
 		hid_t datatype  = H5Dget_type(dset_id);     /* datatype handle */
 
-		double tgrid[dims[0]][dims[1]]
+		double tgrid[dims[0]][dims[1]];
 
 		h5error = H5Dread(dset_id,  datatype, H5S_ALL, H5S_ALL, H5P_DEFAULT, tgrid);
 
