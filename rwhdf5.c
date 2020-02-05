@@ -48,6 +48,11 @@ The plot of the code development:
 
 
 
+// vars
+herr_t      h5error;
+
+
+
 int main(void)
 {	
 
@@ -58,20 +63,32 @@ int main(void)
 	int kr = 0;
 
 		// OPEN HDF5 file	
-        hid_t file_id = H5Fopen ("results.h5", H5F_ACC_RDWR, H5P_DEFAULT); // open file
+        hid_t file_id = H5Fopen ("results.h5", H5F_ACC_RDONLY, H5P_DEFAULT); // open file // H5F_ACC_RDWR
 
 		// find dimensions	
 		hid_t dset_id = H5Dopen2 (file_id, "IRProp/tgrid", H5P_DEFAULT); // open dataset	     
         hid_t dspace_id = H5Dget_space (dset_id); // Get the dataspace ID     
 
-		const int ndims = H5Sget_simple_extent_ndims(dspace_id);
-		hsize_t dims[ndims];
+		const int ndims = H5Sget_simple_extent_ndims(dspace_id); // number of dimensions in the grid
+		hsize_t dims[ndims]; // define dims variable
 		printf("ndim is: %i \n",ndims);
-		H5Sget_simple_extent_dims(dspace_id, dims, NULL);
+		H5Sget_simple_extent_dims(dspace_id, dims, NULL); // get dimensions
+
 
 		printf("Size 1 is: %i \n",dims[0]);
 		printf("Size 2 is: %i \n",dims[1]);
 		// printf("Size is: %i \n",dims[ndims]);
+
+		// read data
+		hid_t datatype  = H5Dget_type(dset_id);     /* datatype handle */
+
+		double tgrid[dims[0]][dims[1]]
+
+		h5error H5Dread(dset_id,  datatype, H5S_ALL, H5S_ALL, H5P_DEFAULT, tgrid);
+
+		printf("Size 2 is: %lf \n",tgrid[5]);
+			
+
 
         // h5sget_simple_extent_dims(dspace_id, dims, maxdims)  //Getting dims from dataspace
 
