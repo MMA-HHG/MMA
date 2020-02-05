@@ -61,7 +61,7 @@ int main(void)
         hid_t file_id = H5Fopen ("results.h5", H5F_ACC_RDWR, H5P_DEFAULT); // open file
 
 		// find dimensions	
-		hid_t dset_id = H5Dopen2 (file_id, "/IRProp/tgrid ", H5P_DEFAULT); // open dataset	     
+		hid_t dset_id = H5Dopen2 (file_id, "IRProp/tgrid", H5P_DEFAULT); // open dataset	     
         hid_t dspace_id = H5Dget_space (dset_id); // Get the dataspace ID     
         // h5sget_simple_extent_dims(dspace_id, dims, maxdims)  //Getting dims from dataspace
 
