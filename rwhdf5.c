@@ -87,7 +87,7 @@ int main(void)
 		h5error = H5Dread(dset_id,  datatype, H5S_ALL, H5S_ALL, H5P_DEFAULT, tgrid);
 
 		printf("test1: %lf \n",tgrid[5][0]);
-		printf("test2: %e \n",tgrid[5][0]);
+		printf("test2: %e \n",tgrid[5][0]); 
 			
 
 
