@@ -63,6 +63,13 @@ int main(void)
 		// find dimensions	
 		hid_t dset_id = H5Dopen2 (file_id, "IRProp/tgrid", H5P_DEFAULT); // open dataset	     
         hid_t dspace_id = H5Dget_space (dset_id); // Get the dataspace ID     
+
+		const int ndims = H5Sget_simple_extent_ndims(dspace_id);
+		hsize_t dims[ndims];
+		H5Sget_simple_extent_dims(dspace_id, dims, NULL);
+
+		printf("Size is: %i \n",dims);
+
         // h5sget_simple_extent_dims(dspace_id, dims, maxdims)  //Getting dims from dataspace
 
 		// allocate fields
