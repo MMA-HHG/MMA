@@ -49,7 +49,7 @@ The plot of the code development:
 
 
 // vars
-herr_t      h5error;
+herr_t  h5error;
 
 
 
