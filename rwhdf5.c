@@ -50,24 +50,25 @@ The plot of the code development:
 
 int main(void)
 {	
-	Pi = acos(-1.);
+
+	printf("program's running\n");
 
 	// TESTING VARIABLES
 	int kz = 0;
 	int kr = 0;
 
 		// OPEN HDF5 file	
-        file_id = H5Fopen ("results.h5", H5F_ACC_RDWR, H5P_DEFAULT); // open file
+        hid_t file_id = H5Fopen ("results.h5", H5F_ACC_RDWR, H5P_DEFAULT); // open file
 
 		// find dimensions	
-		dataset_id = H5Dopen2 (file_id, "IRprop/tgrid ", H5P_DEFAULT); // open dataset	     
-        dspace_id=h5dget_space(dset_id); // Get the dataspace ID     
-        h5sget_simple_extent_dims(dspace_id, dims, maxdims)  //Getting dims from dataspace
+		hid_t dataset_id = H5Dopen2 (file_id, "IRprop/tgrid ", H5P_DEFAULT); // open dataset	     
+        hid_t dspace_id=h5dget_space(dset_id); // Get the dataspace ID     
+        // h5sget_simple_extent_dims(dspace_id, dims, maxdims)  //Getting dims from dataspace
 
 		// allocate fields
 
 		// set hyperslab
-		dataset_id = H5Dopen2 (file_id, "IRprop/Fields_rzt", H5P_DEFAULT); // open dataset
+		// dataset_id = H5Dopen2 (file_id, "IRprop/Fields_rzt", H5P_DEFAULT); // open dataset
 
 		// load fields
 
