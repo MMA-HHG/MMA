@@ -86,7 +86,7 @@ int main(void)
 
 		h5error = H5Dread(dset_id,  datatype, H5S_ALL, H5S_ALL, H5P_DEFAULT, tgrid);
 
-		printf("Size 2 is: %lf \n",tgrid[5]);
+		printf("Size 2 is: %lf \n",tgrid[5][0]);
 			
 
 
