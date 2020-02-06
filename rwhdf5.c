@@ -68,7 +68,6 @@ int main(void)
 		// find dimensions	
 		hid_t dset_id = H5Dopen2 (file_id, "IRProp/tgrid", H5P_DEFAULT); // open dataset	     
         hid_t dspace_id = H5Dget_space (dset_id); // Get the dataspace ID     
-
 		const int ndims = H5Sget_simple_extent_ndims(dspace_id); // number of dimensions in the grid
 		hsize_t dims[ndims]; // define dims variable
 		printf("ndim is: %i \n",ndims);
@@ -88,7 +87,31 @@ int main(void)
 
 		printf("test1: %lf \n",tgrid[5][0]);
 		printf("test2: %e \n",tgrid[5][0]); 
+
+		/* Close the dataset. */
+		h5error = H5Dclose(dset_id);
 			
+
+		// test hyperslab
+		// find dimensions	
+		hid_t dset_id = H5Dopen2 (file_id, "IRProp/Fields_rzt", H5P_DEFAULT); // open dataset	     
+        hid_t dspace_id = H5Dget_space (dset_id); // Get the dataspace ID     
+		const int ndims2 = H5Sget_simple_extent_ndims(dspace_id); // number of dimensions in the grid
+		hsize_t dims2[ndims2]; // define dims variable
+		printf("ndim is: %i \n",ndims2);
+		H5Sget_simple_extent_dims(dspace_id, dims2, NULL); // get dimensions
+		printf("Size 1 is: %i \n",dims2[0]);	printf("Size 2 is: %i \n",dims2[1]); printf("Size 3 is: %i \n",dims2[2]);
+		datatype  = H5Dget_type(dset_id);     /* datatype handle */
+		double Fields[dims2[0]][dims2[1]][dims2[2]];
+		h5error = H5Dread(dset_id,  datatype, H5S_ALL, H5S_ALL, H5P_DEFAULT, Fileds);
+
+		printf("test1: %lf \n",Fileds[1][1][1]);
+		printf("test2: %e \n",Fileds[2][2][2]); 
+
+
+
+
+
 
 
         // h5sget_simple_extent_dims(dspace_id, dims, maxdims)  //Getting dims from dataspace
