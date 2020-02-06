@@ -94,8 +94,8 @@ int main(void)
 
 		// test hyperslab
 		// find dimensions	
-		hid_t dset_id = H5Dopen2 (file_id, "IRProp/Fields_rzt", H5P_DEFAULT); // open dataset	     
-        hid_t dspace_id = H5Dget_space (dset_id); // Get the dataspace ID     
+		dset_id = H5Dopen2 (file_id, "IRProp/Fields_rzt", H5P_DEFAULT); // open dataset	     
+        dspace_id = H5Dget_space (dset_id); // Get the dataspace ID     
 		const int ndims2 = H5Sget_simple_extent_ndims(dspace_id); // number of dimensions in the grid
 		hsize_t dims2[ndims2]; // define dims variable
 		printf("ndim is: %i \n",ndims2);
