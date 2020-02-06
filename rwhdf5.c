@@ -103,7 +103,7 @@ int main(void)
 		printf("Size 1 is: %i \n",dims2[0]);	printf("Size 2 is: %i \n",dims2[1]); printf("Size 3 is: %i \n",dims2[2]);
 		datatype  = H5Dget_type(dset_id);     /* datatype handle */
 		double Fields[dims2[0]][dims2[1]][dims2[2]];
-		h5error = H5Dread(dset_id,  datatype, H5S_ALL, H5S_ALL, H5P_DEFAULT, Fileds);
+		h5error = H5Dread(dset_id,  datatype, H5S_ALL, H5S_ALL, H5P_DEFAULT, Fields);
 
 		printf("test1: %lf \n",Fileds[1][1][1]);
 		printf("test2: %e \n",Fileds[2][2][2]); 
