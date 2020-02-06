@@ -105,8 +105,8 @@ int main(void)
 		double Fields[dims2[0]][dims2[1]][dims2[2]];
 		h5error = H5Dread(dset_id,  datatype, H5S_ALL, H5S_ALL, H5P_DEFAULT, Fields);
 
-		printf("test1: %lf \n",Fileds[1][1][1]);
-		printf("test2: %e \n",Fileds[2][2][2]); 
+		printf("test1: %lf \n",Fields[1][1][1]);
+		printf("test2: %e \n",Fields[2][2][2]); 
 
 
 
