@@ -167,6 +167,14 @@ int main(int argc, char *argv[])
 		
 
 		// HERE WE TEST MUTEX FOR PRINTING, I added myrank as the offset for each worker
+
+		// synchro according to https://www.mpi-forum.org/docs/mpi-3.0/mpi30-report.pdf
+
+		int assert
+		MPI_Win win
+
+		MPI_Win_lock(MPI_LOCK_EXCLUSIVE, myrank, assert, win); // not sure with the type of the lock Indicates whether other processes may access the target window at the same time (if MPI_LOCK_SHARED) or not (MPI_LOCK_EXCLUSIVE)
+	
 		printf("1 I am node %d of %d\n", myrank, nprocs);
 		printf("2 I am node %d of %d\n", myrank, nprocs);
 		printf("3 I am node %d of %d\n", myrank, nprocs);
@@ -184,6 +192,9 @@ int main(int argc, char *argv[])
 
 
 		printf("process %d gives data %lf \n",myrank,Fields[2]);
+
+
+		MPI_Win_unlock(rank, win);
 
 		
 
