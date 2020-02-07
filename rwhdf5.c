@@ -65,6 +65,16 @@ int main(int argc, char *argv[])
 	MPI_Comm_size(MPI_COMM_WORLD, &nprocs);
 	MPI_Comm_rank(MPI_COMM_WORLD, &myrank);
 
+
+		printf("1 mutex  %d of %d\n", myrank, nprocs);
+		printf("2 mutex  %d of %d\n", myrank, nprocs);
+		printf("3 mutex  %d of %d\n", myrank, nprocs);
+		printf("4 mutex  %d of %d\n", myrank, nprocs);
+		printf("5 mutex  %d of %d\n", myrank, nprocs);
+		printf(" 6mutex  %d of %d\n", myrank, nprocs);
+		printf("7 mutex  %d of %d\n", myrank, nprocs);
+
+
 	// printf("I am node %d of %d\n", myrank, nprocs);
 
 	// printf("program's running\n");
@@ -150,7 +160,14 @@ int main(int argc, char *argv[])
 		printf("4 I am node %d of %d\n", myrank, nprocs);
 		printf("5 I am node %d of %d\n", myrank, nprocs);
 		printf("6 I am node %d of %d\n", myrank, nprocs);
-		printf("7 I am node %d of %d\n", myrank, nprocs); 
+		printf("7 I am node %d of %d\n", myrank, nprocs);
+		printf("8 I am node %d of %d\n", myrank, nprocs);
+		printf("9 I am node %d of %d\n", myrank, nprocs);
+		printf("10 I am node %d of %d\n", myrank, nprocs);
+		printf("11 I am node %d of %d\n", myrank, nprocs);
+		printf("12 I am node %d of %d\n", myrank, nprocs);
+		printf("13 I am node %d of %d\n", myrank, nprocs);
+		printf("14 I am node %d of %d\n", myrank, nprocs);  
 
 
 		printf("process %d gives data %lf \n",myrank,Fields[2]);
