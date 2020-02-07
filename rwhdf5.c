@@ -194,7 +194,7 @@ int main(int argc, char *argv[])
 		printf("process %d gives data %lf \n",myrank,Fields[2]);
 
 
-		MPI_Win_unlock(rank, win);
+		MPI_Win_unlock(myrank, win);
 
 		
 
