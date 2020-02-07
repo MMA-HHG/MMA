@@ -150,7 +150,7 @@ int main(int argc, char *argv[])
 		printf("4 I am node %d of %d\n", myrank, nprocs);
 		printf("5 I am node %d of %d\n", myrank, nprocs);
 		printf("6 I am node %d of %d\n", myrank, nprocs);
-		printf("7 I am node %d of %d\n", myrank, nprocs);
+		printf("7 I am node %d of %d\n", myrank, nprocs); 
 
 
 		printf("process %d gives data %lf \n",myrank,Fields[2]);
