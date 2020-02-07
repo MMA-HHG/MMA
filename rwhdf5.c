@@ -170,8 +170,8 @@ int main(int argc, char *argv[])
 
 		// synchro according to https://www.mpi-forum.org/docs/mpi-3.0/mpi30-report.pdf
 
-		int assert
-		MPI_Win win
+		int assert;
+		MPI_Win win;
 
 		MPI_Win_lock(MPI_LOCK_EXCLUSIVE, myrank, assert, win); // not sure with the type of the lock Indicates whether other processes may access the target window at the same time (if MPI_LOCK_SHARED) or not (MPI_LOCK_EXCLUSIVE)
 	
