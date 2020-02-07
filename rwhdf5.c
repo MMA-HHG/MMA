@@ -102,11 +102,29 @@ int main(void)
 		H5Sget_simple_extent_dims(dspace_id, dims2, NULL); // get dimensions
 		printf("Size 1 is: %i \n",dims2[0]);	printf("Size 2 is: %i \n",dims2[1]); printf("Size 3 is: %i \n",dims2[2]);
 		datatype  = H5Dget_type(dset_id);     /* datatype handle */
-		double Fields[dims2[0]][dims2[1]][dims2[2]];
-		h5error = H5Dread(dset_id,  datatype, H5S_ALL, H5S_ALL, H5P_DEFAULT, Fields);
+
+        int kz = 1;
+		int kr = 2;
+		//make selectoin
+		hsize_t  offset[ndims2];
+        hsize_t  stride[ndims2];
+        hsize_t  count[ndims2];
+        hsize_t  block[ndims2];
+		offset = {0,kr,kz};
+		stride = {1,1,1};
+		count = {dims2[0],1,1};
+		block = {1,1,1};
+
+		double Fields[dims2[0]][1][1]; // offset adds these extra 1-dimensions... is there a way to remove them?
+
+		h5error = H5Sselect_hyperslab (dspace_id, H5S_SELECT_SET, offset, stride, count, block);
+
+    	h5error = H5Dread (dset_id, datatype, H5S_ALL, dspace_id, H5P_DEFAULT, Fields);
+
+		// h5error = H5Dread(dset_id,  datatype, H5S_ALL, H5S_ALL, H5P_DEFAULT, Fields); // used for reading all
 
 		printf("test1: %lf \n",Fields[1][1][1]);
-		printf("test2: %e \n",Fields[2][2][2]); 
+		printf("test2: %e \n",Fields[2][2][1]); 
 
 
 
