@@ -65,7 +65,7 @@ int main(int argc, char *argv[])
 	MPI_Comm_size(MPI_COMM_WORLD, &nprocs);
 	MPI_Comm_rank(MPI_COMM_WORLD, &myrank);
 
-	printf("I am node %d of %d\n", myrank, nprocs);
+	// printf("I am node %d of %d\n", myrank, nprocs);
 
 	// printf("program's running\n");
 
@@ -115,7 +115,7 @@ int main(int argc, char *argv[])
 		datatype  = H5Dget_type(dset_id);     /* datatype handle */
 
         int kz = 1;
-		int kr = 2;
+		int kr = myrank;
 		//make selectoin
 		hsize_t  offset[ndims2];
         hsize_t  stride[ndims2];
@@ -142,6 +142,11 @@ int main(int argc, char *argv[])
 		// 	printf("%lf \n",Fields[k1]);
 		// }
 		
+
+		// HERE WE TEST MUTEX FOR PRINTING, I added myrank as the offset for each worker
+		printf("I am node %d of %d\n", myrank, nprocs);
+		printf("process %d gives data %lf \n",myrank,Fields[2]);
+
 		
 
 		// printf("test1: %lf \n",Fields[1][1][1]);
