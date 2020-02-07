@@ -118,7 +118,7 @@ int main(void)
 
 		double Fields[dims2[0]]; // offset adds these extra 1-dimensions... is there a way to remove them?
 
-		int field_dims[1];
+		hsize_t field_dims[1];
 		field_dims[0] = dims2[0];
 		hid_t memspace_id = H5Screate_simple(1,field_dims,NULL);
 
