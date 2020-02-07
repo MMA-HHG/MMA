@@ -120,7 +120,7 @@ int main(void)
 
 		int field_dims[1];
 		field_dims[0] = dims2[0];
-		hid_t memspace_id = H5Screate_simple(1,field_dims[0],NULL);
+		hid_t memspace_id = H5Screate_simple(1,field_dims,NULL);
 
 		h5error = H5Sselect_hyperslab (dspace_id, H5S_SELECT_SET, offset, stride, count, block);
     	h5error = H5Dread (dset_id, datatype, memspace_id, dspace_id, H5P_DEFAULT, Fields);
@@ -129,7 +129,7 @@ int main(void)
 
 		printf("test1: \n");
 		for(k1 = 0 ; k1 <= 5 ; k1++){
-			printf("%lf \n",Fields[k1][1][1]);
+			printf("%lf \n",Fields[k1]);
 		}
 		
 		
