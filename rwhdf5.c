@@ -60,8 +60,8 @@ int main(void)
 	printf("program's running\n");
 
 	// TESTING VARIABLES
-	int kz = 0;
-	int kr = 0;
+	// int kz = 0;
+	// int kr = 0;
 
 		// OPEN HDF5 file	
         hid_t file_id = H5Fopen ("results.h5", H5F_ACC_RDONLY, H5P_DEFAULT); // open file // H5F_ACC_RDWR
@@ -111,10 +111,10 @@ int main(void)
         hsize_t  stride[ndims2];
         hsize_t  count[ndims2];
         hsize_t  block[ndims2];
-		offset = {0,kr,kz};
-		stride = {1,1,1};
-		count = {dims2[0],1,1};
-		block = {1,1,1};
+		offset[0] = 0; offset[1] = kr; offset[2] = kz; 
+		stride[0] = 1; stride[1] = 1; stride[2] = 1;
+		count[0] = dims2[0]; count[1] = 1; count[2] = 1;
+		block[0] = 1; block[1] = 1; block[2] = 1;
 
 		double Fields[dims2[0]][1][1]; // offset adds these extra 1-dimensions... is there a way to remove them?
 
