@@ -38,11 +38,13 @@ The plot of the code development:
 */
 #include<time.h> 
 #include<stdio.h>
+#include <mpi.h>
 #include<stdlib.h>
 #include<malloc.h>
 #include<math.h>
 #include "hdf5.h"
 #include "util.h"
+
 
 //#pragma warning( disable : 4996 ) // warning for fopen in visual 2005
 
@@ -54,10 +56,18 @@ int k1;
 
 
 
-int main(void) 
+int main(int argc, char *argv[]) 
 {	
 
-	printf("program's running\n");
+	int myrank, nprocs;
+
+	MPI_Init(&argc, &argv);
+	MPI_Comm_size(MPI_COMM_WORLD, &nprocs);
+	MPI_Comm_rank(MPI_COMM_WORLD, &myrank);
+
+	printf("I am node %d of %d\n", myrank, nprocs);
+
+	// printf("program's running\n");
 
 	// TESTING VARIABLES
 	// int kz = 0;
@@ -71,12 +81,12 @@ int main(void)
         hid_t dspace_id = H5Dget_space (dset_id); // Get the dataspace ID     
 		const int ndims = H5Sget_simple_extent_ndims(dspace_id); // number of dimensions in the grid
 		hsize_t dims[ndims]; // define dims variable
-		printf("ndim is: %i \n",ndims);
+		// printf("ndim is: %i \n",ndims);
 		H5Sget_simple_extent_dims(dspace_id, dims, NULL); // get dimensions
 
 
-		printf("Size 1 is: %i \n",dims[0]);
-		printf("Size 2 is: %i \n",dims[1]);
+		// printf("Size 1 is: %i \n",dims[0]);
+		// printf("Size 2 is: %i \n",dims[1]);
 		// printf("Size is: %i \n",dims[ndims]);
 
 		// read data
@@ -86,8 +96,8 @@ int main(void)
 
 		h5error = H5Dread(dset_id,  datatype, H5S_ALL, H5S_ALL, H5P_DEFAULT, tgrid);
 
-		printf("test1: %lf \n",tgrid[5][0]);
-		printf("test2: %e \n",tgrid[5][0]); 
+		// printf("test1: %lf \n",tgrid[5][0]);
+		// printf("test2: %e \n",tgrid[5][0]); 
 
 		/* Close the dataset. */
 		h5error = H5Dclose(dset_id);
@@ -99,9 +109,9 @@ int main(void)
         dspace_id = H5Dget_space (dset_id); // Get the dataspace ID     
 		const int ndims2 = H5Sget_simple_extent_ndims(dspace_id); // number of dimensions in the grid
 		hsize_t dims2[ndims2]; // define dims variable
-		printf("ndim is: %i \n",ndims2);
+		// printf("ndim is: %i \n",ndims2);
 		H5Sget_simple_extent_dims(dspace_id, dims2, NULL); // get dimensions
-		printf("Size 1 is: %i \n",dims2[0]);	printf("Size 2 is: %i \n",dims2[1]); printf("Size 3 is: %i \n",dims2[2]);
+		// printf("Size 1 is: %i \n",dims2[0]);	printf("Size 2 is: %i \n",dims2[1]); printf("Size 3 is: %i \n",dims2[2]);
 		datatype  = H5Dget_type(dset_id);     /* datatype handle */
 
         int kz = 1;
@@ -127,10 +137,10 @@ int main(void)
 
 		// h5error = H5Dread(dset_id,  datatype, H5S_ALL, H5S_ALL, H5P_DEFAULT, Fields); // used for reading all
 
-		printf("test1: \n");
-		for(k1 = 0 ; k1 <= 5 ; k1++){
-			printf("%lf \n",Fields[k1]);
-		}
+		// printf("test1: \n");
+		// for(k1 = 0 ; k1 <= 5 ; k1++){
+		// 	printf("%lf \n",Fields[k1]);
+		// }
 		
 		
 
