@@ -54,7 +54,7 @@ int k1;
 
 
 
-int main(void)
+int main(void) 
 {	
 
 	printf("program's running\n");
