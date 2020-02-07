@@ -59,9 +59,22 @@ int k1;
 int main(int argc, char *argv[]) 
 {	
 
-	int myrank, nprocs;
+    // MPI according to thread support for mutexes, see https://stackoverflow.com/questions/14836560/thread-safety-of-mpi-send-using-threads-created-with-stdasync and the Hristo Iliev's answer      
 
-	MPI_Init(&argc, &argv);
+	// standard operation	 
+	int myrank, nprocs;
+	// MPI_Init(&argc, &argv); for non-threaded mpi
+
+	// threaded operation
+	int provided;
+	MPI_Init_thread(&argc, &argv, MPI_THREAD_MULTIPLE, &provided);
+	if (provided < MPI_THREAD_MULTIPLE)
+	{
+		printf("ERROR: The MPI library does not have full thread support\n");
+		MPI_Abort(MPI_COMM_WORLD, 1);
+	}
+
+
 	MPI_Comm_size(MPI_COMM_WORLD, &nprocs);
 	MPI_Comm_rank(MPI_COMM_WORLD, &myrank);
 
@@ -71,7 +84,7 @@ int main(int argc, char *argv[])
 		printf("3 mutex  %d of %d\n", myrank, nprocs);
 		printf("4 mutex  %d of %d\n", myrank, nprocs);
 		printf("5 mutex  %d of %d\n", myrank, nprocs);
-		printf(" 6mutex  %d of %d\n", myrank, nprocs);
+		printf("6 mutex  %d of %d\n", myrank, nprocs);
 		printf("7 mutex  %d of %d\n", myrank, nprocs);
 
 
