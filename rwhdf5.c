@@ -118,8 +118,10 @@ int main(void)
 
 		double Fields[dims2[0]][1][1]; // offset adds these extra 1-dimensions... is there a way to remove them?
 
+		hid_t memspace_id = H5Screate_simple(dims2[0],1,1);
+
 		h5error = H5Sselect_hyperslab (dspace_id, H5S_SELECT_SET, offset, stride, count, block);
-    	h5error = H5Dread (dset_id, datatype, H5S_ALL, dspace_id, H5P_DEFAULT, Fields);
+    	h5error = H5Dread (dset_id, datatype, memspace_id, dspace_id, H5P_DEFAULT, Fields);
 
 		// h5error = H5Dread(dset_id,  datatype, H5S_ALL, H5S_ALL, H5P_DEFAULT, Fields); // used for reading all
 
