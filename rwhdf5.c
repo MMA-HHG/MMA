@@ -50,6 +50,7 @@ The plot of the code development:
 
 // vars
 herr_t  h5error;
+int k1;
 
 
 
@@ -118,13 +119,19 @@ int main(void)
 		double Fields[dims2[0]][1][1]; // offset adds these extra 1-dimensions... is there a way to remove them?
 
 		h5error = H5Sselect_hyperslab (dspace_id, H5S_SELECT_SET, offset, stride, count, block);
-
     	h5error = H5Dread (dset_id, datatype, H5S_ALL, dspace_id, H5P_DEFAULT, Fields);
 
 		// h5error = H5Dread(dset_id,  datatype, H5S_ALL, H5S_ALL, H5P_DEFAULT, Fields); // used for reading all
 
-		printf("test1: %lf \n",Fields[1][1][1]);
-		printf("test2: %e \n",Fields[2][2][1]); 
+		printf("test1: \n");
+		for(k1 = 0 ; k1 <= 5 ; k1++){
+			printf("%lf \n",Fields[k1][1][1]);
+		}
+		
+		
+
+		// printf("test1: %lf \n",Fields[1][1][1]);
+		// printf("test2: %e \n",Fields[2][2][1]); 
 
 
 
