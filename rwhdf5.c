@@ -144,7 +144,15 @@ int main(int argc, char *argv[])
 		
 
 		// HERE WE TEST MUTEX FOR PRINTING, I added myrank as the offset for each worker
-		printf("I am node %d of %d\n", myrank, nprocs);
+		printf("1 I am node %d of %d\n", myrank, nprocs);
+		printf("2 I am node %d of %d\n", myrank, nprocs);
+		printf("3 I am node %d of %d\n", myrank, nprocs);
+		printf("4 I am node %d of %d\n", myrank, nprocs);
+		printf("5 I am node %d of %d\n", myrank, nprocs);
+		printf("6 I am node %d of %d\n", myrank, nprocs);
+		printf("7 I am node %d of %d\n", myrank, nprocs);
+
+
 		printf("process %d gives data %lf \n",myrank,Fields[2]);
 
 		
