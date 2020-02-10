@@ -51,7 +51,7 @@ The plot of the code development:
 
 
 // vars
-// herr_t  h5error;
+herr_t  h5error;
 int k1;
 
 int MPE_MUTEX_KEYVAL;
@@ -93,90 +93,90 @@ int main(int argc, char *argv[])
 
 	// printf("program's running\n");
 
-	// // TESTING VARIABLES
-	// // int kz = 0;
-	// // int kr = 0;
+	// TESTING VARIABLES
+	// int kz = 0;
+	// int kr = 0;
 
-	// 	// OPEN HDF5 file	
-    //     hid_t file_id = H5Fopen ("results.h5", H5F_ACC_RDONLY, H5P_DEFAULT); // open file // H5F_ACC_RDWR
+		// OPEN HDF5 file	
+        hid_t file_id = H5Fopen ("results.h5", H5F_ACC_RDONLY, H5P_DEFAULT); // open file // H5F_ACC_RDWR
 
-	// 	// find dimensions	
-	// 	hid_t dset_id = H5Dopen2 (file_id, "IRProp/tgrid", H5P_DEFAULT); // open dataset	     
-    //     hid_t dspace_id = H5Dget_space (dset_id); // Get the dataspace ID     
-	// 	const int ndims = H5Sget_simple_extent_ndims(dspace_id); // number of dimensions in the grid
-	// 	hsize_t dims[ndims]; // define dims variable
-	// 	// printf("ndim is: %i \n",ndims);
-	// 	H5Sget_simple_extent_dims(dspace_id, dims, NULL); // get dimensions
+		// find dimensions	
+		hid_t dset_id = H5Dopen2 (file_id, "IRProp/tgrid", H5P_DEFAULT); // open dataset	     
+        hid_t dspace_id = H5Dget_space (dset_id); // Get the dataspace ID     
+		const int ndims = H5Sget_simple_extent_ndims(dspace_id); // number of dimensions in the grid
+		hsize_t dims[ndims]; // define dims variable
+		// printf("ndim is: %i \n",ndims);
+		H5Sget_simple_extent_dims(dspace_id, dims, NULL); // get dimensions
 
 
-	// 	// printf("Size 1 is: %i \n",dims[0]);
-	// 	// printf("Size 2 is: %i \n",dims[1]);
-	// 	// printf("Size is: %i \n",dims[ndims]);
+		// printf("Size 1 is: %i \n",dims[0]);
+		// printf("Size 2 is: %i \n",dims[1]);
+		// printf("Size is: %i \n",dims[ndims]);
 
-	// 	// read data
-	// 	hid_t datatype  = H5Dget_type(dset_id);     /* datatype handle */
+		// read data
+		hid_t datatype  = H5Dget_type(dset_id);     /* datatype handle */
 
-	// 	double tgrid[dims[0]][dims[1]];
+		double tgrid[dims[0]][dims[1]];
 
-	// 	h5error = H5Dread(dset_id,  datatype, H5S_ALL, H5S_ALL, H5P_DEFAULT, tgrid);
+		h5error = H5Dread(dset_id,  datatype, H5S_ALL, H5S_ALL, H5P_DEFAULT, tgrid);
 
-	// 	// printf("test1: %lf \n",tgrid[5][0]);
-	// 	// printf("test2: %e \n",tgrid[5][0]); 
+		// printf("test1: %lf \n",tgrid[5][0]);
+		// printf("test2: %e \n",tgrid[5][0]); 
 
-	// 	/* Close the dataset. */
-	// 	h5error = H5Dclose(dset_id);
+		/* Close the dataset. */
+		h5error = H5Dclose(dset_id);
 			
 
-	// 	// test hyperslab
-	// 	// find dimensions	
-	// 	dset_id = H5Dopen2 (file_id, "IRProp/Fields_rzt", H5P_DEFAULT); // open dataset	     
-    //     dspace_id = H5Dget_space (dset_id); // Get the dataspace ID     
-	// 	const int ndims2 = H5Sget_simple_extent_ndims(dspace_id); // number of dimensions in the grid
-	// 	hsize_t dims2[ndims2]; // define dims variable
-	// 	// printf("ndim is: %i \n",ndims2);
-	// 	H5Sget_simple_extent_dims(dspace_id, dims2, NULL); // get dimensions
-	// 	// printf("Size 1 is: %i \n",dims2[0]);	printf("Size 2 is: %i \n",dims2[1]); printf("Size 3 is: %i \n",dims2[2]);
-	// 	datatype  = H5Dget_type(dset_id);     /* datatype handle */
+		// test hyperslab
+		// find dimensions	
+		dset_id = H5Dopen2 (file_id, "IRProp/Fields_rzt", H5P_DEFAULT); // open dataset	     
+        dspace_id = H5Dget_space (dset_id); // Get the dataspace ID     
+		const int ndims2 = H5Sget_simple_extent_ndims(dspace_id); // number of dimensions in the grid
+		hsize_t dims2[ndims2]; // define dims variable
+		// printf("ndim is: %i \n",ndims2);
+		H5Sget_simple_extent_dims(dspace_id, dims2, NULL); // get dimensions
+		// printf("Size 1 is: %i \n",dims2[0]);	printf("Size 2 is: %i \n",dims2[1]); printf("Size 3 is: %i \n",dims2[2]);
+		datatype  = H5Dget_type(dset_id);     /* datatype handle */
 
-    //     int kz = 1;
-	// 	int kr = myrank;
-	// 	//make selectoin
-	// 	hsize_t  offset[ndims2];
-    //     hsize_t  stride[ndims2];
-    //     hsize_t  count[ndims2];
-    //     hsize_t  block[ndims2];
-	// 	offset[0] = 0; offset[1] = kr; offset[2] = kz; 
-	// 	stride[0] = 1; stride[1] = 1; stride[2] = 1;
-	// 	count[0] = dims2[0]; count[1] = 1; count[2] = 1;
-	// 	block[0] = 1; block[1] = 1; block[2] = 1;
+        int kz = 1;
+		int kr = myrank;
+		//make selectoin
+		hsize_t  offset[ndims2];
+        hsize_t  stride[ndims2];
+        hsize_t  count[ndims2];
+        hsize_t  block[ndims2];
+		offset[0] = 0; offset[1] = kr; offset[2] = kz; 
+		stride[0] = 1; stride[1] = 1; stride[2] = 1;
+		count[0] = dims2[0]; count[1] = 1; count[2] = 1;
+		block[0] = 1; block[1] = 1; block[2] = 1;
 
-	// 	double Fields[dims2[0]]; // offset adds these extra 1-dimensions... is there a way to remove them?
+		double Fields[dims2[0]]; // offset adds these extra 1-dimensions... is there a way to remove them?
 
-	// 	hsize_t field_dims[1];
-	// 	field_dims[0] = dims2[0];
-	// 	hid_t memspace_id = H5Screate_simple(1,field_dims,NULL);
+		hsize_t field_dims[1];
+		field_dims[0] = dims2[0];
+		hid_t memspace_id = H5Screate_simple(1,field_dims,NULL);
 
-	// 	h5error = H5Sselect_hyperslab (dspace_id, H5S_SELECT_SET, offset, stride, count, block);
-    // 	h5error = H5Dread (dset_id, datatype, memspace_id, dspace_id, H5P_DEFAULT, Fields);
+		h5error = H5Sselect_hyperslab (dspace_id, H5S_SELECT_SET, offset, stride, count, block);
+    	h5error = H5Dread (dset_id, datatype, memspace_id, dspace_id, H5P_DEFAULT, Fields);
 
-	// 	// h5error = H5Dread(dset_id,  datatype, H5S_ALL, H5S_ALL, H5P_DEFAULT, Fields); // used for reading all
+		// h5error = H5Dread(dset_id,  datatype, H5S_ALL, H5S_ALL, H5P_DEFAULT, Fields); // used for reading all
 
-	// 	// printf("test1: \n");
-	// 	// for(k1 = 0 ; k1 <= 5 ; k1++){
-	// 	// 	printf("%lf \n",Fields[k1]);
-	// 	// }
+		// printf("test1: \n");
+		// for(k1 = 0 ; k1 <= 5 ; k1++){
+		// 	printf("%lf \n",Fields[k1]);
+		// }
 		
 
-	// 	// HERE WE TEST MUTEX FOR PRINTING, I added myrank as the offset for each worker
+		// HERE WE TEST MUTEX FOR PRINTING, I added myrank as the offset for each worker
 
-	// 	// synchro according to https://www.mpi-forum.org/docs/mpi-3.0/mpi30-report.pdf
+		// synchro according to https://www.mpi-forum.org/docs/mpi-3.0/mpi30-report.pdf
 
-	// 	// https://cvw.cac.cornell.edu/MPIoneSided/lul
+		// https://cvw.cac.cornell.edu/MPIoneSided/lul
 
 		int assert;
-		MPI_Win win;
+		// MPI_Win win;
 
-		MPI_Win_lock(MPI_LOCK_EXCLUSIVE, myrank, assert, win); // not sure with the type of the lock Indicates whether other processes may access the target window at the same time (if MPI_LOCK_SHARED) or not (MPI_LOCK_EXCLUSIVE)
+		// MPI_Win_lock(MPI_LOCK_EXCLUSIVE, myrank, assert, win); // not sure with the type of the lock Indicates whether other processes may access the target window at the same time (if MPI_LOCK_SHARED) or not (MPI_LOCK_EXCLUSIVE)
 	
 		printf("1 I am node %d of %d\n", myrank, nprocs);
 		printf("2 I am node %d of %d\n", myrank, nprocs);
@@ -198,7 +198,7 @@ int main(int argc, char *argv[])
 		printf("process %d gives data \n",myrank);
 
 
-		MPI_Win_unlock(myrank, win);
+		// MPI_Win_unlock(myrank, win);
 
 		
 
