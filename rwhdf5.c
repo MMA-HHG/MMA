@@ -170,6 +170,8 @@ int main(int argc, char *argv[])
 
 		// synchro according to https://www.mpi-forum.org/docs/mpi-3.0/mpi30-report.pdf
 
+		// https://cvw.cac.cornell.edu/MPIoneSided/lul
+
 		int assert;
 		MPI_Win win;
 
