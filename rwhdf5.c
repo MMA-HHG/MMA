@@ -54,6 +54,7 @@ The plot of the code development:
 // herr_t  h5error;
 int k1;
 
+int MPE_MUTEX_KEYVAL;
 
 
 int main(int argc, char *argv[]) 
