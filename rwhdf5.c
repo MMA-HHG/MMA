@@ -194,8 +194,8 @@ int main(int argc, char *argv[])
 		printf("14 I am node %d of %d\n", myrank, nprocs);  
 
 
-		// printf("process %d gives data %lf \n",myrank,Fields[2]);
-		printf("process %d gives data \n",myrank);
+		printf("process %d gives data %lf \n",myrank,Fields[2]);
+		// printf("process %d gives data \n",myrank);
 
 
 		// MPI_Win_unlock(myrank, win);
