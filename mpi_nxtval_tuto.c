@@ -28,7 +28,7 @@ MPI_Init(&argc,&argv);
 MPI_Comm_size(MPI_COMM_WORLD,&numprocs);
 MPI_Comm_rank(MPI_COMM_WORLD,&myid);
 
-MPE_setKeyval(0); // attempt
+// MPE_setKeyval(0); // attempt
 
 // create counter
 MPE_Counter_create(MPI_COMM_WORLD, &counter_win );
