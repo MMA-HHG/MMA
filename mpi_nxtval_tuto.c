@@ -14,6 +14,8 @@ We test MPI-windows here
 
 /* see desrption pg 198 MPI-2 */
 
+// github.com/shawfdong/ams250/blob/master/examples/mpi/Using_MPI/advanced/nxtval-test.c
+
 int main(int argc, char *argv[])
 {
 
