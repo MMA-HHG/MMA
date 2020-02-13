@@ -31,7 +31,7 @@ The plot of the code development:
 1) we leave the original parametric file, the only difference will be omitting the filenames. Istead of this there gonna be two indices (r and z). Matrix size will be leaded from the hfd5 archive.
 1.develop) first do only hdf5 stuff single run with fixed indices
 2) we use strided MPI simulations.
-2.develop) there should be an MPI-paradigm that allows to create a pool of jobs , we let a free process to take a job from the top of the buffer, implement it.
+2.develop) there should be an MPI-paradigm that allows to create a pool of jobs , we let a free process to take a job from the top of the buffer, implement it. Actually it shouldn't be diifficult once we have NXcounter from RMA-MPI.
 3) we use mutex to write into the hdf5 archive
 3.test) we include a direct printing in separated files in the testing mode
 
