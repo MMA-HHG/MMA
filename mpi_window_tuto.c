@@ -36,3 +36,4 @@ MPI_COMM_WORLD, &nwin);
 MPI_Win_create(MPI_BOTTOM, 0, 1, MPI_INFO_NULL,
 MPI_COMM_WORLD, &piwin);
 }
+}
