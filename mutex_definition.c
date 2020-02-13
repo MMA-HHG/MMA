@@ -1,6 +1,8 @@
 #include "mpi.h"
 
 
+// !!!!!!!!!!! see: https://www.mcs.anl.gov/research/projects/mpi/usingmpi/examples-advmpi/rma2/
+
 extern int MPE_MUTEX_KEYVAL;
 
 

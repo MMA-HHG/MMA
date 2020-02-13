@@ -66,7 +66,7 @@ int main(int argc, char *argv[])
 	int myrank, nprocs;
 	// MPI_Init(&argc, &argv); for non-threaded mpi
 
-	// threaded operation
+	// threaded operation / no idea if we need it this way
 	int provided;
 	MPI_Init_thread(&argc, &argv, MPI_THREAD_MULTIPLE, &provided);
 	if (provided < MPI_THREAD_MULTIPLE)
@@ -75,9 +75,14 @@ int main(int argc, char *argv[])
 		MPI_Abort(MPI_COMM_WORLD, 1);
 	}
 
-
 	MPI_Comm_size(MPI_COMM_WORLD, &nprocs);
 	MPI_Comm_rank(MPI_COMM_WORLD, &myrank);
+
+	
+	// MPI Win create keyval(MPI Win copy attr function *win copy attr fn, MPI Win delete attr function *win delete attr fn, int *win keyval,void *extra state)
+	void * extra_state;
+	MPI_Win_create_keyval(MPI_WIN_NULL_COPY_FN, MPI_WIN_NULL_DELETE_FN, *MPE_MUTEX_KEYVAL, extra_state); // it creates the Keyval for mutex
+
 
 
 		printf("1 mutex  %d of %d\n", myrank, nprocs);
