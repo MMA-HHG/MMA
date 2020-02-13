@@ -27,9 +27,9 @@ MPI_Comm_size(MPI_COMM_WORLD,&numprocs);
 MPI_Comm_rank(MPI_COMM_WORLD,&myid);
 
 // create counter
-MPE_Counter_create(MPI_COMM_WORLD, *counter_win )
+MPE_Counter_create(MPI_COMM_WORLD, *counter_win );
 
-MPE_Counter_nxtval( MPI_Win counter_win, *counter_value )
+MPE_Counter_nxtval( MPI_Win counter_win, *counter_value );
 
 printf("I am node %d of %d and my counter value is %d \n", myid, numprocs, counter_value);
 
