@@ -21,12 +21,14 @@ int myid, numprocs, i;
 
 int counter_value;
 
-int MPE_COUNTER_KEYVAL; // how to fix this?
+// int MPE_COUNTER_KEYVAL; // how to fix this?
 
 MPI_Win counter_win; // this is memory window for the counter
 MPI_Init(&argc,&argv);
 MPI_Comm_size(MPI_COMM_WORLD,&numprocs);
 MPI_Comm_rank(MPI_COMM_WORLD,&myid);
+
+MPE_setKeyval(0); // attempt
 
 // create counter
 MPE_Counter_create(MPI_COMM_WORLD, &counter_win );
