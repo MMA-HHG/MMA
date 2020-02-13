@@ -21,6 +21,8 @@ int myid, numprocs, i;
 
 int counter_value;
 
+int MPE_COUNTER_KEYVAL; // how to fix this?
+
 MPI_Win counter_win; // this is memory window for the counter
 MPI_Init(&argc,&argv);
 MPI_Comm_size(MPI_COMM_WORLD,&numprocs);
