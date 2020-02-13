@@ -1,7 +1,5 @@
 /*
 We test MPI-windows here
-
-It implements the tuto for numerical computing pi. origin "Using MPI-2, chapter 2.3.2"
 */
 #include<time.h> 
 #include<stdio.h>
@@ -14,67 +12,42 @@ It implements the tuto for numerical computing pi. origin "Using MPI-2, chapter 
 
 
 
-/* Compute pi by numerical integration, RMA version */
+/* see desrption pg 198 MPI-2 */
+
 int main(int argc, char *argv[])
 {
-    //  simulate the user inputs
-    int user_inputs[10] = {15, 10, 5, 25, 10, 15, 50, 60, 0, 15}; 
-    int iterator = 0;
+    
+int myid, numprocs, i;
 
-int n, myid, numprocs, i;
-double PI25DT = 3.141592653589793238462643;
-double mypi, pi, h, sum, x;
-MPI_Win nwin, piwin;
+
+MPI_Win counter_win; // this is memory window for the counter
 MPI_Init(&argc,&argv);
 MPI_Comm_size(MPI_COMM_WORLD,&numprocs);
 MPI_Comm_rank(MPI_COMM_WORLD,&myid);
+int counter[numprocs];
+
 if (myid == 0) {
-MPI_Win_create(&n, sizeof(int), 1, MPI_INFO_NULL,
-MPI_COMM_WORLD, &nwin);
-MPI_Win_create(&pi, sizeof(double), 1, MPI_INFO_NULL,
-MPI_COMM_WORLD, &piwin);
+// the counter memory sits in the first process's memory
+// tuto says its size dimension should contain all the ranks
+MPI_Win_create(&counter, numprocs*sizeof(int), 1, MPI_INFO_NULL, MPI_COMM_WORLD, &counter_win);
 }
 else {
-MPI_Win_create(MPI_BOTTOM, 0, 1, MPI_INFO_NULL,
-MPI_COMM_WORLD, &nwin);
-MPI_Win_create(MPI_BOTTOM, 0, 1, MPI_INFO_NULL,
-MPI_COMM_WORLD, &piwin);
+MPI_Win_create(MPI_BOTTOM, 0, 1, MPI_INFO_NULL, MPI_COMM_WORLD, &counter_win);
 }
 
-MPI_Win_fence(0, nwin);
-while (1) {
-if (myid == 0) {
-printf("Enter the number of intervals: (0 quits) \n");
-// fflush(stdout);
-// scanf("%d",&n);
-n = user_inputs[iterator];
-pi = 0.0;
+MPI_Win_fence(0, counter_win); // we have the counter window set
+
+
+if (myid == 0){
+printf("proc 0: Printing mine counter array \n");
+for (size_t i = 0; i < numprocs; i++)
+{
+    printf("the value %d \n",counter[i]);
 }
-MPI_Win_fence(0, nwin);
-if (myid != 0)
-MPI_Get(&n, 1, MPI_INT, 0, 0, 1, MPI_INT, nwin);
-MPI_Win_fence(0, nwin);
-if (n == 0)
-break;
-else {
-h = 1.0 / (double) n;
-sum = 0.0;
-for (i = myid + 1; i <= n; i += numprocs) {
-x = h * ((double)i - 0.5);
-sum += (4.0 / (1.0 + x*x));
+
+printf("pi is approximately %d, Error is %lf \n", pi, fabs(pi - PI25DT));
 }
-mypi = h * sum;
-MPI_Win_fence( 0, piwin);
-MPI_Accumulate(&mypi, 1, MPI_DOUBLE, 0, 0, 1, MPI_DOUBLE,
-MPI_SUM, piwin);
-MPI_Win_fence(0, piwin);
-if (myid == 0)
-printf("pi is approximately %lf, Error is %lf \n", pi, fabs(pi - PI25DT));
-}
-++iterator;
-}
-MPI_Win_free(&nwin);
-MPI_Win_free(&piwin);
+
 MPI_Finalize();
 return 0;
 }

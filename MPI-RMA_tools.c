@@ -3,7 +3,7 @@
 
 // !!!!!!!!!!! see: https://www.mcs.anl.gov/research/projects/mpi/usingmpi/examples-advmpi/rma2/
 
-extern int MPE_MUTEX_KEYVAL;
+// extern int MPE_MUTEX_KEYVAL;
 
 extern int MPE_COUNTER_KEYVAL;
 
@@ -33,6 +33,42 @@ myval_p = (int *)malloc( sizeof(int) );
 MPI_Win_set_attr( *counter_win, MPE_COUNTER_KEYVAL, myval_p );
 }
 
+
+int MPE_Counter_nxtval( MPI_Win counter_win, int *value )
+{
+MPI_Group group;
+int rank, size, myval, flag, i, *val, one = 1;
+MPI_Aint *myval_p;
+MPI_Win_get_group( counter_win, &group );
+MPI_Group_rank( group, &rank );
+MPI_Group_size( group, &size );
+MPI_Group_free( &group );
+MPI_Win_get_attr( counter_win, MPE_COUNTER_KEYVAL, &myval_p,
+&flag );
+myval = *myval_p;
+val = (int *)malloc ( size * sizeof(int) );
+MPI_Win_lock( MPI_LOCK_EXCLUSIVE, 0, 0, counter_win );
+for (i=0; i<size; i++) {
+if (i == rank)
+MPI_Accumulate( &one, 1, MPI_INT, 0, i, 1, MPI_INT,
+MPI_SUM, counter_win );
+else
+MPI_Get( &val[i], 1, MPI_INT, 0, i, 1, MPI_INT,
+counter_win );
+}
+MPI_Win_unlock( 0, counter_win );
+/* Add to our contribution */
+*myval_p = *myval_p + 1;
+/* Compute the overall value.
+Storing *myval_p into val[rank] and starting *value at zero
+would eliminate the if test */
+*value = myval;
+for (i=0; i<size; i++) {
+if (i != rank) *value = *value + val[i];
+}
+free ( val );
+return 0;
+}
 
 
 // int MPE_Mutex_acquire(MPI_Win mutex_win, int num) {
