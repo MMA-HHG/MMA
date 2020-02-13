@@ -18,7 +18,7 @@ It implements the tuto for numerical computing pi. origin "Using MPI-2, chapter 
 int main(int argc, char *argv[])
 {
     //  simulate the user inputs
-    int user_inputs[10] = {15, 10, 5, 25, 10, 15, 50, 60, 0, 15};
+    int user_inputs[10] = {15, 10, 5, 25, 10, 15, 50, 60, 0, 15}; 
     int iterator = 0;
 
 int n, myid, numprocs, i;
