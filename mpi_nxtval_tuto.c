@@ -25,6 +25,7 @@ MPI_Init(&argc,&argv);
 MPI_Comm_size(MPI_COMM_WORLD,&numprocs);
 MPI_Comm_rank(MPI_COMM_WORLD,&myid);
 int counter[numprocs];
+for (i = 0; i < numprocs; i++) { counter[i] = 0; } // set to 0;
 
 if (myid == 0) {
 // the counter memory sits in the first process's memory
