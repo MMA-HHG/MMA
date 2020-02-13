@@ -44,7 +44,7 @@ MPI_COMM_WORLD, &piwin);
 MPI_Win_fence(0, nwin);
 while (1) {
 if (myid == 0) {
-printf("Enter the number of intervals: (0 quits) ");
+printf("Enter the number of intervals: (0 quits) \n");
 // fflush(stdout);
 // scanf("%d",&n);
 n = user_inputs[iterator];
@@ -69,8 +69,7 @@ MPI_Accumulate(&mypi, 1, MPI_DOUBLE, 0, 0, 1, MPI_DOUBLE,
 MPI_SUM, piwin);
 MPI_Win_fence(0, piwin);
 if (myid == 0)
-printf("pi is approximately %. 16f, Error is %. 16f/n",
-pi, fabs(pi - PI25DT));
+printf("pi is approximately %lf, Error is %lf \n", pi, fabs(pi - PI25DT));
 }
 ++iterator;
 }
