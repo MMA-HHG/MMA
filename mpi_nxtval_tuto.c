@@ -16,7 +16,7 @@ We test MPI-windows here
 
 int main(int argc, char *argv[])
 {
-    
+
 int myid, numprocs, i;
 
 
@@ -40,12 +40,10 @@ MPI_Win_fence(0, counter_win); // we have the counter window set
 
 if (myid == 0){
 printf("proc 0: Printing mine counter array \n");
-for (size_t i = 0; i < numprocs; i++)
+for (i = 0; i < numprocs; i++)
 {
     printf("the value %d \n",counter[i]);
 }
-
-printf("pi is approximately %d, Error is %lf \n", pi, fabs(pi - PI25DT));
 }
 
 MPI_Finalize();
