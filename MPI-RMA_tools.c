@@ -13,13 +13,13 @@
 // extern int MPE_MUTEX_KEYVAL;
 
 // extern int MPE_COUNTER_KEYVAL;
-static int MPE_COUNTER_KEYVAL;
+int MPE_COUNTER_KEYVAL;
 
-void MPE_setKeyval(const int keyval) // taken from https://gitlab.isti.com/bbaker/libcps/blob/bc7be134f27f3b2828c2016cd69c4c925958fbea/nxtval.c
-{
-    MPE_COUNTER_KEYVAL = keyval;   
-    return;
-}
+// void MPE_setKeyval(const int keyval) // taken from https://gitlab.isti.com/bbaker/libcps/blob/bc7be134f27f3b2828c2016cd69c4c925958fbea/nxtval.c
+// {
+//     MPE_COUNTER_KEYVAL = keyval;   
+//     return;
+// }
 
 
 void MPE_Counter_create( MPI_Comm old_comm, MPI_Win *counter_win )
