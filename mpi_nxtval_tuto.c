@@ -34,27 +34,27 @@ MPI_Comm_rank(MPI_COMM_WORLD,&myid);
 // MPE_setKeyval(0); // attempt
 
 // create counter
-MPE_Counter_create(MPI_COMM_WORLD, &counter_win );
+MPE_Counter_create(MPI_COMM_WORLD,1, &counter_win );
 
 printf("I am node %d of %d and my counter value before addition is %d \n", myid, numprocs, counter_value);
 
 MPI_Win_fence(0, counter_win);
 
-MPE_Counter_nxtval( counter_win, &counter_value );
+MPE_Counter_nxtval( counter_win,1, &counter_value );
 
 MPI_Win_fence(0, counter_win);
 printf("I am node %d of %d and my counter value is %d \n", myid, numprocs, counter_value);
 printf("fence \n");
 fflush(stdout);
 
-MPE_Counter_nxtval( counter_win, &counter_value );
+MPE_Counter_nxtval( counter_win,1, &counter_value );
 
 MPI_Win_fence(0, counter_win);
 printf("I am node %d of %d and my counter value is %d \n", myid, numprocs, counter_value);
 printf("fence \n");
 fflush(stdout);
 
-MPE_Counter_nxtval( counter_win, &counter_value );
+MPE_Counter_nxtval( counter_win,1, &counter_value );
 
 printf("I am node %d of %d and my counter value is %d \n", myid, numprocs, counter_value);
 
