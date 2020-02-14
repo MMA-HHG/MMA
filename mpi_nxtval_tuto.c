@@ -42,7 +42,7 @@ MPI_Win_fence(0, counter_win);
 
 printf("I am node %d of %d and my key %d \n", myid, numprocs, MPE_COUNTER_KEYVAL);
 
-MPE_Counter_nxtval( counter_win,1, &counter_value, MPE_COUNTER_KEYVAL );
+MPE_Counter_nxtval( counter_win,0, &counter_value, MPE_COUNTER_KEYVAL );
 
 MPI_Win_fence(0, counter_win);
 printf("I am node %d of %d and my counter value is %d \n", myid, numprocs, counter_value);
@@ -54,7 +54,7 @@ MPI_Barrier(MPI_COMM_WORLD);
 printf("next step \n");
 fflush(stdout);
 
-MPE_Counter_nxtval( counter_win,1, &counter_value, MPE_COUNTER_KEYVAL );
+MPE_Counter_nxtval( counter_win,0, &counter_value, MPE_COUNTER_KEYVAL );
 
 MPI_Win_fence(0, counter_win);
 printf("I am node %d of %d and my counter value is %d \n", myid, numprocs, counter_value);
@@ -66,7 +66,7 @@ fflush(stdout);
 
 counter_value = 0;
 
-MPE_Counter_nxtval( counter_win,1, &counter_value, MPE_COUNTER_KEYVAL );
+MPE_Counter_nxtval( counter_win,0, &counter_value, MPE_COUNTER_KEYVAL );
 
 printf("I am node %d of %d and my counter value is %d \n", myid, numprocs, counter_value);
 
