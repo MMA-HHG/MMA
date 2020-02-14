@@ -38,14 +38,16 @@ if (counterSize > 0) {
 MPI_Alloc_mem(counterSize, MPI_INFO_NULL, &counterMem);
 for (i=0; i<lnum; i++) counterMem[i] = 0;
 }
-/* By using MPI_Alloc_mem first, we ensure that the initial
-value of the counters are zero. See text */
+/* By using MPI_Alloc_mem first, we ensure that the initial value of the counters are zero. See text */
 MPI_Win_create(counterMem, counterSize, sizeof(int),MPI_INFO_NULL, comm, counter_win);
 /* Create key if necessary and store the number of counters */
+printf("cc1: node %d, counter %d, addres %x \n", rank, MPE_COUNTER_KEYVAL, &MPE_COUNTER_KEYVAL);
 if (MPE_COUNTER_KEYVAL == MPI_KEYVAL_INVALID) {
 MPI_Win_create_keyval(MPI_WIN_NULL_COPY_FN, MPEi_CounterFree, &MPE_COUNTER_KEYVAL, NULL);
 }
+printf("cc2: node %d, counter %d, addres %x \n", rank, MPE_COUNTER_KEYVAL, &MPE_COUNTER_KEYVAL);
 MPI_Win_set_attr(*counter_win, MPE_COUNTER_KEYVAL, (void*)(MPI_Aint)num);
+printf("cc3: node %d, counter %d, addres %x \n", rank, MPE_COUNTER_KEYVAL, &MPE_COUNTER_KEYVAL);
 return MPE_COUNTER_KEYVAL;
 }
 
