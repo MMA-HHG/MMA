@@ -62,6 +62,7 @@ MPE_Mutex_acquire(mc_win, 1, MPE_MC_KEYVAL); // mutex sits on the second element
 
     MPE_Counter_nxtval( mc_win,0, &counter_value, MPE_MC_KEYVAL );
     printf("3 I am node %d of %d, counter value is %d \n", myid, numprocs, counter_value); fflush(stdout);
+    sleep(2);
 
 MPE_Mutex_release(mc_win, 1, MPE_MC_KEYVAL);
 
