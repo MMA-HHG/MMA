@@ -36,8 +36,10 @@ if (rank < lleft) lnum++;
 counterSize = lnum * sizeof(int);
 if (counterSize > 0) {
 MPI_Alloc_mem(counterSize, MPI_INFO_NULL, &counterMem);
-for (i=0; i<lnum; i++) counterMem[i] = 0;
+for (i=0; i<lnum; i++)
+{counterMem[i] = 0;
 printf("cmemory: node %d, index %d ,memory %d \n", rank, i, counterMem[i]);  
+}
 }
 /* By using MPI_Alloc_mem first, we ensure that the initial value of the counters are zero. See text */
 MPI_Win_create(counterMem, counterSize, sizeof(int),MPI_INFO_NULL, comm, counter_win);
