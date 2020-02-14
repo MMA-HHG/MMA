@@ -22,7 +22,7 @@ int main(int argc, char *argv[])
 
 int myid, numprocs, i;
 
-int counter_value = 0;
+int *counter_value;
 
 // int MPE_COUNTER_KEYVAL; // how to fix this?
 
@@ -61,6 +61,7 @@ fflush(stdout);
 MPE_Counter_nxtval( counter_win,1, counter_value, MPE_COUNTER_KEYVAL );
 
 printf("I am node %d of %d and my counter value is %d \n", myid, numprocs, counter_value);
+printf("I am node %d of %d and my counter value is %d \n", myid, numprocs, &counter_value);
 
 
 
