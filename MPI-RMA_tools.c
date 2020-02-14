@@ -13,7 +13,7 @@
 // extern int MPE_MUTEX_KEYVAL;
 
 // extern int MPE_COUNTER_KEYVAL;
-extern int MPE_COUNTER_KEYVAL = MPI_KEYVAL_INVALID;
+extern int MPE_COUNTER_KEYVAL; // = MPI_KEYVAL_INVALID;
 
 // void MPE_setKeyval(const int keyval) // taken from https://gitlab.isti.com/bbaker/libcps/blob/bc7be134f27f3b2828c2016cd69c4c925958fbea/nxtval.c
 // {
@@ -21,6 +21,7 @@ extern int MPE_COUNTER_KEYVAL = MPI_KEYVAL_INVALID;
 //     return;
 // }
 
+extern int MPEi_CounterFree(MPI_Win counter_win, int keyval, void *attr_val, void *extra_state);
 
 
 void MPE_Counter_create(MPI_Comm comm, int num, MPI_Win *counter_win) // MPI-3 version
@@ -43,9 +44,7 @@ MPI_Win_create(counterMem, counterSize, sizeof(int),
 MPI_INFO_NULL, comm, counter_win);
 /* Create key if necessary and store the number of counters */
 if (MPE_COUNTER_KEYVAL == MPI_KEYVAL_INVALID) {
-MPI_Win_create_keyval(MPI_WIN_NULL_COPY_FN,
-MPEi_CounterFree,
-&MPE_COUNTER_KEYVAL, NULL);
+MPI_Win_create_keyval(MPI_WIN_NULL_COPY_FN, MPEi_CounterFree, &MPE_COUNTER_KEYVAL, NULL);
 }
 MPI_Win_set_attr(*counter_win, MPE_COUNTER_KEYVAL,
 (void*)(MPI_Aint)num);
