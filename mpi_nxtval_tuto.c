@@ -11,6 +11,7 @@ We test MPI-windows here
 // #include "util.h"
 
 
+static int MPE_COUNTER_KEYVAL = MPI_KEYVAL_INVALID;
 
 /* see desrption pg 198 MPI-2 */
 
