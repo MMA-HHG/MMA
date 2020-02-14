@@ -9,7 +9,7 @@
 #include "MPI-RMA_tools.h"
 
 
-int MPE_Counter_nxtval(MPI_Win counterWin, int counterNum, int *value) // MPI-3 version 
+int MPE_Counter_nxtval(MPI_Win counterWin, int counterNum, int *value, int MPE_COUNTER_KEYVAL) // MPI-3 version 
 {
 const int one = 1;
 int lrank, flag, size, *attrval;

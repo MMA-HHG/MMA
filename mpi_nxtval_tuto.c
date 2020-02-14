@@ -11,7 +11,7 @@ We test MPI-windows here
 // #include "util.h"
 
 
-// static int MPE_COUNTER_KEYVAL = MPI_KEYVAL_INVALID;
+int MPE_COUNTER_KEYVAL;
 
 /* see desrption pg 198 MPI-2 */
 
@@ -34,27 +34,27 @@ MPI_Comm_rank(MPI_COMM_WORLD,&myid);
 // MPE_setKeyval(0); // attempt
 
 // create counter
-MPE_Counter_create(MPI_COMM_WORLD,1, &counter_win );
+MPE_COUNTER_KEYVAL = MPE_Counter_create(MPI_COMM_WORLD,1, &counter_win );
 
 printf("I am node %d of %d and my counter value before addition is %d \n", myid, numprocs, counter_value);
 
 MPI_Win_fence(0, counter_win);
 
-MPE_Counter_nxtval( counter_win,1, &counter_value );
+MPE_Counter_nxtval( counter_win,1, &counter_value, MPE_COUNTER_KEYVAL );
 
 MPI_Win_fence(0, counter_win);
 printf("I am node %d of %d and my counter value is %d \n", myid, numprocs, counter_value);
 printf("fence \n");
 fflush(stdout);
 
-MPE_Counter_nxtval( counter_win,1, &counter_value );
+MPE_Counter_nxtval( counter_win,1, &counter_value, MPE_COUNTER_KEYVAL );
 
 MPI_Win_fence(0, counter_win);
 printf("I am node %d of %d and my counter value is %d \n", myid, numprocs, counter_value);
 printf("fence \n");
 fflush(stdout);
 
-MPE_Counter_nxtval( counter_win,1, &counter_value );
+MPE_Counter_nxtval( counter_win,1, &counter_value, MPE_COUNTER_KEYVAL );
 
 printf("I am node %d of %d and my counter value is %d \n", myid, numprocs, counter_value);
 
