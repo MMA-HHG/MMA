@@ -50,7 +50,7 @@ printf("I am node %d of %d and my key %d \n", myid, numprocs, MPE_COUNTER_KEYVAL
 
 printf("fence \n");
 fflush(stdout);
-MPI_Barrier(MPI_COMM_WORLD)
+MPI_Barrier(MPI_COMM_WORLD);
 printf("next step \n");
 fflush(stdout);
 
@@ -60,7 +60,7 @@ MPI_Win_fence(0, counter_win);
 printf("I am node %d of %d and my counter value is %d \n", myid, numprocs, counter_value);
 printf("fence \n");
 fflush(stdout);
-MPI_Barrier(MPI_COMM_WORLD)
+MPI_Barrier(MPI_COMM_WORLD);
 printf("next step \n");
 fflush(stdout);
 
