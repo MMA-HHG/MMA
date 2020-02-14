@@ -45,8 +45,7 @@ MPI_Win_create(counterMem, counterSize, sizeof(int),MPI_INFO_NULL, comm, counter
 if (MPE_COUNTER_KEYVAL == MPI_KEYVAL_INVALID) {
 MPI_Win_create_keyval(MPI_WIN_NULL_COPY_FN, MPEi_CounterFree, &MPE_COUNTER_KEYVAL, NULL);
 }
-MPI_Win_set_attr(*counter_win, MPE_COUNTER_KEYVAL,
-(void*)(MPI_Aint)num);
+MPI_Win_set_attr(*counter_win, MPE_COUNTER_KEYVAL, (void*)(MPI_Aint)num);
 }
 
 
