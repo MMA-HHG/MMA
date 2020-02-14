@@ -6,10 +6,8 @@
 #include<math.h>
 #include "hdf5.h"
 #include "mpi.h"
+#include "MPI-RMA_tools.h"
 
-
-
-extern int MPE_COUNTER_KEYVAL;
 
 int MPE_Counter_nxtval(MPI_Win counterWin, int counterNum, int *value) // MPI-3 version 
 {
