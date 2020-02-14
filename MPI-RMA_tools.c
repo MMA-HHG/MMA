@@ -9,7 +9,7 @@
 
 
 
-extern MPE_COUNTER_KEYVAL;
+extern int MPE_COUNTER_KEYVAL;
 
 int MPE_Counter_nxtval(MPI_Win counterWin, int counterNum, int *value) // MPI-3 version 
 {
