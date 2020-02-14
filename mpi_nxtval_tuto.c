@@ -21,7 +21,7 @@ int main(int argc, char *argv[])
 
 int myid, numprocs, i;
 
-int counter_value;
+int counter_value = 0;
 
 // int MPE_COUNTER_KEYVAL; // how to fix this?
 
