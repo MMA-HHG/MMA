@@ -40,7 +40,7 @@ sleep(2);
 printf("3 I am node %d of %d\n", myid, numprocs); fflush(stdout);
 
 
-MPI_Barrier( MPI_COMM_WORLD );
+MPI_Barrier( MPI_COMM_WORLD ); 
 if (myid == 0) {printf("Mutexed outputs are here\n"); fflush(stdout);}
 MPI_Barrier( MPI_COMM_WORLD );
 
