@@ -13,10 +13,13 @@ https://support.hdfgroup.org/HDF5/Tutor/selectsimple.html
 After discussions, we try to test
 
 a)mutex 
+The main idea comes from the MPI3 book.
+(
 https://www.thegeekstuff.com/2012/05/c-mutex-examples/ https://www.geeksforgeeks.org/mutex-lock-for-linux-thread-synchronization/ .
 https://computing.llnl.gov/tutorials/pthreads/#Mutexes
 https://www.mcs.anl.gov/~robl/papers/ross_atomic-mpiio.pdf
 https://stackoverflow.com/questions/37236499/mpi-ensure-an-exclusive-access-to-a-shared-memory-rma
+)
 
 b) temporary files
 Each process writes in its own hdf5 file. There should be a way to do a "virtual" merging procedure: by using virtual datasets
@@ -30,8 +33,7 @@ All the code will be encapsulated in an MPI-loop.
 The plot of the code development:
 1) we leave the original parametric file, the only difference will be omitting the filenames. Istead of this there gonna be two indices (r and z). Matrix size will be leaded from the hfd5 archive.
 1.develop) first do only hdf5 stuff single run with fixed indices
-2) we use strided MPI simulations.
-2.develop) there should be an MPI-paradigm that allows to create a pool of jobs , we let a free process to take a job from the top of the buffer, implement it. Actually it shouldn't be diifficult once we have NXcounter from RMA-MPI.
+2) Pool of processes should be easy with NXTVAL from MPI3. We implement it directly. The RMA window for mutex and queue is shared.
 3) we use mutex to write into the hdf5 archive
 3.test) we include a direct printing in separated files in the testing mode
 
