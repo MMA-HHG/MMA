@@ -50,7 +50,7 @@ MPI_Win_set_attr( *counter_win, MPE_COUNTER_KEYVAL, myval_p );
 
 
 
-int MPE_Counter_nxtval(MPI_Win counterWin, int counterNum, int *value) // MPI-3 version
+int MPE_Counter_nxtval(MPI_Win counterWin, int counterNum, int *value) // MPI-3 version 
 {
 const int one = 1;
 int lrank, flag, size, *attrval;
