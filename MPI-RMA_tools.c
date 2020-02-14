@@ -49,45 +49,69 @@ MPI_Win_set_attr( *counter_win, MPE_COUNTER_KEYVAL, myval_p );
 }
 
 
-int MPE_Counter_nxtval( MPI_Win counter_win, int *value )
+
+int MPE_Counter_nxtval(MPI_Win counterWin, int counterNum, int *value) // MPI-3 version
 {
-MPI_Group group;
-int rank, size, myval, flag, i, *val, one = 1;
-MPI_Aint *myval_p;
-MPI_Win_get_group( counter_win, &group );
-MPI_Group_rank( group, &rank );
-MPI_Group_size( group, &size );
-MPI_Group_free( &group );
-MPI_Win_get_attr( counter_win, MPE_COUNTER_KEYVAL, &myval_p,
-&flag );
-myval = *myval_p;
-val = (int *)malloc ( size * sizeof(int) );
-MPI_Win_lock( MPI_LOCK_EXCLUSIVE, 0, 0, counter_win );
-for (i=0; i<size; i++) {
-if (i == rank)
-MPI_Accumulate( &one, 1, MPI_INT, 0, i, 1, MPI_INT,
-MPI_SUM, counter_win );
-else
-{
-MPI_Get( &val[i], 1, MPI_INT, 0, i, 1, MPI_INT,
-counter_win );
-printf("Node %d, reading %d, cval is value %d \n", rank, i, val[i]);
-fflush(stdout);
-}
-}
-MPI_Win_unlock( 0, counter_win );
-/* Add to our contribution */
-*myval_p = *myval_p + 1;
-/* Compute the overall value.
-Storing *myval_p into val[rank] and starting *value at zero
-would eliminate the if test */
-*value = myval;
-for (i=0; i<size; i++) {
-if (i != rank) *value = *value + val[i];
-}
-free ( val );
+const int one = 1;
+int lrank, flag, size, *attrval;
+MPI_Aint lidx;
+/* Compute the location of the counter */
+MPI_Win_get_attr(counterWin, MPE_COUNTER_KEYVAL, &attrval,
+&flag);
+if (!flag) return -1; /* Error: counterWin not correctly
+setup */
+size = (MPI_Aint)attrval; /* We stored the integer as a
+pointer */
+lrank = counterNum % size;
+lidx = counterNum / size;
+/* Update and return the counter */
+MPI_Win_lock(MPI_LOCK_SHARED, 0, lrank, counterWin);
+MPI_Fetch_and_op(&one, value, MPI_INT,
+lrank, lidx, MPI_SUM, counterWin);
+MPI_Win_unlock(lrank, counterWin);
 return 0;
 }
+
+
+// int MPE_Counter_nxtval( MPI_Win counter_win, int *value ) MPI-2 version
+// {
+// MPI_Group group;
+// int rank, size, myval, flag, i, *val, one = 1;
+// MPI_Aint *myval_p;
+// MPI_Win_get_group( counter_win, &group );
+// MPI_Group_rank( group, &rank );
+// MPI_Group_size( group, &size );
+// MPI_Group_free( &group );
+// MPI_Win_get_attr( counter_win, MPE_COUNTER_KEYVAL, &myval_p,
+// &flag );
+// myval = *myval_p;
+// val = (int *)malloc ( size * sizeof(int) );
+// MPI_Win_lock( MPI_LOCK_EXCLUSIVE, 0, 0, counter_win );
+// for (i=0; i<size; i++) {
+// if (i == rank)
+// MPI_Accumulate( &one, 1, MPI_INT, 0, i, 1, MPI_INT,
+// MPI_SUM, counter_win );
+// else
+// {
+// MPI_Get( &val[i], 1, MPI_INT, 0, i, 1, MPI_INT,
+// counter_win );
+// printf("Node %d, reading %d, cval is value %d \n", rank, i, val[i]);
+// fflush(stdout);
+// }
+// }
+// MPI_Win_unlock( 0, counter_win );
+// /* Add to our contribution */
+// *myval_p = *myval_p + 1;
+// /* Compute the overall value.
+// Storing *myval_p into val[rank] and starting *value at zero
+// would eliminate the if test */
+// *value = myval;
+// for (i=0; i<size; i++) {
+// if (i != rank) *value = *value + val[i];
+// }
+// free ( val );
+// return 0;
+// }
 
 
 // int MPE_Mutex_acquire(MPI_Win mutex_win, int num) {
