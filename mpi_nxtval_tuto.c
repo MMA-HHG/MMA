@@ -41,6 +41,10 @@ MPI_Win_fence(0, counter_win);
 
 MPE_Counter_nxtval( counter_win, &counter_value );
 
+MPI_Win_fence(0, counter_win);
+printf("fence \n");
+fflush(stdout);
+
 MPE_Counter_nxtval( counter_win, &counter_value );
 
 printf("I am node %d of %d and my counter value is %d \n", myid, numprocs, counter_value);

@@ -71,6 +71,7 @@ else
 MPI_Get( &val[i], 1, MPI_INT, 0, i, 1, MPI_INT,
 counter_win );
 printf("Node %d, reading %d, cval is value %d \n", rank, i, val[i]);
+fflush(stdout);
 }
 MPI_Win_unlock( 0, counter_win );
 /* Add to our contribution */
