@@ -30,7 +30,7 @@ MPI_Init(&argc,&argv);
 MPI_Comm_size(MPI_COMM_WORLD,&numprocs);
 MPI_Comm_rank(MPI_COMM_WORLD,&myid);
 
-printf("Non-mutexed outputs are here\n");
+if (myid == 0) { printf("Non-mutexed outputs are here\n"); fflush(stdout);}
 MPI_Barrier( MPI_COMM_WORLD );
 
 printf("1 I am node %d of %d\n", myid, numprocs);
@@ -40,7 +40,7 @@ sleep(2);
 printf("3 I am node %d of %d\n", myid, numprocs);
 
 
-printf("Mutexed outputs are here\n");
+if (myid == 0) {printf("Mutexed outputs are here\n"); fflush(stdout);}
 MPI_Barrier( MPI_COMM_WORLD );
 
 MPE_MUTEX_KEYVAL = MPE_Counter_create(MPI_COMM_WORLD,1, &mutex_win );
