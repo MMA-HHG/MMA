@@ -22,7 +22,7 @@ int main(int argc, char *argv[])
 
 int myid, numprocs, i;
 
-int counter_value;
+int counter_value = 0;
 
 // int MPE_COUNTER_KEYVAL; // how to fix this?
 
@@ -50,6 +50,9 @@ printf("I am node %d of %d and my key %d \n", myid, numprocs, MPE_COUNTER_KEYVAL
 
 printf("fence \n");
 fflush(stdout);
+MPI_Barrier(MPI_COMM_WORLD)
+printf("next step \n");
+fflush(stdout);
 
 MPE_Counter_nxtval( counter_win,1, &counter_value, MPE_COUNTER_KEYVAL );
 
@@ -57,6 +60,11 @@ MPI_Win_fence(0, counter_win);
 printf("I am node %d of %d and my counter value is %d \n", myid, numprocs, counter_value);
 printf("fence \n");
 fflush(stdout);
+MPI_Barrier(MPI_COMM_WORLD)
+printf("next step \n");
+fflush(stdout);
+
+counter_value = 0;
 
 MPE_Counter_nxtval( counter_win,1, &counter_value, MPE_COUNTER_KEYVAL );
 
