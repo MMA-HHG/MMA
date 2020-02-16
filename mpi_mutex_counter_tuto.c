@@ -1,5 +1,10 @@
 /*
 We test MPI3-mutex together with a counter, both placed in a shared window, we also test there is no interference
+
+this is the final tutorial that will be used in the TDSE procedure:
+
+mutexes will be there for writing, the counter will be used for assigning simulations to workers at the moment they finish their work.
+
 */
 #include<time.h> 
 #include<stdio.h>
