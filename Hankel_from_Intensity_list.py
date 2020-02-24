@@ -35,21 +35,20 @@ import mynumerics as mn
 
 
 ###################### THE PARAMETERS OF SIMULATION
+#inpath = os.path.join('sims11','z_000002') # path for TDSEs
 
-inpath = os.path.join('sims11','z_000002') # path for TDSEs
-inpath2 = 'sims11' # path for fields
-outpath = 'res' #'res8-2-dr16rm4' # path for results -dr2dr2rm2
-if os.path.exists(outpath) and os.path.isdir(outpath):
-  shutil.rmtree(outpath)
-  print('deleted previous results')
-os.mkdir(outpath)
+IntensityListFile = 'DipoleIntensityTabel_5k.h5' # path for fields
 
-## the type of the field
-MicroscopicModelType = 1; # 0-TDSE, 1 -phenomenological
+# loading
+file1 = h5py.File(IntensityListFile, 'r')
+Igrid = file1['Igrid'][:]
+omegagrid = file1['omegagrid'][:]
+FSourceterm = file1['FDipoleAccelarations'][:]
+FSourceterm = np.squeeze(FSourceterm[:,:,0] + 1j*FSourceterm[:,:,1]) # convert to complex numbers
 
 
- 
-LaserParams={ ## define macroscopic gaussian beam
+## params
+LaserParams={ ## define macroscopic gaussian beam # try also fancy reading directly here
 'w0' : 96.0e-6,
 'r_extend' : 4.0,
 'E0' : 0.075, 
@@ -58,6 +57,23 @@ LaserParams={ ## define macroscopic gaussian beam
 'phase0' : 0.0, # initial CEP
 'TFWHM' : 50e-15 # [SI]
 }
+
+# anlyses params
+z_medium = -0.003;
+
+rmax_anal = 0.3*0.008 # [SI] on screen # 0.0001
+Nr_anal=100 #750
+zmin_anal = 0.001 # !!!!!! now in thereference of the jet
+zmax_anal = 0.2
+Nz_anal = 200
+
+zgrid_anal = np.linspace(z_medium+zmin_anal,zmax_anal,Nz_anal)
+
+
+
+
+
+
 
 LaserParams['omega0'] = (2.0*np.pi*units.hbar*units.inverse_alpha_fine**2)/(LaserParams['lambda']*units.elmass*units.c_light) # find frequency in atomic units
 LaserParams['zR'] = np.pi*((LaserParams['w0'])**2)/LaserParams['lambda']
@@ -69,29 +85,14 @@ tcoeff = 4.5; # extension of tgrid
 #omegawidth = 4.0/np.sqrt(4000.0**2); # roughly corresponds to 100 fs
 
 zR = LaserParams['zR']
-
 I0 = 2.5e18;
 
-z_medium = -0.005;
-
-#w0 = 96e-6;
-PhenomParams = np.array([
-[1, 29, 35, 39], # harmonics
-[0.0, 500., 1775., 3600.], # alphas
-[3.0,3.0, 3.0, 3.0]
-])
-NumHarm = 4; # numbero of harmonics
 
 #print(PhenomParams)
 print(omega0,'omega0 in a.u.')
 #quit()
 
-## parameters of the screen, etc.
-rmax_anal = 0.3*0.008; # [SI] on screen # 0.0001
-Nr_anal=100; #750
-#zgrid_anal = np.array([0.5, 1.0, 2.0, 3.0]);  #D=3.0 # [SI], screen distance 1
-zgrid_anal = np.linspace(z_medium+0.001,0.2,200)
-Nz_anal = len(zgrid_anal);
+
 
 omegamin_anal = omega0*28.5 ;
 omegamax_anal = omega0*29.5 # 0.057*40.0 # 0.057*55.0
