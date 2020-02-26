@@ -79,7 +79,7 @@ Nr_anal=100 #750
 
 zmin_anal = 0.001 # !!!!!! now in the reference of the jet
 zmax_anal = 0.2
-Nz_anal = 200
+Nz_anal = 10 #200
 
 Hmin_anal = 28.5
 Hmax_anal = 29.5
@@ -207,12 +207,13 @@ omegagrid_anal=np.asarray(omegagrid_anal);
 
 
 # conceneate the results
-FHHGOnScreen = np.empty([Nz_anal,Nomega_points,Nr_anal], dtype=np.cdouble)
+FHHGOnScreen = np.empty([Nz_anal,Nomega_points,Nr_anal,2], dtype=np.double)
 for k1 in range(W): # loop over unsorted results
   for k2 in range(results[k1][1]): #  # of omegas computed by this worker
     for k3 in range(Nr_anal): # results in the radial grid
       for k4 in range(Nz_anal): # results in the z grid
-        FHHGOnScreen[k4, results[k1][0]-Nomega_anal_start+k2 , k3 ] = results[k1][2][k4][k2][k3] # we adjust the field index properly to the field it just sorts matrices the following way [A[1], A[2], ...], the indices are retrieved by the append mapping
+        FHHGOnScreen[k4, results[k1][0]-Nomega_anal_start+k2, k3, 0 ] = results[k1][2][k4][k2][k3].real # we adjust the field index properly to the field it just sorts matrices the following way [A[1], A[2], ...], the indices are retrieved by the append mapping
+        FHHGOnScreen[k4, results[k1][0] - Nomega_anal_start + k2, k3, 1] = results[k1][2][k4][k2][k3].imag
 #      FHHGOnScreen[ results[k1][0]-Nomega_anal_start+k2 , k3 ] = results[k1][2][k2][k3]/(r_Bohr**2) # eventually fully in atomic units for the integral, but there is still a prefactor of the integral!!!
   
 
@@ -223,24 +224,24 @@ for k1 in range(W): # loop over unsorted results
 
     
 #file1=open("Spectrum.dat","w")
-np.savetxt(os.path.join(outpath,"Spectrumreal.dat"),FHHGOnScreen[1,:,:].real,fmt="%e")
-np.savetxt(os.path.join(outpath,"Spectrumimag.dat"),FHHGOnScreen[1,:,:].imag,fmt="%e")
+np.savetxt(os.path.join(outpath,"Spectrumreal.dat"),FHHGOnScreen[1,:,:,0].real,fmt="%e")
+np.savetxt(os.path.join(outpath,"Spectrumimag.dat"),FHHGOnScreen[1,:,:,1].imag,fmt="%e")
 np.savetxt(os.path.join(outpath,"omegagrid_anal.dat"),omegagrid_anal,fmt="%e")
 np.savetxt(os.path.join(outpath,"rgrid_anal.dat"),rgrid_anal,fmt="%e")
 np.savetxt(os.path.join(outpath,"zgrid_anal.dat"),zgrid_anal,fmt="%e")
 
 #HDF5 results
-f = h5py.File(os.path.join(outpath,"results.h5"),'a')
+f = h5py.File(os.path.join(outpath,"results.h5"),'w')
 grp = f.create_group('XUV')
 
-h5spectrum_r = grp.create_dataset('Spectrum_r', data=FHHGOnScreen.real)
+h5spectrum_r = grp.create_dataset('Spectrum', data=FHHGOnScreen)
 #h5spectrum_r = grp.create_dataset('Spectrum_r', data=FHHGOnScreen.real,compression='gzip',compression_opts=9)
 h5spectrum_r.attrs['units']=np.string_('[arb.u.]')
-h5spectrum_r.dims[0].label = 'z [SI]'; h5spectrum_r.dims[1].label = 'omega [a.u.]'; h5spectrum_r.dims[2].label = 'r [SI]';
+h5spectrum_r.dims[0].label = 'z [SI]'; h5spectrum_r.dims[1].label = 'omega [a.u.]'; h5spectrum_r.dims[2].label = 'r [SI], real [-]'; h5spectrum_r.dims[3].label = 'r [SI], imag [-]';
 
-h5spectrum_i = grp.create_dataset('Spectrum_i', data=FHHGOnScreen.imag)
-#h5spectrum_i = grp.create_dataset('Spectrum_i', data=FHHGOnScreen.imag,compression='gzip',compression_opts=9)
-h5spectrum_i.attrs['units']=np.string_('[arb.u.]')
+# h5spectrum_i = grp.create_dataset('Spectrum_i', data=FHHGOnScreen.imag)
+# #h5spectrum_i = grp.create_dataset('Spectrum_i', data=FHHGOnScreen.imag,compression='gzip',compression_opts=9)
+# h5spectrum_i.attrs['units']=np.string_('[arb.u.]')
 
 h5_ogrid_anal = grp.create_dataset('omegagrid_screen', data=omegagrid_anal)
 h5_ogrid_anal.attrs['units']=np.string_('[a.u.]')
