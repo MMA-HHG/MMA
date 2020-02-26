@@ -42,6 +42,7 @@ import Hfn
 # IntensityListFile = os.path.join("C:\data","ThinTargets_collab","DipoleIntensityTable_1k.h5")
 IntensityListFile = os.path.join("/mnt","c","data","ThinTargets_collab","DipoleIntensityTable_1k.h5")
 # IntensityListFile = 'ThinDipoleIntensityTable_5k.h5' # path for fields
+outpath = os.path.join("/mnt","c","data","ThinTargets_collab")
 
 # loading
 file1 = h5py.File(IntensityListFile, 'r')
