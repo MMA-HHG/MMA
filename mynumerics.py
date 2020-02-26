@@ -34,7 +34,11 @@ def FindInterval(x,x0): # find an index corresponding to given x0 value interval
     if ( (x[k1]<= x0) and (x0 < x[k1+1]) ): return k1
   if ( (x[N-2]<= x0) and (x0 <= x[N-1]) ): return N-2
   sys.exit('out of range in FindInterval')
-
+  # if ( (x0 < x[0]) or (x0 > x[N-1])): sys.exit('out of range in FindInterval')
+  # if (N == 2): return k1; # we finished looking
+  # else:
+  #   if (x0 > x[N//2] ): return FindInterval(x[(N//2):(N-1)],x0,N//2+?); # bookkeeping needed here... best will be additions and subtractions to be in-place
+  #   else : return FindInterval(x[0:(N//2)],x0,?);
 
 ############# gaussian beam
 def invRadius(z,zR):

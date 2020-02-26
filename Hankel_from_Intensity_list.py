@@ -18,6 +18,7 @@ import h5py
 import sys
 import units
 import mynumerics as mn
+import Hfn
 
 #the plan is to
 # - load all data from the HDF5 intensity list
@@ -69,6 +70,7 @@ zmax_anal = 0.2
 Nz_anal = 200
 
 zgrid_anal = np.linspace(z_medium+zmin_anal,zmax_anal,Nz_anal)
+rgrid_anal = np.linspace(0,rmax_anal,Nr_anal)
 
 
 
@@ -97,12 +99,6 @@ print(omega0,'omega0 in a.u.')
 omegamin_anal = omega0*28.5 ;
 omegamax_anal = omega0*29.5 # 0.057*40.0 # 0.057*55.0
 omega_step = 1
-
-## numerical params
-Nr_step = 1 # reshape the grid for the integration in r usw every Nr_step point
-rIntegrationFactor = 1.0; #1.0/2.0;
-#rIntegrationFactorMin = 1.0/16.0;
-rIntegrationFactorMin = 0; # not implemented yet, need to redefine the integration function
 
 ## other parameters
 integrator = 0; #(0 - trapezoidal, 1 - Simpson) 
