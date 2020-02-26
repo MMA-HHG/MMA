@@ -37,13 +37,14 @@ import mynumerics as mn
 ###################### THE PARAMETERS OF SIMULATION
 #inpath = os.path.join('sims11','z_000002') # path for TDSEs
 
-IntensityListFile = 'DipoleIntensityTabel_5k.h5' # path for fields
+IntensityListFile = os.path.join("C:\data","ThinTargets_collab","DipoleIntensityTable_1k.h5")
+# IntensityListFile = 'ThinDipoleIntensityTable_5k.h5' # path for fields
 
 # loading
 file1 = h5py.File(IntensityListFile, 'r')
-Igrid = file1['Igrid'][:]
-omegagrid = file1['omegagrid'][:]
-FSourceterm = file1['FDipoleAccelarations'][:]
+Igrid = file1['/Igrid'][:]
+omegagrid = file1['/omegagrid'][:]
+FSourceterm = file1['/FDipoleAccelerations'][:]
 FSourceterm = np.squeeze(FSourceterm[:,:,0] + 1j*FSourceterm[:,:,1]) # convert to complex numbers
 
 
@@ -68,7 +69,6 @@ zmax_anal = 0.2
 Nz_anal = 200
 
 zgrid_anal = np.linspace(z_medium+zmin_anal,zmax_anal,Nz_anal)
-
 
 
 
