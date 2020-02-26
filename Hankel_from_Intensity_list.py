@@ -64,7 +64,7 @@ z_medium = -0.003;
 
 rmax_anal = 0.3*0.008 # [SI] on screen # 0.0001
 Nr_anal=100 #750
-zmin_anal = 0.001 # !!!!!! now in thereference of the jet
+zmin_anal = 0.001 # !!!!!! now in the reference of the jet
 zmax_anal = 0.2
 Nz_anal = 200
 
