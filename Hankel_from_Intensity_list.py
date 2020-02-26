@@ -39,7 +39,8 @@ import Hfn
 ###################### THE PARAMETERS OF SIMULATION
 #inpath = os.path.join('sims11','z_000002') # path for TDSEs
 
-IntensityListFile = os.path.join("C:\data","ThinTargets_collab","DipoleIntensityTable_1k.h5")
+# IntensityListFile = os.path.join("C:\data","ThinTargets_collab","DipoleIntensityTable_1k.h5")
+IntensityListFile = os.path.join("/mnt","c","data","ThinTargets_collab","DipoleIntensityTable_1k.h5")
 # IntensityListFile = 'ThinDipoleIntensityTable_5k.h5' # path for fields
 
 # loading
@@ -132,7 +133,7 @@ for k1 in range(Nr): # We use linear interpolation using the intensity-grid at t
 ## print some analyses outputs
 print('om_max', Nomega_anal)
 print('om_min', Nomega_anal_start)
-print('tmax',tgrid[len(tgrid)-1])
+# print('tmax',tgrid[len(tgrid)-1])
 print('omax',omegagrid[len(omegagrid)-1])
 
   
