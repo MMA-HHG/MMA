@@ -27,6 +27,7 @@ import Hfn
 # - add the extra phase
 # - use old procedure for the integration in r now
 # - we use precomputed dipoles now
+# - we add one loop over different medium positions
 
 #ray.init()
 
@@ -69,7 +70,7 @@ omega0 = LaserParams['omega0']; zR = LaserParams['zR'];
 
 # anlyses params # at the moment optimised for t he intensity list, change later
 
-z_medium = -0.003;
+z_medium = -0.003 # np.array([-0.003, 0.0, 0.003]);
 
 rmax = 2.0*LaserParams['w0'];
 Nr = 100;
