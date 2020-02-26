@@ -47,9 +47,12 @@ def invRadius(z,zR):
 def IRphase(r,z,k0,zR):
   return 0.5*k0*invRadius(z,zR)*r**2
 
+def waist(z,w0,zR):
+  return w0*np.sqrt(1.0+(z/zR)**2);
+
 def GaussianBeam(r,z,t,I0,w0,tFWHM,lambd):
-  zR = np.pi*w0**2/lambd ;
-  w=w0*np.sqrt(1.0+(z/zR)^2);
+  zR = np.pi*w0**2/lambd;
+  w=w0*np.sqrt(1.0+(z/zR)**2);
   I=I0*((w0/w)**2)*np.exp(-2.0*(r/w)**2)*np.exp(-(2*np.sqrt(np.log(2.0))*t/tFWHM)**2);
   k0=2.0*np.pi/lambd;
   phase = IRphase(r,z,k0,zR);
@@ -97,7 +100,7 @@ def dipoleTimeDomainApp(z_medium,tgrid,r,I0,PhenomParams,tcoeff,rcoeff,LaserPara
 
 
 
-
+# part to compute the field from the intensity list
 
 
 

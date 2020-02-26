@@ -26,6 +26,7 @@ import Hfn
 # - generate the Gaussian profile at any point
 # - add the extra phase
 # - use old procedure for the integration in r now
+# - we use precomputed dipoles now
 
 #ray.init()
 
@@ -51,43 +52,41 @@ FSourceterm = np.squeeze(FSourceterm[:,:,0] + 1j*FSourceterm[:,:,1]) # convert t
 
 ## params
 LaserParams={ ## define macroscopic gaussian beam # try also fancy reading directly here
+'I0' : 4.0e18,
 'w0' : 96.0e-6,
 'r_extend' : 4.0,
 'E0' : 0.075, 
 'z' : 0.05,
-'lambda' : 800.0e-9,
+'lambda' : 800.0e-9, # must correspond
 'phase0' : 0.0, # initial CEP
-'TFWHM' : 50e-15 # [SI]
+'TFWHM' : 40e-15 # [SI]
 }
+LaserParams['omega0'] = mn.ConvertPhoton(LaserParams['lambda'] ,'lambdaSI','omegaau') # find frequency in atomic units
+LaserParams['zR'] = np.pi*((LaserParams['w0'])**2)/LaserParams['lambda']
+omega0 = LaserParams['omega0']; zR = LaserParams['zR'];
 
-# anlyses params
+# anlyses params # at the moment optimised for t he intensity list, change later
+
 z_medium = -0.003;
+
+rmax = 2.0*LaserParams['w0'];
+Nr = 100;
 
 rmax_anal = 0.3*0.008 # [SI] on screen # 0.0001
 Nr_anal=100 #750
+
 zmin_anal = 0.001 # !!!!!! now in the reference of the jet
 zmax_anal = 0.2
 Nz_anal = 200
 
-zgrid_anal = np.linspace(z_medium+zmin_anal,zmax_anal,Nz_anal)
-rgrid_anal = np.linspace(0,rmax_anal,Nr_anal)
+Hmin_anal = 28.5
+Hmax_anal = 29.5
+omega_step = 1
 
-
-
-
-
-
-LaserParams['omega0'] = (2.0*np.pi*units.hbar*units.inverse_alpha_fine**2)/(LaserParams['lambda']*units.elmass*units.c_light) # find frequency in atomic units
-LaserParams['zR'] = np.pi*((LaserParams['w0'])**2)/LaserParams['lambda']
-
-#omega0 = 0.057; # [a.u.]
-omega0 = LaserParams['omega0']
-TFWHM = LaserParams['TFWHM'] #50e-15; # [SI]
-tcoeff = 4.5; # extension of tgrid 
-#omegawidth = 4.0/np.sqrt(4000.0**2); # roughly corresponds to 100 fs
-
-zR = LaserParams['zR']
-I0 = 2.5e18;
+## other parameters
+integrator = 'Trapezoidal'; # 'Trapezoidal', Simpson
+W = mp.cpu_count() # this is the number of workers
+W = 8;
 
 
 #print(PhenomParams)
@@ -95,87 +94,56 @@ print(omega0,'omega0 in a.u.')
 #quit()
 
 
+## create grids
+Nomega = len(omegagrid)
+Hgrid = np.empty([Nomega], dtype=np.double)
+Hgrid[:] = omegagrid[:]/LaserParams['omega0']
+# Hgrid = np.empty([Nomega], dtype=np.double)
+# for k1 in range(Nomega): Hgrid[k1] = omegagrid
 
-omegamin_anal = omega0*28.5 ;
-omegamax_anal = omega0*29.5 # 0.057*40.0 # 0.057*55.0
-omega_step = 1
+rgrid = np.linspace(0.0,rmax,Nr)
+zgrid_anal = np.linspace(z_medium+zmin_anal,zmax_anal,Nz_anal)
+rgrid_anal = np.linspace(0,rmax_anal,Nr_anal)
+omegamin_anal = omega0*Hmin_anal
+omegamax_anal = omega0*Hmax_anal
+Nomega_anal = mn.FindInterval(omegagrid,omegamax_anal)
+Nomega_anal_start = mn.FindInterval(omegagrid,omegamin_anal)
 
-## other parameters
-integrator = 0; #(0 - trapezoidal, 1 - Simpson) 
-W = mp.cpu_count() # this is the number of workers
-W = 8;
-  
-  
-
-
-#################################### PREPARATORY CALCULATIONS
-
-if (MicroscopicModelType == 0):
-  print('numerical model')
-  ## PUT LOADING the dipoles FROM MODULE HERE
-elif (MicroscopicModelType == 1):
-#  omegagrid = np.linspace(0.0,0.057*100.0,10000)
-  print('analytical model')
-
-  rgrid = np.linspace(0.0,LaserParams['w0'],100)
-  tgrid = np.linspace(-tcoeff*0.5*TFWHM/units.TIMEau,tcoeff*0.5*TFWHM/units.TIMEau,10000)
-  Nomega = len(tgrid)//2 + 1
-  omegagrid = np.linspace(0,2.0*np.pi*Nomega/(tcoeff*TFWHM/units.TIMEau),Nomega)
-  Nr = len(rgrid)
-  FField_r = []; # computed on the fly in this case
-
-  Nomega_anal = mn.FindInterval(omegagrid,omegamax_anal) #3000 3000 1000
-  Nomega_anal_start = mn.FindInterval(omegagrid,omegamin_anal)
-  print('om_max', Nomega_anal)
-  print('om_min', Nomega_anal_start)
-  print('tmax',tgrid[len(tgrid)-1])
-  print('omax',omegagrid[len(omegagrid)-1])
+Nomega_points = mn.NumOfPointsInRange(Nomega_anal_start,Nomega_anal,omega_step); # Nomega_points is the number of simulations we want to perform
 
 
-# reshape rgrid if all points are not used
-if ( Nr_step != 1):
-  rgridnew=[]
-  for k1 in range(int(round(rIntegrationFactorMin*Nfiles)),int(round(rIntegrationFactor*Nfiles)),Nr_step): rgridnew.append(rgrid[k1])
-  rgrid=np.asarray(rgridnew);
-  Nr = mn.NumOfPointsInRange(int(round(rIntegrationFactorMin*Nfiles)),int(round(rIntegrationFactor*Nfiles)),Nr_step)
+
+## compute fields in our rgrid
+
+
+print('Computing fields in the grid');
+FField_r=np.empty([Nomega,Nr], dtype=np.cdouble)
+
+for k1 in range(Nr): # We use linear interpolation using the intensity-grid at the instant
+  I_r, phase_r = mn.GaussianBeam(rgrid[k1],z_medium,0,LaserParams['I0']/units.INTENSITYau,LaserParams['w0'],1,LaserParams['lambda']) # a.u.
+  phase_XUV = phase_r*Hgrid
+
+  # find a proper interval in the Igrid, we use linear interp written by hand now
+  k2 = mn.FindInterval(Igrid,I_r)
+  weight1 = (Igrid[k2+1]-I_r)/(Igrid[k2+1]-Igrid[k2]); weight2 = (I_r-Igrid[k2])/(Igrid[k2+1]-Igrid[k2]);
+  FField_r[:, k1] = np.exp(-1j*phase_XUV)*(weight1*FSourceterm[k2,:]+weight2*FSourceterm[k2,:]); # free-form works?
+
+
+## print some analyses outputs
+print('om_max', Nomega_anal)
+print('om_min', Nomega_anal_start)
+print('tmax',tgrid[len(tgrid)-1])
+print('omax',omegagrid[len(omegagrid)-1])
+
   
 dr = rgrid[1]-rgrid[0]
 
 
 
-## grids for analyses:
-rgrid_anal = np.linspace(0.0,rmax_anal,Nr_anal)
-#zgrid_anal = np.linspace(zmin_anal,zmax_anal,Nz_anal)
-Nomega_points = mn.NumOfPointsInRange(Nomega_anal_start,Nomega_anal,omega_step); # Nomega_points is the number of simulations we want to perform
 omegagrid_anal=[]
 
 print('Nomega_points = ', Nomega_points);
 
-
-# create dipole grid in r and omega # it's already loaded in the numeric case
-if (MicroscopicModelType == 1):
-  print('Computing FFTs');
-  FField_r=np.empty([Nomega,Nr], dtype=np.cdouble)
-
-  tcoeff = 4.0*np.log(2.0)*units.TIMEau**2 / ( TFWHM**2 )
-  rcoeff = 2.0/((LaserParams['w0'])**2)
-  dt = tgrid[1]-tgrid[0]
-
-  for k1 in range(Nr):    
-    dum = mn.dipoleTimeDomainApp(z_medium,tgrid,rgrid[k1],I0/units.INTENSITYau,PhenomParams,tcoeff,rcoeff,LaserParams)
-    if (k1 == 0):
-      np.savetxt(os.path.join(outpath,"tgrid.dat"),tgrid,fmt="%e")
-      np.savetxt(os.path.join(outpath,"dipoler.dat"),dum.real,fmt="%e")
-      np.savetxt(os.path.join(outpath,"dipolei.dat"),dum.real,fmt="%e")
-    dum = (dt/np.sqrt(2.0*np.pi))*np.fft.fft(dum)
-    if (k1 == 0):
-      np.savetxt(os.path.join(outpath,"ogrid_full.dat"),omegagrid,fmt="%e")
-      np.savetxt(os.path.join(outpath,"Fdipoler.dat"),dum.real,fmt="%e")
-      np.savetxt(os.path.join(outpath,"Fdipolei.dat"),dum.imag,fmt="%e")
-    for k2 in range(Nomega):
-      FField_r[k2,k1] = dum[k2]
-
-  print('FFT computed');
   
 
 #########################################################################################
@@ -186,62 +154,14 @@ ttic1 = time.time()
 # define output queue
 output = mp.Queue()
 
-
-# define function to integrate, there are some global variables! ## THE OUTPUT IS IN THE MIX OF ATOMIC UNITS (field) and SI UNITS (radial coordinate + dr in the integral)
-def FieldOnScreen(z_medium, omegagrid, omega_step, rgrid, Nr, FField_r, rgrid_anal, zgrid_anal, k_start, k_num):
-  FHHGOnScreen = np.empty([Nz_anal,k_num,Nr_anal], dtype=np.cdouble)
-  k4=0 # # of loops in omega 
-  for k1 in range(k_num): #Nomega
-    k5 = k_start + k1*omega_step # accesing the grid
-    tic = time.process_time()
-    for k6 in range(Nz_anal):
-      for k2 in range(Nr_anal): #Nr
-        k_omega =  omegagrid[k5]/(units.TIMEau*units.c_light); # omega divided by time: a.u. -> SI
-        integrand = np.empty([Nr], dtype=np.cdouble)
-        if ( (MicroscopicModelType == 0) or (MicroscopicModelType == 1) ):
-          for k3 in range(Nr): integrand[k3] = np.exp(-(rgrid[k3]**2)/(2.0*(zgrid_anal[k6]-z_medium)))*rgrid[k3]*FField_r[k5,k3]*special.jn(0,k_omega*rgrid[k3]*rgrid_anal[k2]/(zgrid_anal[k6]-z_medium)); # rescale r to atomic units for spectrum in atomic units! (only scaling)
-        elif (MicroscopicModelType == 2): # we compute now fftw for evwery harmonic independently and then shift it... we shoul use linearity instead
-          print('pure gaussian maybe? Now do nothing.')
-  #        for k3 in range(NumHarm): dip
-  #        for k3 in range(Nr): integrand[k3] = np.exp(-(rgrid[k3]**2)/(2.0*D))*rgrid[k3]*dipoleph(omegagrid[k5],omega0,I0rprofile(rgrid[k3],I0,w0),PhenomParams)*special.jn(0,k_omega*rgrid[k3]*rgrid_anal[k2]/D); # rescale r to atomic units for spectrum in atomic units! (only scaling)
-        if (integrator == 0):
-          FHHGOnScreen[k6,k4,k2] = (1.0/(zgrid_anal[k6]-z_medium))*integrate.trapz(integrand,rgrid);
-        elif (integrator == 1):
-          FHHGOnScreen[k6,k4,k2] = (1.0/(zgrid_anal[k6]-z_medium))*integrate.simps(integrand,rgrid);
-  
-      #k2 loop end
-    #k6 loop end
-    toc = time.process_time()
-#    print('cycle',k1,'duration',toc-tic)
-    k4=k4+1
-  res = (k_start,k_num,FHHGOnScreen)
+# passing by reference is unPythonic, we define the extra function though
+def FieldOnScreen_handle(z_medium, omegagrid, omega_step, rgrid, FField_r, rgrid_anal, zgrid_anal, k_start, k_num, integrator):
+  res = Hfn.FieldOnScreen(z_medium, omegagrid, omega_step, rgrid, FField_r, rgrid_anal, zgrid_anal, k_start, k_num, integrator)
   output.put(res)
 
 
-
-# Optimal workload is obtained by the same amount of load for each woker if possible, eventually one extra task for the last worker. Otherwise (NOT OPTIMAL!!!), every worker takes more load and some workers may be eventually not used. An optimal routine would be either balance the load among the workers or employ some sophisticated  parallel scheduler.
-if ( ( (Nomega_points % W)==0 ) or ( (Nomega_points % W)==1 ) ):
-  Nint = Nomega_points//W; # the number of points in an interval (beside the last interval...); mn.NumOfPointsInRange(0,Nomega_points,W);
-  N_PointsGrid=[]; N_PointsForProcess=[];
-  for k1 in range(W): N_PointsGrid.append(k1*Nint);
-  N_PointsGrid.append(Nomega_points);
-  for k1 in range(W): N_PointsForProcess.append(N_PointsGrid[k1+1]-N_PointsGrid[k1])
-else:
-  Nint = (Nomega_points//W) + 1; 
-  N_PointsGrid=[]; N_PointsForProcess=[];
-  for k1 in range(W+1):
-    dum = k1*Nint
-    if dum >= Nomega_points:
-      print('dum', dum)
-      N_PointsGrid.append(Nomega_points);
-      W = k1;
-      break;
-    else:
-      N_PointsGrid.append(dum);
-  print(N_PointsGrid)
-  for k1 in range(W): N_PointsForProcess.append(N_PointsGrid[k1+1]-N_PointsGrid[k1])
-
-# optimal workload is now given by the number of processes
+# split the workload evenly
+N_PointsGrid, N_PointsForProcess = Hfn.ObtainWorkload(Nomega_points,W)
 
 print('----')
 print('process grids for workers: starting point + loads')
@@ -254,7 +174,7 @@ print('----')
 
 ### we use multiprocessing by assigning each part of the load as one process
 # define processes
-processes = [mp.Process(target=FieldOnScreen, args=(z_medium, omegagrid, omega_step, rgrid, Nr, FField_r, rgrid_anal, zgrid_anal, Nomega_anal_start+N_PointsGrid[k1], N_PointsForProcess[k1])) for k1 in range(W)]
+processes = [mp.Process(target=FieldOnScreen_handle, args=(z_medium, omegagrid, omega_step, rgrid, FField_r, rgrid_anal, zgrid_anal, Nomega_anal_start+N_PointsGrid[k1], N_PointsForProcess[k1],integrator)) for k1 in range(W)]
 
 # run processes
 for p in processes: p.start();
