@@ -248,7 +248,7 @@ h5_rgrid_anal.attrs['units']=np.string_('[SI]')
 h5_zgrid_anal = grp.create_dataset('zgrid_screen', data=zgrid_anal)
 h5_zgrid_anal.attrs['units']=np.string_('[SI]')
 
-h5_ogrid_anal = grp.create_dataset('ThinTargetPositions', data=z_medium)
+h5_ogrid_anal = grp.create_dataset('ThinTargetPositions', data=z_medium) 
 h5_ogrid_anal.attrs['units']=np.string_('[SI]')
 
 grp = f.create_group('params')
