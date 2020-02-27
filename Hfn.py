@@ -134,4 +134,59 @@ def CoalesceResults_serial(results,Nz_anal,Nomega_anal_start,Nomega_points,Nr_an
                     FHHGOnScreen[k4, results[k1][0] - Nomega_anal_start + k2, k3, 0] = results[k1][2][k4][k2][k3].real  # we adjust the field index properly to the field it just sorts matrices the following way [A[1], A[2], ...], the indices are retrieved by the append mapping
                     FHHGOnScreen[k4, results[k1][0] - Nomega_anal_start + k2, k3, 1] = results[k1][2][k4][k2][k3].imag
     #      FHHGOnScreen[ results[k1][0]-Nomega_anal_start+k2 , k3 ] = results[k1][2][k2][k3]/(r_Bohr**2) # eventually fully in atomic units for the integral, but there is still a prefactor of the integral!!!
-    return FHHGOnScreen
+    return FHHGOnScreen+
+
+
+
+
+
+
+###########################################################
+#  there is the part for phenomenological dipoles:        #
+###########################################################
+#
+
+# this should be leaded from somewhere or computed, or whatever... NOT directly in the code!
+PhenomParams = np.array([
+[29, 35, 39], # harmonics
+[500., 1775., 3600.], # alphas
+[omegawidth, omegawidth, omegawidth]
+])
+NumHarm = 3; # number of harmonics
+
+## define dipole function
+def dipoleTimeDomainApp(tgrid,r,I0,PhenomParams,tcoeff,rcoeff,omega0): # some global variables involved
+#  tcoeff = 4.0*np.log(2.0)*TIMEau**2 / ( TFWHMSI**2 )
+#  rcoeff = 2.0/(w0r**2)
+  res = []
+  for k1 in range(len(tgrid)):
+    res1 = 0.0*1j;
+    intens = I0*np.exp(-tcoeff*(tgrid[k1])**2 - rcoeff*r**2)
+    for k2 in range(NumHarm): res1 = res1 + intens*np.exp(1j*(tgrid[k1]*omega0*PhenomParams[0,k2]-PhenomParams[1,k2]*intens)) 
+    res.append(res1); ## various points in time
+  return np.asarray(res)
+
+
+if (MicroscopicModelType == 1):
+  print('Computing phenomenological dipoles: FFTs');
+  FField_r=np.empty([Nomega,Nr], dtype=np.cdouble)
+
+  tcoeff = 4.0*np.log(2.0)*TIMEau**2 / ( TFWHM**2 )
+  rcoeff = 2.0/(w0**2)
+  dt = tgrid[1]-tgrid[0]
+
+  for k1 in range(Nr):    
+    dum = dipoleTimeDomainApp(tgrid,rgrid[k1],I0/INTENSITYau,PhenomParams,tcoeff,rcoeff,omega0)
+    if (k1 == 0):
+      np.savetxt(os.path.join(outpath,"tgrid.dat"),tgrid,fmt="%e")
+      np.savetxt(os.path.join(outpath,"dipoler.dat"),dum.real,fmt="%e")
+      np.savetxt(os.path.join(outpath,"dipolei.dat"),dum.real,fmt="%e")
+    dum = (dt/np.sqrt(2.0*np.pi))*np.fft.fft(dum)
+    if (k1 == 0):
+      np.savetxt(os.path.join(outpath,"ogrid_full.dat"),omegagrid,fmt="%e")
+      np.savetxt(os.path.join(outpath,"Fdipoler.dat"),dum.real,fmt="%e")
+      np.savetxt(os.path.join(outpath,"Fdipolei.dat"),dum.imag,fmt="%e")
+    for k2 in range(Nomega):
+      FField_r[k2,k1] = dum[k2]
+
+  print('FFT computed');
