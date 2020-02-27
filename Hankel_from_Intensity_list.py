@@ -70,7 +70,7 @@ omega0 = LaserParams['omega0']; zR = LaserParams['zR'];
 
 # anlyses params # at the moment optimised for t he intensity list, change later
 
-z_medium = -0.003 # np.array([-0.003, 0.0, 0.003]);
+z_medium = np.asarray([-0.003, 0.0])  # np.array([-0.003, 0.0, 0.003]);
 
 rmax = 2.0*LaserParams['w0'];
 Nr = 100;
@@ -78,7 +78,7 @@ Nr = 100;
 rmax_anal = 0.3*0.008 # [SI] on screen # 0.0001
 Nr_anal=100 #750
 
-zmin_anal = 0.001 # !!!!!! now in the reference of the jet
+zmin_anal = 0.001 # !!!!!! in the reference of the jet, the grid is then reshaped correctly
 zmax_anal = 0.2
 Nz_anal = 200 #200
 
@@ -104,8 +104,11 @@ Hgrid[:] = omegagrid[:]/LaserParams['omega0']
 # Hgrid = np.empty([Nomega], dtype=np.double)
 # for k1 in range(Nomega): Hgrid[k1] = omegagrid
 
+Nz_medium = len(z_medium)
+
 rgrid = np.linspace(0.0,rmax,Nr)
-zgrid_anal = np.linspace(z_medium+zmin_anal,zmax_anal,Nz_anal)
+zgrid_anal = np.empty([Nz_medium, Nz_anal],dtype=np.double)
+for k1 in range(Nz_medium): zgrid_anal[k1,:] = np.linspace(z_medium[k1]+zmin_anal,z_medium[k1]+zmax_anal,Nz_anal)
 rgrid_anal = np.linspace(0,rmax_anal,Nr_anal)
 omegamin_anal = omega0*Hmin_anal
 omegamax_anal = omega0*Hmax_anal
@@ -120,16 +123,16 @@ Nomega_points = mn.NumOfPointsInRange(Nomega_anal_start,Nomega_anal,omega_step);
 
 
 print('Computing fields in the grid');
-FField_r=np.empty([Nomega,Nr], dtype=np.cdouble)
+FField_r=np.empty([Nz_medium,Nomega,Nr], dtype=np.cdouble)
+for k3 in range(Nz_medium):
+  for k1 in range(Nr): # We use linear interpolation using the intensity-grid at the instant
+    I_r, phase_r = mn.GaussianBeam(rgrid[k1],z_medium[k3],0,LaserParams['I0']/units.INTENSITYau,LaserParams['w0'],1,LaserParams['lambda']) # a.u.
+    phase_XUV = phase_r*Hgrid
 
-for k1 in range(Nr): # We use linear interpolation using the intensity-grid at the instant
-  I_r, phase_r = mn.GaussianBeam(rgrid[k1],z_medium,0,LaserParams['I0']/units.INTENSITYau,LaserParams['w0'],1,LaserParams['lambda']) # a.u.
-  phase_XUV = phase_r*Hgrid
-
-  # find a proper interval in the Igrid, we use linear interp written by hand now
-  k2 = mn.FindInterval(Igrid,I_r)
-  weight1 = (Igrid[k2+1]-I_r)/(Igrid[k2+1]-Igrid[k2]); weight2 = (I_r-Igrid[k2])/(Igrid[k2+1]-Igrid[k2]);
-  FField_r[:, k1] = np.exp(-1j*phase_XUV)*(weight1*FSourceterm[k2,:]+weight2*FSourceterm[k2,:]); # free-form works?
+    # find a proper interval in the Igrid, we use linear interp written by hand now
+    k2 = mn.FindInterval(Igrid,I_r)
+    weight1 = (Igrid[k2+1]-I_r)/(Igrid[k2+1]-Igrid[k2]); weight2 = (I_r-Igrid[k2])/(Igrid[k2+1]-Igrid[k2]);
+    FField_r[k3, :, k1] = np.exp(-1j*phase_XUV)*(weight1*FSourceterm[k2,:]+weight2*FSourceterm[k2,:]); # free-form works?
 
 
 ## print some analyses outputs
@@ -202,13 +205,13 @@ print('duration after merging 2',toc2-tic1)
 print('duration after merging 2',ttoc2-ttic1)
 
 
-# create omega grid foe analyses
+# create omega grid for analyses
 for k1 in range(Nomega_anal_start,Nomega_anal,omega_step): omegagrid_anal.append(omegagrid[k1])
 omegagrid_anal=np.asarray(omegagrid_anal);
 
 
 # coalesce the results
-FHHGOnScreen = Hfn.CoalesceResults(results,Nz_anal,Nomega_anal_start,Nomega_points,Nr_anal,W)
+FHHGOnScreen = Hfn.CoalesceResults(results,Nz_medium,Nz_anal,Nomega_anal_start,Nomega_points,Nr_anal,W)
 
 
 
@@ -217,11 +220,11 @@ FHHGOnScreen = Hfn.CoalesceResults(results,Nz_anal,Nomega_anal_start,Nomega_poin
 
     
 #file1=open("Spectrum.dat","w")
-np.savetxt(os.path.join(outpath,"Spectrumreal.dat"),FHHGOnScreen[1,:,:,0].real,fmt="%e")
-np.savetxt(os.path.join(outpath,"Spectrumimag.dat"),FHHGOnScreen[1,:,:,1].imag,fmt="%e")
+np.savetxt(os.path.join(outpath,"Spectrumreal.dat"),FHHGOnScreen[0,0,:,:,0].real,fmt="%e")
+np.savetxt(os.path.join(outpath,"Spectrumimag.dat"),FHHGOnScreen[0,0,:,:,1].imag,fmt="%e")
 np.savetxt(os.path.join(outpath,"omegagrid_anal.dat"),omegagrid_anal,fmt="%e")
 np.savetxt(os.path.join(outpath,"rgrid_anal.dat"),rgrid_anal,fmt="%e")
-np.savetxt(os.path.join(outpath,"zgrid_anal.dat"),zgrid_anal,fmt="%e")
+np.savetxt(os.path.join(outpath,"zgrid_anal.dat"),zgrid_anal[0,:],fmt="%e")
 
 #HDF5 results
 f = h5py.File(os.path.join(outpath,"results.h5"),'w')
