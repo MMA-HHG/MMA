@@ -19,6 +19,21 @@ import sys
 import units
 import mynumerics as mn
 
+def ComputeFieldsInRFromIntensityList(z_medium, rgrid, Hgrid, Nomega, LaserParams, Igrid, FSourceterm):
+    print('Computing fields in the grid');
+    Nz_medium = len(z_medium); Nr = len(rgrid);
+    FField_r=np.empty([Nz_medium,Nomega,Nr], dtype=np.cdouble)
+    for k3 in range(Nz_medium):
+      for k1 in range(Nr): # We use linear interpolation using the intensity-grid at the instant
+        I_r, phase_r = mn.GaussianBeam(rgrid[k1],z_medium[k3],0,LaserParams['I0']/units.INTENSITYau,LaserParams['w0'],1,LaserParams['lambda']) # a.u.
+        phase_XUV = phase_r*Hgrid
+
+        # find a proper interval in the Igrid, we use linear interp written by hand now
+        k2 = mn.FindInterval(Igrid,I_r)
+        weight1 = (Igrid[k2+1]-I_r)/(Igrid[k2+1]-Igrid[k2]); weight2 = (I_r-Igrid[k2])/(Igrid[k2+1]-Igrid[k2]);
+        FField_r[k3, :, k1] = np.exp(-1j*phase_XUV)*(weight1*FSourceterm[k2,:]+weight2*FSourceterm[k2,:]); # free-form works?
+    return FField_r
+
 
 # define function to integrate, there are some global variables! ## THE OUTPUT IS IN THE MIX OF ATOMIC UNITS (field) and SI UNITS (radial coordinate + dr in the integral)
 def FieldOnScreen(z_medium, omegagrid, omega_step, rgrid, FField_r, rgrid_anal, zgrid_anal, k_start, k_num, integrator):
@@ -134,7 +149,7 @@ def CoalesceResults_serial(results,Nz_anal,Nomega_anal_start,Nomega_points,Nr_an
                     FHHGOnScreen[k4, results[k1][0] - Nomega_anal_start + k2, k3, 0] = results[k1][2][k4][k2][k3].real  # we adjust the field index properly to the field it just sorts matrices the following way [A[1], A[2], ...], the indices are retrieved by the append mapping
                     FHHGOnScreen[k4, results[k1][0] - Nomega_anal_start + k2, k3, 1] = results[k1][2][k4][k2][k3].imag
     #      FHHGOnScreen[ results[k1][0]-Nomega_anal_start+k2 , k3 ] = results[k1][2][k2][k3]/(r_Bohr**2) # eventually fully in atomic units for the integral, but there is still a prefactor of the integral!!!
-    return FHHGOnScreen+
+    return FHHGOnScreen
 
 
 
@@ -147,6 +162,7 @@ def CoalesceResults_serial(results,Nz_anal,Nomega_anal_start,Nomega_points,Nr_an
 #
 
 # this should be leaded from somewhere or computed, or whatever... NOT directly in the code!
+omegawidth = 4.0/np.sqrt(4000.0**2); # roughly corresponds to 100 fs
 PhenomParams = np.array([
 [29, 35, 39], # harmonics
 [500., 1775., 3600.], # alphas
@@ -162,7 +178,7 @@ def dipoleTimeDomainApp(tgrid,r,I0,PhenomParams,tcoeff,rcoeff,omega0): # some gl
   for k1 in range(len(tgrid)):
     res1 = 0.0*1j;
     intens = I0*np.exp(-tcoeff*(tgrid[k1])**2 - rcoeff*r**2)
-    for k2 in range(NumHarm): res1 = res1 + intens*np.exp(1j*(tgrid[k1]*omega0*PhenomParams[0,k2]-PhenomParams[1,k2]*intens)) 
+    for k2 in range(NumHarm): res1 = res1 + intens*np.exp(1j*(tgrid[k1]*omega0*PhenomParams[0,k2]-PhenomParams[1,k2]*intens))
     res.append(res1); ## various points in time
   return np.asarray(res)
 
@@ -175,17 +191,17 @@ if (MicroscopicModelType == 1):
   rcoeff = 2.0/(w0**2)
   dt = tgrid[1]-tgrid[0]
 
-  for k1 in range(Nr):    
+  for k1 in range(Nr):
     dum = dipoleTimeDomainApp(tgrid,rgrid[k1],I0/INTENSITYau,PhenomParams,tcoeff,rcoeff,omega0)
-    if (k1 == 0):
-      np.savetxt(os.path.join(outpath,"tgrid.dat"),tgrid,fmt="%e")
-      np.savetxt(os.path.join(outpath,"dipoler.dat"),dum.real,fmt="%e")
-      np.savetxt(os.path.join(outpath,"dipolei.dat"),dum.real,fmt="%e")
+    # if (k1 == 0):
+    #   np.savetxt(os.path.join(outpath,"tgrid.dat"),tgrid,fmt="%e")
+    #   np.savetxt(os.path.join(outpath,"dipoler.dat"),dum.real,fmt="%e")
+    #   np.savetxt(os.path.join(outpath,"dipolei.dat"),dum.real,fmt="%e")
     dum = (dt/np.sqrt(2.0*np.pi))*np.fft.fft(dum)
-    if (k1 == 0):
-      np.savetxt(os.path.join(outpath,"ogrid_full.dat"),omegagrid,fmt="%e")
-      np.savetxt(os.path.join(outpath,"Fdipoler.dat"),dum.real,fmt="%e")
-      np.savetxt(os.path.join(outpath,"Fdipolei.dat"),dum.imag,fmt="%e")
+    # if (k1 == 0):
+    #   np.savetxt(os.path.join(outpath,"ogrid_full.dat"),omegagrid,fmt="%e")
+    #   np.savetxt(os.path.join(outpath,"Fdipoler.dat"),dum.real,fmt="%e")
+    #   np.savetxt(os.path.join(outpath,"Fdipolei.dat"),dum.imag,fmt="%e")
     for k2 in range(Nomega):
       FField_r[k2,k1] = dum[k2]
 

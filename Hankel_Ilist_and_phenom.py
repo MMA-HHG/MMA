@@ -80,7 +80,7 @@ Nr_anal=100 #750
 
 zmin_anal = 0.001 # !!!!!! in the reference of the jet, the grid is then reshaped correctly
 zmax_anal = 0.2
-Nz_anal = 200 #200
+Nz_anal = 10 #200
 
 Hmin_anal = 28.5
 Hmax_anal = 29.5
@@ -88,6 +88,7 @@ omega_step = 1
 
 ## other parameters
 integrator = 'Trapezoidal'; # 'Trapezoidal', Simpson
+dipole_model = 'IntensityList' # 'IntensityList', Phenomenological
 W = mp.cpu_count() # this is the number of workers
 W = 8;
 
@@ -120,20 +121,8 @@ Nomega_points = mn.NumOfPointsInRange(Nomega_anal_start,Nomega_anal,omega_step);
 
 
 ## compute fields in our rgrid
-
-
-print('Computing fields in the grid');
-FField_r=np.empty([Nz_medium,Nomega,Nr], dtype=np.cdouble)
-for k3 in range(Nz_medium):
-  for k1 in range(Nr): # We use linear interpolation using the intensity-grid at the instant
-    I_r, phase_r = mn.GaussianBeam(rgrid[k1],z_medium[k3],0,LaserParams['I0']/units.INTENSITYau,LaserParams['w0'],1,LaserParams['lambda']) # a.u.
-    phase_XUV = phase_r*Hgrid
-
-    # find a proper interval in the Igrid, we use linear interp written by hand now
-    k2 = mn.FindInterval(Igrid,I_r)
-    weight1 = (Igrid[k2+1]-I_r)/(Igrid[k2+1]-Igrid[k2]); weight2 = (I_r-Igrid[k2])/(Igrid[k2+1]-Igrid[k2]);
-    FField_r[k3, :, k1] = np.exp(-1j*phase_XUV)*(weight1*FSourceterm[k2,:]+weight2*FSourceterm[k2,:]); # free-form works?
-
+if (dipole_model == 'IntensityList'): FField_r = Hfn.ComputeFieldsInRFromIntensityList(z_medium, rgrid, Hgrid, Nomega, LaserParams, Igrid, FSourceterm)
+elif (dipole_model == 'Phenomenological'): pass;
 
 ## print some analyses outputs
 print('om_max', Nomega_anal)
