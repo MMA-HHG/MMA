@@ -80,7 +80,7 @@ Nr_anal=100 #750
 
 zmin_anal = 0.001 # !!!!!! now in the reference of the jet
 zmax_anal = 0.2
-Nz_anal = 10 #200
+Nz_anal = 200 #200
 
 Hmin_anal = 28.5
 Hmax_anal = 29.5
@@ -207,16 +207,8 @@ for k1 in range(Nomega_anal_start,Nomega_anal,omega_step): omegagrid_anal.append
 omegagrid_anal=np.asarray(omegagrid_anal);
 
 
-# conceneate the results
-FHHGOnScreen = np.empty([Nz_anal,Nomega_points,Nr_anal,2], dtype=np.double)
-for k1 in range(W): # loop over unsorted results
-  for k2 in range(results[k1][1]): #  # of omegas computed by this worker
-    for k3 in range(Nr_anal): # results in the radial grid
-      for k4 in range(Nz_anal): # results in the z grid
-        FHHGOnScreen[k4, results[k1][0]-Nomega_anal_start+k2, k3, 0 ] = results[k1][2][k4][k2][k3].real # we adjust the field index properly to the field it just sorts matrices the following way [A[1], A[2], ...], the indices are retrieved by the append mapping
-        FHHGOnScreen[k4, results[k1][0] - Nomega_anal_start + k2, k3, 1] = results[k1][2][k4][k2][k3].imag
-#      FHHGOnScreen[ results[k1][0]-Nomega_anal_start+k2 , k3 ] = results[k1][2][k2][k3]/(r_Bohr**2) # eventually fully in atomic units for the integral, but there is still a prefactor of the integral!!!
-  
+# coalesce the results
+FHHGOnScreen = Hfn.CoalesceResults(results,Nz_anal,Nomega_anal_start,Nomega_points,Nr_anal,W)
 
 
 
