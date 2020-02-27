@@ -164,9 +164,9 @@ def CoalesceResults_serial(results,Nz_anal,Nomega_anal_start,Nomega_points,Nr_an
 # this should be leaded from somewhere or computed, or whatever... NOT directly in the code!
 omegawidth = 4.0/np.sqrt(4000.0**2); # roughly corresponds to 100 fs
 PhenomParams = np.array([
-[29, 35, 39], # harmonics
-[500., 1775., 3600.], # alphas
-[omegawidth, omegawidth, omegawidth]
+[1, 29, 35, 39], # harmonics
+[0, 500., 1775., 3600.], # alphas
+[omegawidth, omegawidth, omegawidth, omegawidth]
 ])
 NumHarm = 3; # number of harmonics
 
@@ -178,14 +178,19 @@ def dipoleTimeDomainApp(tgrid,r,I0,PhenomParams,tcoeff,rcoeff,omega0): # some gl
   for k1 in range(len(tgrid)):
     res1 = 0.0*1j;
     intens = I0*np.exp(-tcoeff*(tgrid[k1])**2 - rcoeff*r**2)
-    for k2 in range(NumHarm): res1 = res1 + intens*np.exp(1j*(tgrid[k1]*omega0*PhenomParams[0,k2]-PhenomParams[1,k2]*intens))
+    alpha = PhenomParams[1,k2]
+    order = PhenomParams[0,k2]
+    for k2 in range(NumHarm): res1 = res1 + intens*np.exp(1j*(tgrid[k1]*omega0*order-alpha*intens))
     res.append(res1); ## various points in time
   return np.asarray(res)
 
 
-if (MicroscopicModelType == 1):
-  print('Computing phenomenological dipoles: FFTs');
-  FField_r=np.empty([Nomega,Nr], dtype=np.cdouble)
+
+def ComputeFieldsPhenomenologicalDipoles():
+  print('Computing phenomenological dipoles: FFTs')
+  Nomega = len(tgrid)//2 + 1
+  FField_r=np.empty([Nz_medium,Nomega,Nr], dtype=np.cdouble)
+#   FField_r=np.empty([Nomega,Nr], dtype=np.cdouble)
 
   tcoeff = 4.0*np.log(2.0)*TIMEau**2 / ( TFWHM**2 )
   rcoeff = 2.0/(w0**2)
