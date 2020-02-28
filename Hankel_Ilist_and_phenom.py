@@ -43,7 +43,6 @@ LaserParams={ ## define macroscopic gaussian beam # try also fancy reading direc
 'I0' : 4.0e18,
 'w0' : 96.0e-6,
 'r_extend' : 4.0,
-'E0' : 0.075, 
 'z' : 0.05,
 'lambda' : 800.0e-9, # must correspond
 'phase0' : 0.0, # initial CEP
@@ -109,7 +108,7 @@ if (dipole_model == 'IntensityList'):
   FSourceterm = np.squeeze(FSourceterm[:,:,0] + 1j*FSourceterm[:,:,1]) # convert to complex numbers
 
 elif (dipole_model == 'Phenomenological'):
-  OutputFileName = "results_phenom.h5"
+  OutputFileName = "results_phenom2.h5"
   tgrid = np.linspace(-tcoeff * 0.5 * LaserParams['TFWHM'] / units.TIMEau, tcoeff * 0.5 * LaserParams['TFWHM'] / units.TIMEau, Nt)
   Nomega = len(tgrid)//2 + 1
   omegagrid = np.linspace(0,2.0*np.pi*Nomega/(tcoeff*LaserParams['TFWHM']/units.TIMEau),Nomega)
@@ -244,28 +243,20 @@ h5spectrum_r = grp.create_dataset('Spectrum', data=FHHGOnScreen)
 h5spectrum_r.attrs['units']=np.string_('[arb.u.]')
 h5spectrum_r.dims[0].label = 'z [SI]'; h5spectrum_r.dims[1].label = 'omega [a.u.]'; h5spectrum_r.dims[2].label = 'r [SI], real [-]'; h5spectrum_r.dims[3].label = 'r [SI], imag [-]';
 
-# h5spectrum_i = grp.create_dataset('Spectrum_i', data=FHHGOnScreen.imag)
-# #h5spectrum_i = grp.create_dataset('Spectrum_i', data=FHHGOnScreen.imag,compression='gzip',compression_opts=9)
-# h5spectrum_i.attrs['units']=np.string_('[arb.u.]')
+## grids
+mn.adddataset(grp,'omegagrid_screen',omegagrid_anal,'[a.u.]')
+mn.adddataset(grp,'rgrid_screen',rgrid_anal,'[SI]')
+mn.adddataset(grp,'zgrid_screen',zgrid_anal,'[SI]')
+mn.adddataset(grp,'ThinTargetPositions',z_medium,'[SI]')
 
-h5_ogrid_anal = grp.create_dataset('omegagrid_screen', data=omegagrid_anal)
-h5_ogrid_anal.attrs['units']=np.string_('[a.u.]')
-
-h5_rgrid_anal = grp.create_dataset('rgrid_screen', data=rgrid_anal)
-h5_rgrid_anal.attrs['units']=np.string_('[SI]')
-
-h5_zgrid_anal = grp.create_dataset('zgrid_screen', data=zgrid_anal)
-h5_zgrid_anal.attrs['units']=np.string_('[SI]')
-
-h5_ogrid_anal = grp.create_dataset('ThinTargetPositions', data=z_medium) 
-h5_ogrid_anal.attrs['units']=np.string_('[SI]')
-
+## parameters
 grp = f.create_group('params')
-dum = grp.create_dataset('omega0', data=omega0)
-dum.attrs['units']=np.string_('[a.u.]')
+mn.adddataset(grp,'omega0',omega0,'[a.u.]')
+mn.adddataset(grp,'zR',zR,'[SI]')
+mn.adddataset(grp,'w0',LaserParams['w0'],'[SI]')
+mn.adddataset(grp,'I0',LaserParams['I0'],'[SI]')
 
-dum = grp.create_dataset('zR', data=zR)
-dum.attrs['units']=np.string_('[SI]')
+
 
 f.close()
 

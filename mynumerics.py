@@ -3,6 +3,7 @@ import numpy as np
 import math
 import sys
 import units
+import h5py
 
 
 ## functions to work with indices
@@ -53,7 +54,7 @@ def waist(z,w0,zR):
 def GaussianBeam(r,z,t,I0,w0,tFWHM,lambd):
   zR = np.pi*w0**2/lambd;
   w=w0*np.sqrt(1.0+(z/zR)**2);
-  I=I0*((w0/w)**2)*np.exp(-2.0*(r/w)**2)*np.exp(-(2*np.sqrt(np.log(2.0))*t/tFWHM)**2);
+  I=I0*((w0/w)**2)*np.exp(-2.0*(r/w)**2)*np.exp(-(2.0*np.sqrt(np.log(2.0))*t/tFWHM)**2);
   k0=2.0*np.pi/lambd;
   phase = IRphase(r,z,k0,zR);
   return I, phase
@@ -105,7 +106,10 @@ def ConvertPhoton(x,inp,outp):
 
 
 
-
+## handling HDF5 files
+def adddataset(h_path,dset_name,dset_data,units):
+  dset_id = h_path.create_dataset(dset_name,data=dset_data)
+  dset_id.attrs['units']=np.string_(units)
 
 
 
