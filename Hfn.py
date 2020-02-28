@@ -161,14 +161,14 @@ def CoalesceResults_serial(results,Nz_anal,Nomega_anal_start,Nomega_points,Nr_an
 ###########################################################
 #
 
-# this should be leaded from somewhere or computed, or whatever... NOT directly in the code!
+# this should be loaded from somewhere or computed, or whatever... NOT directly in the code!
 omegawidth = 4.0/np.sqrt(4000.0**2); # roughly corresponds to 100 fs
 PhenomParams = np.array([
 [1, 29, 35, 39], # harmonics
 [0, 500., 1775., 3600.], # alphas
 [omegawidth, omegawidth, omegawidth, omegawidth]
 ])
-NumHarm = 3; # number of harmonics
+NumHarm = 4; # number of harmonics
 
 ## define dipole function
 def dipoleTimeDomainApp(tgrid,r,I0,PhenomParams,tcoeff,rcoeff,omega0): # some global variables involved
@@ -177,37 +177,61 @@ def dipoleTimeDomainApp(tgrid,r,I0,PhenomParams,tcoeff,rcoeff,omega0): # some gl
   res = []
   for k1 in range(len(tgrid)):
     res1 = 0.0*1j;
-    intens = I0*np.exp(-tcoeff*(tgrid[k1])**2 - rcoeff*r**2)
-    alpha = PhenomParams[1,k2]
-    order = PhenomParams[0,k2]
-    for k2 in range(NumHarm): res1 = res1 + intens*np.exp(1j*(tgrid[k1]*omega0*order-alpha*intens))
+    intens = I0*np.exp(-tcoeff*(tgrid[k1])**2 - rcoeff*r**2) # qeff here?
+    for k2 in range(NumHarm):
+        alpha = PhenomParams[1, k2]
+        order = PhenomParams[0, k2]
+        res1 = res1 + intens*np.exp(1j*(tgrid[k1]*omega0*order-alpha*intens))
     res.append(res1); ## various points in time
   return np.asarray(res)
 
 
 
-def ComputeFieldsPhenomenologicalDipoles():
+def ComputeFieldsPhenomenologicalDipoles(I0SI,omega0,TFWHM,w0,tgrid,omegagrid,rgrid,z_medium):
   print('Computing phenomenological dipoles: FFTs')
-  Nomega = len(tgrid)//2 + 1
+  Nomega = len(omegagrid); Nr = len(rgrid); Nz_medium = len(z_medium);
   FField_r=np.empty([Nz_medium,Nomega,Nr], dtype=np.cdouble)
 #   FField_r=np.empty([Nomega,Nr], dtype=np.cdouble)
 
-  tcoeff = 4.0*np.log(2.0)*TIMEau**2 / ( TFWHM**2 )
+  tcoeff = 4.0*np.log(2.0)*units.TIMEau**2 / ( TFWHM**2 )
   rcoeff = 2.0/(w0**2)
-  dt = tgrid[1]-tgrid[0]
+  k1 = mn.FindInterval(tgrid,0.0)
+  dt = tgrid[k1+1]-tgrid[k1]
 
-  for k1 in range(Nr):
-    dum = dipoleTimeDomainApp(tgrid,rgrid[k1],I0/INTENSITYau,PhenomParams,tcoeff,rcoeff,omega0)
-    # if (k1 == 0):
-    #   np.savetxt(os.path.join(outpath,"tgrid.dat"),tgrid,fmt="%e")
-    #   np.savetxt(os.path.join(outpath,"dipoler.dat"),dum.real,fmt="%e")
-    #   np.savetxt(os.path.join(outpath,"dipolei.dat"),dum.real,fmt="%e")
-    dum = (dt/np.sqrt(2.0*np.pi))*np.fft.fft(dum)
-    # if (k1 == 0):
-    #   np.savetxt(os.path.join(outpath,"ogrid_full.dat"),omegagrid,fmt="%e")
-    #   np.savetxt(os.path.join(outpath,"Fdipoler.dat"),dum.real,fmt="%e")
-    #   np.savetxt(os.path.join(outpath,"Fdipolei.dat"),dum.imag,fmt="%e")
-    for k2 in range(Nomega):
-      FField_r[k2,k1] = dum[k2]
-
+  for k1 in range(Nz_medium):
+    for k2 in range(Nr): # multiprocessing?
+      print('kr',k2)
+      # the expression of the dipole is tricky, see appendix C in Jan Vabek's diploma thesis (using "two-times" Fourier in omega)
+      dum = dipoleTimeDomainApp(tgrid,rgrid[k2],I0SI/units.INTENSITYau,PhenomParams,tcoeff,rcoeff,omega0) # compute "complex" dipole in t-domain
+      # add the extra phase
+      dum = (dt/np.sqrt(2.0*np.pi))*np.fft.fft(dum) # fft with normalisation
+      # FField_r[k1,:,k2] = dum # !! CANNOT BE DONE THIS WAY, WE HAVE EXTRA ASSUMPTION THAT OUR SIGNAL IS REAL fft: C -> C
+      for k3 in range(Nomega): FField_r[k1,k3,k2] = dum[k3]
   print('FFT computed');
+  return  FField_r
+
+
+def ComputeFieldsPhenomenologicalDipoles_mp(I0SI,omega0,TFWHM,w0,tgrid,omegagrid,rgrid,z_medium):
+  print('Computing phenomenological dipoles: FFTs')
+  Nomega = len(omegagrid); Nr = len(rgrid); Nz_medium = len(z_medium);
+  FField_r=np.empty([Nz_medium,Nomega,Nr], dtype=np.cdouble)
+#   FField_r=np.empty([Nomega,Nr], dtype=np.cdouble)
+
+  tcoeff = 4.0*np.log(2.0)*units.TIMEau**2 / ( TFWHM**2 )
+  rcoeff = 2.0/(w0**2)
+  k1 = mn.FindInterval(tgrid,0.0)
+  dt = tgrid[k1+1]-tgrid[k1]
+
+  for k1 in range(Nz_medium):
+    # # define output queue
+    # output = mp.Queue()
+    for k2 in range(Nr): # multiprocessing?
+      print('kr',k2)
+      # the expression of the dipole is tricky, see appendix C in Jan Vabek's diploma thesis (using "two-times" Fourier in omega)
+      dum = dipoleTimeDomainApp(tgrid,rgrid[k2],I0SI/units.INTENSITYau,PhenomParams,tcoeff,rcoeff,omega0) # compute "complex" dipole in t-domain
+      # add the extra phase
+      dum = (dt/np.sqrt(2.0*np.pi))*np.fft.fft(dum) # fft with normalisation
+      # FField_r[k1,:,k2] = dum # !! CANNOT BE DONE THIS WAY, WE HAVE EXTRA ASSUMPTION THAT OUR SIGNAL IS REAL fft: C -> C
+      for k3 in range(Nomega): FField_r[k1,k3,k2] = dum[k3]
+  print('FFT computed');
+  return  FField_r

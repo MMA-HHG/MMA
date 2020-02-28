@@ -83,20 +83,20 @@ def ConvertPhoton(x,inp,outp):
   else: sys.exit('Wrong output unit')
 
 ## define dipole function
-def dipoleTimeDomainApp(z_medium,tgrid,r,I0,PhenomParams,tcoeff,rcoeff,LaserParams): # some global variables involved
-#  tcoeff = 4.0*np.log(2.0)*units.TIMEau**2 / ( TFWHMSI**2 )
-#  rcoeff = 2.0/(w0r**2)
-  omega0 = LaserParams['omega0']
-  kw0 = 2.0*np.pi/LaserParams['lambda']
-  phiIR = IRphase(r,z_medium,kw0,LaserParams['zR'])
-  res = []
-  NumHarm = PhenomParams.shape[1]
-  for k1 in range(len(tgrid)):
-    res1 = 0.0*1j;
-    intens = I0*np.exp(-tcoeff*(tgrid[k1])**2 - rcoeff*r**2)
-    for k2 in range(NumHarm): res1 = res1 + intens*np.exp(1j*(tgrid[k1]*omega0*PhenomParams[0,k2]-PhenomParams[1,k2]*intens + PhenomParams[0,k2]*phiIR)) 
-    res.append(res1); ## various points in time
-  return np.asarray(res)
+# def dipoleTimeDomainApp(z_medium,tgrid,r,I0,PhenomParams,tcoeff,rcoeff,LaserParams): # some global variables involved
+# #  tcoeff = 4.0*np.log(2.0)*units.TIMEau**2 / ( TFWHMSI**2 )
+# #  rcoeff = 2.0/(w0r**2)
+#   omega0 = LaserParams['omega0']
+#   kw0 = 2.0*np.pi/LaserParams['lambda']
+#   phiIR = IRphase(r,z_medium,kw0,LaserParams['zR'])
+#   res = []
+#   NumHarm = PhenomParams.shape[1]
+#   for k1 in range(len(tgrid)):
+#     res1 = 0.0*1j;
+#     intens = I0*np.exp(-tcoeff*(tgrid[k1])**2 - rcoeff*r**2)
+#     for k2 in range(NumHarm): res1 = res1 + intens*np.exp(1j*(tgrid[k1]*omega0*PhenomParams[0,k2]-PhenomParams[1,k2]*intens + PhenomParams[0,k2]*phiIR))
+#     res.append(res1); ## various points in time
+#   return np.asarray(res)
 
 
 

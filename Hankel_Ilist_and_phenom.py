@@ -38,22 +38,7 @@ import Hfn
 
 
 ###################### THE PARAMETERS OF SIMULATION
-#inpath = os.path.join('sims11','z_000002') # path for TDSEs
 
-# IntensityListFile = os.path.join("C:\data","ThinTargets_collab","DipoleIntensityTable_1k.h5")
-IntensityListFile = os.path.join("/mnt","c","data","ThinTargets_collab","DipoleIntensityTable_1k.h5")
-# IntensityListFile = 'ThinDipoleIntensityTable_5k.h5' # path for fields
-outpath = os.path.join("/mnt","c","data","ThinTargets_collab")
-
-# loading
-file1 = h5py.File(IntensityListFile, 'r')
-Igrid = file1['/Igrid'][:]
-omegagrid = file1['/omegagrid'][:]
-FSourceterm = file1['/FDipoleAccelerations'][:]
-FSourceterm = np.squeeze(FSourceterm[:,:,0] + 1j*FSourceterm[:,:,1]) # convert to complex numbers
-
-
-## params
 LaserParams={ ## define macroscopic gaussian beam # try also fancy reading directly here
 'I0' : 4.0e18,
 'w0' : 96.0e-6,
@@ -82,13 +67,18 @@ zmin_anal = 0.001 # !!!!!! in the reference of the jet, the grid is then reshape
 zmax_anal = 0.2
 Nz_anal = 10 #200
 
-Hmin_anal = 28.5
-Hmax_anal = 29.5
+Hmin_anal = 0.5 #28.5
+Hmax_anal = 1.5 #29.5
 omega_step = 1
+
+# used only for phenomenological dipoles
+tcoeff = 2.0; # extension of tgrid in the units of TFWHM
+Nt = 100000;
+
 
 ## other parameters
 integrator = 'Trapezoidal'; # 'Trapezoidal', Simpson
-dipole_model = 'IntensityList' # 'IntensityList', Phenomenological
+dipole_model = 'Phenomenological' # 'IntensityList', Phenomenological
 W = mp.cpu_count() # this is the number of workers
 W = 8;
 
@@ -96,6 +86,36 @@ W = 8;
 #print(PhenomParams)
 print(omega0,'omega0 in a.u.')
 #quit()
+
+
+
+########################################################## THE BODY OF THE PROGRAM
+
+outpath = os.path.join("/mnt", "c", "data", "ThinTargets_collab")
+if (dipole_model == 'IntensityList'):
+  OutputFileName = "results.h5"
+
+  # loading procedure
+  # IntensityListFile = os.path.join("C:\data","ThinTargets_collab","DipoleIntensityTable_1k.h5")
+  IntensityListFile = os.path.join("/mnt","c","data","ThinTargets_collab","DipoleIntensityTable_1k.h5")
+  # IntensityListFile = 'ThinDipoleIntensityTable_5k.h5' # path for fields
+
+
+  # loading
+  file1 = h5py.File(IntensityListFile, 'r')
+  Igrid = file1['/Igrid'][:]
+  omegagrid = file1['/omegagrid'][:]
+  FSourceterm = file1['/FDipoleAccelerations'][:]
+  FSourceterm = np.squeeze(FSourceterm[:,:,0] + 1j*FSourceterm[:,:,1]) # convert to complex numbers
+
+elif (dipole_model == 'Phenomenological'):
+  OutputFileName = "results_phenom.h5"
+  tgrid = np.linspace(-tcoeff * 0.5 * LaserParams['TFWHM'] / units.TIMEau, tcoeff * 0.5 * LaserParams['TFWHM'] / units.TIMEau, Nt)
+  Nomega = len(tgrid)//2 + 1
+  omegagrid = np.linspace(0,2.0*np.pi*Nomega/(tcoeff*LaserParams['TFWHM']/units.TIMEau),Nomega)
+
+
+
 
 
 ## create grids
@@ -122,7 +142,7 @@ Nomega_points = mn.NumOfPointsInRange(Nomega_anal_start,Nomega_anal,omega_step);
 
 ## compute fields in our rgrid
 if (dipole_model == 'IntensityList'): FField_r = Hfn.ComputeFieldsInRFromIntensityList(z_medium, rgrid, Hgrid, Nomega, LaserParams, Igrid, FSourceterm)
-elif (dipole_model == 'Phenomenological'): pass;
+elif (dipole_model == 'Phenomenological'): FField_r = Hfn.ComputeFieldsPhenomenologicalDipoles(LaserParams['I0'],omega0,LaserParams['TFWHM'],LaserParams['w0'],tgrid,omegagrid,rgrid,z_medium)
 
 ## print some analyses outputs
 print('om_max', Nomega_anal)
@@ -216,7 +236,7 @@ np.savetxt(os.path.join(outpath,"rgrid_anal.dat"),rgrid_anal,fmt="%e")
 np.savetxt(os.path.join(outpath,"zgrid_anal.dat"),zgrid_anal[0,:],fmt="%e")
 
 #HDF5 results
-f = h5py.File(os.path.join(outpath,"results.h5"),'w')
+f = h5py.File(os.path.join(outpath,OutputFileName),'w')
 grp = f.create_group('XUV')
 
 h5spectrum_r = grp.create_dataset('Spectrum', data=FHHGOnScreen)
