@@ -125,7 +125,7 @@ def FieldOnScreen_singleplane(z_medium, omegagrid, omega_step, rgrid, FField_r, 
         tic = time.process_time()
         for k6 in range(Nz_anal):
             for k2 in range(Nr_anal):  # Nr
-                k_omega = omegagrid[k5] / (units.TIMEau * units.c_light);  # omega divided by time: a.u. -> SI
+                k_omega = omegagrid[k5] / (units.TIMEau * units.c_light);  # omega divided by time: a.u. -> SI # use this as a prefactor to obtain curvature
                 integrand = np.empty([Nr], dtype=np.cdouble)
                 for k3 in range(Nr): integrand[k3] = np.exp(-(rgrid[k3] ** 2) / (2.0 * (zgrid_anal[k6] - z_medium))) * rgrid[k3] * FField_r[k5, k3] * special.jn(0, k_omega * rgrid[k3] * rgrid_anal[k2] / (zgrid_anal[k6] - z_medium));  # rescale r to atomic units for spectrum in atomic units! (only scaling)
                 if (integrator == 'Trapezoidal'): FHHGOnScreen[k6, k4, k2] = (1.0 / (zgrid_anal[k6] - z_medium)) * integrate.trapz(integrand, rgrid);
@@ -168,14 +168,15 @@ PhenomParams = np.array([
 [0, 500., 1775., 3600.], # alphas
 [omegawidth, omegawidth, omegawidth, omegawidth]
 ])
-NumHarm = 4; # number of harmonics
+NumHarm = 1; # number of harmonics
 
 ## define dipole function
-def dipoleTimeDomainApp(tgrid,r,I0,PhenomParams,tcoeff,rcoeff,omega0): # some global variables involved
+def dipoleTimeDomainApp(tgrid,z,r,I0,PhenomParams,tcoeff,rcoeff,omega0,zR): # some global variables involved
 #  tcoeff = 4.0*np.log(2.0)*TIMEau**2 / ( TFWHMSI**2 )
 #  rcoeff = 2.0/(w0r**2)
   # we are in atomic units, we go to electric field instead of intensity
   E0 = np.sqrt(I0);
+  lambd = mn.ConvertPhoton(omega0,'omegaau','lambdaSI')
   res = []
   for k1 in range(len(tgrid)):
     res1 = 0.0*1j;
@@ -183,6 +184,8 @@ def dipoleTimeDomainApp(tgrid,r,I0,PhenomParams,tcoeff,rcoeff,omega0): # some gl
     for k2 in range(NumHarm):
         alpha = PhenomParams[1, k2]
         order = PhenomParams[0, k2]
+        k0_wave = 2.0*np.pi*order/lambd
+        IR_induced_phase = mn.GaussianBeamCurvaturePhase(r,z,k0_wave,zR)
         res1 = res1 + intens*np.exp(1j*(tgrid[k1]*omega0*order-alpha*intens))
     res.append(res1); ## various points in time
   return np.asarray(res)
@@ -202,6 +205,7 @@ def ComputeFieldsPhenomenologicalDipoles(I0SI,omega0,TFWHM,w0,tgrid,omegagrid,rg
   # but we apply them in the field
   tcoeff = 2.0*np.log(2.0)*units.TIMEau**2 / ( TFWHM**2 )
   rcoeff = 1.0/(w0**2)
+  zR = mn.GaussianBeamRayleighRange(w0,mn.ConvertPhoton(omega0,'omegaau','lambdaSI'))
 
   k1 = mn.FindInterval(tgrid,0.0)
   dt = tgrid[k1+1]-tgrid[k1]
@@ -210,7 +214,7 @@ def ComputeFieldsPhenomenologicalDipoles(I0SI,omega0,TFWHM,w0,tgrid,omegagrid,rg
     for k2 in range(Nr): # multiprocessing?
       print('kr',k2)
       # the expression of the dipole is tricky, see appendix C in Jan Vabek's diploma thesis (using "two-times" Fourier in omega)
-      dum = dipoleTimeDomainApp(tgrid,rgrid[k2],I0SI/units.INTENSITYau,PhenomParams,tcoeff,rcoeff,omega0) # compute "complex" dipole in t-domain
+      dum = dipoleTimeDomainApp(tgrid,z_medium[k1],rgrid[k2],I0SI/units.INTENSITYau,PhenomParams,tcoeff,rcoeff,omega0,zR) # compute "complex" dipole in t-domain
       # add the extra phase
       dum = (dt/np.sqrt(2.0*np.pi))*np.fft.fft(dum) # fft with normalisation
       # FField_r[k1,:,k2] = dum # !! CANNOT BE DONE THIS WAY, WE HAVE EXTRA ASSUMPTION THAT OUR SIGNAL IS REAL fft: C -> C

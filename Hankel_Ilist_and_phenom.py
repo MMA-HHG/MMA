@@ -54,7 +54,7 @@ omega0 = LaserParams['omega0']; zR = LaserParams['zR'];
 
 # anlyses params # at the moment optimised for t he intensity list, change later
 
-z_medium = np.asarray([-0.003, 0.0])  # np.array([-0.003, 0.0, 0.003]);
+z_medium = np.asarray([-0.03, 0.0])  # np.array([-0.003, 0.0, 0.003]);
 
 rmax = 2.0*LaserParams['w0'];
 Nr = 100;

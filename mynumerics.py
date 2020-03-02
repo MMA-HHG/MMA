@@ -42,10 +42,13 @@ def FindInterval(x,x0): # find an index corresponding to given x0 value interval
   #   else : return FindInterval(x[0:(N//2)],x0,?);
 
 ############# gaussian beam
+def GaussianBeamRayleighRange(w0,lambd):
+  return np.pi*w0**2/lambd
+
 def invRadius(z,zR):
   return z/(zR**2+z**2)
 
-def IRphase(r,z,k0,zR):
+def GaussianBeamCurvaturePhase(r,z,k0,zR):
   return 0.5*k0*invRadius(z,zR)*r**2
 
 def waist(z,w0,zR):
@@ -56,7 +59,7 @@ def GaussianBeam(r,z,t,I0,w0,tFWHM,lambd):
   w=w0*np.sqrt(1.0+(z/zR)**2);
   I=I0*((w0/w)**2)*np.exp(-2.0*(r/w)**2)*np.exp(-(2.0*np.sqrt(np.log(2.0))*t/tFWHM)**2);
   k0=2.0*np.pi/lambd;
-  phase = IRphase(r,z,k0,zR);
+  phase = GaussianBeamCurvaturePhase(r,z,k0,zR);
   return I, phase
 
 # conversion of photons
