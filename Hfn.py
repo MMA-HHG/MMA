@@ -51,7 +51,8 @@ def FieldOnScreen(z_medium, omegagrid, omega_step, rgrid, FField_r, rgrid_anal, 
                 for k2 in range(Nr_anal):  # Nr
                     k_omega = omegagrid[k5] / (units.TIMEau * units.c_light);  # omega divided by time: a.u. -> SI
                     integrand = np.empty([Nr], dtype=np.cdouble)
-                    for k3 in range(Nr): integrand[k3] = np.exp(-(rgrid[k3] ** 2) / (2.0 * (zgrid_anal[k7,k6] - z_medium[k7]))) * rgrid[k3] * FField_r[k7, k5, k3] * special.jn(0, k_omega * rgrid[k3] * rgrid_anal[k2] / (zgrid_anal[k7,k6] - z_medium[k7]));  # rescale r to atomic units for spectrum in atomic units! (only scaling)
+                    for k3 in range(Nr): integrand[k3] = np.exp(-1j*k_omega * (rgrid[k3] ** 2) / (2.0 * (zgrid_anal[k7,k6] - z_medium[k7]))) * rgrid[k3] * FField_r[k7, k5, k3] * special.jn(0, k_omega * rgrid[k3] * rgrid_anal[k2] / (zgrid_anal[k7,k6] - z_medium[k7]));  # rescale r to atomic units for spectrum in atomic units! (only scaling)
+                    # for k3 in range(Nr): integrand[k3] = rgrid[k3] * FField_r[k7, k5, k3] * special.jn(0, k_omega * rgrid[k3] * rgrid_anal[k2] / (zgrid_anal[k7,k6] - z_medium[k7]));  # rescale r to atomic units for spectrum in atomic units! (only scaling)
                     if (integrator == 'Trapezoidal'): FHHGOnScreen[k7,k6, k4, k2] = (1.0 / (zgrid_anal[k7,k6] - z_medium[k7])) * integrate.trapz(integrand, rgrid);
                     elif (integrator == 'Simpson'): FHHGOnScreen[k7,k6, k4, k2] = (1.0 / (zgrid_anal[k7,k6] - z_medium[k7])) * integrate.simps(integrand, rgrid);
                     else: sys.exit('Wrong integrator')
@@ -171,7 +172,11 @@ PhenomParams = np.array([
 NumHarm = 1; # number of harmonics
 
 ## define dipole function
-def dipoleTimeDomainApp(tgrid,z,r,I0,PhenomParams,tcoeff,rcoeff,omega0,zR): # some global variables involved
+def dipoleTimeDomainApp(tgrid,z,r,I0,PhenomParams,tcoeff,rcoeff,omega0,zR):
+# !!!! THERE ARE SEVERAL POINTS NEEDED TO MENTION HERE
+#  - We don't follow the notation of the complex field exp(-i*(omega*t-...)). The reason is that we can then use fft instead of ifft... Be careful with conversions.
+#  - One should then check the sign of alpha as well...
+
 #  tcoeff = 4.0*np.log(2.0)*TIMEau**2 / ( TFWHMSI**2 )
 #  rcoeff = 2.0/(w0r**2)
   # we are in atomic units, we go to electric field instead of intensity
@@ -184,9 +189,9 @@ def dipoleTimeDomainApp(tgrid,z,r,I0,PhenomParams,tcoeff,rcoeff,omega0,zR): # so
     for k2 in range(NumHarm):
         alpha = PhenomParams[1, k2]
         order = PhenomParams[0, k2]
-        k0_wave = 2.0*np.pi*order/lambd
-        IR_induced_phase = mn.GaussianBeamCurvaturePhase(r,z,k0_wave,zR)
-        res1 = res1 + intens*np.exp(1j*(tgrid[k1]*omega0*order-alpha*intens))
+        k_omega_wave = 2.0*np.pi*order/lambd
+        IR_induced_phase = mn.GaussianBeamCurvaturePhase(r,z,k_omega_wave,zR) # order included
+        res1 = res1 + intens*np.exp(1j*(tgrid[k1]*omega0*order-IR_induced_phase-alpha*intens))
     res.append(res1); ## various points in time
   return np.asarray(res)
 
@@ -215,7 +220,6 @@ def ComputeFieldsPhenomenologicalDipoles(I0SI,omega0,TFWHM,w0,tgrid,omegagrid,rg
       print('kr',k2)
       # the expression of the dipole is tricky, see appendix C in Jan Vabek's diploma thesis (using "two-times" Fourier in omega)
       dum = dipoleTimeDomainApp(tgrid,z_medium[k1],rgrid[k2],I0SI/units.INTENSITYau,PhenomParams,tcoeff,rcoeff,omega0,zR) # compute "complex" dipole in t-domain
-      # add the extra phase
       dum = (dt/np.sqrt(2.0*np.pi))*np.fft.fft(dum) # fft with normalisation
       # FField_r[k1,:,k2] = dum # !! CANNOT BE DONE THIS WAY, WE HAVE EXTRA ASSUMPTION THAT OUR SIGNAL IS REAL fft: C -> C
       for k3 in range(Nomega): FField_r[k1,k3,k2] = dum[k3]

@@ -54,25 +54,25 @@ omega0 = LaserParams['omega0']; zR = LaserParams['zR'];
 
 # anlyses params # at the moment optimised for t he intensity list, change later
 
-z_medium = np.asarray([-0.03, 0.0])  # np.array([-0.003, 0.0, 0.003]);
+z_medium = np.asarray([-0.2, -0.03, 0.0, 0.03])  # np.array([-0.003, 0.0, 0.003]);
 
 rmax = 2.0*LaserParams['w0'];
-Nr = 100;
+Nr = 200;
 
-rmax_anal = 0.3*0.008 # [SI] on screen # 0.0001
+rmax_anal = 0.6*0.008 # [SI] on screen # 0.0001
 Nr_anal=100 #750
 
 zmin_anal = 0.001 # !!!!!! in the reference of the jet, the grid is then reshaped correctly
-zmax_anal = 0.2
-Nz_anal = 10 #200
+zmax_anal = 0.8
+Nz_anal = 100 #200
 
 Hmin_anal = 0.5 #28.5
 Hmax_anal = 1.5 #29.5
 omega_step = 1
 
 # used only for phenomenological dipoles
-tcoeff = 2.0; # extension of tgrid in the units of TFWHM
-Nt = 100000;
+tcoeff = 4.0; # extension of tgrid in the units of TFWHM
+Nt = 2*100000;
 
 
 ## other parameters
@@ -108,7 +108,7 @@ if (dipole_model == 'IntensityList'):
   FSourceterm = np.squeeze(FSourceterm[:,:,0] + 1j*FSourceterm[:,:,1]) # convert to complex numbers
 
 elif (dipole_model == 'Phenomenological'):
-  OutputFileName = "results_phenom2.h5"
+  OutputFileName = "results_phenom6.h5"
   tgrid = np.linspace(-tcoeff * 0.5 * LaserParams['TFWHM'] / units.TIMEau, tcoeff * 0.5 * LaserParams['TFWHM'] / units.TIMEau, Nt)
   Nomega = len(tgrid)//2 + 1
   omegagrid = np.linspace(0,2.0*np.pi*Nomega/(tcoeff*LaserParams['TFWHM']/units.TIMEau),Nomega)
@@ -128,7 +128,7 @@ Nz_medium = len(z_medium)
 
 rgrid = np.linspace(0.0,rmax,Nr)
 zgrid_anal = np.empty([Nz_medium, Nz_anal],dtype=np.double)
-for k1 in range(Nz_medium): zgrid_anal[k1,:] = np.linspace(z_medium[k1]+zmin_anal,z_medium[k1]+zmax_anal,Nz_anal)
+for k1 in range(Nz_medium): zgrid_anal[k1,:] = np.linspace(z_medium[k1]+zmin_anal,z_medium[k1]+zmax_anal,Nz_anal) # zgrid_anal is thus in the IR-focus reference frame
 rgrid_anal = np.linspace(0,rmax_anal,Nr_anal)
 omegamin_anal = omega0*Hmin_anal
 omegamax_anal = omega0*Hmax_anal
@@ -273,6 +273,8 @@ file1.close()
 
 # some graphical outputs directly?
 
+
+print('done')
 
 
 
