@@ -180,7 +180,7 @@ def dipoleTimeDomainApp(tgrid,z,r,I0,PhenomParams,tcoeff,rcoeff,omega0,zR):
 #  tcoeff = 4.0*np.log(2.0)*TIMEau**2 / ( TFWHMSI**2 )
 #  rcoeff = 2.0/(w0r**2)
   # we are in atomic units, we go to electric field instead of intensity
-  E0 = np.sqrt(I0);
+  E0 = np.sqrt(I0) / np.sqrt(1.0+(z/zR)**2) # reduced in z
   lambd = mn.ConvertPhoton(omega0,'omegaau','lambdaSI')
   res = []
   for k1 in range(len(tgrid)):
