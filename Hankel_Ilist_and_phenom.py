@@ -57,17 +57,17 @@ omega0 = LaserParams['omega0']; zR = LaserParams['zR'];
 z_medium = np.asarray([-0.02, -0.01, -0.005, 0.0, 0.01])  # np.array([-0.003, 0.0, 0.003]);
 
 rmax = 2.0*LaserParams['w0'];
-Nr = 100;
+Nr = 2;
 
 rmax_anal = 0.15*1e-3 # [SI] on screen # 0.0001
-Nr_anal = 50 #750
+Nr_anal = 150 #750
 
 zmin_anal = 0.001 # !!!!!! in the reference of the jet, the grid is then reshaped correctly
-zmax_anal = 0.4
-Nz_anal = 100 #200
+zmax_anal = 0.5
+Nz_anal = 2 #200
 
-Hmin_anal = 28.5 # 0.0 #28.5
-Hmax_anal = 29.5 # 2.5 #29.5
+Hmin_anal = np.nan # 0.0 #28.5
+Hmax_anal = 2 # 2.5 #29.5
 omega_step = 1
 
 # used only for phenomenological dipoles
@@ -79,8 +79,16 @@ Nt = 1000;
 integrator = 'Trapezoidal'; # 'Trapezoidal', Simpson
 dipole_model = 'IntensityList' # 'IntensityList', Phenomenological
 W = mp.cpu_count() # this is the number of workers
-W = 8;
+W = 4;
 
+
+
+outpath = os.path.join("/mnt", "jvabek", "ThinTargets_collab") 
+IntensityListFile = os.path.join("/mnt", "jvabek", "ThinTargets_collab", "Ilists", "DipoleIntensityTable_1k.h5") # used only for the list
+
+
+# IntensityListFile = 'ThinDipoleIntensityTable_5k.h5' # path for fields
+# IntensityListFile = os.path.join("C:\data","ThinTargets_collab","DipoleIntensityTable_1k.h5")
 
 #print(PhenomParams)
 print(omega0,'omega0 in a.u.')
@@ -90,14 +98,12 @@ print(omega0,'omega0 in a.u.')
 
 ########################################################## THE BODY OF THE PROGRAM
 
-outpath = os.path.join("/mnt", "c", "data", "ThinTargets_collab")
+
 if (dipole_model == 'IntensityList'):
   OutputFileName = "results2.h5"
 
   # loading procedure
-  # IntensityListFile = os.path.join("C:\data","ThinTargets_collab","DipoleIntensityTable_1k.h5")
-  IntensityListFile = os.path.join("/mnt","c","data","ThinTargets_collab","DipoleIntensityTable_1k.h5")
-  # IntensityListFile = 'ThinDipoleIntensityTable_5k.h5' # path for fields
+
 
 
   # loading
