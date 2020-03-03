@@ -75,7 +75,7 @@ tcoeff = 6.0; # extension of tgrid in the units of TFWHM
 Nt = 1000;
 
 
-## other parameters
+## other parameters 
 integrator = 'Trapezoidal'; # 'Trapezoidal', Simpson
 dipole_model = 'Phenomenological' # 'IntensityList', Phenomenological
 W = mp.cpu_count() # this is the number of workers
