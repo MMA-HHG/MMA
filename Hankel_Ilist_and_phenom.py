@@ -54,20 +54,20 @@ omega0 = LaserParams['omega0']; zR = LaserParams['zR'];
 
 # anlyses params # at the moment optimised for t he intensity list, change later
 
-z_medium = np.asarray([0.0])  # np.array([-0.003, 0.0, 0.003]);
+z_medium = np.asarray([-0.02, -0.01, -0.005, 0.0, 0.01])  # np.array([-0.003, 0.0, 0.003]);
 
 rmax = 2.0*LaserParams['w0'];
 Nr = 100;
 
-rmax_anal = 0.6*0.008 # [SI] on screen # 0.0001
-Nr_anal=10 #750
+rmax_anal = 0.15*1e-3 # [SI] on screen # 0.0001
+Nr_anal = 50 #750
 
 zmin_anal = 0.001 # !!!!!! in the reference of the jet, the grid is then reshaped correctly
-zmax_anal = 0.8
-Nz_anal = 10 #200
+zmax_anal = 0.4
+Nz_anal = 100 #200
 
-Hmin_anal = np.nan # 0.0 #28.5
-Hmax_anal = np.nan # 2.5 #29.5
+Hmin_anal = 28.5 # 0.0 #28.5
+Hmax_anal = 29.5 # 2.5 #29.5
 omega_step = 1
 
 # used only for phenomenological dipoles
@@ -75,9 +75,9 @@ tcoeff = 6.0; # extension of tgrid in the units of TFWHM
 Nt = 1000;
 
 
-## other parameters 
+## other parameters
 integrator = 'Trapezoidal'; # 'Trapezoidal', Simpson
-dipole_model = 'Phenomenological' # 'IntensityList', Phenomenological
+dipole_model = 'IntensityList' # 'IntensityList', Phenomenological
 W = mp.cpu_count() # this is the number of workers
 W = 8;
 
@@ -92,7 +92,7 @@ print(omega0,'omega0 in a.u.')
 
 outpath = os.path.join("/mnt", "c", "data", "ThinTargets_collab")
 if (dipole_model == 'IntensityList'):
-  OutputFileName = "results.h5"
+  OutputFileName = "results2.h5"
 
   # loading procedure
   # IntensityListFile = os.path.join("C:\data","ThinTargets_collab","DipoleIntensityTable_1k.h5")
