@@ -46,7 +46,7 @@ LaserParams={ ## define macroscopic gaussian beam # try also fancy reading direc
 'z' : 0.05,
 'lambda' : 800.0e-9, # must correspond
 'phase0' : 0.0, # initial CEP
-'TFWHM' : 40e-15 # [SI]
+'TFWHM' : 30e-15 # [SI]
 }
 LaserParams['omega0'] = mn.ConvertPhoton(LaserParams['lambda'] ,'lambdaSI','omegaau') # find frequency in atomic units
 LaserParams['zR'] = np.pi*((LaserParams['w0'])**2)/LaserParams['lambda']
@@ -54,25 +54,25 @@ omega0 = LaserParams['omega0']; zR = LaserParams['zR'];
 
 # anlyses params # at the moment optimised for t he intensity list, change later
 
-z_medium = np.asarray([-0.2, -0.03, 0.0, 0.03])  # np.array([-0.003, 0.0, 0.003]);
+z_medium = np.asarray([0.0])  # np.array([-0.003, 0.0, 0.003]);
 
 rmax = 2.0*LaserParams['w0'];
-Nr = 200;
+Nr = 100;
 
 rmax_anal = 0.6*0.008 # [SI] on screen # 0.0001
-Nr_anal=100 #750
+Nr_anal=10 #750
 
 zmin_anal = 0.001 # !!!!!! in the reference of the jet, the grid is then reshaped correctly
 zmax_anal = 0.8
-Nz_anal = 100 #200
+Nz_anal = 10 #200
 
-Hmin_anal = 0.5 #28.5
-Hmax_anal = 1.5 #29.5
+Hmin_anal = np.nan # 0.0 #28.5
+Hmax_anal = np.nan # 2.5 #29.5
 omega_step = 1
 
 # used only for phenomenological dipoles
-tcoeff = 4.0; # extension of tgrid in the units of TFWHM
-Nt = 2*100000;
+tcoeff = 6.0; # extension of tgrid in the units of TFWHM
+Nt = 1000;
 
 
 ## other parameters
@@ -108,7 +108,7 @@ if (dipole_model == 'IntensityList'):
   FSourceterm = np.squeeze(FSourceterm[:,:,0] + 1j*FSourceterm[:,:,1]) # convert to complex numbers
 
 elif (dipole_model == 'Phenomenological'):
-  OutputFileName = "results_phenom6.h5"
+  OutputFileName = "results_phenom8.h5"
   tgrid = np.linspace(-tcoeff * 0.5 * LaserParams['TFWHM'] / units.TIMEau, tcoeff * 0.5 * LaserParams['TFWHM'] / units.TIMEau, Nt)
   Nomega = len(tgrid)//2 + 1
   omegagrid = np.linspace(0,2.0*np.pi*Nomega/(tcoeff*LaserParams['TFWHM']/units.TIMEau),Nomega)
@@ -130,10 +130,20 @@ rgrid = np.linspace(0.0,rmax,Nr)
 zgrid_anal = np.empty([Nz_medium, Nz_anal],dtype=np.double)
 for k1 in range(Nz_medium): zgrid_anal[k1,:] = np.linspace(z_medium[k1]+zmin_anal,z_medium[k1]+zmax_anal,Nz_anal) # zgrid_anal is thus in the IR-focus reference frame
 rgrid_anal = np.linspace(0,rmax_anal,Nr_anal)
-omegamin_anal = omega0*Hmin_anal
-omegamax_anal = omega0*Hmax_anal
-Nomega_anal = mn.FindInterval(omegagrid,omegamax_anal)
-Nomega_anal_start = mn.FindInterval(omegagrid,omegamin_anal)
+
+if (np.isnan(Hmin_anal)):
+  omegamin_anal = omegagrid[0]
+  Nomega_anal_start = 0
+else:
+  omegamin_anal = omega0*Hmin_anal
+  Nomega_anal_start = mn.FindInterval(omegagrid,omegamin_anal)
+
+if (np.isnan(Hmax_anal)):
+  omegamax_anal = omegagrid[len(omegagrid)-1]
+  Nomega_anal = len(omegagrid)-1
+else:
+  omegamax_anal = omega0 * Hmax_anal
+  Nomega_anal = mn.FindInterval(omegagrid, omegamax_anal)
 
 Nomega_points = mn.NumOfPointsInRange(Nomega_anal_start,Nomega_anal,omega_step); # Nomega_points is the number of simulations we want to perform
 

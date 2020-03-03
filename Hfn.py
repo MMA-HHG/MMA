@@ -31,7 +31,7 @@ def ComputeFieldsInRFromIntensityList(z_medium, rgrid, Hgrid, Nomega, LaserParam
         # find a proper interval in the Igrid, we use linear interp written by hand now
         k2 = mn.FindInterval(Igrid,I_r)
         weight1 = (Igrid[k2+1]-I_r)/(Igrid[k2+1]-Igrid[k2]); weight2 = (I_r-Igrid[k2])/(Igrid[k2+1]-Igrid[k2]);
-        FField_r[k3, :, k1] = np.exp(-1j*phase_XUV)*(weight1*FSourceterm[k2,:]+weight2*FSourceterm[k2,:]); # free-form works?
+        FField_r[k3, :, k1] = np.exp(1j*phase_XUV)*(weight1*FSourceterm[k2,:]+weight2*FSourceterm[k2,:]); # free-form works? # not sure about the sign, if really (-i*(omega*t-kz-phiIR)), than should be "exp(+1j*...)"
     return FField_r
 
 
@@ -165,11 +165,13 @@ def CoalesceResults_serial(results,Nz_anal,Nomega_anal_start,Nomega_points,Nr_an
 # this should be loaded from somewhere or computed, or whatever... NOT directly in the code!
 omegawidth = 4.0/np.sqrt(4000.0**2); # roughly corresponds to 100 fs
 PhenomParams = np.array([
-[1, 29, 35, 39], # harmonics
-[0, 500., 1775., 3600.], # alphas
+[1, 2, 35, 39], # harmonics
+[0, 0, 1775., 3600.], # alphas
+# [1, 29, 35, 39], # harmonics
+# [0, 500., 1775., 3600.], # alphas
 [omegawidth, omegawidth, omegawidth, omegawidth]
 ])
-NumHarm = 1; # number of harmonics
+NumHarm = 2; # number of harmonics
 
 ## define dipole function
 def dipoleTimeDomainApp(tgrid,z,r,I0,PhenomParams,tcoeff,rcoeff,omega0,zR):
@@ -185,8 +187,11 @@ def dipoleTimeDomainApp(tgrid,z,r,I0,PhenomParams,tcoeff,rcoeff,omega0,zR):
   res = []
   for k1 in range(len(tgrid)):
     res1 = 0.0*1j;
-    intens = E0*np.exp(-tcoeff*(tgrid[k1])**2 - rcoeff*r**2) # qeff here?
+    # intens = E0*np.exp(-tcoeff*(tgrid[k1])**2 - rcoeff*r**2) # qeff here?
     for k2 in range(NumHarm):
+        # if (k2 == 2): intens = E0 * np.exp(-tcoeff * (tgrid[k1]-900.0) ** 2 - rcoeff * r ** 2)  # qeff here?
+        # else: intens = E0 * np.exp(-tcoeff * (tgrid[k1]) ** 2 - rcoeff * r ** 2)  # qeff here?
+        intens = E0 * np.exp(-tcoeff * (tgrid[k1]) ** 2 - rcoeff * r ** 2)  # qeff here?
         alpha = PhenomParams[1, k2]
         order = PhenomParams[0, k2]
         k_omega_wave = 2.0*np.pi*order/lambd
@@ -208,14 +213,17 @@ def ComputeFieldsPhenomenologicalDipoles(I0SI,omega0,TFWHM,w0,tgrid,omegagrid,rg
   # rcoeff = 2.0/(w0**2)
 
   # but we apply them in the field
+  zR = mn.GaussianBeamRayleighRange(w0, mn.ConvertPhoton(omega0, 'omegaau', 'lambdaSI'))
   tcoeff = 2.0*np.log(2.0)*units.TIMEau**2 / ( TFWHM**2 )
-  rcoeff = 1.0/(w0**2)
-  zR = mn.GaussianBeamRayleighRange(w0,mn.ConvertPhoton(omega0,'omegaau','lambdaSI'))
+
+
 
   k1 = mn.FindInterval(tgrid,0.0)
   dt = tgrid[k1+1]-tgrid[k1]
 
   for k1 in range(Nz_medium):
+    w = w0 * np.sqrt(1.0 + (z_medium[k1] / zR) ** 2)  # reduced in z
+    rcoeff = 1.0 / (w ** 2)
     for k2 in range(Nr): # multiprocessing?
       print('kr',k2)
       # the expression of the dipole is tricky, see appendix C in Jan Vabek's diploma thesis (using "two-times" Fourier in omega)
