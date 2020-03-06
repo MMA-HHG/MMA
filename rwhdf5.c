@@ -142,9 +142,9 @@ int main(int argc, char *argv[])
 		MPE_MC_KEYVAL = MPE_Counter_create(MPI_COMM_WORLD, 2, &mc_win); // first is counter, second mutex
 
 
-		if ( myrank==0 ) 
+		if ( myrank == 0 ) 
 		{
-		MPE_Mutex_acquire(mc_win, 1, MPE_MC_KEYVAL); // first processes is preparing the file and the rest may do their own work
+		MPE_Mutex_acquire(mc_win, 1, MPE_MC_KEYVAL); // first process is preparing the file and the rest may do their own work
 
 
 		MPE_Mutex_release(mc_win, 1, MPE_MC_KEYVAL);
