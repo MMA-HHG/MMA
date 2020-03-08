@@ -81,18 +81,25 @@ Nt = 1000;
 integrator = 'Trapezoidal'; # 'Trapezoidal', Simpson
 dipole_model = 'IntensityList' # 'IntensityList', Phenomenological
 W = mp.cpu_count() # this is the number of workers
-W = 16;
+W = 10;
 
 
 
 # outpath = os.path.join("/mnt", "jvabek", "ThinTargets_collab")
 # IntensityListFile = os.path.join("/mnt", "jvabek", "ThinTargets_collab", "Ilists", "DipoleIntensityTable_1k.h5") # used only for the list
 
+# local
 # outpath = os.path.join("/mnt","c","data","ThinTargets_collab")
 # IntensityListFile = os.path.join("/mnt","c","data","ThinTargets_collab","DipoleIntensityTable_1k.h5")# used only for the list
 
+# curta
 outpath = os.path.join("/scratch","jvabek","optics-less-focusing","beams")
 IntensityListFile = os.path.join("/scratch","jvabek","optics-less-focusing","DipoleIntensityTable_1k.h5")# used only for the list
+
+#occigen
+outpath = os.path.join("/scratch","cnt0025","vabekjan","ThinTargets_collab","beams")
+IntensityListFile = os.path.join("/scratch","cnt0025","vabekjan","ThinTargets_collab","DipoleIntensityTable_1k.h5")# used only for the list
+
 
 OutputFileName = "results1.h5" # "results_phenom8.h5"
 
