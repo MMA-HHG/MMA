@@ -41,7 +41,7 @@ import Hfn
 
 LaserParams={ ## define macroscopic gaussian beam # try also fancy reading directly here
 'I0' : 4.0e18,
-'w0' : 96.0e-6,
+'w0' : 85.0e-6,
 'r_extend' : 4.0,
 'z' : 0.05,
 'lambda' : 800.0e-9, # must correspond
@@ -54,20 +54,22 @@ omega0 = LaserParams['omega0']; zR = LaserParams['zR'];
 
 # anlyses params # at the moment optimised for t he intensity list, change later
 
-z_medium = np.asarray([-0.02, -0.01, -0.005, 0.0, 0.01])  # np.array([-0.003, 0.0, 0.003]);
+z_medium = np.asarray([-0.025, -0.02, -0.015, -0.01, -0.005, 0.0, 0.01])  # np.array([-0.003, 0.0, 0.003]);
 
-rmax = 2.0*LaserParams['w0'];
-Nr = 2;
+rmax = 3.0*LaserParams['w0'];
+Nr = 300;
 
-rmax_anal = 0.15*1e-3 # [SI] on screen # 0.0001
-Nr_anal = 150 #750
+rmax_anal = 5*1e-3 # [SI] on screen # 0.0001
+Nr_anal = 50 #750
 
-zmin_anal = 0.001 # !!!!!! in the reference of the jet, the grid is then reshaped correctly
+zmin_anal = 0.05 # !!!!!! in the reference of the jet, the grid is then reshaped correctly
 zmax_anal = 0.5
-Nz_anal = 2 #200
+only_one_plane_bool = False # only zmax used # Nz_anal is overrun
+fix_zmax_bool = True
+Nz_anal = 10 #200
 
-Hmin_anal = np.nan # 0.0 #28.5
-Hmax_anal = 2 # 2.5 #29.5
+Hmin_anal = np.nan # 0.0 #28.5 np.nan
+Hmax_anal = 71.5 # 2.5 #29.5
 omega_step = 1
 
 # used only for phenomenological dipoles
@@ -79,13 +81,15 @@ Nt = 1000;
 integrator = 'Trapezoidal'; # 'Trapezoidal', Simpson
 dipole_model = 'IntensityList' # 'IntensityList', Phenomenological
 W = mp.cpu_count() # this is the number of workers
-W = 4;
+W = 8;
 
 
 
-outpath = os.path.join("/mnt", "jvabek", "ThinTargets_collab") 
-IntensityListFile = os.path.join("/mnt", "jvabek", "ThinTargets_collab", "Ilists", "DipoleIntensityTable_1k.h5") # used only for the list
-
+# outpath = os.path.join("/mnt", "jvabek", "ThinTargets_collab")
+# IntensityListFile = os.path.join("/mnt", "jvabek", "ThinTargets_collab", "Ilists", "DipoleIntensityTable_1k.h5") # used only for the list
+outpath = os.path.join("/mnt","c","data","ThinTargets_collab")
+IntensityListFile = os.path.join("/mnt","c","data","ThinTargets_collab","DipoleIntensityTable_1k.h5")# used only for the list
+OutputFileName = "results6.h5" # "results_phenom8.h5"
 
 # IntensityListFile = 'ThinDipoleIntensityTable_5k.h5' # path for fields
 # IntensityListFile = os.path.join("C:\data","ThinTargets_collab","DipoleIntensityTable_1k.h5")
@@ -100,13 +104,7 @@ print(omega0,'omega0 in a.u.')
 
 
 if (dipole_model == 'IntensityList'):
-  OutputFileName = "results2.h5"
-
   # loading procedure
-
-
-
-  # loading
   file1 = h5py.File(IntensityListFile, 'r')
   Igrid = file1['/Igrid'][:]
   omegagrid = file1['/omegagrid'][:]
@@ -114,7 +112,6 @@ if (dipole_model == 'IntensityList'):
   FSourceterm = np.squeeze(FSourceterm[:,:,0] + 1j*FSourceterm[:,:,1]) # convert to complex numbers
 
 elif (dipole_model == 'Phenomenological'):
-  OutputFileName = "results_phenom8.h5"
   tgrid = np.linspace(-tcoeff * 0.5 * LaserParams['TFWHM'] / units.TIMEau, tcoeff * 0.5 * LaserParams['TFWHM'] / units.TIMEau, Nt)
   Nomega = len(tgrid)//2 + 1
   omegagrid = np.linspace(0,2.0*np.pi*Nomega/(tcoeff*LaserParams['TFWHM']/units.TIMEau),Nomega)
@@ -133,8 +130,21 @@ Hgrid[:] = omegagrid[:]/LaserParams['omega0']
 Nz_medium = len(z_medium)
 
 rgrid = np.linspace(0.0,rmax,Nr)
-zgrid_anal = np.empty([Nz_medium, Nz_anal],dtype=np.double)
-for k1 in range(Nz_medium): zgrid_anal[k1,:] = np.linspace(z_medium[k1]+zmin_anal,z_medium[k1]+zmax_anal,Nz_anal) # zgrid_anal is thus in the IR-focus reference frame
+if only_one_plane_bool:
+  Nz_anal = 1;
+  zgrid_anal = np.empty([Nz_medium, 1], dtype=np.double)
+  if fix_zmax_bool:
+    for k1 in range(Nz_medium): zgrid_anal[k1, :] = np.asarray([zmax_anal])  # zgrid_anal is thus in the IR-focus reference frame
+  else:
+    for k1 in range(Nz_medium): zgrid_anal[k1, :] = np.asarray([z_medium[k1]+zmax_anal])  # zgrid_anal is thus in the IR-focus reference frame
+else:
+  zgrid_anal = np.empty([Nz_medium, Nz_anal],dtype=np.double)
+  if fix_zmax_bool:
+    for k1 in range(Nz_medium): zgrid_anal[k1, :] = np.linspace(z_medium[k1] + zmin_anal, zmax_anal, Nz_anal)  # zgrid_anal is thus in the IR-focus reference frame
+  else:
+    for k1 in range(Nz_medium): zgrid_anal[k1, :] = np.linspace(z_medium[k1] + zmin_anal, z_medium[k1] + zmax_anal, Nz_anal)  # zgrid_anal is thus in the IR-focus reference frame
+
+
 rgrid_anal = np.linspace(0,rmax_anal,Nr_anal)
 
 if (np.isnan(Hmin_anal)):
