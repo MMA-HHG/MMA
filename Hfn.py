@@ -90,7 +90,7 @@ def ObtainWorkload(Nomega_points,W):
     print(N_PointsGrid)
     for k1 in range(W): N_PointsForProcess.append(N_PointsGrid[k1+1]-N_PointsGrid[k1])
 
-  return N_PointsGrid, N_PointsForProcess
+  return W, N_PointsGrid, N_PointsForProcess
 # optimal workload is now given by the number of processes
 
 

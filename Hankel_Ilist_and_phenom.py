@@ -89,16 +89,16 @@ W = 10;
 # IntensityListFile = os.path.join("/mnt", "jvabek", "ThinTargets_collab", "Ilists", "DipoleIntensityTable_1k.h5") # used only for the list
 
 # local
-# outpath = os.path.join("/mnt","c","data","ThinTargets_collab")
-# IntensityListFile = os.path.join("/mnt","c","data","ThinTargets_collab","DipoleIntensityTable_1k.h5")# used only for the list
+outpath = os.path.join("/mnt","c","data","ThinTargets_collab")
+IntensityListFile = os.path.join("/mnt","c","data","ThinTargets_collab","DipoleIntensityTable_1k.h5")# used only for the list
 
 # curta
 # outpath = os.path.join("/scratch","jvabek","optics-less-focusing","beams")
 # IntensityListFile = os.path.join("/scratch","jvabek","optics-less-focusing","DipoleIntensityTable_1k.h5")# used only for the list
 
 #occigen
-outpath = os.path.join("/scratch","cnt0025","cli7594","vabekjan","ThinTargets_collab","beams")
-IntensityListFile = os.path.join("/scratch","cnt0025","cli7594","vabekjan","ThinTargets_collab","DipoleIntensityTable_1k.h5")# used only for the list
+# outpath = os.path.join("/scratch","cnt0025","cli7594","vabekjan","ThinTargets_collab","beams")
+# IntensityListFile = os.path.join("/scratch","cnt0025","cli7594","vabekjan","ThinTargets_collab","DipoleIntensityTable_1k.h5")# used only for the list
 
 
 OutputFileName = "results1.h5" # "results_phenom8.h5"
@@ -213,7 +213,7 @@ def FieldOnScreen_handle(z_medium, omegagrid, omega_step, rgrid, FField_r, rgrid
 
 
 # split the workload evenly
-N_PointsGrid, N_PointsForProcess = Hfn.ObtainWorkload(Nomega_points,W)
+W, N_PointsGrid, N_PointsForProcess = Hfn.ObtainWorkload(Nomega_points,W)
 
 print('----')
 print('process grids for workers: starting point + loads')
