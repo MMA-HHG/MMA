@@ -65,11 +65,11 @@ Nr_anal = 50 #750
 zmin_anal = 0.05 # !!!!!! in the reference of the jet, the grid is then reshaped correctly
 zmax_anal = 0.5
 only_one_plane_bool = False # only zmax used # Nz_anal is overrun
-fix_zmax_bool = True
-Nz_anal = 10 #200
+fix_zmax_bool = False
+Nz_anal = 3 #200
 
-Hmin_anal = np.nan # 0.0 #28.5 np.nan
-Hmax_anal = 71.5 # 2.5 #29.5
+Hmin_anal = 28.5 # 0.0 #28.5 np.nan
+Hmax_anal = 29.5 # 2.5 #29.5 71.5
 omega_step = 1
 
 # used only for phenomenological dipoles
@@ -81,15 +81,20 @@ Nt = 1000;
 integrator = 'Trapezoidal'; # 'Trapezoidal', Simpson
 dipole_model = 'IntensityList' # 'IntensityList', Phenomenological
 W = mp.cpu_count() # this is the number of workers
-W = 8;
+W = 16;
 
 
 
 # outpath = os.path.join("/mnt", "jvabek", "ThinTargets_collab")
 # IntensityListFile = os.path.join("/mnt", "jvabek", "ThinTargets_collab", "Ilists", "DipoleIntensityTable_1k.h5") # used only for the list
-outpath = os.path.join("/mnt","c","data","ThinTargets_collab")
-IntensityListFile = os.path.join("/mnt","c","data","ThinTargets_collab","DipoleIntensityTable_1k.h5")# used only for the list
-OutputFileName = "results6.h5" # "results_phenom8.h5"
+
+# outpath = os.path.join("/mnt","c","data","ThinTargets_collab")
+# IntensityListFile = os.path.join("/mnt","c","data","ThinTargets_collab","DipoleIntensityTable_1k.h5")# used only for the list
+
+outpath = os.path.join("/scratch","jvabek","optics-less-focusing","beams")
+IntensityListFile = os.path.join("/scratch","jvabek","optics-less-focusing","DipoleIntensityTable_1k.h5")# used only for the list
+
+OutputFileName = "results1.h5" # "results_phenom8.h5"
 
 # IntensityListFile = 'ThinDipoleIntensityTable_5k.h5' # path for fields
 # IntensityListFile = os.path.join("C:\data","ThinTargets_collab","DipoleIntensityTable_1k.h5")
