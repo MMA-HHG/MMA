@@ -4,8 +4,8 @@
 #SBATCH --constraint=BDW28      # SKL224
 #SBATCH --cpus-per-task=28
 #SBATCH --hint=multithread
-#SBATCH --time=2:00:00
-#SBATCH --output Hankel.output
+#SBATCH --time=10:00:00
+#SBATCH --output beams_param1.output
 module purge
 module load intelpython3/2019.3
 srun python Hankel_Ilist_and_phenom.py

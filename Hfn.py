@@ -43,6 +43,7 @@ def FieldOnScreen(z_medium, omegagrid, omega_step, rgrid, FField_r, rgrid_anal, 
     Nr_anal = len(rgrid_anal); Nr = len(rgrid); Nz_medium=len(z_medium);
     FHHGOnScreen = np.empty([Nz_medium, Nz_anal, k_num, Nr_anal], dtype=np.cdouble)
     for k7 in range(Nz_medium): # loop over different medium positions
+	print('process starting at omega', k_start, ' started computation of zgrid', z_medium[k7])
         k4 = 0  # # of loops in omega
         for k1 in range(k_num):  # Nomega
             k5 = k_start + k1 * omega_step  # accesing the grid

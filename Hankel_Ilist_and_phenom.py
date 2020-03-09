@@ -60,16 +60,16 @@ rmax = 3.0*LaserParams['w0'];
 Nr = 300;
 
 rmax_anal = 5*1e-3 # [SI] on screen # 0.0001
-Nr_anal = 50 #750
+Nr_anal = 100 #750
 
 zmin_anal = 0.05 # !!!!!! in the reference of the jet, the grid is then reshaped correctly
 zmax_anal = 0.5
 only_one_plane_bool = False # only zmax used # Nz_anal is overrun
 fix_zmax_bool = False
-Nz_anal = 3 #200
+Nz_anal = 100 #200
 
 Hmin_anal = 28.5 # 0.0 #28.5 np.nan
-Hmax_anal = 29.5 # 2.5 #29.5 71.5
+Hmax_anal = 51.5 # 2.5 #29.5 71.5
 omega_step = 1
 
 # used only for phenomenological dipoles
@@ -80,7 +80,7 @@ Nt = 1000;
 ## other parameters
 integrator = 'Trapezoidal'; # 'Trapezoidal', Simpson
 dipole_model = 'IntensityList' # 'IntensityList', Phenomenological
-W = mp.cpu_count() # this is the number of workers
+# W = mp.cpu_count() # this is the number of workers
 W = 28;
 
 
@@ -101,7 +101,7 @@ outpath = os.path.join("/scratch","cnt0025","cli7594","vabekjan","ThinTargets_co
 IntensityListFile = os.path.join("/scratch","cnt0025","cli7594","vabekjan","ThinTargets_collab","DipoleIntensityTable_1k.h5")# used only for the list
 
 
-OutputFileName = "results1.h5" # "results_phenom8.h5"
+OutputFileName = "beams_param1.h5" # "results_phenom8.h5"
 
 # IntensityListFile = 'ThinDipoleIntensityTable_5k.h5' # path for fields
 # IntensityListFile = os.path.join("C:\data","ThinTargets_collab","DipoleIntensityTable_1k.h5")
