@@ -81,7 +81,7 @@ Nt = 1000;
 integrator = 'Trapezoidal'; # 'Trapezoidal', Simpson
 dipole_model = 'IntensityList' # 'IntensityList', Phenomenological
 W = mp.cpu_count() # this is the number of workers
-W = 10;
+W = 28;
 
 
 
