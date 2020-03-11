@@ -59,8 +59,8 @@ z_medium = np.asarray([-0.025, -0.02, -0.015, -0.01, -0.005, 0.0, 0.01])  # np.a
 rmax = 3.0*LaserParams['w0'];
 Nr = 300;
 
-rmax_anal = 5*1e-3 # [SI] on screen # 0.0001
-Nr_anal = 100 #750
+rmax_anal = 3*1e-3 # [SI] on screen # 0.0001
+Nr_anal = 250 #750
 
 zmin_anal = 0.05 # !!!!!! in the reference of the jet, the grid is then reshaped correctly
 zmax_anal = 0.5
@@ -101,7 +101,7 @@ outpath = os.path.join("/scratch","cnt0025","cli7594","vabekjan","ThinTargets_co
 IntensityListFile = os.path.join("/scratch","cnt0025","cli7594","vabekjan","ThinTargets_collab","DipoleIntensityTable_1k.h5")# used only for the list
 
 
-OutputFileName = "beams_param1.h5" # "results_phenom8.h5"
+OutputFileName = "beams_param3.h5" # "results_phenom8.h5"
 
 # IntensityListFile = 'ThinDipoleIntensityTable_5k.h5' # path for fields
 # IntensityListFile = os.path.join("C:\data","ThinTargets_collab","DipoleIntensityTable_1k.h5")
