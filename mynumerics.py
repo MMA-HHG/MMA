@@ -51,7 +51,7 @@ def IsPowerOf2(n):
 def romberg(x_length,fx,eps,n0):
   N = len(fx)
   if ( not IsPowerOf2(N-1) ): sys.exit("romberg: input isn't 2**k+1")
-  elif ( not IsPowerOf2(n0) ): sys.exit("romberg: input isn't 2**k+1")
+  elif ( not IsPowerOf2(n0) ): sys.exit("romberg: initial stepsize isn't 2**k")
   elif ( n0 > (N-1) ): sys.exit("romberg: initial number of points is larger than provided grid")
   dx = x_length/(N-1)
   # Npow = np.rint(np.log2(N-1)) # should work up to 2**62, and above with rounding, be careful
