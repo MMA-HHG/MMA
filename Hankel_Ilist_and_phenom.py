@@ -57,7 +57,8 @@ omega0 = LaserParams['omega0']; zR = LaserParams['zR'];
 z_medium = np.asarray([-0.025, -0.02, -0.015, -0.01, -0.005, 0.0, 0.01])  # np.array([-0.003, 0.0, 0.003]);
 
 rmax = 3.0*LaserParams['w0'];
-Nr = 300;
+# Nr = 300;
+Nr = 2049;
 
 rmax_anal = 3*1e-3 # [SI] on screen # 0.0001
 Nr_anal = 250 #750
@@ -78,7 +79,10 @@ Nt = 1000;
 
 
 ## other parameters
-integrator = 'Trapezoidal'; # 'Trapezoidal', Simpson
+integrator={}
+integrator['method'] = 'Trapezoidal'; # 'Trapezoidal', Simpson, Romberg
+integrator['tol'] = 1e-4;
+integrator['n0'] = 8;
 dipole_model = 'IntensityList' # 'IntensityList', Phenomenological
 # W = mp.cpu_count() # this is the number of workers
 W = 28;

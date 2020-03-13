@@ -68,12 +68,12 @@ def romberg(x_length,fx,eps,n0):
 
     if (k1>0):# convergence test
       Res = abs(I[k1][k1]-I[k1-1][k1-1])/abs(I[k1][k1])
-      if (Res <= eps): return k1, I[k1][k1], I, Res
+      if (Res <= eps): return k1, I[k1][k1], Res
 
     step = step // 2
     k1 = k1+1
 
-  return -1, I[-1][-1], I, Res # didn't converged in requested precision, returns the last value
+  return -1, I[-1][-1], Res # didn't converged in requested precision, returns the last value
   #  return [-1, I[-1][-1]] # didn't converged in requested precision, returns the last value
 
 # xgrid = np.linspace(1.0,2.0,2049)
