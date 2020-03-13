@@ -54,23 +54,23 @@ omega0 = LaserParams['omega0']; zR = LaserParams['zR'];
 
 # anlyses params # at the moment optimised for t he intensity list, change later
 
-z_medium = np.asarray([-0.025, -0.02, -0.015, -0.01, -0.005, 0.0, 0.01])  # np.array([-0.003, 0.0, 0.003]);
+z_medium = np.array([0.0]); #np.asarray([-0.025, -0.02, -0.015, -0.01, -0.005, 0.0, 0.01])  # np.array([-0.003, 0.0, 0.003]);
 
 rmax = 3.0*LaserParams['w0'];
 # Nr = 300;
-Nr = 2049;
+Nr = 1000; # 2049
 
 rmax_anal = 3*1e-3 # [SI] on screen # 0.0001
-Nr_anal = 250 #750
+Nr_anal = 25 #250 #750
 
 zmin_anal = 0.05 # !!!!!! in the reference of the jet, the grid is then reshaped correctly
-zmax_anal = 0.5
-only_one_plane_bool = False # only zmax used # Nz_anal is overrun
-fix_zmax_bool = False
+zmax_anal = 0.4
+only_one_plane_bool = True # only zmax used # Nz_anal is overrun
+fix_zmax_bool = True
 Nz_anal = 100 #200
 
 Hmin_anal = 28.5 # 0.0 #28.5 np.nan
-Hmax_anal = 51.5 # 2.5 #29.5 71.5
+Hmax_anal = 29.5 # 2.5 #29.5 71.5
 omega_step = 1
 
 # used only for phenomenological dipoles
@@ -85,7 +85,7 @@ integrator['tol'] = 1e-4;
 integrator['n0'] = 8;
 dipole_model = 'IntensityList' # 'IntensityList', Phenomenological
 # W = mp.cpu_count() # this is the number of workers
-W = 28;
+W = 8;
 
 
 
@@ -93,19 +93,19 @@ W = 28;
 # IntensityListFile = os.path.join("/mnt", "jvabek", "ThinTargets_collab", "Ilists", "DipoleIntensityTable_1k.h5") # used only for the list
 
 # local
-# outpath = os.path.join("/mnt","c","data","ThinTargets_collab")
-# IntensityListFile = os.path.join("/mnt","c","data","ThinTargets_collab","DipoleIntensityTable_1k.h5")# used only for the list
+outpath = os.path.join("/mnt","c","data","ThinTargets_collab","loc_tests")
+IntensityListFile = os.path.join("/mnt","c","data","ThinTargets_collab","DipoleIntensityTable_1k.h5")# used only for the list
 
 # curta
 # outpath = os.path.join("/scratch","jvabek","optics-less-focusing","beams")
 # IntensityListFile = os.path.join("/scratch","jvabek","optics-less-focusing","DipoleIntensityTable_1k.h5")# used only for the list
 
 #occigen
-outpath = os.path.join("/scratch","cnt0025","cli7594","vabekjan","ThinTargets_collab","beams")
-IntensityListFile = os.path.join("/scratch","cnt0025","cli7594","vabekjan","ThinTargets_collab","DipoleIntensityTable_1k.h5")# used only for the list
+# outpath = os.path.join("/scratch","cnt0025","cli7594","vabekjan","ThinTargets_collab","beams")
+# IntensityListFile = os.path.join("/scratch","cnt0025","cli7594","vabekjan","ThinTargets_collab","DipoleIntensityTable_1k.h5")# used only for the list
 
 
-OutputFileName = "beams_param3.h5" # "results_phenom8.h5"
+OutputFileName = "trap1000_test.h5" # "results_phenom8.h5"
 
 # IntensityListFile = 'ThinDipoleIntensityTable_5k.h5' # path for fields
 # IntensityListFile = os.path.join("C:\data","ThinTargets_collab","DipoleIntensityTable_1k.h5")
@@ -298,6 +298,12 @@ mn.adddataset(grp,'zR',zR,'[SI]')
 mn.adddataset(grp,'w0',LaserParams['w0'],'[SI]')
 mn.adddataset(grp,'I0',LaserParams['I0'],'[SI]')
 
+## numerical parameters
+grp = f.create_group('numerics')
+mn.adddataset(grp,'integral_rmax',rgrid[-1],'[SI]')
+mn.adddataset(grp,'integral_rmin',rgrid[0],'[SI]')
+mn.adddataset(grp,'integral_dr',dr,'[SI]')
+mn.adddataset(grp,'integral_points',Nr,'[-]')
 
 
 f.close()

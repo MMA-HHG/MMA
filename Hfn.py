@@ -31,7 +31,7 @@ def ComputeFieldsInRFromIntensityList(z_medium, rgrid, Hgrid, Nomega, LaserParam
         # find a proper interval in the Igrid, we use linear interp written by hand now
         k2 = mn.FindInterval(Igrid,I_r)
         weight1 = (Igrid[k2+1]-I_r)/(Igrid[k2+1]-Igrid[k2]); weight2 = (I_r-Igrid[k2])/(Igrid[k2+1]-Igrid[k2]);
-        FField_r[k3, :, k1] = np.exp(1j*phase_XUV)*(weight1*FSourceterm[k2,:]+weight2*FSourceterm[k2,:]); # free-form works? # not sure about the sign, if really (-i*(omega*t-kz-phiIR)), than should be "exp(+1j*...)"
+        FField_r[k3, :, k1] = units.EFIELDau*np.exp(1j*phase_XUV)*(weight1*FSourceterm[k2,:]+weight2*FSourceterm[k2,:]); # free-form works? # not sure about the sign, if really (-i*(omega*t-kz-phiIR)), than should be "exp(+1j*...)"
     return FField_r
 
 

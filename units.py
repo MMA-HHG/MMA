@@ -8,3 +8,4 @@ TIMEau = (inverse_alpha_fine**2)*hbar/(elmass*c_light**2);
 INTENSITYau = (inverse_alpha_fine/(8.0*np.pi))*(hbar**3)/((elmass**2)*(r_Bohr**6));
 ENERGYau = hbar**2/(elmass*r_Bohr**2);
 TIMEau = (elmass*r_Bohr**2)/hbar;
+EFIELDau = np.sqrt(INTENSITYau)
