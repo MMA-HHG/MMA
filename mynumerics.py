@@ -75,6 +75,34 @@ def romberg(x_length,fx,eps,n0):
   return -1, I[-1][-1], Res # didn't converged in requested precision, returns the last value
   #  return [-1, I[-1][-1]] # didn't converged in requested precision, returns the last value
 
+
+def romberg(x_length,fx,eps,n0):
+  N = len(fx)
+  if ( not IsPowerOf2(N-1) ): sys.exit("romberg: input isn't 2**k+1")
+  elif ( not IsPowerOf2(n0) ): sys.exit("romberg: initial stepsize isn't 2**k")
+  elif ( n0 > (N-1) ): sys.exit("romberg: initial number of points is larger than provided grid")
+  dx = x_length/(N-1)
+  step = (N-1)//n0 # adjust to n0 points, divisibility already checked
+  k1 = 0
+  I = [] # empty list of lists to store the integrals
+  while (step >= 1):
+    I.append([])
+    indices = [k2 for k2 in range(0,N,step)]
+    for k2 in range(k1+1):
+      if (k2 == 0): value = integrate.trapz(fx[indices],dx=step*dx) # this is inefficient, we already keep the previous results, just refine them
+      else: value = (4.0**k2 * I[k1][k2-1] - I[k1-1][k2-1]) / (4.0**k2-1.0)
+      I[k1].append(value)
+
+    if (k1>0):# convergence test
+      Res = abs(I[k1][k1]-I[k1-1][k1-1])/abs(I[k1][k1])
+      if (Res <= eps): return k1, I[k1][k1], Res
+
+    step = step // 2
+    k1 = k1+1
+
+  return -1, I[-1][-1], Res # didn't converged in requested precision, returns the last value
+  #  return [-1, I[-1][-1]] # didn't converged in requested precision, returns the last value
+
 # xgrid = np.linspace(1.0,2.0,2049)
 # fx = 1/(xgrid**2)
 # nint, Int, full, err = romberg(1.0,fx,1e-15,4)
@@ -167,13 +195,10 @@ def addrealdataset_setprec(h_path, dset_name, dset_data, unit, precision):
     dset_id.attrs['units'] = np.string_(unit)
 
 
-
-
-
-
-
-
-
+def readscalardataset(file,path,type): # type is (S)tring or (N)umber
+  if (type == 'N'): return file[path].value
+  elif (type == 'S'): return file[path][()].decode()
+  else: sys.exit('wrong type')
 
 
 

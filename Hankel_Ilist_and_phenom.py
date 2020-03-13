@@ -38,15 +38,18 @@ import Hfn
 
 
 ###################### THE PARAMETERS OF SIMULATION
+ParamFile = 'results.h5'
+z_medium = np.array([0.0]); #np.asarray([-0.025, -0.02, -0.015, -0.01, -0.005, 0.0, 0.01])  # np.array([-0.003, 0.0, 0.003]);
+
 
 LaserParams={ ## define macroscopic gaussian beam # try also fancy reading directly here
-'I0' : 4.0e18,
-'w0' : 85.0e-6,
-'r_extend' : 4.0,
-'z' : 0.05,
-'lambda' : 800.0e-9, # must correspond
-'phase0' : 0.0, # initial CEP
-'TFWHM' : 30e-15 # [SI]
+'I0' : mn.readscalardataset(ParamFile,'inputs/'+'I0','N'),
+'w0' : mn.readscalardataset(ParamFile,'inputs/'+'w0','N'),
+'r_extend' : np.nan, #4.0,
+'z' : np.nan, #0.05,
+'lambda' : np.nan, #800.0e-9, # must correspond
+'phase0' : np.nan, #0.0, # initial CEP
+'TFWHM' : np.nan #30e-15 # [SI]
 }
 LaserParams['omega0'] = mn.ConvertPhoton(LaserParams['lambda'] ,'lambdaSI','omegaau') # find frequency in atomic units
 LaserParams['zR'] = np.pi*((LaserParams['w0'])**2)/LaserParams['lambda']
@@ -54,24 +57,25 @@ omega0 = LaserParams['omega0']; zR = LaserParams['zR'];
 
 # anlyses params # at the moment optimised for t he intensity list, change later
 
-z_medium = np.array([0.0]); #np.asarray([-0.025, -0.02, -0.015, -0.01, -0.005, 0.0, 0.01])  # np.array([-0.003, 0.0, 0.003]);
 
-rmax = 3.0*LaserParams['w0'];
+
+# rmax = 3.0*;
+rmax = mn.readscalardataset(ParamFile,'inputs/'+'rmax_fact','N')*LaserParams['w0']
 # Nr = 300;
-Nr = 2049; #1000; # 2049
+Nr = mn.readscalardataset(ParamFile,'inputs/'+'Nr_int','N') # 8193; # 2049; #1000; # 2049
 
-rmax_anal = 3*1e-3 # [SI] on screen # 0.0001
-Nr_anal = 25 #250 #750
+rmax_anal = mn.readscalardataset(ParamFile,'inputs/'+'rmax_anal','N') # 3*1e-3 # [SI] on screen # 0.0001
+Nr_anal = mn.readscalardataset(ParamFile,'inputs/'+'Nr_anal','N') # 25 #250 #750
 
-zmin_anal = 0.05 # !!!!!! in the reference of the jet, the grid is then reshaped correctly
-zmax_anal = 0.4
-only_one_plane_bool = True # only zmax used # Nz_anal is overrun
-fix_zmax_bool = True
-Nz_anal = 100 #200
+zmin_anal = mn.readscalardataset(ParamFile,'inputs/'+'zmin_anal','N') # 0.05 # !!!!!! in the reference of the jet, the grid is then reshaped correctly
+zmax_anal = mn.readscalardataset(ParamFile,'inputs/'+'zmax_anal','N') # 0.4
+only_one_plane_bool = 1 == mn.readscalardataset(ParamFile,'inputs/'+'only_one_plane','N') # True # only zmax used # Nz_anal is overrun
+fix_zmax_bool = 1 == mn.readscalardataset(ParamFile,'inputs/'+'fix_zmax','N') # True
+Nz_anal = mn.readscalardataset(ParamFile,'inputs/'+'Nz_anal','N') # 100 #200
 
-Hmin_anal = 28.5 # 0.0 #28.5 np.nan
-Hmax_anal = 29.5 # 2.5 #29.5 71.5
-omega_step = 1
+Hmin_anal = mn.readscalardataset(ParamFile,'inputs/'+'Hmin_anal','N') # 28.5 # 0.0 #28.5 np.nan
+Hmax_anal = mn.readscalardataset(ParamFile,'inputs/'+'Hmax_anal','N') # 29.5 # 2.5 #29.5 71.5
+omega_step = mn.readscalardataset(ParamFile,'inputs/'+'omega_step','N') # 1
 
 # used only for phenomenological dipoles
 tcoeff = 6.0; # extension of tgrid in the units of TFWHM
@@ -80,12 +84,13 @@ Nt = 1000;
 
 ## other parameters
 integrator={}
-integrator['method'] = 'Romberg'; # 'Trapezoidal', Simpson, Romberg
-integrator['tol'] = 1e-4;
-integrator['n0'] = 2;
-dipole_model = 'IntensityList' # 'IntensityList', Phenomenological
+integrator['method'] = mn.readscalardataset(ParamFile,'inputs/'+'I_method','S') #'Romberg'; # 'Trapezoidal', Simpson, Romberg
+integrator['tol'] = mn.readscalardataset(ParamFile,'inputs/'+'I_tol','N') # 1e-2;
+integrator['n0'] = mn.readscalardataset(ParamFile,'inputs/'+'I_n0','N') # 2;
+dipole_model = mn.readscalardataset(ParamFile,'inputs/'+'dipole_model','S') # 'IntensityList' # 'IntensityList', Phenomenological
 # W = mp.cpu_count() # this is the number of workers
-W = 8;
+W = mn.readscalardataset(ParamFile,'inputs/'+'num_of_processes','N') # 4;
+
 
 
 
@@ -94,7 +99,9 @@ W = 8;
 
 # local
 outpath = os.path.join("/mnt","c","data","ThinTargets_collab","loc_tests")
-IntensityListFile = os.path.join("/mnt","c","data","ThinTargets_collab","DipoleIntensityTable_1k.h5")# used only for the list
+IntensityListFile = os.path.join("/mnt","c","data","ThinTargets_collab",mn.readscalardataset(ParamFile,'inputs/'+'IntensityListFileName','S')) # used only for the list
+
+
 
 # curta
 # outpath = os.path.join("/scratch","jvabek","optics-less-focusing","beams")
@@ -105,7 +112,10 @@ IntensityListFile = os.path.join("/mnt","c","data","ThinTargets_collab","DipoleI
 # IntensityListFile = os.path.join("/scratch","cnt0025","cli7594","vabekjan","ThinTargets_collab","DipoleIntensityTable_1k.h5")# used only for the list
 
 
-OutputFileName = "romb_test.h5" # "results_phenom8.h5"
+OutputFileName = mn.readscalardataset(ParamFile,'inputs/'+'OutputFileName','S') # "romb_iters_test.h5" # "results_phenom8.h5"
+if ( OutputFileName == 'results.h5' ): OutputFileAccessMethod = 'w+'
+else: OutputFileAccessMethod = 'w'
+
 
 # IntensityListFile = 'ThinDipoleIntensityTable_5k.h5' # path for fields
 # IntensityListFile = os.path.join("C:\data","ThinTargets_collab","DipoleIntensityTable_1k.h5")
@@ -277,7 +287,7 @@ np.savetxt(os.path.join(outpath,"rgrid_anal.dat"),rgrid_anal,fmt="%e")
 np.savetxt(os.path.join(outpath,"zgrid_anal.dat"),zgrid_anal[0,:],fmt="%e")
 
 #HDF5 results
-f = h5py.File(os.path.join(outpath,OutputFileName),'w')
+f = h5py.File(os.path.join(outpath,OutputFileName),OutputFileAccessMethod)
 grp = f.create_group('XUV')
 
 h5spectrum_r = grp.create_dataset('Spectrum', data=FHHGOnScreen)

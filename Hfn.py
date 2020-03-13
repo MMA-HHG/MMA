@@ -57,7 +57,7 @@ def FieldOnScreen(z_medium, omegagrid, omega_step, rgrid, FField_r, rgrid_anal, 
                     if (integrator['method'] == 'Romberg'):
                         nint, value, err = mn.romberg(rgrid[-1]-rgrid[0],integrand,integrator['tol'],integrator['n0'])
                         # FHHGOnScreen[k7, k6, k4, k2] = (1.0 / (zgrid_anal[k7, k6] - z_medium[k7])) * value;
-                        FHHGOnScreen[k7, k6, k4, k2] = value;
+                        FHHGOnScreen[k7, k6, k4, k2] = nint;
                     # elif (integrator['method'] == 'Trapezoidal'): FHHGOnScreen[k7,k6, k4, k2] = (1.0 / (zgrid_anal[k7,k6] - z_medium[k7])) * integrate.trapz(integrand, rgrid);
                     elif (integrator['method'] == 'Trapezoidal'): FHHGOnScreen[k7, k6, k4, k2] = integrate.trapz(integrand, rgrid);
                     # elif (integrator['method'] == 'Simpson'): FHHGOnScreen[k7,k6, k4, k2] = (1.0 / (zgrid_anal[k7,k6] - z_medium[k7])) * integrate.simps(integrand, rgrid);
