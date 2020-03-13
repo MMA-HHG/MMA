@@ -1,4 +1,5 @@
 from scipy import special
+from scipy import integrate
 import numpy as np
 import math
 import sys
@@ -41,18 +42,60 @@ def FindInterval(x,x0): # find an index corresponding to given x0 value interval
   #   if (x0 > x[N//2] ): return FindInterval(x[(N//2):(N-1)],x0,N//2+?); # bookkeeping needed here... best will be additions and subtractions to be in-place
   #   else : return FindInterval(x[0:(N//2)],x0,?);
 
+### low-level routines
+def IsPowerOf2(n):
+  if ( (n & (n-1) == 0) and (n != 0) ): return True
+  else: return False
+
+
+def romberg(x_length,fx,eps,n0):
+  N = len(fx)
+  if ( not IsPowerOf2(N-1) ): sys.exit("romberg: input isn't 2**k+1")
+  elif ( not IsPowerOf2(n0) ): sys.exit("romberg: input isn't 2**k+1")
+  elif ( n0 > (N-1) ): sys.exit("romberg: initial number of points is larger than provided grid")
+  dx = x_length/(N-1)
+  # Npow = np.rint(np.log2(N-1)) # should work up to 2**62, and above with rounding, be careful
+  step = (N-1)//n0 # adjust to n0 points, divisibility already checked
+  k1 = 0
+  I = [] # empty list of lists to store the integrals
+  while (step >= 1):
+    I.append([])
+    indices = [k2 for k2 in range(0,N,step)]
+    for k2 in range(k1+1):
+      if (k2 == 0): value = integrate.trapz(fx[indices],dx=step*dx)
+      else: value = (4.0**k2 * I[k1][k2-1] - I[k1-1][k2-1]) / (4.0**k2-1.0)
+      I[k1].append(value)
+
+    if (k1>0):# convergence test
+      Res = abs(I[k1][k1]-I[k1-1][k1-1])/abs(I[k1][k1])
+      if (Res <= eps): return k1, I[k1][k1], I, Res
+
+    step = step // 2
+    k1 = k1+1
+
+  return -1, I[-1][-1], I, Res # didn't converged in requested precision, returns the last value
+  #  return [-1, I[-1][-1]] # didn't converged in requested precision, returns the last value
+
+# xgrid = np.linspace(1.0,2.0,2049)
+# fx = 1/(xgrid**2)
+# nint, Int, full, err = romberg(1.0,fx,1e-15,4)
+
 ############# gaussian beam
 def GaussianBeamRayleighRange(w0,lambd):
   return np.pi*w0**2/lambd
 
+
 def invRadius(z,zR):
   return z/(zR**2+z**2)
+
 
 def GaussianBeamCurvaturePhase(r,z,k0,zR):
   return 0.5*k0*invRadius(z,zR)*r**2
 
+
 def waist(z,w0,zR):
   return w0*np.sqrt(1.0+(z/zR)**2);
+
 
 def GaussianBeam(r,z,t,I0,w0,tFWHM,lambd):
   zR = np.pi*w0**2/lambd;
@@ -61,6 +104,7 @@ def GaussianBeam(r,z,t,I0,w0,tFWHM,lambd):
   k0=2.0*np.pi/lambd;
   phase = GaussianBeamCurvaturePhase(r,z,k0,zR);
   return I, phase
+
 
 # conversion of photons
 def ConvertPhoton(x,inp,outp):
@@ -110,9 +154,18 @@ def ConvertPhoton(x,inp,outp):
 
 
 ## handling HDF5 files
-def adddataset(h_path,dset_name,dset_data,units):
+def adddataset(h_path,dset_name,dset_data,unit):
   dset_id = h_path.create_dataset(dset_name,data=dset_data)
-  dset_id.attrs['units']=np.string_(units)
+  dset_id.attrs['units']=np.string_(unit)
+
+
+def addrealdataset_setprec(h_path, dset_name, dset_data, unit, precision):
+  if ( precision == 'f'):
+    dset_id = h_path.create_dataset(dset_name, data=dset_data, dtype='f')
+    dset_id.attrs['units'] = np.string_(unit)
+  elif (precision == 'd'):
+    dset_id = h_path.create_dataset(dset_name, data=dset_data, dtype='d')
+    dset_id.attrs['units'] = np.string_(unit)
 
 
 
