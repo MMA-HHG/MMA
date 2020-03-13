@@ -58,7 +58,7 @@ z_medium = np.array([0.0]); #np.asarray([-0.025, -0.02, -0.015, -0.01, -0.005, 0
 
 rmax = 3.0*LaserParams['w0'];
 # Nr = 300;
-Nr = 1000; # 2049
+Nr = 2049; #1000; # 2049
 
 rmax_anal = 3*1e-3 # [SI] on screen # 0.0001
 Nr_anal = 25 #250 #750
@@ -80,9 +80,9 @@ Nt = 1000;
 
 ## other parameters
 integrator={}
-integrator['method'] = 'Trapezoidal'; # 'Trapezoidal', Simpson, Romberg
+integrator['method'] = 'Romberg'; # 'Trapezoidal', Simpson, Romberg
 integrator['tol'] = 1e-4;
-integrator['n0'] = 8;
+integrator['n0'] = 2;
 dipole_model = 'IntensityList' # 'IntensityList', Phenomenological
 # W = mp.cpu_count() # this is the number of workers
 W = 8;
@@ -105,7 +105,7 @@ IntensityListFile = os.path.join("/mnt","c","data","ThinTargets_collab","DipoleI
 # IntensityListFile = os.path.join("/scratch","cnt0025","cli7594","vabekjan","ThinTargets_collab","DipoleIntensityTable_1k.h5")# used only for the list
 
 
-OutputFileName = "trap1000_test.h5" # "results_phenom8.h5"
+OutputFileName = "romb_test.h5" # "results_phenom8.h5"
 
 # IntensityListFile = 'ThinDipoleIntensityTable_5k.h5' # path for fields
 # IntensityListFile = os.path.join("C:\data","ThinTargets_collab","DipoleIntensityTable_1k.h5")

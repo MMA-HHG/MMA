@@ -56,9 +56,12 @@ def FieldOnScreen(z_medium, omegagrid, omega_step, rgrid, FField_r, rgrid_anal, 
                     # for k3 in range(Nr): integrand[k3] = rgrid[k3] * FField_r[k7, k5, k3] * special.jn(0, k_omega * rgrid[k3] * rgrid_anal[k2] / (zgrid_anal[k7,k6] - z_medium[k7]));  # rescale r to atomic units for spectrum in atomic units! (only scaling)
                     if (integrator['method'] == 'Romberg'):
                         nint, value, err = mn.romberg(rgrid[-1]-rgrid[0],integrand,integrator['tol'],integrator['n0'])
-                        FHHGOnScreen[k7, k6, k4, k2] = (1.0 / (zgrid_anal[k7, k6] - z_medium[k7])) * value;
-                    elif (integrator['method'] == 'Trapezoidal'): FHHGOnScreen[k7,k6, k4, k2] = (1.0 / (zgrid_anal[k7,k6] - z_medium[k7])) * integrate.trapz(integrand, rgrid);
-                    elif (integrator['method'] == 'Simpson'): FHHGOnScreen[k7,k6, k4, k2] = (1.0 / (zgrid_anal[k7,k6] - z_medium[k7])) * integrate.simps(integrand, rgrid);
+                        # FHHGOnScreen[k7, k6, k4, k2] = (1.0 / (zgrid_anal[k7, k6] - z_medium[k7])) * value;
+                        FHHGOnScreen[k7, k6, k4, k2] = value;
+                    # elif (integrator['method'] == 'Trapezoidal'): FHHGOnScreen[k7,k6, k4, k2] = (1.0 / (zgrid_anal[k7,k6] - z_medium[k7])) * integrate.trapz(integrand, rgrid);
+                    elif (integrator['method'] == 'Trapezoidal'): FHHGOnScreen[k7, k6, k4, k2] = integrate.trapz(integrand, rgrid);
+                    # elif (integrator['method'] == 'Simpson'): FHHGOnScreen[k7,k6, k4, k2] = (1.0 / (zgrid_anal[k7,k6] - z_medium[k7])) * integrate.simps(integrand, rgrid);
+                    elif (integrator['method'] == 'Simpson'): FHHGOnScreen[k7, k6, k4, k2] = integrate.simps(integrand, rgrid);
                     else: sys.exit('Wrong integrator')
                 # k2 loop end
             # k6 loop end
