@@ -114,10 +114,9 @@ IntensityListFile = os.path.join("/mnt","c","data","ThinTargets_collab",mn.reads
 
 
 OutputFileName = mn.readscalardataset(ParamFile,'inputs/'+'OutputFileName','S') # "romb_iters_test.h5" # "results_phenom8.h5"
-if ( OutputFileName == 'results.h5' ): OutputFileAccessMethod = 'w+'
-else: OutputFileAccessMethod = 'w'
-
+OutputFileAccessMethod = 'r+'
 ParamFile.close()
+shutil.copy('results.h5', os.path.join(outpath,OutputFileName))
 
 
 # IntensityListFile = 'ThinDipoleIntensityTable_5k.h5' # path for fields
