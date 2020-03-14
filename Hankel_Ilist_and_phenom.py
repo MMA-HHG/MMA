@@ -39,6 +39,8 @@ import Hfn
 
 ###################### THE PARAMETERS OF SIMULATION
 ParamFile = 'results.h5'
+ParamFile = h5py.File(ParamFile,'r')
+
 z_medium = np.array([0.0]); #np.asarray([-0.025, -0.02, -0.015, -0.01, -0.005, 0.0, 0.01])  # np.array([-0.003, 0.0, 0.003]);
 
 
@@ -47,7 +49,7 @@ LaserParams={ ## define macroscopic gaussian beam # try also fancy reading direc
 'w0' : mn.readscalardataset(ParamFile,'inputs/'+'w0','N'),
 'r_extend' : np.nan, #4.0,
 'z' : np.nan, #0.05,
-'lambda' : np.nan, #800.0e-9, # must correspond
+'lambda' : mn.readscalardataset(ParamFile,'inputs/'+'lambda','N') , #800.0e-9, # must correspond
 'phase0' : np.nan, #0.0, # initial CEP
 'TFWHM' : np.nan #30e-15 # [SI]
 }
@@ -56,7 +58,6 @@ LaserParams['zR'] = np.pi*((LaserParams['w0'])**2)/LaserParams['lambda']
 omega0 = LaserParams['omega0']; zR = LaserParams['zR'];
 
 # anlyses params # at the moment optimised for t he intensity list, change later
-
 
 
 # rmax = 3.0*;
@@ -115,6 +116,8 @@ IntensityListFile = os.path.join("/mnt","c","data","ThinTargets_collab",mn.reads
 OutputFileName = mn.readscalardataset(ParamFile,'inputs/'+'OutputFileName','S') # "romb_iters_test.h5" # "results_phenom8.h5"
 if ( OutputFileName == 'results.h5' ): OutputFileAccessMethod = 'w+'
 else: OutputFileAccessMethod = 'w'
+
+ParamFile.close()
 
 
 # IntensityListFile = 'ThinDipoleIntensityTable_5k.h5' # path for fields

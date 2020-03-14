@@ -196,7 +196,7 @@ def addrealdataset_setprec(h_path, dset_name, dset_data, unit, precision):
 
 
 def readscalardataset(file,path,type): # type is (S)tring or (N)umber
-  if (type == 'N'): return file[path].value
+  if (type == 'N'): return file[path][()]
   elif (type == 'S'): return file[path][()].decode()
   else: sys.exit('wrong type')
 
