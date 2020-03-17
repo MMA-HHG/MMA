@@ -13,6 +13,8 @@ done
 cd ..
 
 cp FreeFormInputs.inp sims/test$n
+cp run_occigen2.slurm sims/test$n
+
 
 cd sims/test$n
 
