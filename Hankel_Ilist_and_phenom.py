@@ -100,8 +100,8 @@ W = mn.readscalardataset(ParamFile,'inputs/'+'num_of_processes','N') # 4;
 
 # local
 # outpath = os.path.join("/mnt","c","data","ThinTargets_collab","loc_tests")
-IntensityListFile = os.path.join("/mnt","c","data","ThinTargets_collab",mn.readscalardataset(ParamFile,'inputs/'+'IntensityListFileName','S')) # used only for the list
-outpath = os.getcwd()
+# IntensityListFile = os.path.join("/mnt","c","data","ThinTargets_collab",mn.readscalardataset(ParamFile,'inputs/'+'IntensityListFileName','S')) # used only for the list
+
 
 
 # curta
@@ -110,7 +110,8 @@ outpath = os.getcwd()
 
 #occigen
 # outpath = os.path.join("/scratch","cnt0025","cli7594","vabekjan","ThinTargets_collab","beams")
-# IntensityListFile = os.path.join("/scratch","cnt0025","cli7594","vabekjan","ThinTargets_collab","DipoleIntensityTable_1k.h5")# used only for the list
+outpath = os.getcwd()
+IntensityListFile = os.path.join("/scratch","cnt0025","cli7594","vabekjan","ThinTargets_collab","1DTDSE","data",mn.readscalardataset(ParamFile,'inputs/'+'IntensityListFileName','S'))# used only for the list
 
 ## output sile specification
 OutputFileName = mn.readscalardataset(ParamFile,'inputs/'+'OutputFileName','S') # "romb_iters_test.h5" # "results_phenom8.h5"
