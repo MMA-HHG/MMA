@@ -99,9 +99,9 @@ W = mn.readscalardataset(ParamFile,'inputs/'+'num_of_processes','N') # 4;
 # IntensityListFile = os.path.join("/mnt", "jvabek", "ThinTargets_collab", "Ilists", "DipoleIntensityTable_1k.h5") # used only for the list
 
 # local
-outpath = os.path.join("/mnt","c","data","ThinTargets_collab","loc_tests")
+# outpath = os.path.join("/mnt","c","data","ThinTargets_collab","loc_tests")
 IntensityListFile = os.path.join("/mnt","c","data","ThinTargets_collab",mn.readscalardataset(ParamFile,'inputs/'+'IntensityListFileName','S')) # used only for the list
-
+outpath = os.getcwd()
 
 
 # curta
@@ -112,9 +112,14 @@ IntensityListFile = os.path.join("/mnt","c","data","ThinTargets_collab",mn.reads
 # outpath = os.path.join("/scratch","cnt0025","cli7594","vabekjan","ThinTargets_collab","beams")
 # IntensityListFile = os.path.join("/scratch","cnt0025","cli7594","vabekjan","ThinTargets_collab","DipoleIntensityTable_1k.h5")# used only for the list
 
-
+## output sile specification
 OutputFileName = mn.readscalardataset(ParamFile,'inputs/'+'OutputFileName','S') # "romb_iters_test.h5" # "results_phenom8.h5"
 OutputFileAccessMethod = 'r+'
+
+if ( 'single' == mn.readscalardataset(ParamFile,'inputs/'+'precision','S') ): precision = 'f'
+elif ( 'double' == mn.readscalardataset(ParamFile,'inputs/'+'precision','S') ): precision = 'd'
+else: sys.exit('precision wrongly specified')
+
 ParamFile.close()
 shutil.copy('results.h5', os.path.join(outpath,OutputFileName))
 
@@ -282,17 +287,17 @@ FHHGOnScreen = Hfn.CoalesceResults(results,Nz_medium,Nz_anal,Nomega_anal_start,N
 
     
 #file1=open("Spectrum.dat","w")
-np.savetxt(os.path.join(outpath,"Spectrumreal.dat"),FHHGOnScreen[0,0,:,:,0].real,fmt="%e")
-np.savetxt(os.path.join(outpath,"Spectrumimag.dat"),FHHGOnScreen[0,0,:,:,1].imag,fmt="%e")
-np.savetxt(os.path.join(outpath,"omegagrid_anal.dat"),omegagrid_anal,fmt="%e")
-np.savetxt(os.path.join(outpath,"rgrid_anal.dat"),rgrid_anal,fmt="%e")
-np.savetxt(os.path.join(outpath,"zgrid_anal.dat"),zgrid_anal[0,:],fmt="%e")
+# np.savetxt(os.path.join(outpath,"Spectrumreal.dat"),FHHGOnScreen[0,0,:,:,0].real,fmt="%e")
+# np.savetxt(os.path.join(outpath,"Spectrumimag.dat"),FHHGOnScreen[0,0,:,:,1].imag,fmt="%e")
+# np.savetxt(os.path.join(outpath,"omegagrid_anal.dat"),omegagrid_anal,fmt="%e")
+# np.savetxt(os.path.join(outpath,"rgrid_anal.dat"),rgrid_anal,fmt="%e")
+# np.savetxt(os.path.join(outpath,"zgrid_anal.dat"),zgrid_anal[0,:],fmt="%e")
 
 #HDF5 results
 f = h5py.File(os.path.join(outpath,OutputFileName),OutputFileAccessMethod)
 grp = f.create_group('XUV')
 
-h5spectrum_r = grp.create_dataset('Spectrum', data=FHHGOnScreen)
+h5spectrum_r = grp.create_dataset('Spectrum', data=FHHGOnScreen, dtype=precision)
 #h5spectrum_r = grp.create_dataset('Spectrum_r', data=FHHGOnScreen.real,compression='gzip',compression_opts=9)
 h5spectrum_r.attrs['units']=np.string_('[arb.u.]')
 h5spectrum_r.dims[0].label = 'z [SI]'; h5spectrum_r.dims[1].label = 'omega [a.u.]'; h5spectrum_r.dims[2].label = 'r [SI], real [-]'; h5spectrum_r.dims[3].label = 'r [SI], imag [-]';
@@ -321,15 +326,15 @@ mn.adddataset(grp,'integral_points',Nr,'[-]')
 f.close()
 
 
-## write params for reference
-file1=open( os.path.join(outpath,'paramHankel.txt') ,"a")
-content = "// parameters of Hankel transform\n"
-content = content + str(rgrid[Nr-1]) + " : rmax for the integral [SI]\n"
-content = content + str(rgrid[0]) + " : rmin for the integral [SI]\n"
-content = content + str(dr) + " : dr for the integral [SI]\n"
-content = content + str(Nr) + " : # of points in r\n"
-file1.write(content)
-file1.close()
+# ## write params for reference
+# file1=open( os.path.join(outpath,'paramHankel.txt') ,"a")
+# content = "// parameters of Hankel transform\n"
+# content = content + str(rgrid[Nr-1]) + " : rmax for the integral [SI]\n"
+# content = content + str(rgrid[0]) + " : rmin for the integral [SI]\n"
+# content = content + str(dr) + " : dr for the integral [SI]\n"
+# content = content + str(Nr) + " : # of points in r\n"
+# file1.write(content)
+# file1.close()
 
 # some graphical outputs directly?
 
