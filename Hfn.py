@@ -25,7 +25,7 @@ def ComputeFieldsInRFromIntensityList(z_medium, rgrid, Hgrid, Nomega, LaserParam
     FField_r=np.empty([Nz_medium,Nomega,Nr], dtype=np.cdouble)
     for k3 in range(Nz_medium):
       for k1 in range(Nr): # We use linear interpolation using the intensity-grid at the instant
-        I_r, phase_r = mn.GaussianBeam(rgrid[k1],z_medium[k3],0,LaserParams['I0']/units.INTENSITYau,LaserParams['w0'],1,LaserParams['lambda']) # a.u.
+        I_r, phase_r = mn.GaussianBeam(rgrid[k1],z_medium[k3],0,LaserParams.I0/units.INTENSITYau,LaserParams.w0,1,LaserParams.lambd) # a.u.
         phase_XUV = phase_r*Hgrid
 
         # find a proper interval in the Igrid, we use linear interp written by hand now

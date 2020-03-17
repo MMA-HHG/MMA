@@ -1,18 +1,7 @@
-from scipy import special
-from scipy import integrate
 import numpy as np
-import struct
-import array
 import os
 import time
-#import ray
-#import matlab.engine
-#import string
 import multiprocessing as mp
-import math
-#import joblib
-#from mpi4py import MPI
-#import oct2py
 import shutil
 import h5py
 import sys
@@ -25,43 +14,35 @@ import Hfn
 # - specify the rest in the code now
 # - generate the Gaussian profile at any point
 # - add the extra phase
-# - use old procedure for the integration in r now
 # - we use precomputed dipoles now
-# - we add one loop over different medium positions
-
-#ray.init()
-
 
 #### THE MAIN PROGRAM #####
-
-#print("Number of procs: ", mp.cpu_count()) # Actually, it should be adjusted by slurm-scheduler, it probably sees "physical HW" and not the allocated resources
-
 
 ###################### THE PARAMETERS OF SIMULATION
 ParamFile = 'results.h5'
 ParamFile = h5py.File(ParamFile,'r')
 
-z_medium = np.array([-0.025, -0.02, -0.015, -0.01, -0.005, 0.0, 0.01]); #np.asarray([-0.025, -0.02, -0.015, -0.01, -0.005, 0.0, 0.01])  # np.array([-0.003, 0.0, 0.003]);
+z_medium = np.array([-0.025, -0.02, -0.015, -0.01, -0.005, 0.0, 0.01])  #np.asarray([-0.025, -0.02, -0.015, -0.01, -0.005, 0.0, 0.01])  # np.array([-0.003, 0.0, 0.003]);
 
 
-LaserParams={ ## define macroscopic gaussian beam # try also fancy reading directly here
-'I0' : mn.readscalardataset(ParamFile,'inputs/'+'I0','N'),
-'w0' : mn.readscalardataset(ParamFile,'inputs/'+'w0','N'),
-'r_extend' : np.nan, #4.0,
-'z' : np.nan, #0.05,
-'lambda' : mn.readscalardataset(ParamFile,'inputs/'+'lambda','N') , #800.0e-9, # must correspond
-'phase0' : np.nan, #0.0, # initial CEP
-'TFWHM' : np.nan #30e-15 # [SI]
-}
-LaserParams['omega0'] = mn.ConvertPhoton(LaserParams['lambda'] ,'lambdaSI','omegaau') # find frequency in atomic units
-LaserParams['zR'] = np.pi*((LaserParams['w0'])**2)/LaserParams['lambda']
-omega0 = LaserParams['omega0']; zR = LaserParams['zR'];
+class LaserParamsClass:
+  def __init__(self):
+    pass
+
+LaserParams = LaserParamsClass() ## define macroscopic gaussian beam # try also fancy reading directly here
+LaserParams.I0 = mn.readscalardataset(ParamFile,'inputs/'+'I0','N')
+LaserParams.w0 = mn.readscalardataset(ParamFile,'inputs/'+'w0','N')
+LaserParams.lambd = mn.readscalardataset(ParamFile,'inputs/'+'lambda','N') #800.0e-9, # must correspond
+
+LaserParams.omega0 = mn.ConvertPhoton(LaserParams.lambd ,'lambdaSI','omegaau') # find frequency in atomic units
+LaserParams.zR = np.pi*(LaserParams.w0**2)/LaserParams.lambd
+omega0 = LaserParams.omega0; zR = LaserParams.zR
 
 # anlyses params # at the moment optimised for t he intensity list, change later
 
 
 # rmax = 3.0*;
-rmax = mn.readscalardataset(ParamFile,'inputs/'+'rmax_fact','N')*LaserParams['w0']
+rmax = mn.readscalardataset(ParamFile,'inputs/'+'rmax_fact','N')*LaserParams.w0
 # Nr = 300;
 Nr = mn.readscalardataset(ParamFile,'inputs/'+'Nr_int','N') # 8193; # 2049; #1000; # 2049
 
@@ -89,31 +70,19 @@ integrator['method'] = mn.readscalardataset(ParamFile,'inputs/'+'I_method','S') 
 integrator['tol'] = mn.readscalardataset(ParamFile,'inputs/'+'I_tol','N') # 1e-2;
 integrator['n0'] = mn.readscalardataset(ParamFile,'inputs/'+'I_n0','N') # 2;
 dipole_model = mn.readscalardataset(ParamFile,'inputs/'+'dipole_model','S') # 'IntensityList' # 'IntensityList', Phenomenological
-# W = mp.cpu_count() # this is the number of workers
-W = mn.readscalardataset(ParamFile,'inputs/'+'num_of_processes','N') # 4;
+
+W = mn.readscalardataset(ParamFile,'inputs/'+'num_of_processes','N') # 4; # W = mp.cpu_count() # this is the number of workers
 
 
+if ( 'local' == mn.readscalardataset(ParamFile,'inputs/'+'computer','S') ):
+  outpath = os.path.join("/mnt", "c", "data", "ThinTargets_collab", "loc_tests")
+  IntensityListFile = os.path.join("/mnt", "c", "data", "ThinTargets_collab", mn.readscalardataset(ParamFile, 'inputs/' + 'IntensityListFileName','S'))  # used only for the list
+elif ( 'occigen' == mn.readscalardataset(ParamFile,'inputs/'+'computer','S') ):
+  outpath = os.getcwd()
+  IntensityListFile = os.path.join("/scratch", "cnt0025", "cli7594", "vabekjan", "ThinTargets_collab", "1DTDSE", "data", mn.readscalardataset(ParamFile, 'inputs/' + 'IntensityListFileName','S'))  # used only for the list
+else: sys.exit('wrongly specified computer')
 
-
-# outpath = os.path.join("/mnt", "jvabek", "ThinTargets_collab")
-# IntensityListFile = os.path.join("/mnt", "jvabek", "ThinTargets_collab", "Ilists", "DipoleIntensityTable_1k.h5") # used only for the list
-
-# local
-# outpath = os.path.join("/mnt","c","data","ThinTargets_collab","loc_tests")
-# IntensityListFile = os.path.join("/mnt","c","data","ThinTargets_collab",mn.readscalardataset(ParamFile,'inputs/'+'IntensityListFileName','S')) # used only for the list
-
-
-
-# curta
-# outpath = os.path.join("/scratch","jvabek","optics-less-focusing","beams")
-# IntensityListFile = os.path.join("/scratch","jvabek","optics-less-focusing","DipoleIntensityTable_1k.h5")# used only for the list
-
-#occigen
-# outpath = os.path.join("/scratch","cnt0025","cli7594","vabekjan","ThinTargets_collab","beams")
-outpath = os.getcwd()
-IntensityListFile = os.path.join("/scratch","cnt0025","cli7594","vabekjan","ThinTargets_collab","1DTDSE","data",mn.readscalardataset(ParamFile,'inputs/'+'IntensityListFileName','S'))# used only for the list
-
-## output sile specification
+## output file specification
 OutputFileName = mn.readscalardataset(ParamFile,'inputs/'+'OutputFileName','S') # "romb_iters_test.h5" # "results_phenom8.h5"
 OutputFileAccessMethod = 'r+'
 
@@ -125,15 +94,10 @@ ParamFile.close()
 shutil.copy('results.h5', os.path.join(outpath,OutputFileName))
 
 
-# IntensityListFile = 'ThinDipoleIntensityTable_5k.h5' # path for fields
-# IntensityListFile = os.path.join("C:\data","ThinTargets_collab","DipoleIntensityTable_1k.h5")
-
-#print(PhenomParams)
 print(omega0,'omega0 in a.u.')
+
+
 #quit()
-
-
-
 ########################################################## THE BODY OF THE PROGRAM
 
 
@@ -146,9 +110,9 @@ if (dipole_model == 'IntensityList'):
   FSourceterm = np.squeeze(FSourceterm[:,:,0] + 1j*FSourceterm[:,:,1]) # convert to complex numbers
 
 elif (dipole_model == 'Phenomenological'):
-  tgrid = np.linspace(-tcoeff * 0.5 * LaserParams['TFWHM'] / units.TIMEau, tcoeff * 0.5 * LaserParams['TFWHM'] / units.TIMEau, Nt)
+  tgrid = np.linspace(-tcoeff * 0.5 * LaserParams.TFWHM / units.TIMEau, tcoeff * 0.5 * LaserParams.TFWHM / units.TIMEau, Nt)
   Nomega = len(tgrid)//2 + 1
-  omegagrid = np.linspace(0,2.0*np.pi*Nomega/(tcoeff*LaserParams['TFWHM']/units.TIMEau),Nomega)
+  omegagrid = np.linspace(0,2.0*np.pi*Nomega/(tcoeff*LaserParams.TFWHM/units.TIMEau),Nomega)
 
 
 
@@ -157,7 +121,7 @@ elif (dipole_model == 'Phenomenological'):
 ## create grids
 Nomega = len(omegagrid)
 Hgrid = np.empty([Nomega], dtype=np.double)
-Hgrid[:] = omegagrid[:]/LaserParams['omega0']
+Hgrid[:] = omegagrid[:]/LaserParams.omega0
 # Hgrid = np.empty([Nomega], dtype=np.double)
 # for k1 in range(Nomega): Hgrid[k1] = omegagrid
 
@@ -201,7 +165,7 @@ Nomega_points = mn.NumOfPointsInRange(Nomega_anal_start,Nomega_anal,omega_step);
 
 ## compute fields in our rgrid
 if (dipole_model == 'IntensityList'): FField_r = Hfn.ComputeFieldsInRFromIntensityList(z_medium, rgrid, Hgrid, Nomega, LaserParams, Igrid, FSourceterm)
-elif (dipole_model == 'Phenomenological'): FField_r = Hfn.ComputeFieldsPhenomenologicalDipoles(LaserParams['I0'],omega0,LaserParams['TFWHM'],LaserParams['w0'],tgrid,omegagrid,rgrid,z_medium)
+elif (dipole_model == 'Phenomenological'): FField_r = Hfn.ComputeFieldsPhenomenologicalDipoles(LaserParams.I0,omega0,LaserParams.TFWHM,LaserParams.w0,tgrid,omegagrid,rgrid,z_medium)
 
 ## print some analyses outputs
 print('om_max', Nomega_anal)
@@ -313,8 +277,8 @@ mn.adddataset(grp,'ThinTargetPositions',z_medium,'[SI]')
 grp = f.create_group('params')
 mn.adddataset(grp,'omega0',omega0,'[a.u.]')
 mn.adddataset(grp,'zR',zR,'[SI]')
-mn.adddataset(grp,'w0',LaserParams['w0'],'[SI]')
-mn.adddataset(grp,'I0',LaserParams['I0'],'[SI]')
+mn.adddataset(grp,'w0',LaserParams.w0,'[SI]')
+mn.adddataset(grp,'I0',LaserParams.I0,'[SI]')
 
 ## numerical parameters
 grp = f.create_group('numerics')
@@ -325,20 +289,6 @@ mn.adddataset(grp,'integral_points',Nr,'[-]')
 
 
 f.close()
-
-
-# ## write params for reference
-# file1=open( os.path.join(outpath,'paramHankel.txt') ,"a")
-# content = "// parameters of Hankel transform\n"
-# content = content + str(rgrid[Nr-1]) + " : rmax for the integral [SI]\n"
-# content = content + str(rgrid[0]) + " : rmin for the integral [SI]\n"
-# content = content + str(dr) + " : dr for the integral [SI]\n"
-# content = content + str(Nr) + " : # of points in r\n"
-# file1.write(content)
-# file1.close()
-
-# some graphical outputs directly?
-
 
 print('done')
 
