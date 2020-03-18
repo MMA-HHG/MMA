@@ -22,7 +22,9 @@ import Hfn
 ParamFile = 'results.h5'
 ParamFile = h5py.File(ParamFile,'r')
 
-z_medium = np.array([-0.025, -0.02, -0.015, -0.01, -0.005, 0.0, 0.01])  #np.asarray([-0.025, -0.02, -0.015, -0.01, -0.005, 0.0, 0.01])  # np.array([-0.003, 0.0, 0.003]);
+# z_medium = np.array([-0.025, -0.02, -0.015, -0.01, -0.005, 0.0, 0.01])  #np.asarray([-0.025, -0.02, -0.015, -0.01, -0.005, 0.0, 0.01])  # np.array([-0.003, 0.0, 0.003]);
+
+z_medium = ParamFile['inputs/'+'jetpositions'][()]
 
 
 class LaserParamsClass:

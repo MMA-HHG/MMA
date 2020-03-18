@@ -15,7 +15,7 @@ precision	double	S	-	# sets precision of the stored data, 'single' 'double'
 ## File names
 
 IntensityListFileName	DipoleIntensityTable_1k.h5	S	-
-OutputFileName	trap_test_double.h5	S	-
+OutputFileName	newprogram.h5	S	-
 
 
 ## Integration over r
@@ -29,6 +29,9 @@ Nr_int	1000	I	-
 I_method	Trapezoidal	S	-	# 'Trapezoidal', Simpson, Romberg
 I_tol	1e-2	R	-
 I_n0	2	I	-
+
+## Jet positions
+$array jetpositions	R	SI	-0.025 -0.02 -0.015 -0.01 -0.005 0.0 0.01 # positions of jets
 
 ## HHG BEAM ANALYSES:
 

@@ -41,11 +41,28 @@ def adddataset(h_path,sep_line,line):
   else: dset_id.attrs['units']=np.string_('['+sep_line[3]+']')
 
 
+def adddataset_array(h_path,sep_line,line):
+  name = sep_line[1]
+  type = sep_line[2]
+  unit = sep_line[3]
+  k_end = len(sep_line)
+  for k1 in range(4,len(sep_line)):
+    if (sep_line[k1] == '#'): k_end = k1; break  # check for comment
+
+  if (type=='R'): data = np.asarray(sep_line[4:k_end],dtype='d')
+  elif (type=='I'): data = np.asarray(sep_line[4:k_end],dtype='i')
+  elif (type=='S'): data = np.asarray(np.string_(sep_line[4:k_end]))
+  else: print('warning in the line (type unrecognised and entry skipped): ' + line); return
+  dset_id = h_path.create_dataset(name, data=data)
+  dset_id.attrs['units']=np.string_('['+unit+']')
+
+
 
 lines = InputFile.readlines()
 for line in lines:
   sep_line = line.split(); # separate the line
   if ( (len(sep_line)==0) or (sep_line[0]=='#') or (sep_line[0]=='##') ): pass #print('empty or commented line')
+  elif (sep_line[0]=='$array'): adddataset_array(grp,sep_line,line) # at the moment we need precise alignment
   else: adddataset(grp,sep_line,line)
 
 
