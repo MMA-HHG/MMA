@@ -42,6 +42,7 @@ def FieldOnScreen(z_medium, omegagrid, omega_step, rgrid, FField_r, rgrid_anal, 
     Nz_anal = np.asarray(zgrid_anal.shape); Nz_anal = Nz_anal[1];
     Nr_anal = len(rgrid_anal); Nr = len(rgrid); Nz_medium=len(z_medium);
     FHHGOnScreen = np.empty([Nz_medium, Nz_anal, k_num, Nr_anal], dtype=np.cdouble)
+    integrand = np.empty([Nr], dtype=np.cdouble)
     for k7 in range(Nz_medium): # loop over different medium positions
         print('process starting at omega', k_start, ' started computation of zgrid', z_medium[k7])
         k4 = 0  # # of loops in omega
@@ -51,7 +52,6 @@ def FieldOnScreen(z_medium, omegagrid, omega_step, rgrid, FField_r, rgrid_anal, 
             for k6 in range(Nz_anal):
                 for k2 in range(Nr_anal):  # Nr
                     k_omega = omegagrid[k5] / (units.TIMEau * units.c_light);  # omega divided by time: a.u. -> SI
-                    integrand = np.empty([Nr], dtype=np.cdouble)
                     for k3 in range(Nr): integrand[k3] = np.exp(-1j*k_omega * (rgrid[k3] ** 2) / (2.0 * (zgrid_anal[k7,k6] - z_medium[k7]))) * rgrid[k3] * FField_r[k7, k5, k3] * special.jn(0, k_omega * rgrid[k3] * rgrid_anal[k2] / (zgrid_anal[k7,k6] - z_medium[k7]));  # rescale r to atomic units for spectrum in atomic units! (only scaling)
                     # for k3 in range(Nr): integrand[k3] = rgrid[k3] * FField_r[k7, k5, k3] * special.jn(0, k_omega * rgrid[k3] * rgrid_anal[k2] / (zgrid_anal[k7,k6] - z_medium[k7]));  # rescale r to atomic units for spectrum in atomic units! (only scaling)
                     if (integrator['method'] == 'Romberg'):
