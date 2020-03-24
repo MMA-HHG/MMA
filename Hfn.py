@@ -36,7 +36,7 @@ def ComputeFieldsInRFromIntensityList(z_medium, rgrid, Hgrid, Nomega, LaserParam
 
 
 # define function to integrate, there are some global variables! ## THE OUTPUT IS IN THE MIX OF ATOMIC UNITS (field) and SI UNITS (radial coordinate + dr in the integral)
-def FieldOnScreen(z_medium, omegagrid, omega_step, rgrid, rgrid_anal, zgrid_anal, k_start, k_num, integrator, NumericalParams):
+def FieldOnScreen(z_medium, omegagrid, omega_step, rgrid, rgrid_anal, zgrid_anal, k_start, k_num, integrator, NP):
 # this function computes the Hankel transform of a given source term in omega-domain stored in FField_r
 # all the grids are specified in the inputs, except the analysis in omega_anal, this is specified by 'k_start' and 'k_num', it is used in the multiprocessing scheme
 # I tried tests while implementing OOP, sme runs were longer with the .-notation
@@ -53,17 +53,17 @@ def FieldOnScreen(z_medium, omegagrid, omega_step, rgrid, rgrid_anal, zgrid_anal
             for k6 in range(Nz_anal):
                 for k2 in range(Nr_anal):  # Nr
                     k_omega = omegagrid[k5] / (units.TIMEau * units.c_light);  # omega divided by time: a.u. -> SI
-                    for k3 in range(Nr): integrand[k3] = np.exp(-1j*k_omega * (rgrid[k3] ** 2) / (2.0 * (zgrid_anal[k7,k6] - z_medium[k7]))) * rgrid[k3] * NumericalParams.FField_r[k7, k5, k3] * special.jn(0, k_omega * rgrid[k3] * rgrid_anal[k2] / (zgrid_anal[k7,k6] - z_medium[k7]));  # rescale r to atomic units for spectrum in atomic units! (only scaling)
+                    for k3 in range(Nr): integrand[k3] = np.exp(-1j*k_omega * (rgrid[k3] ** 2) / (2.0 * (zgrid_anal[k7,k6] - z_medium[k7]))) * rgrid[k3] * NP.FField_r[k7, k5, k3] * special.jn(0, k_omega * rgrid[k3] * rgrid_anal[k2] / (zgrid_anal[k7,k6] - z_medium[k7]));  # rescale r to atomic units for spectrum in atomic units! (only scaling)
                     # FHHGOnScreen[k7, k6, k4, k2] = integrate.trapz(integrand, rgrid);
                     # for k3 in range(Nr): integrand[k3] = rgrid[k3] * FField_r[k7, k5, k3] * special.jn(0, k_omega * rgrid[k3] * rgrid_anal[k2] / (zgrid_anal[k7,k6] - z_medium[k7]));  # rescale r to atomic units for spectrum in atomic units! (only scaling)
-                    if (integrator['method'] == 'Romberg'):
+                    if (NP.integrator['method'] == 'Romberg'):
                         nint, value, err = mn.romberg(rgrid[-1]-rgrid[0],integrand,integrator['tol'],integrator['n0'])
                         # FHHGOnScreen[k7, k6, k4, k2] = (1.0 / (zgrid_anal[k7, k6] - z_medium[k7])) * value;
                         FHHGOnScreen[k7, k6, k4, k2] = nint;
                     # elif (integrator['method'] == 'Trapezoidal'): FHHGOnScreen[k7,k6, k4, k2] = (1.0 / (zgrid_anal[k7,k6] - z_medium[k7])) * integrate.trapz(integrand, rgrid);
-                    elif (integrator['method'] == 'Trapezoidal'): FHHGOnScreen[k7, k6, k4, k2] = integrate.trapz(integrand, rgrid);
+                    elif (NP.integrator['method'] == 'Trapezoidal'): FHHGOnScreen[k7, k6, k4, k2] = integrate.trapz(integrand, rgrid);
                     # elif (integrator['method'] == 'Simpson'): FHHGOnScreen[k7,k6, k4, k2] = (1.0 / (zgrid_anal[k7,k6] - z_medium[k7])) * integrate.simps(integrand, rgrid);
-                    elif (integrator['method'] == 'Simpson'): FHHGOnScreen[k7, k6, k4, k2] = integrate.simps(integrand, rgrid);
+                    elif (NP.integrator['method'] == 'Simpson'): FHHGOnScreen[k7, k6, k4, k2] = integrate.simps(integrand, rgrid);
                     else: sys.exit('Wrong integrator')
                 # k2 loop end
             # k6 loop end

@@ -197,13 +197,14 @@ tic1 = time.process_time()
 ttic1 = time.time()
 
 NumericalParams.FField_r = FField_r;
+NumericalParams.integrator = integrator;
 
 # define output queue
 output = mp.Queue()
 
 # passing by reference is unPythonic, we define the extra function though
-def FieldOnScreen_handle(z_medium, omegagrid, omega_step, rgrid, rgrid_anal, zgrid_anal, k_start, k_num, integrator, NumericalParams):
-  res = Hfn.FieldOnScreen(z_medium, omegagrid, omega_step, rgrid, rgrid_anal, zgrid_anal, k_start, k_num, integrator, NumericalParams)
+def FieldOnScreen_handle(z_medium, omegagrid, omega_step, rgrid, rgrid_anal, zgrid_anal, k_start, k_num, NumericalParams):
+  res = Hfn.FieldOnScreen(z_medium, omegagrid, omega_step, rgrid, rgrid_anal, zgrid_anal, k_start, k_num, NumericalParams)
   output.put(res)
 
 
