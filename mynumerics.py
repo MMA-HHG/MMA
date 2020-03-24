@@ -32,15 +32,28 @@ def NumOfPointsInRange(N1,N2,k): #number of points between two integers followin
 
 def FindInterval(x,x0): # find an index corresponding to given x0 value interval. ordering <  ), < ),..., < >; throws error otherwise
   N = len(x)
-  for k1 in range(N-2):
-    if ( (x[k1]<= x0) and (x0 < x[k1+1]) ): return k1
-  if ( (x[N-2]<= x0) and (x0 <= x[N-1]) ): return N-2
-  sys.exit('out of range in FindInterval')
+  if ( (x0 > x[-1]) or  (x0 < x[0]) ): sys.exit('out of range in FindInterval')
+  k1 = 1; k2 = N; length = N;
+  while (length > 2):
+    if ( x0 < x[k1 - 1 + length//2]): k2 = k1  + length//2
+    else: k1 = k1 + length//2
+    length = k2-k1
+
+  if ((length == 2) and (x0 >= x[k1])): return k1
+  else: return k1-1
+  # for k1 in range(N-2):
+  #   if ( (x[k1]<= x0) and (x0 < x[k1+1]) ): return k1
+  # if ( (x[N-2]<= x0) and (x0 <= x[N-1]) ): return N-2
+  # sys.exit('out of range in FindInterval')
   # if ( (x0 < x[0]) or (x0 > x[N-1])): sys.exit('out of range in FindInterval')
   # if (N == 2): return k1; # we finished looking
   # else:
   #   if (x0 > x[N//2] ): return FindInterval(x[(N//2):(N-1)],x0,N//2+?); # bookkeeping needed here... best will be additions and subtractions to be in-place
   #   else : return FindInterval(x[0:(N//2)],x0,?);
+
+# a = []
+# xxx = np.asarray([1.0, 2, 3, 4, 5, 6, 7, 8, 9])
+# for k1 in range(len(xxx)-1): a.append(FindInterval(xxx,0.1+k1+1))
 
 ### low-level routines
 def IsPowerOf2(n):
