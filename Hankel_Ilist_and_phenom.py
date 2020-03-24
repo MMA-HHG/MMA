@@ -17,6 +17,16 @@ import Hfn
 # - we use precomputed dipoles now
 
 #### THE MAIN PROGRAM #####
+class LaserParamsClass:
+  def __init__(self):
+    pass
+
+class NumericalParamsClass:
+  def __init__(self):
+    pass
+
+LaserParams = LaserParamsClass() ## define macroscopic gaussian beam # try also fancy reading directly here
+NumericalParams = NumericalParamsClass()
 
 ###################### THE PARAMETERS OF SIMULATION
 ParamFile = 'results.h5'
@@ -27,11 +37,6 @@ ParamFile = h5py.File(ParamFile,'r')
 z_medium = ParamFile['inputs/'+'jetpositions'][()]
 
 
-class LaserParamsClass:
-  def __init__(self):
-    pass
-
-LaserParams = LaserParamsClass() ## define macroscopic gaussian beam # try also fancy reading directly here
 LaserParams.I0 = mn.readscalardataset(ParamFile,'inputs/'+'I0','N')
 LaserParams.w0 = mn.readscalardataset(ParamFile,'inputs/'+'w0','N')
 LaserParams.lambd = mn.readscalardataset(ParamFile,'inputs/'+'lambda','N') #800.0e-9, # must correspond
@@ -191,12 +196,14 @@ print('Nomega_points = ', Nomega_points);
 tic1 = time.process_time()
 ttic1 = time.time()
 
+NumericalParams.FField_r = FField_r;
+
 # define output queue
 output = mp.Queue()
 
 # passing by reference is unPythonic, we define the extra function though
-def FieldOnScreen_handle(z_medium, omegagrid, omega_step, rgrid, FField_r, rgrid_anal, zgrid_anal, k_start, k_num, integrator):
-  res = Hfn.FieldOnScreen(z_medium, omegagrid, omega_step, rgrid, FField_r, rgrid_anal, zgrid_anal, k_start, k_num, integrator)
+def FieldOnScreen_handle(z_medium, omegagrid, omega_step, rgrid, rgrid_anal, zgrid_anal, k_start, k_num, integrator, NumericalParams):
+  res = Hfn.FieldOnScreen(z_medium, omegagrid, omega_step, rgrid, rgrid_anal, zgrid_anal, k_start, k_num, integrator, NumericalParams)
   output.put(res)
 
 
@@ -214,7 +221,7 @@ print('----')
 
 ### we use multiprocessing by assigning each part of the load as one process
 # define processes
-processes = [mp.Process(target=FieldOnScreen_handle, args=(z_medium, omegagrid, omega_step, rgrid, FField_r, rgrid_anal, zgrid_anal, Nomega_anal_start+N_PointsGrid[k1], N_PointsForProcess[k1],integrator)) for k1 in range(W)]
+processes = [mp.Process(target=FieldOnScreen_handle, args=(z_medium, omegagrid, omega_step, rgrid, rgrid_anal, zgrid_anal, Nomega_anal_start+N_PointsGrid[k1], N_PointsForProcess[k1],integrator,NumericalParams)) for k1 in range(W)]
 
 # run processes
 for p in processes: p.start();
