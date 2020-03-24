@@ -34,44 +34,67 @@ def ComputeFieldsInRFromIntensityList(z_medium, rgrid, Hgrid, Nomega, LaserParam
         FField_r[k3, :, k1] = units.EFIELDau*np.exp(1j*phase_XUV)*(weight1*FSourceterm[k2,:]+weight2*FSourceterm[k2,:]); # free-form works? # not sure about the sign, if really (-i*(omega*t-kz-phiIR)), than should be "exp(+1j*...)"
     return FField_r
 
+def ComputeOneFieldFromIntensityList(z, r, k_omega, omegagrid, Igrid, FSourceterm, LaserParams):
+    I_r, phase_r = mn.GaussianBeam(r,z,0,LaserParams.I0/units.INTENSITYau,LaserParams.w0,1,LaserParams.lambd) # a.u.
+    phase_XUV = phase_r*omegagrid[k_omega]/LaserParams.omega0
+    # find a proper interval in the Igrid, we use linear interp written by hand now
+    k2 = mn.FindInterval(Igrid,I_r)
+    weight1 = (Igrid[k2+1]-I_r)/(Igrid[k2+1]-Igrid[k2]); weight2 = (I_r-Igrid[k2])/(Igrid[k2+1]-Igrid[k2]);
+    FField_r = units.EFIELDau*np.exp(1j*phase_XUV)*(weight1*FSourceterm[k2,k_omega]+weight2*FSourceterm[k2,k_omega]); # free-form works? # not sure about the sign, if really (-i*(omega*t-kz-phiIR)), than should be "exp(+1j*...)"
+    return FField_r
+
+
+
 
 # define function to integrate, there are some global variables! ## THE OUTPUT IS IN THE MIX OF ATOMIC UNITS (field) and SI UNITS (radial coordinate + dr in the integral)
-def FieldOnScreen(k_start, k_num, NP):
+def FieldOnScreen(k_start, k_num, NP, LP):
 # this function computes the Hankel transform of a given source term in omega-domain stored in FField_r
 # all the grids are specified in the inputs, except the analysis in omega_anal, this is specified by 'k_start' and 'k_num', it is used in the multiprocessing scheme
 # I tried tests while implementing OOP, sme runs were longer with the .-notation
     Nz_anal = np.asarray(NP.zgrid_anal.shape); Nz_anal = Nz_anal[1];
     Nr_anal = len(NP.rgrid_anal); Nr = len(NP.rgrid); Nz_medium=len(NP.z_medium);
     FHHGOnScreen = np.empty([Nz_medium, Nz_anal, k_num, Nr_anal], dtype=np.cdouble)
+    SourceTerm = np.empty([Nr], dtype=np.cdouble)
     integrand = np.empty([Nr], dtype=np.cdouble)
-    for k7 in range(Nz_medium): # loop over different medium positions
-        print('process starting at omega', k_start, ' started computation of zgrid', NP.z_medium[k7])
-        k4 = 0  # # of loops in omega
-        for k1 in range(k_num):  # Nomega
-            k5 = k_start + k1 * NP.omega_step  # accesing the grid
-            tic = time.process_time()
-            for k6 in range(Nz_anal):
-                for k2 in range(Nr_anal):  # Nr
-                    k_omega = NP.omegagrid[k5] / (units.TIMEau * units.c_light);  # omega divided by time: a.u. -> SI
-                    for k3 in range(Nr): integrand[k3] = np.exp(-1j*k_omega * (NP.rgrid[k3] ** 2) / (2.0 * (NP.zgrid_anal[k7,k6] - NP.z_medium[k7]))) * NP.rgrid[k3] * NP.FField_r[k7, k5, k3] * special.jn(0, k_omega * NP.rgrid[k3] * NP.rgrid_anal[k2] / (NP.zgrid_anal[k7,k6] - NP.z_medium[k7]));  # rescale r to atomic units for spectrum in atomic units! (only scaling)
-                    # FHHGOnScreen[k7, k6, k4, k2] = integrate.trapz(integrand, rgrid);
-                    # for k3 in range(Nr): integrand[k3] = rgrid[k3] * FField_r[k7, k5, k3] * special.jn(0, k_omega * rgrid[k3] * rgrid_anal[k2] / (zgrid_anal[k7,k6] - z_medium[k7]));  # rescale r to atomic units for spectrum in atomic units! (only scaling)
+    for k1 in range(Nz_medium): # loop over different medium positions
+        print('process starting at omega', k_start, ' started computation of zgrid', NP.z_medium[k1])
+        for k2 in range(k_num):  # omega
+            k3 = k_start + k2 * NP.omega_step  # accesing the grid ## omegagrid, Igrid, FSourceterm, LaserParams):
+            if (NP.storing_source_terms == 'on-the-fly'):
+                for k4 in range(Nr): SourceTerm[k4] = ComputeOneFieldFromIntensityList(NP.z_medium[k1], NP.rgrid[k4], k3, NP.omegagrid, NP.Igrid, NP.FSourceterm, LP) # precompute field in r
+            k_omega = NP.omegagrid[k3] / (units.TIMEau * units.c_light);  # omega divided by time: a.u. -> SI
+            for k4 in range(Nz_anal):
+                for k5 in range(Nr_anal):
+                    if (NP.storing_source_terms == 'table'):
+                        for k6 in range(Nr): integrand[k6] = np.exp(-1j * k_omega * (NP.rgrid[k6] ** 2) / (2.0 * (NP.zgrid_anal[k1, k4] - NP.z_medium[k1]))) * NP.rgrid[k6] * NP.FField_r[k1, k3, k6] * special.jn(0, k_omega * NP.rgrid[k6] * NP.rgrid_anal[k5] / (NP.zgrid_anal[k1, k4] - NP.z_medium[k1]));
+                    elif (NP.storing_source_terms == 'on-the-fly'):
+                        for k6 in range(Nr): integrand[k6] = np.exp(-1j * k_omega * (NP.rgrid[k6] ** 2) / (2.0 * (NP.zgrid_anal[k1, k4] - NP.z_medium[k1]))) * NP.rgrid[k6] * SourceTerm[k6] * special.jn(0, k_omega * NP.rgrid[k6] * NP.rgrid_anal[k5] / (NP.zgrid_anal[k1, k4] - NP.z_medium[k1]));
+                    else: sys.exit('Wrong field storing method')
+
                     if (NP.integrator['method'] == 'Romberg'):
                         nint, value, err = mn.romberg(NP.rgrid[-1]-NP.rgrid[0],integrand,NP.integrator['tol'],NP.integrator['n0'])
-                        # FHHGOnScreen[k7, k6, k4, k2] = (1.0 / (zgrid_anal[k7, k6] - z_medium[k7])) * value;
-                        FHHGOnScreen[k7, k6, k4, k2] = nint;
-                    # elif (integrator['method'] == 'Trapezoidal'): FHHGOnScreen[k7,k6, k4, k2] = (1.0 / (zgrid_anal[k7,k6] - z_medium[k7])) * integrate.trapz(integrand, rgrid);
-                    elif (NP.integrator['method'] == 'Trapezoidal'): FHHGOnScreen[k7, k6, k4, k2] = integrate.trapz(integrand, NP.rgrid);
-                    # elif (integrator['method'] == 'Simpson'): FHHGOnScreen[k7,k6, k4, k2] = (1.0 / (zgrid_anal[k7,k6] - z_medium[k7])) * integrate.simps(integrand, rgrid);
-                    elif (NP.integrator['method'] == 'Simpson'): FHHGOnScreen[k7, k6, k4, k2] = integrate.simps(integrand, NP.rgrid);
+                        FHHGOnScreen[k1, k4, k2, k5] = nint;
+                    elif (NP.integrator['method'] == 'Trapezoidal'): FHHGOnScreen[k1, k4, k2, k5] = integrate.trapz(integrand, NP.rgrid);
+                    elif (NP.integrator['method'] == 'Simpson'): FHHGOnScreen[k1, k4, k2, k5] = integrate.simps(integrand, NP.rgrid);
                     else: sys.exit('Wrong integrator')
-                # k2 loop end
-            # k6 loop end
-            toc = time.process_time()
-            #    print('cycle',k1,'duration',toc-tic)
-            k4 = k4 + 1
-        # k1 loop end
-    # k7 loop end
+        # else:
+        #     for k2 in range(k_num):  # Nomega
+        #         k3 = k_start + k2 * NP.omega_step  # accesing the grid
+        #         for k4 in range(Nz_anal):
+        #             for k5 in range(Nr_anal):  # Nr
+        #                 k_omega = NP.omegagrid[k3] / (units.TIMEau * units.c_light)  # omega divided by time: a.u. -> SI
+        #                 for k6 in range(Nr): integrand[k6] = np.exp(-1j*k_omega * (NP.rgrid[k6] ** 2) / (2.0 * (NP.zgrid_anal[k1,k4] - NP.z_medium[k1]))) * NP.rgrid[k6] * NP.FField_r[k1, k3, k6] * special.jn(0, k_omega * NP.rgrid[k6] * NP.rgrid_anal[k5] / (NP.zgrid_anal[k1,k4] - NP.z_medium[k1]));  # rescale r to atomic units for spectrum in atomic units! (only scaling)
+        #                 if (NP.integrator['method'] == 'Romberg'):
+        #                     nint, value, err = mn.romberg(NP.rgrid[-1]-NP.rgrid[0],integrand,NP.integrator['tol'],NP.integrator['n0'])
+        #                     FHHGOnScreen[k1, k4, k2, k5] = nint;
+        #                 elif (NP.integrator['method'] == 'Trapezoidal'): FHHGOnScreen[k1, k4, k2, k5] = integrate.trapz(integrand, NP.rgrid);
+        #                 elif (NP.integrator['method'] == 'Simpson'): FHHGOnScreen[k1, k4, k2, k5] = integrate.simps(integrand, NP.rgrid);
+        #                 else: sys.exit('Wrong integrator')
+        #             # k5 loop end
+        #         # k4 loop end
+        #         toc = time.process_time()
+        #     # k2 loop end
+    # k1 loop end
     return (k_start, k_num, FHHGOnScreen)
 
 

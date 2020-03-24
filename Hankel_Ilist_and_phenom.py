@@ -34,7 +34,15 @@ ParamFile = h5py.File(ParamFile,'r')
 
 # z_medium = np.array([-0.025, -0.02, -0.015, -0.01, -0.005, 0.0, 0.01])  #np.asarray([-0.025, -0.02, -0.015, -0.01, -0.005, 0.0, 0.01])  # np.array([-0.003, 0.0, 0.003]);
 
-z_medium = ParamFile['inputs/'+'jetpositions'][()]
+if ( 'array' == mn.readscalardataset(ParamFile,'inputs/'+'jetpositions_type','S') ):
+  NumericalParams.z_medium = ParamFile['inputs/'+'jetpositions'][()]
+elif ( 'grid' == mn.readscalardataset(ParamFile,'inputs/'+'jetpositions_type','S') ):
+  NumericalParams.z_medium_max = mn.readscalardataset(ParamFile,'inputs/'+'jetpositions_max','N'); NumericalParams.z_medium_min = mn.readscalardataset(ParamFile, 'inputs/' + 'jetpositions_min', 'N'); NumericalParams.z_medium_Npoints = mn.readscalardataset(ParamFile, 'inputs/' + 'jetpositions_Npoints', 'N')
+  NumericalParams.z_medium = np.linspace(NumericalParams.z_medium_min, NumericalParams.z_medium_max, NumericalParams.z_medium_Npoints);
+else: sys.exit('wrongly specified jetpositions')
+z_medium = NumericalParams.z_medium
+
+NumericalParams.storing_source_terms = mn.readscalardataset(ParamFile,'inputs/'+'storing_source_terms','S')
 
 
 LaserParams.I0 = mn.readscalardataset(ParamFile,'inputs/'+'I0','N')
@@ -111,24 +119,24 @@ print(omega0,'omega0 in a.u.')
 if (dipole_model == 'IntensityList'):
   # loading procedure
   file1 = h5py.File(IntensityListFile, 'r')
-  Igrid = file1['/Igrid'][:]
-  omegagrid = file1['/omegagrid'][:]
-  FSourceterm = file1['/FDipoleAccelerations'][:]
-  FSourceterm = np.squeeze(FSourceterm[:,:,0] + 1j*FSourceterm[:,:,1]) # convert to complex numbers
+  NumericalParams.Igrid = file1['/Igrid'][:]
+  NumericalParams.omegagrid = file1['/omegagrid'][:]
+  NumericalParams.FSourceterm = file1['/FDipoleAccelerations'][:]
+  NumericalParams.FSourceterm = np.squeeze(NumericalParams.FSourceterm[:,:,0] + 1j*NumericalParams.FSourceterm[:,:,1]) # convert to complex numbers
 
 elif (dipole_model == 'Phenomenological'):
   tgrid = np.linspace(-tcoeff * 0.5 * LaserParams.TFWHM / units.TIMEau, tcoeff * 0.5 * LaserParams.TFWHM / units.TIMEau, Nt)
   Nomega = len(tgrid)//2 + 1
-  omegagrid = np.linspace(0,2.0*np.pi*Nomega/(tcoeff*LaserParams.TFWHM/units.TIMEau),Nomega)
+  NumericalParams.omegagrid = np.linspace(0,2.0*np.pi*Nomega/(tcoeff*LaserParams.TFWHM/units.TIMEau),Nomega)
 
 
 
 
 
 ## create grids
-Nomega = len(omegagrid)
+Nomega = len(NumericalParams.omegagrid)
 Hgrid = np.empty([Nomega], dtype=np.double)
-Hgrid[:] = omegagrid[:]/LaserParams.omega0
+Hgrid[:] = NumericalParams.omegagrid[:]/LaserParams.omega0
 # Hgrid = np.empty([Nomega], dtype=np.double)
 # for k1 in range(Nomega): Hgrid[k1] = omegagrid
 
@@ -153,32 +161,37 @@ else:
 rgrid_anal = np.linspace(0,rmax_anal,Nr_anal)
 
 if (np.isnan(Hmin_anal)):
-  omegamin_anal = omegagrid[0]
+  omegamin_anal = NumericalParams.omegagrid[0]
   Nomega_anal_start = 0
 else:
   omegamin_anal = omega0*Hmin_anal
-  Nomega_anal_start = mn.FindInterval(omegagrid,omegamin_anal)
+  Nomega_anal_start = mn.FindInterval(NumericalParams.omegagrid,omegamin_anal)
 
 if (np.isnan(Hmax_anal)):
-  omegamax_anal = omegagrid[len(omegagrid)-1]
-  Nomega_anal = len(omegagrid)-1
+  omegamax_anal = NumericalParams.omegagrid[-1]
+  Nomega_anal = len(NumericalParams.omegagrid)-1
 else:
   omegamax_anal = omega0 * Hmax_anal
-  Nomega_anal = mn.FindInterval(omegagrid, omegamax_anal)
+  Nomega_anal = mn.FindInterval(NumericalParams.omegagrid, omegamax_anal)
 
 Nomega_points = mn.NumOfPointsInRange(Nomega_anal_start,Nomega_anal,omega_step); # Nomega_points is the number of simulations we want to perform
 
 
 
 ## compute fields in our rgrid
-if (dipole_model == 'IntensityList'): FField_r = Hfn.ComputeFieldsInRFromIntensityList(z_medium, rgrid, Hgrid, Nomega, LaserParams, Igrid, FSourceterm)
-elif (dipole_model == 'Phenomenological'): FField_r = Hfn.ComputeFieldsPhenomenologicalDipoles(LaserParams.I0,omega0,LaserParams.TFWHM,LaserParams.w0,tgrid,omegagrid,rgrid,z_medium)
+if ( (dipole_model == 'IntensityList') and (NumericalParams.storing_source_terms == 'table') ):
+  NumericalParams.FField_r = Hfn.ComputeFieldsInRFromIntensityList(z_medium, rgrid, Hgrid, Nomega, LaserParams, NumericalParams.Igrid, NumericalParams.FSourceterm)
+  del NumericalParams.FSourceterm; del NumericalParams.Igrid;  # this table may be big
+elif (dipole_model == 'Phenomenological'): NumericalParams.FField_r = Hfn.ComputeFieldsPhenomenologicalDipoles(LaserParams.I0,omega0,LaserParams.TFWHM,LaserParams.w0,tgrid,omegagrid,rgrid,z_medium)
+
+
+
 
 ## print some analyses outputs
 print('om_max', Nomega_anal)
 print('om_min', Nomega_anal_start)
 # print('tmax',tgrid[len(tgrid)-1])
-print('omax',omegagrid[len(omegagrid)-1])
+print('omax',NumericalParams.omegagrid[-1])
 
   
 dr = rgrid[1]-rgrid[0]
@@ -196,23 +209,23 @@ print('Nomega_points = ', Nomega_points);
 tic1 = time.process_time()
 ttic1 = time.time()
 
-NumericalParams.FField_r = FField_r;
 NumericalParams.integrator = integrator;
 NumericalParams.rgrid = rgrid
 
 NumericalParams.z_medium = z_medium
-NumericalParams.omegagrid = omegagrid
 NumericalParams.omega_step = omega_step
 NumericalParams.rgrid_anal = rgrid_anal
 NumericalParams.zgrid_anal = zgrid_anal
+
+
 
 
 # define output queue
 output = mp.Queue()
 
 # passing by reference is unPythonic, we define the extra function though
-def FieldOnScreen_handle(k_start, k_num, NumericalParams):
-  res = Hfn.FieldOnScreen(k_start, k_num, NumericalParams)
+def FieldOnScreen_handle(k_start, k_num, NumericalParams, LaserParams):
+  res = Hfn.FieldOnScreen(k_start, k_num, NumericalParams, LaserParams)
   output.put(res)
 
 
@@ -230,7 +243,7 @@ print('----')
 
 ### we use multiprocessing by assigning each part of the load as one process
 # define processes
-processes = [mp.Process(target=FieldOnScreen_handle, args=(Nomega_anal_start+N_PointsGrid[k1], N_PointsForProcess[k1],NumericalParams)) for k1 in range(W)]
+processes = [mp.Process(target=FieldOnScreen_handle, args=(Nomega_anal_start+N_PointsGrid[k1], N_PointsForProcess[k1], NumericalParams, LaserParams)) for k1 in range(W)]
 
 # run processes
 for p in processes: p.start();
@@ -256,7 +269,7 @@ print('duration after merging 2',ttoc2-ttic1)
 
 
 # create omega grid for analyses
-for k1 in range(Nomega_anal_start,Nomega_anal,omega_step): omegagrid_anal.append(omegagrid[k1])
+for k1 in range(Nomega_anal_start,Nomega_anal,omega_step): omegagrid_anal.append(NumericalParams.omegagrid[k1])
 omegagrid_anal=np.asarray(omegagrid_anal);
 
 
