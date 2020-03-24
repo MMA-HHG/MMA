@@ -198,13 +198,21 @@ ttic1 = time.time()
 
 NumericalParams.FField_r = FField_r;
 NumericalParams.integrator = integrator;
+NumericalParams.rgrid = rgrid
+
+NumericalParams.z_medium = z_medium
+NumericalParams.omegagrid = omegagrid
+NumericalParams.omega_step = omega_step
+NumericalParams.rgrid_anal = rgrid_anal
+NumericalParams.zgrid_anal = zgrid_anal
+
 
 # define output queue
 output = mp.Queue()
 
 # passing by reference is unPythonic, we define the extra function though
-def FieldOnScreen_handle(z_medium, omegagrid, omega_step, rgrid, rgrid_anal, zgrid_anal, k_start, k_num, NumericalParams):
-  res = Hfn.FieldOnScreen(z_medium, omegagrid, omega_step, rgrid, rgrid_anal, zgrid_anal, k_start, k_num, NumericalParams)
+def FieldOnScreen_handle(k_start, k_num, NumericalParams):
+  res = Hfn.FieldOnScreen(k_start, k_num, NumericalParams)
   output.put(res)
 
 
@@ -222,7 +230,7 @@ print('----')
 
 ### we use multiprocessing by assigning each part of the load as one process
 # define processes
-processes = [mp.Process(target=FieldOnScreen_handle, args=(z_medium, omegagrid, omega_step, rgrid, rgrid_anal, zgrid_anal, Nomega_anal_start+N_PointsGrid[k1], N_PointsForProcess[k1],integrator,NumericalParams)) for k1 in range(W)]
+processes = [mp.Process(target=FieldOnScreen_handle, args=(Nomega_anal_start+N_PointsGrid[k1], N_PointsForProcess[k1],NumericalParams)) for k1 in range(W)]
 
 # run processes
 for p in processes: p.start();
