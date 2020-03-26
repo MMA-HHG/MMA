@@ -73,28 +73,11 @@ def FieldOnScreen(k_start, k_num, NP, LP):
 
                     if (NP.integrator['method'] == 'Romberg'):
                         nint, value, err = mn.romberg(NP.rgrid[-1]-NP.rgrid[0],integrand,NP.integrator['tol'],NP.integrator['n0'])
-                        FHHGOnScreen[k1, k4, k2, k5] = nint;
-                    elif (NP.integrator['method'] == 'Trapezoidal'): FHHGOnScreen[k1, k4, k2, k5] = integrate.trapz(integrand, NP.rgrid);
-                    elif (NP.integrator['method'] == 'Simpson'): FHHGOnScreen[k1, k4, k2, k5] = integrate.simps(integrand, NP.rgrid);
+                        FHHGOnScreen[k1, k4, k2, k5] = nint; # (1.0/(NP.zgrid_anal[k1, k4] - NP.z_medium[k1])) *
+                    elif (NP.integrator['method'] == 'Trapezoidal'): FHHGOnScreen[k1, k4, k2, k5] = (1.0/(NP.zgrid_anal[k1, k4] - NP.z_medium[k1])) * integrate.trapz(integrand, NP.rgrid);
+                    elif (NP.integrator['method'] == 'Simpson'): FHHGOnScreen[k1, k4, k2, k5] = (1.0/(NP.zgrid_anal[k1, k4] - NP.z_medium[k1])) * integrate.simps(integrand, NP.rgrid);
                     else: sys.exit('Wrong integrator')
-        # else:
-        #     for k2 in range(k_num):  # Nomega
-        #         k3 = k_start + k2 * NP.omega_step  # accesing the grid
-        #         for k4 in range(Nz_anal):
-        #             for k5 in range(Nr_anal):  # Nr
-        #                 k_omega = NP.omegagrid[k3] / (units.TIMEau * units.c_light)  # omega divided by time: a.u. -> SI
-        #                 for k6 in range(Nr): integrand[k6] = np.exp(-1j*k_omega * (NP.rgrid[k6] ** 2) / (2.0 * (NP.zgrid_anal[k1,k4] - NP.z_medium[k1]))) * NP.rgrid[k6] * NP.FField_r[k1, k3, k6] * special.jn(0, k_omega * NP.rgrid[k6] * NP.rgrid_anal[k5] / (NP.zgrid_anal[k1,k4] - NP.z_medium[k1]));  # rescale r to atomic units for spectrum in atomic units! (only scaling)
-        #                 if (NP.integrator['method'] == 'Romberg'):
-        #                     nint, value, err = mn.romberg(NP.rgrid[-1]-NP.rgrid[0],integrand,NP.integrator['tol'],NP.integrator['n0'])
-        #                     FHHGOnScreen[k1, k4, k2, k5] = nint;
-        #                 elif (NP.integrator['method'] == 'Trapezoidal'): FHHGOnScreen[k1, k4, k2, k5] = integrate.trapz(integrand, NP.rgrid);
-        #                 elif (NP.integrator['method'] == 'Simpson'): FHHGOnScreen[k1, k4, k2, k5] = integrate.simps(integrand, NP.rgrid);
-        #                 else: sys.exit('Wrong integrator')
-        #             # k5 loop end
-        #         # k4 loop end
-        #         toc = time.process_time()
-        #     # k2 loop end
-    # k1 loop end
+
     return (k_start, k_num, FHHGOnScreen)
 
 
