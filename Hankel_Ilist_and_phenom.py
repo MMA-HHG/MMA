@@ -71,7 +71,9 @@ fix_zmax_bool = 1 == mn.readscalardataset(ParamFile,'inputs/'+'fix_zmax','N') # 
 Nz_anal = mn.readscalardataset(ParamFile,'inputs/'+'Nz_anal','N') # 100 #200
 
 Hmin_anal = mn.readscalardataset(ParamFile,'inputs/'+'Hmin_anal','N') # 28.5 # 0.0 #28.5 np.nan
+if ( Hmin_anal < 0 ): Hmin_anal = np.nan
 Hmax_anal = mn.readscalardataset(ParamFile,'inputs/'+'Hmax_anal','N') # 29.5 # 2.5 #29.5 71.5
+if ( Hmax_anal < 0 ): Hmax_anal = np.nan
 omega_step = mn.readscalardataset(ParamFile,'inputs/'+'omega_step','N') # 1
 
 # used only for phenomenological dipoles
