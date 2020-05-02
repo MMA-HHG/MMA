@@ -261,7 +261,7 @@ def ComputeFieldsPhenomenologicalDipoles(I0SI,omega0,TFWHM,w0,tgrid,omegagrid,rg
 
 
 # define function to integrate, there are some global variables! ## THE OUTPUT IS IN THE MIX OF ATOMIC UNITS (field) and SI UNITS (radial coordinate + dr in the integral)
-def FieldOnScreenLambda1(k_start, k_num, NP, LP, TP):
+def FieldOnScreenLambda1(k_start, k_num, NP, LP):
     Nz_anal = np.asarray(NP.zgrid_anal.shape); Nz_anal = Nz_anal[1]; Nr_anal = len(NP.rgrid_anal); Nr = len(NP.rgrid); Nz_medium=len(NP.z_medium);
     FHHGOnScreen = np.empty([Nz_medium, Nz_anal, k_num, Nr_anal], dtype=np.cdouble); SourceTerm = np.empty([Nr], dtype=np.cdouble)
 
@@ -274,7 +274,8 @@ def FieldOnScreenLambda1(k_start, k_num, NP, LP, TP):
             for k4 in range(Nz_anal):
                 for k5 in range(Nr_anal):
                     integrand = lambda r: np.exp(-1j * k_omega * (r ** 2) / (2.0 * (NP.zgrid_anal[k1, k4] - NP.z_medium[k1]))) * r * SourceTerm(r) * special.jn(0, k_omega * r * NP.rgrid_anal[k5] / (NP.zgrid_anal[k1, k4] - NP.z_medium[k1]))
-                    FHHGOnScreen[k1, k4, k2, k5] = (1.0/(NP.zgrid_anal[k1, k4] - NP.z_medium[k1])) * integrate.quad(integrand, 0, NP.rmax)
+                    # integrand_imag = lambda r: np.imag(np.exp(-1j * k_omega * (r ** 2) / (2.0 * (NP.zgrid_anal[k1, k4] - NP.z_medium[k1]))) * r * SourceTerm(r) * special.jn(0, k_omega * r * NP.rgrid_anal[k5] / (NP.zgrid_anal[k1, k4] - NP.z_medium[k1])))
+                    FHHGOnScreen[k1, k4, k2, k5] = (1.0/(NP.zgrid_anal[k1, k4] - NP.z_medium[k1])) * integrate.fixed_quad(integrand, 0, NP.rmax,n=1000)
 
     return (k_start, k_num, FHHGOnScreen)
 

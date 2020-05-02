@@ -215,7 +215,7 @@ print('Nomega_points = ', Nomega_points);
 tic1 = time.process_time()
 ttic1 = time.time()
 
-NumericalParams.integrator = integrator;
+NumericalParams.integrator = integrator
 NumericalParams.rgrid = rgrid
 NumericalParams.rmax= rmax
 
@@ -232,7 +232,7 @@ output = mp.Queue()
 
 # passing by reference is unPythonic, we define the extra function though
 def FieldOnScreen_handle(k_start, k_num, NumericalParams, LaserParams):
-  res = Hfn.FieldOnScreen(k_start, k_num, NumericalParams, LaserParams)
+  res = Hfn.FieldOnScreenLambda1(k_start, k_num, NumericalParams, LaserParams)
   output.put(res)
 
 
