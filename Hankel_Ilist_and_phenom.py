@@ -53,6 +53,10 @@ LaserParams.omega0 = mn.ConvertPhoton(LaserParams.lambd ,'lambdaSI','omegaau') #
 LaserParams.zR = np.pi*(LaserParams.w0**2)/LaserParams.lambd
 omega0 = LaserParams.omega0; zR = LaserParams.zR
 
+## Optical system (part of laser)
+LaserParams.r_pinhole = mn.readscalardataset(ParamFile,'inputs/'+'r_pinhole','N')
+LaserParams.z_pinhole = mn.readscalardataset(ParamFile,'inputs/'+'z_pinhole','N')
+
 # anlyses params # at the moment optimised for t he intensity list, change later
 
 
@@ -213,6 +217,7 @@ ttic1 = time.time()
 
 NumericalParams.integrator = integrator;
 NumericalParams.rgrid = rgrid
+NumericalParams.rmax= rmax
 
 NumericalParams.z_medium = z_medium
 NumericalParams.omega_step = omega_step

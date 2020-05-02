@@ -250,6 +250,61 @@ def ComputeFieldsPhenomenologicalDipoles(I0SI,omega0,TFWHM,w0,tgrid,omegagrid,rg
   return  FField_r
 
 
+
+
+
+
+
+
+
+
+
+
+# define function to integrate, there are some global variables! ## THE OUTPUT IS IN THE MIX OF ATOMIC UNITS (field) and SI UNITS (radial coordinate + dr in the integral)
+def FieldOnScreenLambda1(k_start, k_num, NP, LP, TP):
+    Nz_anal = np.asarray(NP.zgrid_anal.shape); Nz_anal = Nz_anal[1]; Nr_anal = len(NP.rgrid_anal); Nr = len(NP.rgrid); Nz_medium=len(NP.z_medium);
+    FHHGOnScreen = np.empty([Nz_medium, Nz_anal, k_num, Nr_anal], dtype=np.cdouble); SourceTerm = np.empty([Nr], dtype=np.cdouble)
+
+    for k1 in range(Nz_medium): # loop over different medium positions
+        print('process starting at omega', k_start, ' started computation of zgrid', NP.z_medium[k1])
+        for k2 in range(k_num):  # omega
+            k3 = k_start + k2 * NP.omega_step  # accesing the grid ## omegagrid, Igrid, FSourceterm, LaserParams):
+            SourceTerm = lambda r: ComputeOneFieldFromIntensityList(NP.z_medium[k1], r, k3, NP.omegagrid, NP.Igrid, NP.FSourceterm, LP) # precompute field in r
+            k_omega = NP.omegagrid[k3] / (units.TIMEau * units.c_light);  # omega divided by time: a.u. -> SI
+            for k4 in range(Nz_anal):
+                for k5 in range(Nr_anal):
+                    integrand = lambda r: np.exp(-1j * k_omega * (r ** 2) / (2.0 * (NP.zgrid_anal[k1, k4] - NP.z_medium[k1]))) * r * SourceTerm(r) * special.jn(0, k_omega * r * NP.rgrid_anal[k5] / (NP.zgrid_anal[k1, k4] - NP.z_medium[k1]))
+                    FHHGOnScreen[k1, k4, k2, k5] = (1.0/(NP.zgrid_anal[k1, k4] - NP.z_medium[k1])) * integrate.quad(integrand, 0, NP.rmax)
+
+    return (k_start, k_num, FHHGOnScreen)
+
+
+
+
+# define function to integrate, there are some global variables! ## THE OUTPUT IS IN THE MIX OF ATOMIC UNITS (field) and SI UNITS (radial coordinate + dr in the integral)
+def FieldOnScreenApertured1(k_start, k_num, NP, LP):
+    Nz_anal = np.asarray(NP.zgrid_anal.shape); Nz_anal = Nz_anal[1]; Nr_anal = len(NP.rgrid_anal); Nr = len(NP.rgrid); Nz_medium=len(NP.z_medium);
+    FHHGOnScreen = np.empty([Nz_medium, Nz_anal, k_num, Nr_anal], dtype=np.cdouble); SourceTerm = np.empty([Nr], dtype=np.cdouble)
+
+    def Green(r, r1, k_omega, D1, D2):
+        return r * D1 * special.jn(1, k_omega * r * LP.r_pinhole / D2 ) * special.jn(0, k_omega * r1 * LP.r_pinhole / D1 ) - r1 * D2 * special.jn(0, k_omega * r * LP.r_pinhole / D2 ) * special.jn(1, k_omega * r1 * LP.r_pinhole / D1 )
+
+    for k1 in range(Nz_medium): # loop over different medium positions
+        print('process starting at omega', k_start, ' started computation of zgrid', NP.z_medium[k1])
+        for k2 in range(k_num):  # omega
+            k3 = k_start + k2 * NP.omega_step  # accesing the grid ## omegagrid, Igrid, FSourceterm, LaserParams):
+            SourceTerm = lambda r: ComputeOneFieldFromIntensityList(NP.z_medium[k1], r, k3, NP.omegagrid, NP.Igrid, NP.FSourceterm, LP) # precompute field in r
+            k_omega = NP.omegagrid[k3] / (units.TIMEau * units.c_light);  # omega divided by time: a.u. -> SI
+            for k4 in range(Nz_anal):
+                for k5 in range(Nr_anal):
+                    D1 = (LP.z_pinhole - NP.z_medium[k1]); D2 = (NP.zgrid_anal[k1, k4] - LP.z_pinhole);
+                    integrand = lambda r: np.exp(-1j * k_omega * (r ** 2) / (2.0 * D1)) * Green(NP.rgrid_anal[k5],r,k_omega,D1,D2) * SourceTerm(r) * r / ((D1*NP.rgrid_anal[k5])**2 - (D2*r)**2)
+                    FHHGOnScreen[k1, k4, k2, k5] = (LP.r_pinhole/k_omega) * integrate.quad(integrand, 0, NP.rmax)
+
+    return (k_start, k_num, FHHGOnScreen)
+
+
+
 # def ComputeFieldsPhenomenologicalDipoles_mp(I0SI,omega0,TFWHM,w0,tgrid,omegagrid,rgrid,z_medium):
 #   print('Computing phenomenological dipoles: FFTs')
 #   Nomega = len(omegagrid); Nr = len(rgrid); Nz_medium = len(z_medium);
