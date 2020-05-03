@@ -1,5 +1,6 @@
 from scipy import special
 from scipy import integrate
+from scipy import interpolate
 import numpy as np
 import struct
 import array
@@ -34,6 +35,8 @@ def ComputeFieldsInRFromIntensityList(z_medium, rgrid, Hgrid, Nomega, LaserParam
         FField_r[k3, :, k1] = units.EFIELDau*np.exp(1j*phase_XUV)*(weight1*FSourceterm[k2,:]+weight2*FSourceterm[k2,:]); # free-form works? # not sure about the sign, if really (-i*(omega*t-kz-phiIR)), than should be "exp(+1j*...)"
     return FField_r
 
+
+
 def ComputeOneFieldFromIntensityList(z, r, k_omega, omegagrid, Igrid, FSourceterm, LaserParams):
     I_r, phase_r = mn.GaussianBeam(r,z,0,LaserParams.I0/units.INTENSITYau,LaserParams.w0,1,LaserParams.lambd) # a.u.
     phase_XUV = phase_r*omegagrid[k_omega]/LaserParams.omega0
@@ -44,6 +47,12 @@ def ComputeOneFieldFromIntensityList(z, r, k_omega, omegagrid, Igrid, FSourceter
     return FField_r
 
 
+
+def ComputeOneFieldFromIntensityList2(z, r, k_omega, omegagrid, Igrid, FSourceterm, LaserParams):
+    I_r, phase_r = mn.GaussianBeam(r,z,0,LaserParams.I0/units.INTENSITYau,LaserParams.w0,1,LaserParams.lambd) # a.u.
+    phase_XUV = phase_r*omegagrid[k_omega]/LaserParams.omega0
+    interp_function = interpolate.interp1d(Igrid,FSourceterm[:,k_omega])
+    return units.EFIELDau*np.exp(1j*phase_XUV) * interp_function(I_r);
 
 
 # define function to integrate, there are some global variables! ## THE OUTPUT IS IN THE MIX OF ATOMIC UNITS (field) and SI UNITS (radial coordinate + dr in the integral)
@@ -254,12 +263,6 @@ def ComputeFieldsPhenomenologicalDipoles(I0SI,omega0,TFWHM,w0,tgrid,omegagrid,rg
 
 
 
-
-
-
-
-
-
 # define function to integrate, there are some global variables! ## THE OUTPUT IS IN THE MIX OF ATOMIC UNITS (field) and SI UNITS (radial coordinate + dr in the integral)
 def FieldOnScreenLambda1(k_start, k_num, NP, LP):
     Nz_anal = np.asarray(NP.zgrid_anal.shape); Nz_anal = Nz_anal[1]; Nr_anal = len(NP.rgrid_anal); Nr = len(NP.rgrid); Nz_medium=len(NP.z_medium);
@@ -269,11 +272,11 @@ def FieldOnScreenLambda1(k_start, k_num, NP, LP):
         print('process starting at omega', k_start, ' started computation of zgrid', NP.z_medium[k1])
         for k2 in range(k_num):  # omega
             k3 = k_start + k2 * NP.omega_step  # accesing the grid ## omegagrid, Igrid, FSourceterm, LaserParams):
-            SourceTerm = lambda r: ComputeOneFieldFromIntensityList(NP.z_medium[k1], r, k3, NP.omegagrid, NP.Igrid, NP.FSourceterm, LP) # precompute field in r
+            SourceTerm = lambda r: ComputeOneFieldFromIntensityList2(NP.z_medium[k1], r, k3, NP.omegagrid, NP.Igrid, NP.FSourceterm, LP) # precompute field in r
             k_omega = NP.omegagrid[k3] / (units.TIMEau * units.c_light);  # omega divided by time: a.u. -> SI
             for k4 in range(Nz_anal):
                 for k5 in range(Nr_anal):
-                    integrand = lambda r: np.exp(-1j * k_omega * (r ** 2) / (2.0 * (NP.zgrid_anal[k1, k4] - NP.z_medium[k1]))) * r * SourceTerm(r) * special.jn(0, k_omega * r * NP.rgrid_anal[k5] / (NP.zgrid_anal[k1, k4] - NP.z_medium[k1]))
+                    integrand = lambda r: np.real( np.exp(-1j * k_omega * (r ** 2) / (2.0 * (NP.zgrid_anal[k1, k4] - NP.z_medium[k1]))) * r * SourceTerm(r) * special.jn(0, k_omega * r * NP.rgrid_anal[k5] / (NP.zgrid_anal[k1, k4] - NP.z_medium[k1])) )
                     # integrand_imag = lambda r: np.imag(np.exp(-1j * k_omega * (r ** 2) / (2.0 * (NP.zgrid_anal[k1, k4] - NP.z_medium[k1]))) * r * SourceTerm(r) * special.jn(0, k_omega * r * NP.rgrid_anal[k5] / (NP.zgrid_anal[k1, k4] - NP.z_medium[k1])))
                     FHHGOnScreen[k1, k4, k2, k5] = (1.0/(NP.zgrid_anal[k1, k4] - NP.z_medium[k1])) * integrate.fixed_quad(integrand, 0, NP.rmax,n=1000)
 
@@ -295,7 +298,7 @@ def FieldOnScreenApertured1(k_start, k_num, NP, LP):
         for k2 in range(k_num):  # omega
             k3 = k_start + k2 * NP.omega_step  # accesing the grid ## omegagrid, Igrid, FSourceterm, LaserParams):
             SourceTerm = lambda r: ComputeOneFieldFromIntensityList(NP.z_medium[k1], r, k3, NP.omegagrid, NP.Igrid, NP.FSourceterm, LP) # precompute field in r
-            k_omega = NP.omegagrid[k3] / (units.TIMEau * units.c_light);  # omega divided by time: a.u. -> SI
+            k_omega = NP.omegagrid[k3] / (units.TIMEau * units.c_light)  # omega divided by time: a.u. -> SI
             for k4 in range(Nz_anal):
                 for k5 in range(Nr_anal):
                     D1 = (LP.z_pinhole - NP.z_medium[k1]); D2 = (NP.zgrid_anal[k1, k4] - LP.z_pinhole);
