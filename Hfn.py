@@ -60,6 +60,7 @@ def FieldOnScreen(k_start, k_num, NP, LP):
 # this function computes the Hankel transform of a given source term in omega-domain stored in FField_r
 # all the grids are specified in the inputs, except the analysis in omega_anal, this is specified by 'k_start' and 'k_num', it is used in the multiprocessing scheme
 # I tried tests while implementing OOP, sme runs were longer with the .-notation
+    print('Hankel transform running')
     Nz_anal = np.asarray(NP.zgrid_anal.shape); Nz_anal = Nz_anal[1];
     Nr_anal = len(NP.rgrid_anal); Nr = len(NP.rgrid); Nz_medium=len(NP.z_medium);
     FHHGOnScreen = np.empty([Nz_medium, Nz_anal, k_num, Nr_anal], dtype=np.cdouble)
@@ -133,30 +134,30 @@ def CoalesceResults(results,Nz_medium,Nz_anal,Nomega_anal_start,Nomega_points,Nr
 
 
 
-# define function to integrate, there are some global variables! ## THE OUTPUT IS IN THE MIX OF ATOMIC UNITS (field) and SI UNITS (radial coordinate + dr in the integral)
-def FieldOnScreen_singleplane(z_medium, omegagrid, omega_step, rgrid, FField_r, rgrid_anal, zgrid_anal, k_start, k_num, integrator):
-# this function computes the Hankel transform of a given source term in omega-domain stored in FField_r
-# all the grids are specified in the inputs, except the analysis in omega_anal, this is specified by 'k_start' and 'k_num', it is used in the multiprocessing scheme
-    Nz_anal = len(zgrid_anal); Nr_anal = len(rgrid_anal); Nr = len(rgrid);
-    FHHGOnScreen = np.empty([Nz_anal, k_num, Nr_anal], dtype=np.cdouble)
-    k4 = 0  # # of loops in omega
-    for k1 in range(k_num):  # Nomega
-        k5 = k_start + k1 * omega_step  # accesing the grid
-        tic = time.process_time()
-        for k6 in range(Nz_anal):
-            for k2 in range(Nr_anal):  # Nr
-                k_omega = omegagrid[k5] / (units.TIMEau * units.c_light);  # omega divided by time: a.u. -> SI # use this as a prefactor to obtain curvature
-                integrand = np.empty([Nr], dtype=np.cdouble)
-                for k3 in range(Nr): integrand[k3] = np.exp(-(rgrid[k3] ** 2) / (2.0 * (zgrid_anal[k6] - z_medium))) * rgrid[k3] * FField_r[k5, k3] * special.jn(0, k_omega * rgrid[k3] * rgrid_anal[k2] / (zgrid_anal[k6] - z_medium));  # rescale r to atomic units for spectrum in atomic units! (only scaling)
-                if (integrator == 'Trapezoidal'): FHHGOnScreen[k6, k4, k2] = (1.0 / (zgrid_anal[k6] - z_medium)) * integrate.trapz(integrand, rgrid);
-                elif (integrator == 'Simpson'): FHHGOnScreen[k6, k4, k2] = (1.0 / (zgrid_anal[k6] - z_medium)) * integrate.simps(integrand, rgrid);
-                else: sys.exit('Wrong integrator')
-            # k2 loop end
-        # k6 loop end
-        toc = time.process_time()
-        #    print('cycle',k1,'duration',toc-tic)
-        k4 = k4 + 1
-    return (k_start, k_num, FHHGOnScreen)
+# # define function to integrate, there are some global variables! ## THE OUTPUT IS IN THE MIX OF ATOMIC UNITS (field) and SI UNITS (radial coordinate + dr in the integral)
+# def FieldOnScreen_singleplane(z_medium, omegagrid, omega_step, rgrid, FField_r, rgrid_anal, zgrid_anal, k_start, k_num, integrator):
+# # this function computes the Hankel transform of a given source term in omega-domain stored in FField_r
+# # all the grids are specified in the inputs, except the analysis in omega_anal, this is specified by 'k_start' and 'k_num', it is used in the multiprocessing scheme
+#     Nz_anal = len(zgrid_anal); Nr_anal = len(rgrid_anal); Nr = len(rgrid);
+#     FHHGOnScreen = np.empty([Nz_anal, k_num, Nr_anal], dtype=np.cdouble)
+#     k4 = 0  # # of loops in omega
+#     for k1 in range(k_num):  # Nomega
+#         k5 = k_start + k1 * omega_step  # accesing the grid
+#         tic = time.process_time()
+#         for k6 in range(Nz_anal):
+#             for k2 in range(Nr_anal):  # Nr
+#                 k_omega = omegagrid[k5] / (units.TIMEau * units.c_light);  # omega divided by time: a.u. -> SI # use this as a prefactor to obtain curvature
+#                 integrand = np.empty([Nr], dtype=np.cdouble)
+#                 for k3 in range(Nr): integrand[k3] = np.exp(-(rgrid[k3] ** 2) / (2.0 * (zgrid_anal[k6] - z_medium))) * rgrid[k3] * FField_r[k5, k3] * special.jn(0, k_omega * rgrid[k3] * rgrid_anal[k2] / (zgrid_anal[k6] - z_medium));  # rescale r to atomic units for spectrum in atomic units! (only scaling)
+#                 if (integrator == 'Trapezoidal'): FHHGOnScreen[k6, k4, k2] = (1.0 / (zgrid_anal[k6] - z_medium)) * integrate.trapz(integrand, rgrid);
+#                 elif (integrator == 'Simpson'): FHHGOnScreen[k6, k4, k2] = (1.0 / (zgrid_anal[k6] - z_medium)) * integrate.simps(integrand, rgrid);
+#                 else: sys.exit('Wrong integrator')
+#             # k2 loop end
+#         # k6 loop end
+#         toc = time.process_time()
+#         #    print('cycle',k1,'duration',toc-tic)
+#         k4 = k4 + 1
+#     return (k_start, k_num, FHHGOnScreen)
 
 
 
@@ -309,15 +310,17 @@ def ComputeFieldsPhenomenologicalDipoles(I0SI,omega0,TFWHM,w0,tgrid,omegagrid,rg
 def FieldOnScreenApertured1(k_start, k_num, NP, LP):
 # The problem is the integration, the divergence is unfortunatelly mixture of r,r1,D1,D2, so it's not easy to avoid, I tried to use adaprive quadrature rules and others, one of problems is that some work miss to full vectorisation,...
 
+    print('Composed optical system, analytic; running')
+
     def Green_pref(r, r1, k_omega, D1, D2): # Green function with the prefactor
-        if ( abs((D1*r)**2 - (D2*r1)**2) < 4*np.finfo(np.double).eps  ): #2*np.finfo(np.double).eps ): #((D1*r)**2 - (D2*r1)**2) == 0.0 : # eventually use some not sharp comparision
+        if ( (abs((D1*r)**2 - (D2*r1)**2) < 4*np.finfo(np.double).eps) or (k_omega < 4*np.finfo(np.double).eps)  ): #2*np.finfo(np.double).eps ): #((D1*r)**2 - (D2*r1)**2) == 0.0 : # eventually use some not sharp comparision
             return ((0.5*LP.r_pinhole**2)/(D1*D2)) * \
                    ( (special.jn(0, k_omega * r1 * LP.r_pinhole / D1 ))**2 + (special.jn(1, k_omega * r1 * LP.r_pinhole / D1 ))**2 )
         else:
             return (LP.r_pinhole/k_omega) * \
                    (\
                            (r * D1 * special.jn(1, k_omega * r * LP.r_pinhole / D2 ) * special.jn(0, k_omega * r1 * LP.r_pinhole / D1 ) - \
-                            r1 * D2 * special.jn(0, k_omega * r * LP.r_pinhole / D2 ) * special.jn(1, k_omega * r1 * LP.r_pinhole / D1 )
+                            r1 * D2 * special.jn(0, k_omega * r * LP.r_pinhole / D2 ) * special.jn(1, k_omega * r1 * LP.r_pinhole / D1 ) \
                     )/ ((D1*r)**2 - (D2*r1)**2) )
 
     Nz_anal = np.asarray(NP.zgrid_anal.shape); Nz_anal = Nz_anal[1];
@@ -359,6 +362,7 @@ def FieldOnScreenApertured1(k_start, k_num, NP, LP):
 def FieldOnScreenApertured2D1(k_start, k_num, NP, LP):
 # Uses 2D integration
 
+    print('Composed optical system, 2D integration; running')
 
     Nz_anal = np.asarray(NP.zgrid_anal.shape); Nz_anal = Nz_anal[1];
     Nr_anal = len(NP.rgrid_anal); Nr = len(NP.rgrid); Nz_medium=len(NP.z_medium); Nr2 = len(NP.rgrid2)
