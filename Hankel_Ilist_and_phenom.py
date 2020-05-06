@@ -45,6 +45,8 @@ z_medium = NumericalParams.z_medium
 NumericalParams.storing_source_terms = mn.readscalardataset(ParamFile,'inputs/'+'storing_source_terms','S')
 
 
+NumericalParams.diffraction_integral = mn.readscalardataset(ParamFile,'inputs/'+'diffraction_integral','S')
+
 LaserParams.I0 = mn.readscalardataset(ParamFile,'inputs/'+'I0','N')
 LaserParams.w0 = mn.readscalardataset(ParamFile,'inputs/'+'w0','N')
 LaserParams.lambd = mn.readscalardataset(ParamFile,'inputs/'+'lambda','N') #800.0e-9, # must correspond
@@ -110,6 +112,13 @@ OutputFileAccessMethod = 'r+'
 if ( 'single' == mn.readscalardataset(ParamFile,'inputs/'+'precision','S') ): precision = 'f'
 elif ( 'double' == mn.readscalardataset(ParamFile,'inputs/'+'precision','S') ): precision = 'd'
 else: sys.exit('precision wrongly specified')
+
+
+## Cases of more advanced schemes
+if NumericalParams.diffraction_integral == "CircularAperture_2D" :
+  NumericalParams.Nr2 = mn.readscalardataset(ParamFile, 'inputs/' + 'Nr_int2', 'N')  # 8193; # 2049; #1000; # 2049
+  NumericalParams.rgrid2 = np.linspace(0.0, LaserParams.r_pinhole, NumericalParams.Nr2)
+
 
 ParamFile.close()
 shutil.copy('results.h5', os.path.join(outpath,OutputFileName))
@@ -188,7 +197,9 @@ Nomega_points = mn.NumOfPointsInRange(Nomega_anal_start,Nomega_anal,omega_step);
 if ( (dipole_model == 'IntensityList') and (NumericalParams.storing_source_terms == 'table') ):
   NumericalParams.FField_r = Hfn.ComputeFieldsInRFromIntensityList(z_medium, rgrid, Hgrid, Nomega, LaserParams, NumericalParams.Igrid, NumericalParams.FSourceterm)
   del NumericalParams.FSourceterm; del NumericalParams.Igrid;  # this table may be big
-elif (dipole_model == 'Phenomenological'): NumericalParams.FField_r = Hfn.ComputeFieldsPhenomenologicalDipoles(LaserParams.I0,omega0,LaserParams.TFWHM,LaserParams.w0,tgrid,omegagrid,rgrid,z_medium)
+elif (dipole_model == 'Phenomenological'):
+  omegagrid = [];
+  NumericalParams.FField_r = Hfn.ComputeFieldsPhenomenologicalDipoles(LaserParams.I0,omega0,LaserParams.TFWHM,LaserParams.w0,tgrid,omegagrid,rgrid,z_medium)
 
 
 
@@ -201,6 +212,9 @@ print('omax',NumericalParams.omegagrid[-1])
 
   
 dr = rgrid[1]-rgrid[0]
+
+
+
 
 
 
@@ -232,7 +246,11 @@ output = mp.Queue()
 
 # passing by reference is unPythonic, we define the extra function though
 def FieldOnScreen_handle(k_start, k_num, NumericalParams, LaserParams):
-  res = Hfn.FieldOnScreenLambda1(k_start, k_num, NumericalParams, LaserParams)
+
+  if NumericalParams.diffraction_integral == "CircularAperture_2D" :
+    res = Hfn.FieldOnScreenApertured2D1(k_start, k_num, NumericalParams, LaserParams)
+  else: res = Hfn.FieldOnScreenLambda1(k_start, k_num, NumericalParams, LaserParams) # default
+
   output.put(res)
 
 
