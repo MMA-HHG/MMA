@@ -249,7 +249,9 @@ def FieldOnScreen_handle(k_start, k_num, NumericalParams, LaserParams):
 
   if NumericalParams.diffraction_integral == "CircularAperture_2D" :
     res = Hfn.FieldOnScreenApertured2D1(k_start, k_num, NumericalParams, LaserParams)
-  else: res = Hfn.FieldOnScreenLambda1(k_start, k_num, NumericalParams, LaserParams) # default
+  elif NumericalParams.diffraction_integral == "CircularAperture_analytic" :
+    res = Hfn.FieldOnScreenApertured1(k_start, k_num, NumericalParams, LaserParams)
+  else: res = Hfn.FieldOnScreen(k_start, k_num, NumericalParams, LaserParams) # default
 
   output.put(res)
 
