@@ -45,7 +45,7 @@ z_medium = NumericalParams.z_medium
 NumericalParams.storing_source_terms = mn.readscalardataset(ParamFile,'inputs/'+'storing_source_terms','S')
 
 
-NumericalParams.diffraction_integral = mn.readscalardataset(ParamFile,'inputs/'+'diffraction_integral','S')
+LaserParams.optical_system = mn.readscalardataset(ParamFile,'inputs/'+'optical_system','S')
 
 LaserParams.I0 = mn.readscalardataset(ParamFile,'inputs/'+'I0','N')
 LaserParams.w0 = mn.readscalardataset(ParamFile,'inputs/'+'w0','N')
@@ -115,9 +115,10 @@ else: sys.exit('precision wrongly specified')
 
 
 ## Cases of more advanced schemes
-if NumericalParams.diffraction_integral == "CircularAperture_2D" :
+if LaserParams.optical_system == "CircularAperture_2D" :
   NumericalParams.Nr2 = mn.readscalardataset(ParamFile, 'inputs/' + 'Nr_int2', 'N')  # 8193; # 2049; #1000; # 2049
   NumericalParams.rgrid2 = np.linspace(0.0, LaserParams.r_pinhole, NumericalParams.Nr2)
+  NumericalParams.diffraction_integral = mn.readscalardataset(ParamFile,'inputs/'+'diffraction_integral','S')
 
 
 ParamFile.close()
@@ -247,9 +248,9 @@ output = mp.Queue()
 # passing by reference is unPythonic, we define the extra function though
 def FieldOnScreen_handle(k_start, k_num, NumericalParams, LaserParams):
 
-  if NumericalParams.diffraction_integral == "CircularAperture_2D" :
+  if LaserParams.optical_system == "CircularAperture_2D" :
     res = Hfn.FieldOnScreenApertured2D1(k_start, k_num, NumericalParams, LaserParams)
-  elif NumericalParams.diffraction_integral == "CircularAperture_analytic" :
+  elif LaserParams.optical_system == "CircularAperture_analytic" :
     res = Hfn.FieldOnScreenApertured1(k_start, k_num, NumericalParams, LaserParams)
   else: res = Hfn.FieldOnScreen(k_start, k_num, NumericalParams, LaserParams) # default
 
