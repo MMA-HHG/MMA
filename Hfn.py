@@ -310,7 +310,7 @@ def FieldOnScreenApertured1(k_start, k_num, NP, LP):
 # The problem is the integration, the divergence is unfortunatelly mixture of r,r1,D1,D2, so it's not easy to avoid, I tried to use adaprive quadrature rules and others, one of problems is that some work miss to full vectorisation,...
 
     def Green_pref(r, r1, k_omega, D1, D2): # Green function with the prefactor
-        if ( ((D1*r)**2 - (D2*r1)**2) < 2*np.finfo(np.double).eps  ): #2*np.finfo(np.double).eps ): #((D1*r)**2 - (D2*r1)**2) == 0.0 : # eventually use some not sharp comparision
+        if ( abs((D1*r)**2 - (D2*r1)**2) < 4*np.finfo(np.double).eps  ): #2*np.finfo(np.double).eps ): #((D1*r)**2 - (D2*r1)**2) == 0.0 : # eventually use some not sharp comparision
             return ((0.5*LP.r_pinhole**2)/(D1*D2)) * \
                    ( (special.jn(0, k_omega * r1 * LP.r_pinhole / D1 ))**2 + (special.jn(1, k_omega * r1 * LP.r_pinhole / D1 ))**2 )
         else:
