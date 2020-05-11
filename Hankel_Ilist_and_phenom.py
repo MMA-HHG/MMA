@@ -139,6 +139,7 @@ if (dipole_model == 'IntensityList'):
   NumericalParams.omegagrid = file1['/omegagrid'][:]
   NumericalParams.FSourceterm = file1['/FDipoleAccelerations'][:]
   NumericalParams.FSourceterm = np.squeeze(NumericalParams.FSourceterm[:,:,0] + 1j*NumericalParams.FSourceterm[:,:,1]) # convert to complex numbers
+  # print(NumericalParams.FSourceterm[10,10])
 
 elif (dipole_model == 'Phenomenological'):
   tgrid = np.linspace(-tcoeff * 0.5 * LaserParams.TFWHM / units.TIMEau, tcoeff * 0.5 * LaserParams.TFWHM / units.TIMEau, Nt)

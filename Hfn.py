@@ -55,7 +55,6 @@ def ComputeOneFieldFromIntensityList2(z, r, k_omega, omegagrid, Igrid, FSourcete
     return units.EFIELDau*np.exp(1j*phase_XUV) * interp_function(I_r);
 
 
-# define function to integrate, there are some global variables! ## THE OUTPUT IS IN THE MIX OF ATOMIC UNITS (field) and SI UNITS (radial coordinate + dr in the integral)
 def FieldOnScreen(k_start, k_num, NP, LP):
 # this function computes the Hankel transform of a given source term in omega-domain stored in FField_r
 # all the grids are specified in the inputs, except the analysis in omega_anal, this is specified by 'k_start' and 'k_num', it is used in the multiprocessing scheme
@@ -86,6 +85,7 @@ def FieldOnScreen(k_start, k_num, NP, LP):
                         FHHGOnScreen[k1, k4, k2, k5] = nint; # (1.0/(NP.zgrid_anal[k1, k4] - NP.z_medium[k1])) *
                     elif (NP.integrator['method'] == 'Trapezoidal'): FHHGOnScreen[k1, k4, k2, k5] = (1.0/(NP.zgrid_anal[k1, k4] - NP.z_medium[k1])) * integrate.trapz(integrand, NP.rgrid);
                     elif (NP.integrator['method'] == 'Simpson'): FHHGOnScreen[k1, k4, k2, k5] = (1.0/(NP.zgrid_anal[k1, k4] - NP.z_medium[k1])) * integrate.simps(integrand, NP.rgrid);
+                    elif (NP.integrator['method'] == 'copysource'): FHHGOnScreen[k1, k4, k2, k5] = SourceTerm[0];
                     else: sys.exit('Wrong integrator')
 
     return (k_start, k_num, FHHGOnScreen)
