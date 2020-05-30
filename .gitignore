@@ -1,3 +1,6 @@
 # binary executables #
 ###################
 binary/
+
+# generated modules #
+sources/**__genmod.f90
