@@ -17,6 +17,7 @@
 #  FFTPATH    = $(MKL_LIBS_MT)
   FFTPATH    = /gpfs/apps/tools/modulefiles/software/FFTW/3.3.5-OpenMPI-1.10.2-GCC-6.1.0-psm-dbg/lib/libfftw3.so
   H5INCLUDE  = /gpfs/apps/tools/modulefiles/software/HDF5/1.8.13-OpenMPI-1.10.2-GCC-6.1.0-psm/include
+  H5LIBS = /gpfs/apps/tools/modulefiles/software/HDF5/1.8.13-OpenMPI-1.10.2-GCC-6.1.0-psm/lib
 #  FFT     = -lfftw3
   PROPAGATION       = cuprad_occigen.e
   S_PROPAGATION       =  modules.f90 code_ionisation.f90 fft_rk.f90 finalize.f90 \
@@ -37,7 +38,7 @@
 #
 $(PROPAGATION) : $(S_PROPAGATION)
 #	${MPIF90} -o $(PROPAGATION) $(S_PROPAGATION) ${FFTPATH} ${FFT} ${FFLAGS} ${LFLAGS}
-	${MPIF90} -I${H5INCLUDE} -o $(PROPAGATION) $(S_PROPAGATION) ${FFTPATH} ${FFT} ${FFLAGS} ${LFLAGS} ${LDLIBS}
+	${MPIF90} -I${H5INCLUDE} -L${H5LIBS} -o $(PROPAGATION) $(S_PROPAGATION) ${FFTPATH} ${FFT} ${FFLAGS} ${LFLAGS} ${LDLIBS}
 #	${MPIF90} -o $(PROPAGATION) $(S_PROPAGATION) ${FFTPATH} ${FFT} ${FFLAGS}
 $(PROPAGATION_DEFOK) : $(S_PROPAGATION_DEFOK)
 #	${MPIF90} -o $(PROPAGATION_DEFOK) $(S_PROPAGATION_DEFOK) ${FFTPATH} ${FFT} ${FFLAGS}

@@ -95,7 +95,7 @@ CONTAINS
 
     ! file & dataset names
      CHARACTER(LEN=10), PARAMETER :: filename = "results.h5"  ! File name
-	 CHARACTER(LEN=17), PARAMETER :: Fieldsdset_name = "IRprop/Fieldsrzt" ! Dataset name
+	 CHARACTER(LEN=17), PARAMETER :: Fields_dset_name = "IRprop/Fields_rzt" ! Dataset name
 	 CHARACTER(LEN=12), PARAMETER :: zgrid_dset_name = "IRprop/zgrid" ! Dataset name
 	 CHARACTER(LEN=12), PARAMETER :: tgrid_dset_name = "IRprop/tgrid" ! Dataset name
 	 CHARACTER(LEN=12), PARAMETER :: rgrid_dset_name = "IRprop/rgrid" ! Dataset name
