@@ -90,12 +90,12 @@ CONTAINS
 
     ! code variables: the physical quantities etc.
      INTEGER :: field_dimensions ! Dataset rank & # of points in z
-	 REAL(4), ALLOCATABLE :: Fields(:,:,:), rgrid(:), tgrid(:) ! the kind of this variable has to correspond with the precision stored in HDF5-file
-
+     ! the kind of this variable has to correspond with the precision stored in HDF5-file
+     REAL(4), ALLOCATABLE :: fields_array(:,:,:), rgrid(:), tgrid(:) 
 
     ! file & dataset names
      CHARACTER(LEN=10), PARAMETER :: filename = "results.h5"  ! File name
-	 CHARACTER(LEN=17), PARAMETER :: Fields_dset_name = "IRprop/Fields_rzt" ! Dataset name
+	 CHARACTER(LEN=17), PARAMETER :: Fieldsdset_name = "IRprop/Fieldsrzt" ! Dataset name
 	 CHARACTER(LEN=12), PARAMETER :: zgrid_dset_name = "IRprop/zgrid" ! Dataset name
 	 CHARACTER(LEN=12), PARAMETER :: tgrid_dset_name = "IRprop/tgrid" ! Dataset name
 	 CHARACTER(LEN=12), PARAMETER :: rgrid_dset_name = "IRprop/rgrid" ! Dataset name
@@ -110,7 +110,7 @@ CONTAINS
     
 	!!! ALLOCATING SPACE FOR GRIDS AND FIELDS
 	field_dimensions = 3; ! total # of dims
-	allocate(Fields(1,dim_r_local,dim_t)) ! space for fields in every itaration
+	allocate(fields_array(1,dim_r_local,dim_t)) ! space for fields in every itaration
 	IF ( ( my_rank .EQ. 0 ) .AND. ( HDF5write_count .EQ. 1) ) THEN
 	   allocate(tgrid(dim_t),rgrid(dim_r)) ! space for grids: first itration, proc # 0
 	ENDIF
@@ -120,7 +120,7 @@ CONTAINS
 	r_offset = dim_r_start(num_proc)-1
 	DO k1=1, dim_r_local	
 	DO k2=1, dim_t
-		Fields(1,k1,k2) = REAL( REAL( (efield_factor*efield_osc(k2)*e(k2,r_offset+k1)) ) , 4 ) ! SINGLE PRECISION, corresponding H5T_NATIVE_REAL (REAL(.,8) corresponds to H5T_NATIVE_DOUBLE)
+		fields_array(1,k1,k2) = REAL( REAL( (efield_factor*efield_osc(k2)*e(k2,r_offset+k1)) ) , 4 ) ! SINGLE PRECISION, corresponding H5T_NATIVE_REAL (REAL(.,8) corresponds to H5T_NATIVE_DOUBLE)
 	    ! e(t,r)
 	ENDDO
 	ENDDO
@@ -168,7 +168,8 @@ IF ( HDF5write_count == 1) THEN
 		CALL h5pcreate_f(H5P_DATASET_XFER_F, h5parameters, error) ! Create access parametwers for writing
 		CALL h5pset_dxpl_mpio_f(h5parameters, H5FD_MPIO_COLLECTIVE_F, error) ! specify the collective writting
 		dimsfi = (/int(Nz_points,HSIZE_T),int(dim_r,HSIZE_T), int(dim_t,HSIZE_T)/) ! according to the tuto, it seems that whole dataset dimension is required
-		CALL h5dwrite_f(dset_id , H5T_NATIVE_REAL, Fields, dimsfi, error,file_space_id=filespace,mem_space_id=memspace,xfer_prp = h5parameters) ! Write the data collectivelly (we may try also to do it independently.... I think it could avoid some broadcast?)
+		CALL h5dwrite_f(dset_id , H5T_NATIVE_REAL, fields_array, dimsfi, error,file_space_id=filespace,mem_space_id=memspace,xfer_prp = h5parameters) 
+ ! Write the data collectivelly (we may try also to do it independently.... I think it could avoid some broadcast?)
 
 
 		!close the files etc.
@@ -251,7 +252,7 @@ ELSE !!!! APPENDING THE DATA IN NEXT ITERATIONS
 		CALL h5pcreate_f(H5P_DATASET_XFER_F, h5parameters, error) ! Create access parametwers
 		CALL h5pset_dxpl_mpio_f(h5parameters, H5FD_MPIO_COLLECTIVE_F, error) ! collective writting
 		dimsfi = (/int(Nz_points,HSIZE_T),int(dim_r,HSIZE_T), int(dim_t,HSIZE_T)/) ! according to the tuto, it seems that whole dataset dimension is required
-		CALL h5dwrite_f(dset_id , H5T_NATIVE_REAL, Fields, dimsfi, error,file_space_id=filespace,mem_space_id=memspace,xfer_prp = h5parameters) ! write data
+		CALL h5dwrite_f(dset_id , H5T_NATIVE_REAL, fields_array, dimsfi, error,file_space_id=filespace,mem_space_id=memspace,xfer_prp = h5parameters) ! write data
 
 		! closing (all hdf5 objects)
 		CALL h5dclose_f(dset_id,error)
@@ -296,7 +297,7 @@ ENDIF
 
 
 	HDF5write_count = HDF5write_count + 1 !increase counter in all cases
-	deallocate(Fields)
+	deallocate(fields_array)
 
 	IF (my_rank.EQ.0) THEN
 	  print *, "finished", my_rank, "iteration+1", HDF5write_count

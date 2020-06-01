@@ -344,7 +344,8 @@ CONTAINS
     open(UNIT=4,FILE='reference_table.dat',FORM="FORMATTED",action='write');
     open(UNIT=7,FILE='rates_atomic.dat',FORM="FORMATTED",action='write');
        WRITE(4, '(3(2x, e12.5))') 0.0d0, 0.0d0, 0.0d0;
-       WRITE(7, '(2(2x, e))') 0.0d0, 0.0d0;
+    !   WRITE(7, '(2(2x, e))') 0.0d0, 0.0d0;
+       WRITE(7, '(2(2x, e12.5))') 0.0d0, 0.0d0;
     ENDIF
 
     ! Fill the Table
@@ -362,7 +363,8 @@ CONTAINS
        PPT_TABLE(i, 3) = MPA_factor * ( ionisation_rate  * rate_factor/ intensity )    ! Normalised MPA
        IF(my_rank.EQ.0) THEN
            WRITE(4, '(3(2x, e12.5))') sqrt(intensity/field_intensity_au), intensity, ionisation_rate;
-	   WRITE(7, '(2(2x, e))') sqrt(intensity/field_intensity_au), ionisation_rate;
+	!   WRITE(7, '(2(2x, e))') sqrt(intensity/field_intensity_au), ionisation_rate;
+           WRITE(7, '(2(2x, e12.5))') sqrt(intensity/field_intensity_au), ionisation_rate;
        ENDIF
     ENDDO
     ELSE IF (THEORY == "ADK") THEN
