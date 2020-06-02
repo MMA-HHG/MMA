@@ -106,3 +106,41 @@ MPI_SUM, mutex_win);
 MPI_Win_unlock(lrank, mutex_win);
 return 0;
 }
+
+
+
+// collective Mutex: Barrier imposes synchronisation, first worker then acquire mutex, must be called collectivelly
+int MPE_Mutex_acquire_collective(MPI_Win mutex_win, int num, int MPE_MUTEX_KEYVAL) {
+
+int numproc, rank;
+MPI_Comm_rank(comm, &rank);
+MPI_Comm_size(comm, &numproc);
+
+
+if (rank == 0) { // only first worker acquires mutices
+    int oldval;
+    int lrank, flag, size, *attrval;
+    int mnumproc = -numproc;
+
+    MPI_Aint lidx;
+    /* Compute the location of the counter */
+    MPI_Win_get_attr(mutex_win, MPE_MUTEX_KEYVAL, &attrval, &flag);
+    if (!flag) return -1; /* Error: counterWin not setup */
+    size = (int)(MPI_Aint)attrval; /* We stored the integer as a pointer */
+    lrank = num % size; lidx = num / size;
+    MPI_Win_lock(MPI_LOCK_SHARED, lrank, 0, mutex_win);
+    do {
+    MPI_Fetch_and_op(&numproc, &oldval, MPI_INT,lrank, lidx, MPI_SUM, mutex_win);
+    MPI_Win_flush(lrank, mutex_win);
+    if (oldval == 0) break;
+    MPI_Accumulate(&mnumproc, 1, MPI_INT, lrank, lidx, 1, MPI_INT,MPI_SUM, mutex_win);
+    MPI_Win_flush(lrank, mutex_win);
+    /* We could wait a little bit, depending on oldval */
+    } while (1);
+    MPI_Win_unlock(lrank, mutex_win);
+}
+
+MPI_Barrier(MPI_COMM_WORLD); // Parallel epoque starts, should be here
+
+return 0;
+}
