@@ -60,7 +60,7 @@ https://portal.hdfgroup.org/display/HDF5/Collective+Calling+Requirements+in+Para
 // vars
 herr_t  h5error;
 hid_t file_id; // file pointer
-hid_t filespace
+hid_t filespace, dataspace_id;
 int k1;
 
 int MPE_MC_KEYVAL;
@@ -74,6 +74,8 @@ int main(int argc, char *argv[])
 	// standard operation	 
 	int myrank, nprocs;
 	// MPI_Init(&argc, &argv); for non-threaded mpi
+
+	MPI_Win mc_win; // this is the shared window
 
 	MPI_Init(&argc,&argv);
 	MPI_Comm_size(MPI_COMM_WORLD,&nprocs);
@@ -164,6 +166,7 @@ int main(int argc, char *argv[])
 		
 
 		// we now process the MPI queue
+		int Nsim;
 		MPE_Counter_nxtval(mc_win, 0, &Nsim, MPE_MC_KEYVAL); // get my first simulation
 
 		do { // run till queue is not treated

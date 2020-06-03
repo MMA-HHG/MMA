@@ -109,8 +109,8 @@ return 0;
 
 
 
-// collective Mutex: Barrier imposes synchronisation, first worker then acquire mutex, must be called collectivelly
-int MPE_Mutex_acquire_collective(MPI_Win mutex_win, int num, int MPE_MUTEX_KEYVAL) {
+// collective Mutex: Barrier imposes synchronisation, first worker then acquire mutex, must be called collectivelly, due to that it needs common world
+int MPE_Mutex_acquire_collective(MPI_Comm comm, MPI_Win mutex_win, int num, int MPE_MUTEX_KEYVAL) {
 
 int numproc, rank;
 MPI_Comm_rank(comm, &rank);
