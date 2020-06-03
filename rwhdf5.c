@@ -182,6 +182,7 @@ int main(int argc, char *argv[])
 			/* !!!!!!!!!!!! We use only reading from separate datasets, need to test, since datasets are exclusive, we probably don't need a lock. 
 			Lege artis would be use SWMR approach. */
 			MPE_Mutex_acquire(mc_win, 1, MPE_MC_KEYVAL); // mutex is acquired
+			printf("Proc %i acquired mutex, will read from (kr,kz)=(%i,%i)\n",myrank,kr,kz);
 			file_id = H5Fopen ("results2.h5", H5F_ACC_RDONLY, H5P_DEFAULT);
 
 			dset_id = H5Dopen2 (file_id, "IRProp/Fields_rzt", H5P_DEFAULT); // open dataset	     
@@ -190,16 +191,21 @@ int main(int argc, char *argv[])
 			h5error = H5Sselect_hyperslab (dspace_id, H5S_SELECT_SET, offset, stride, count, block);
 			h5error = H5Dread (dset_id, datatype, memspace_id, dspace_id, H5P_DEFAULT, Fields);
 
-			h5error = H5Dclose(dataset_id); // dataset
+			h5error = H5Dclose(dset_id); // dataset
 			h5error = H5Sclose(dspace_id); // dataspace
 			h5error = H5Fclose(file_id); // file
+			printf("Proc %i closing the read and will release the mutex \n",myrank);
 			MPE_Mutex_release(mc_win, 1, MPE_MC_KEYVAL);
 
+			printf("Proc %i doing the job \n",myrank);
 			// do the job here
 			for (k1 = 0; k1 < dims2[0]; k1++){SourceTerms[k1]=2.0*Fields[k1];}; // just 2-multiplication
 			
 			// print the output in the file
 			MPE_Mutex_acquire(mc_win, 1, MPE_MC_KEYVAL); // mutex is acquired
+
+			printf("Proc %i will do writing in the hyperslab (kr,kz)=(%i,%i) \n",myrank,kr,kz);
+
 			// write in the file
 			// open dataset
 			file_id = H5Fopen ("results2.h5", H5F_ACC_RDWR, H5P_DEFAULT); // open file // H5F_ACC_RDWR
@@ -212,13 +218,14 @@ int main(int argc, char *argv[])
 
 			// close
 			h5error = H5Dclose(dset_id); // dataset
-			h5error = H5Sclose(memspace_id); // dataspace
+			// h5error = H5Sclose(memspace_id); // dataspace, reused in the moment
 			h5error = H5Sclose(filespace); // dataspace
 			h5error = H5Fclose(file_id); // file
 
 			MPE_Mutex_release(mc_win, 1, MPE_MC_KEYVAL);
 			MPE_Counter_nxtval(mc_win, 0, &Nsim, MPE_MC_KEYVAL);
 		} while (Nsim < Ntot);
+		h5error = H5Sclose(memspace_id);
 
 
 
@@ -277,6 +284,8 @@ int main(int argc, char *argv[])
 		// load fields
 
 		// close field
+	MPI_Finalize();
+	return 0;
 		
 	
 }
