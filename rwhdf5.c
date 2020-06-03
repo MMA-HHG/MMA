@@ -60,7 +60,7 @@ https://portal.hdfgroup.org/display/HDF5/Collective+Calling+Requirements+in+Para
 // vars
 herr_t  h5error;
 hid_t file_id; // file pointer
-hid_t filespace, dataspace_id;
+hid_t filespace, dataspace_id, dataset_id;
 int k1;
 
 int MPE_MC_KEYVAL;
@@ -166,11 +166,11 @@ int main(int argc, char *argv[])
 		
 
 		// we now process the MPI queue
-		int Nsim;
+		int Nsim, kr, kz;
 		MPE_Counter_nxtval(mc_win, 0, &Nsim, MPE_MC_KEYVAL); // get my first simulation
 
 		do { // run till queue is not treated
-			kr = Nsim % dim_r; kz = Nsim - kr;  kz = kz / dimr; // compute offsets in each dimension
+			kr = Nsim % dim_r; kz = Nsim - kr;  kz = kz / dim_r; // compute offsets in each dimension
 
 			// prepare the part in the file to r/w
 			offset[0] = 0; offset[1] = kr; offset[2] = kz; 
