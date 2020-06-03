@@ -66,9 +66,12 @@ int main(int argc, char *argv[])
 	// read data
 	hid_t datatype  = H5Dget_type(dset_id);     /* datatype handle */
 
-	double tgrid[dims[0]][dims[1]];
+	double tgrid[dims[0]];
 
 	h5error = H5Dread(dset_id,  datatype, H5S_ALL, H5S_ALL, H5P_DEFAULT, tgrid);
+
+	printf("time1 %e \n",tgrid[0]);
+	printf("time1 %e \n",tgrid[dims[0]-1]);
 
 
 
