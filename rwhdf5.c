@@ -59,6 +59,8 @@ https://portal.hdfgroup.org/display/HDF5/Collective+Calling+Requirements+in+Para
 
 // vars
 herr_t  h5error;
+hid_t file_id; // file pointer
+hid_t filespace
 int k1;
 
 int MPE_MC_KEYVAL;
@@ -80,7 +82,7 @@ int main(int argc, char *argv[])
 
 		// OPEN HDF5 file	- this will be only file for reading: we open it independently by all processes
 		// https://portal.hdfgroup.org/pages/viewpage.action?pageId=48812567
-        hid_t file_id = H5Fopen ("results.h5", H5F_ACC_RDONLY, H5P_DEFAULT); // open file // H5F_ACC_RDWR
+        file_id = H5Fopen ("results.h5", H5F_ACC_RDONLY, H5P_DEFAULT); // open file // H5F_ACC_RDWR
 
 		// we first start with the t-grid
 		hid_t dset_id = H5Dopen2 (file_id, "IRProp/tgrid", H5P_DEFAULT); // open dataset	     
@@ -122,11 +124,13 @@ int main(int argc, char *argv[])
 		hsize_t dims2[ndims2]; // define dims variable
 		// printf("ndim is: %i \n",ndims2);
 		H5Sget_simple_extent_dims(dspace_id, dims2, NULL); // get dimensions
-		// printf("Size 1 is: %i \n",dims2[0]);	printf("Size 2 is: %i \n",dims2[1]); printf("Size 3 is: %i \n",dims2[2]);
+		printf("Size 1 is: %i \n",dims2[0]);	printf("Size 2 is: %i \n",dims2[1]); printf("Size 3 is: %i \n",dims2[2]);
 		datatype  = H5Dget_type(dset_id);     /* datatype handle */
 
+		hsize_t dim_t = dims2[0], dim_r = dims2[1], dim_z = dims2[2]; // label the dims by physical axes
+
 		// based on dimendions, we establish a counter
-		int Ntot = dims2[0]*dims2[1];
+		int Ntot = dim_r*dim_z;
 
 		hsize_t  offset[ndims2];
         hsize_t  stride[ndims2];
@@ -142,10 +146,18 @@ int main(int argc, char *argv[])
 		MPE_MC_KEYVAL = MPE_Counter_create(MPI_COMM_WORLD, 2, &mc_win); // first is counter, second mutex
 
 
-		if ( myrank == 0 ) 
+		if ( myrank == 0 )  // first process is preparing the file and the rest may do their own work; it creates the resulting dataset
 		{
-		MPE_Mutex_acquire(mc_win, 1, MPE_MC_KEYVAL); // first process is preparing the file and the rest may do their own work
+		MPE_Mutex_acquire(mc_win, 1, MPE_MC_KEYVAL);
+		file_id = H5Fopen ("results2.h5", H5F_ACC_RDWR, H5P_DEFAULT); // we use a differenti file to testing
+		dataspace_id = H5Screate_simple(ndims2, dims2, NULL); // create dataspace
 
+		dataset_id = H5Dcreate2(file_id, "/SourceTerms", datatype, dataspace_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT); // create dataset
+
+		// close it
+		h5error = H5Dclose(dataset_id); // dataset
+		h5error = H5Sclose(dataspace_id); // dataspace
+		h5error = H5Fclose(file_id); // file
 
 		MPE_Mutex_release(mc_win, 1, MPE_MC_KEYVAL);
 		}
@@ -155,39 +167,49 @@ int main(int argc, char *argv[])
 		MPE_Counter_nxtval(mc_win, 0, &Nsim, MPE_MC_KEYVAL); // get my first simulation
 
 		do { // run till queue is not treated
-			kr = Nsim % dims2[0]; kz = Nsim / dims2[0]; // offsets
+			kr = Nsim % dim_r; kz = Nsim - kr;  kz = kz / dimr; // compute offsets in each dimension
 
 			// prepare the part in the file to r/w
 			offset[0] = 0; offset[1] = kr; offset[2] = kz; 
 			stride[0] = 1; stride[1] = 1; stride[2] = 1;
-			count[0] = dims2[0]; count[1] = 1; count[2] = 1;
+			count[0] = dims2[0]; count[1] = 1; count[2] = 1; // takes all t
 			block[0] = 1; block[1] = 1; block[2] = 1;
 
 			// read the HDF5 file
+			/* !!!!!!!!!!!! We use only reading from separate datasets, need to test, since datasets are exclusive, we probably don't need a lock. 
+			Lege artis would be use SWMR approach. */
+			file_id = H5Fopen ("results2.h5", H5F_ACC_RDONLY, H5P_DEFAULT);
+
+			dset_id = H5Dopen2 (file_id, "IRProp/Fields_rzt", H5P_DEFAULT); // open dataset	     
+			dspace_id = H5Dget_space (dset_id); // Get the dataspace ID 
+
 			h5error = H5Sselect_hyperslab (dspace_id, H5S_SELECT_SET, offset, stride, count, block);
 			h5error = H5Dread (dset_id, datatype, memspace_id, dspace_id, H5P_DEFAULT, Fields);
 
+			h5error = H5Dclose(dataset_id); // dataset
+			h5error = H5Sclose(dspace_id); // dataspace
+			h5error = H5Fclose(file_id); // file
+
 			// do the job here
-			for (k1 = 0; k1 < dims2[0]; k1++){SourceTerms[k1]=2.0*Fields[k1];};
+			for (k1 = 0; k1 < dims2[0]; k1++){SourceTerms[k1]=2.0*Fields[k1];}; // just 2-multiplication
 			
 			// print the output in the file
-			MPE_Mutex_acquire(mc_win, 1, MPE_MC_KEYVAL); // first processes is preparing the file and the rest may do their own work
+			MPE_Mutex_acquire(mc_win, 1, MPE_MC_KEYVAL); // mutex is acquired
 			// write in the file
 			// open dataset
-			hid_t file_id = H5Fopen ("results.h5", H5F_ACC_RDONLY, H5P_DEFAULT); // open file // H5F_ACC_RDWR
-			CALL h5fopen_f(filename, H5F_ACC_RDWR_F, file_id, error)
-			CALL h5dopen_f(file_id, zgrid_dset_name, dset_id, error)   !Open the  dataset
-			CALL h5dget_space_f(dset_id, dataspace, error) ! get the dataspace of the dataset
-			CALL h5sselect_hyperslab_f(dataspace, H5S_SELECT_SET_F, dumh51D, dumh51D2, error) ! choose the hyperslab in the file
+			file_id = H5Fopen ("results2.h5", H5F_ACC_RDWR, H5P_DEFAULT); // open file // H5F_ACC_RDWR
+			dset_id = H5Dopen2 (file_id, "/SourceTerms", H5P_DEFAULT); // open dataset	
 
-			// flush the result // in the final version we need to reshape since we print complex fields
-			CALL h5dwrite_f(dset_id, H5T_NATIVE_REAL, dumr4, dumh51D, error, memspace, dataspace) ! wrtiting the data
+			filespace = H5Dget_space (dset_id); // Get the dataspace ID   
+			h5error = H5Sselect_hyperslab (dspace_id, H5S_SELECT_SET, offset, stride, count, block);
 
+			h5error = H5Dwrite(dset_id, datatype, memspace_id, filespace,H5P_DEFAULT, SourceTerms);
 
-			CALL h5sclose_f(dataspace, error)
-			CALL h5dclose_f(dset_id, error)
-			CALL h5fclose_f(file_id,error)	
-
+			// close
+			h5error = H5Dclose(dset_id); // dataset
+			h5error = H5Sclose(memspace_id); // dataspace
+			h5error = H5Sclose(filespace); // dataspace
+			h5error = H5Fclose(file_id); // file
 
 			MPE_Mutex_release(mc_win, 1, MPE_MC_KEYVAL);
 			MPE_Counter_nxtval(mc_win, 0, &Nsim, MPE_MC_KEYVAL);
