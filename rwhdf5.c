@@ -1,50 +1,17 @@
 /*
-The HDF5 version will implement the following idea:
+Here we show a simple scheduler of tasks from a queue. In this case, each task is specified by kr and kz that correpond to two indices in a table (:,kr,kz).
+The elementary program process data from that cut. The processors takes tasks until the queue is empty. There is no synchoronisation at this point, so tasks
+can be of various lenghts, etc. THe code than could be very easily adapted to any task.
 
-There is one parameter file shared by all simulations, and also only one I/O hdf5 file.
-The parameters given to the code by slurm are two integers defining the indices in r and z.
-There should be a logfile for noting succesful/failed simulations.
-The *.output files should be stacked somewhere.
+The program oprates with one input file and one output file. It could be desirable to use only one file, this would require to either use SWMR technique or
+mutex the accesses ( https://portal.hdfgroup.org/pages/viewpage.action?pageId=48812567 ). 
 
-For reading, it should be easy. ** R/W may occur simultaneously in in the MPI loop. Separate I/O at the instant or ensure it will work (R/W from independent datasets may be fine???).
-https://support.hdfgroup.org/HDF5/Tutor/selectsimple.html
+The limitation is that the mutex is used for writing, the writing should take then small amount of time compared to the atomic task.
 
+Concrete decription of this tutorial: it takes the fields from results.h5[/IRProp/Fields_rzt] , multiplies the array by 2 using the forementioned procedure
+and prints the result in results.h5[/SourceTerms]. Next, it also loads results.h5[/IRProp/Ftgrid] before the calculation.
 
-After discussions, we try to test
-
-a)mutex 
-The main idea comes from the MPI3 book.
-(
-https://www.thegeekstuff.com/2012/05/c-mutex-examples/ https://www.geeksforgeeks.org/mutex-lock-for-linux-thread-synchronization/ .
-https://computing.llnl.gov/tutorials/pthreads/#Mutexes
-https://www.mcs.anl.gov/~robl/papers/ross_atomic-mpiio.pdf
-https://stackoverflow.com/questions/37236499/mpi-ensure-an-exclusive-access-to-a-shared-memory-rma
-)
-
-b) temporary files
-Each process writes in its own hdf5 file. There should be a way to do a "virtual" merging procedure: by using virtual datasets
-https://portal.hdfgroup.org/display/HDF5/Introduction+to+the+Virtual+Dataset++-+VDS
-For the instant, we may use a more direct method-store data in binary files etc. It may be easier for testing & debugging.
-
-
-
-All the code will be encapsulated in an MPI-loop.
-
-The plot of the code development:
-1) we leave the original parametric file, the only difference will be omitting the filenames. Istead of this there gonna be two indices (r and z). Matrix size will be leaded from the hfd5 archive.
-1.develop) first do only hdf5 stuff single run with fixed indices
-2) Pool of processes should be easy with NXTVAL from MPI3. We implement it directly. The RMA window for mutex and queue is shared.
-
-note: mutexes will be there for writing, the counter will be used for assigning simulations to workers at the moment they finish their work. I think it ensures maximal fair-share of the load.
-
-3) we use mutex to write into the hdf5 archive
-3.test) we include a direct printing in separated files in the testing mode
-
-4) we get rid of mutexes and use rather parallel acces to files all the time.
-4.develop) it seems that many-readers many-writers would be possible by HDF5 parallel since we will not modify the file much. However, we may also try stick with independent files and eventually 
-https://stackoverflow.com/questions/49851046/merge-all-h5-files-using-h5py
-https://portal.hdfgroup.org/display/HDF5/Collective+Calling+Requirements+in+Parallel+HDF5+Applications
-
+The code may explain its work by setting comment_operation = 1; and muted by comment_operation = 0;
 */
 #include<time.h> 
 #include<stdio.h>
@@ -55,57 +22,53 @@ https://portal.hdfgroup.org/display/HDF5/Collective+Calling+Requirements+in+Para
 #include "hdf5.h"
 #include "util.h"
 
-
-
-// vars
+// hdf5 operation:
 herr_t  h5error;
 hid_t file_id; // file pointer
-hid_t filespace, dataspace_id, dataset_id;
+hid_t filespace, dataspace_id, dataset_id; // dataspace pointers
+
 int k1;
 
-int MPE_MC_KEYVAL;
+
 
 
 int main(int argc, char *argv[]) 
-{	
+{
 
-    // MPI according to thread support for mutexes, see https://stackoverflow.com/questions/14836560/thread-safety-of-mpi-send-using-threads-created-with-stdasync and the Hristo Iliev's answer      
+	int comment_operation = 1;
 
-	// standard operation	 
+	// Initialise MPI
 	int myrank, nprocs;
-	// MPI_Init(&argc, &argv); for non-threaded mpi
-
-	MPI_Win mc_win; // this is the shared window
-
+	int MPE_MC_KEYVAL; // this is used to address the mutex and counter
+	MPI_Win mc_win; // this is the shared window, it is used both  for mutices and counter
 	MPI_Init(&argc,&argv);
 	MPI_Comm_size(MPI_COMM_WORLD,&nprocs);
 	MPI_Comm_rank(MPI_COMM_WORLD,&myrank);
 
 
-		// OPEN HDF5 file	- this will be only file for reading: we open it independently by all processes
-		// https://portal.hdfgroup.org/pages/viewpage.action?pageId=48812567
-        file_id = H5Fopen ("results.h5", H5F_ACC_RDONLY, H5P_DEFAULT); // open file // H5F_ACC_RDWR
+	// the file is opened for read only by all the processes independently, every process then has its own copy of variables.
+	file_id = H5Fopen ("results.h5", H5F_ACC_RDONLY, H5P_DEFAULT);  
 
-		// we first start with the t-grid
-		hid_t dset_id = H5Dopen2 (file_id, "IRProp/tgrid", H5P_DEFAULT); // open dataset	     
-        hid_t dspace_id = H5Dget_space (dset_id); // Get the dataspace ID     
-		const int ndims = H5Sget_simple_extent_ndims(dspace_id); // number of dimensions in the grid
-		hsize_t dims[ndims]; // define dims variable
+	// we first start with the t-grid
+	hid_t dset_id = H5Dopen2 (file_id, "IRProp/tgrid", H5P_DEFAULT); // open dataset	     
+	hid_t dspace_id = H5Dget_space (dset_id); // Get the dataspace ID     
+	const int ndims = H5Sget_simple_extent_ndims(dspace_id); // number of dimensions in the tgrid
+	hsize_t dims[ndims]; // define dims variable, used to find the length
 
-		// printf("ndim is: %i \n",ndims);
-		H5Sget_simple_extent_dims(dspace_id, dims, NULL); // get dimensions
+	// printf("ndim is: %i \n",ndims);
+	H5Sget_simple_extent_dims(dspace_id, dims, NULL); // get dimensions
 
 
-		// printf("Size 1 is: %i \n",dims[0]);
-		// printf("Size 2 is: %i \n",dims[1]);
-		// printf("Size is: %i \n",dims[ndims]);
+	printf("Size 1 is: %i \n",dims[0]);
+	printf("Size 2 is: %i \n",dims[1]);
+	printf("Size is: %i \n",dims[ndims]);
 
-		// read data
-		hid_t datatype  = H5Dget_type(dset_id);     /* datatype handle */
+	// read data
+	hid_t datatype  = H5Dget_type(dset_id);     /* datatype handle */
 
-		double tgrid[dims[0]][dims[1]];
+	double tgrid[dims[0]][dims[1]];
 
-		h5error = H5Dread(dset_id,  datatype, H5S_ALL, H5S_ALL, H5P_DEFAULT, tgrid);
+	h5error = H5Dread(dset_id,  datatype, H5S_ALL, H5S_ALL, H5P_DEFAULT, tgrid);
 
 
 
@@ -289,3 +252,54 @@ int main(int argc, char *argv[])
 		
 	
 }
+
+
+
+/*
+The HDF5 version will implement the following idea:
+
+There is one parameter file shared by all simulations, and also only one I/O hdf5 file.
+The parameters given to the code by slurm are two integers defining the indices in r and z.
+There should be a logfile for noting succesful/failed simulations.
+The *.output files should be stacked somewhere.
+
+For reading, it should be easy. ** R/W may occur simultaneously in in the MPI loop. Separate I/O at the instant or ensure it will work (R/W from independent datasets may be fine???).
+https://support.hdfgroup.org/HDF5/Tutor/selectsimple.html
+
+
+After discussions, we try to test
+
+a)mutex 
+The main idea comes from the MPI3 book.
+(
+https://www.thegeekstuff.com/2012/05/c-mutex-examples/ https://www.geeksforgeeks.org/mutex-lock-for-linux-thread-synchronization/ .
+https://computing.llnl.gov/tutorials/pthreads/#Mutexes
+https://www.mcs.anl.gov/~robl/papers/ross_atomic-mpiio.pdf
+https://stackoverflow.com/questions/37236499/mpi-ensure-an-exclusive-access-to-a-shared-memory-rma
+)
+
+b) temporary files
+Each process writes in its own hdf5 file. There should be a way to do a "virtual" merging procedure: by using virtual datasets
+https://portal.hdfgroup.org/display/HDF5/Introduction+to+the+Virtual+Dataset++-+VDS
+For the instant, we may use a more direct method-store data in binary files etc. It may be easier for testing & debugging.
+
+
+
+All the code will be encapsulated in an MPI-loop.
+
+The plot of the code development:
+1) we leave the original parametric file, the only difference will be omitting the filenames. Istead of this there gonna be two indices (r and z). Matrix size will be leaded from the hfd5 archive.
+1.develop) first do only hdf5 stuff single run with fixed indices
+2) Pool of processes should be easy with NXTVAL from MPI3. We implement it directly. The RMA window for mutex and queue is shared.
+
+note: mutexes will be there for writing, the counter will be used for assigning simulations to workers at the moment they finish their work. I think it ensures maximal fair-share of the load.
+
+3) we use mutex to write into the hdf5 archive
+3.test) we include a direct printing in separated files in the testing mode
+
+4) we get rid of mutexes and use rather parallel acces to files all the time.
+4.develop) it seems that many-readers many-writers would be possible by HDF5 parallel since we will not modify the file much. However, we may also try stick with independent files and eventually 
+https://stackoverflow.com/questions/49851046/merge-all-h5-files-using-h5py
+https://portal.hdfgroup.org/display/HDF5/Collective+Calling+Requirements+in+Parallel+HDF5+Applications
+
+*/
