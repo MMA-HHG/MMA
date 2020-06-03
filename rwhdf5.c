@@ -11,7 +11,9 @@ The limitation is that the mutex is used for writing, the writing should take th
 Concrete decription of this tutorial: it takes the fields from results.h5[/IRProp/Fields_rzt] , multiplies the array by 2 using the forementioned procedure
 and prints the result in results.h5[/SourceTerms]. Next, it also loads results.h5[/IRProp/Ftgrid] before the calculation.
 
-The code may explain its work by setting comment_operation = 1; and muted by comment_operation = 0;
+The code may explain its work by setting comment_operation = 1; and muted by comment_operation = 0; Only first 20 tasks are shown.
+
+Possible extensions are discussed at the end of the file.
 */
 #include<time.h> 
 #include<stdio.h>
@@ -53,207 +55,123 @@ int main(int argc, char *argv[])
 	hid_t dset_id = H5Dopen2 (file_id, "IRProp/tgrid", H5P_DEFAULT); // open dataset	     
 	hid_t dspace_id = H5Dget_space (dset_id); // Get the dataspace ID     
 	const int ndims = H5Sget_simple_extent_ndims(dspace_id); // number of dimensions in the tgrid
-	hsize_t dims[ndims]; // define dims variable, used to find the length
-
-	// printf("ndim is: %i \n",ndims);
+	if ( ( comment_operation == 1 ) && ( myrank == 0 ) ){printf("dimensionality tgrid is: %i \n",ndims)}
+	hsize_t dims[ndims]; // we need the size to allocate tgrid for us
 	H5Sget_simple_extent_dims(dspace_id, dims, NULL); // get dimensions
+	if ( ( comment_operation == 1 ) && ( myrank == 0 ) ){printf("Size 1 is: %i \nSize 2 is: %i \nGrid is from Fortran as a column, it gives the extra 1-dimension",dims[0],dims[1])}
+	hid_t datatype  = H5Dget_type(dset_id);     // we gat the type of data (SINGEL, DOUBLE, etc. from HDF5)
+	double tgrid[dims[0]]; // allocate the grid
+	h5error = H5Dread(dset_id,  datatype, H5S_ALL, H5S_ALL, H5P_DEFAULT, tgrid); // read the grid
+	if ( ( comment_operation == 1 ) && ( myrank == 0 ) ){printf("(t_init,t_end) = (%e,%e) \n",tgrid[0],tgrid[dims[0]-1])}
+	h5error = H5Dclose(dset_id);
+
+	// we move to the Fields
+	dset_id = H5Dopen2 (file_id, "IRProp/Fields_rzt", H5P_DEFAULT); // open dataset	     
+	dspace_id = H5Dget_space (dset_id); // Get the dataspace ID     
+	const int ndims2 = H5Sget_simple_extent_ndims(dspace_id); // number of dimensions for the fields
+	hsize_t dims2[ndims2]; // variable to access
+	H5Sget_simple_extent_dims(dspace_id, dims2, NULL); // get dimensions
+	if ( ( comment_operation == 1 ) && ( myrank == 0 ) ){printf("Fields dimensions (t,r,z) = (%i,%i,%i)\n",dims2[0],dims2[1],dims2[2])}
+	datatype  = H5Dget_type(dset_id);     // get datatype
+	hsize_t dim_t = dims2[0], dim_r = dims2[1], dim_z = dims2[2]; // label the dims by physical axes
+
+	// based on dimensions, we set a counter (queue length)
+	int Ntot = dim_r*dim_z;
+	// selections (hyperslabs) are needed
+	hsize_t  offset[ndims2], stride[ndims2], count[ndims2], block[ndims2];
+
+	double Fields[dims2[0]], SourceTerms[dims2[0]]; // Here we store the field and computed SOurce Term for every case	
+	
+	hsize_t field_dims[1]; // we need to specify the length of the array this way for HDF5
+	field_dims[0] = dims2[0];
+
+	hid_t memspace_id = H5Screate_simple(1,field_dims,NULL); // this memspace correspond to one Field/SourceTerm hyperslab, we will keep it accross the code
 
 
-	printf("Size 1 is: %i \n",dims[0]);
-	printf("Size 2 is: %i \n",dims[1]);
-	printf("Size is: %i \n",dims[ndims]);
+	// THE MAIN OPERATION LEADING TO OUTPUT STARTS HERE
 
-	// read data
-	hid_t datatype  = H5Dget_type(dset_id);     /* datatype handle */
-
-	double tgrid[dims[0]];
-
-	h5error = H5Dread(dset_id,  datatype, H5S_ALL, H5S_ALL, H5P_DEFAULT, tgrid);
-
-	printf("time1 %e \n",tgrid[0]);
-	printf("time1 %e \n",tgrid[dims[0]-1]);
+	// create counter and mutex in one pointer
+	MPE_MC_KEYVAL = MPE_Counter_create(MPI_COMM_WORLD, 2, &mc_win); // first is counter, second mutex
 
 
+	if ( myrank == 0 )  // first process is preparing the file and the rest may do their own work (the file is locked in the case they want to write); it creates the resulting dataset
+	{
+	MPE_Mutex_acquire(mc_win, 1, MPE_MC_KEYVAL);
 
-		// printf("test1: %lf \n",tgrid[5][0]);
-		// printf("test2: %e \n",tgrid[5][0]); 
+	file_id = H5Fopen ("results2.h5", H5F_ACC_RDWR, H5P_DEFAULT); // we use a different output file to testing, can be changed to have only one file
+	dataspace_id = H5Screate_simple(ndims2, dims2, NULL); // create dataspace for outputs
+	dataset_id = H5Dcreate2(file_id, "/SourceTerms", datatype, dataspace_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT); // create dataset
 
-		/* Close the dataset. */
-		h5error = H5Dclose(dset_id);
-			
+	// close it
+	h5error = H5Dclose(dataset_id); // dataset
+	h5error = H5Sclose(dataspace_id); // dataspace
+	h5error = H5Fclose(file_id); // file
 
+	MPE_Mutex_release(mc_win, 1, MPE_MC_KEYVAL);
+	}
+	// an empty dataset is prepared to be filled with the data
+		
 
-		// now we proceed with the fields
-		// test hyperslab
-		// find dimensions	
-		dset_id = H5Dopen2 (file_id, "IRProp/Fields_rzt", H5P_DEFAULT); // open dataset	     
-        dspace_id = H5Dget_space (dset_id); // Get the dataspace ID     
-		const int ndims2 = H5Sget_simple_extent_ndims(dspace_id); // number of dimensions in the grid
-		hsize_t dims2[ndims2]; // define dims variable
-		// printf("ndim is: %i \n",ndims2);
-		H5Sget_simple_extent_dims(dspace_id, dims2, NULL); // get dimensions
-		printf("Size 1 is: %i \n",dims2[0]);	printf("Size 2 is: %i \n",dims2[1]); printf("Size 3 is: %i \n",dims2[2]);
-		datatype  = H5Dget_type(dset_id);     /* datatype handle */
+	// we now process the MPI queue
+	int Nsim, kr, kz; // counter of simulations, indices in the FIeld array
+	MPE_Counter_nxtval(mc_win, 0, &Nsim, MPE_MC_KEYVAL); // get my first task (every worker calls)
 
-		hsize_t dim_t = dims2[0], dim_r = dims2[1], dim_z = dims2[2]; // label the dims by physical axes
+	do { // run till queue is not treated
+		kr = Nsim % dim_r; kz = Nsim - kr;  kz = kz / dim_r; // compute offsets in each dimension
 
-		// based on dimendions, we establish a counter
-		int Ntot = dim_r*dim_z;
+		// prepare the part in the arrray to r/w
+		offset[0] = 0; offset[1] = kr; offset[2] = kz; 
+		stride[0] = 1; stride[1] = 1; stride[2] = 1;
+		count[0] = dims2[0]; count[1] = 1; count[2] = 1; // takes all t
+		block[0] = 1; block[1] = 1; block[2] = 1;
 
-		hsize_t  offset[ndims2];
-		hsize_t  stride[ndims2];
-		hsize_t  count[ndims2];
-		hsize_t  block[ndims2];
-		double Fields[dims2[0]]; // offset adds these extra 1-dimensions... is there a way to remove them?
-		double SourceTerms[dims2[0]]; 
-		hsize_t field_dims[1];
-		field_dims[0] = dims2[0];
-		hid_t memspace_id = H5Screate_simple(1,field_dims,NULL); // reusing memspace: try it
+		// read the HDF5 file
 
-		// create common counter and mutex
-		MPE_MC_KEYVAL = MPE_Counter_create(MPI_COMM_WORLD, 2, &mc_win); // first is counter, second mutex
+		// MPE_Mutex_acquire(mc_win, 1, MPE_MC_KEYVAL); // We now use different input and output file, input is for read-only, this mutex is here in the case we have only one file for I/O.
+		if ( ( comment_operation == 1 ) && ( Nsim < 20 ) ){printf("Proc %i will read from (kr,kz)=(%i,%i), job %i \n",myrank,kr,kz,Nsim)}
 
+		file_id = H5Fopen ("results.h5", H5F_ACC_RDONLY, H5P_DEFAULT); // same as shown
+		dset_id = H5Dopen2 (file_id, "IRProp/Fields_rzt", H5P_DEFAULT); 
+		dspace_id = H5Dget_space (dset_id);
 
-		if ( myrank == 0 )  // first process is preparing the file and the rest may do their own work; it creates the resulting dataset
-		{
-		MPE_Mutex_acquire(mc_win, 1, MPE_MC_KEYVAL);
-		file_id = H5Fopen ("results2.h5", H5F_ACC_RDWR, H5P_DEFAULT); // we use a differenti file to testing
-		dataspace_id = H5Screate_simple(ndims2, dims2, NULL); // create dataspace
+		h5error = H5Sselect_hyperslab (dspace_id, H5S_SELECT_SET, offset, stride, count, block); // operation with only a part of the array = hyperslab
+		h5error = H5Dread (dset_id, datatype, memspace_id, dspace_id, H5P_DEFAULT, Fields); // read only the hyperslab
 
-		dataset_id = H5Dcreate2(file_id, "/SourceTerms", datatype, dataspace_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT); // create dataset
+		h5error = H5Dclose(dset_id); // dataset
+		h5error = H5Sclose(dspace_id); // dataspace
+		h5error = H5Fclose(file_id); // file
 
-		// close it
-		h5error = H5Dclose(dataset_id); // dataset
-		h5error = H5Sclose(dataspace_id); // dataspace
+		if ( ( comment_operation == 1 ) && ( Nsim < 20 ) ){printf("Proc %i finished read of job %i \n",myrank, Nsim)}
+		// MPE_Mutex_release(mc_win, 1, MPE_MC_KEYVAL);
+
+		printf("Proc %i doing the job %i \n",myrank,Nsim);
+
+		// THE TASK IS DONE HERE, we can call 1D/3D TDSE, etc. here
+		for (k1 = 0; k1 < dims2[0]; k1++){SourceTerms[k1]=2.0*Fields[k1];}; // just 2-multiplication
+		
+		// print the output in the file
+		MPE_Mutex_acquire(mc_win, 1, MPE_MC_KEYVAL); // mutex is acquired
+
+		if ( ( comment_operation == 1 ) && ( Nsim < 20 ) ){printf("Proc %i will write in the hyperslab (kr,kz)=(%i,%i), job %i \n",myrank,kr,kz,Nsim)}
+
+		file_id = H5Fopen ("results2.h5", H5F_ACC_RDWR, H5P_DEFAULT); // open file
+		dset_id = H5Dopen2 (file_id, "/SourceTerms", H5P_DEFAULT); // open dataset
+		filespace = H5Dget_space (dset_id); // Get the dataspace ID   
+		h5error = H5Sselect_hyperslab (dspace_id, H5S_SELECT_SET, offset, stride, count, block); // again the same hyperslab as for reading
+
+		h5error = H5Dwrite(dset_id,datatype,memspace_id,filespace,H5P_DEFAULT,SourceTerms); // write the data
+
+		// close
+		h5error = H5Dclose(dset_id); // dataset
+		h5error = H5Sclose(filespace); // dataspace
 		h5error = H5Fclose(file_id); // file
 
 		MPE_Mutex_release(mc_win, 1, MPE_MC_KEYVAL);
-		}
-		
-
-		// we now process the MPI queue
-		int Nsim, kr, kz;
-		MPE_Counter_nxtval(mc_win, 0, &Nsim, MPE_MC_KEYVAL); // get my first simulation
-
-		do { // run till queue is not treated
-			kr = Nsim % dim_r; kz = Nsim - kr;  kz = kz / dim_r; // compute offsets in each dimension
-
-			// prepare the part in the file to r/w
-			offset[0] = 0; offset[1] = kr; offset[2] = kz; 
-			stride[0] = 1; stride[1] = 1; stride[2] = 1;
-			count[0] = dims2[0]; count[1] = 1; count[2] = 1; // takes all t
-			block[0] = 1; block[1] = 1; block[2] = 1;
-
-			// read the HDF5 file
-			/* !!!!!!!!!!!! We use only reading from separate datasets, need to test, since datasets are exclusive, we probably don't need a lock. 
-			Lege artis would be use SWMR approach. */
-			MPE_Mutex_acquire(mc_win, 1, MPE_MC_KEYVAL); // mutex is acquired
-			printf("Proc %i acquired mutex, will read from (kr,kz)=(%i,%i)\n",myrank,kr,kz);
-			file_id = H5Fopen ("results2.h5", H5F_ACC_RDONLY, H5P_DEFAULT);
-
-			dset_id = H5Dopen2 (file_id, "IRProp/Fields_rzt", H5P_DEFAULT); // open dataset	     
-			dspace_id = H5Dget_space (dset_id); // Get the dataspace ID 
-
-			h5error = H5Sselect_hyperslab (dspace_id, H5S_SELECT_SET, offset, stride, count, block);
-			h5error = H5Dread (dset_id, datatype, memspace_id, dspace_id, H5P_DEFAULT, Fields);
-
-			h5error = H5Dclose(dset_id); // dataset
-			h5error = H5Sclose(dspace_id); // dataspace
-			h5error = H5Fclose(file_id); // file
-			printf("Proc %i closing the read and will release the mutex \n",myrank);
-			MPE_Mutex_release(mc_win, 1, MPE_MC_KEYVAL);
-
-			printf("Proc %i doing the job \n",myrank);
-			// do the job here
-			for (k1 = 0; k1 < dims2[0]; k1++){SourceTerms[k1]=2.0*Fields[k1];}; // just 2-multiplication
-			
-			// print the output in the file
-			MPE_Mutex_acquire(mc_win, 1, MPE_MC_KEYVAL); // mutex is acquired
-
-			printf("Proc %i will do writing in the hyperslab (kr,kz)=(%i,%i) \n",myrank,kr,kz);
-
-			// write in the file
-			// open dataset
-			file_id = H5Fopen ("results2.h5", H5F_ACC_RDWR, H5P_DEFAULT); // open file // H5F_ACC_RDWR
-			dset_id = H5Dopen2 (file_id, "/SourceTerms", H5P_DEFAULT); // open dataset	
-
-			filespace = H5Dget_space (dset_id); // Get the dataspace ID   
-			h5error = H5Sselect_hyperslab (dspace_id, H5S_SELECT_SET, offset, stride, count, block);
-
-			h5error = H5Dwrite(dset_id, datatype, memspace_id, filespace,H5P_DEFAULT, SourceTerms);
-
-			// close
-			h5error = H5Dclose(dset_id); // dataset
-			// h5error = H5Sclose(memspace_id); // dataspace, reused in the moment
-			h5error = H5Sclose(filespace); // dataspace
-			h5error = H5Fclose(file_id); // file
-
-			MPE_Mutex_release(mc_win, 1, MPE_MC_KEYVAL);
-			MPE_Counter_nxtval(mc_win, 0, &Nsim, MPE_MC_KEYVAL);
-		} while (Nsim < Ntot);
-		h5error = H5Sclose(memspace_id);
-
-
-
-
-
-
-
-
-
-
-
-		// h5error = H5Dread(dset_id,  datatype, H5S_ALL, H5S_ALL, H5P_DEFAULT, Fields); // used for reading all
-
-		// printf("test1: \n");
-		// for(k1 = 0 ; k1 <= 5 ; k1++){
-		// 	printf("%lf \n",Fields[k1]);
-		// }
-		
-
-		// HERE WE TEST MUTEX FOR PRINTING, I added myrank as the offset for each worker
-
-		// synchro according to https://www.mpi-forum.org/docs/mpi-3.0/mpi30-report.pdf
-
-		// https://cvw.cac.cornell.edu/MPIoneSided/lul
-
-		// int assert;
-		// MPI_Win win;
-
-		// MPI_Win_lock(MPI_LOCK_EXCLUSIVE, myrank, assert, win); // not sure with the type of the lock Indicates whether other processes may access the target window at the same time (if MPI_LOCK_SHARED) or not (MPI_LOCK_EXCLUSIVE)
-	
-
-		printf("process %d gives data %lf \n",myrank,Fields[2]);
-		// printf("process %d gives data \n",myrank);
-
-
-		// MPI_Win_unlock(myrank, win);
-
-		
-
-		// printf("test1: %lf \n",Fields[1][1][1]);
-		// printf("test2: %e \n",Fields[2][2][1]); 
-
-
-
-
-
-
-
-        // h5sget_simple_extent_dims(dspace_id, dims, maxdims)  //Getting dims from dataspace
-
-		// allocate fields
-
-		// set hyperslab
-		// dataset_id = H5Dopen2 (file_id, "IRprop/Fields_rzt", H5P_DEFAULT); // open dataset
-
-		// load fields
-
-		// close field
+		MPE_Counter_nxtval(mc_win, 0, &Nsim, MPE_MC_KEYVAL); // get my next task
+	} while (Nsim < Ntot);
+	h5error = H5Sclose(memspace_id);
 	MPI_Finalize();
-	return 0;
-		
-	
+	return 0;	
 }
 
 
