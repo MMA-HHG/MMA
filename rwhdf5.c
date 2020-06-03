@@ -135,9 +135,9 @@ int main(int argc, char *argv[])
 		int Ntot = dim_r*dim_z;
 
 		hsize_t  offset[ndims2];
-        hsize_t  stride[ndims2];
-        hsize_t  count[ndims2];
-        hsize_t  block[ndims2];
+		hsize_t  stride[ndims2];
+		hsize_t  count[ndims2];
+		hsize_t  block[ndims2];
 		double Fields[dims2[0]]; // offset adds these extra 1-dimensions... is there a way to remove them?
 		double SourceTerms[dims2[0]]; 
 		hsize_t field_dims[1];
@@ -181,6 +181,7 @@ int main(int argc, char *argv[])
 			// read the HDF5 file
 			/* !!!!!!!!!!!! We use only reading from separate datasets, need to test, since datasets are exclusive, we probably don't need a lock. 
 			Lege artis would be use SWMR approach. */
+			MPE_Mutex_acquire(mc_win, 1, MPE_MC_KEYVAL); // mutex is acquired
 			file_id = H5Fopen ("results2.h5", H5F_ACC_RDONLY, H5P_DEFAULT);
 
 			dset_id = H5Dopen2 (file_id, "IRProp/Fields_rzt", H5P_DEFAULT); // open dataset	     
@@ -192,6 +193,7 @@ int main(int argc, char *argv[])
 			h5error = H5Dclose(dataset_id); // dataset
 			h5error = H5Sclose(dspace_id); // dataspace
 			h5error = H5Fclose(file_id); // file
+			MPE_Mutex_release(mc_win, 1, MPE_MC_KEYVAL);
 
 			// do the job here
 			for (k1 = 0; k1 < dims2[0]; k1++){SourceTerms[k1]=2.0*Fields[k1];}; // just 2-multiplication
