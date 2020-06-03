@@ -140,7 +140,7 @@ if (rank == 0) { // only first worker acquires mutices
     MPI_Win_unlock(lrank, mutex_win);
 }
 
-MPI_Barrier(MPI_COMM_WORLD); // Parallel epoque starts, should be here
+MPI_Barrier(MPI_COMM_WORLD); // Parallel epoque starts, should be here?
 
 return 0;
 }
