@@ -55,14 +55,14 @@ int main(int argc, char *argv[])
 	hid_t dset_id = H5Dopen2 (file_id, "IRProp/tgrid", H5P_DEFAULT); // open dataset	     
 	hid_t dspace_id = H5Dget_space (dset_id); // Get the dataspace ID     
 	const int ndims = H5Sget_simple_extent_ndims(dspace_id); // number of dimensions in the tgrid
-	if ( ( comment_operation == 1 ) && ( myrank == 0 ) ){printf("dimensionality tgrid is: %i \n",ndims)}
+	if ( ( comment_operation == 1 ) && ( myrank == 0 ) ){printf("dimensionality tgrid is: %i \n",ndims);}
 	hsize_t dims[ndims]; // we need the size to allocate tgrid for us
 	H5Sget_simple_extent_dims(dspace_id, dims, NULL); // get dimensions
-	if ( ( comment_operation == 1 ) && ( myrank == 0 ) ){printf("Size 1 is: %i \nSize 2 is: %i \nGrid is from Fortran as a column, it gives the extra 1-dimension",dims[0],dims[1])}
+	if ( ( comment_operation == 1 ) && ( myrank == 0 ) ){printf("Size 1 is: %i \nSize 2 is: %i \nGrid is from Fortran as a column, it gives the extra 1-dimension",dims[0],dims[1]);}
 	hid_t datatype  = H5Dget_type(dset_id);     // we gat the type of data (SINGEL, DOUBLE, etc. from HDF5)
 	double tgrid[dims[0]]; // allocate the grid
 	h5error = H5Dread(dset_id,  datatype, H5S_ALL, H5S_ALL, H5P_DEFAULT, tgrid); // read the grid
-	if ( ( comment_operation == 1 ) && ( myrank == 0 ) ){printf("(t_init,t_end) = (%e,%e) \n",tgrid[0],tgrid[dims[0]-1])}
+	if ( ( comment_operation == 1 ) && ( myrank == 0 ) ){printf("(t_init,t_end) = (%e,%e) \n",tgrid[0],tgrid[dims[0]-1]);}
 	h5error = H5Dclose(dset_id);
 
 	// we move to the Fields
@@ -71,7 +71,7 @@ int main(int argc, char *argv[])
 	const int ndims2 = H5Sget_simple_extent_ndims(dspace_id); // number of dimensions for the fields
 	hsize_t dims2[ndims2]; // variable to access
 	H5Sget_simple_extent_dims(dspace_id, dims2, NULL); // get dimensions
-	if ( ( comment_operation == 1 ) && ( myrank == 0 ) ){printf("Fields dimensions (t,r,z) = (%i,%i,%i)\n",dims2[0],dims2[1],dims2[2])}
+	if ( ( comment_operation == 1 ) && ( myrank == 0 ) ){printf("Fields dimensions (t,r,z) = (%i,%i,%i)\n",dims2[0],dims2[1],dims2[2]);}
 	datatype  = H5Dget_type(dset_id);     // get datatype
 	hsize_t dim_t = dims2[0], dim_r = dims2[1], dim_z = dims2[2]; // label the dims by physical axes
 
@@ -128,7 +128,7 @@ int main(int argc, char *argv[])
 		// read the HDF5 file
 
 		// MPE_Mutex_acquire(mc_win, 1, MPE_MC_KEYVAL); // We now use different input and output file, input is for read-only, this mutex is here in the case we have only one file for I/O.
-		if ( ( comment_operation == 1 ) && ( Nsim < 20 ) ){printf("Proc %i will read from (kr,kz)=(%i,%i), job %i \n",myrank,kr,kz,Nsim)}
+		if ( ( comment_operation == 1 ) && ( Nsim < 20 ) ){printf("Proc %i will read from (kr,kz)=(%i,%i), job %i \n",myrank,kr,kz,Nsim);}
 
 		file_id = H5Fopen ("results.h5", H5F_ACC_RDONLY, H5P_DEFAULT); // same as shown
 		dset_id = H5Dopen2 (file_id, "IRProp/Fields_rzt", H5P_DEFAULT); 
@@ -141,10 +141,10 @@ int main(int argc, char *argv[])
 		h5error = H5Sclose(dspace_id); // dataspace
 		h5error = H5Fclose(file_id); // file
 
-		if ( ( comment_operation == 1 ) && ( Nsim < 20 ) ){printf("Proc %i finished read of job %i \n",myrank, Nsim)}
+		if ( ( comment_operation == 1 ) && ( Nsim < 20 ) ){printf("Proc %i finished read of job %i \n",myrank, Nsim);}
 		// MPE_Mutex_release(mc_win, 1, MPE_MC_KEYVAL);
 
-		printf("Proc %i doing the job %i \n",myrank,Nsim);
+		if ( ( comment_operation == 1 ) && ( Nsim < 20 ) ){printf("Proc %i doing the job %i \n",myrank,Nsim);}
 
 		// THE TASK IS DONE HERE, we can call 1D/3D TDSE, etc. here
 		for (k1 = 0; k1 < dims2[0]; k1++){SourceTerms[k1]=2.0*Fields[k1];}; // just 2-multiplication
@@ -152,7 +152,7 @@ int main(int argc, char *argv[])
 		// print the output in the file
 		MPE_Mutex_acquire(mc_win, 1, MPE_MC_KEYVAL); // mutex is acquired
 
-		if ( ( comment_operation == 1 ) && ( Nsim < 20 ) ){printf("Proc %i will write in the hyperslab (kr,kz)=(%i,%i), job %i \n",myrank,kr,kz,Nsim)}
+		if ( ( comment_operation == 1 ) && ( Nsim < 20 ) ){printf("Proc %i will write in the hyperslab (kr,kz)=(%i,%i), job %i \n",myrank,kr,kz,Nsim);}
 
 		file_id = H5Fopen ("results2.h5", H5F_ACC_RDWR, H5P_DEFAULT); // open file
 		dset_id = H5Dopen2 (file_id, "/SourceTerms", H5P_DEFAULT); // open dataset
