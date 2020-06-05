@@ -4,14 +4,14 @@ PROGRAM make_start_hdf5
   USE HDF5_reader
 
   IMPLICIT NONE
-  CHARACTER(*), PARAMETER :: filename = "results.h5" ! File name
-  CHARACTER(*), PARAMETER :: dsetname = "inputs/number_of_processors" ! Dataset name
+  CHARACTER(15) :: filename  ! File name
+  
+  PRINT*, 'Specify name of parameterfile' 
+  READ(5,*) filename
 
   INTEGER(HID_T) :: file_id                          ! File identifier
-  INTEGER(HID_T) :: dset_id                          ! Dataset identifier
   INTEGER        :: error                            ! Error flag
-  INTEGER        :: data_out, num_proc               ! Data read from the file
-  INTEGER(HSIZE_T), DIMENSION(1) :: data_dims        
+  INTEGER(HSIZE_T), DIMENSION(1:1) :: data_dims        
   
 
   ! Open FORTRAN HDF5 interface
