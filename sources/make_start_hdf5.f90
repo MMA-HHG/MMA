@@ -6,13 +6,13 @@ PROGRAM make_start_hdf5
   IMPLICIT NONE
   CHARACTER(15) :: filename  ! File name
   
-  PRINT*, 'Specify name of parameterfile' 
-  READ(5,*) filename
-
   INTEGER(HID_T) :: file_id                          ! File identifier
   INTEGER        :: error                            ! Error flag
   INTEGER(HSIZE_T), DIMENSION(1:1) :: data_dims        
   
+  PRINT*, 'Specify name of parameterfile' 
+  READ(5,*) filename
+
 
   ! Open FORTRAN HDF5 interface
   CALL h5open_f(error)
@@ -35,7 +35,7 @@ PROGRAM make_start_hdf5
   CALL readint(file_id, 'inputs/output_distance_in_z-steps_for_fluence_and_power', rhodist)
   CALL readreal(file_id, 'inputs/radius_for_diagnostics', rfil_mm_phys)
   CALL readreal(file_id, 'inputs/physical_first_stepwidth', delta_z_mm_phys)
-  CALL readint(file_id, 'inputs/operators_t_t-1', swithc_T)
+  CALL readint(file_id, 'inputs/operators_t_t-1', switch_T)
   
   if(switch_T.GT.4) then
       write(6,*) 'You have selected a bad value for the type of equation'
@@ -68,7 +68,7 @@ PROGRAM make_start_hdf5
   CALL readreal(file_id, 'inputs/focal_length_in_the_medium_cm', f_cm_phys) ! this dataset in HDF5 has wrong unit [0 for no lense]
   CALL readreal(file_id, 'inputs/initial_chirp_phase', chirp_factor)
   CALL readreal(file_id, 'inputs/pressure_in_bar', pressure)
-  CALL readint(file_id, 'inputs/type_of_dispersion_law', switch_dispertion)
+  CALL readint(file_id, 'inputs/type_of_dispersion_law', switch_dispersion)
   
   if(switch_dispersion.GT.8) then
     write(6,*) 'You have selected a bad value for the dispersion law'

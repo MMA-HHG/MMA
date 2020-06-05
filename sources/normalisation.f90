@@ -1,12 +1,12 @@
 MODULE normalisation
   USE calc_start
 
-  REAL(8) n2_phys,n4_phys,lambda0_cm_phys,Ui_eV_phys,proplength_m_phys,outlength_m_phys,delta_z_mm_phys,sigmak_phys,sigman_phys,rho0_phys
+  REAL(8) n2_phys,n4_phys,lambda0_cm_phys,Ui_eV_phys,proplength_m_phys,outlength_m_phys,delta_z_mm_phys,sigmak_phys,sigman_phys
   REAL(8) sigmakp_phys,rhoslg1_phys,sigma_phys,sigmacv_ref_phys,I_ref_phys,sigmakpp_phys,betakp_phys,beta_phys,betakpp_phys
   REAL(8) sigma_cm2_phys,alpha_fs_phys,alphaquad_fscm3_phys,tdk_fs_phys,raman_phys,rfil_mm_phys,pressure,tauc_fs_phys
-  REAL(8) alpha1_fs_phys,alphah_fs_phys,rhosat_phys,Ui_N2_eV_phys
-  REAL(8) delta_k_p_fs_per_cm_phys,k_p_fs_per_cm_phys,k_pp_fs2_per_cm_phys,k_ppp_fs3_per_cm_phys,k_pppp_fs4_per_cm_phys,k_ppppp_fs5_per_cm_phys
-  REAL(8) rhoabs_cm3_phys,f_cm_phys,betak_phys
+  REAL(8) alpha1_fs_phys,alphah_fs_phys,rhosat_phys,Ui_N2_eV_phys,rho0_phys
+  REAL(8) delta_k_p_fs_per_cm_phys,k_p_fs_per_cm_phys,k_pp_fs2_per_cm_phys,k_ppp_fs3_per_cm_phys,k_pppp_fs4_per_cm_phys
+  REAL(8) k_ppppp_fs5_per_cm_phys,rhoabs_cm3_phys,f_cm_phys,betak_phys
   REAL(8) z_rayleigh_cm_phys,k0_phys
   REAL(8) deltak3omega(3),deltak5omega(3)
   REAL(8), ALLOCATABLE :: xx_mum(:),zz_mum(:),Indice(:,:)
@@ -62,7 +62,8 @@ CONTAINS
           IF ((k_t.GT.5.D0*omega).AND.(startcut.EQ.dim_t)) startcut=j  
        ENDDO
        IF (startcut.LT.endcut) THEN
-          CALL artifdisp(startcut,endcut,REAL(komega(startcut)-rek0-rekp*(8.D0*DATAN(1.D0)*REAL(startcut-dim_t/2-1)/lt+omega_uppe-omega)))
+          CALL artifdisp(startcut,endcut,REAL(komega(startcut)-rek0-rekp*(8.D0*DATAN(1.D0)* &
+            REAL(startcut-dim_t/2-1)/lt+omega_uppe-omega)))
           CALL artifabs(startcut,endcut,10.D0*REAL(komega(1)-rek0-rekp*(8.D0*DATAN(1.D0)*REAL(dim_t/2)/lt+omega_uppe-omega)))
        ENDIF
        k_t=2.D0*omega
@@ -129,7 +130,8 @@ CONTAINS
           IF ((omegachi(j).GT.1.D0/0.185D0).AND.(startcut.EQ.dim_t)) startcut=j  
        ENDDO
        IF (startcut.LT.endcut) THEN
-          CALL artifdisp(startcut,endcut,REAL(komega(startcut)-rek0-rekp*(8.D0*DATAN(1.D0)*REAL(startcut-dim_t/2-1)/lt+omega_uppe-omega)))
+          CALL artifdisp(startcut,endcut,REAL(komega(startcut)-rek0-rekp*(8.D0*DATAN(1.D0)* &
+            REAL(startcut-dim_t/2-1)/lt+omega_uppe-omega)))
           CALL artifabs(startcut,endcut,10.D0*REAL(komega(1)-rek0-rekp*(8.D0*DATAN(1.D0)*REAL(dim_t/2)/lt+omega_uppe-omega)))
        ENDIF
        DEALLOCATE(chi,omegachi)
@@ -188,7 +190,8 @@ CONTAINS
           IF ((omegachi(j).GT.7.D-4).AND.(startcut.EQ.dim_t)) startcut=j  
        ENDDO
        IF (startcut.LT.endcut) THEN
-          CALL artifdisp(startcut,endcut,REAL(komega(startcut)-rek0-rekp*(8.D0*DATAN(1.D0)*REAL(startcut-dim_t/2-1)/lt+omega_uppe-omega)))
+          CALL artifdisp(startcut,endcut,REAL(komega(startcut)-rek0-rekp*(8.D0*DATAN(1.D0)* &
+            REAL(startcut-dim_t/2-1)/lt+omega_uppe-omega)))
           CALL artifabs(startcut,endcut,10.D0*REAL(komega(1)-rek0-rekp*(8.D0*DATAN(1.D0)*REAL(dim_t/2)/lt+omega_uppe-omega)))
        ENDIF
        DEALLOCATE(chi,omegachi)
@@ -209,21 +212,24 @@ CONTAINS
        z_rayleigh_cm_phys  = 3.1415D0*w0_cm_phys**2*n0/lambda0_cm_phys  !Rayleigh lenght      cm
        DO j=dim_t/2,dim_t/2+2
           k_t=8.D0*DATAN(1.D0)*REAL(j-dim_t/2-1)/lt
-          komega(j) = (c*2.D0*3.1415D0/lambda0_cm_phys*tp_fs_phys*1.d-15+k_t)/(c*tp_fs_phys*1.d-15/(4*z_rayleigh_cm_phys))*compute_n(k_t)
+          komega(j) = (c*2.D0*3.1415D0/lambda0_cm_phys*tp_fs_phys*1.d-15+k_t)/(c*tp_fs_phys*1.d-15/(4*z_rayleigh_cm_phys))* &
+            compute_n(k_t)
        ENDDO
        rek0 = REAL(komega(dim_t/2+1)) !adimensioned central wavenumber in the medium
        rekp = REAL(komega(dim_t/2+2)-komega(dim_t/2))*lt/(16.D0*DATAN(1.D0)) !adimensioned group velocity
 
        DO j=1,2
           k_t=REAL(j,8)*2.D0*omega   ! k_t = w_adim - w0_adim
-          komega(j) = (c*2.D0*3.1415D0/lambda0_cm_phys*tp_fs_phys*1.d-15+k_t)/(c*tp_fs_phys*1.d-15/(4*z_rayleigh_cm_phys))*compute_n(k_t)
+          komega(j) = (c*2.D0*3.1415D0/lambda0_cm_phys*tp_fs_phys*1.d-15+k_t)/(c*tp_fs_phys*1.d-15/(4*z_rayleigh_cm_phys))* &
+            compute_n(k_t)
        ENDDO
        deltak3omega(1)=3.D0*rek0 - REAL(komega(1)) 
        deltak5omega(1)=5.D0*rek0 - REAL(komega(2))
 
        DO j=1,dim_t
           k_t=8.D0*DATAN(1.D0)*REAL(j-dim_t/2-1)/lt+omega_uppe-omega
-          komega(j) = (c*2.D0*3.1415D0/lambda0_cm_phys*tp_fs_phys*1.d-15+k_t)/(c*tp_fs_phys*1.d-15/(4*z_rayleigh_cm_phys))*compute_n(k_t)
+          komega(j) = (c*2.D0*3.1415D0/lambda0_cm_phys*tp_fs_phys*1.d-15+k_t)/(c*tp_fs_phys*1.d-15/(4*z_rayleigh_cm_phys))* &
+            compute_n(k_t)
        ENDDO
        mess1=.TRUE.
        mess2=.TRUE.
@@ -303,8 +309,10 @@ CONTAINS
           IF ((omegachi(j).GT.1.D0/0.185D0).AND.(startcut.EQ.dim_t)) startcut=j  
        ENDDO
        IF (startcut.LT.endcut) THEN
-          CALL artifdisp(startcut,endcut,REAL(komega(startcut)-rek0-rekp*(8.D0*DATAN(1.D0)*REAL(startcut-dim_t/2-1)/lt+omega_uppe-omega)))
-          CALL artifabs(startcut,endcut,10.D0*REAL(komega(1)-rek0-rekp*(8.D0*DATAN(1.D0)*REAL(dim_t/2)/lt+omega_uppe-omega)))
+          CALL artifdisp(startcut,endcut,REAL(komega(startcut)-rek0-rekp*(8.D0*DATAN(1.D0)* &
+            REAL(startcut-dim_t/2-1)/lt+omega_uppe-omega)))
+          CALL artifabs(startcut,endcut,10.D0*REAL(komega(1)-rek0-rekp*(8.D0*DATAN(1.D0)* &
+            REAL(dim_t/2)/lt+omega_uppe-omega)))
        ENDIF
        DEALLOCATE(chi,omegachi)
 
@@ -362,8 +370,10 @@ CONTAINS
           IF ((omegachi(j).GT.7.D-4).AND.(startcut.EQ.dim_t)) startcut=j  
        ENDDO
        IF (startcut.LT.endcut) THEN
-          CALL artifdisp(startcut,endcut,REAL(komega(startcut)-rek0-rekp*(8.D0*DATAN(1.D0)*REAL(startcut-dim_t/2-1)/lt+omega_uppe-omega)))
-          CALL artifabs(startcut,endcut,10.D0*REAL(komega(1)-rek0-rekp*(8.D0*DATAN(1.D0)*REAL(dim_t/2)/lt+omega_uppe-omega)))
+          CALL artifdisp(startcut,endcut,REAL(komega(startcut)-rek0-rekp*(8.D0*DATAN(1.D0)* &
+            REAL(startcut-dim_t/2-1)/lt+omega_uppe-omega)))
+          CALL artifabs(startcut,endcut,10.D0*REAL(komega(1)-rek0-rekp*(8.D0*DATAN(1.D0)* &
+            REAL(dim_t/2)/lt+omega_uppe-omega)))
        ENDIF
        DEALLOCATE(chi,omegachi)
 
@@ -421,7 +431,8 @@ CONTAINS
           IF ((omegachi(j).GT.7.D-4).AND.(startcut.EQ.dim_t)) startcut=j  
        ENDDO
        IF (startcut.LT.endcut) THEN
-          CALL artifdisp(startcut,endcut,REAL(komega(startcut)-rek0-rekp*(8.D0*DATAN(1.D0)*REAL(startcut-dim_t/2-1)/lt+omega_uppe-omega)))
+          CALL artifdisp(startcut,endcut,REAL(komega(startcut)-rek0-rekp*(8.D0*DATAN(1.D0)* &
+            REAL(startcut-dim_t/2-1)/lt+omega_uppe-omega)))
           CALL artifabs(startcut,endcut,10.D0*REAL(komega(1)-rek0-rekp*(8.D0*DATAN(1.D0)*REAL(dim_t/2)/lt+omega_uppe-omega)))
        ENDIF
        DEALLOCATE(chi,omegachi)
@@ -436,7 +447,8 @@ CONTAINS
           k_t=8.D0*DATAN(1.D0)*REAL(j-dim_t/2-1)/lt   ! k_t = w_adim - w0_adim
           omegachi(j) = c*2.D0*3.1415D0/lambda0_cm_phys+k_t/(tp_fs_phys*1.d-15)   ! omegachi = w
           omegachi(j) = omegachi(j)/(c*2.D0*3.1415D0*1.d4)
-          chi(j) = 2.259276D0 + 0.01008956D0/(omegachi(j)**(-2)-0.0129426D0) + 13.00522D0*omegachi(j)**(-2)/(omegachi(j)**(-2)-400.D0) - 1.D0 ! KDPo, Handbook of Optics
+          chi(j) = 2.259276D0 + 0.01008956D0/(omegachi(j)**(-2)-0.0129426D0) + &
+            13.00522D0*omegachi(j)**(-2)/(omegachi(j)**(-2)-400.D0) - 1.D0 ! KDPo, Handbook of Optics
           chi(j) = 1.D0+chi(j)*pressure
           chi(j) = sqrt(chi(j))                ! chi = E(w) =  sqrt(1+X(w))
        ENDDO
@@ -453,7 +465,8 @@ CONTAINS
           k_t=REAL(j,8)*2.D0*omega   ! k_t = w_adim - w0_adim
           omegachi(j) = c*2.D0*3.1415D0/lambda0_cm_phys+k_t/(tp_fs_phys*1.d-15)   ! omegachi = w
           omegachi(j) = omegachi(j)/(c*2.D0*3.1415D0*1.d4)
-          chi(j) = 2.259276D0 + 0.01008956D0/(omegachi(j)**(-2)-0.0129426D0) + 13.00522D0*omegachi(j)**(-2)/(omegachi(j)**(-2)-400.D0) - 1.D0 ! KDPo, Handbook of Optics
+          chi(j) = 2.259276D0 + 0.01008956D0/(omegachi(j)**(-2)-0.0129426D0) + & 
+            13.00522D0*omegachi(j)**(-2)/(omegachi(j)**(-2)-400.D0) - 1.D0 ! KDPo, Handbook of Optics
           chi(j) = 1.D0+chi(j)*pressure
           chi(j) = sqrt(chi(j))                ! chi = E(w) =  sqrt(1+X(w))
           komega(j) = (c*2.D0*3.1415D0/lambda0_cm_phys*tp_fs_phys*1.d-15+k_t)/(c*tp_fs_phys*1.d-15/(4*z_rayleigh_cm_phys))*chi(j)
@@ -465,7 +478,8 @@ CONTAINS
           k_t=8.D0*DATAN(1.D0)*REAL(j-dim_t/2-1)/lt+omega_uppe-omega   ! k_t = w_adim - w0_adim
           omegachi(j) = c*2.D0*3.1415D0/lambda0_cm_phys+k_t/(tp_fs_phys*1.d-15)   ! omegachi = w
           omegachi(j) = omegachi(j)/(c*2.D0*3.1415D0*1.d4)
-          chi(j) = 2.259276D0 + 0.01008956D0/(omegachi(j)**(-2)-0.0129426D0) + 13.00522D0*omegachi(j)**(-2)/(omegachi(j)**(-2)-400.D0) - 1.D0 ! KDPo, Handbook of Optics
+          chi(j) = 2.259276D0 + 0.01008956D0/(omegachi(j)**(-2)-0.0129426D0) + &
+            13.00522D0*omegachi(j)**(-2)/(omegachi(j)**(-2)-400.D0) - 1.D0 ! KDPo, Handbook of Optics
           chi(j) = 1.D0+chi(j)*pressure
           IF ((k_t.LT.0.D0).AND.(REAL(chi(j)).LT.0.1D0)) THEN
              PRINT*, 'remove singularity below omega at',k_t
@@ -483,7 +497,8 @@ CONTAINS
           IF ((omegachi(j).GT.1.D0/0.185D0).AND.(startcut.EQ.dim_t)) startcut=j  
        ENDDO
        IF (startcut.LT.endcut) THEN
-          CALL artifdisp(startcut,endcut,REAL(komega(startcut)-rek0-rekp*(8.D0*DATAN(1.D0)*REAL(startcut-dim_t/2-1)/lt+omega_uppe-omega)))
+          CALL artifdisp(startcut,endcut,REAL(komega(startcut)-rek0-rekp*(8.D0*DATAN(1.D0)* &
+            REAL(startcut-dim_t/2-1)/lt+omega_uppe-omega)))
           CALL artifabs(startcut,endcut,10.D0*REAL(komega(1)-rek0-rekp*(8.D0*DATAN(1.D0)*REAL(dim_t/2)/lt+omega_uppe-omega)))
        ENDIF
        DEALLOCATE(chi,omegachi)
@@ -653,7 +668,8 @@ CONTAINS
     REAL(8) help1
 
     IF(endcut-startcut.GT.500) THEN
-       IF((startcut.EQ.1).AND.(ABS(REAL(komega(dim_t)-rek0-rekp*(8.D0*DATAN(1.D0)*REAL(dim_t/2-1)/lt+omega_uppe-omega))).GT.help1)) THEN
+       IF((startcut.EQ.1).AND.(ABS(REAL(komega(dim_t)-rek0-rekp*(8.D0*DATAN(1.D0)* &
+         REAL(dim_t/2-1)/lt+omega_uppe-omega))).GT.help1)) THEN
           DO l=startcut,startcut+249
              komega(l) = komega(l)+CMPLX(0.D0,1.D6,8)
           ENDDO
@@ -665,7 +681,8 @@ CONTAINS
        DO l=startcut+250,endcut-250
           komega(l) = komega(l)+CMPLX(0.D0,1.D6,8)
        ENDDO
-       IF((endcut.EQ.dim_t).AND.(ABS(REAL(komega(1)-rek0-rekp*(8.D0*DATAN(1.D0)*REAL(-dim_t/2)/lt+omega_uppe-omega))).GT.help1)) THEN
+       IF((endcut.EQ.dim_t).AND.(ABS(REAL(komega(1)-rek0-rekp*(8.D0*DATAN(1.D0)* &
+         REAL(-dim_t/2)/lt+omega_uppe-omega))).GT.help1)) THEN
           DO l=endcut-249,endcut
              komega(l) = komega(l)+CMPLX(0.D0,1.D6,8)
           ENDDO
@@ -675,17 +692,21 @@ CONTAINS
           ENDDO
        ENDIF
     ELSE
-       IF((startcut.EQ.1).AND.(ABS(REAL(komega(dim_t)-rek0-rekp*(8.D0*DATAN(1.D0)*REAL(dim_t/2-1)/lt+omega_uppe-omega))).GT.help1)) THEN
+       IF((startcut.EQ.1).AND.(ABS(REAL(komega(dim_t)-rek0-rekp*(8.D0*DATAN(1.D0)* &
+         REAL(dim_t/2-1)/lt+omega_uppe-omega))).GT.help1)) THEN
           DO l=startcut,endcut
              komega(l) = komega(l)+CMPLX(0.D0,1.D6*exp(-(2.25D0*REAL(l-startcut,8)/REAL(endcut-startcut,8))**4),8)
           ENDDO
-       ELSEIF ((endcut.EQ.dim_t).AND.(ABS(REAL(komega(1)-rek0-rekp*(8.D0*DATAN(1.D0)*REAL(-dim_t/2)/lt+omega_uppe-omega))).GT.help1)) THEN
+       ELSEIF ((endcut.EQ.dim_t).AND.(ABS(REAL(komega(1)-rek0-rekp*(8.D0*DATAN(1.D0)* &
+           REAL(-dim_t/2)/lt+omega_uppe-omega))).GT.help1)) THEN
           DO l=startcut,endcut
-             komega(l) = komega(l)+CMPLX(0.D0,1.D6*exp(-(2.25D0*(REAL(l-startcut,8)-REAL(endcut-startcut,8))/REAL(endcut-startcut,8))**4),8)
+             komega(l) = komega(l)+CMPLX(0.D0,1.D6*exp(-(2.25D0*(REAL(l-startcut,8)-REAL(endcut-startcut,8))/ &
+               REAL(endcut-startcut,8))**4),8)
           ENDDO
        ELSE
           DO l=startcut,endcut
-             komega(l) = komega(l)+CMPLX(0.D0,1.D6*exp(-(4.5D0*(REAL(l-startcut,8)-0.5D0*REAL(endcut-startcut,8))/REAL(endcut-startcut,8))**4),8)
+             komega(l) = komega(l)+CMPLX(0.D0,1.D6*exp(-(4.5D0*(REAL(l-startcut,8)-0.5D0*REAL(endcut-startcut,8))/ &
+               REAL(endcut-startcut,8))**4),8)
           ENDDO
        ENDIF
     ENDIF
@@ -707,7 +728,8 @@ CONTAINS
        c2=fp2-2.D0*c3*REAL(endcut,8)
        c1=f1-c2-c3
        DO l=startcut,endcut
-          komega(l) = CMPLX( c1+c2*REAL(l,8)+c3*REAL(l,8)**2 + rek0 + rekp*(8.D0*DATAN(1.D0)*REAL(l-dim_t/2-1)/lt+omega_uppe-omega), &
+          komega(l) = CMPLX( c1+c2*REAL(l,8)+c3*REAL(l,8)**2 + rek0 + rekp*(8.D0*DATAN(1.D0)* &
+            REAL(l-dim_t/2-1)/lt+omega_uppe-omega), &
                AIMAG(komega(l)) , 8)
        ENDDO
     elseif (endcut.EQ.dim_t) then
@@ -718,7 +740,8 @@ CONTAINS
        c2=fp1-2.D0*c3*REAL(startcut,8)
        c1=f1-c2*REAL(startcut,8)-c3*REAL(startcut,8)**2
        DO l=startcut,endcut
-          komega(l) = CMPLX( c1+c2*REAL(l,8)+c3*REAL(l,8)**2 + rek0 + rekp*(8.D0*DATAN(1.D0)*REAL(l-dim_t/2-1)/lt+omega_uppe-omega), &
+          komega(l) = CMPLX( c1+c2*REAL(l,8)+c3*REAL(l,8)**2 + rek0 + rekp*(8.D0*DATAN(1.D0)* &
+            REAL(l-dim_t/2-1)/lt+omega_uppe-omega), &
                AIMAG(komega(l)), 8)
        ENDDO
     else
@@ -727,7 +750,8 @@ CONTAINS
        f2=REAL(komega(endcut)-rek0-rekp*(8.D0*DATAN(1.D0)*REAL(endcut-dim_t/2-1)/lt+omega_uppe-omega))
        fp2=REAL(komega(endcut+1)-rek0-rekp*(8.D0*DATAN(1.D0)*REAL(endcut+1-dim_t/2-1)/lt+omega_uppe-omega))-f2
        c4=(-2.D0*f1+2.D0*f2-REAL(endcut,8)*fp2+REAL(startcut,8)*fp2+REAL(startcut,8)*fp1-REAL(endcut,8)*fp1) &
-            /(-REAL(endcut,8)**3+3.D0*REAL(startcut,8)*REAL(endcut,8)**2+REAL(startcut,8)**3-3.D0*REAL(endcut,8)*REAL(startcut,8)**2)
+            /(-REAL(endcut,8)**3+3.D0*REAL(startcut,8)*REAL(endcut,8)**2+ &
+            REAL(startcut,8)**3-3.D0*REAL(endcut,8)*REAL(startcut,8)**2)
        c3=(fp1-fp2-3.D0*c4*(REAL(startcut,8)**2-REAL(endcut,8)**2))/(2.D0*(REAL(startcut,8)-REAL(endcut,8)))
        c2=fp1-2.D0*c3*REAL(startcut,8)-3.D0*c4*REAL(startcut,8)**2
        c1=f1-c2*REAL(startcut,8)-c3*REAL(startcut,8)**2-c4*REAL(startcut,8)**3
@@ -784,7 +808,8 @@ CONTAINS
     gamma1=sigma_cm2_phys*n0*rhoc_cm3_phys/k0_phys  !adimensionned coefficient for losses due to normalized conductivity
     gamma2=1.d0  !adimensionned coefficient for plasma defocusing
     muk=2.D0*z_rayleigh_cm_phys*betak_phys*(Pcr_phys/(4.d0*3.1415))**(KK-1)*w0_cm_phys**(2*(1-KK))  !adimensionned coefficient for MPA effect
-    beta_inv_2KK=k0_phys**2*(sigmak_phys)*1.d-15*tp_fs_phys*(rhont_cm3_phys/rhoc_cm3_phys)*(Pcr_phys/(4.d0*3.1415))**KK*w0_cm_phys**(2*(1-KK))  !adimensionned MPI coefficient
+    beta_inv_2KK=k0_phys**2*(sigmak_phys)*1.d-15*tp_fs_phys*(rhont_cm3_phys/rhoc_cm3_phys)* &
+      (Pcr_phys/(4.d0*3.1415))**KK*w0_cm_phys**(2*(1-KK))  !adimensionned MPI coefficient
     eta1 = 2.d0 * z_rayleigh_cm_phys * sigman_phys * NN * ( h * 2.d0 *3.1415 *c/ lambda0_cm_phys)  * rhoabs_cm3_phys * & 
           (Pcr_phys/(4.d0*3.1415))**(NN-1)* w0_cm_phys**(2*(1-NN))                               ! adimensionned coefficient for absorption  
     eta2 = sigman_phys * 1.d-15*tp_fs_phys * ( Pcr_phys /(4.d0*3.1415 *w0_cm_phys**2))**NN       ! adimensionned coefficient for excited molecules 
@@ -801,7 +826,8 @@ CONTAINS
        lense_factor=3.1415D0*w0_cm_phys**2*n0/(f_cm_phys*lambda0_cm_phys)
     endif
     increase=decrease/2.5D0               !phase threshold for increasing delta_z, should be <= increase/2.5
-    beta_inv_2KKp=k0_phys**2*(sigmakp_phys)*1.d-15*tp_fs_phys*(rhoslg1_phys/rhoc_cm3_phys)*(Pcr_phys/(4.d0*3.1415))**KKp*w0_cm_phys**(2*(1-KKp))  !adimensionned SLG1 coefficient
+    beta_inv_2KKp=k0_phys**2*(sigmakp_phys)*1.d-15*tp_fs_phys*(rhoslg1_phys/rhoc_cm3_phys)* &
+      (Pcr_phys/(4.d0*3.1415))**KKp*w0_cm_phys**(2*(1-KKp))  !adimensionned SLG1 coefficient
     eti_ref=I_ref_phys*(4*3.1415*w0_cm_phys**2)/Pcr_phys  !adimensionned reference intensity
     beta_inv_2=k0_phys**2*(sigma_phys)*1.d-15*tp_fs_phys*n0/(2*z_rayleigh_cm_phys*k0_phys)*(Pcr_phys/(4.d0*3.1415))  !adimensionned SLG2 coefficient
     betakp_phys =((KKp+2)*h*2*3.1415D0*c/(lambda0_cm_phys))*rhoslg1_phys*sigmakp_phys !coefficient of multiphoton SLG1 absorption   cm2Kp-3/WKp-1
@@ -810,7 +836,8 @@ CONTAINS
     mu=2.D0*z_rayleigh_cm_phys*beta_phys  !adimensionned coefficient for MPA effect SLG2 absorption
     betakpp_phys =((KKpp+2)*h*2*3.1415D0*c/(lambda0_cm_phys))*rhoslg1_phys*sigmakpp_phys !coefficient of absorption due to SLG2 population  cm2Kpp-3/WKpp-1
     mukpp = 2.D0*z_rayleigh_cm_phys*betakpp_phys*(Pcr_phys/(4.d0*3.1415))**(KKpp-1)*w0_cm_phys**(2*(1-KKpp))  !adimensionned coefficient for absorption due to SLG2 population
-    beta_inv_2KKpp =k0_phys**2*(sigmakpp_phys)*1.d-15*tp_fs_phys*(rhoslg1_phys/rhoc_cm3_phys)*(Pcr_phys/(4.d0*3.1415))**KKpp*w0_cm_phys**(2*(1-KKpp))  !adimensionned popSLG2 coefficient
+    beta_inv_2KKpp =k0_phys**2*(sigmakpp_phys)*1.d-15*tp_fs_phys*(rhoslg1_phys/rhoc_cm3_phys)* &
+      (Pcr_phys/(4.d0*3.1415))**KKpp*w0_cm_phys**(2*(1-KKpp))  !adimensionned popSLG2 coefficient
     alpha1=alpha1_fs_phys*tp_fs_phys !adimensionned linear recombination for SLG1 electrons coefficient
     alpha2=sigmacv_ref_phys*n0*rhoc_cm3_phys/(2*z_rayleigh_cm_phys*k0_phys)*tp_fs_phys !adimensionned recombinsation coefficient for SLG2 electrons
     alphah=alphah_fs_phys*tp_fs_phys !adimensionned linear recombination for holes coefficient
@@ -830,7 +857,8 @@ CONTAINS
     Indice_norm = 4.D0*z_rayleigh_cm_phys*k0_phys*(Indice-n0)
 
     IF ((i_x_max.GT.1).OR.(i_z_max.GT.1)) THEN
-       print*, 'The maximum deviation from background index on index array boundaries is ',MAX(MAXVAL(ABS(Indice(i_x_max,:)-n0)),MAXVAL(ABS(Indice(:,1)-n0)),MAXVAL(ABS(Indice(:,i_z_max)-n0))),' hit enter to continue'
+       print*, 'The maximum deviation from background index on index array boundaries is ',MAX(MAXVAL(ABS(Indice(i_x_max,:)-n0)), &
+         MAXVAL(ABS(Indice(:,1)-n0)),MAXVAL(ABS(Indice(:,i_z_max)-n0))),' hit enter to continue'
        READ(5,*)
     ENDIF
     
