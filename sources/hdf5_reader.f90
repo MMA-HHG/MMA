@@ -10,6 +10,7 @@ MODULE hdf5_reader
       INTEGER(HSIZE_T), DIMENSION(1:1) :: data_dims
       CALL h5dopen_f(file_id, name, dset_id, error)
       CALL h5dread_f(dset_id, H5T_NATIVE_INTEGER, var, data_dims, error)
+      print *, name, var
       CALL h5dclose_f(dset_id, error)
     END SUBROUTINE
 
@@ -23,6 +24,7 @@ MODULE hdf5_reader
       INTEGER(HSIZE_T), DIMENSION(1:1) :: data_dims
       CALL h5dopen_f(file_id, name, dset_id, error)
       CALL h5dread_f(dset_id, H5T_NATIVE_DOUBLE, var, data_dims, error)
+      print *, name, var
       CALL h5dclose_f(dset_id, error)
    END SUBROUTINE
 
@@ -50,6 +52,7 @@ MODULE hdf5_reader
       CALL h5tcopy_f(H5T_FORTRAN_S1, memtype, error)
       CALL h5tset_size_f(memtype, length, error)
       CALL h5dread_f(dset_id, memtype, var, dims, error, space)
+      print *, name, var
       CALL h5dclose_f(dset_id, error)
     END SUBROUTINE
 

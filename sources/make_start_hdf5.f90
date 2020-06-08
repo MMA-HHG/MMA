@@ -6,13 +6,13 @@ PROGRAM make_start_hdf5
   IMPLICIT NONE
   CHARACTER(15) :: filename  ! File name
   
+
   INTEGER(HID_T) :: file_id                          ! File identifier
   INTEGER        :: error                            ! Error flag
   INTEGER(HSIZE_T), DIMENSION(1:1) :: data_dims        
   
   PRINT*, 'Specify name of parameterfile' 
   READ(5,*) filename
-
 
   ! Open FORTRAN HDF5 interface
   CALL h5open_f(error)
