@@ -7,7 +7,9 @@
 #  MPIF90 = mpiifort
   MPIF90 = mpif90
 #  F90    = ifort
-  F90    = gfortran
+  F90    = gfortran  
+  H5 = h5pfc
+  FFT     = -lfftw3_mpi -lfftw3
 #  FFLAGS =  -check all -warn all -traceback -fpe0
   FFLAGS =  -Wall -O2 -ffree-line-length-none -fbacktrace -fcheck=all -v
 #  FFLAGS =  -O3 -ansi_alias 
@@ -25,6 +27,8 @@
   MAKE_START	   = make_start_occigen.e
   S_MAKE_START       = write_start.f90 calc_start.f90 normalisation.f90 \
                        write_listing.f90 make_start.f90
+  MAKE_START_HDF5     = make_start_occigen.e
+  S_MAKE_START_HDF5       = hdf5_helper.f90 write_start_hdf5.f90 calc_start.f90 normalisation.f90 write_listing.f90 make_start_hdf5.f90
   CLEAN       = clean_occigen.e
   S_CLEAN	= clean.f90
   MERGE       = merge_occigen.e
@@ -46,8 +50,11 @@ $(PROPAGATION_DEFOK) : $(S_PROPAGATION_DEFOK)
 $(PROPAGATION_MICKAEL) : $(S_PROPAGATION_MICKAEL)
 	${MPIF90} -o $(PROPAGATION_MICKAEL) $(S_PROPAGATION_MICKAEL) ${FFTPATH} ${FFT} ${FFLAGS}
 $(MAKE_START) : $(S_MAKE_START)
+	${F90} -o $(MAKE_START) $(S_MAKE_START) ${FFTPATH} ${FFT} ${FMFLAGS}
+$(MAKE_START_HDF5) : $(S_MAKE_START_HDF5)
+	${H5} -o $(MAKE_START_HDF5) $(S_MAKE_START_HDF5) ${FFT}
 #	${F90} -o $(MAKE_START) $(S_MAKE_START) ${FFTPATH} ${FFT} ${FMFLAGS}
-	${F90} ${FFLAGS} -o $(MAKE_START) $(S_MAKE_START) ${FFTPATH} ${FFT} ${FMFLAGS}
+#	${F90} ${FFLAGS} -o $(MAKE_START) $(S_MAKE_START) ${FFTPATH} ${FFT} ${FMFLAGS}
 $(MAKE_START_NU0) : $(S_MAKE_START_NU0)
 	${F90} -o $(MAKE_START_NU0) $(S_MAKE_START_NU0) ${FFTPATH} ${FFT} ${FFLAGS}
 $(CLEAN) : $(S_CLEAN)
@@ -67,6 +74,11 @@ clean :
 binary :
 	/bin/mv *.e ../binary
 #
+clean_preprocessor :
+	rm -f listing STOP *.DAT *.LOG
+#
 code : $(CALC_FT) $(MAKE_START) $(MAKE_START_4WM) $(PROPAGATION) $(PROPAGATION_DEFOK) $(PROPAGATION_MICKAEL) $(CLEAN) $(MERGE) binary clean
+#
+preprocessor : clean clean_preprocessor $(MAKE_START_HDF5)
 #
 util : $(CALC_FT) $(MAKE_START) $(MAKE_START_NU0) $(CLEAN) $(MERGE) binary clean

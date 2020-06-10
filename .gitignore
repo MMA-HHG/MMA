@@ -2,5 +2,26 @@
 ###################
 binary/
 
+# HDF5
+# Compiled files and object files
+*.o
+*.mod
+*.out
+
+*.DAT
+*.LOG
+
+# Specific files
+sources/MERGE_RAD.LOG
+sources/PROP_RAD.LOG
+sources/STOP
+sources/komega.dat
+sources/komega_original.dat
+sources/komega_original_reduced.dat
+sources/komega_reduced.dat
+sources/listing
+sources/make_start_hdf5_occigen.e
+sources/nomega.dat
 # generated modules #
 sources/**__genmod.f90
+

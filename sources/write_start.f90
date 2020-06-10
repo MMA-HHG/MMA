@@ -1,10 +1,10 @@
 MODULE write_start
 
-  INTEGER(4) num_proc,dim_t,dim_r,KK,NN,switch_rho,switch_dKerr,absorb,rhodist,angular_momentum,switch_T,KKp,KKpp,angular_momentum_N2
-  INTEGER(4) i_x_max, i_z_max, i_x, i_z
+  INTEGER(4) num_proc,dim_t,dim_r,KK,NN,switch_rho,switch_dKerr,absorb,rhodist,angular_momentum,switch_T,KKp,KKpp
+  INTEGER(4) i_x_max, i_z_max, i_x, i_z, angular_momentum_N2
   REAL(8) rek0,rekp,c3,c5,gamma1,gamma2,muk,beta_inv_2KK,rho0,nu,alpha,alphaquad,rhoat_inv,xdk,tdk,raman,omega,eta1,eta2
-  REAL(8) beta_inv_2KKp,eti_ref,exp_ref,beta_inv_2,mukp,mu,mukpp,beta_inv_2KKpp,alpha1,alpha2,alphah,rhosat,gamma1e,nuO2,nuN2,T_init_eV_phys,nukB
-  REAL(8) omega_uppe,nucp,nucO2,nucN2,rhoat_N2_inv
+  REAL(8) beta_inv_2KKp,eti_ref,exp_ref,beta_inv_2,mukp,mu,mukpp,beta_inv_2KKpp,alpha1,alpha2,alphah,rhosat,gamma1e,nuO2,nuN2
+  REAL(8) omega_uppe,nucp,nucO2,nucN2,rhoat_N2_inv,T_init_eV_phys,nukB
   REAL(8) lt,lr,proplength,outlength,delta_z,z,z_out,rfil,increase,decrease,time_limit
   REAL(8) photon_energy_au_phys,tp_fs_phys,Pcr_phys,w0_cm_phys
   REAL(8) Ui_au_phys,residue_charge,n0,rhoc_cm3_phys,rhont_cm3_phys,reduced_mass
