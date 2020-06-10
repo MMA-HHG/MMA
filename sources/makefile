@@ -6,17 +6,20 @@
 #CINES commentaire : mpiifort est A utiliser avec intelmpi
   MPIF90 = mpiifort
   F90    = ifort
+  H5 = h5pfc
   FFLAGS =  -check all -warn all -traceback -fpe0
 #  FFLAGS =  -O3 -ansi_alias 
   LFLAGS =  -lhdf5 -lhdf5_hl -lhdf5_fortran -lhdf5hl_fortran -lz 
   FFTPATH    = $(MKL_LIBS_MT)
-#  FFT     = -lfftw3
+  FFT     = -lfftw3_mpi -lfftw3
   PROPAGATION       = cuprad_occigen.e
   S_PROPAGATION       =  modules.f90 code_ionisation.f90 fft_rk.f90 finalize.f90 \
                         firststep.f90 longstep_rk.f90 output.f90 outputHDF5_occigen.f90 cuprad.f90
   MAKE_START	   = make_start_occigen.e
   S_MAKE_START       = write_start.f90 calc_start.f90 normalisation.f90 \
                        write_listing.f90 make_start.f90
+  MAKE_START_HDF5     = make_start_occigen.e
+  S_MAKE_START_HDF5       = hdf5_helper.f90 write_start_hdf5.f90 calc_start.f90 normalisation.f90 write_listing.f90 make_start_hdf5.f90
   CLEAN       = clean_occigen.e
   S_CLEAN	= clean.f90
   MERGE       = merge_occigen.e
@@ -37,6 +40,8 @@ $(PROPAGATION_MICKAEL) : $(S_PROPAGATION_MICKAEL)
 	${MPIF90} -o $(PROPAGATION_MICKAEL) $(S_PROPAGATION_MICKAEL) ${FFTPATH} ${FFT} ${FFLAGS}
 $(MAKE_START) : $(S_MAKE_START)
 	${F90} -o $(MAKE_START) $(S_MAKE_START) ${FFTPATH} ${FFT} ${FMFLAGS}
+$(MAKE_START_HDF5) : $(S_MAKE_START_HDF5)
+	${H5} -o $(MAKE_START_HDF5) $(S_MAKE_START_HDF5) ${FFT}
 $(MAKE_START_NU0) : $(S_MAKE_START_NU0)
 	${F90} -o $(MAKE_START_NU0) $(S_MAKE_START_NU0) ${FFTPATH} ${FFT} ${FFLAGS}
 $(CLEAN) : $(S_CLEAN)
@@ -56,6 +61,11 @@ clean :
 binary :
 	/bin/mv *.e ../binary
 #
+clean_preprocessor :
+	rm -f listing STOP *.DAT *.LOG
+#
 code : $(CALC_FT) $(MAKE_START) $(MAKE_START_4WM) $(PROPAGATION) $(PROPAGATION_DEFOK) $(PROPAGATION_MICKAEL) $(CLEAN) $(MERGE) binary clean
+#
+preprocessor : clean clean_preprocessor $(MAKE_START_HDF5)
 #
 util : $(CALC_FT) $(MAKE_START) $(MAKE_START_NU0) $(CLEAN) $(MERGE) binary clean

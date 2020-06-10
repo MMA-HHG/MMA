@@ -1,14 +1,14 @@
 PROGRAM make_start_hdf5
   USE HDF5
   USE write_listing
-  USE HDF5_reader
+  USE HDF5_helper
 
   IMPLICIT NONE
   CHARACTER(15) :: filename  ! File name
   
 
-  INTEGER(HID_T) :: file_id                          ! File identifier
-  INTEGER        :: error                            ! Error flag
+  ! INTEGER(HID_T) :: file_id                          ! File identifier
+  ! INTEGER        :: error                            ! Error flag
   INTEGER(HSIZE_T), DIMENSION(1:1) :: data_dims        
   
   PRINT*, 'Specify name of parameterfile' 
@@ -144,7 +144,7 @@ PROGRAM make_start_hdf5
   ! The original program closed the file here, so I'm closing it too
   !------------------------------------!
   ! Close the file.
-  CALL h5fclose_f(file_id, error)
+  ! CALL h5fclose_f(file_id, error)
   
   PRINT*, 'Specify name of indexfile, or 0 to ignore'
   READ(5,*) indexfile
@@ -171,11 +171,14 @@ PROGRAM make_start_hdf5
   CALL compute_dispersion(switch_dispersion)
   CALL compute_parameters
   CALL write_listingfile
+  CALL h5gcreate_f(file_id, output_groupname, group_id, error)  
   DO p=0,num_proc-1
     CALL calc_startingfield(switch_start,p) 
-    CALL write_startingfile(p)
+    CALL write_startingfile_hdf5(p)
   ENDDO
+    CALL h5gclose_f(group_id, error)
 
+  CALL h5fclose_f(file_id, error)
   ! Close FORTRAN HDF5 interface.
   CALL h5close_f(error)  
 END PROGRAM make_start_hdf5
