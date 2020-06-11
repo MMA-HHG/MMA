@@ -92,7 +92,7 @@ CONTAINS
     ENDIF
 
 	IF (my_rank.EQ.0) THEN
-		print *, "init started: "
+		print *, "init started "
 	ENDIF
 
     CALL MPI_BCAST(filename,10,MPI_CHARACTER,0,MPI_COMM_WORLD,ierr)
