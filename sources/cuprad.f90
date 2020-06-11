@@ -19,7 +19,7 @@ PROGRAM cuprad
 !  starttime = time()
   call system_clock(tcount, count_rate, count_max)
   write(*,*) tcount, count_rate,count_max
-  stop
+!  stop
   CALL initialize
   limit_s=timelimit*3600
   IF (.NOT.finished) THEN

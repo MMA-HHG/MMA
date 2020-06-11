@@ -90,6 +90,11 @@ CONTAINS
 999    CONTINUE
        CLOSE(unit_logfile)
     ENDIF
+
+	IF (my_rank.EQ.0) THEN
+		print *, "init started: "
+	ENDIF
+
     CALL MPI_BCAST(filename,10,MPI_CHARACTER,0,MPI_COMM_WORLD,ierr)
     WRITE(ip,930) my_rank
     DO k=1,3
