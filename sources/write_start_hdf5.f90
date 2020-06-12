@@ -12,7 +12,7 @@ MODULE write_start_hdf5
   REAL(8) Ui_au_phys,residue_charge,n0,rhoc_cm3_phys,rhont_cm3_phys,reduced_mass
   REAL(8) Ui_au_phys_N2,residue_charge_N2,rhont_N2_cm3_phys
   REAL(8), ALLOCATABLE :: xx(:),zz(:),Indice_norm(:,:)
-  COMPLEX(8), ALLOCATABLE :: e(:,:),komega(:)
+  COMPLEX(8), ALLOCATABLE :: e(:,:),e_full(:,:),komega(:)
   INTEGER(HID_T) :: file_id, group_id
   INTEGER :: error
   CHARACTER(LEN = *), PARAMETER :: output_groupname = "pre-processed"
@@ -25,7 +25,6 @@ CONTAINS
     INTEGER(4) p,j,l,k
     CHARACTER(LEN = 3) :: ip
     CHARACTER(LEN = 10):: iz,id
-    INTEGER(HID_T) :: inner_group_id
     WRITE(iz,920) z
     DO k=1,10
        IF (iz(k:k).EQ.' ') iz(k:k)='0'
@@ -45,111 +44,101 @@ CONTAINS
     DO l=1,3
        IF (ip(l:l).EQ.' ') ip(l:l)='0'
     ENDDO
-
-    CALL h5gcreate_f(file_id, output_groupname//"/"//ip, inner_group_id, error)
-   
-    CALL create_scalar_int_dset(inner_group_id, 'num_proc', num_proc)
-    CALL create_scalar_int_dset(inner_group_id, 'dim_t', dim_t)
-    CALL create_scalar_int_dset(inner_group_id, 'dim_r', dim_r) 
-    CALL create_scalar_real_dset(inner_group_id, 'rek0', rek0)
-    CALL create_scalar_real_dset(inner_group_id, 'rekp', rekp)
-    CALL create_scalar_real_dset(inner_group_id, 'c3', c3)
-    CALL create_scalar_real_dset(inner_group_id, 'c5', c5)
-    CALL create_scalar_real_dset(inner_group_id, 'gamma1', gamma1)
-    CALL create_scalar_real_dset(inner_group_id, 'gamma2', gamma2)
-    CALL create_scalar_real_dset(inner_group_id, 'muk', muk)
-    CALL create_scalar_real_dset(inner_group_id, 'beta_inv_2KK', beta_inv_2KK)
-    CALL create_scalar_int_dset(inner_group_id,'KK',KK)
-    CALL create_scalar_real_dset(inner_group_id,'rho0',rho0)
-    CALL create_scalar_real_dset(inner_group_id,'nu',nu)
-    CALL create_scalar_real_dset(inner_group_id,'alpha',alpha)
-    CALL create_scalar_real_dset(inner_group_id,'alphaquad', alphaquad)
-    CALL create_scalar_real_dset(inner_group_id,'rhoat_inv', rhoat_inv)
-    CALL create_scalar_real_dset(inner_group_id,'xdk', xdk)
-    CALL create_scalar_real_dset(inner_group_id,'tdk', tdk)
-    CALL create_scalar_real_dset(inner_group_id,'raman', raman)
-    CALL create_scalar_real_dset(inner_group_id,'omega', omega)
-    print *, shape(real(komega)), shape(imag(komega))
-    ! print *, komega(1:dim_t)
-    ! probably an array 'komega', komega(1:dim_t))
-    CALL create_scalar_int_dset(inner_group_id,'NN', NN)
-    CALL create_scalar_real_dset(inner_group_id,'eta1', eta1)
-    CALL create_scalar_real_dset(inner_group_id,'eta2', eta2)
-    CALL create_scalar_real_dset(inner_group_id,'lt', lt)
-    CALL create_scalar_real_dset(inner_group_id,'lr', lr)
-    CALL create_scalar_real_dset(inner_group_id,'proplength', proplength)
-    CALL create_scalar_real_dset(inner_group_id,'outlength', outlength)
-    CALL create_scalar_real_dset(inner_group_id,'delta_z', delta_z)
-    CALL create_scalar_real_dset(inner_group_id,'z', z)
-    CALL create_scalar_real_dset(inner_group_id,'z_out', z_out)
-    CALL create_scalar_real_dset(inner_group_id,'rfil', rfil)
-    CALL create_scalar_int_dset(inner_group_id,'switch_rho', switch_rho)
-    CALL create_scalar_int_dset(inner_group_id,'switchKerr', switch_dKerr)
-    CALL create_scalar_int_dset(inner_group_id,'switch_T', switch_T)
-    CALL create_scalar_int_dset(inner_group_id,'absorb', absorb)
-    CALL create_scalar_real_dset(inner_group_id,'increase', increase)
-    CALL create_scalar_real_dset(inner_group_id,'decrease', decrease)
-    CALL create_scalar_int_dset(inner_group_id,'rhodist', rhodist)
-    CALL create_scalar_real_dset(inner_group_id,'timelimit', time_limit)
-    CALL create_scalar_real_dset(inner_group_id,'photenergy',photon_energy_au_phys)
-    CALL create_scalar_real_dset(inner_group_id,'pulsedurat',tp_fs_phys)
-    CALL create_scalar_real_dset(inner_group_id,'critpower',Pcr_phys*1.D-9)
-    CALL create_scalar_real_dset(inner_group_id,'beam_waist',w0_cm_phys)
-    CALL create_scalar_real_dset(inner_group_id,'ionpot',Ui_au_phys)
-    CALL create_scalar_real_dset(inner_group_id,'rescharge',residue_charge)
-    CALL create_scalar_real_dset(inner_group_id,'n0_indice',n0)
-    CALL create_scalar_real_dset(inner_group_id,'critdens',rhoc_cm3_phys)
-    CALL create_scalar_real_dset(inner_group_id,'atomdens',rhont_cm3_phys)
-    CALL create_scalar_real_dset(inner_group_id,'reducmass',reduced_mass)
-    CALL create_scalar_int_dset(inner_group_id,'angmom',angular_momentum)
-    CALL create_scalar_int_dset(inner_group_id,'KKp', KKp)
-    CALL create_scalar_real_dset(inner_group_id,'beta_inv_2KKp', beta_inv_2KKp)
-    CALL create_scalar_real_dset(inner_group_id,'mukp', mukp)
-    CALL create_scalar_real_dset(inner_group_id,'beta_inv_2', beta_inv_2)
-    CALL create_scalar_real_dset(inner_group_id,'mu', mu)
-    CALL create_scalar_int_dset(inner_group_id,'KKpp', KKpp)
-    CALL create_scalar_real_dset(inner_group_id,'beta_inv_2KKpp', beta_inv_2KKpp)
-    CALL create_scalar_real_dset(inner_group_id,'mukpp', mukpp)
-    CALL create_scalar_real_dset(inner_group_id,'eti_ref', eti_ref)
-    CALL create_scalar_real_dset(inner_group_id,'exp_ref', exp_ref)
-    CALL create_scalar_real_dset(inner_group_id,'alpha1',alpha1)
-    CALL create_scalar_real_dset(inner_group_id,'alpha2',alpha2)
-    CALL create_scalar_real_dset(inner_group_id,'alphah',alphah)
-    CALL create_scalar_real_dset(inner_group_id,'rhosat',rhosat)
-    ! BOOLEAN CALL create_scalar_real_dset(inner_group_id,'finished',.FALSE.)
-    CALL create_scalar_real_dset(inner_group_id,'omega_uppe', omega_uppe)
-    CALL create_scalar_real_dset(inner_group_id,'gamma1e', gamma1e)
-    CALL create_scalar_real_dset(inner_group_id,'nuO2', nuO2)
-    CALL create_scalar_real_dset(inner_group_id,'nuN2', nuN2)
-    CALL create_scalar_real_dset(inner_group_id,'T_init_eV_phys', T_init_ev_phys)
-    CALL create_scalar_real_dset(inner_group_id,'nukB', nukB)
-    CALL create_scalar_real_dset(inner_group_id,'nucp', nucp)
-    CALL create_scalar_real_dset(inner_group_id,'nucO2', nucO2)
-    CALL create_scalar_real_dset(inner_group_id,'nucN2', nucN2)
-    CALL create_scalar_real_dset(inner_group_id,'rhoat_N2_inv', rhoat_N2_inv)
-    CALL create_scalar_real_dset(inner_group_id,'ionpotN2',Ui_au_phys_N2)
-    CALL create_scalar_real_dset(inner_group_id,'rescharge_N2',residue_charge_N2)
-    CALL create_scalar_real_dset(inner_group_id,'atomdens_N2',rhont_N2_cm3_phys)
-    CALL create_scalar_int_dset(inner_group_id,'angmom_N2',angular_momentum_N2)
-    ! ASK |
-    !     V
-    !id='startfield'
-    !WRITE(10) id
-    !DO j=p*(dim_r/num_proc)+1,(p+1)*(dim_r/num_proc)
-    !   WRITE(10) e(1:dim_t,j)
-    !ENDDO
-    !id='index'
-    !WRITE(10) id
-    !WRITE(10) i_x_max, i_z_max
-    !WRITE(10) (xx(i_x),i_x=1,i_x_max)
-    !DO i_z = 1, i_z_max
-    !   WRITE(10) zz(i_z)
-    !   WRITE(10) (Indice_norm(i_x,i_z),i_x=1,i_x_max)
-    !ENDDO  
-    !CLOSE(10)
-    !DEALLOCATE(e)
-    CALL h5gclose_f(inner_group_id, error)
-
+    IF(p.EQ.(num_proc-1))THEN
+      CALL create_scalar_int_dset(group_id, 'num_proc', num_proc)
+      CALL create_scalar_int_dset(group_id, 'dim_t', dim_t)
+      CALL create_scalar_int_dset(group_id, 'dim_r', dim_r) 
+      CALL create_scalar_real_dset(group_id, 'rek0', rek0)
+      CALL create_scalar_real_dset(group_id, 'rekp', rekp)
+      CALL create_scalar_real_dset(group_id, 'c3', c3)
+      CALL create_scalar_real_dset(group_id, 'c5', c5)
+      CALL create_scalar_real_dset(group_id, 'gamma1', gamma1)
+      CALL create_scalar_real_dset(group_id, 'gamma2', gamma2)
+      CALL create_scalar_real_dset(group_id, 'muk', muk)
+      CALL create_scalar_real_dset(group_id, 'beta_inv_2KK', beta_inv_2KK)
+      CALL create_scalar_int_dset(group_id,'KK',KK)
+      CALL create_scalar_real_dset(group_id,'rho0',rho0)
+      CALL create_scalar_real_dset(group_id,'nu',nu)
+      CALL create_scalar_real_dset(group_id,'alpha',alpha)
+      CALL create_scalar_real_dset(group_id,'alphaquad', alphaquad)
+      CALL create_scalar_real_dset(group_id,'rhoat_inv', rhoat_inv)
+      CALL create_scalar_real_dset(group_id,'xdk', xdk)
+      CALL create_scalar_real_dset(group_id,'tdk', tdk)
+      CALL create_scalar_real_dset(group_id,'raman', raman)
+      CALL create_scalar_real_dset(group_id,'omega', omega)
+      CALL create_array_complex_dset(group_id,'komega', komega(1:dim_t), dim_t)
+      CALL create_scalar_int_dset(group_id,'NN', NN)
+      CALL create_scalar_real_dset(group_id,'eta1', eta1)
+      CALL create_scalar_real_dset(group_id,'eta2', eta2)
+      CALL create_scalar_real_dset(group_id,'lt', lt)
+      CALL create_scalar_real_dset(group_id,'lr', lr)
+      CALL create_scalar_real_dset(group_id,'proplength', proplength)
+      CALL create_scalar_real_dset(group_id,'outlength', outlength)
+      CALL create_scalar_real_dset(group_id,'delta_z', delta_z)
+      CALL create_scalar_real_dset(group_id,'z', z)
+      CALL create_scalar_real_dset(group_id,'z_out', z_out)
+      CALL create_scalar_real_dset(group_id,'rfil', rfil)
+      CALL create_scalar_int_dset(group_id,'switch_rho', switch_rho)
+      CALL create_scalar_int_dset(group_id,'switchKerr', switch_dKerr)
+      CALL create_scalar_int_dset(group_id,'switch_T', switch_T)
+      CALL create_scalar_int_dset(group_id,'absorb', absorb)
+      CALL create_scalar_real_dset(group_id,'increase', increase)
+      CALL create_scalar_real_dset(group_id,'decrease', decrease)
+      CALL create_scalar_int_dset(group_id,'rhodist', rhodist)
+      CALL create_scalar_real_dset(group_id,'timelimit', time_limit)
+      CALL create_scalar_real_dset(group_id,'photenergy',photon_energy_au_phys)
+      CALL create_scalar_real_dset(group_id,'pulsedurat',tp_fs_phys)
+      CALL create_scalar_real_dset(group_id,'critpower',Pcr_phys*1.D-9)
+      CALL create_scalar_real_dset(group_id,'beam_waist',w0_cm_phys)
+      CALL create_scalar_real_dset(group_id,'ionpot',Ui_au_phys)
+      CALL create_scalar_real_dset(group_id,'rescharge',residue_charge)
+      CALL create_scalar_real_dset(group_id,'n0_indice',n0)
+      CALL create_scalar_real_dset(group_id,'critdens',rhoc_cm3_phys)
+      CALL create_scalar_real_dset(group_id,'atomdens',rhont_cm3_phys)
+      CALL create_scalar_real_dset(group_id,'reducmass',reduced_mass)
+      CALL create_scalar_int_dset(group_id,'angmom',angular_momentum)
+      CALL create_scalar_int_dset(group_id,'KKp', KKp)
+      CALL create_scalar_real_dset(group_id,'beta_inv_2KKp', beta_inv_2KKp)
+      CALL create_scalar_real_dset(group_id,'mukp', mukp)
+      CALL create_scalar_real_dset(group_id,'beta_inv_2', beta_inv_2)
+      CALL create_scalar_real_dset(group_id,'mu', mu)
+      CALL create_scalar_int_dset(group_id,'KKpp', KKpp)
+      CALL create_scalar_real_dset(group_id,'beta_inv_2KKpp', beta_inv_2KKpp)
+      CALL create_scalar_real_dset(group_id,'mukpp', mukpp)
+      CALL create_scalar_real_dset(group_id,'eti_ref', eti_ref)
+      CALL create_scalar_real_dset(group_id,'exp_ref', exp_ref)
+      CALL create_scalar_real_dset(group_id,'alpha1',alpha1)
+      CALL create_scalar_real_dset(group_id,'alpha2',alpha2)
+      CALL create_scalar_real_dset(group_id,'alphah',alphah)
+      CALL create_scalar_real_dset(group_id,'rhosat',rhosat)
+      CALL create_scalar_boolean_dset(group_id,'finished',.FALSE.)
+      CALL create_scalar_real_dset(group_id,'omega_uppe', omega_uppe)
+      CALL create_scalar_real_dset(group_id,'gamma1e', gamma1e)
+      CALL create_scalar_real_dset(group_id,'nuO2', nuO2)
+      CALL create_scalar_real_dset(group_id,'nuN2', nuN2)
+      CALL create_scalar_real_dset(group_id,'T_init_eV_phys', T_init_ev_phys)
+      CALL create_scalar_real_dset(group_id,'nukB', nukB)
+      CALL create_scalar_real_dset(group_id,'nucp', nucp)
+      CALL create_scalar_real_dset(group_id,'nucO2', nucO2)
+      CALL create_scalar_real_dset(group_id,'nucN2', nucN2)
+      CALL create_scalar_real_dset(group_id,'rhoat_N2_inv', rhoat_N2_inv)
+      CALL create_scalar_real_dset(group_id,'ionpotN2',Ui_au_phys_N2)
+      CALL create_scalar_real_dset(group_id,'rescharge_N2',residue_charge_N2)
+      CALL create_scalar_real_dset(group_id,'atomdens_N2',rhont_N2_cm3_phys)
+      CALL create_scalar_int_dset(group_id,'angmom_N2',angular_momentum_N2)
+      CALL create_2D_array_complex_dset(group_id,"startfield",e_full,dim_r,dim_t)
+    ENDIF
+      !print *,i_x_max,i_z_max, zz, (xx(i_x),i_x=1,i_x_max)
+      !id='index'
+      !WRITE(10) id
+      !WRITE(10) i_x_max, i_z_max
+      !WRITE(10) (xx(i_x),i_x=1,i_x_max)
+      !DO i_z = 1, i_z_max
+      !   WRITE(10) zz(i_z)
+      !   WRITE(10) (Indice_norm(i_x,i_z),i_x=1,i_x_max)
+      !ENDDO  
+      !CLOSE(10)
+      !DEALLOCATE(e)
 
 
     OPEN(10,FILE=iz//'_'//ip//'.DAT',STATUS='NEW',FORM='UNFORMATTED')
@@ -159,7 +148,7 @@ CONTAINS
     id='dim_t'
     WRITE(10) id,dim_t
     id='dim_r'
-    WRITE(10) id,dim_r
+   WRITE(10) id,dim_r
     id='rek0'
     WRITE(10) id,rek0
     id='rekp'

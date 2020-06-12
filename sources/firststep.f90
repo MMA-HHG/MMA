@@ -69,12 +69,17 @@ CONTAINS
     USE ppt
     USE Complex_rotation 
     USE fft
+    USE HDF5
     IMPLICIT NONE
 
     INTEGER(4)  j,k,help,i_x,i_z
     REAL(8) absorb_factor
     LOGICAL ext
     CHARACTER*10 filename,id
+    CHARACTER(LEN=10), PARAMETER :: hdf5_input = "results.h5"  ! File name for the HDF5 input file
+
+    INTEGER(HID_T) :: file_id       ! File identifier 
+    INTEGER        :: error
 
     HDF5write_count = 1
     CALL MPI_Init(ierr)
@@ -95,6 +100,13 @@ CONTAINS
     DO k=1,3
        IF (ip(k:k).EQ.' ') ip(k:k)='0'
     ENDDO
+
+    CALL h5open_f(error) 
+    CALL h5fopen_f (filename, H5F_ACC_RDONLY_F, file_id, error)
+    CALL h5fclose_f(file_id, error)
+    ! Close FORTRAN HDF5 interface.
+    CALL h5close_f(error)
+
     OPEN(unit_field,FILE=filename//'_'//ip//'.DAT',STATUS='OLD',FORM='UNFORMATTED')
     READ(unit_field) id,num_proc
     READ(unit_field) id,dim_t
