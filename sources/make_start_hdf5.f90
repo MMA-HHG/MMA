@@ -22,7 +22,6 @@ PROGRAM make_start_hdf5
   !_______________________________!
 
   CALL readint(file_id, 'inputs/number_of_processors', num_proc)
-  print *, num_proc 
   CALL readreal(file_id, 'inputs/run_time_in_hours', time_limit)
   CALL readreal(file_id, 'inputs/length_of_window_for_t_normalized_to_pulse_duration', lt)
   CALL readint(file_id, 'inputs/number_of_points_in_t', dim_t)
@@ -172,11 +171,12 @@ PROGRAM make_start_hdf5
   CALL compute_parameters
   CALL write_listingfile
   CALL h5gcreate_f(file_id, output_groupname, group_id, error)  
+  ALLOCATE(e_full(dim_t,dim_r))
   DO p=0,num_proc-1
     CALL calc_startingfield(switch_start,p) 
     CALL write_startingfile_hdf5(p)
   ENDDO
-    CALL h5gclose_f(group_id, error)
+  CALL h5gclose_f(group_id, error)
 
   CALL h5fclose_f(file_id, error)
   ! Close FORTRAN HDF5 interface.
