@@ -7,7 +7,7 @@ MODULE hdf5_helper
 
     SUBROUTINE readint(file_id, name, var)
       USE HDF5
-      INTEGER(8)     :: file_id
+      INTEGER(4)     :: file_id
       CHARACTER(*)   :: name
       INTEGER(4)     :: var
       INTEGER(HID_T) :: dset_id
@@ -21,7 +21,7 @@ MODULE hdf5_helper
 
     SUBROUTINE readreal(file_id, name, var)
       USE HDF5
-      INTEGER(8)     :: file_id
+      INTEGER(4)     :: file_id
       CHARACTER(*)   :: name
       REAL(8)        :: var
       INTEGER(HID_T) :: dset_id
@@ -35,7 +35,7 @@ MODULE hdf5_helper
 
     SUBROUTINE readbool(file_id, name, var)
       USE HDF5
-      INTEGER(8)     :: file_id
+      INTEGER(4)     :: file_id
       CHARACTER(*)   :: name
       LOGICAL        :: var
       INTEGER        :: value
@@ -55,7 +55,7 @@ MODULE hdf5_helper
   
    SUBROUTINE readstring(file_id, name, var)
       USE HDF5
-      INTEGER(8)                       :: file_id
+      INTEGER(4)                       :: file_id
       CHARACTER(*)                     :: name
       INTEGER(SIZE_T), PARAMETER       :: length = 15
       CHARACTER(LEN=length)            :: var
@@ -87,7 +87,7 @@ MODULE hdf5_helper
     
     SUBROUTINE create_scalar_boolean_dset(file_id, name, var)
       USE HDF5
-      INTEGER(8)    :: file_id
+      INTEGER(4)    :: file_id
       CHARACTER(*)  :: name
       LOGICAL       :: var
       INTEGER       :: value = 0
@@ -106,7 +106,7 @@ MODULE hdf5_helper
 
     SUBROUTINE create_scalar_int_dset(file_id, name, var)
       USE HDF5
-      INTEGER(8)     :: file_id
+      INTEGER(4)     :: file_id
       CHARACTER(*)   :: name
       INTEGER(4)     :: var
       INTEGER(HID_T) :: dset_id, dataspace_id
@@ -121,7 +121,7 @@ MODULE hdf5_helper
 
     SUBROUTINE create_scalar_real_dset(file_id, name, var)
       USE HDF5
-      INTEGER(8)     :: file_id
+      INTEGER(4)     :: file_id
       CHARACTER(*)   :: name
       REAL(8)     :: var
       INTEGER(HID_T) :: dset_id, dataspace_id
@@ -138,7 +138,7 @@ MODULE hdf5_helper
     SUBROUTINE create_array_complex_dset(file_id, name, var, dims_y)
       USE HDF5
       COMPLEX(8), DIMENSION(:) :: var
-      INTEGER(8)               :: file_id
+      INTEGER(4)               :: file_id
       CHARACTER(*)             :: name
       INTEGER                  :: dims_y, error
       INTEGER                  :: rank = 2
@@ -163,7 +163,7 @@ MODULE hdf5_helper
     SUBROUTINE create_2D_array_complex_dset(file_id, name, var, dims_x, dims_y)
       USE HDF5
       COMPLEX(8), DIMENSION(:,:) :: var
-      INTEGER(8)               :: file_id
+      INTEGER(4)               :: file_id
       CHARACTER(*)             :: name
       INTEGER                  :: dims_x, dims_y, error
       INTEGER                  :: rank_of_space
@@ -193,7 +193,7 @@ MODULE hdf5_helper
     SUBROUTINE create_array_real_dset(file_id, name, var, dims_y)
       USE HDF5
       COMPLEX(8), DIMENSION(:) :: var
-      INTEGER(8)               :: file_id
+      INTEGER(4)               :: file_id
       CHARACTER(*)             :: name
       INTEGER                  :: dims_y, error
       INTEGER                  :: rank = 2

@@ -76,7 +76,7 @@ CONTAINS
     REAL(8) absorb_factor
     LOGICAL ext
     CHARACTER*10 filename,id
-    CHARACTER(LEN=10), PARAMETER :: hdf5_input = "results.h5"  ! File name for the HDF5 input file
+    CHARACTER(LEN=10), PARAMETER :: hdf5_input = "test.h5"  ! File name for the HDF5 input file
 
     INTEGER(HID_T) :: file_id       ! File identifier 
     INTEGER        :: error
@@ -102,12 +102,14 @@ CONTAINS
     ENDDO
 
     CALL h5open_f(error) 
-    CALL h5fopen_f (filename, H5F_ACC_RDONLY_F, file_id, error)
+    CALL h5fopen_f (hdf5_input, H5F_ACC_RDONLY_F, file_id, error)
     CALL h5fclose_f(file_id, error)
     ! Close FORTRAN HDF5 interface.
+    print *,"I'm here"
     CALL h5close_f(error)
 
     OPEN(unit_field,FILE=filename//'_'//ip//'.DAT',STATUS='OLD',FORM='UNFORMATTED')
+    print *, filename, ip
     READ(unit_field) id,num_proc
     READ(unit_field) id,dim_t
     READ(unit_field) id,dim_r
@@ -190,6 +192,7 @@ CONTAINS
     READ(unit_field) id,residue_charge_N2
     READ(unit_field) id,atomic_density_N2
     READ(unit_field) id,angular_momentum_N2
+    print *,"I loaded most of the stuff"
     READ(unit_field) id
     IF (id.NE.'startfield') THEN
        PRINT*, 'Error reading parameters'
@@ -236,6 +239,7 @@ CONTAINS
        ENDIF
     ENDIF
     delta_z=MIN(delta_z,2.D0*delta_z_max)
+    print *,"242"
     IF(my_rank.EQ.0) THEN
        OPEN(unit_rho,FILE='ZSTEP.DAT',STATUS='UNKNOWN',POSITION='APPEND')
        WRITE(unit_rho,*) 'z=',REAL(z,4),' delta_z=',REAL(delta_z,4)
@@ -251,7 +255,8 @@ CONTAINS
        ENDDO
     ENDIF
     ALLOCATE(p_t(dim_t),delta_rel(dim_t),op_t(dim_t),op_t_inv(dim_t),hfac(dim_t,0:4))
-    ALLOCATE(DL(dim_r-2,dim_t_start(num_proc):dim_t_end(num_proc)),D(dim_r,dim_t_start(num_proc):dim_t_end(num_proc)),DU(dim_r-1,dim_t_start(num_proc):dim_t_end(num_proc)))
+    ALLOCATE(DL(dim_r-2,dim_t_start(num_proc):dim_t_end(num_proc)),D(dim_r,dim_t_start(num_proc):dim_t_end(num_proc)), & 
+    DU(dim_r-1,dim_t_start(num_proc):dim_t_end(num_proc)))
     SELECT CASE (switch_T)
     CASE(1)
        op_t=1.D0
@@ -285,6 +290,7 @@ CONTAINS
        ENDDO
        CLOSE(unit_logfile)
     ENDIF
+    print *,"292"
     SELECT CASE (switch_dKerr)
     CASE(1)
        c3i = c3
@@ -347,6 +353,7 @@ CONTAINS
        WRITE(unit_rho) (REAL(REAL(j-1,8)*delta_r,4),j=dim_r_start(num_proc),dim_r_end(num_proc))
        CLOSE(unit_rho)
     ENDIF
+    print *,"355"
     INQUIRE(FILE='PLASMACHANNEL_'//ip//'.DAT',EXIST=ext)
     IF (.NOT.ext) THEN
        OPEN(unit_rho,FILE='PLASMACHANNEL_'//ip//'.DAT',STATUS='NEW',FORM='UNFORMATTED')
@@ -381,6 +388,7 @@ CONTAINS
     ALLOCATE(losses_ionization(dim_r_start(num_proc):dim_r_end(num_proc)),losses_plasma(dim_r_start(num_proc):dim_r_end(num_proc)))
     ALLOCATE(rhoabs(dim_r_start(num_proc):dim_r_end(num_proc)))
     ALLOCATE(e_2(dim_t),e_2KK(dim_t),e_2KKm2(dim_t))
+    print *,"391"
     SELECT CASE (switch_rho)
     CASE(1,2,6)
        CONTINUE
@@ -422,7 +430,7 @@ CONTAINS
     lambdanm = 6.634D-34*3.D17/photon_energy/4.359d-18 ! center wavelength in nm
     four_z_Rayleigh = 4.D0*3.1415D0*n0_indice/(lambdanm*1.D-9)*(beam_waist/100.D0)**2 ! 4 times the rayleigh length in m (normalization factor for z)
     Nz_points = CEILING(proplength/outlength)+1 ! expected number of hdf5 output along z (with safety)
-    
+    print *, "end"
     RETURN
   END SUBROUTINE initialize
 
