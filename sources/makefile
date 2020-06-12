@@ -4,14 +4,23 @@
 #CINES correction   MPIF90 = mpif90
 #CINES commentaire : mpif90 est A utiliser avec openmpi
 #CINES commentaire : mpiifort est A utiliser avec intelmpi
-  MPIF90 = mpiifort
-  F90    = ifort
+#  MPIF90 = mpiifort
+  MPIF90 = mpif90
+#  F90    = ifort
+  F90    = gfortran  
   H5 = h5pfc
-  FFLAGS =  -check all -warn all -traceback -fpe0
-#  FFLAGS =  -O3 -ansi_alias 
-  LFLAGS =  -lhdf5 -lhdf5_hl -lhdf5_fortran -lhdf5hl_fortran -lz 
-  FFTPATH    = $(MKL_LIBS_MT)
   FFT     = -lfftw3_mpi -lfftw3
+#  FFLAGS =  -check all -warn all -traceback -fpe0
+  FFLAGS =  -Wall -O2 -ffree-line-length-none -fbacktrace -fcheck=all -v
+#  FFLAGS =  -O3 -ansi_alias 
+#  LFLAGS = -lhdf5 -lhdf5_hl -lhdf5_fortran -lhdf5hl_fortran -lz 
+#  LFLAGS = -lfftw3_mpi -lfftw3 -lhdf5 -lhdf5_hl -lhdf5_fortran -lhdf5hl_fortran -lz -lm
+  LDLIBS = -lfftw3_mpi -lfftw3 -lhdf5 -lhdf5_hl -lhdf5_fortran -lhdf5hl_fortran -lz -lm
+#  FFTPATH    = $(MKL_LIBS_MT)
+  FFTPATH    = /gpfs/apps/tools/modulefiles/software/FFTW/3.3.5-OpenMPI-1.10.2-GCC-6.1.0-psm-dbg/lib/libfftw3.so
+  H5INCLUDE  = /gpfs/apps/tools/modulefiles/software/HDF5/1.8.13-OpenMPI-1.10.2-GCC-6.1.0-psm/include
+  H5LIBS = /gpfs/apps/tools/modulefiles/software/HDF5/1.8.13-OpenMPI-1.10.2-GCC-6.1.0-psm/lib
+#  FFT     = -lfftw3
   PROPAGATION       = cuprad_occigen.e
   S_PROPAGATION       =  modules.f90 code_ionisation.f90 fft_rk.f90 finalize.f90 \
                         firststep.f90 longstep_rk.f90 output.f90 outputHDF5_occigen.f90 cuprad.f90
@@ -32,16 +41,20 @@
 #       Make definition
 #
 $(PROPAGATION) : $(S_PROPAGATION)
-	${MPIF90} -o $(PROPAGATION) $(S_PROPAGATION) ${FFTPATH} ${FFT} ${FFLAGS} ${LFLAGS}
+#	${MPIF90} -o $(PROPAGATION) $(S_PROPAGATION) ${FFTPATH} ${FFT} ${FFLAGS} ${LFLAGS}
+	${MPIF90} -I${H5INCLUDE} -L${H5LIBS} -o $(PROPAGATION) $(S_PROPAGATION) ${FFTPATH} ${FFT} ${FFLAGS} ${LFLAGS} ${LDLIBS}
 #	${MPIF90} -o $(PROPAGATION) $(S_PROPAGATION) ${FFTPATH} ${FFT} ${FFLAGS}
 $(PROPAGATION_DEFOK) : $(S_PROPAGATION_DEFOK)
-	${MPIF90} -o $(PROPAGATION_DEFOK) $(S_PROPAGATION_DEFOK) ${FFTPATH} ${FFT} ${FFLAGS}
+#	${MPIF90} -o $(PROPAGATION_DEFOK) $(S_PROPAGATION_DEFOK) ${FFTPATH} ${FFT} ${FFLAGS}
+	${MPIF90} ${FFLAGS} -o $(PROPAGATION_DEFOK) $(S_PROPAGATION_DEFOK) ${FFTPATH} ${FFT} ${FFLAGS}
 $(PROPAGATION_MICKAEL) : $(S_PROPAGATION_MICKAEL)
 	${MPIF90} -o $(PROPAGATION_MICKAEL) $(S_PROPAGATION_MICKAEL) ${FFTPATH} ${FFT} ${FFLAGS}
 $(MAKE_START) : $(S_MAKE_START)
 	${F90} -o $(MAKE_START) $(S_MAKE_START) ${FFTPATH} ${FFT} ${FMFLAGS}
 $(MAKE_START_HDF5) : $(S_MAKE_START_HDF5)
 	${H5} -o $(MAKE_START_HDF5) $(S_MAKE_START_HDF5) ${FFT}
+#	${F90} -o $(MAKE_START) $(S_MAKE_START) ${FFTPATH} ${FFT} ${FMFLAGS}
+#	${F90} ${FFLAGS} -o $(MAKE_START) $(S_MAKE_START) ${FFTPATH} ${FFT} ${FMFLAGS}
 $(MAKE_START_NU0) : $(S_MAKE_START_NU0)
 	${F90} -o $(MAKE_START_NU0) $(S_MAKE_START_NU0) ${FFTPATH} ${FFT} ${FFLAGS}
 $(CLEAN) : $(S_CLEAN)

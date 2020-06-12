@@ -2,6 +2,7 @@
 ###################
 binary/
 
+# HDF5
 # Compiled files and object files
 *.o
 *.mod
@@ -21,3 +22,6 @@ sources/komega_reduced.dat
 sources/listing
 sources/make_start_hdf5_occigen.e
 sources/nomega.dat
+# generated modules #
+sources/**__genmod.f90
+

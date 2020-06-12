@@ -10,12 +10,16 @@ PROGRAM cuprad
 
   IMPLICIT NONE
 
+!  INTEGER(4) time, starttime, deltatime, limit_s
   INTEGER(4) time, starttime, deltatime, limit_s
-  external time
-
+!  external time
+  INTEGER(4) :: tcount, count_rate, count_max
   !  REAL(8)  TREM
 
-  starttime = time()
+!  starttime = time()
+  call system_clock(tcount, count_rate, count_max)
+  write(*,*) tcount, count_rate,count_max
+  stop
   CALL initialize
   limit_s=timelimit*3600
   IF (.NOT.finished) THEN
@@ -49,7 +53,7 @@ PROGRAM cuprad
            ENDIF
            call calc_propagator
         ENDIF
-        deltatime = time() - starttime
+!        deltatime = time() - starttime
         CALL MPI_BCAST(deltatime,1,MPI_REAL,0,MPI_COMM_WORLD,ierr)
         IF (deltatime.GE.limit_s) EXIT
         !     IF (my_rank.EQ.0) CALL TREMAIN(TREM)
