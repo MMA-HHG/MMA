@@ -80,6 +80,27 @@ MODULE hdf5_helper
       print *, name, var
       CALL h5dclose_f(dset_id, error)
     END SUBROUTINE
+    
+    SUBROUTINE read_array_complex_dset(file_id, name, var, dims_y)
+      USE HDF5
+      COMPLEX(8), DIMENSION(:) :: var
+      INTEGER(4)               :: file_id
+      CHARACTER(*)             :: name
+      INTEGER                  :: dims_y, error
+      INTEGER                  :: rank = 2
+      INTEGER(HID_T) :: dset_id, dataspace_id
+      INTEGER(HSIZE_T), DIMENSION(2) :: data_dims
+      REAL(8), DIMENSION(2,dims_y) :: res
+      CALL h5dopen_f(file_id, dsetname, dset_id, error)
+      data_dims(1) = 2
+      data_dims(2) = dims_y
+      CALL h5dread_f(dset_id, H5T_NATIVE_DOUBLE, res, data_dims, error)
+      CALL h5dclose_f(dset_id, error)
+      DO i = 1, dims_y
+        var(i) = CMPLX(res(1,i),res(2,i))
+      END DO
+      print *,var(1)
+    END SUBROUTINE create_array_complex_dset
 
     !*******!
     ! WRITE !
