@@ -70,6 +70,7 @@ CONTAINS
     USE Complex_rotation 
     USE fft
     USE HDF5
+    USE HDF5_helper
     IMPLICIT NONE
 
     INTEGER(4)  j,k,help,i_x,i_z
@@ -77,8 +78,8 @@ CONTAINS
     LOGICAL ext
     CHARACTER*10 filename,id
     CHARACTER(LEN=10), PARAMETER :: hdf5_input = "test.h5"  ! File name for the HDF5 input file
-
-    INTEGER(HID_T) :: file_id       ! File identifier 
+    CHARACTER(LEN = *), PARAMETER :: output_groupname = "pre-processed" 
+    INTEGER(HID_T) :: file_id, group_id     ! File identifier 
     INTEGER        :: error
 
     HDF5write_count = 1
@@ -103,9 +104,14 @@ CONTAINS
 
     CALL h5open_f(error) 
     CALL h5fopen_f (hdf5_input, H5F_ACC_RDONLY_F, file_id, error)
-    CALL h5fclose_f(file_id, error)
+    CALL h5gopen_f(file_id, output_groupname, group_id, error) 
     ! Close FORTRAN HDF5 interface.
-    print *,"I'm here"
+    CALL readint(group_id, 'num_proc', num_proc)
+    CALL readint(group_id, 'dim_t', dim_t)
+    CALL readint(group_id, 'dim_r', dim_r)
+    CALL readreal(group_id, 'rek0', rek0)
+    CALL h5gclose_f(group_id, error)
+    CALL h5fclose_f(file_id, error)
     CALL h5close_f(error)
 
     OPEN(unit_field,FILE=filename//'_'//ip//'.DAT',STATUS='OLD',FORM='UNFORMATTED')
