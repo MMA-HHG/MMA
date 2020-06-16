@@ -6,7 +6,6 @@ MODULE fields
   REAL(8) , ALLOCATABLE    :: bound_t(:),e_2(:),e_2KK(:),e_2KKm2(:),rho(:),fluence(:),rhoabs(:),losses_ionization(:),losses_plasma(:)
   REAL(8), ALLOCATABLE     :: peakmax(:),rhomax(:),energy(:),z_buff(:),energy_fil(:), rhoabs_max(:), xx(:), zz(:), Indice_norm(:,:),rhoO2max(:),rhoN2max(:),Tevmax(:)
   COMPLEX(8), ALLOCATABLE, TARGET  :: e(:,:),etemp(:,:),efft(:,:),ptemp(:,:),jtemp(:,:),D(:,:),DL(:,:),DU(:,:),p_t(:),op_t(:),op_t_inv(:),pharm(:,:),hfac(:,:)
-!  COMPLEX(8), POINTER  :: etemp_test(:,:) ! not fancy index
   LOGICAL, ALLOCATABLE     :: send_first(:)
 END MODULE fields
 

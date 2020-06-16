@@ -30,16 +30,14 @@ PROGRAM cuprad
 !           z_outHD5=z_outHD5+outlengthHD5 !!!! WILL BE USED WHEN GRIDS DISATTACHED
         ENDIF
 
-	print *, "before matlab, worker", my_rank
         IF(z_out.LE.z) THEN
            CALL matlab_out ! that's the printing
            z_out=z_out+outlength
         ENDIF
-	print *, "after matlab"
 
-	print *, "before propagation"
+
         CALL propagation
-	print *, "after propagation"
+
         IF (maxphase.GT.decrease) THEN
            delta_z=0.5D0*(decrease+increase)/maxphase*delta_z
            IF(my_rank.EQ.0) THEN

@@ -30,15 +30,9 @@ CONTAINS
        CLOSE(unit_logfile)
     ENDIF
 
-    print *, "mtl, bbcast", my_rank
-
     CALL MPI_BCAST(filename,10,MPI_CHARACTER,0,MPI_COMM_WORLD,ierr)
 
-    print *, "mtl, abcast", my_rank
-
     IF (filename.NE.iz) THEN
-
-		print *, "mtl, if accessed", my_rank
 
        IF(my_rank.EQ.0) THEN
           OPEN(unit_logfile,FILE='MERGE_RAD.LOG',STATUS='UNKNOWN',POSITION='APPEND')
@@ -52,7 +46,7 @@ CONTAINS
           WRITE(unit_field) CMPLX(e(1:dim_t,j),KIND=4)
        ENDDO
        CLOSE(unit_field)
-	print *, "mtl, field written", my_rank
+
        OPEN(unit_field,FILE=iz//'_PLASMA_'//ip//'.DAT',STATUS='UNKNOWN',FORM='UNFORMATTED')
        WRITE(unit_field) dim_t,dim_r,num_proc
        WRITE(unit_field) REAL(delta_t,4),REAL(delta_r,4),REAL(tlo,4)
@@ -80,31 +74,9 @@ CONTAINS
           WRITE(unit_field) REAL(e_2KKm2,4)
        ENDDO
        CLOSE(unit_field)
-       print *, "mtl, plasma written", my_rank
+
        etemp=CSHIFT(e,dim_t/2-1,1)
-
-	print *, "mtl, bfft", my_rank
-        print *, my_rank, 'SIZE(etemp)', SIZE(etemp)
-
-!       k1 = 1;
-!       DO l=dim_r_start(num_proc),dim_r_end(num_proc)
-!	  k2 = 1;
-!          DO  j=1,dim_th
-!             etemp_test(k2,k1)=etemp(j,l)
-!             k2 = k2 + 1;
-!          ENDDO
-!          k1 = k1 + 1;
-!       ENDDO
-
-!       etemp_test = etemp; ! copy solution
-!        etemp_test(:,:) => etemp(:,:)
-        CALL dfftw_execute(plan_spec)
-!        etemp_test(:,:) => etemp(:,:)
-!       etemp = etemp_test; copy solution
-
-	print *, "mtl, afft", my_rank
-
-
+       CALL dfftw_execute(plan_spec)
        DO l=dim_r_start(num_proc),dim_r_end(num_proc)
           DO  j=1,dim_th
              help=etemp(j+dim_t/2,l)
@@ -112,8 +84,6 @@ CONTAINS
              etemp(j,l)=help
           ENDDO
        ENDDO
-
-	print *, "mtl, bfield", my_rank
        
        e_2(1:dim_t)=0.D0
        e_2KKm2(1:dim_t)=0.D0
@@ -123,7 +93,6 @@ CONTAINS
           IF (rfil.GT.r) e_2KKm2(1:dim_t)=e_2KKm2(1:dim_t)+ABS(etemp(1:dim_t,l))**2*REAL(l-1,8)
        ENDDO
 
-	print *, "mtl, breduce", my_rank
 
        CALL MPI_REDUCE(e_2(1:dim_t),e_2KK(1:dim_t),dim_t,MPI_DOUBLE_PRECISION,MPI_SUM,0,MPI_COMM_WORLD,ierr)
        CALL MPI_REDUCE(e_2KKm2(1:dim_t),e_2(1:dim_t),dim_t,MPI_DOUBLE_PRECISION,MPI_SUM,0,MPI_COMM_WORLD,ierr)
@@ -138,8 +107,6 @@ CONTAINS
     ENDIF
 
 920 FORMAT (F10.6)
-
-    print *, "mtl, finished", my_rank
     RETURN
   END SUBROUTINE  matlab_out
 
