@@ -10,7 +10,7 @@ CONTAINS
     USE fft
     IMPLICIT NONE
 
-    INTEGER(4) j,k,l
+    INTEGER(4) j,k,l, k1, k2
     REAL(8) rhotemp,r,mpa
     COMPLEX(8) help
     CHARACTER*10 iz,filename
@@ -82,11 +82,26 @@ CONTAINS
        CLOSE(unit_field)
        print *, "mtl, plasma written", my_rank
        etemp=CSHIFT(e,dim_t/2-1,1)
+
 	print *, "mtl, bfft", my_rank
         print *, my_rank, 'SIZE(etemp)', SIZE(etemp)
 
+!       k1 = 1;
+!       DO l=dim_r_start(num_proc),dim_r_end(num_proc)
+!	  k2 = 1;
+!          DO  j=1,dim_th
+!             etemp_test(k2,k1)=etemp(j,l)
+!             k2 = k2 + 1;
+!          ENDDO
+!          k1 = k1 + 1;
+!       ENDDO
+
+       etemp_test = etemp;	
+
        CALL dfftw_execute(plan_spec)
 	print *, "mtl, afft", my_rank
+
+
        DO l=dim_r_start(num_proc),dim_r_end(num_proc)
           DO  j=1,dim_th
              help=etemp(j+dim_t/2,l)

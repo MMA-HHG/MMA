@@ -5,8 +5,8 @@ MODULE fft
   USE iso_c_binding
   
 
-!  INTEGER(8) plan_forward1,plan_forward_erk,plan_backward_erk,plan_backward2,plan_spec,plan_p,plan_j,plan_pharm
-  type(C_PTR) plan_forward1,plan_forward_erk,plan_backward_erk,plan_backward2,plan_spec,plan_p,plan_j,plan_pharm
+  INTEGER(8) plan_forward1,plan_forward_erk,plan_backward_erk,plan_backward2,plan_spec,plan_p,plan_j,plan_pharm
+!  type(C_PTR) plan_forward1,plan_forward_erk,plan_backward_erk,plan_backward2,plan_spec,plan_p,plan_j,plan_pharm
   REAL(8)  diminv
 
 CONTAINS
@@ -58,7 +58,13 @@ CONTAINS
     diminv=1.D0/REAL(dim_t,8)
 
     ALLOCATE(e(dim_t,dim_r_start(num_proc):dim_r_end(num_proc)))
-    ALLOCATE(efft(dim_r,dim_t_start(num_proc):dim_t_end(num_proc)),etemp(dim_t,dim_r_start(num_proc):dim_r_end(num_proc)))
+    ALLOCATE(efft(dim_r,dim_t_start(num_proc):dim_t_end(num_proc)),etemp(dim_t,dim_r_start(num_proc):dim_r_end(num_proc))) 
+
+    ALLOCATE(etemp_test(dim_t,dim_r_local))
+
+    print *, my_rank, 'dim_r_start(num_proc)', dim_r_start(num_proc), 'dim_r_end(num_proc)', dim_r_end(num_proc)
+
+!    ALLOCATE(efft(dim_r,dim_t_start(num_proc):dim_t_end(num_proc)),etemp(dim_t,2048)
     ALLOCATE(ptemp(dim_t,dim_r_start(num_proc):dim_r_end(num_proc)),jtemp(dim_t,dim_r_start(num_proc):dim_r_end(num_proc)))
 
     CALL MPI_TYPE_vector(dim_r/num_proc,2*dim_t/num_proc,2*dim_t,MPI_DOUBLE_PRECISION,MPI_SUBARRAY,ierr)
@@ -110,7 +116,7 @@ CONTAINS
     print *, my_rank, 's', s
     print *, my_rank, 'n', n
 
-    CALL dfftw_plan_many_dft(plan_spec,1,dim_t,m,etemp,dim_t,s,n,etemp,dim_t,s,n,1,0)
+    CALL dfftw_plan_many_dft(plan_spec,1,dim_t,m,etemp_test,dim_t,s,n,etemp_test,dim_t,s,n,1,0)
 
     print *, my_rank, 'planned: plan_spec', plan_spec
 
