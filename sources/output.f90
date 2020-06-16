@@ -96,9 +96,12 @@ CONTAINS
 !          k1 = k1 + 1;
 !       ENDDO
 
-       etemp_test = etemp;	
+!       etemp_test = etemp; ! copy solution
+!        etemp_test(:,:) => etemp(:,:)
+        CALL dfftw_execute(plan_spec)
+!        etemp_test(:,:) => etemp(:,:)
+!       etemp = etemp_test; copy solution
 
-       CALL dfftw_execute(plan_spec)
 	print *, "mtl, afft", my_rank
 
 

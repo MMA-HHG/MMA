@@ -18,7 +18,7 @@ CONTAINS
     INTEGER(4), ALLOCATABLE  ::  array_of_blocklengths(:),array_of_displacements(:)
 
 
-    print *, "I'm initialising fftw", my_rank
+!    print *, "I'm initialising fftw", my_rank
 
     DO j=1,num_proc
        schema(j)=j
@@ -59,12 +59,13 @@ CONTAINS
 
     ALLOCATE(e(dim_t,dim_r_start(num_proc):dim_r_end(num_proc)))
     ALLOCATE(efft(dim_r,dim_t_start(num_proc):dim_t_end(num_proc)),etemp(dim_t,dim_r_start(num_proc):dim_r_end(num_proc))) 
+!    etemp_test => etemp
 
-    ALLOCATE(etemp_test(dim_t,dim_r_local))
+!    ALLOCATE(etemp_test(dim_t,dim_r_local))
 
-    print *, my_rank, 'dim_r_start(num_proc)', dim_r_start(num_proc), 'dim_r_end(num_proc)', dim_r_end(num_proc)
+!    print *, my_rank, 'dim_r_start(num_proc)', dim_r_start(num_proc), 'dim_r_end(num_proc)', dim_r_end(num_proc)
 
-!    ALLOCATE(efft(dim_r,dim_t_start(num_proc):dim_t_end(num_proc)),etemp(dim_t,2048)
+
     ALLOCATE(ptemp(dim_t,dim_r_start(num_proc):dim_r_end(num_proc)),jtemp(dim_t,dim_r_start(num_proc):dim_r_end(num_proc)))
 
     CALL MPI_TYPE_vector(dim_r/num_proc,2*dim_t/num_proc,2*dim_t,MPI_DOUBLE_PRECISION,MPI_SUBARRAY,ierr)
@@ -104,23 +105,23 @@ CONTAINS
     n=dim_t
     s=1
 
-    print *, my_rank, 'plan_spec', plan_spec
-    print *, my_rank, 'dim_t', dim_t
-    print *, my_rank, 'm', m
-    print *, my_rank, 'SIZE(etemp)', SIZE(etemp)
-    print *, my_rank, 'dim_t', dim_t
-    print *, my_rank, 's', s
-    print *, my_rank, 'n', n
-    print *, my_rank, 'SIZE(etemp)', SIZE(etemp)
-    print *, my_rank, 'dim_t', dim_t
-    print *, my_rank, 's', s
-    print *, my_rank, 'n', n
+!    print *, my_rank, 'plan_spec', plan_spec
+!    print *, my_rank, 'dim_t', dim_t
+!    print *, my_rank, 'm', m
+!    print *, my_rank, 'SIZE(etemp)', SIZE(etemp)
+!    print *, my_rank, 'dim_t', dim_t
+!    print *, my_rank, 's', s
+!    print *, my_rank, 'n', n
+!    print *, my_rank, 'SIZE(etemp)', SIZE(etemp)
+!    print *, my_rank, 'dim_t', dim_t
+!    print *, my_rank, 's', s
+!    print *, my_rank, 'n', n
 
-    CALL dfftw_plan_many_dft(plan_spec,1,dim_t,m,etemp_test,dim_t,s,n,etemp_test,dim_t,s,n,1,0)
+    CALL dfftw_plan_many_dft(plan_spec,1,dim_t,m,etemp,dim_t,s,n,etemp,dim_t,s,n,1,0)
 
-    print *, my_rank, 'planned: plan_spec', plan_spec
+!    print *, my_rank, 'planned: plan_spec', plan_spec
 
-    print *, "I finished fftw planning", my_rank
+!    print *, "I finished fftw planning", my_rank
 
     RETURN
   END SUBROUTINE fft_init
