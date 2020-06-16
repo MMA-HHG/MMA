@@ -83,6 +83,8 @@ CONTAINS
        print *, "mtl, plasma written", my_rank
        etemp=CSHIFT(e,dim_t/2-1,1)
 	print *, "mtl, bfft", my_rank
+        print *, my_rank, 'SIZE(etemp)', SIZE(etemp)
+
        CALL dfftw_execute(plan_spec)
 	print *, "mtl, afft", my_rank
        DO l=dim_r_start(num_proc),dim_r_end(num_proc)
