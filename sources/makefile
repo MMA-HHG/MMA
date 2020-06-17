@@ -23,13 +23,11 @@
   H5LIBS = /gpfs/apps/tools/modulefiles/software/HDF5/1.8.13-OpenMPI-1.10.2-GCC-6.1.0-psm/lib
 #  FFT     = -lfftw3
   PROPAGATION       = cuprad_occigen.e
-  S_PROPAGATION       =  modules.f90 code_ionisation.f90 fft_rk.f90 finalize.f90 \
+  S_PROPAGATION       = hdf5_helper.f90 modules.f90 code_ionisation.f90 fft_rk.f90 finalize.f90 \
                         firststep.f90 longstep_rk.f90 output.f90 outputHDF5_occigen.f90 cuprad.f90
   MAKE_START	   = make_start_occigen.e
-  S_MAKE_START       = write_start.f90 calc_start.f90 normalisation.f90 \
+  S_MAKE_START       = hdf5_helper.f90 write_start.f90 calc_start.f90 normalisation.f90 \
                        write_listing.f90 make_start.f90
-  MAKE_START_HDF5     = make_start_occigen.e
-  S_MAKE_START_HDF5       = hdf5_helper.f90 write_start_hdf5.f90 calc_start.f90 normalisation.f90 write_listing.f90 make_start_hdf5.f90
   CLEAN       = clean_occigen.e
   S_CLEAN	= clean.f90
   MERGE       = merge_occigen.e
@@ -52,8 +50,6 @@ $(PROPAGATION_MICKAEL) : $(S_PROPAGATION_MICKAEL)
 	${MPIF90} -o $(PROPAGATION_MICKAEL) $(S_PROPAGATION_MICKAEL) ${FFTPATH} ${FFT} ${FFLAGS}
 $(MAKE_START) : $(S_MAKE_START)
 	${F90} -o $(MAKE_START) $(S_MAKE_START) ${FFTPATH} ${FFT} ${FMFLAGS}
-$(MAKE_START_HDF5) : $(S_MAKE_START_HDF5)
-	${H5} -o $(MAKE_START_HDF5) $(S_MAKE_START_HDF5) ${FFT}
 #	${F90} -o $(MAKE_START) $(S_MAKE_START) ${FFTPATH} ${FFT} ${FMFLAGS}
 #	${F90} ${FFLAGS} -o $(MAKE_START) $(S_MAKE_START) ${FFTPATH} ${FFT} ${FMFLAGS}
 $(MAKE_START_NU0) : $(S_MAKE_START_NU0)
@@ -78,8 +74,8 @@ binary :
 clean_preprocessor :
 	rm -f listing STOP *.DAT *.LOG
 #
-code : $(CALC_FT) $(MAKE_START) $(MAKE_START_4WM) $(PROPAGATION) $(PROPAGATION_DEFOK) $(PROPAGATION_MICKAEL) $(CLEAN) $(MERGE) binary clean
+code : clean_preprocessor $(CALC_FT) $(MAKE_START) $(MAKE_START_4WM) $(PROPAGATION) $(PROPAGATION_DEFOK) $(PROPAGATION_MICKAEL) $(CLEAN) $(MERGE) # binary clean
 #
-preprocessor : clean clean_preprocessor $(MAKE_START_HDF5)
+preprocessor : clean clean_preprocessor $(MAKE_START)
 #
 util : $(CALC_FT) $(MAKE_START) $(MAKE_START_NU0) $(CLEAN) $(MERGE) binary clean

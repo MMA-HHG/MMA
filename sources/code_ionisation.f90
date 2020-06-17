@@ -498,7 +498,7 @@ CONTAINS
 
   !----------------------------------------
   ! 3- Create the table
-
+UPRAVIT AT TO NACITA HDF5 FILE
   SUBROUTINE RESCALE_TABLE_CPR
     USE mpi_stuff
     USE libraries
