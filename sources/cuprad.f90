@@ -18,7 +18,7 @@ PROGRAM cuprad
 
 !  starttime = time()
   call system_clock(tcount, count_rate, count_max)
-  write(*,*) tcount, count_rate,count_max
+  write(*,*) tcount, count_rate, count_max
 !  stop
   CALL initialize
   print *, "Back in Cuprad"
@@ -37,7 +37,10 @@ PROGRAM cuprad
            z_out=z_out+outlength
            print *, "Matlab out"
         ENDIF
+
+
         CALL propagation
+
         IF (maxphase.GT.decrease) THEN
            delta_z=0.5D0*(decrease+increase)/maxphase*delta_z
            IF(my_rank.EQ.0) THEN

@@ -10,7 +10,7 @@ CONTAINS
     USE fft
     IMPLICIT NONE
 
-    INTEGER(4) j,k,l
+    INTEGER(4) j,k,l, k1, k2
     REAL(8) rhotemp,r,mpa
     COMPLEX(8) help
     CHARACTER*10 iz,filename
@@ -29,8 +29,11 @@ CONTAINS
 999    CONTINUE
        CLOSE(unit_logfile)
     ENDIF
+
     CALL MPI_BCAST(filename,10,MPI_CHARACTER,0,MPI_COMM_WORLD,ierr)
+
     IF (filename.NE.iz) THEN
+
        IF(my_rank.EQ.0) THEN
           OPEN(unit_logfile,FILE='MERGE_RAD.LOG',STATUS='UNKNOWN',POSITION='APPEND')
           WRITE(unit_logfile,*) iz    
@@ -43,6 +46,7 @@ CONTAINS
           WRITE(unit_field) CMPLX(e(1:dim_t,j),KIND=4)
        ENDDO
        CLOSE(unit_field)
+
        OPEN(unit_field,FILE=iz//'_PLASMA_'//ip//'.DAT',STATUS='UNKNOWN',FORM='UNFORMATTED')
        WRITE(unit_field) dim_t,dim_r,num_proc
        WRITE(unit_field) REAL(delta_t,4),REAL(delta_r,4),REAL(tlo,4)
@@ -70,6 +74,7 @@ CONTAINS
           WRITE(unit_field) REAL(e_2KKm2,4)
        ENDDO
        CLOSE(unit_field)
+
        etemp=CSHIFT(e,dim_t/2-1,1)
        CALL dfftw_execute(plan_spec)
        DO l=dim_r_start(num_proc),dim_r_end(num_proc)
@@ -79,6 +84,7 @@ CONTAINS
              etemp(j,l)=help
           ENDDO
        ENDDO
+       
        e_2(1:dim_t)=0.D0
        e_2KKm2(1:dim_t)=0.D0
        DO l=dim_r_start(num_proc),dim_r_end(num_proc)
@@ -86,6 +92,8 @@ CONTAINS
           e_2(1:dim_t)=e_2(1:dim_t)+ABS(etemp(1:dim_t,l))**2*REAL(l-1,8)
           IF (rfil.GT.r) e_2KKm2(1:dim_t)=e_2KKm2(1:dim_t)+ABS(etemp(1:dim_t,l))**2*REAL(l-1,8)
        ENDDO
+
+
        CALL MPI_REDUCE(e_2(1:dim_t),e_2KK(1:dim_t),dim_t,MPI_DOUBLE_PRECISION,MPI_SUM,0,MPI_COMM_WORLD,ierr)
        CALL MPI_REDUCE(e_2KKm2(1:dim_t),e_2(1:dim_t),dim_t,MPI_DOUBLE_PRECISION,MPI_SUM,0,MPI_COMM_WORLD,ierr)
        IF (my_rank.EQ.0) THEN
@@ -99,7 +107,6 @@ CONTAINS
     ENDIF
 
 920 FORMAT (F10.6)
-
     RETURN
   END SUBROUTINE  matlab_out
 

@@ -11,7 +11,8 @@
   H5 = h5pfc
   FFT     = -lfftw3_mpi -lfftw3
 #  FFLAGS =  -check all -warn all -traceback -fpe0
-  FFLAGS =  -Wall -O2 -ffree-line-length-none -fbacktrace -fcheck=all -v
+#  FFLAGS =  -Wall -O2 -ffree-line-length-none -fbacktrace -fcheck=all -v -g3 # -g[0-3] is for debuging
+  FFLAGS =  -Wall -O0 -ffree-line-length-none -fbacktrace -fcheck=all -Wuninitialized -v -g -fbounds-check
 #  FFLAGS =  -O3 -ansi_alias 
 #  LFLAGS = -lhdf5 -lhdf5_hl -lhdf5_fortran -lhdf5hl_fortran -lz 
 #  LFLAGS = -lfftw3_mpi -lfftw3 -lhdf5 -lhdf5_hl -lhdf5_fortran -lhdf5hl_fortran -lz -lm
