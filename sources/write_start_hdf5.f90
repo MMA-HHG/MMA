@@ -11,7 +11,8 @@ MODULE write_start_hdf5
   REAL(8) photon_energy_au_phys,tp_fs_phys,Pcr_phys,w0_cm_phys
   REAL(8) Ui_au_phys,residue_charge,n0,rhoc_cm3_phys,rhont_cm3_phys,reduced_mass
   REAL(8) Ui_au_phys_N2,residue_charge_N2,rhont_N2_cm3_phys
-  REAL(8), ALLOCATABLE :: xx(:),zz(:),Indice_norm(:,:)
+  REAL(8) delta_t, tlo 
+  REAL(8), ALLOCATABLE :: xx(:),zz(:),Indice_norm(:,:),real_e(:,:),imag_e(:,:)
   COMPLEX(8), ALLOCATABLE :: e(:,:),e_full(:,:),komega(:)
   INTEGER(HID_T) :: file_id, group_id
   INTEGER :: error
@@ -21,10 +22,13 @@ CONTAINS
 
   SUBROUTINE write_startingfile_hdf5(p)
     IMPLICIT NONE
-
-    INTEGER(4) p,j,l,k
+    INTEGER(HSIZE_T) :: r_offset
+    INTEGER(4) p,j,l,k,k1,k2
     CHARACTER(LEN = 3) :: ip
     CHARACTER(LEN = 10):: iz,id
+    REAL(8), DIMENSION(1:2):: test
+    REAL(8) :: efield_factor ! normalization factor electric field V/m
+    COMPLEX(8), ALLOCATABLE  :: efield_osc(:) ! fast oscillating term exp(-i*omegauppe*t)
     WRITE(iz,920) z
     DO k=1,10
        IF (iz(k:k).EQ.' ') iz(k:k)='0'
@@ -126,7 +130,23 @@ CONTAINS
       CALL create_scalar_real_dset(group_id,'rescharge_N2',residue_charge_N2)
       CALL create_scalar_real_dset(group_id,'atomdens_N2',rhont_N2_cm3_phys)
       CALL create_scalar_int_dset(group_id,'angmom_N2',angular_momentum_N2)
-      CALL create_2D_array_complex_dset(group_id,"startfield",e_full,dim_r,dim_t)
+      !r_offset = dim_r_start(num_proc)-1
+      efield_factor = SQRT(Pcr_phys*1.D-9*1.D9*3.D8*4.D0*3.1415D-7/(4.D0*3.1415D0*w0_cm_phys**2*1.D-4*2.D0*n0))*2.D0 ! normalization factor electric field V/m
+      ALLOCATE(efield_osc(dim_t))
+      DO j=1,dim_t
+        efield_osc(j) = exp(CMPLX(0.D0,-omega_uppe*(tlo+REAL(j,8)*delta_t),8)) ! fast oscillating term exp(-i*omegauppe*t)
+      ENDDO
+      
+      ALLOCATE(real_e(dim_r,dim_t),imag_e(dim_r,dim_t))
+      DO k1=1, dim_t
+        DO k2=1, dim_r
+           real_e(k1,k2) = REAL( REAL( (efield_factor*efield_osc(k2)*e_full(k2,k1)) ) , 8 )
+           imag_e(k1,k2) = REAL( IMAG( (efield_factor*efield_osc(k2)*e_full(k2,k1)) ) , 8 )
+        ENDDO
+      ENDDO
+      CALL create_2D_array_real_dset(group_id, "startfield_r", real_e, dim_t, dim_r)
+      CALL create_2D_array_real_dset(group_id, "startfield_i", imag_e, dim_t, dim_r)
+      CALL create_2D_array_complex_dset(group_id,"startfield",e_full,dim_t,dim_r)
     ENDIF
       !print *,i_x_max,i_z_max, zz, (xx(i_x),i_x=1,i_x_max)
       !id='index'

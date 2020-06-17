@@ -15,7 +15,7 @@ MODULE hdf5_helper
       INTEGER(HSIZE_T), DIMENSION(1:1) :: data_dims
       CALL h5dopen_f(file_id, name, dset_id, error)
       CALL h5dread_f(dset_id, H5T_NATIVE_INTEGER, var, data_dims, error)
-      print *, name, var
+      !print *, name, var
       CALL h5dclose_f(dset_id, error)
     END SUBROUTINE
 
@@ -29,7 +29,7 @@ MODULE hdf5_helper
       INTEGER(HSIZE_T), DIMENSION(1:1) :: data_dims
       CALL h5dopen_f(file_id, name, dset_id, error)
       CALL h5dread_f(dset_id, H5T_NATIVE_DOUBLE, var, data_dims, error)
-      print *, name, var
+      !print *, name, var
       CALL h5dclose_f(dset_id, error)
     END SUBROUTINE
 
@@ -49,7 +49,7 @@ MODULE hdf5_helper
       ELSE
         var = .FALSE.
       ENDIF
-      print *, name, var
+      !print *, name, var
       CALL h5dclose_f(dset_id, error)
     END SUBROUTINE
   
@@ -77,7 +77,7 @@ MODULE hdf5_helper
       CALL h5tcopy_f(H5T_FORTRAN_S1, memtype, error)
       CALL h5tset_size_f(memtype, length, error)
       CALL h5dread_f(dset_id, memtype, var, dims, error, space)
-      print *, name, var
+      !print *, name, var
       CALL h5dclose_f(dset_id, error)
     END SUBROUTINE
     
@@ -98,7 +98,7 @@ MODULE hdf5_helper
       DO i = 1, dims_y
         var(i) = CMPLX(res(1,i),res(2,i))
       END DO
-      print *,name," loaded"
+      !print *,name," loaded"
     END SUBROUTINE read_array_complex_dset
     
     SUBROUTINE read_2D_array_complex_dset(file_id, name, var, dims_x, dims_y)
@@ -116,13 +116,12 @@ MODULE hdf5_helper
       data_dims(3) = 2
       CALL h5dread_f(dset_id, H5T_NATIVE_DOUBLE, res, data_dims, error)
       CALL h5dclose_f(dset_id, error)
-      print *,"res loaded ok", dims_x, dims_y
+      !print *,"res loaded ok", dims_x, dims_y
       DO i = 1, dims_y
         DO j = 1, dims_x
           var(i,j) = CMPLX(res(j,i,1),res(j,i,2))
         END DO
       END DO
-      print *,"e:", var(1:5,1:5)
     END SUBROUTINE read_2D_array_complex_dset
     
     SUBROUTINE read_2D_array_complex_dset_slice(file_id, name, var, dims_x, dims_y, slice_x, slice_y, offset_x, offset_y)
@@ -148,12 +147,47 @@ MODULE hdf5_helper
       CALL h5sselect_hyperslab_f(dataspace, H5S_SELECT_SET_F, offset, count, error, stride, BLOCK)
       CALL h5screate_simple_f(rank, slice_dims, memspace, error)
       CALL h5dread_f(dset_id, H5T_NATIVE_DOUBLE, res, slice_dims, error, memspace, dataspace)
-      print *,res(1,1,:)
       CALL h5sclose_f(dataspace, error)
       CALL h5sclose_f(memspace, error)
       CALL h5dclose_f(dset_id, error)
+      !print *,"res loaded ok", dims_x, dims_y
+      DO i = 1, slice_y
+        DO j = 1, slice_x
+           var(i,j) = CMPLX(res(j,i,1),res(j,i,2))
+        END DO
+      END DO
+      !print *,"e:", var(1:5,1:5)
     END SUBROUTINE read_2D_array_complex_dset_slice
 
+
+    SUBROUTINE read_2D_array_real_dset_slice(file_id, name, var, dims_x, dims_y, slice_x, slice_y, offset_x, offset_y)
+      USE HDF5
+      REAL(8), DIMENSION(:,:) :: var
+      INTEGER(4)               :: file_id
+      CHARACTER(*)             :: name
+      INTEGER                  :: dims_x, dims_y, offset_x, offset_y, slice_x, slice_y, rank, error
+      INTEGER(HID_T)           :: dset_id,dataspace,memspace
+      INTEGER(HSIZE_T), DIMENSION(2) :: data_dims, slice_dims
+      REAL(8), DIMENSION(dims_y,dims_x) :: res
+      INTEGER(HSIZE_T), DIMENSION(1:2) :: count  ! Size of hyperslab
+      INTEGER(HSIZE_T), DIMENSION(1:2) :: offset ! Hyperslab offset
+      INTEGER(HSIZE_T), DIMENSION(1:2) :: stride = (/1,1/) ! Hyperslab stride
+      INTEGER(HSIZE_T), DIMENSION(1:2) :: block = (/1,1/)  ! Hyperslab block size
+      count = (/slice_x,slice_y/)
+      offset = (/offset_x,offset_y/)
+      rank = 2
+      slice_dims = (/slice_x,slice_y/)
+      data_dims = (/dims_x,dims_y/)
+      CALL h5dopen_f(file_id, name, dset_id, error)
+      CALL h5dget_space_f(dset_id, dataspace, error)
+      CALL h5sselect_hyperslab_f(dataspace, H5S_SELECT_SET_F, offset, count, error, stride, BLOCK)
+      CALL h5screate_simple_f(rank, slice_dims, memspace, error)
+      CALL h5dread_f(dset_id, H5T_NATIVE_DOUBLE, var, slice_dims, error, memspace, dataspace)
+      CALL h5sclose_f(dataspace, error)
+      CALL h5sclose_f(memspace, error)
+      CALL h5dclose_f(dset_id, error)
+      !print *,"res loaded ok", dims_x, dims_y
+    END SUBROUTINE read_2D_array_real_dset_slice
     !*******!
     ! WRITE !
     !*******!
@@ -202,7 +236,7 @@ MODULE hdf5_helper
       INTEGER(HSIZE_T), DIMENSION(1:1) :: data_dims
       CALL h5screate_f(H5S_SCALAR_F, dataspace_id, error)
       CALL h5dcreate_f(file_id, name, H5T_NATIVE_DOUBLE, dataspace_id, dset_id, error)
-      CALL h5dwrite_f(dset_id, H5T_NATIVE_REAL, var, data_dims, error)
+      CALL h5dwrite_f(dset_id, H5T_NATIVE_DOUBLE, var, data_dims, error)
       CALL h5dclose_f(dset_id, error)
       CALL h5sclose_f(dataspace_id, error)
     END SUBROUTINE create_scalar_real_dset
@@ -262,30 +296,70 @@ MODULE hdf5_helper
       CALL h5sclose_f(dataspace_id, error)
     END SUBROUTINE create_2D_array_complex_dset
 
-    ! DO NOT USE
-    SUBROUTINE create_array_real_dset(file_id, name, var, dims_y)
+    SUBROUTINE create_2D_array_real_dset(file_id, name, var, dims_x, dims_y)
       USE HDF5
-      COMPLEX(8), DIMENSION(:) :: var
+      REAL(8), DIMENSION(:,:)  :: var
       INTEGER(4)               :: file_id
       CHARACTER(*)             :: name
-      INTEGER                  :: dims_y, error
+      INTEGER                  :: dims_x, dims_y, error
       INTEGER                  :: rank = 2
       INTEGER(HID_T) :: dset_id, dataspace_id
       INTEGER(HSIZE_T), DIMENSION(2) :: dims
       INTEGER(HSIZE_T), DIMENSION(2) :: data_dims
-      REAL(8), DIMENSION(2,dims_y) :: res
-      dims = (/2, dims_y/)
-      DO i = 1, dims_y
-        res(1,i) = real(var(i))
-        res(2,i) = imag(var(i))
-      END DO
-      CALL h5screate_simple_f(rank, dims, dataspace_id, error)
+      data_dims = (/dims_x, dims_y/)
+      CALL h5screate_simple_f(rank, data_dims, dataspace_id, error)
       CALL h5dcreate_f(file_id, name, H5T_NATIVE_DOUBLE, dataspace_id, dset_id, error)
-      data_dims(1) = 2
-      data_dims(2) = dims_y
-      CALL h5dwrite_f(dset_id, H5T_NATIVE_DOUBLE, res, data_dims, error)
+      CALL h5dwrite_f(dset_id, H5T_NATIVE_DOUBLE, var, data_dims, error)
       CALL h5dclose_f(dset_id, error)
       CALL h5sclose_f(dataspace_id, error)
-    END SUBROUTINE create_array_real_dset
+    END SUBROUTINE create_2D_array_real_dset
+
+
+    ! Remove from final version
+    SUBROUTINE test(process_rank)
+        USE HDF5
+        INTEGER       :: process_rank
+        CHARACTER(LEN=10), PARAMETER :: filename = "sds.h5"  ! File name
+        CHARACTER(LEN=10), PARAMETER :: name = "testfield"
+        INTEGER(HID_T) :: file_id       ! File identifier 
+        INTEGER(HID_T) :: plist_id      ! Property list identifier 
+        INTEGER(HID_T) :: dset_id, dataspace_id
+        INTEGER        :: error
+        REAL(8), DIMENSION(2) :: testing_field
+        INTEGER :: comm, info, rank
+        INTEGER(HSIZE_T), DIMENSION(2) :: data_dims 
+        print *,"my_rank = ", process_rank
+        testing_field(1:process_rank+1) = process_rank
+        rank = 2
+        comm = MPI_COMM_WORLD
+        info = MPI_INFO_NULL
+        data_dims(1) = 1
+        data_dims(2) = 2
+        ! Initialize FORTRAN predefined datatypes
+        CALL h5open_f(error) 
+
+        ! Setup file access property list with parallel I/O access.
+        CALL h5pcreate_f(H5P_FILE_ACCESS_F, plist_id, error)
+        CALL h5pset_fapl_mpio_f(plist_id, comm, info, error)
+
+        ! H5F_ACC_EXCL_F - fail if file already exists, ..._TRUNC_F - overwrites existing file
+        print *, "proc ", process_rank
+          
+        CALL h5fcreate_f(filename, H5F_ACC_TRUNC_F, file_id, error, access_prp=plist_id)
+        print *,"file created"
+        CALL h5screate_simple_f(rank, data_dims, dataspace_id, error)
+        print *,"dataspce created"
+        CALL h5dcreate_f(file_id, name, H5T_NATIVE_DOUBLE, dataspace_id, dset_id, error)
+        print *,"written ",testing_field
+        CALL h5dwrite_f(dset_id, H5T_NATIVE_DOUBLE, testing_field, data_dims, error)
+        CALL h5dclose_f(dset_id, error)
+        CALL h5sclose_f(dataspace_id, error)
+        CALL h5fclose_f(file_id, error)
+          
+        ! Close property list
+        CALL h5pclose_f(plist_id, error)
+        ! Close FORTRAN interface
+        CALL h5close_f(error)
+    END SUBROUTINE test
 
 END MODULE hdf5_helper

@@ -245,7 +245,7 @@ end subroutine calck0
 
     INTEGER(4) switch_start,p,j,l,m
     INTEGER(8) plan_forward,plan_backward
-    REAL(8) r,t,pert,pert_s,pert_t,delta_t,delta_r,tlo,norm,k_t
+    REAL(8) r,t,pert,pert_s,pert_t,delta_r,norm,k_t
 
     CHARACTER(LEN = 3) :: ip
     CHARACTER(LEN = 10):: id

@@ -73,14 +73,15 @@ CONTAINS
     USE HDF5_helper
     IMPLICIT NONE
 
-    INTEGER(4)  j,k,help,i_x,i_z
-    REAL(8) absorb_factor
+    INTEGER(4)  j,k,help,i_x,i_z,k1,k2
+    REAL(8) absorb_factor,real_part,imag_part
     LOGICAL ext
     CHARACTER*10 filename,id
     CHARACTER(LEN=10), PARAMETER :: hdf5_input = "test.h5"  ! File name for the HDF5 input file
     CHARACTER(LEN = *), PARAMETER :: output_groupname = "pre-processed" 
     INTEGER(HID_T) :: file_id, group_id     ! File identifier 
     INTEGER        :: error
+    REAL(8), ALLOCATABLE :: real_e(:,:),imag_e(:,:)
 
     HDF5write_count = 1
     CALL MPI_Init(ierr)
@@ -101,13 +102,11 @@ CONTAINS
     DO k=1,3
        IF (ip(k:k).EQ.' ') ip(k:k)='0'
     ENDDO
-    
+   
+! OPEN HDF5 interface
     CALL h5open_f(error) 
     CALL h5fopen_f (hdf5_input, H5F_ACC_RDONLY_F, file_id, error)
     CALL h5gopen_f(file_id, output_groupname, group_id, error) 
-    ! Close FORTRAN HDF5 interface.
-    ! 
-    ! CALL readint(group_id, 
     CALL readint(group_id, 'num_proc', num_proc)
     CALL readint(group_id, 'dim_t', dim_t)
     CALL readint(group_id, 'dim_r', dim_r)
@@ -317,19 +316,36 @@ CONTAINS
        expt4p=-(+exp(-delta_t/tdk)*sin(raman*delta_t)*tdk-tdk**2*raman+exp(-delta_t/tdk)*cos(raman*delta_t)*tdk**2*raman)/(raman*delta_t*tdk**2)
     END SELECT
     CALL calc_propagator
-    !DO j=dim_r_start(num_proc),dim_r_end(num_proc)
-    !   READ(unit_field) e(1:dim_t,j)
-    !ENDDO
+    ALLOCATE(real_e(dim_t,dim_r/num_proc),imag_e(dim_t,dim_r/num_proc))
+    CALL read_2D_array_real_dset_slice(group_id,'startfield_r',real_e,dim_t,dim_r,dim_t,dim_r/num_proc,0,(dim_r/num_proc)*my_rank)
+    CALL read_2D_array_real_dset_slice(group_id,'startfield_i',imag_e,dim_t,dim_r,dim_t,dim_r/num_proc,0,(dim_r/num_proc)*my_rank)
+    efield_factor = SQRT(critical_power*1.D9*3.D8*4.D0*3.1415D-7/(4.D0*3.1415D0*beam_waist**2*1.D-4*2.D0*n0_indice))*2.D0 ! normalization factor electric field V/m
+    ALLOCATE(efield_osc(dim_t))
+    DO j=1,dim_t
+       efield_osc(j) = exp(CMPLX(0.D0,-omega_uppe*(tlo+REAL(j,8)*delta_t),8)) ! fast oscillating term exp(-i*omegauppe*t)
+    ENDDO
+    DO k1=1, dim_t
+      DO k2=1, dim_r/num_proc
+        real_part = 1/efield_factor*(cos(efield_osc(k2))*real_e(k1,k2) + sin(efield_osc(k2))*imag_e(k1,k2))
+        imag_part = 1/efield_factor*(cos(efield_osc(k2))*imag_e(k1,k2) - sin(efield_osc(k2))*real_e(k1,k2))
+        real_e(k1,k2) = real_part
+        imag_e(k1,k2) = imag_part
+      ENDDO
+    ENDDO
+    e = CMPLX(real_e,imag_e)
 
-    ! MAIN FIELD
-    !CALL read_2D_array_complex_dset_slice(group_id,'startfield',e,dim_r/num_proc,dim_t, & 
-    !    dim_r_start(num_proc)-1,0)
-    CALL read_2D_array_complex_dset_slice(group_id,'startfield',e,dim_r,dim_t,dim_r/num_proc,dim_t,(dim_r/num_proc)*my_rank,0)
-    ! CLOSE Fortran HDF5 group, file and interface
+    !CALL read_2D_array_complex_dset_slice(group_id,'startfield',e,dim_r,dim_t,dim_r/num_proc,dim_t,(dim_r/num_proc)*my_rank,0)
     CALL h5gclose_f(group_id, error)
     CALL h5fclose_f(file_id, error)
     CALL h5close_f(error)
-    
+! CLOSE HDF5 interface
+
+    i_x_max = 1    
+    i_z_max = 1
+    ALLOCATE(xx(i_x_max),zz(i_z_max),Indice_norm(i_x_max, i_z_max))
+    zz(1:1) = 0
+    xx(1:1) = 0
+    Indice_norm(1,1) = 0
     ! The weird indexes are below
     !READ(unit_field) id
     !IF (id.NE.'index') THEN
@@ -420,11 +436,6 @@ CONTAINS
     tps = pulse_duration*1.D-15 ! pulse duration in s (tpfs*1.e-15 in octace files)
     w0m = beam_waist*1.D-2 ! beam width in m (w0cm*1e-2 in octave files)
     ! n0_indice : refractive index at center frequency (n0 in octave files)
-    efield_factor = SQRT(critical_power*1.D9*3.D8*4.D0*3.1415D-7/(4.D0*3.1415D0*beam_waist**2*1.D-4*2.D0*n0_indice))*2.D0 ! normalization factor electric field V/m
-    ALLOCATE(efield_osc(dim_t))
-    DO j=1,dim_t
-       efield_osc(j) = exp(CMPLX(0.D0,-omega_uppe*(tlo+REAL(j,8)*delta_t),8)) ! fast oscillating term exp(-i*omegauppe*t)
-    ENDDO
     ! electric field: REAL(efield_factor*e(:,k)*efield_osc,4) : one temporal profile in GV/m
     lambdanm = 6.634D-34*3.D17/photon_energy/4.359d-18 ! center wavelength in nm
     four_z_Rayleigh = 4.D0*3.1415D0*n0_indice/(lambdanm*1.D-9)*(beam_waist/100.D0)**2 ! 4 times the rayleigh length in m (normalization factor for z)
