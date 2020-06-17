@@ -1,5 +1,6 @@
 MODULE calc_start
   USE write_start
+  ! USE write_start
 
   INTEGER(4) super_N,super_t
   REAL(8) numcrit,noise,noise_s,noise_t,lense_factor,chirp_factor,restartamp
@@ -244,7 +245,7 @@ end subroutine calck0
 
     INTEGER(4) switch_start,p,j,l,m
     INTEGER(8) plan_forward,plan_backward
-    REAL(8) r,t,pert,pert_s,pert_t,delta_t,delta_r,tlo,norm,k_t
+    REAL(8) r,t,pert,pert_s,pert_t,delta_r,norm,k_t
 
     CHARACTER(LEN = 3) :: ip
     CHARACTER(LEN = 10):: id
@@ -252,7 +253,6 @@ end subroutine calck0
     delta_t=lt/REAL(dim_t,8) !stepwidth for t
     delta_r=lr/REAL(dim_r,8) !stepwidth for r
     tlo=-0.5D0*lt !lower bound for t
-
     ALLOCATE (e(dim_t,p*(dim_r/num_proc)+1:(p+1)*(dim_r/num_proc)))
     m=dim_r/num_proc
     CALL dfftw_plan_many_dft(plan_forward,1,dim_t,m,e,dim_t,1,dim_t,e,dim_t,1,dim_t,1,0)
@@ -371,7 +371,9 @@ end subroutine calck0
     ENDIF
 
 930 FORMAT (I3)
-
+    DO j=p*(dim_r/num_proc)+1,(p+1)*(dim_r/num_proc)
+      e_full(1:dim_t,j) = e(1:dim_t,j)
+    ENDDO
     RETURN
   END SUBROUTINE calc_startingfield
 
