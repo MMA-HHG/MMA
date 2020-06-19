@@ -9,46 +9,33 @@ The plot of the code:
 
 4) MPI-scheduler executes a simulation in every point. THe data are directly written into the output using the mutex.
 
-5) Tho code finishes.
+5) The code finishes.
 
 -----------------------------------------------------------------------------------------------------------------------
 Extensions/features already presented in 1DTDSE and needed to implement in a test mode. We wil add them as optional outputs.
 
+The features already presented in TDSE:
+	1) Print wavefunction
+	2) Print Gabor transformation
+	3) Photoelectron spectrum (Fabrice)
+
+2) is computationally demanding; 1) 2) are both data-storage demandig. It should be used then only in few prescribed points.
+
+
+There is possibility of various inputs:
+	1) Numerical/analytic field
+	2) Computation on velocity/length gauge
+
+We have already an analytic model of a beam (Python/MATLAB), we will then rewrite it and construct the parameters on-the-fly.
+The versatility in numeric-or-analytic field length-or-velocity gauge is ideal for testing of numerical vector potential that we can use after in SFA.
+
+
+------------------------------------------------------------------------------------------------------------------------
 The HDF5 version will implement the following idea:
 
 For reading, it should be easy. ** R/W may occur simultaneously in in the MPI loop. Separate I/O at the instant or ensure it will work (R/W from independent datasets may be fine???).
 https://support.hdfgroup.org/HDF5/Tutor/selectsimple.html
 
-
-After discussions, we try to test
-
-a)mutex 
-The main idea comes from the MPI3 book.
-(
-https://www.thegeekstuff.com/2012/05/c-mutex-examples/ https://www.geeksforgeeks.org/mutex-lock-for-linux-thread-synchronization/ .
-https://computing.llnl.gov/tutorials/pthreads/#Mutexes
-https://www.mcs.anl.gov/~robl/papers/ross_atomic-mpiio.pdf
-https://stackoverflow.com/questions/37236499/mpi-ensure-an-exclusive-access-to-a-shared-memory-rma
-)
-
-b) temporary files
-Each process writes in its own hdf5 file. There should be a way to do a "virtual" merging procedure: by using virtual datasets
-https://portal.hdfgroup.org/display/HDF5/Introduction+to+the+Virtual+Dataset++-+VDS
-For the instant, we may use a more direct method-store data in binary files etc. It may be easier for testing & debugging.
-
-
-
-All the code will be encapsulated in an MPI-loop.
-
-The plot of the code development:
-1) we leave the original parametric file, the only difference will be omitting the filenames. Istead of this there gonna be two indices (r and z). Matrix size will be leaded from the hfd5 archive.
-1.develop) first do only hdf5 stuff single run with fixed indices
-2) Pool of processes should be easy with NXTVAL from MPI3. We implement it directly. The RMA window for mutex and queue is shared.
-
-note: mutexes will be there for writing, the counter will be used for assigning simulations to workers at the moment they finish their work. I think it ensures maximal fair-share of the load.
-
-3) we use mutex to write into the hdf5 archive
-3.test) we include a direct printing in separated files in the testing mode
 
 4) we get rid of mutexes and use rather parallel acces to files all the time.
 4.develop) it seems that many-readers many-writers would be possible by HDF5 parallel since we will not modify the file much. However, we may also try stick with independent files and eventually 
