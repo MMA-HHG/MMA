@@ -77,7 +77,7 @@ CONTAINS
     REAL(8) absorb_factor,real_part,imag_part
     LOGICAL ext
     CHARACTER*10 filename,id
-    CHARACTER(LEN=10), PARAMETER :: hdf5_input = "test.h5"  ! File name for the HDF5 input file
+    CHARACTER(LEN=10), PARAMETER :: hdf5_input = "results.h5"  ! File name for the HDF5 input file
     CHARACTER(LEN = *), PARAMETER :: output_groupname = "pre-processed" 
     INTEGER(HID_T) :: file_id, group_id     ! File identifier 
     INTEGER        :: error

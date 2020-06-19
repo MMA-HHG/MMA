@@ -363,7 +363,7 @@ CONTAINS
     IF (THEORY == "PPT") THEN
       INQUIRE(FILE="calculated_tables.h5", EXIST=file_exists)
       IF (file_exists.EQV..TRUE.) THEN
-        print *, "File exists"
+        ! print *, "File exists"
         just_read = .TRUE.
         CALL h5open_f(error)
         CALL h5fopen_f(filename, H5F_ACC_RDONLY_F, file_id, error)
@@ -371,32 +371,32 @@ CONTAINS
         CALL readreal(group_id, 'atom_dens', o_atom_dens)
         IF (atomic_density.NE.o_atom_dens) THEN
           just_read = .FALSE.
-          print *,"atomic density did not match"
+          ! print *,"atomic density did not match"
         ENDIF
         CALL readreal(group_id, 'crit_dens', o_crit_dens)
         IF (critical_density.NE.o_crit_dens) THEN
           just_read = .FALSE.        
-          print *,"critical density did not match"
+          ! print *,"critical density did not match"
         ENDIF
         CALL readreal(group_id, 'beam_waist', o_beam_waist)
         IF (beam_waist.NE.o_beam_waist) THEN
           just_read = .FALSE.
-          print *,"beam waist did not match"
+          ! print *,"beam waist did not match"
         ENDIF
         CALL readreal(group_id, 'photenergy', o_photenergy)
         IF (photon_energy.NE.o_photenergy) THEN
           just_read = .FALSE.
-          print *,"photon energy did not match"
+          ! print *,"photon energy did not match"
         ENDIF
         CALL readreal(group_id, 'pulse_duration', o_pulse_duration)
         IF (pulse_duration.NE.o_pulse_duration) THEN
           just_read = .FALSE.
-          print *,"pulse duration did not match"
+          ! print *,"pulse duration did not match"
         ENDIF
         CALL readreal(group_id, 'n0', o_n0)
         IF (n0_indice.NE.o_n0) THEN
           just_read = .FALSE.
-          print *,"n0 indice did not match"
+          ! print *,"n0 indice did not match"
         ENDIF
         CALL h5gclose_f(group_id, error)
         CALL h5fclose_f(file_id, error)
@@ -411,7 +411,7 @@ CONTAINS
         CALL h5fclose_f(file_id, error)
         CALL h5close_f(error)
       ELSE
-        print *, "Did not find file with matching variables"
+        ! print *, "Did not find file with matching variables"
         ALLOCATE(rates_table(DIMENSION_PPT, 2), reference_table(DIMENSION_PPT, 3))
         DO i = 2, dimension_PPT
          intensity = (i-1) * intensity_step
