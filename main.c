@@ -88,7 +88,7 @@ int main(int argc, char *argv[])
 	hsize_t dims[ndims]; // we need the size to allocate tgrid for us
 	H5Sget_simple_extent_dims(dspace_id, dims, NULL); // get dimensions
 	if ( ( comment_operation == 1 ) && ( myrank == 0 ) ){printf("Size 1 is: %i \nSize 2 is: %i \nGrid is from Fortran as a column, it gives the extra 1-dimension\n",dims[0],dims[1]);}
-	hid_t datatype  = H5Dget_type(dset_id);     // we gat the type of data (SINGEL, DOUBLE, etc. from HDF5)
+	hid_t datatype  = H5Dget_type(dset_id);     // we gat the type of data (SINGLE, DOUBLE, etc. from HDF5)
 	double tgrid[dims[0]]; // allocate the grid
 	h5error = H5Dread(dset_id,  datatype, H5S_ALL, H5S_ALL, H5P_DEFAULT, tgrid); // read the grid
 	if ( ( comment_operation == 1 ) && ( myrank == 0 ) ){printf("(t_init,t_end) = (%e,%e) \n",tgrid[0],tgrid[dims[0]-1]);}
