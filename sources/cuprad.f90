@@ -21,21 +21,18 @@ PROGRAM cuprad
   write(*,*) tcount, count_rate, count_max
 !  stop
   CALL initialize
-  print *, "Back in Cuprad"
   limit_s=timelimit*3600
   IF (.NOT.finished) THEN
      DO WHILE (z.LT.proplength)
 
         IF(z_out.LE.z) THEN ! HDF5 printing
-           ! CALL HDF5_out! that's the printing
+           CALL HDF5_out! that's the printing
 !           z_outHD5=z_outHD5+outlengthHD5 !!!! WILL BE USED WHEN GRIDS DISATTACHED
-                print *, "HDF5 out"
         ENDIF
 
         IF(z_out.LE.z) THEN
-           ! CALL matlab_out ! that's the printing
+           CALL matlab_out ! that's the printing
            z_out=z_out+outlength
-           print *, "Matlab out"
         ENDIF
 
 
@@ -67,7 +64,7 @@ PROGRAM cuprad
         !     IF (TREM.LE.3600) EXIT     
      ENDDO
      IF (z.GE.proplength) THEN
-        !CALL HDF5_out
+        CALL HDF5_out
         finished = .TRUE.
      ELSE
         IF (my_rank.EQ.0) THEN
@@ -76,7 +73,7 @@ PROGRAM cuprad
         ENDIF
      ENDIF
      CALL field_out
-     !CALL matlab_out 
+     CALL matlab_out 
      rhodist=count
      CALL propagation
      CALL finalize
