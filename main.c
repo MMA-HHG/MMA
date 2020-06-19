@@ -1,1023 +1,226 @@
+/*
+Here we show a simple scheduler of tasks from a queue. In this case, each task is specified by kr and kz that correpond to two indices in a table (:,kr,kz).
+The elementary program process data from that cut. The processors takes tasks until the queue is empty. There is no synchoronisation at this point, so tasks
+can be of various lenghts, etc. THe code than could be very easily adapted to any task.
+
+The program oprates with one input file and one output file. It could be desirable to use only one file, this would require to either use SWMR technique or
+mutex the accesses ( https://portal.hdfgroup.org/pages/viewpage.action?pageId=48812567 ). 
+
+The limitation is that the mutex is used for writing, the writing should take then small amount of time compared to the atomic task.
+
+Concrete decription of this tutorial: it takes the fields from results.h5[/IRProp/Fields_rzt] , multiplies the array by 2 using the forementioned procedure
+and prints the result in results.h5[/SourceTerms]. Next, it also loads results.h5[/IRProp/tgrid] before the calculation.
+
+The code may explain its work by setting comment_operation = 1; and muted by comment_operation = 0; Only first 20 tasks are shown.
+
+Possible extensions are discussed at the end of the file.
+*/
 #include<time.h> 
 #include<stdio.h>
+#include <mpi.h>
 #include<stdlib.h>
 #include<malloc.h>
 #include<math.h>
 #include "hdf5.h"
+#include "util.h"
+
+// hdf5 operation:
+herr_t  h5error;
+hid_t file_id; // file pointer
+hid_t filespace, dataspace_id, dataset_id; // dataspace pointers
+
+int k1;
 
 
 
-#include"util.h"
-#include"util2.h"
 
-struct Efield_var Efield;
-struct trg_def trg;
-struct analy_def analy;
-struct outputs_def outputs;
-double *y,*x,*a,*c,sum,*diagonal,*off_diagonal,*eigenvector,*u,*r,*vector;
-double *timet,*dipole;
-double dx,xmax,Eguess,Einit,CV,phi,omega,E0,period,Pi,tfinal,alpha,v,mod1,mod2,dE,Estep,norm_gauss,x_int,textend;
+int main(int argc, char *argv[]) 
+{
 
-int gauge,transformgauge,fieldinau,input0,Ntinterp,InterpByDTorNT;
+	int comment_operation = 1;
 
-double dt, tmax,tmin;
-int Nt;
-
-double dum,dum1,dum2;
-double *psi0,*psi,*psi2,Einit2,ps_re,ps_im,*psiexc,*psi_rmv_gs;
-double E_start,ton,toff,dw;
-int num_E,num_exp,num_w,N_t,dumint;
+	// Initialise MPI
+	int myrank, nprocs;
+	int MPE_MC_KEYVAL; // this is used to address the mutex and counter
+	MPI_Win mc_win; // this is the shared window, it is used both  for mutices and counter
+	MPI_Init(&argc,&argv);
+	MPI_Comm_size(MPI_COMM_WORLD,&nprocs);
+	MPI_Comm_rank(MPI_COMM_WORLD,&myrank);
 
 
-double a_Gabor, omegaMaxGabor, dtGabor, tmin1window, tmax1window, tmin2window, tmax2window, IonFilterThreshold;
-int PrintGaborAndSpectrum, IonisationFilterForTheSourceTerm;
+	// the file is opened for read only by all the processes independently, every process then has its own copy of variables.
+	file_id = H5Fopen ("results.h5", H5F_ACC_RDONLY, H5P_DEFAULT);  
 
-int PrintOutputMethod;
+	// we first start with the t-grid
+	hid_t dset_id = H5Dopen2 (file_id, "IRProp/tgrid", H5P_DEFAULT); // open dataset	     
+	hid_t dspace_id = H5Dget_space (dset_id); // Get the dataspace ID     
+	const int ndims = H5Sget_simple_extent_ndims(dspace_id); // number of dimensions in the tgrid
+	if ( ( comment_operation == 1 ) && ( myrank == 0 ) ){printf("dimensionality tgrid is: %i \n",ndims);}
+	hsize_t dims[ndims]; // we need the size to allocate tgrid for us
+	H5Sget_simple_extent_dims(dspace_id, dims, NULL); // get dimensions
+	if ( ( comment_operation == 1 ) && ( myrank == 0 ) ){printf("Size 1 is: %i \nSize 2 is: %i \nGrid is from Fortran as a column, it gives the extra 1-dimension\n",dims[0],dims[1]);}
+	hid_t datatype  = H5Dget_type(dset_id);     // we gat the type of data (SINGEL, DOUBLE, etc. from HDF5)
+	double tgrid[dims[0]]; // allocate the grid
+	h5error = H5Dread(dset_id,  datatype, H5S_ALL, H5S_ALL, H5P_DEFAULT, tgrid); // read the grid
+	if ( ( comment_operation == 1 ) && ( myrank == 0 ) ){printf("(t_init,t_end) = (%e,%e) \n",tgrid[0],tgrid[dims[0]-1]);}
+	h5error = H5Dclose(dset_id);
 
+	// we move to the Fields
+	dset_id = H5Dopen2 (file_id, "IRProp/Fields_rzt", H5P_DEFAULT); // open dataset	     
+	dspace_id = H5Dget_space (dset_id); // Get the dataspace ID     
+	const int ndims2 = H5Sget_simple_extent_ndims(dspace_id); // number of dimensions for the fields
+	hsize_t dims2[ndims2]; // variable to access
+	H5Sget_simple_extent_dims(dspace_id, dims2, NULL); // get dimensions
+	if ( ( comment_operation == 1 ) && ( myrank == 0 ) ){printf("Fields dimensions (t,r,z) = (%i,%i,%i)\n",dims2[0],dims2[1],dims2[2]);}
+	datatype  = H5Dget_type(dset_id);     // get datatype
+	hsize_t dim_t = dims2[0], dim_r = dims2[1], dim_z = dims2[2]; // label the dims by physical axes
 
-double *test_expand;
+	// based on dimensions, we set a counter (queue length)
+	int Ntot = dim_r*dim_z;
+	// selections (hyperslabs) are needed
+	hsize_t  offset[ndims2], stride[ndims2], count[ndims2], block[ndims2];
 
-double *dinf,*dsup,*d,*u1,*res,*t;
+	double Fields[dims2[0]], SourceTerms[dims2[0]]; // Here we store the field and computed SOurce Term for every case	
+	
+	hsize_t field_dims[1]; // we need to specify the length of the array this way for HDF5
+	field_dims[0] = dims2[0];
 
-int i,j,k,l,m,num_r,num_t,err,max_iteration_count,size,nc,k1,k2,k2,k3,k5;
-clock_t start, finish;
-
-char ch;
-
-int size_exp,shift;
-
-FILE *newygrid,*eingenvaluef,*eingenvectorf,*timef,*timef2,*gaussianwp,*volkovwp,*param,*pot,*file1,*file3,*file2,*file4,*file5,*file6,*file7,*file8,*file9;
-
-char filename1[25], filename2[25];
-
-//#pragma warning( disable : 4996 ) // warning for fopen in visual 2005
-
-
-
-int main(void)
-{	
-	Pi = acos(-1.);
-
-	// TESTING VARIABLES
-	int kz = 0;
-	int kr = 0;
-
-	// Open the param.txt file for intialisation of the parameter
-	param = fopen("param.txt" , "r");
-	if(param == NULL) {printf("DATA could not be found in param.txt file\n");}
-
-	dumint=fscanf(param, "%*[^\n]\n", NULL);
-	dumint=fscanf(param,"%i %*[^\n]\n",&Efield.fieldtype); // 0-numerical, loaded in femtosecons, 1-numerical, loaded in atomic units in whole grid, 2-analytical
-
-
-	dumint=fscanf(param, "%*[^\n]\n", NULL);
-
-	dumint=fscanf(param,"%lf %*[^\n]\n",&Eguess); // Energy of the initial state
-	dumint=fscanf(param,"%i %*[^\n]\n",&num_r); // Number of points of the initial spatial grid 16000
-	dumint=fscanf(param,"%i %*[^\n]\n",&num_exp); // Number of points of the spatial grid for the expansion
-	dumint=fscanf(param,"%lf %*[^\n]\n",&dx); // resolution for the grid
-	dumint=fscanf(param,"%i %*[^\n]\n",&InterpByDTorNT); // Number of points of the spatial grid for the expansion
-	dumint=fscanf(param,"%lf %*[^\n]\n",&dt); // resolution in time
-	dumint=fscanf(param,"%i %*[^\n]\n",&Ntinterp); // Number of points of the spatial grid for the expansion
-	dumint=fscanf(param,"%lf %*[^\n]\n",&textend); // extension of the calculation after the last fields ends !!! NOW ONLY FOR ANALYTICAL FIELD //700
-	dumint=fscanf(param,"%i %*[^\n]\n",&analy.writewft); // writewavefunction (1-writting every tprint)
-	dumint=fscanf(param,"%lf %*[^\n]\n",&analy.tprint); // time spacing for writing the wavefunction	
-	dumint=fscanf(param,"%lf %*[^\n]\n",&x_int); // the limit of the integral for the ionisation //2 2 works fine with the lenth gauge and strong fields
-	dumint=fscanf(param,"%i %*[^\n]\n",&PrintGaborAndSpectrum); // print Gabor and partial spectra (1-yes)
-	dumint=fscanf(param,"%lf %*[^\n]\n",&a_Gabor); // the parameter of the gabor window [a.u.]
-	dumint=fscanf(param,"%lf %*[^\n]\n",&omegaMaxGabor); // maximal frequency in Gabor [a.u.]
-	dumint=fscanf(param,"%lf %*[^\n]\n",&dtGabor); // spacing in Gabor
-	dumint=fscanf(param,"%lf %*[^\n]\n",&tmin1window); // analyse 1st part of the dipole
-	dumint=fscanf(param,"%lf %*[^\n]\n",&tmax1window); // analyse 1st part of the dipole
-	dumint=fscanf(param,"%lf %*[^\n]\n",&tmin2window); // analyse 2nd part of the dipole
-	dumint=fscanf(param,"%lf %*[^\n]\n",&tmax2window); // analyse 2nd part of the dipole
-	dumint=fscanf(param,"%i %*[^\n]\n",&PrintOutputMethod); // (0 - only text, 1 - only binaries, 2 - both)
-	dumint=fscanf(param,"%i %*[^\n]\n",&IonisationFilterForTheSourceTerm); // filter source term by high-ionisation components (1-yes)
-	dumint=fscanf(param,"%lf %*[^\n]\n",&IonFilterThreshold); // threshold for the ionisation [-]
-
-	dumint=fscanf(param, "%*[^\n]\n", NULL);
-
-	dumint=fscanf(param,"%lf %*[^\n]\n",&trg.a); // the limit of the integral for the ionisation //2 2 works fine with the
-
-	dumint=fscanf(param, "%*[^\n]\n", NULL);
+	hid_t memspace_id = H5Screate_simple(1,field_dims,NULL); // this memspace correspond to one Field/SourceTerm hyperslab, we will keep it accross the code
 
 
-	// paramters either for numerical field or analytic
-	// we extend it for now as new functionality and then resort it
-	switch (Efield.fieldtype){
-	case 3:
-		// HDF5, filename given directly when loading
-	break;
-	case 2:
-		// GAUGES
-		dumint=fscanf(param,"%i %*[^\n]\n",&gauge); // 0-length, otherwise velocity, velocity available only for analytic field (A needed)
-		dumint=fscanf(param,"%i %*[^\n]\n",&transformgauge); // 1 - transform also to another gauge during the calculation, (A needed)
-/*		printf("gauge,  %i \n",gauge);*/
-	break;
-	case 0:	case 1:
-		// FILENAMES
+	// THE MAIN OPERATION LEADING TO OUTPUT STARTS HERE
 
-		dumint=fscanf(param,"%s %*[^\n]\n",filename1); // filename1
-		dumint=fscanf(param,"%s %*[^\n]\n",filename2); // filename2
-		dumint=fscanf(param, "%*[^\n]\n", NULL);
-		dumint=fscanf(param,"%i %*[^\n]\n",&fieldinau); // 0-input inatomic units, 1 - in femto and GV/m
-		dumint=fscanf(param,"%i %*[^\n]\n",&input0); // 0 field starts with 0, 1 in the middle of the file
+	// create counter and mutex in one pointer
+	MPE_MC_KEYVAL = MPE_Counter_create(MPI_COMM_WORLD, 2, &mc_win); // first is counter, second mutex
 
-		printf("filename1  %s \n",filename1);
-	break;
 
+	if ( myrank == 0 )  // first process is preparing the file and the rest may do their own work (the file is locked in the case they want to write); it creates the resulting dataset
+	{
+	MPE_Mutex_acquire(mc_win, 1, MPE_MC_KEYVAL);
+
+	file_id = H5Fopen ("results2.h5", H5F_ACC_RDWR, H5P_DEFAULT); // we use a different output file to testing, can be changed to have only one file
+	dataspace_id = H5Screate_simple(ndims2, dims2, NULL); // create dataspace for outputs
+	dataset_id = H5Dcreate2(file_id, "/SourceTerms", datatype, dataspace_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT); // create dataset
+
+	// close it
+	h5error = H5Dclose(dataset_id); // dataset
+	h5error = H5Sclose(dataspace_id); // dataspace
+	h5error = H5Fclose(file_id); // file
+
+	MPE_Mutex_release(mc_win, 1, MPE_MC_KEYVAL);
 	}
-
-	
-
-	num_t = floor((2.*Pi)/(0.057*dt)); // the length of one cycle for 800 nm (i.e. omega=0.057) 
-	
-
-	// define the properties of the temporal grid
-	switch (Efield.fieldtype){
-	case 2:
-		printf("Analytical fields are used\n");
-/*		dumint=fscanf(param, "%*[^\n]\n", NULL); // move in file*/
-/*		dumint=fscanf(param,"%lf %*[^\n]\n",&dum); printf("E0,  %f \n",dum);*/
-
-		define_analytical(&Efield, param);
-	break;
-	case 0:
-		printf("Numerical field 1 (in femtoseconds) is used\n");
-	break;
-	case 1:
-		printf("Numerical field 2 (in atomic units) is used\n");
-	break;
-
-	}
-
-	fclose(param);
-
-
-	// !!!!! loading procedure
-	switch (Efield.fieldtype){
-
-	case 3:
-		// OPEN HDF5 file	
-        file_id = H5Fopen ("results.h5", H5F_ACC_RDWR, H5P_DEFAULT); // open file
-
-		// find dimensions	
-		dataset_id = H5Dopen2 (file_id, "IRprop/tgrid ", H5P_DEFAULT); // open dataset	     
-        dspace_id=h5dget_space(dset_id); // Get the dataspace ID     
-        h5sget_simple_extent_dims(dspace_id, dims, maxdims)  //Getting dims from dataspace
-
-		// allocate fields
-
-		// set hyperslab
-		dataset_id = H5Dopen2 (file_id, "IRprop/Fields_rzt", H5P_DEFAULT); // open dataset
-
-		// load fields
-
-		// close field
+	// an empty dataset is prepared to be filled with the data
 		
-		Efield.Nt = 0;	
-		while((ch=fgetc(file1))!=EOF)
-		{if(ch == '\n'){Efield.Nt++;}}
-		rewind(file1);
-		printf("Efield.Nt,  %i \n",Efield.Nt);		
-			
-		Efield.tgrid = calloc(Efield.Nt,sizeof(double)); 
-		Efield.Field = calloc(Efield.Nt,sizeof(double)); 
 
-		// LOAD FILES		
-		for(k1 = 0 ; k1 <= Efield.Nt-1 ; k1++) //Efield.Nt-1
-		{
-			dumint = fscanf(file1,"%lf",&Efield.tgrid[k1]); // file in femtoseconts and GV/m;
-			dumint = fscanf(file2,"%lf",&Efield.Field[k1]);
-			if (!(fieldinau == 0))
-			{
-				Efield.tgrid[k1] = Efield.tgrid[k1]*41.34144728; // timegrid in a.u.
-				Efield.Field[k1] = Efield.Field[k1]*0.001944689151; // corresponding field
-			}
-		}	
-		fclose(file1);
-		fclose(file2);		
+	// we now process the MPI queue
+	int Nsim, kr, kz; // counter of simulations, indices in the FIeld array
+	MPE_Counter_nxtval(mc_win, 0, &Nsim, MPE_MC_KEYVAL); // get my first task (every worker calls)
 
-		// k1 = 0; k2 = 0;	findinterval(Efield.Nt, 0., Efield.tgrid, &k1, &k2);// find zero of the grid, the best resolution is around
-		switch ( input0 ){case 0: dumint = 0; break; case 1: dumint = round(Efield.Nt/2.); /* field centered around 0 */ break;} // original definition
-	
-		Efield.dt = Efield.tgrid[dumint+1]-Efield.tgrid[dumint]; // Efield.dt = Efield.tgrid[1+round(Efield.Nt/2.)]-Efield.tgrid[round(Efield.Nt/2.)];
-		tmax = Efield.tgrid[Efield.Nt]-Efield.tgrid[0];
+	do { // run till queue is not treated
+		kr = Nsim % dim_r; kz = Nsim - kr;  kz = kz / dim_r; // compute offsets in each dimension
 
-		// PRINT field and its transform
-		file1 = fopen("inputs/InputField.dat" , "w"); file2 = fopen("inputs/InputFField.dat" , "w"); printFFTW3(file1, file2, Efield.Field, Efield.Nt, Efield.dt); fclose(file1); fclose(file2);
+		// prepare the part in the arrray to r/w
+		offset[0] = 0; offset[1] = kr; offset[2] = kz; 
+		stride[0] = 1; stride[1] = 1; stride[2] = 1;
+		count[0] = dims2[0]; count[1] = 1; count[2] = 1; // takes all t
+		block[0] = 1; block[1] = 1; block[2] = 1;
+
+		// read the HDF5 file
+
+		// MPE_Mutex_acquire(mc_win, 1, MPE_MC_KEYVAL); // We now use different input and output file, input is for read-only, this mutex is here in the case we have only one file for I/O.
+		if ( ( comment_operation == 1 ) && ( Nsim < 20 ) ){printf("Proc %i will read from (kr,kz)=(%i,%i), job %i \n",myrank,kr,kz,Nsim);}
+
+		file_id = H5Fopen ("results.h5", H5F_ACC_RDONLY, H5P_DEFAULT); // same as shown
+		dset_id = H5Dopen2 (file_id, "IRProp/Fields_rzt", H5P_DEFAULT); 
+		dspace_id = H5Dget_space (dset_id);
+
+		h5error = H5Sselect_hyperslab (dspace_id, H5S_SELECT_SET, offset, stride, count, block); // operation with only a part of the array = hyperslab
+		h5error = H5Dread (dset_id, datatype, memspace_id, dspace_id, H5P_DEFAULT, Fields); // read only the hyperslab
+
+		h5error = H5Dclose(dset_id); // dataset
+		h5error = H5Sclose(dspace_id); // dataspace
+		h5error = H5Fclose(file_id); // file
+
+		if ( ( comment_operation == 1 ) && ( Nsim < 20 ) ){printf("Proc %i finished read of job %i \n",myrank, Nsim);}
+		// MPE_Mutex_release(mc_win, 1, MPE_MC_KEYVAL);
+
+		if ( ( comment_operation == 1 ) && ( Nsim < 20 ) ){printf("Proc %i doing the job %i \n",myrank,Nsim);}
+
+		// THE TASK IS DONE HERE, we can call 1D/3D TDSE, etc. here
+		for (k1 = 0; k1 < dims2[0]; k1++){SourceTerms[k1]=2.0*Fields[k1];}; // just 2-multiplication
 		
-		// find the padding we need (now we assume coarser grid in the input, need an "if" otherwise)
-		if (InterpByDTorNT == 1)
-		{
-			k1 = Ntinterp + 1;
-		} else {
-			k1 = floor(Efield.dt/dt); Ntinterp = k1; k1++;
-		}
+		// print the output in the file
+		MPE_Mutex_acquire(mc_win, 1, MPE_MC_KEYVAL); // mutex is acquired
 
-		dt = Efield.dt/((double)k1); // redefine dt properly
+		if ( ( comment_operation == 1 ) && ( Nsim < 20 ) ){printf("Proc %i will write in the hyperslab (kr,kz)=(%i,%i), job %i \n",myrank,kr,kz,Nsim);}
 
-		Efield.Field = FourInterp(k1, Efield.Field, Efield.Nt); // make the interpolation !!!!!! tgrid does not correspond any more
+		file_id = H5Fopen ("results2.h5", H5F_ACC_RDWR, H5P_DEFAULT); // open file
+		dset_id = H5Dopen2 (file_id, "/SourceTerms", H5P_DEFAULT); // open dataset
+		filespace = H5Dget_space (dset_id); // Get the dataspace ID   
+		h5error = H5Sselect_hyperslab (dspace_id, H5S_SELECT_SET, offset, stride, count, block); // again the same hyperslab as for reading
 
-		Nt = k1*Efield.Nt + 1;
+		h5error = H5Dwrite(dset_id,datatype,memspace_id,filespace,H5P_DEFAULT,SourceTerms); // write the data
 
-		// PRINT new field and its transform
-		file1 = fopen("inputs/InputField2.dat" , "w"); file2 = fopen("inputs/InputFField2.dat" , "w"); printFFTW3(file1, file2, Efield.Field, Nt, dt); fclose(file1); fclose(file2);
+		// close
+		h5error = H5Dclose(dset_id); // dataset
+		h5error = H5Sclose(filespace); // dataspace
+		h5error = H5Fclose(file_id); // file
 
-		
-		num_t = floor((2*Pi)/(0.057*dt)); num_t++; 
-		printf("Efield.dt,  %lf \n",Efield.dt);
-		printf("points per interval  %i \n",num_t);
-		printf("number of interpolated points per interval  %i \n",Ntinterp);
-		
-	break;
+		MPE_Mutex_release(mc_win, 1, MPE_MC_KEYVAL);
+		MPE_Counter_nxtval(mc_win, 0, &Nsim, MPE_MC_KEYVAL); // get my next task
+	} while (Nsim < Ntot);
+	h5error = H5Sclose(memspace_id);
+	MPI_Finalize();
+	return 0;	
+}
 
-	case 0:
-		// LOAD THE FILES		
-		
-		file1 = fopen(filename1 , "r"); if(file1 == NULL) {printf("timegrid file %s doesn't exist\n",filename1);}
-		file2 = fopen(filename2 , "r"); if(file2 == NULL) {printf("Field file %s doesn't exist\n", filename2);}	
-		
-		
-		Efield.Nt = 0;	
-		while((ch=fgetc(file1))!=EOF)
-		{if(ch == '\n'){Efield.Nt++;}}
-		rewind(file1);
-		printf("Efield.Nt,  %i \n",Efield.Nt);		
-			
-		Efield.tgrid = calloc(Efield.Nt,sizeof(double)); 
-		Efield.Field = calloc(Efield.Nt,sizeof(double)); 
 
-		// LOAD FILES		
-		for(k1 = 0 ; k1 <= Efield.Nt-1 ; k1++) //Efield.Nt-1
-		{
-			dumint = fscanf(file1,"%lf",&Efield.tgrid[k1]); // file in femtoseconts and GV/m;
-			dumint = fscanf(file2,"%lf",&Efield.Field[k1]);
-			if (!(fieldinau == 0))
-			{
-				Efield.tgrid[k1] = Efield.tgrid[k1]*41.34144728; // timegrid in a.u.
-				Efield.Field[k1] = Efield.Field[k1]*0.001944689151; // corresponding field
-			}
-		}	
-		fclose(file1);
-		fclose(file2);		
-
-		// k1 = 0; k2 = 0;	findinterval(Efield.Nt, 0., Efield.tgrid, &k1, &k2);// find zero of the grid, the best resolution is around
-		switch ( input0 ){case 0: dumint = 0; break; case 1: dumint = round(Efield.Nt/2.); /* field centered around 0 */ break;} // original definition
-	
-		Efield.dt = Efield.tgrid[dumint+1]-Efield.tgrid[dumint]; // Efield.dt = Efield.tgrid[1+round(Efield.Nt/2.)]-Efield.tgrid[round(Efield.Nt/2.)];
-		tmax = Efield.tgrid[Efield.Nt]-Efield.tgrid[0];
-
-		// PRINT field and its transform
-		file1 = fopen("inputs/InputField.dat" , "w"); file2 = fopen("inputs/InputFField.dat" , "w"); printFFTW3(file1, file2, Efield.Field, Efield.Nt, Efield.dt); fclose(file1); fclose(file2);
-		
-		// find the padding we need (now we assume coarser grid in the input, need an "if" otherwise)
-		if (InterpByDTorNT == 1)
-		{
-			k1 = Ntinterp + 1;
-		} else {
-			k1 = floor(Efield.dt/dt); Ntinterp = k1; k1++;
-		}
-
-		dt = Efield.dt/((double)k1); // redefine dt properly
-
-		Efield.Field = FourInterp(k1, Efield.Field, Efield.Nt); // make the interpolation !!!!!! tgrid does not correspond any more
-
-		Nt = k1*Efield.Nt + 1;
-
-		// PRINT new field and its transform
-		file1 = fopen("inputs/InputField2.dat" , "w"); file2 = fopen("inputs/InputFField2.dat" , "w"); printFFTW3(file1, file2, Efield.Field, Nt, dt); fclose(file1); fclose(file2);
-
-		
-		num_t = floor((2*Pi)/(0.057*dt)); num_t++; 
-		printf("Efield.dt,  %lf \n",Efield.dt);
-		printf("points per interval  %i \n",num_t);
-		printf("number of interpolated points per interval  %i \n",Ntinterp);
-		
-	break;
-	case 1:
-		// scan field
-
-		file1 = fopen("inputs/timegrid2.dat" , "r");
-		file2 = fopen("inputs/Field.dat" , "r");
-
-		Efield.Nt = 0;	
-		while((ch=fgetc(file1))!=EOF)
-		{if(ch == '\n'){Efield.Nt++;}}
-		rewind(file1);
-
-		Efield.tgrid = calloc(Efield.Nt,sizeof(double));
-		Efield.Field = calloc(Efield.Nt,sizeof(double));
- 
-		for(k1 = 0 ; k1<= Efield.Nt-1 ; k1++) //Efield.Nt-1
-			{
-				dumint = fscanf(file1,"%lf",&Efield.tgrid[k1]); // timegrid in a.u.
-				//Efield.tgrid[k1] = Efield.tgrid[k1]*41.34144728;
-				dumint = fscanf(file2,"%lf",&Efield.Field[k1]); // corresponding field
-				//Efield.Field[k1] = Efield.Field[k1]*0.001944689151;
-				// printf("row %i\n",k1);
-			}	
-		fclose(file1);
-		fclose(file2);		
-		
-		tmin = Efield.tgrid[0]; //Efield.tgrid[Efield.Nt-1]; //field is long, try to take only fewer points, given by hand
-		// tmin = findnextinterpolatedzero(Efield.Nt-1, tmin, Efield.tgrid, Efield.Field); // start in nearest exact zero
-		printf("tmin is,  %lf \n",tmin);
-		tmax = Efield.tgrid[Efield.Nt-1];
-		printf("tmax is,  %lf \n",tmax);
-		Nt = floor((tmax-tmin)/dt);
-		tmax = tmin+dt*(double)Nt;
-		
-		Efield.dt = Efield.tgrid[1]-Efield.tgrid[0]; // not used
-
-		num_t = floor((2*Pi)/(Efield.omega*dt)); num_t++; 
-		printf("Efield.dt,  %lf \n",Efield.dt);
-		printf("points per interval  %i \n",num_t);	
-
-	break;
-	case 2:
-		//---------------------------- THERE IS DEFINED ANALYTICAL FIELD
-
-		printf("\ntest analytic\n");
-		// finding the maximal time & fit the field specification
-		//for(k1 = 0 ; k1 <= F.Nflt1 ; k1++)
-		tmax = 0.;
-		if (Efield.Nsin2 > 0){
-			for(k1 = 0 ; k1 <= (Efield.Nsin2-1) ; k1++){
-				
-				Efield.sin2[k1].A0 = Efield.sin2[k1].E0/Efield.sin2[k1].o;
-				Efield.sin2[k1].oc = Efield.sin2[k1].o/(2.*Efield.sin2[k1].nc);			
-				Efield.sin2[k1].phi0 = Pi/2.0 - Efield.sin2[k1].oc * ( Efield.sin2[k1].ti + 0.5 * Pi/Efield.sin2[k1].oc ); //adjust of the envelope phase
-				Efield.sin2[k1].phi = Efield.sin2[k1].phi - Efield.sin2[k1].o * Efield.sin2[k1].ti - Pi * Efield.sin2[k1].nc; // recalculate CEP
-
-
-				tmax = fmax(tmax, Efield.sin2[k1].ti + Pi / Efield.sin2[k1].oc );
-			}
-		}
-
-// ANOTHER FIELD TYPES
-		if (Efield.Nflt1 > 0){for(k1 = 0 ; k1 <= (Efield.Nflt1-1) ; k1++){tmax = fmax(tmax, Efield.flt1[k1].ti + Efield.flt1[k1].ton + Efield.flt1[k1].toff + Efield.flt1[k1].T );}}
-		if (Efield.Nflt1ch > 0){for(k1 = 0 ; k1 <= (Efield.Nflt1ch-1) ; k1++){tmax = fmax(tmax, Efield.flt1ch[k1].ti + Efield.flt1ch[k1].ton + Efield.flt1ch[k1].toff + Efield.flt1ch[k1].T );}}
-		
-		//printf("test2 \n");		
-		if (Efield.NEsin2 > 0){
-			
-			for(k1 = 0 ; k1 <= (Efield.NEsin2-1) ; k1++){
-				
-				Efield.Esin2[k1].A0 = Efield.Esin2[k1].E0/Efield.Esin2[k1].o;
-				Efield.Esin2[k1].oc = Efield.Esin2[k1].o/(2.*Efield.Esin2[k1].nc);			
-				Efield.Esin2[k1].phi0 = Pi/2.0 - Efield.Esin2[k1].oc * ( Efield.Esin2[k1].ti + 0.5 * Pi/Efield.Esin2[k1].oc ); //adjust of the envelope phase
-				Efield.Esin2[k1].phi = Efield.Esin2[k1].phi - Efield.Esin2[k1].o * Efield.Esin2[k1].ti - Pi * Efield.Esin2[k1].nc; // recalculate CEP
-
-
-				tmax = fmax(tmax, Efield.Esin2[k1].ti + Pi / Efield.Esin2[k1].oc );
-			}
-		}
-
-		tmax = tmax + textend;
-		Nt = floor( tmax/dt ); Nt++;
-		// Nt = Nt + 1000;
-		/*Nt = Efield.trap.nc*(num_t+1);
-		period = 2.*Pi/Efield.trap.omega;
-		dt = period/num_t;
-		Efield.trap.phi = Efield.trap.phi*Pi*0.5;
-		*/
-	break;
-	}
-
-	
-
-
-
-	// TESTING WORKSPACE
-
-/*	printf("Test started \n");*/
-/*	double *testarray;*/
-/*	dum = 5.0;*/
-/*	testarray = calloc(1,sizeof(double));*/
-/*	testarray[0] = dum;*/
-
-/*	file1 = fopen("results/binaryfile1.bin" , "wb");*/
-/*	fwrite(testarray,sizeof(double),1,file1);*/
-/*	*/
-/*	fclose(file1);*/
-/*	*/
-/*	printf("test2 \n");*/
-
-/*	double *testarray2;*/
-/*	testarray2 = calloc(1,sizeof(double));*/
-
-/*	file2 = fopen("results/binaryfile1.bin" , "rb");*/
-/*	fread(testarray2,sizeof(double),1,file2);*/
-/*	fclose(file2);*/
-
-/*	printf("elem1  %lf \n",testarray2[0]);*/
-
-
-
-/*	printf("Test finished \n");*/
-/*	exit(0);*/
-
-/*	printf("Test started \n");*/
-/*	double *testarray;*/
-/*	testarray = calloc(3,sizeof(double));*/
-/*	testarray[0] = 0.5;  testarray[2] = 1.; testarray[3] = 1.5;*/
-
-/*	file1 = fopen("results/binaryfile1.bin" , "wb");*/
-/*	fwrite(testarray,sizeof(double),3,file1);*/
-/*	*/
-/*	testarray[1] = 2.0;  testarray[2] = 2.5; testarray[3] = 3.0;*/
-/*	fwrite(testarray,sizeof(double),3,file1);*/
-
-/*	fclose(file1);*/
-/*	*/
-/*	printf("test2 \n");*/
-
-/*	double *testarray2;*/
-/*	testarray2 = calloc(6,sizeof(double));*/
-
-
-/*	file2 = fopen("results/binaryfile1.bin" , "rb");*/
-/*	fread(testarray2,sizeof(double),6,file2);*/
-/*	fclose(file2);*/
-
-/*	printf("elem1  %lf \n",testarray2[0]);*/
-
-/*	printf("elem4  %lf \n",testarray2[4]);*/
-
-
-/*	printf("Test finished \n");*/
-/*	exit(0);*/
-
-	
-	
-	
-
-	
-	//printf("Efield.tgrid[0],  %lf \n",Efield.tgrid[0]);
-	//printf("Efield.tgrid[Efield.Nt-1],  %lf \n",Efield.tgrid[Efield.Nt-1]);
-
-	// dum = (double)Nt;
-	printf("Implicitly in atomic units \n");
-
-	printf("\ntime properties \n");	
-	printf("dt,  %lf \n",dt);
-	//printf("points per cycle,  %i \n",num_t);
-	printf("total points,  %i \n",Nt);
-	// printf("Nt_old,  %i \n",nc*(num_t+1));
-
-	/*
-	printf("\nField properties \n");	
-	printf("Amplitude,  %lf \n",Efield.trap.E0);
-	printf("omega0,  %lf \n",Efield.trap.omega);
-	*/
-
-	printf("\nspace properties\n");	
-	printf("dx,  %lf \n",dx);
-	printf("intial nmax : %i \n",num_r);
-	printf("nextend : %i \n",num_exp);	
-	printf("initial xmax : %lf \n",num_r*dx/2.);
-
-	printf("\n\n");	
-
-	size = 2*(num_r+1);// for complex number
-
-
-	// Allocation memory
-
-	printf("test1 %i \n",size);
-
-	x = calloc((num_r+1),sizeof(double));
-	printf("test2 \n"); 
-	off_diagonal = calloc(size,sizeof(double));
-	printf("test3 \n"); 
-	diagonal = calloc(size,sizeof(double));
-	vector = calloc(size,sizeof(double));
-	psi0 = calloc(size,sizeof(double));
-	psi2 = calloc(size,sizeof(double));
-	psi = calloc(size,sizeof(double));
-	psiexc = calloc(size,sizeof(double));
-	
-	t = calloc(Nt,sizeof(double));
-
-	printf("test4 \n");
-
-	timet = calloc(Nt,sizeof(double));
-	dipole = calloc(2*Nt,sizeof(double));
-
-	eingenvaluef = fopen("results/eingenvalue.dat", "w" );
-	eingenvectorf = fopen("results/eingenvector.dat", "w" );
-	pot = fopen("results/latice.dat", "w" );
-
-	if(eingenvaluef==NULL || eingenvectorf==NULL)
-	{printf("pb d'ouverture de fichier");}
-	
-
-	printf("Initialisation \n");
-
-	// Initialise vectors and Matrix 
-	Initialise(num_r);
-	for(i=0;i<=num_r;i++){psi0[2*i] = 1.0; psi0[2*i+1] = 0.; psiexc[2*i] = 1; psiexc[2*i+1] = 0.;}
-	//normalise(psi0,num_r); // Initialise psi0 for Einitialise
-	//normalise(psiexc,num_r);
-
-	CV = 1E-20; // CV criteria
-
-	/* This number has to be small enough to assure a good convregence of the wavefunction
-	if it is not the case, then the saclar product of the the ground state and the excited states 
-	is not quite 0 and those excited appears in the energy analysis of the gorund states, so the propagation !!
-	CV = 1E-25 has been choosen to have a scalar product of 10^-31 with the third excited state for num_r = 5000 and dx=0.1
-	*/
-
-	printf("Calculation of the energy of the ground sate ; Eguess : %f\n",Eguess);
-
-	Einit = Einitialise(trg,psi0,off_diagonal,diagonal,off_diagonal,x,Eguess,CV,num_r);
-	for(i=0;i<=num_r;i++) {fprintf(eingenvectorf,"%f\t%e\t%e\n",x[i],psi0[2*i],psi0[2*i+1]); fprintf(pot,"%f\t%e\n",x[i],potential(x[i],trg));}
-
-	 
-	printf("Initial energy is : %1.12f\n",Einit);
-	printf("first excited energy is : %1.12f\n",Einit2);
-
-	printf("\n");	
-	printf("Propagation procedure ...\n");
-	printf("\n");	
-
-
-	outputs.tgrid = calloc((Nt+1),sizeof(double)); outputs.Efield = calloc((Nt+1),sizeof(double)); outputs.sourceterm = calloc((Nt+1),sizeof(double)); outputs.PopTot = calloc((Nt+1),sizeof(double));
-
-	start = clock();
-
-
-	psi = propagation(trg,Efield,tmin,Nt,num_t,dt,num_r,num_exp,dx,psi0,psi,x,timef,timef2,ton,toff,timet,dipole,gauge,transformgauge,x_int,analy,outputs);
-
-/*	printf("\ntmax test\n");	*/
-/*	printf("tmax,  %lf \n",*outputs.tmax);*/
-
-//	volkov_state_vg();
-
-	
-	// TEST filtering for high ionisation // MORE EFFICIENT WOULD BE FILTER WHILE ASSIGNING VALUE
-	if(IonisationFilterForTheSourceTerm == 1){
-		outputs.sourcetermfiltered = calloc((Nt+1),sizeof(double));
-		for(k1 = 0; k1 <= Nt; k1++){ outputs.sourcetermfiltered[k1] = outputs.sourceterm[k1];}
-		for(k1 = 0; k1 <= Nt; k1++){
-			if( outputs.PopTot[k1] < IonFilterThreshold){
-				for(k2 = k1; k2 <= Nt; k2++){outputs.sourcetermfiltered[k2]=0.0;}
-				break;
-			}
-		}
-	}
-
-	// PRINT field and source terms in both domains // ADD switch to do one of them or both of them
-	
-
-	switch (PrintOutputMethod){
-	printf("\nPrintingResults\n");
-	case 0:
-		file1 = fopen("results/TimeDomain.dat" , "w"); file2 = fopen("results/OmegaDomain.dat" , "w");
-		print2FFTW3(file1, file2, outputs.Efield, outputs.sourceterm, (Nt+1), dt, outputs.tgrid[Nt]);
-		fclose(file1); fclose(file2);
-		file1 = fopen("results/GS_population.dat" , "w");
-		for(k1 = 0; k1 <= Nt; k1++){fprintf(file1,"%e\t%e\n", outputs.tgrid[k1] , outputs.PopTot[k1]);}
-		fclose(file1);
-
-                if(IonisationFilterForTheSourceTerm == 1){
-		file1 = fopen("results/TimeDomainFiltered.dat" , "w"); file2 = fopen("results/OmegaDomainFiltered.dat" , "w");
-		print2FFTW3(file1, file2, outputs.Efield, outputs.sourcetermfiltered, (Nt+1), dt, outputs.tgrid[Nt]);
-		fclose(file1); fclose(file2);
-		}
-	break;
-	case 1:
-		file1 = fopen("results/tgrid.bin","wb"); file2 = fopen("results/Efield.bin","wb"); file3 = fopen("results/SourceTerm.bin","wb");
-		file4 = fopen("results/omegagrid.bin","wb"); file5 = fopen("results/FEfield.bin","wb"); file6 = fopen("results/FSourceTerm.bin","wb");
-		file7 = fopen("results/Spectrum2Efield.bin","wb"); file8 = fopen("results/Spectrum2SourceTerm.bin","wb"); file9 = fopen("results/GridDimensionsForBinaries.dat","w");
-		print2FFTW3binary(file1, file2, file3, file4, file5, file6, file7, file8, file9, outputs.Efield, outputs.sourceterm, (Nt+1), dt, outputs.tgrid[Nt]);
-		fclose(file1); fclose(file2); fclose(file3); fclose(file4); fclose(file5); fclose(file6); fclose(file7); fclose(file8); fclose(file9);
-
-		file1 = fopen("results/GS_population.bin","wb");
-		fwrite(outputs.PopTot,sizeof(double),(Nt+1),file1);
-		fclose(file1);
-
-                if(IonisationFilterForTheSourceTerm == 1){
-		file1 = fopen("results/tmp1.bin","wb"); file2 = fopen("results/tmp2.bin","wb"); file3 = fopen("results/SourceTermFiltered.bin","wb"); // We just use the function as it is and remove redundant files... not optimal
-		file4 = fopen("results/tmp3.bin","wb"); file5 = fopen("results/tmp4.bin","wb"); file6 = fopen("results/FSourceTermFiltered.bin","wb");
-		file7 = fopen("results/tmp5.bin","wb"); file8 = fopen("results/Spectrum2SourceTermFiltered.bin","wb"); file9 = fopen("results/tmp1.dat","w");
-		print2FFTW3binary(file1, file2, file3, file4, file5, file6, file7, file8, file9, outputs.Efield, outputs.sourcetermfiltered, (Nt+1), dt, outputs.tgrid[Nt]);
-		fclose(file1); fclose(file2); fclose(file3); fclose(file4); fclose(file5); fclose(file6); fclose(file7); fclose(file8); fclose(file9);
-		dumint=remove("results/tmp1.bin"); dumint=remove("results/tmp2.bin"); dumint=remove("results/tmp3.bin"); dumint=remove("results/tmp4.bin");
-		dumint=remove("results/tmp5.bin"); dumint=remove("results/tmp1.bin"); dumint=remove("results/tmp1.dat");
-		}
-	break;
-	case 2:
-		file1 = fopen("results/tgrid.bin","wb"); file2 = fopen("results/Efield.bin","wb"); file3 = fopen("results/SourceTerm.bin","wb");
-		file4 = fopen("results/omegagrid.bin","wb"); file5 = fopen("results/FEfield.bin","wb"); file6 = fopen("results/FSourceTerm.bin","wb");
-		file7 = fopen("results/Spectrum2Efield.bin","wb"); file8 = fopen("results/Spectrum2SourceTerm.bin","wb"); file9 = fopen("results/GridDimensionsForBinaries.dat","w");
-		print2FFTW3binary(file1, file2, file3, file4, file5, file6, file7, file8, file9, outputs.Efield, outputs.sourceterm, (Nt+1), dt, outputs.tgrid[Nt]);
-		fclose(file1); fclose(file2); fclose(file3); fclose(file4); fclose(file5); fclose(file6); fclose(file7); fclose(file8); fclose(file9);
-
-		file1 = fopen("results/GS_population.bin","wb");
-		fwrite(outputs.PopTot,sizeof(double),(Nt+1),file1);
-		fclose(file1);
-
-                if(IonisationFilterForTheSourceTerm == 1){
-		file1 = fopen("results/tmp1.bin","wb"); file2 = fopen("results/tmp2.bin","wb"); file3 = fopen("results/SourceTermFiltered.bin","wb"); // We just use the function as it is and remove redundant files... not optimal
-		file4 = fopen("results/tmp3.bin","wb"); file5 = fopen("results/tmp4.bin","wb"); file6 = fopen("results/FSourceTermFiltered.bin","wb");
-		file7 = fopen("results/tmp5.bin","wb"); file8 = fopen("results/Spectrum2SourceTermFiltered.bin","wb"); file9 = fopen("results/tmp1.dat","w");
-		print2FFTW3binary(file1, file2, file3, file4, file5, file6, file7, file8, file9, outputs.Efield, outputs.sourcetermfiltered, (Nt+1), dt, outputs.tgrid[Nt]);
-		fclose(file1); fclose(file2); fclose(file3); fclose(file4); fclose(file5); fclose(file6); fclose(file7); fclose(file8); fclose(file9);
-		dumint=remove("results/tmp1.bin"); dumint=remove("results/tmp2.bin"); dumint=remove("results/tmp3.bin"); dumint=remove("results/tmp4.bin");
-		dumint=remove("results/tmp5.bin"); dumint=remove("results/tmp1.bin"); dumint=remove("results/tmp1.dat");
-		}
-
-		file1 = fopen("results/TimeDomain.dat" , "w"); file2 = fopen("results/OmegaDomain.dat" , "w");
-		print2FFTW3(file1, file2, outputs.Efield, outputs.sourceterm, (Nt+1), dt, outputs.tgrid[Nt]);
-		fclose(file1); fclose(file2);
-		file1 = fopen("results/GS_population.dat" , "w");
-		for(k1 = 0; k1 <= Nt; k1++){fprintf(file1,"%e\t%e\n", outputs.tgrid[k1] , outputs.PopTot[k1]);}
-		fclose(file1);
-
-                if(IonisationFilterForTheSourceTerm == 1){
-		file1 = fopen("results/TimeDomainFiltered.dat" , "w"); file2 = fopen("results/OmegaDomainFiltered.dat" , "w");
-		print2FFTW3(file1, file2, outputs.Efield, outputs.sourcetermfiltered, (Nt+1), dt, outputs.tgrid[Nt]);
-		fclose(file1); fclose(file2);
-		}
-	break;
-	}
-
-
-
-
-	printf("\n");
-	printf("Calculation of the HHG spectrum \n");
-
-
-	// print Gabor and partial spectra
-	if (PrintGaborAndSpectrum == 1){
-	file1 = fopen("results/OmegaDipolewindow1.dat" , "w"); 
-	printlimitedFFTW3(file1, outputs.sourceterm, (Nt+1), dt, tmin1window, tmax1window);
-	fclose(file1);
-
-	file1 = fopen("results/OmegaDipolewindow2.dat" , "w"); 
-	printlimitedFFTW3(file1, outputs.sourceterm, (Nt+1), dt, tmin2window, tmax2window);
-	fclose(file1);
-
-	file1 = fopen("results/GaborDimensions.dat" , "w"); file2 = fopen("results/GaborDipole_tgrid.bin" , "wb"); file3 = fopen("results/GaborDipole_omegagrid.bin" , "wb"); file4 = fopen("results/GaborDipole.bin" , "wb");
-	printGaborFFTW3binary(file1, file2, file3, file4, outputs.sourceterm, (Nt+1), dt, dtGabor, a_Gabor, omegaMaxGabor);
-	fclose(file1); fclose(file2); fclose(file3); fclose(file4);
-	}
-
-/*	if (PrintInputGabor==1){*/
-/*	file1 = fopen("results/GaborInput.dat" , "w"); file2 = fopen("results/GaborInput_tgrid.dat" , "w"); file3 = fopen("results/GaborInput_omegagrid.dat" , "w"); file4 = fopen("results/GaborDipole.bin" , "wb");*/
-/*	printGaborFFTW3(file1, file2, file3, file4, outputs.sourceterm, (Nt+1), dt, dtGabor, a_Gabor, omegaMaxGabor);*/
-/*	fclose(file1); fclose(file2); fclose(file3); fclose(file4);		*/
-/*	}*/
-
-
-/*	dumint=fscanf(param,"%i %*[^\n]\n",&PrintGaborAndSpectrum); // print Gabor and partial spectra (1-yes)*/
-/*	dumint=fscanf(param,"%lf %*[^\n]\n",&a_Gabor); // the parameter of the gabor window [a.u.]*/
-/*	dumint=fscanf(param,"%lf %*[^\n]\n",&omegaMaxGabor); // maximal frequency in Gabor*/
-/*	dumint=fscanf(param,"%lf %*[^\n]\n",&dtGabor); // spacing in Gabor*/
-/*	dumint=fscanf(param,"%lf %*[^\n]\n",&tmin1window); // analyse 1st part of the dipole*/
-/*	dumint=fscanf(param,"%lf %*[^\n]\n",&tmax1window); // analyse 1st part of the dipole*/
-/*	dumint=fscanf(param,"%lf %*[^\n]\n",&tmin2window); // analyse 2nd part of the dipole*/
-/*	dumint=fscanf(param,"%lf %*[^\n]\n",&tmax2window); // analyse 2nd part of the dipole*/
-
-
-/// howto write binary
-
-/*	printf("Test started \n");*/
-/*	double *testarray;*/
-/*	testarray = calloc(3,sizeof(double));*/
-/*	testarray[1] = 0.5;  testarray[2] = 1.; testarray[3] = 1.5;*/
-
-/*	file1 = fopen("results/binaryfile1.bin" , "wb");*/
-/*	fwrite(testarray,sizeof(double),3,file1);*/
-/*	*/
-/*	testarray[1] = 2.0;  testarray[2] = 2.5; testarray[3] = 3.0;*/
-/*	fwrite(testarray,sizeof(double),3,file1);*/
-
-/*	fclose(file1);*/
-/*	*/
-/*	printf("test2 \n");*/
-
-/*	double *testarray2;*/
-/*	testarray2 = calloc(6,sizeof(double));*/
-
-/*	file2 = fopen("results/binaryfile1.bin" , "rb");*/
-/*	fread(testarray2,sizeof(double),6,file2);*/
-/*	fclose(file2);*/
-
-/*	printf("elem1  %lf \n",testarray2[1]);*/
-
-/*	printf("elem4  %lf \n",testarray2[4]);*/
-
-
-/*	printf("Test finished \n");*/
-/*	exit(0);*/
-
-
-
-
-	// Remove the Ground state from Psi
-	psi_rmv_gs = calloc(2*(num_r+1),sizeof(double));
-	psi_rmv_gs = rmv_gs(psi0,psi,x,num_r);
-
-
-
-
-	finish = clock();
-
-
-	
-	//fclose(eingenvectorf);
-
-	
-	printf("\n");
-	printf("Duration of calculation %f sec\n",(double)(finish - start) / CLOCKS_PER_SEC);
-	printf("\n");
-	
-	printf("Calculation terminated ; good analysis\n");
-
-	
-return 0;
 
 /*
-free(psi); free(psi_rmv_gs); free(psi0); free(x); free(off_diagonal);
-free(diagonal); free(vector); free(psi2); free(psiexc); 
-free(t); free(timet); free(dipole); 
+The HDF5 version will implement the following idea:
 
-fclose(eingenvaluef); fclose(eingenvectorf); fclose(pot); 
+There is one parameter file shared by all simulations, and also only one I/O hdf5 file.
+The parameters given to the code by slurm are two integers defining the indices in r and z.
+There should be a logfile for noting succesful/failed simulations.
+The *.output files should be stacked somewhere.
+
+For reading, it should be easy. ** R/W may occur simultaneously in in the MPI loop. Separate I/O at the instant or ensure it will work (R/W from independent datasets may be fine???).
+https://support.hdfgroup.org/HDF5/Tutor/selectsimple.html
+
+
+After discussions, we try to test
+
+a)mutex 
+The main idea comes from the MPI3 book.
+(
+https://www.thegeekstuff.com/2012/05/c-mutex-examples/ https://www.geeksforgeeks.org/mutex-lock-for-linux-thread-synchronization/ .
+https://computing.llnl.gov/tutorials/pthreads/#Mutexes
+https://www.mcs.anl.gov/~robl/papers/ross_atomic-mpiio.pdf
+https://stackoverflow.com/questions/37236499/mpi-ensure-an-exclusive-access-to-a-shared-memory-rma
+)
+
+b) temporary files
+Each process writes in its own hdf5 file. There should be a way to do a "virtual" merging procedure: by using virtual datasets
+https://portal.hdfgroup.org/display/HDF5/Introduction+to+the+Virtual+Dataset++-+VDS
+For the instant, we may use a more direct method-store data in binary files etc. It may be easier for testing & debugging.
+
+
+
+All the code will be encapsulated in an MPI-loop.
+
+The plot of the code development:
+1) we leave the original parametric file, the only difference will be omitting the filenames. Istead of this there gonna be two indices (r and z). Matrix size will be leaded from the hfd5 archive.
+1.develop) first do only hdf5 stuff single run with fixed indices
+2) Pool of processes should be easy with NXTVAL from MPI3. We implement it directly. The RMA window for mutex and queue is shared.
+
+note: mutexes will be there for writing, the counter will be used for assigning simulations to workers at the moment they finish their work. I think it ensures maximal fair-share of the load.
+
+3) we use mutex to write into the hdf5 archive
+3.test) we include a direct printing in separated files in the testing mode
+
+4) we get rid of mutexes and use rather parallel acces to files all the time.
+4.develop) it seems that many-readers many-writers would be possible by HDF5 parallel since we will not modify the file much. However, we may also try stick with independent files and eventually 
+https://stackoverflow.com/questions/49851046/merge-all-h5-files-using-h5py
+https://portal.hdfgroup.org/display/HDF5/Collective+Calling+Requirements+in+Parallel+HDF5+Applications
+
 */
-
-}
-
-
-
-void Initialise(int num_r)
-{
-        double xmax = 0.5*num_r*dx;
-	x = calloc((num_r+1),sizeof(double));
-	off_diagonal = calloc(2*(num_r+1),sizeof(double));
-	diagonal = calloc(2*(num_r+1),sizeof(double));	
-
-	//Initialisation Matrix corresponding to D2
-	for(i=0;i<=num_r;i++)
-	{
-		x[i] = i*dx-xmax; 
-		off_diagonal[2*i] = -0.5/(dx*dx); off_diagonal[2*i + 1] = 0.;
-		diagonal[2*i] = 1./(dx*dx); diagonal[2*i + 1] = 0.;
-	}
-
-	
-}
-
-
-
-
-void gaussian(void)
-{
-
- double phi1,phi2,phi3,mod1,mod2,psigaussian_re,psigaussian_im;
-
- 
-
- gaussianwp = fopen("results/gaussianwp.dat", "w" );
-
-for(i=0;i<=num_r;i++)
-{
-  phi1 = v*x[i] - 0.5*v*v*tfinal;
-  
-  phi2 = 0.125*tfinal*pow(pow(alpha,4)+tfinal*tfinal/4.,-1);
-  phi2=phi2*(x[i]-v*tfinal)*(x[i]-v*tfinal);
-
-  phi3 = -0.5*atan(0.5*tfinal/(alpha*alpha));
-
-  mod1 = -0.25*alpha*alpha*pow(pow(alpha,4)+tfinal*tfinal/4.,-1);
-  mod1 = mod1*pow(x[i]-v*tfinal,2);
-  mod2 = -0.25*log(pow(alpha,4)+tfinal*tfinal/4);
-
-  psigaussian_re = norm_gauss*sqrt(Pi)*exp(mod1+mod2)*cos(phi1+phi2+phi3);
-  psigaussian_im = norm_gauss*sqrt(Pi)*exp(mod1+mod2)*sin(phi1+phi2+phi3);
-
-  fprintf(gaussianwp,"%f\t%f\t%f\n",x[i],psigaussian_re,psigaussian_im);
-}
-
-
- fclose(gaussianwp);
-
-}
-
-
-
-void volkov_state(void)
-{
- 
-double phi1,phi2,phi3,phi4,mod1,mod2,psivolkov_re,psivolkov_im;
-double At,intA,intA2;
-double beta_re,beta_im,num; 
-
-
-volkovwp = fopen("volkovwp.dat", "w" );
-
-
-At = E0/omega*(cos(omega*tfinal)-1);
-intA = E0/omega*(sin(omega*tfinal)/omega-tfinal);
-intA2 = (E0/omega)*(E0/omega)*(1.5*tfinal+0.25*sin(2*omega*tfinal)/omega-2*sin(omega*tfinal)/omega);
-
-
-for(i=0;i<=num_r;i++)
-{
-
-  phi1 = -x[i]*At;
-  
-  phi2 = -0.5*intA2;
-
-  phi3 = -0.5*atan(0.5*tfinal/(alpha*alpha));
-
-  beta_re = 2*alpha*alpha*v;
-  beta_im = x[i]+intA;
-
-  num = pow(alpha,4)+tfinal*tfinal/4.;	
-
-  phi4 = 0.25*(2*alpha*alpha*beta_re*beta_im-0.5*tfinal*(beta_re*beta_re-beta_im*beta_im))/num;
-
-  mod1 = 0.25*(alpha*alpha*(beta_re*beta_re-beta_im*beta_im)+tfinal*beta_im*beta_re)/num;
-
-  mod2 = -0.25*log(num);
-
-  psivolkov_re = norm_gauss*sqrt(Pi)*exp(mod1+mod2)*cos(phi1+phi2+phi3+phi4)*exp(-v*v*alpha*alpha);
-  psivolkov_im = norm_gauss*sqrt(Pi)*exp(mod1+mod2)*sin(phi1+phi2+phi3+phi4)*exp(-v*v*alpha*alpha);
-
-  fprintf(volkovwp,"%f\t%f\t%f\n",x[i],psivolkov_re,psivolkov_im);
-}
-
-
- fclose(volkovwp);
-
-}
-
-void volkov_state_vg(void)
-{
- 
-double phi1,phi2,phi3,mod1,mod2,mod3,psivolkov_re,psivolkov_im,xp;
-double intA;
-double num; 
-
-
-volkovwp = fopen("volkovwp_vg.dat", "w" );
-
-printf("TIME FOR VOLKOV : %f \n",tfinal);
-
-intA = E0/omega*(-cos(omega*tfinal)/omega+1./omega);
-
-norm_gauss = pow(2*alpha/Pi,0.25);
-
-for(i=0;i<=num_r;i++)
-{
-  xp = x[i] + intA;
-  num = pow(alpha,4)+tfinal*tfinal/4.;	
-
-  mod1 = (4*pow(alpha,4)*v*v - pow(xp,2.))*alpha*alpha;
-  mod1 = 0.25*mod1/num;
-
-  mod2 = 2*xp*alpha*alpha*tfinal*v;
-  mod2 = 0.25*mod2/num;
-
-  phi1 = 4*pow(alpha,4)*xp*v;
-  phi1 = 0.25*phi1/num;
-
-  phi2 = -0.5*tfinal*(4*pow(alpha,4)*v*v-xp*xp);
-  phi2 = 0.25*phi2/num;
-
-  mod3 = -0.25*log(num);	
-  phi3 = -0.5*atan(0.5*tfinal/(alpha*alpha));
-
-  psivolkov_re = norm_gauss*sqrt(Pi)*exp(mod1+mod2+mod3)*cos(phi1+phi2+phi3)*exp(-v*v*alpha*alpha);
-  psivolkov_im = norm_gauss*sqrt(Pi)*exp(mod1+mod2+mod3)*sin(phi1+phi2+phi3)*exp(-v*v*alpha*alpha);
-
-
-  psi0[2*i] = psivolkov_re;
-  psi0[2*i + 1] = psivolkov_im;
-
-
-  fprintf(volkovwp,"%f\t%f\t%f\n",x[i],psivolkov_re,psivolkov_im);
-}
-
- fclose(volkovwp);
-
-}
-
-
-double* rmv_gs(double *psi0,double *psi, double *x, double num_r)
-{
-
-  double *psi_new;
-  double c_gs_re,c_gs_im;
-  int j;
-
-  psi_new = calloc(2*(num_r+1),sizeof(double));  
-
-  c_gs_re = 0.0; c_gs_im = 0.0;
-  for(j = 0 ; j<= num_r ; j++) 
-  {
-     c_gs_re += psi[2*j]*psi0[2*j];
-     c_gs_im += psi[2*j+1]*psi0[2*j];
-  }
-
-  for(j = 0 ; j<= num_r ; j++) 
-  {
-     psi_new[2*j] =  psi[2*j] - c_gs_re*psi0[2*j];
-     psi_new[2*j+1] =  psi[2*j+1] - c_gs_im*psi0[2*j];
-  }
-
-  return psi_new;
-
-  free(psi_new);
-
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-	/*case 3:
-
-		// pulses boundaries
-		Efield.sin2.tmax1 = 2.*Pi*Efield.sin2.nc1/Efield.sin2.o1;
-		Efield.sin2.tmin2 = Efield.sin2.delay;
-		Efield.sin2.tmax2 = Efield.sin2.delay + 2.*Pi*Efield.sin2.nc2/Efield.sin2.o2;
-
-
-		// envelope frequencies and phases
-		Efield.sin2.oc1 = Efield.sin2.o1/(2.0*Efield.sin2.nc1); // 1st envelope frequency
-		Efield.sin2.oc2 = Efield.sin2.o2/(2.0*Efield.sin2.nc2); // 2nd envelope frequency
-		Efield.sin2.Tc2 = 2.0*Pi*Efield.sin2.nc2 / Efield.sin2.o2; //2nd pulse duration
-
-		Efield.sin2.phi0 = Pi/2.0 - Efield.sin2.oc2*(Efield.sin2.delay + 0.5*Efield.sin2.Tc2); //adjust of the envelope phase
-
-		// adjust of the field phases
-		Efield.sin2.phi1 = Efield.sin2.phi1 - Efield.sin2.nc1*Pi; // 1st field phase adjusted for sin^2 pulse
-
-
-
-		// Efield.sin2.phi2 = Efield.sin2.phi2 - Efield.sin2.o2*(Efield.sin2.delay + 0.5*Efield.sin2.Tc2);	// 2nd field phase adjusted for the delayed sin^2 pulse
-		Efield.sin2.phi2 = Efield.sin2.phi1; // common phase for both pulses
-
-
-
-
-		if (Efield.sin2.tmax1 >= Efield.sin2.tmax2){Efield.sin2.tmax = Efield.sin2.tmax1;}
-		else{Efield.sin2.tmax = Efield.sin2.tmax2;}
-
-		// THREE DIFFERENT CASES FOR THE OVERLAP
-		if (Efield.sin2.tmax1<=Efield.sin2.tmin2){Efield.sin2.overlap = 1;}
-		else if ( ( Efield.sin2.tmin2<Efield.sin2.tmax1 ) && ( Efield.sin2.tmax1<Efield.sin2.tmax2) ){Efield.sin2.overlap = 2;}
-		else if ( (Efield.sin2.tmin2<=Efield.sin2.tmax1) && ( Efield.sin2.tmax2<=Efield.sin2.tmax1) ){Efield.sin2.overlap = 3;}	
-
-		// printf("overlap %i\n", Efield.sin2.overlap);	
-		printf("tmax %lf\n", Efield.sin2.tmax);	
-
-		dum = (Efield.sin2.tmax*Efield.sin2.o1)/(2.*Pi); // virtual number of cycles according to the first field frequency
-		Nt = floor( dum*(num_t+1) ); Nt++;
-
-		period = 2.*Pi/Efield.sin2.o1;
-
-		dt = period/num_t;	
-
-
-	break;*/
-
