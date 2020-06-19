@@ -9,7 +9,7 @@ mutex the accesses ( https://portal.hdfgroup.org/pages/viewpage.action?pageId=48
 The limitation is that the mutex is used for writing, the writing should take then small amount of time compared to the atomic task.
 
 Concrete decription of this tutorial: it takes the fields from results.h5[/IRProp/Fields_rzt] , multiplies the array by 2 using the forementioned procedure
-and prints the result in results.h5[/SourceTerms]. Next, it also loads results.h5[/IRProp/Ftgrid] before the calculation.
+and prints the result in results.h5[/SourceTerms]. Next, it also loads results.h5[/IRProp/tgrid] before the calculation.
 
 The code may explain its work by setting comment_operation = 1; and muted by comment_operation = 0; Only first 20 tasks are shown.
 
