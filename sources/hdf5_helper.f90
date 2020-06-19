@@ -167,7 +167,7 @@ MODULE hdf5_helper
       CHARACTER(*)             :: name
       INTEGER                  :: dims_x, dims_y, offset_x, offset_y, slice_x, slice_y, rank, error
       INTEGER(HID_T)           :: dset_id,dataspace,memspace
-      INTEGER(HSIZE_T), DIMENSION(2) :: data_dims, slice_dims
+      INTEGER(HSIZE_T), DIMENSION(2) :: data_dims, slice_dims, dims, maxdims
       REAL(8), DIMENSION(dims_y,dims_x) :: res
       INTEGER(HSIZE_T), DIMENSION(1:2) :: count  ! Size of hyperslab
       INTEGER(HSIZE_T), DIMENSION(1:2) :: offset ! Hyperslab offset
@@ -180,6 +180,8 @@ MODULE hdf5_helper
       data_dims = (/dims_x,dims_y/)
       CALL h5dopen_f(file_id, name, dset_id, error)
       CALL h5dget_space_f(dset_id, dataspace, error)
+      CALL h5sget_simple_extent_dims_f(dataspace, dims, maxdims, error)
+      ! print *, dims
       CALL h5sselect_hyperslab_f(dataspace, H5S_SELECT_SET_F, offset, count, error, stride, BLOCK)
       CALL h5screate_simple_f(rank, slice_dims, memspace, error)
       CALL h5dread_f(dset_id, H5T_NATIVE_DOUBLE, var, slice_dims, error, memspace, dataspace)
