@@ -1,24 +1,62 @@
 /*
-Here we show a simple scheduler of tasks from a queue. In this case, each task is specified by kr and kz that correpond to two indices in a table (:,kr,kz).
-The elementary program process data from that cut. The processors takes tasks until the queue is empty. There is no synchoronisation at this point, so tasks
-can be of various lenghts, etc. THe code than could be very easily adapted to any task.
+The plot of the code:
 
-The program oprates with one input file and one output file. It could be desirable to use only one file, this would require to either use SWMR technique or
-mutex the accesses ( https://portal.hdfgroup.org/pages/viewpage.action?pageId=48812567 ). 
+1) See the comment at the end of the file for deatils about the MPI-scheduler.
 
-The limitation is that the mutex is used for writing, the writing should take then small amount of time compared to the atomic task.
+2) The main program (MP) reads all the parameters from an input HDF5-archive (each process independently, read-only).
 
-Concrete decription of this tutorial: it takes the fields from results.h5[/IRProp/Fields_rzt] , multiplies the array by 2 using the forementioned procedure
-and prints the result in results.h5[/SourceTerms]. Next, it also loads results.h5[/IRProp/tgrid] before the calculation.
+3) MP decides based on parameters the type of input field. Fist implementation: stick to numerical fields from CUPRAD stored in the archive.
 
-The code may explain its work by setting comment_operation = 1; and muted by comment_operation = 0; Only first 20 tasks are shown.
+4) MPI-scheduler executes a simulation in every point. THe data are directly written into the output using the mutex.
 
-Possible extensions are discussed at the end of the file.
+5) Tho code finishes.
 
-!!!!!!!!!!!!!!!! TDSE!
-use pointers to retrieve the data in main and then print them
-https://stackoverflow.com/questions/34844003/changing-array-inside-function-in-c
+-----------------------------------------------------------------------------------------------------------------------
+Extensions/features already presented in 1DTDSE and needed to implement in a test mode. We wil add them as optional outputs.
+
+The HDF5 version will implement the following idea:
+
+For reading, it should be easy. ** R/W may occur simultaneously in in the MPI loop. Separate I/O at the instant or ensure it will work (R/W from independent datasets may be fine???).
+https://support.hdfgroup.org/HDF5/Tutor/selectsimple.html
+
+
+After discussions, we try to test
+
+a)mutex 
+The main idea comes from the MPI3 book.
+(
+https://www.thegeekstuff.com/2012/05/c-mutex-examples/ https://www.geeksforgeeks.org/mutex-lock-for-linux-thread-synchronization/ .
+https://computing.llnl.gov/tutorials/pthreads/#Mutexes
+https://www.mcs.anl.gov/~robl/papers/ross_atomic-mpiio.pdf
+https://stackoverflow.com/questions/37236499/mpi-ensure-an-exclusive-access-to-a-shared-memory-rma
+)
+
+b) temporary files
+Each process writes in its own hdf5 file. There should be a way to do a "virtual" merging procedure: by using virtual datasets
+https://portal.hdfgroup.org/display/HDF5/Introduction+to+the+Virtual+Dataset++-+VDS
+For the instant, we may use a more direct method-store data in binary files etc. It may be easier for testing & debugging.
+
+
+
+All the code will be encapsulated in an MPI-loop.
+
+The plot of the code development:
+1) we leave the original parametric file, the only difference will be omitting the filenames. Istead of this there gonna be two indices (r and z). Matrix size will be leaded from the hfd5 archive.
+1.develop) first do only hdf5 stuff single run with fixed indices
+2) Pool of processes should be easy with NXTVAL from MPI3. We implement it directly. The RMA window for mutex and queue is shared.
+
+note: mutexes will be there for writing, the counter will be used for assigning simulations to workers at the moment they finish their work. I think it ensures maximal fair-share of the load.
+
+3) we use mutex to write into the hdf5 archive
+3.test) we include a direct printing in separated files in the testing mode
+
+4) we get rid of mutexes and use rather parallel acces to files all the time.
+4.develop) it seems that many-readers many-writers would be possible by HDF5 parallel since we will not modify the file much. However, we may also try stick with independent files and eventually 
+https://stackoverflow.com/questions/49851046/merge-all-h5-files-using-h5py
+https://portal.hdfgroup.org/display/HDF5/Collective+Calling+Requirements+in+Parallel+HDF5+Applications
+
 */
+
 #include<time.h> 
 #include<stdio.h>
 #include <mpi.h>
@@ -179,52 +217,20 @@ int main(int argc, char *argv[])
 }
 
 
-
 /*
-The HDF5 version will implement the following idea:
+Here we show a simple scheduler of tasks from a queue. In this case, each task is specified by kr and kz that correpond to two indices in a table (:,kr,kz).
+The elementary program process data from that cut. The processors takes tasks until the queue is empty. There is no synchoronisation at this point, so tasks
+can be of various lenghts, etc. THe code than could be very easily adapted to any task.
 
-There is one parameter file shared by all simulations, and also only one I/O hdf5 file.
-The parameters given to the code by slurm are two integers defining the indices in r and z.
-There should be a logfile for noting succesful/failed simulations.
-The *.output files should be stacked somewhere.
+The program oprates with one input file and one output file. It could be desirable to use only one file, this would require to either use SWMR technique or
+mutex the accesses ( https://portal.hdfgroup.org/pages/viewpage.action?pageId=48812567 ). 
 
-For reading, it should be easy. ** R/W may occur simultaneously in in the MPI loop. Separate I/O at the instant or ensure it will work (R/W from independent datasets may be fine???).
-https://support.hdfgroup.org/HDF5/Tutor/selectsimple.html
+The limitation is that the mutex is used for writing, the writing should take then small amount of time compared to the atomic task.
 
+Concrete decription of this tutorial: it takes the fields from results.h5[/IRProp/Fields_rzt] , multiplies the array by 2 using the forementioned procedure
+and prints the result in results.h5[/SourceTerms]. Next, it also loads results.h5[/IRProp/tgrid] before the calculation.
 
-After discussions, we try to test
+The code may explain its work by setting comment_operation = 1; and muted by comment_operation = 0; Only first 20 tasks are shown.
 
-a)mutex 
-The main idea comes from the MPI3 book.
-(
-https://www.thegeekstuff.com/2012/05/c-mutex-examples/ https://www.geeksforgeeks.org/mutex-lock-for-linux-thread-synchronization/ .
-https://computing.llnl.gov/tutorials/pthreads/#Mutexes
-https://www.mcs.anl.gov/~robl/papers/ross_atomic-mpiio.pdf
-https://stackoverflow.com/questions/37236499/mpi-ensure-an-exclusive-access-to-a-shared-memory-rma
-)
-
-b) temporary files
-Each process writes in its own hdf5 file. There should be a way to do a "virtual" merging procedure: by using virtual datasets
-https://portal.hdfgroup.org/display/HDF5/Introduction+to+the+Virtual+Dataset++-+VDS
-For the instant, we may use a more direct method-store data in binary files etc. It may be easier for testing & debugging.
-
-
-
-All the code will be encapsulated in an MPI-loop.
-
-The plot of the code development:
-1) we leave the original parametric file, the only difference will be omitting the filenames. Istead of this there gonna be two indices (r and z). Matrix size will be leaded from the hfd5 archive.
-1.develop) first do only hdf5 stuff single run with fixed indices
-2) Pool of processes should be easy with NXTVAL from MPI3. We implement it directly. The RMA window for mutex and queue is shared.
-
-note: mutexes will be there for writing, the counter will be used for assigning simulations to workers at the moment they finish their work. I think it ensures maximal fair-share of the load.
-
-3) we use mutex to write into the hdf5 archive
-3.test) we include a direct printing in separated files in the testing mode
-
-4) we get rid of mutexes and use rather parallel acces to files all the time.
-4.develop) it seems that many-readers many-writers would be possible by HDF5 parallel since we will not modify the file much. However, we may also try stick with independent files and eventually 
-https://stackoverflow.com/questions/49851046/merge-all-h5-files-using-h5py
-https://portal.hdfgroup.org/display/HDF5/Collective+Calling+Requirements+in+Parallel+HDF5+Applications
-
+Possible extensions are discussed at the end of the file.
 */
