@@ -16,7 +16,8 @@ The code may explain its work by setting comment_operation = 1; and muted by com
 Possible extensions are discussed at the end of the file.
 
 !!!!!!!!!!!!!!!! TDSE!
-
+use pointers to retrieve the data in main and then print them
+https://stackoverflow.com/questions/34844003/changing-array-inside-function-in-c
 */
 #include<time.h> 
 #include<stdio.h>
