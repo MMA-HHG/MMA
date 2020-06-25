@@ -47,6 +47,8 @@ int main(int argc, char *argv[])
 	MPI_Comm_size(MPI_COMM_WORLD,&nprocs);
 	MPI_Comm_rank(MPI_COMM_WORLD,&myrank);
 
+	if( comment_operation == 1 ){printf("Proc %i initialised MPI \n",myrank);}
+
 
 	// the file is opened for read only by all the processes independently, every process then has its own copy of variables.
 	file_id = H5Fopen ("results.h5", H5F_ACC_RDONLY, H5P_DEFAULT);  
