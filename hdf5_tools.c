@@ -12,7 +12,7 @@ double readreal(hid_t file_id, char *dset_name, herr_t *h5error)
 {
   printf("test\n");
   printf("%s \n",dset_name);
-  hid_t dset_id = H5Dopen2 (file_id, "IRProp/lambda", H5P_DEFAULT); // open dataset
+  hid_t dset_id = H5Dopen2 (file_id, dset_name, H5P_DEFAULT); // open dataset
   printf("dsetopen\n");
   hid_t datatype  = H5Dget_type(dset_id);
   double *value;
