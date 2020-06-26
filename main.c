@@ -77,6 +77,15 @@ int main(int argc, char *argv[])
 	MPI_Comm_rank(MPI_COMM_WORLD,&myrank);
 
 
+    // test pointers
+	if ( myrank == 0 )
+	{
+		int value = 1;
+		printf("value is: %i \n",value);
+		addone(&value);
+		printf("value is: %i \n",value);
+	}
+
 	// the file is opened for read only by all the processes independently, every process then has its own copy of variables.
 	file_id = H5Fopen ("results.h5", H5F_ACC_RDONLY, H5P_DEFAULT);  
 
