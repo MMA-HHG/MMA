@@ -124,7 +124,7 @@ int MPE_Mutex_release(MPI_Win, int, int);
 
 
 void addone(int *); // to test pointers
-double readreal(hid_t *, char [], herr_t *);
+double readreal(hid_t, char *, herr_t *);
 
 
 

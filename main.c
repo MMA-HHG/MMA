@@ -78,6 +78,7 @@ int main(int argc, char *argv[])
 
 
     // test pointers
+	file_id = H5Fopen ("results.h5", H5F_ACC_RDONLY, H5P_DEFAULT);  
 	if ( myrank == 0 )
 	{
 		int value = 1;
@@ -86,12 +87,14 @@ int main(int argc, char *argv[])
 		printf("value is: %i \n",value);
 
 		// read lambda
-		double lambda = readreal(&file_id, "IRProp/lambda", &h5error);
+		// char *dset_name = "IRProp/lambda";
+		// printf("%s\n",dset_name);
+		double lambda = readreal(file_id, "IRProp/lambda",&h5error);
 		printf("lambda is %e \n",lambda);
 	}
 
 	// the file is opened for read only by all the processes independently, every process then has its own copy of variables.
-	file_id = H5Fopen ("results.h5", H5F_ACC_RDONLY, H5P_DEFAULT);  
+	
 
 	// we first start with the t-grid
 	hid_t dset_id = H5Dopen2 (file_id, "IRProp/tgrid", H5P_DEFAULT); // open dataset	     
