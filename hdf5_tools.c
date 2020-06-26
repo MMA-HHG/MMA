@@ -8,12 +8,12 @@
 #include "mpi.h"
 
 
-double readreal(hid_t file_id, char dset_name[], herr_t *h5error)
+double readreal(hid_t *file_id, char dset_name[], herr_t *h5error)
 {
-  hid_t dset_id = H5Dopen2 (file_id, "IRProp/tgrid", H5P_DEFAULT); // open dataset
+  hid_t dset_id = H5Dopen2 (*file_id, dset_name, H5P_DEFAULT); // open dataset
   hid_t datatype  = H5Dget_type(dset_id);
-  double value;
-  h5error = H5Dread(dset_id,  datatype, H5S_ALL, H5S_ALL, H5P_DEFAULT, &value);
+  double *value;
+  *h5error = H5Dread(dset_id,  datatype, H5S_ALL, H5S_ALL, H5P_DEFAULT, value);
   return value;
 }
 

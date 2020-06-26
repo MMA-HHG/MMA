@@ -84,6 +84,10 @@ int main(int argc, char *argv[])
 		printf("value is: %i \n",value);
 		addone(&value);
 		printf("value is: %i \n",value);
+
+		// read lambda
+		double lambda = readreal(&file_id, "IRProp/lambda", &h5error);
+		printf("lambda is %e \n",lambda);
 	}
 
 	// the file is opened for read only by all the processes independently, every process then has its own copy of variables.
