@@ -17,7 +17,7 @@ double readreal(hid_t file_id, char dset_name[], herr_t *h5error)
   return value;
 }
 
-void addone(int *val ){val=val+1;} // to test pointers
+void addone(int *val ){*val=*val+1;} // to test pointers
 
 
 
