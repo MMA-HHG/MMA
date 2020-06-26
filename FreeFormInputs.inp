@@ -9,6 +9,7 @@ Eguess	-1	R	a.u.	# Energy of the initial state (guess)
 N_r_grid	128000	I	-	# Number of points of the initial spatial grid 16000
 N_r_grid_exp	0	I	-	# Number of points of the spatial grid for the expansion
 dx	0.2	R	R	a.u.	# resolution for the grid
+x_int	2.0	R	a.u.
 
 InterpByDTorNT	0	I	-	# refine resolution only for numerical fields (0 - by dt, 1 - by number of points)
 dt	-1	R	a.u.	# resolution in time 0.0625
@@ -16,6 +17,28 @@ Ntinterp	1	I	-	# number of intermediate points
 textend	200	R	a.u.	# extension of the calculation after the last fields ends !!! NOW ONLY FOR ANALYTICAL FIELD //700
 
 ## target definition
+trg_a	0.6015	R	a.u.
+
+## Analyses
+analy_writewft	0	I	-
+analy_tprint	10	I	-
+PrintGaborAndSPectrum	0	I	-
+a_Gabor	8	R	a.u.
+omegaMaxGabor	60	R	a.u.
+dtGabor	10	R	a.u.
+
+tmin1window	2000	R	a.u.
+tmax1window	5000	R	a.u.
+tmin2window	5250	R	a.u.
+tmax2window	10000	R	a.u.
+
+PrintOutputMethod	1	I	-
+
+## units
+fieldinau	1	I	-
+input0	1	I	-
+	
+
 
 
 ## further analyses
