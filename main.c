@@ -89,7 +89,8 @@ int main(int argc, char *argv[])
 		// read lambda
 		// char *dset_name = "IRProp/lambda";
 		// printf("%s\n",dset_name);
-		double lambda = readreal(file_id, "IRProp/lambda",&h5error);
+		double lambda;
+		readreal(file_id, "IRProp/lambda",&h5error,&lambda);
 		printf("lambda is %e \n",lambda);
 	}
 

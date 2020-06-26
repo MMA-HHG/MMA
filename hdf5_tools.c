@@ -8,16 +8,14 @@
 #include "mpi.h"
 
 
-double readreal(hid_t file_id, char *dset_name, herr_t *h5error)
+void readreal(hid_t file_id, char *dset_name, herr_t *h5error, double *value)
 {
   printf("test\n");
   printf("%s \n",dset_name);
   hid_t dset_id = H5Dopen2 (file_id, dset_name, H5P_DEFAULT); // open dataset
   printf("dsetopen\n");
   hid_t datatype  = H5Dget_type(dset_id);
-  double *value;
   *h5error = H5Dread(dset_id,  datatype, H5S_ALL, H5S_ALL, H5P_DEFAULT, value);
-  return *value;
 }
 
 void addone(int *val ){*val=*val+1;} // to test pointers
