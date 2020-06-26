@@ -14,7 +14,7 @@ double readreal(hid_t *file_id, char dset_name[], herr_t *h5error)
   hid_t datatype  = H5Dget_type(dset_id);
   double *value;
   *h5error = H5Dread(dset_id,  datatype, H5S_ALL, H5S_ALL, H5P_DEFAULT, value);
-  return value;
+  return *value;
 }
 
 void addone(int *val ){*val=*val+1;} // to test pointers
