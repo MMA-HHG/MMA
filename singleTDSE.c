@@ -461,7 +461,6 @@ int main(void)
 
 	start = clock();
 
-
 	psi = propagation(trg,Efield,tmin,Nt,num_t,dt,num_r,num_exp,dx,psi0,psi,x,timef,timef2,ton,toff,timet,dipole,gauge,transformgauge,x_int,analy,outputs);
 
 /*	printf("\ntmax test\n");	*/
@@ -533,7 +532,7 @@ int main(void)
 		fwrite(outputs.PopTot,sizeof(double),(Nt+1),file1);
 		fclose(file1);
 
-                if(IonisationFilterForTheSourceTerm == 1){
+        if(IonisationFilterForTheSourceTerm == 1){
 		file1 = fopen("results/tmp1.bin","wb"); file2 = fopen("results/tmp2.bin","wb"); file3 = fopen("results/SourceTermFiltered.bin","wb"); // We just use the function as it is and remove redundant files... not optimal
 		file4 = fopen("results/tmp3.bin","wb"); file5 = fopen("results/tmp4.bin","wb"); file6 = fopen("results/FSourceTermFiltered.bin","wb");
 		file7 = fopen("results/tmp5.bin","wb"); file8 = fopen("results/Spectrum2SourceTermFiltered.bin","wb"); file9 = fopen("results/tmp1.dat","w");
@@ -579,57 +578,6 @@ int main(void)
 	printGaborFFTW3binary(file1, file2, file3, file4, outputs.sourceterm, (Nt+1), dt, dtGabor, a_Gabor, omegaMaxGabor);
 	fclose(file1); fclose(file2); fclose(file3); fclose(file4);
 	}
-
-/*	if (PrintInputGabor==1){*/
-/*	file1 = fopen("results/GaborInput.dat" , "w"); file2 = fopen("results/GaborInput_tgrid.dat" , "w"); file3 = fopen("results/GaborInput_omegagrid.dat" , "w"); file4 = fopen("results/GaborDipole.bin" , "wb");*/
-/*	printGaborFFTW3(file1, file2, file3, file4, outputs.sourceterm, (Nt+1), dt, dtGabor, a_Gabor, omegaMaxGabor);*/
-/*	fclose(file1); fclose(file2); fclose(file3); fclose(file4);		*/
-/*	}*/
-
-
-/*	dumint=fscanf(param,"%i %*[^\n]\n",&PrintGaborAndSpectrum); // print Gabor and partial spectra (1-yes)*/
-/*	dumint=fscanf(param,"%lf %*[^\n]\n",&a_Gabor); // the parameter of the gabor window [a.u.]*/
-/*	dumint=fscanf(param,"%lf %*[^\n]\n",&omegaMaxGabor); // maximal frequency in Gabor*/
-/*	dumint=fscanf(param,"%lf %*[^\n]\n",&dtGabor); // spacing in Gabor*/
-/*	dumint=fscanf(param,"%lf %*[^\n]\n",&tmin1window); // analyse 1st part of the dipole*/
-/*	dumint=fscanf(param,"%lf %*[^\n]\n",&tmax1window); // analyse 1st part of the dipole*/
-/*	dumint=fscanf(param,"%lf %*[^\n]\n",&tmin2window); // analyse 2nd part of the dipole*/
-/*	dumint=fscanf(param,"%lf %*[^\n]\n",&tmax2window); // analyse 2nd part of the dipole*/
-
-
-/// howto write binary
-
-/*	printf("Test started \n");*/
-/*	double *testarray;*/
-/*	testarray = calloc(3,sizeof(double));*/
-/*	testarray[1] = 0.5;  testarray[2] = 1.; testarray[3] = 1.5;*/
-
-/*	file1 = fopen("results/binaryfile1.bin" , "wb");*/
-/*	fwrite(testarray,sizeof(double),3,file1);*/
-/*	*/
-/*	testarray[1] = 2.0;  testarray[2] = 2.5; testarray[3] = 3.0;*/
-/*	fwrite(testarray,sizeof(double),3,file1);*/
-
-/*	fclose(file1);*/
-/*	*/
-/*	printf("test2 \n");*/
-
-/*	double *testarray2;*/
-/*	testarray2 = calloc(6,sizeof(double));*/
-
-/*	file2 = fopen("results/binaryfile1.bin" , "rb");*/
-/*	fread(testarray2,sizeof(double),6,file2);*/
-/*	fclose(file2);*/
-
-/*	printf("elem1  %lf \n",testarray2[1]);*/
-
-/*	printf("elem4  %lf \n",testarray2[4]);*/
-
-
-/*	printf("Test finished \n");*/
-/*	exit(0);*/
-
-
 
 
 	// Remove the Ground state from Psi
@@ -849,89 +797,3 @@ double* rmv_gs(double *psi0,double *psi, double *x, double num_r)
   free(psi_new);
 
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-	/*case 3:
-
-		// pulses boundaries
-		Efield.sin2.tmax1 = 2.*Pi*Efield.sin2.nc1/Efield.sin2.o1;
-		Efield.sin2.tmin2 = Efield.sin2.delay;
-		Efield.sin2.tmax2 = Efield.sin2.delay + 2.*Pi*Efield.sin2.nc2/Efield.sin2.o2;
-
-
-		// envelope frequencies and phases
-		Efield.sin2.oc1 = Efield.sin2.o1/(2.0*Efield.sin2.nc1); // 1st envelope frequency
-		Efield.sin2.oc2 = Efield.sin2.o2/(2.0*Efield.sin2.nc2); // 2nd envelope frequency
-		Efield.sin2.Tc2 = 2.0*Pi*Efield.sin2.nc2 / Efield.sin2.o2; //2nd pulse duration
-
-		Efield.sin2.phi0 = Pi/2.0 - Efield.sin2.oc2*(Efield.sin2.delay + 0.5*Efield.sin2.Tc2); //adjust of the envelope phase
-
-		// adjust of the field phases
-		Efield.sin2.phi1 = Efield.sin2.phi1 - Efield.sin2.nc1*Pi; // 1st field phase adjusted for sin^2 pulse
-
-
-
-		// Efield.sin2.phi2 = Efield.sin2.phi2 - Efield.sin2.o2*(Efield.sin2.delay + 0.5*Efield.sin2.Tc2);	// 2nd field phase adjusted for the delayed sin^2 pulse
-		Efield.sin2.phi2 = Efield.sin2.phi1; // common phase for both pulses
-
-
-
-
-		if (Efield.sin2.tmax1 >= Efield.sin2.tmax2){Efield.sin2.tmax = Efield.sin2.tmax1;}
-		else{Efield.sin2.tmax = Efield.sin2.tmax2;}
-
-		// THREE DIFFERENT CASES FOR THE OVERLAP
-		if (Efield.sin2.tmax1<=Efield.sin2.tmin2){Efield.sin2.overlap = 1;}
-		else if ( ( Efield.sin2.tmin2<Efield.sin2.tmax1 ) && ( Efield.sin2.tmax1<Efield.sin2.tmax2) ){Efield.sin2.overlap = 2;}
-		else if ( (Efield.sin2.tmin2<=Efield.sin2.tmax1) && ( Efield.sin2.tmax2<=Efield.sin2.tmax1) ){Efield.sin2.overlap = 3;}	
-
-		// printf("overlap %i\n", Efield.sin2.overlap);	
-		printf("tmax %lf\n", Efield.sin2.tmax);	
-
-		dum = (Efield.sin2.tmax*Efield.sin2.o1)/(2.*Pi); // virtual number of cycles according to the first field frequency
-		Nt = floor( dum*(num_t+1) ); Nt++;
-
-		period = 2.*Pi/Efield.sin2.o1;
-
-		dt = period/num_t;	
-
-
-	break;*/
-

@@ -44,6 +44,30 @@ struct analy_def{
 	int writewft;
 };
 
+struct inputs_def{
+	struct trg_def trg;
+	struct Efield_var Efield;
+	double tmin;
+	int Nt;
+	int num_t;
+	double dt;
+	int num_r;
+	int num_exp;
+	double dx;
+	double *psi0;
+	double *psi;
+	double *x;
+	double ton;
+	double toff;
+	double *timet;
+	double *dipole;
+	int gauge;
+	int transformgauge;
+	double x_int;
+	struct analy_def analy;		
+};
+
+// all have to be defined as pointers for calling by reference
 struct outputs_def{
 	double *tgrid;
 	double *Efield;
@@ -126,26 +150,5 @@ int MPE_Mutex_release(MPI_Win, int, int);
 // HDF5
 void addone(int *); // to test pointers
 void readreal(hid_t, char *, herr_t *, double *);
+void readint(hid_t, char *, herr_t *, int *);
 // int linkexists(hid_t, char *, herr_t *, double *);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

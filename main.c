@@ -11,6 +11,8 @@ The plot of the code:
 
 5) The code finishes.
 
+DEVELOPMENT: wrap the call of singleTDSE, where propagation is called to test, erase this extra step after
+
 -----------------------------------------------------------------------------------------------------------------------
 Extensions/features already presented in 1DTDSE and needed to implement in a test mode. We wil add them as optional outputs.
 
@@ -61,6 +63,8 @@ herr_t  h5error;
 hid_t file_id; // file pointer
 hid_t filespace, dataspace_id, dataset_id; // dataspace pointers
 
+struct inputs_def inputs;
+
 int k1;
 
 
@@ -81,7 +85,10 @@ int main(int argc, char *argv[])
 
 
     // test pointers
+	// the file is opened for read only by all the processes independently, every process then has its own copy of variables.
 	file_id = H5Fopen ("results.h5", H5F_ACC_RDONLY, H5P_DEFAULT);  
+
+	// here we read all the scalars
 	if ( myrank == 0 )
 	{
 		int value = 1;
@@ -89,8 +96,8 @@ int main(int argc, char *argv[])
 		addone(&value);
 		printf("value is: %i \n",value);
    
-    printf("link exists 1: %i\n",H5Lexists(file_id, "IRProp/lambda", H5P_DEFAULT));
-    printf("link exists 2: %i\n",H5Lexists(file_id, "IRProp/lambda2", H5P_DEFAULT));
+    	printf("link exists 1: %i\n",H5Lexists(file_id, "IRProp/lambda", H5P_DEFAULT));
+    	printf("link exists 2: %i\n",H5Lexists(file_id, "IRProp/lambda2", H5P_DEFAULT));
 
 		// read lambda
 		// char *dset_name = "IRProp/lambda";
@@ -100,7 +107,33 @@ int main(int argc, char *argv[])
 		printf("lambda is %e \n",lambda);
 	}
 
-	// the file is opened for read only by all the processes independently, every process then has its own copy of variables.
+	// we load shared inputs here:
+	readreal(file_id, "IRProp/lambda",&h5error,&lambda);
+
+	readreal(file_id, "TDSE_inputs/Eguess"					,&h5error,&inputs.Eguess); // Energy of the initial state
+	readint(file_id, "TDSE_inputs/N_r_grid"					,&h5error,&inputs.num_r); // Number of points of the initial spatial grid 16000
+	readint(file_id, "TDSE_inputs/N_r_grid_exp"				,&h5error,&inputs.num_exp); // Number of points of the spatial grid for the expansion
+	readreal(file_id, "TDSE_inputs/dx"						,&h5error,&inputs.dx); // resolution for the grid
+	readint(file_id, "TDSE_inputs/InterpByDTorNT"			,&h5error,&inputs.InterpByDTorNT); 
+	readreal(file_id, "TDSE_inputs/dt"						,&h5error,&inputs.dt); // resolution in time
+	readint(file_id, "TDSE_inputs/Ntinterp"					,&h5error,&inputs.Ntinterp); // Number of points of the spatial grid for the expansion
+	readreal(file_id, "TDSE_inputs/textend"					,&h5error,&inputs.textend); // extension of the calculation after the last fields ends !!! NOW ONLY FOR ANALYTICAL FIELD //700
+	readint(file_id, "TDSE_inputs/analy_writewft"			,&h5error,&inputs.analy.writewft); // writewavefunction (1-writting every tprint)
+	readreal(file_id, "TDSE_inputs/analy_tprint"			,&h5error,&inputs.analy.tprint); // time spacing for writing the wavefunction	
+	readreal(file_id, "TDSE_inputs/x_int"					,&h5error,&inputs.x_int); // the limit of the integral for the ionisation //2 2 works fine with the lenth gauge and strong fields
+	readint(file_id, "TDSE_inputs/PrintGaborAndSpectrum"	,&h5error,&inputs.PrintGaborAndSpectrum); // print Gabor and partial spectra (1-yes)
+	readreal(file_id, "TDSE_inputs/a_Gabor"					,&h5error,&inputs.a_Gabor); // the parameter of the gabor window [a.u.]
+	readreal(file_id, "TDSE_inputs/omegaMaxGabor"			,&h5error,&inputs.omegaMaxGabor); // maximal frequency in Gabor [a.u.]
+	readreal(file_id, "TDSE_inputs/dtGabor"					,&h5error,&inputs.dtGabor); // spacing in Gabor
+	readreal(file_id, "TDSE_inputs/tmin1window"				,&h5error,&inputs.tmin1window); // analyse 1st part of the dipole
+	readreal(file_id, "TDSE_inputs/tmax1window"				,&h5error,&inputs.tmax1window); // analyse 1st part of the dipole
+	readreal(file_id, "TDSE_inputs/tmin2window"				,&h5error,&inputs.tmin2window); // analyse 2nd part of the dipole
+	readreal(file_id, "TDSE_inputs/tmax2window"				,&h5error,&inputs.tmax2window); // analyse 2nd part of the dipole
+	readint(file_id, "TDSE_inputs/PrintOutputMethod"		,&h5error,&inputs.PrintOutputMethod); // (0 - only text, 1 - only binaries, 2 - both)
+	readint(file_id, "TDSE_inputs/IonisationFilterForTheSourceTerm"	,&h5error,&inputs.IonisationFilterForTheSourceTerm); // filter source term by high-ionisation components (1-yes)
+	readreal(file_id, "TDSE_inputs/IonFilterThreshold"		,&h5error,&inputs.IonFilterThreshold); // threshold for the ionisation [-]
+
+	if comment_operation == 1 ){printf("Proc %i uses dx = %e \n",myrank,inputs.dx);}
 	
 
 	// we first start with the t-grid

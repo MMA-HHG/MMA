@@ -16,6 +16,14 @@ void readreal(hid_t file_id, char *dset_name, herr_t *h5error, double *value)
   *h5error = H5Dclose(dset_id);
 }
 
+void readint(hid_t file_id, char *dset_name, herr_t *h5error, int *value)
+{
+  hid_t dset_id = H5Dopen2 (file_id, dset_name, H5P_DEFAULT); // open dataset
+  hid_t datatype  = H5Dget_type(dset_id);
+  *h5error = H5Dread(dset_id,  datatype, H5S_ALL, H5S_ALL, H5P_DEFAULT, value);
+  *h5error = H5Dclose(dset_id);
+}
+
 //int linkexists(hid_t file_id, char *link_name, herr_t *h5error)
 //{
 //  hid_t dset_id = H5Lexists (file_id, link_name, H5P_DEFAULT); // open dataset
