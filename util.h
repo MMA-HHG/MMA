@@ -47,6 +47,7 @@ struct analy_def{
 struct inputs_def{
 	struct trg_def trg;
 	struct Efield_var Efield;
+  double Eguess;
 	double tmin;
 	int Nt;
 	int num_t;
@@ -64,7 +65,9 @@ struct inputs_def{
 	int gauge;
 	int transformgauge;
 	double x_int;
-	struct analy_def analy;		
+	struct analy_def analy;	
+  int InterpByDTorNT, Ntinterp, PrintGaborAndSpectrum, PrintOutputMethod;	
+  double textend, dtGabor, tmin1window, tmin2window, tmax1window, tmax2window, a_Gabor, omegaMaxGabor;
 };
 
 // all have to be defined as pointers for calling by reference
