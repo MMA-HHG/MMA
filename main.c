@@ -89,23 +89,23 @@ int main(int argc, char *argv[])
 	file_id = H5Fopen ("results.h5", H5F_ACC_RDONLY, H5P_DEFAULT);  
 
 	// here we read all the scalars
-	if ( myrank == 0 )
-	{
-		int value = 1;
-		printf("value is: %i \n",value);
-		addone(&value);
-		printf("value is: %i \n",value);
+	// if ( myrank == 0 )
+	// {
+	// 	int value = 1;
+	// 	printf("value is: %i \n",value);
+	// 	addone(&value);
+	// 	printf("value is: %i \n",value);
    
-    	printf("link exists 1: %i\n",H5Lexists(file_id, "IRProp/lambda", H5P_DEFAULT));
-    	printf("link exists 2: %i\n",H5Lexists(file_id, "IRProp/lambda2", H5P_DEFAULT));
+    // 	printf("link exists 1: %i\n",H5Lexists(file_id, "IRProp/lambda", H5P_DEFAULT));
+    // 	printf("link exists 2: %i\n",H5Lexists(file_id, "IRProp/lambda2", H5P_DEFAULT));
 
-		// read lambda
-		// char *dset_name = "IRProp/lambda";
-		// printf("%s\n",dset_name);
-		double lambda;
-		readreal(file_id, "IRProp/lambda",&h5error,&lambda);
-		printf("lambda is %e \n",lambda);
-	}
+	// 	// read lambda
+	// 	// char *dset_name = "IRProp/lambda";
+	// 	// printf("%s\n",dset_name);
+	// 	double lambda;
+	// 	readreal(file_id, "IRProp/lambda",&h5error,&lambda);
+	// 	printf("lambda is %e \n",lambda);
+	// }
 
 	// we load shared inputs here:
 //	readreal(file_id, "IRProp/lambda",&h5error,&lambda);
@@ -136,7 +136,7 @@ int main(int argc, char *argv[])
 	if (comment_operation == 1 ){printf("Proc %i uses dx = %e \n",myrank,inputs.dx);}
 	
 
-	// we first start with the t-grid
+	// we load the tgrid
 	hid_t dset_id = H5Dopen2 (file_id, "IRProp/tgrid", H5P_DEFAULT); // open dataset	     
 	hid_t dspace_id = H5Dget_space (dset_id); // Get the dataspace ID     
 	const int ndims = H5Sget_simple_extent_ndims(dspace_id); // number of dimensions in the tgrid
