@@ -88,6 +88,9 @@ int main(int argc, char *argv[])
 		printf("value is: %i \n",value);
 		addone(&value);
 		printf("value is: %i \n",value);
+   
+    printf("link exists 1: %i\n",H5Lexists(file_id, "IRProp/lambda", H5P_DEFAULT));
+    printf("link exists 2: %i\n",H5Lexists(file_id, "IRProp/lambda2", H5P_DEFAULT));
 
 		// read lambda
 		// char *dset_name = "IRProp/lambda";
