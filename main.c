@@ -31,14 +31,17 @@ The versatility in numeric-or-analytic field length-or-velocity gauge is ideal f
 
 
 ------------------------------------------------------------------------------------------------------------------------
-The HDF5 version will implement the following idea:
+Development notes:
+
+1) We can use checks whether parameters exist in the input HDF5-archive. If not, we can create them with default values.
+Implementation: since this is I/O operation with one file, we need r/w. Maybe read paramc only by proc 0 and the broadcast structure (see the MPI book for transfering structs).
 
 For reading, it should be easy. ** R/W may occur simultaneously in in the MPI loop. Separate I/O at the instant or ensure it will work (R/W from independent datasets may be fine???).
 https://support.hdfgroup.org/HDF5/Tutor/selectsimple.html
 
 
-4) we get rid of mutexes and use rather parallel acces to files all the time.
-4.develop) it seems that many-readers many-writers would be possible by HDF5 parallel since we will not modify the file much. However, we may also try stick with independent files and eventually 
+2) we get rid of mutexes and use rather parallel acces to files all the time.
+2.develop) it seems that many-readers many-writers would be possible by HDF5 parallel since we will not modify the file much. However, we may also try stick with independent files and eventually 
 https://stackoverflow.com/questions/49851046/merge-all-h5-files-using-h5py
 https://portal.hdfgroup.org/display/HDF5/Collective+Calling+Requirements+in+Parallel+HDF5+Applications
 
