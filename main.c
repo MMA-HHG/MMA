@@ -69,7 +69,7 @@ struct outputs_def outputs;
 int k1;
 
 
-clock_t start2, finish2, finish1;
+clock_t start_main, finish2_main, finish1_main, finish3_main;
 
 
 int main(int argc, char *argv[]) 
@@ -206,7 +206,7 @@ int main(int argc, char *argv[])
 	}
 	// an empty dataset is prepared to be filled with the data
  
-  start2 = clock(); // the clock
+  start_main = clock(); // the clock
 		
 
 	// we now process the MPI queue
@@ -248,7 +248,11 @@ int main(int argc, char *argv[])
     for (k1 = 0; k1 < dims2[0]; k1++){tgrid[k1]=tgrid_by_reference[k1];}; // just 2-multiplication
     inputs.Efield.tgrid = tgrid;
 		inputs.Efield.Field = Fields;
-		outputs = call1DTDSE(inputs);
+   
+    finish3_main = clock();
+		outputs = call1DTDSE(inputs); // THE TDSE
+   
+   
     if ( ( comment_operation == 1 ) && ( Nsim < 20 ) ){printf("Proc %i finished TDSE job %i \n",myrank,Nsim);}
     printf("address2 %p \n",outputs.Efield);
     if ( ( comment_operation == 1 ) && ( Nsim < 20 ) ){printf("%e \n",outputs.Efield[0]);}
@@ -257,15 +261,16 @@ int main(int argc, char *argv[])
     if ( ( comment_operation == 1 ) && ( Nsim < 20 ) ){printf("Proc %i finished TDSE job %i \n",myrank,Nsim);}
 		
 		// print the output in the file
-    finish1 = clock();
+    finish1_main = clock();
     
 		MPE_Mutex_acquire(mc_win, 1, MPE_MC_KEYVAL); // mutex is acquired
 
-		finish2 = clock();
+		finish2_main = clock();
     if ( ( comment_operation == 1 ) && ( Nsim < 20 ) ){
     printf("Proc %i will write in the hyperslab (kr,kz)=(%i,%i), job %i \n",myrank,kr,kz,Nsim);
-    printf("Proc %i, clock the umnutexed value : %f sec\n",myrank,(double)(finish1 - start2) / CLOCKS_PER_SEC);
-    printf("Proc %i, clock in the mutex block  : %f sec\n",myrank,(double)(finish2 - start2) / CLOCKS_PER_SEC);
+    printf("Proc %i, before job started        : %f sec\n",myrank,(double)(finish3_main - start_main) / CLOCKS_PER_SEC);
+    printf("Proc %i, clock the umnutexed value : %f sec\n",myrank,(double)(finish1_main - start_main) / CLOCKS_PER_SEC);
+    printf("Proc %i, clock in the mutex block  : %f sec\n",myrank,(double)(finish2_main - start_main) / CLOCKS_PER_SEC);
     fflush(NULL); // force write
     }
     
