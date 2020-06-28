@@ -146,9 +146,13 @@ int main(int argc, char *argv[])
 	if ( ( comment_operation == 1 ) && ( myrank == 0 ) ){printf("Size 1 is: %i \nSize 2 is: %i \nGrid is from Fortran as a column, it gives the extra 1-dimension\n",dims[0],dims[1]);}
 	hid_t datatype  = H5Dget_type(dset_id);     // we gat the type of data (SINGLE, DOUBLE, etc. from HDF5)
 	double tgrid[dims[0]]; // allocate the grid
+	/*see https://stackoverflow.com/questions/10575544/difference-between-array-type-and-array-allocated-with-malloc
+	      https://stackoverflow.com/questions/216259/is-there-a-max-array-length-limit-in-c/216731#216731  */
 	h5error = H5Dread(dset_id,  datatype, H5S_ALL, H5S_ALL, H5P_DEFAULT, tgrid); // read the grid
 	if ( ( comment_operation == 1 ) && ( myrank == 0 ) ){printf("(t_init,t_end) = (%e,%e) \n",tgrid[0],tgrid[dims[0]-1]);}
 	h5error = H5Dclose(dset_id);
+
+	inputs.Efield.Nt = (int)dims[0]; // needed within TDSE slover
 
 	// we move to the Fields
 	dset_id = H5Dopen2 (file_id, "IRProp/Fields_rzt", H5P_DEFAULT); // open dataset	     
@@ -232,7 +236,10 @@ int main(int argc, char *argv[])
 		if ( ( comment_operation == 1 ) && ( Nsim < 20 ) ){printf("Proc %i doing the job %i \n",myrank,Nsim);}
 
 		// THE TASK IS DONE HERE, we can call 1D/3D TDSE, etc. here
-		for (k1 = 0; k1 < dims2[0]; k1++){SourceTerms[k1]=2.0*Fields[k1];}; // just 2-multiplication
+		// for (k1 = 0; k1 < dims2[0]; k1++){SourceTerms[k1]=2.0*Fields[k1];}; // just 2-multiplication
+		inputs.Efields.Field = Fields;
+		call1DTDSE(inputs, outputs)
+		for (k1 = 0; k1 < dims2[0]; k1++){SourceTerms[k1]=outputs.sourceterm[k1];}; // assign results
 		
 		// print the output in the file
 		MPE_Mutex_acquire(mc_win, 1, MPE_MC_KEYVAL); // mutex is acquired

@@ -46,8 +46,8 @@ struct analy_def{
 
 struct inputs_def{
 	struct trg_def trg;
-	struct Efield_var Efield;
-  double Eguess;
+	struct Efield_var Efields;
+	double Eguess;
 	double tmin;
 	int Nt;
 	int num_t;
@@ -141,6 +141,8 @@ void printGaborFFTW3(FILE *, FILE *, FILE *, FILE *, double *, int, double, doub
 void printlimitedFFTW3(FILE *, double *, int, double, double, double);
 
 void define_analytical(struct Efield_var *, FILE *);
+
+void call1DTDSE(struct inputs_def, struct outputs_def);
 
 
 // MPI

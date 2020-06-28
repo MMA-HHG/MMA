@@ -52,72 +52,71 @@ char filename1[25], filename2[25];
 
 
 
-int main(void)
+int call1DTDSE(struct inputs_def inputs, struct outputs_def outputs) // this is a wrapper that will by bypassed. It's here due to the design of the original code.
 {	
 	Pi = acos(-1.);
 
 	// Open the param.txt file for intialisation of the parameter
-	param = fopen("param.txt" , "r");
-	if(param == NULL) {printf("DATA could not be found in param.txt file\n");}
+	// param = fopen("param.txt" , "r");
+	// if(param == NULL) {printf("DATA could not be found in param.txt file\n");}
 
-	dumint=fscanf(param, "%*[^\n]\n", NULL);
-	dumint=fscanf(param,"%i %*[^\n]\n",&Efield.fieldtype); // 0-numerical, loaded in femtosecons, 1-numerical, loaded in atomic units in whole grid, 2-analytical
+	// dumint=fscanf(param, "%*[^\n]\n", NULL);
+	Efield.fieldtype = 0; // 0-numerical, loaded in femtosecons, 1-numerical, loaded in atomic units in whole grid, 2-analytical
 
 
-	dumint=fscanf(param, "%*[^\n]\n", NULL);
+	// dumint=fscanf(param, "%*[^\n]\n", NULL);
 
-	dumint=fscanf(param,"%lf %*[^\n]\n",&Eguess); // Energy of the initial state
-	dumint=fscanf(param,"%i %*[^\n]\n",&num_r); // Number of points of the initial spatial grid 16000
-	dumint=fscanf(param,"%i %*[^\n]\n",&num_exp); // Number of points of the spatial grid for the expansion
-	dumint=fscanf(param,"%lf %*[^\n]\n",&dx); // resolution for the grid
-	dumint=fscanf(param,"%i %*[^\n]\n",&InterpByDTorNT); // Number of points of the spatial grid for the expansion
-	dumint=fscanf(param,"%lf %*[^\n]\n",&dt); // resolution in time
-	dumint=fscanf(param,"%i %*[^\n]\n",&Ntinterp); // Number of points of the spatial grid for the expansion
-	dumint=fscanf(param,"%lf %*[^\n]\n",&textend); // extension of the calculation after the last fields ends !!! NOW ONLY FOR ANALYTICAL FIELD //700
-	dumint=fscanf(param,"%i %*[^\n]\n",&analy.writewft); // writewavefunction (1-writting every tprint)
-	dumint=fscanf(param,"%lf %*[^\n]\n",&analy.tprint); // time spacing for writing the wavefunction	
-	dumint=fscanf(param,"%lf %*[^\n]\n",&x_int); // the limit of the integral for the ionisation //2 2 works fine with the lenth gauge and strong fields
-	dumint=fscanf(param,"%i %*[^\n]\n",&PrintGaborAndSpectrum); // print Gabor and partial spectra (1-yes)
-	dumint=fscanf(param,"%lf %*[^\n]\n",&a_Gabor); // the parameter of the gabor window [a.u.]
-	dumint=fscanf(param,"%lf %*[^\n]\n",&omegaMaxGabor); // maximal frequency in Gabor [a.u.]
-	dumint=fscanf(param,"%lf %*[^\n]\n",&dtGabor); // spacing in Gabor
-	dumint=fscanf(param,"%lf %*[^\n]\n",&tmin1window); // analyse 1st part of the dipole
-	dumint=fscanf(param,"%lf %*[^\n]\n",&tmax1window); // analyse 1st part of the dipole
-	dumint=fscanf(param,"%lf %*[^\n]\n",&tmin2window); // analyse 2nd part of the dipole
-	dumint=fscanf(param,"%lf %*[^\n]\n",&tmax2window); // analyse 2nd part of the dipole
-	dumint=fscanf(param,"%i %*[^\n]\n",&PrintOutputMethod); // (0 - only text, 1 - only binaries, 2 - both)
-	dumint=fscanf(param,"%i %*[^\n]\n",&IonisationFilterForTheSourceTerm); // filter source term by high-ionisation components (1-yes)
-	dumint=fscanf(param,"%lf %*[^\n]\n",&IonFilterThreshold); // threshold for the ionisation [-]
 
-	dumint=fscanf(param, "%*[^\n]\n", NULL);
+	Eguess = inputs.Eguess; // Energy of the initial state
+	num_r = inputs.num_r; // Number of points of the initial spatial grid 16000
+	num_exp = inputs.num_exp; // Number of points of the spatial grid for the expansion
+	dx = inputs.dx; // resolution for the grid
+	InterpByDTorNT = inputs.InterpByDTorNT; // Number of points of the spatial grid for the expansion
+	dt = inputs.dt; // resolution in time
+	Ntinterp = inputs.Ntinterp; // Number of points of the spatial grid for the expansion
+	textend = inputs.textend; // extension of the calculation after the last fields ends !!! NOW ONLY FOR ANALYTICAL FIELD //700
+	analy.writewf = inputs.analy.writewf; // writewavefunction (1-writting every tprint)
+	analy.tprint = inputs.analy.tprint; // time spacing for writing the wavefunction	
+	x_int = inputs.x_int; // the limit of the integral for the ionisation //2 2 works fine with the lenth gauge and strong fields
+	PrintGaborAndSpectrum = inputs.PrintGaborAndSpectrum; // print Gabor and partial spectra (1-yes)
+	a_Gabor = inputs.a_Gabor; // the parameter of the gabor window [a.u.]
+	omegaMaxGabor = inputs.omegaMaxGabor; // maximal frequency in Gabor [a.u.]
+	dtGabor = inputs.dtGabor; // spacing in Gabor
+	tmin1window = inputs.tmin1window; // analyse 1st part of the dipole
+	tmax1window = inputs.tmax1window; // analyse 1st part of the dipole
+	tmin2window = inputs.tmin2window; // analyse 2nd part of the dipole
+	tmax2window = inputs.tmax2window; // analyse 2nd part of the dipole
+	PrintOutputMethod = inputs.PrintOutputMethod; // (0 - only text, 1 - only binaries, 2 - both)
+	IonisationFilterForTheSourceTerm = inputs.IonisationFilterForTheSourceTerm; // filter source term by high-ionisation components (1-yes)
+	IonFilterThreshold = inputs.IonFilterThreshold; // threshold for the ionisation [-]
+	trg.a = inputs.trg.a; // the limit of the integral for the ionisation //2 2 works fine with the
 
-	dumint=fscanf(param,"%lf %*[^\n]\n",&trg.a); // the limit of the integral for the ionisation //2 2 works fine with the
-
-	dumint=fscanf(param, "%*[^\n]\n", NULL);
 
 
 	// paramters either for numerical field or analytic
-	switch (Efield.fieldtype){
-	case 2:
-		// GAUGES
-		dumint=fscanf(param,"%i %*[^\n]\n",&gauge); // 0-length, otherwise velocity, velocity available only for analytic field (A needed)
-		dumint=fscanf(param,"%i %*[^\n]\n",&transformgauge); // 1 - transform also to another gauge during the calculation, (A needed)
-/*		printf("gauge,  %i \n",gauge);*/
-	break;
-	case 0:	case 1:
-		// FILENAMES
+// 	switch (Efield.fieldtype){
+// 	case 2:
+// 		// GAUGES
+// 		dumint=fscanf(param,"%i %*[^\n]\n",&gauge); // 0-length, otherwise velocity, velocity available only for analytic field (A needed)
+// 		dumint=fscanf(param,"%i %*[^\n]\n",&transformgauge); // 1 - transform also to another gauge during the calculation, (A needed)
+// /*		printf("gauge,  %i \n",gauge);*/
+// 	break;
+// 	case 0:	case 1:
+// 		// FILENAMES
 
-		dumint=fscanf(param,"%s %*[^\n]\n",filename1); // filename1
-		dumint=fscanf(param,"%s %*[^\n]\n",filename2); // filename2
-		dumint=fscanf(param, "%*[^\n]\n", NULL);
-		dumint=fscanf(param,"%i %*[^\n]\n",&fieldinau); // 0-input inatomic units, 1 - in femto and GV/m
-		dumint=fscanf(param,"%i %*[^\n]\n",&input0); // 0 field starts with 0, 1 in the middle of the file
+// 		dumint=fscanf(param,"%s %*[^\n]\n",filename1); // filename1
+// 		dumint=fscanf(param,"%s %*[^\n]\n",filename2); // filename2
+// 		dumint=fscanf(param, "%*[^\n]\n", NULL);
+// 		dumint=fscanf(param,"%i %*[^\n]\n",&fieldinau); // 0-input inatomic units, 1 - in femto and GV/m
+// 		dumint=fscanf(param,"%i %*[^\n]\n",&input0); // 0 field starts with 0, 1 in the middle of the file
 
-		printf("filename1  %s \n",filename1);
-	break;
+// 		printf("filename1  %s \n",filename1);
+// 	break;
 
-	}
+// 	}
 
+	gauge = 1;
+	transformgauge = 0;
 	
 
 	num_t = floor((2.*Pi)/(0.057*dt)); // the length of one cycle for 800 nm (i.e. omega=0.057) 
@@ -125,13 +124,13 @@ int main(void)
 
 	// define the properties of the temporal grid
 	switch (Efield.fieldtype){
-	case 2:
-		printf("Analytical fields are used\n");
-/*		dumint=fscanf(param, "%*[^\n]\n", NULL); // move in file*/
-/*		dumint=fscanf(param,"%lf %*[^\n]\n",&dum); printf("E0,  %f \n",dum);*/
+// 	case 2:
+// 		printf("Analytical fields are used\n");
+// /*		dumint=fscanf(param, "%*[^\n]\n", NULL); // move in file*/
+// /*		dumint=fscanf(param,"%lf %*[^\n]\n",&dum); printf("E0,  %f \n",dum);*/
 
-		define_analytical(&Efield, param);
-	break;
+// 		define_analytical(&Efield, param);
+// 	break;
 	case 0:
 		printf("Numerical field 1 (in femtoseconds) is used\n");
 	break;
@@ -141,42 +140,29 @@ int main(void)
 
 	}
 
-	fclose(param);
+	// fclose(param);
 
 
-	// !!!!! loading procedure
-	switch (Efield.fieldtype){
-	case 0:
+	// !!!!! loading procedure (we go for CUPRAD outs only now)
 		// LOAD THE FILES		
 		
-		file1 = fopen(filename1 , "r"); if(file1 == NULL) {printf("timegrid file %s doesn't exist\n",filename1);}
-		file2 = fopen(filename2 , "r"); if(file2 == NULL) {printf("Field file %s doesn't exist\n", filename2);}	
-		
-		
-		Efield.Nt = 0;	
-		while((ch=fgetc(file1))!=EOF)
-		{if(ch == '\n'){Efield.Nt++;}}
-		rewind(file1);
-		printf("Efield.Nt,  %i \n",Efield.Nt);		
+		// file1 = fopen(filename1 , "r"); if(file1 == NULL) {printf("timegrid file %s doesn't exist\n",filename1);}
+		// file2 = fopen(filename2 , "r"); if(file2 == NULL) {printf("Field file %s doesn't exist\n", filename2);}	
 			
-		Efield.tgrid = calloc(Efield.Nt,sizeof(double)); 
-		Efield.Field = calloc(Efield.Nt,sizeof(double)); 
+			
+		// Efield.tgrid = calloc(Efield.Nt,sizeof(double)); // this we have from HDF5
+		// Efield.Field = calloc(Efield.Nt,sizeof(double)); 
 
 		// LOAD FILES		
-		for(k1 = 0 ; k1 <= Efield.Nt-1 ; k1++) //Efield.Nt-1
+		for(k1 = 0 ; k1 <= Efield.Nt-1 ; k1++) //Efield.Nt-1 // use vectorisation (BLAS)
 		{
-			dumint = fscanf(file1,"%lf",&Efield.tgrid[k1]); // file in femtoseconts and GV/m;
-			dumint = fscanf(file2,"%lf",&Efield.Field[k1]);
-			if (!(fieldinau == 0))
-			{
 				Efield.tgrid[k1] = Efield.tgrid[k1]*41.34144728; // timegrid in a.u.
 				Efield.Field[k1] = Efield.Field[k1]*0.001944689151; // corresponding field
-			}
 		}	
-		fclose(file1);
-		fclose(file2);		
+		// fclose(file1);
+		// fclose(file2);		
 
-		// k1 = 0; k2 = 0;	findinterval(Efield.Nt, 0., Efield.tgrid, &k1, &k2);// find zero of the grid, the best resolution is around
+		// k1 = 0; k2 = 0;	findinterval(Efield.Nt, 0., Efield.tgrid, &k1, &k2);// find zero of the grid, the best resolution is around 0
 		switch ( input0 ){case 0: dumint = 0; break; case 1: dumint = round(Efield.Nt/2.); /* field centered around 0 */ break;} // original definition
 	
 		Efield.dt = Efield.tgrid[dumint+1]-Efield.tgrid[dumint]; // Efield.dt = Efield.tgrid[1+round(Efield.Nt/2.)]-Efield.tgrid[round(Efield.Nt/2.)];
@@ -207,164 +193,8 @@ int main(void)
 		printf("Efield.dt,  %lf \n",Efield.dt);
 		printf("points per interval  %i \n",num_t);
 		printf("number of interpolated points per interval  %i \n",Ntinterp);
-		
-	break;
-	case 1:
-		// scan field
-
-		file1 = fopen("inputs/timegrid2.dat" , "r");
-		file2 = fopen("inputs/Field.dat" , "r");
-
-		Efield.Nt = 0;	
-		while((ch=fgetc(file1))!=EOF)
-		{if(ch == '\n'){Efield.Nt++;}}
-		rewind(file1);
-
-		Efield.tgrid = calloc(Efield.Nt,sizeof(double));
-		Efield.Field = calloc(Efield.Nt,sizeof(double));
- 
-		for(k1 = 0 ; k1<= Efield.Nt-1 ; k1++) //Efield.Nt-1
-			{
-				dumint = fscanf(file1,"%lf",&Efield.tgrid[k1]); // timegrid in a.u.
-				//Efield.tgrid[k1] = Efield.tgrid[k1]*41.34144728;
-				dumint = fscanf(file2,"%lf",&Efield.Field[k1]); // corresponding field
-				//Efield.Field[k1] = Efield.Field[k1]*0.001944689151;
-				// printf("row %i\n",k1);
-			}	
-		fclose(file1);
-		fclose(file2);		
-		
-		tmin = Efield.tgrid[0]; //Efield.tgrid[Efield.Nt-1]; //field is long, try to take only fewer points, given by hand
-		// tmin = findnextinterpolatedzero(Efield.Nt-1, tmin, Efield.tgrid, Efield.Field); // start in nearest exact zero
-		printf("tmin is,  %lf \n",tmin);
-		tmax = Efield.tgrid[Efield.Nt-1];
-		printf("tmax is,  %lf \n",tmax);
-		Nt = floor((tmax-tmin)/dt);
-		tmax = tmin+dt*(double)Nt;
-		
-		Efield.dt = Efield.tgrid[1]-Efield.tgrid[0]; // not used
-
-		num_t = floor((2*Pi)/(Efield.omega*dt)); num_t++; 
-		printf("Efield.dt,  %lf \n",Efield.dt);
-		printf("points per interval  %i \n",num_t);	
-
-	break;
-	case 2:
-		//---------------------------- THERE IS DEFINED ANALYTICAL FIELD
-
-		printf("\ntest analytic\n");
-		// finding the maximal time & fit the field specification
-		//for(k1 = 0 ; k1 <= F.Nflt1 ; k1++)
-		tmax = 0.;
-		if (Efield.Nsin2 > 0){
-			for(k1 = 0 ; k1 <= (Efield.Nsin2-1) ; k1++){
-				
-				Efield.sin2[k1].A0 = Efield.sin2[k1].E0/Efield.sin2[k1].o;
-				Efield.sin2[k1].oc = Efield.sin2[k1].o/(2.*Efield.sin2[k1].nc);			
-				Efield.sin2[k1].phi0 = Pi/2.0 - Efield.sin2[k1].oc * ( Efield.sin2[k1].ti + 0.5 * Pi/Efield.sin2[k1].oc ); //adjust of the envelope phase
-				Efield.sin2[k1].phi = Efield.sin2[k1].phi - Efield.sin2[k1].o * Efield.sin2[k1].ti - Pi * Efield.sin2[k1].nc; // recalculate CEP
-
-
-				tmax = fmax(tmax, Efield.sin2[k1].ti + Pi / Efield.sin2[k1].oc );
-			}
-		}
-
-// ANOTHER FIELD TYPES
-		if (Efield.Nflt1 > 0){for(k1 = 0 ; k1 <= (Efield.Nflt1-1) ; k1++){tmax = fmax(tmax, Efield.flt1[k1].ti + Efield.flt1[k1].ton + Efield.flt1[k1].toff + Efield.flt1[k1].T );}}
-		if (Efield.Nflt1ch > 0){for(k1 = 0 ; k1 <= (Efield.Nflt1ch-1) ; k1++){tmax = fmax(tmax, Efield.flt1ch[k1].ti + Efield.flt1ch[k1].ton + Efield.flt1ch[k1].toff + Efield.flt1ch[k1].T );}}
-		
-		//printf("test2 \n");		
-		if (Efield.NEsin2 > 0){
-			
-			for(k1 = 0 ; k1 <= (Efield.NEsin2-1) ; k1++){
-				
-				Efield.Esin2[k1].A0 = Efield.Esin2[k1].E0/Efield.Esin2[k1].o;
-				Efield.Esin2[k1].oc = Efield.Esin2[k1].o/(2.*Efield.Esin2[k1].nc);			
-				Efield.Esin2[k1].phi0 = Pi/2.0 - Efield.Esin2[k1].oc * ( Efield.Esin2[k1].ti + 0.5 * Pi/Efield.Esin2[k1].oc ); //adjust of the envelope phase
-				Efield.Esin2[k1].phi = Efield.Esin2[k1].phi - Efield.Esin2[k1].o * Efield.Esin2[k1].ti - Pi * Efield.Esin2[k1].nc; // recalculate CEP
-
-
-				tmax = fmax(tmax, Efield.Esin2[k1].ti + Pi / Efield.Esin2[k1].oc );
-			}
-		}
-
-		tmax = tmax + textend;
-		Nt = floor( tmax/dt ); Nt++;
-		// Nt = Nt + 1000;
-		/*Nt = Efield.trap.nc*(num_t+1);
-		period = 2.*Pi/Efield.trap.omega;
-		dt = period/num_t;
-		Efield.trap.phi = Efield.trap.phi*Pi*0.5;
-		*/
-	break;
-	}
-
 	
 
-
-
-	// TESTING WORKSPACE
-
-/*	printf("Test started \n");*/
-/*	double *testarray;*/
-/*	dum = 5.0;*/
-/*	testarray = calloc(1,sizeof(double));*/
-/*	testarray[0] = dum;*/
-
-/*	file1 = fopen("results/binaryfile1.bin" , "wb");*/
-/*	fwrite(testarray,sizeof(double),1,file1);*/
-/*	*/
-/*	fclose(file1);*/
-/*	*/
-/*	printf("test2 \n");*/
-
-/*	double *testarray2;*/
-/*	testarray2 = calloc(1,sizeof(double));*/
-
-/*	file2 = fopen("results/binaryfile1.bin" , "rb");*/
-/*	fread(testarray2,sizeof(double),1,file2);*/
-/*	fclose(file2);*/
-
-/*	printf("elem1  %lf \n",testarray2[0]);*/
-
-
-
-/*	printf("Test finished \n");*/
-/*	exit(0);*/
-
-/*	printf("Test started \n");*/
-/*	double *testarray;*/
-/*	testarray = calloc(3,sizeof(double));*/
-/*	testarray[0] = 0.5;  testarray[2] = 1.; testarray[3] = 1.5;*/
-
-/*	file1 = fopen("results/binaryfile1.bin" , "wb");*/
-/*	fwrite(testarray,sizeof(double),3,file1);*/
-/*	*/
-/*	testarray[1] = 2.0;  testarray[2] = 2.5; testarray[3] = 3.0;*/
-/*	fwrite(testarray,sizeof(double),3,file1);*/
-
-/*	fclose(file1);*/
-/*	*/
-/*	printf("test2 \n");*/
-
-/*	double *testarray2;*/
-/*	testarray2 = calloc(6,sizeof(double));*/
-
-
-/*	file2 = fopen("results/binaryfile1.bin" , "rb");*/
-/*	fread(testarray2,sizeof(double),6,file2);*/
-/*	fclose(file2);*/
-
-/*	printf("elem1  %lf \n",testarray2[0]);*/
-
-/*	printf("elem4  %lf \n",testarray2[4]);*/
-
-
-/*	printf("Test finished \n");*/
-/*	exit(0);*/
-
-	
-	
 	
 
 	
@@ -484,78 +314,78 @@ int main(void)
 	// PRINT field and source terms in both domains // ADD switch to do one of them or both of them
 	
 
-	switch (PrintOutputMethod){
-	printf("\nPrintingResults\n");
-	case 0:
-		file1 = fopen("results/TimeDomain.dat" , "w"); file2 = fopen("results/OmegaDomain.dat" , "w");
-		print2FFTW3(file1, file2, outputs.Efield, outputs.sourceterm, (Nt+1), dt, outputs.tgrid[Nt]);
-		fclose(file1); fclose(file2);
-		file1 = fopen("results/GS_population.dat" , "w");
-		for(k1 = 0; k1 <= Nt; k1++){fprintf(file1,"%e\t%e\n", outputs.tgrid[k1] , outputs.PopTot[k1]);}
-		fclose(file1);
+	// switch (PrintOutputMethod){
+	// printf("\nPrintingResults\n");
+	// case 0:
+	// 	file1 = fopen("results/TimeDomain.dat" , "w"); file2 = fopen("results/OmegaDomain.dat" , "w");
+	// 	print2FFTW3(file1, file2, outputs.Efield, outputs.sourceterm, (Nt+1), dt, outputs.tgrid[Nt]);
+	// 	fclose(file1); fclose(file2);
+	// 	file1 = fopen("results/GS_population.dat" , "w");
+	// 	for(k1 = 0; k1 <= Nt; k1++){fprintf(file1,"%e\t%e\n", outputs.tgrid[k1] , outputs.PopTot[k1]);}
+	// 	fclose(file1);
 
-                if(IonisationFilterForTheSourceTerm == 1){
-		file1 = fopen("results/TimeDomainFiltered.dat" , "w"); file2 = fopen("results/OmegaDomainFiltered.dat" , "w");
-		print2FFTW3(file1, file2, outputs.Efield, outputs.sourcetermfiltered, (Nt+1), dt, outputs.tgrid[Nt]);
-		fclose(file1); fclose(file2);
-		}
-	break;
-	case 1:
-		file1 = fopen("results/tgrid.bin","wb"); file2 = fopen("results/Efield.bin","wb"); file3 = fopen("results/SourceTerm.bin","wb");
-		file4 = fopen("results/omegagrid.bin","wb"); file5 = fopen("results/FEfield.bin","wb"); file6 = fopen("results/FSourceTerm.bin","wb");
-		file7 = fopen("results/Spectrum2Efield.bin","wb"); file8 = fopen("results/Spectrum2SourceTerm.bin","wb"); file9 = fopen("results/GridDimensionsForBinaries.dat","w");
-		print2FFTW3binary(file1, file2, file3, file4, file5, file6, file7, file8, file9, outputs.Efield, outputs.sourceterm, (Nt+1), dt, outputs.tgrid[Nt]);
-		fclose(file1); fclose(file2); fclose(file3); fclose(file4); fclose(file5); fclose(file6); fclose(file7); fclose(file8); fclose(file9);
+    //             if(IonisationFilterForTheSourceTerm == 1){
+	// 	file1 = fopen("results/TimeDomainFiltered.dat" , "w"); file2 = fopen("results/OmegaDomainFiltered.dat" , "w");
+	// 	print2FFTW3(file1, file2, outputs.Efield, outputs.sourcetermfiltered, (Nt+1), dt, outputs.tgrid[Nt]);
+	// 	fclose(file1); fclose(file2);
+	// 	}
+	// break;
+	// case 1:
+	// 	file1 = fopen("results/tgrid.bin","wb"); file2 = fopen("results/Efield.bin","wb"); file3 = fopen("results/SourceTerm.bin","wb");
+	// 	file4 = fopen("results/omegagrid.bin","wb"); file5 = fopen("results/FEfield.bin","wb"); file6 = fopen("results/FSourceTerm.bin","wb");
+	// 	file7 = fopen("results/Spectrum2Efield.bin","wb"); file8 = fopen("results/Spectrum2SourceTerm.bin","wb"); file9 = fopen("results/GridDimensionsForBinaries.dat","w");
+	// 	print2FFTW3binary(file1, file2, file3, file4, file5, file6, file7, file8, file9, outputs.Efield, outputs.sourceterm, (Nt+1), dt, outputs.tgrid[Nt]);
+	// 	fclose(file1); fclose(file2); fclose(file3); fclose(file4); fclose(file5); fclose(file6); fclose(file7); fclose(file8); fclose(file9);
 
-		file1 = fopen("results/GS_population.bin","wb");
-		fwrite(outputs.PopTot,sizeof(double),(Nt+1),file1);
-		fclose(file1);
+	// 	file1 = fopen("results/GS_population.bin","wb");
+	// 	fwrite(outputs.PopTot,sizeof(double),(Nt+1),file1);
+	// 	fclose(file1);
 
-                if(IonisationFilterForTheSourceTerm == 1){
-		file1 = fopen("results/tmp1.bin","wb"); file2 = fopen("results/tmp2.bin","wb"); file3 = fopen("results/SourceTermFiltered.bin","wb"); // We just use the function as it is and remove redundant files... not optimal
-		file4 = fopen("results/tmp3.bin","wb"); file5 = fopen("results/tmp4.bin","wb"); file6 = fopen("results/FSourceTermFiltered.bin","wb");
-		file7 = fopen("results/tmp5.bin","wb"); file8 = fopen("results/Spectrum2SourceTermFiltered.bin","wb"); file9 = fopen("results/tmp1.dat","w");
-		print2FFTW3binary(file1, file2, file3, file4, file5, file6, file7, file8, file9, outputs.Efield, outputs.sourcetermfiltered, (Nt+1), dt, outputs.tgrid[Nt]);
-		fclose(file1); fclose(file2); fclose(file3); fclose(file4); fclose(file5); fclose(file6); fclose(file7); fclose(file8); fclose(file9);
-		dumint=remove("results/tmp1.bin"); dumint=remove("results/tmp2.bin"); dumint=remove("results/tmp3.bin"); dumint=remove("results/tmp4.bin");
-		dumint=remove("results/tmp5.bin"); dumint=remove("results/tmp1.bin"); dumint=remove("results/tmp1.dat");
-		}
-	break;
-	case 2:
-		file1 = fopen("results/tgrid.bin","wb"); file2 = fopen("results/Efield.bin","wb"); file3 = fopen("results/SourceTerm.bin","wb");
-		file4 = fopen("results/omegagrid.bin","wb"); file5 = fopen("results/FEfield.bin","wb"); file6 = fopen("results/FSourceTerm.bin","wb");
-		file7 = fopen("results/Spectrum2Efield.bin","wb"); file8 = fopen("results/Spectrum2SourceTerm.bin","wb"); file9 = fopen("results/GridDimensionsForBinaries.dat","w");
-		print2FFTW3binary(file1, file2, file3, file4, file5, file6, file7, file8, file9, outputs.Efield, outputs.sourceterm, (Nt+1), dt, outputs.tgrid[Nt]);
-		fclose(file1); fclose(file2); fclose(file3); fclose(file4); fclose(file5); fclose(file6); fclose(file7); fclose(file8); fclose(file9);
+    //             if(IonisationFilterForTheSourceTerm == 1){
+	// 	file1 = fopen("results/tmp1.bin","wb"); file2 = fopen("results/tmp2.bin","wb"); file3 = fopen("results/SourceTermFiltered.bin","wb"); // We just use the function as it is and remove redundant files... not optimal
+	// 	file4 = fopen("results/tmp3.bin","wb"); file5 = fopen("results/tmp4.bin","wb"); file6 = fopen("results/FSourceTermFiltered.bin","wb");
+	// 	file7 = fopen("results/tmp5.bin","wb"); file8 = fopen("results/Spectrum2SourceTermFiltered.bin","wb"); file9 = fopen("results/tmp1.dat","w");
+	// 	print2FFTW3binary(file1, file2, file3, file4, file5, file6, file7, file8, file9, outputs.Efield, outputs.sourcetermfiltered, (Nt+1), dt, outputs.tgrid[Nt]);
+	// 	fclose(file1); fclose(file2); fclose(file3); fclose(file4); fclose(file5); fclose(file6); fclose(file7); fclose(file8); fclose(file9);
+	// 	dumint=remove("results/tmp1.bin"); dumint=remove("results/tmp2.bin"); dumint=remove("results/tmp3.bin"); dumint=remove("results/tmp4.bin");
+	// 	dumint=remove("results/tmp5.bin"); dumint=remove("results/tmp1.bin"); dumint=remove("results/tmp1.dat");
+	// 	}
+	// break;
+	// case 2:
+	// 	file1 = fopen("results/tgrid.bin","wb"); file2 = fopen("results/Efield.bin","wb"); file3 = fopen("results/SourceTerm.bin","wb");
+	// 	file4 = fopen("results/omegagrid.bin","wb"); file5 = fopen("results/FEfield.bin","wb"); file6 = fopen("results/FSourceTerm.bin","wb");
+	// 	file7 = fopen("results/Spectrum2Efield.bin","wb"); file8 = fopen("results/Spectrum2SourceTerm.bin","wb"); file9 = fopen("results/GridDimensionsForBinaries.dat","w");
+	// 	print2FFTW3binary(file1, file2, file3, file4, file5, file6, file7, file8, file9, outputs.Efield, outputs.sourceterm, (Nt+1), dt, outputs.tgrid[Nt]);
+	// 	fclose(file1); fclose(file2); fclose(file3); fclose(file4); fclose(file5); fclose(file6); fclose(file7); fclose(file8); fclose(file9);
 
-		file1 = fopen("results/GS_population.bin","wb");
-		fwrite(outputs.PopTot,sizeof(double),(Nt+1),file1);
-		fclose(file1);
+	// 	file1 = fopen("results/GS_population.bin","wb");
+	// 	fwrite(outputs.PopTot,sizeof(double),(Nt+1),file1);
+	// 	fclose(file1);
 
-        if(IonisationFilterForTheSourceTerm == 1){
-		file1 = fopen("results/tmp1.bin","wb"); file2 = fopen("results/tmp2.bin","wb"); file3 = fopen("results/SourceTermFiltered.bin","wb"); // We just use the function as it is and remove redundant files... not optimal
-		file4 = fopen("results/tmp3.bin","wb"); file5 = fopen("results/tmp4.bin","wb"); file6 = fopen("results/FSourceTermFiltered.bin","wb");
-		file7 = fopen("results/tmp5.bin","wb"); file8 = fopen("results/Spectrum2SourceTermFiltered.bin","wb"); file9 = fopen("results/tmp1.dat","w");
-		print2FFTW3binary(file1, file2, file3, file4, file5, file6, file7, file8, file9, outputs.Efield, outputs.sourcetermfiltered, (Nt+1), dt, outputs.tgrid[Nt]);
-		fclose(file1); fclose(file2); fclose(file3); fclose(file4); fclose(file5); fclose(file6); fclose(file7); fclose(file8); fclose(file9);
-		dumint=remove("results/tmp1.bin"); dumint=remove("results/tmp2.bin"); dumint=remove("results/tmp3.bin"); dumint=remove("results/tmp4.bin");
-		dumint=remove("results/tmp5.bin"); dumint=remove("results/tmp1.bin"); dumint=remove("results/tmp1.dat");
-		}
+    //     if(IonisationFilterForTheSourceTerm == 1){
+	// 	file1 = fopen("results/tmp1.bin","wb"); file2 = fopen("results/tmp2.bin","wb"); file3 = fopen("results/SourceTermFiltered.bin","wb"); // We just use the function as it is and remove redundant files... not optimal
+	// 	file4 = fopen("results/tmp3.bin","wb"); file5 = fopen("results/tmp4.bin","wb"); file6 = fopen("results/FSourceTermFiltered.bin","wb");
+	// 	file7 = fopen("results/tmp5.bin","wb"); file8 = fopen("results/Spectrum2SourceTermFiltered.bin","wb"); file9 = fopen("results/tmp1.dat","w");
+	// 	print2FFTW3binary(file1, file2, file3, file4, file5, file6, file7, file8, file9, outputs.Efield, outputs.sourcetermfiltered, (Nt+1), dt, outputs.tgrid[Nt]);
+	// 	fclose(file1); fclose(file2); fclose(file3); fclose(file4); fclose(file5); fclose(file6); fclose(file7); fclose(file8); fclose(file9);
+	// 	dumint=remove("results/tmp1.bin"); dumint=remove("results/tmp2.bin"); dumint=remove("results/tmp3.bin"); dumint=remove("results/tmp4.bin");
+	// 	dumint=remove("results/tmp5.bin"); dumint=remove("results/tmp1.bin"); dumint=remove("results/tmp1.dat");
+	// 	}
 
-		file1 = fopen("results/TimeDomain.dat" , "w"); file2 = fopen("results/OmegaDomain.dat" , "w");
-		print2FFTW3(file1, file2, outputs.Efield, outputs.sourceterm, (Nt+1), dt, outputs.tgrid[Nt]);
-		fclose(file1); fclose(file2);
-		file1 = fopen("results/GS_population.dat" , "w");
-		for(k1 = 0; k1 <= Nt; k1++){fprintf(file1,"%e\t%e\n", outputs.tgrid[k1] , outputs.PopTot[k1]);}
-		fclose(file1);
+	// 	file1 = fopen("results/TimeDomain.dat" , "w"); file2 = fopen("results/OmegaDomain.dat" , "w");
+	// 	print2FFTW3(file1, file2, outputs.Efield, outputs.sourceterm, (Nt+1), dt, outputs.tgrid[Nt]);
+	// 	fclose(file1); fclose(file2);
+	// 	file1 = fopen("results/GS_population.dat" , "w");
+	// 	for(k1 = 0; k1 <= Nt; k1++){fprintf(file1,"%e\t%e\n", outputs.tgrid[k1] , outputs.PopTot[k1]);}
+	// 	fclose(file1);
 
-                if(IonisationFilterForTheSourceTerm == 1){
-		file1 = fopen("results/TimeDomainFiltered.dat" , "w"); file2 = fopen("results/OmegaDomainFiltered.dat" , "w");
-		print2FFTW3(file1, file2, outputs.Efield, outputs.sourcetermfiltered, (Nt+1), dt, outputs.tgrid[Nt]);
-		fclose(file1); fclose(file2);
-		}
-	break;
-	}
+    //             if(IonisationFilterForTheSourceTerm == 1){
+	// 	file1 = fopen("results/TimeDomainFiltered.dat" , "w"); file2 = fopen("results/OmegaDomainFiltered.dat" , "w");
+	// 	print2FFTW3(file1, file2, outputs.Efield, outputs.sourcetermfiltered, (Nt+1), dt, outputs.tgrid[Nt]);
+	// 	fclose(file1); fclose(file2);
+	// 	}
+	// break;
+	// }
 
 
 
