@@ -90,27 +90,6 @@ int main(int argc, char *argv[])
 	// the file is opened for read only by all the processes independently, every process then has its own copy of variables.
 	file_id = H5Fopen ("results.h5", H5F_ACC_RDONLY, H5P_DEFAULT);  
 
-	// here we read all the scalars
-	// if ( myrank == 0 )
-	// {
-	// 	int value = 1;
-	// 	printf("value is: %i \n",value);
-	// 	addone(&value);
-	// 	printf("value is: %i \n",value);
-   
-    // 	printf("link exists 1: %i\n",H5Lexists(file_id, "IRProp/lambda", H5P_DEFAULT));
-    // 	printf("link exists 2: %i\n",H5Lexists(file_id, "IRProp/lambda2", H5P_DEFAULT));
-
-	// 	// read lambda
-	// 	// char *dset_name = "IRProp/lambda";
-	// 	// printf("%s\n",dset_name);
-	// 	double lambda;
-	// 	readreal(file_id, "IRProp/lambda",&h5error,&lambda);
-	// 	printf("lambda is %e \n",lambda);
-	// }
-
-	// we load shared inputs here:
-//	readreal(file_id, "IRProp/lambda",&h5error,&lambda);
 
 	readreal(file_id, "TDSE_inputs/Eguess"					,&h5error,&inputs.Eguess); // Energy of the initial state
 	readint(file_id, "TDSE_inputs/N_r_grid"					,&h5error,&inputs.num_r); // Number of points of the initial spatial grid 16000
@@ -290,7 +269,7 @@ int main(int argc, char *argv[])
 		h5error = H5Fclose(file_id); // file
 
 		MPE_Mutex_release(mc_win, 1, MPE_MC_KEYVAL);
-    finish4_main = clock();
+    	finish4_main = clock();
 		MPE_Counter_nxtval(mc_win, 0, &Nsim, MPE_MC_KEYVAL); // get my next task
 	} while (Nsim < Ntot);
 	h5error = H5Sclose(memspace_id);
