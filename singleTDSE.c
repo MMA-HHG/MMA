@@ -289,7 +289,7 @@ struct outputs_def call1DTDSE(struct inputs_def inputs) // this is a wrapper tha
 
 	printf("Calculation of the energy of the ground sate ; Eguess : %f\n",Eguess);
 
-	Einit = Einitialise(trg,psi0,off_diagonal,diagonal,off_diagonal,x,Eguess,CV,num_r);
+	// Einit = Einitialise(trg,psi0,off_diagonal,diagonal,off_diagonal,x,Eguess,CV,num_r);
 	//for(i=0;i<=num_r;i++) {fprintf(eingenvectorf,"%f\t%e\t%e\n",x[i],psi0[2*i],psi0[2*i+1]); fprintf(pot,"%f\t%e\n",x[i],potential(x[i],trg));}
 
 	 

@@ -120,6 +120,7 @@ void findinterval(int , double , double* , int* , int* );
 double findnextinterpolatedzero(int, double, double* , double* );
 
 void printresults(struct trg_def, struct Efield_var,FILE *,int,double *,int, double *, double, double *,double, double, double, double, double, struct outputs_def);
+void compute_population(struct trg_def, struct Efield_var,int,double *,int, double *, double, double *,double, double, double, double, double, struct outputs_def);
 double Afieldflattop1(double, double, double , double , double , double , double , double );
 double Afieldflattop1ch(double, double, double , double , double , double , double , double , double , double);
 double smootherstep(double , double, double);
