@@ -441,6 +441,9 @@ int call1DTDSE(struct inputs_def inputs, struct outputs_def outputs) // this is 
 	printf("\n");
 	printf("Duration of calculation %f sec\n",(double)(finish - start) / CLOCKS_PER_SEC);
 	printf("\n");
+ 
+  printf("%e \n",outputs.Efield[0]);
+  printf("address %p \n",outputs.Efield);
 	
 	printf("Calculation terminated ; good analysis\n");
 

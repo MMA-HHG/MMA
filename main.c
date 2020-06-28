@@ -242,6 +242,8 @@ int main(int argc, char *argv[])
 		inputs.Efield.Field = Fields;
 		call1DTDSE(inputs, outputs);
     if ( ( comment_operation == 1 ) && ( Nsim < 20 ) ){printf("Proc %i finished TDSE job %i \n",myrank,Nsim);}
+    printf("address2 %p \n",outputs.Efield);
+    if ( ( comment_operation == 1 ) && ( Nsim < 20 ) ){printf("%e \n",outputs.Efield[0]);}
     if ( ( comment_operation == 1 ) && ( Nsim < 20 ) ){printf("Proc %i, job %i some outputs are: %e, %e, %e \n",myrank,Nsim, outputs.tgrid[0], outputs.Efield[0], outputs.sourceterm[0]);}
 		for (k1 = 0; k1 < dims2[0]; k1++){SourceTerms[k1]=outputs.sourceterm[k1];}; // assign results
     if ( ( comment_operation == 1 ) && ( Nsim < 20 ) ){printf("Proc %i finished TDSE job %i \n",myrank,Nsim);}
