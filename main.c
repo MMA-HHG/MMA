@@ -69,7 +69,7 @@ struct outputs_def outputs;
 int k1;
 
 
-clock_t start_main, finish2_main, finish1_main, finish3_main;
+clock_t start_main, finish2_main, finish1_main, finish3_main, finish4_main;
 
 
 int main(int argc, char *argv[]) 
@@ -207,6 +207,7 @@ int main(int argc, char *argv[])
 	// an empty dataset is prepared to be filled with the data
  
   start_main = clock(); // the clock
+  finish4_main = clock();
 		
 
 	// we now process the MPI queue
@@ -268,6 +269,7 @@ int main(int argc, char *argv[])
 		finish2_main = clock();
     if ( ( comment_operation == 1 ) && ( Nsim < 20 ) ){
     printf("Proc %i will write in the hyperslab (kr,kz)=(%i,%i), job %i \n",myrank,kr,kz,Nsim);
+    printf("Proc %i, returned mutex last time  : %f sec\n",myrank,(double)(finish4_main - start_main) / CLOCKS_PER_SEC);
     printf("Proc %i, before job started        : %f sec\n",myrank,(double)(finish3_main - start_main) / CLOCKS_PER_SEC);
     printf("Proc %i, clock the umnutexed value : %f sec\n",myrank,(double)(finish1_main - start_main) / CLOCKS_PER_SEC);
     printf("Proc %i, clock in the mutex block  : %f sec\n",myrank,(double)(finish2_main - start_main) / CLOCKS_PER_SEC);
@@ -288,6 +290,7 @@ int main(int argc, char *argv[])
 		h5error = H5Fclose(file_id); // file
 
 		MPE_Mutex_release(mc_win, 1, MPE_MC_KEYVAL);
+    finish4_main = clock();
 		MPE_Counter_nxtval(mc_win, 0, &Nsim, MPE_MC_KEYVAL); // get my next task
 	} while (Nsim < Ntot);
 	h5error = H5Sclose(memspace_id);
