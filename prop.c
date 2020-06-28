@@ -303,10 +303,6 @@ double* propagation(struct trg_def trg, struct Efield_var Efield, double tmin, i
 	printf("\nDuration of calculation for the whole problem %f sec\n\n",(double)(finish2 - start2) / CLOCKS_PER_SEC);
 
 	
-	for(i=0;i<=num_r;i++) fprintf(wf,"%i\t%e\t%e\t%e\t%e\n",i,x[i],psi[2*i],psi[2*i+1],pow(psi[2*i],2)+pow(psi[2*i+1],2));
-
-
-
 	free(psi_inter1);free(res1);free(dnew1);free(dinfnew1);free(dsupnew1);
     	free(psi_inter2);free(res2);free(dnew2);free(dinfnew2);free(dsupnew2);
 	free(psi2);
