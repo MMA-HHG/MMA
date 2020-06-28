@@ -69,7 +69,7 @@ struct outputs_def outputs;
 int k1;
 
 
-clock_t start2, finish2;
+clock_t start2, finish2, finish1;
 
 
 int main(int argc, char *argv[]) 
@@ -257,12 +257,16 @@ int main(int argc, char *argv[])
     if ( ( comment_operation == 1 ) && ( Nsim < 20 ) ){printf("Proc %i finished TDSE job %i \n",myrank,Nsim);}
 		
 		// print the output in the file
+    finish1 = clock();
+    
 		MPE_Mutex_acquire(mc_win, 1, MPE_MC_KEYVAL); // mutex is acquired
 
 		finish2 = clock();
     if ( ( comment_operation == 1 ) && ( Nsim < 20 ) ){
     printf("Proc %i will write in the hyperslab (kr,kz)=(%i,%i), job %i \n",myrank,kr,kz,Nsim);
-    printf("Proc %i, clock : %f sec\n",myrank,(double)(finish2 - start2) / CLOCKS_PER_SEC);
+    printf("Proc %i, clock the umnutexed value : %f sec\n",myrank,(double)(finish1 - start2) / CLOCKS_PER_SEC);
+    printf("Proc %i, clock in the mutex block  : %f sec\n",myrank,(double)(finish2 - start2) / CLOCKS_PER_SEC);
+    fflush(NULL); // force write
     }
     
 
