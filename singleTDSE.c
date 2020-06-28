@@ -54,8 +54,9 @@ char filename1[25], filename2[25];
 
 
 
-int call1DTDSE(struct inputs_def inputs, struct outputs_def outputs) // this is a wrapper that will by bypassed. It's here due to the design of the original code.
-{	
+struct outputs_def call1DTDSE(struct inputs_def inputs) // this is a wrapper that will by bypassed. It's here due to the design of the original code.
+{
+  struct outputs_def outputs;	
 	Pi = acos(-1.);
 
 
@@ -448,7 +449,7 @@ int call1DTDSE(struct inputs_def inputs, struct outputs_def outputs) // this is 
 	printf("Calculation terminated ; good analysis\n");
 
 	
-return 0;
+return outputs;
 
 /*
 free(psi); free(psi_rmv_gs); free(psi0); free(x); free(off_diagonal);

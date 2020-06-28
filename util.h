@@ -144,7 +144,7 @@ void printGaborFFTW3binary(FILE *, FILE *, FILE *, FILE *, double *, int, double
 
 void define_analytical(struct Efield_var *, FILE *);
 
-int call1DTDSE(struct inputs_def, struct outputs_def);
+struct outputs_def call1DTDSE(struct inputs_def);
 
 // MPI
 int MPE_Counter_create(MPI_Comm, int, MPI_Win *);

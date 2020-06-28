@@ -240,7 +240,7 @@ int main(int argc, char *argv[])
 		// for (k1 = 0; k1 < dims2[0]; k1++){SourceTerms[k1]=2.0*Fields[k1];}; // just 2-multiplication
     inputs.Efield.tgrid = tgrid;
 		inputs.Efield.Field = Fields;
-		call1DTDSE(inputs, outputs);
+		outputs = call1DTDSE(inputs);
     if ( ( comment_operation == 1 ) && ( Nsim < 20 ) ){printf("Proc %i finished TDSE job %i \n",myrank,Nsim);}
     printf("address2 %p \n",outputs.Efield);
     if ( ( comment_operation == 1 ) && ( Nsim < 20 ) ){printf("%e \n",outputs.Efield[0]);}
