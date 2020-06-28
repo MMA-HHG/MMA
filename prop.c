@@ -231,7 +231,7 @@ double* propagation(struct trg_def trg, struct Efield_var Efield, double tmin, i
 		if( k%num_t == 0 )
 		{
 		start = clock();	
-		printf("Cycle number : %i ; size of the box : %i ; progress %i/%i \n",(k/num_t)+1,num_r,k,Nt);
+		//printf("Cycle number : %i ; size of the box : %i ; progress %i/%i \n",(k/num_t)+1,num_r,k,Nt);
 		}
 
 
@@ -510,17 +510,21 @@ double* propagation(struct trg_def trg, struct Efield_var Efield, double tmin, i
 
        fprintf(phase,"%e\t%e\t%e\t%e\t%e\n",tt,av_x_re,av_x_im,av_px_re,av_px_im);*/
 
-		if (ip == (int)floor(num_t/20.)) {printf("*/"); fflush(stdout); ip = 0;}
+		if (ip == (int)floor(num_t/20.))
+    {
+    // printf("*/"); fflush(stdout);
+    ip = 0;
+    }
 		ip++;
 
 
 	if( ( k%num_t == num_t-1) && ( k != 0 ) )
 	{
 	finish = clock();
-	printf("\nDuration of calculation for the cycle %f sec\n\n",(double)(finish - start) / CLOCKS_PER_SEC);
+	// printf("\nDuration of calculation for the cycle %f sec\n\n",(double)(finish - start) / CLOCKS_PER_SEC);
 	
 
-	printf("LOCAL TIME [a.u.] %f\n",tt);
+	// printf("LOCAL TIME [a.u.] %f\n",tt);
 	}
 
 	

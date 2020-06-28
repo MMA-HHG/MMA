@@ -69,6 +69,7 @@ struct outputs_def outputs;
 int k1;
 
 
+clock_t start2, finish2;
 
 
 int main(int argc, char *argv[]) 
@@ -147,6 +148,7 @@ int main(int argc, char *argv[])
 	if ( ( comment_operation == 1 ) && ( myrank == 0 ) ){printf("Size 1 is: %i \nSize 2 is: %i \nGrid is from Fortran as a column, it gives the extra 1-dimension\n",dims[0],dims[1]);}
 	hid_t datatype  = H5Dget_type(dset_id);     // we gat the type of data (SINGLE, DOUBLE, etc. from HDF5)
 	double tgrid[dims[0]]; // allocate the grid
+  
 	/*see https://stackoverflow.com/questions/10575544/difference-between-array-type-and-array-allocated-with-malloc
 	      https://stackoverflow.com/questions/216259/is-there-a-max-array-length-limit-in-c/216731#216731  */
 	h5error = H5Dread(dset_id,  datatype, H5S_ALL, H5S_ALL, H5P_DEFAULT, tgrid); // read the grid
@@ -154,6 +156,8 @@ int main(int argc, char *argv[])
 	h5error = H5Dclose(dset_id);
 
 	inputs.Efield.Nt = (int)dims[0]; // needed within TDSE slover
+  double tgrid_by_reference[dims[0]]; // this is a hotfix to keep the input value due to passing by reference
+  for (k1 = 0; k1 < dims[0]; k1++){tgrid_by_reference[k1]=tgrid[k1];}; // just 2-multiplication
 
 	// we move to the Fields
 	dset_id = H5Dopen2 (file_id, "IRProp/Fields_rzt", H5P_DEFAULT); // open dataset	     
@@ -198,8 +202,11 @@ int main(int argc, char *argv[])
 	h5error = H5Fclose(file_id); // file
 
 	MPE_Mutex_release(mc_win, 1, MPE_MC_KEYVAL);
+ 
 	}
 	// an empty dataset is prepared to be filled with the data
+ 
+  start2 = clock(); // the clock
 		
 
 	// we now process the MPI queue
@@ -238,6 +245,7 @@ int main(int argc, char *argv[])
 
 		// THE TASK IS DONE HERE, we can call 1D/3D TDSE, etc. here
 		// for (k1 = 0; k1 < dims2[0]; k1++){SourceTerms[k1]=2.0*Fields[k1];}; // just 2-multiplication
+    for (k1 = 0; k1 < dims2[0]; k1++){tgrid[k1]=tgrid_by_reference[k1];}; // just 2-multiplication
     inputs.Efield.tgrid = tgrid;
 		inputs.Efield.Field = Fields;
 		outputs = call1DTDSE(inputs);
@@ -251,7 +259,12 @@ int main(int argc, char *argv[])
 		// print the output in the file
 		MPE_Mutex_acquire(mc_win, 1, MPE_MC_KEYVAL); // mutex is acquired
 
-		if ( ( comment_operation == 1 ) && ( Nsim < 20 ) ){printf("Proc %i will write in the hyperslab (kr,kz)=(%i,%i), job %i \n",myrank,kr,kz,Nsim);}
+		finish2 = clock();
+    if ( ( comment_operation == 1 ) && ( Nsim < 20 ) ){
+    printf("Proc %i will write in the hyperslab (kr,kz)=(%i,%i), job %i \n",myrank,kr,kz,Nsim);
+    printf("Proc %i, clock : %f sec\n",myrank,(double)(finish2 - start2) / CLOCKS_PER_SEC);
+    }
+    
 
 		file_id = H5Fopen ("results2.h5", H5F_ACC_RDWR, H5P_DEFAULT); // open file
 		dset_id = H5Dopen2 (file_id, "/SourceTerms", H5P_DEFAULT); // open dataset
@@ -269,6 +282,13 @@ int main(int argc, char *argv[])
 		MPE_Counter_nxtval(mc_win, 0, &Nsim, MPE_MC_KEYVAL); // get my next task
 	} while (Nsim < Ntot);
 	h5error = H5Sclose(memspace_id);
+ 
+//  if ( myrank == 0 )  // time
+//	{
+//  finish2 = clock();
+//  printf("\nFirst processor measured time: %f sec\n\n",(double)(finish2 - start2) / CLOCKS_PER_SEC);
+//  }
+  
 	MPI_Finalize();
 	return 0;	
 }
