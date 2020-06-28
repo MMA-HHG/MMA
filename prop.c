@@ -278,7 +278,7 @@ double* propagation(struct trg_def trg, struct Efield_var Efield, double tmin, i
 		outputs.tgrid[k+1] = tt, outputs.sourceterm[k+1] = -dip+Field; outputs.Efield[k+1]=Field;	
 
 		// printresults(trg,Efield, timef,k,psi,num_r,psi0,tt,x,dx,Field,Apot,x_int,dip,outputs); population was computed there
-		compute_population(trg,Efield,,k,psi,num_r,psi0,tt,x,dx,Field,Apot,x_int,dip,outputs);
+		compute_population(trg,Efield,k,psi,num_r,psi0,tt,x,dx,Field,Apot,x_int,dip,outputs);
 
 		if (ip == (int)floor(num_t/20.))
 		{
