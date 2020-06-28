@@ -46,8 +46,8 @@ struct analy_def{
 
 struct inputs_def{
 	struct trg_def trg;
-	struct Efield_var Efields;
-	double Eguess;
+	struct Efield_var Efield;
+  double Eguess;
 	double tmin;
 	int Nt;
 	int num_t;
@@ -87,6 +87,7 @@ void tqli(double *,double *, int n,double *);
 double Calculate_Shift(double, double, double); 
 void Transform_Matrix(double*, double, double, int, int);
 int QL_Tridiagonal_Symmetric_Matrix( double *, double *,double *, int, int);
+
 void Inv_Tridiagonal_Matrix( double *, double *, double *, double *, double *, int);
 void Inv_Tridiagonal_Matrix_complex( double *, double *, double *, double *, double *, int );
 void Inv_Tridiagonal_Matrix_complex_Numerov( double *, double *, double *, double *, double*, int );
@@ -139,11 +140,11 @@ void print2FFTW3(FILE *, FILE *, double *, double *, int, double, double);
 void print2FFTW3binary(FILE *, FILE *, FILE *, FILE *,FILE *, FILE *,FILE *, FILE *, FILE *, double *, double *, int, double, double);
 void printGaborFFTW3(FILE *, FILE *, FILE *, FILE *, double *, int, double, double, double, double);
 void printlimitedFFTW3(FILE *, double *, int, double, double, double);
+void printGaborFFTW3binary(FILE *, FILE *, FILE *, FILE *, double *, int, double, double, double, double);
 
 void define_analytical(struct Efield_var *, FILE *);
 
-void call1DTDSE(struct inputs_def, struct outputs_def);
-
+int call1DTDSE(struct inputs_def, struct outputs_def);
 
 // MPI
 int MPE_Counter_create(MPI_Comm, int, MPI_Win *);

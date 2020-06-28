@@ -3,6 +3,9 @@
 #include<malloc.h>
 #include<stdlib.h>
 #include<stdio.h>
+
+#include "hdf5.h"
+#include "mpi.h"
 #include"util.h"
 
 

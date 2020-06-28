@@ -64,6 +64,7 @@ hid_t file_id; // file pointer
 hid_t filespace, dataspace_id, dataset_id; // dataspace pointers
 
 struct inputs_def inputs;
+struct outputs_def outputs;
 
 int k1;
 
@@ -237,8 +238,8 @@ int main(int argc, char *argv[])
 
 		// THE TASK IS DONE HERE, we can call 1D/3D TDSE, etc. here
 		// for (k1 = 0; k1 < dims2[0]; k1++){SourceTerms[k1]=2.0*Fields[k1];}; // just 2-multiplication
-		inputs.Efields.Field = Fields;
-		call1DTDSE(inputs, outputs)
+		inputs.Efield.Field = Fields;
+		call1DTDSE(inputs, outputs);
 		for (k1 = 0; k1 < dims2[0]; k1++){SourceTerms[k1]=outputs.sourceterm[k1];}; // assign results
 		
 		// print the output in the file

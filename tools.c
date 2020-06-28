@@ -4,6 +4,8 @@
 #include<stdio.h>
 #include<time.h>
 #include<fftw3.h>
+#include "hdf5.h"
+#include "mpi.h"
 
 #include"util.h"
 

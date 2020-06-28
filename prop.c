@@ -3,8 +3,10 @@
 #include<stdlib.h>
 #include<stdio.h>
 #include<time.h>
+#include "hdf5.h"
+#include "mpi.h"
 
-#include"util.h"
+#include "util.h"
 
 #define Pi acos(-1.)
 clock_t start, finish;
@@ -689,7 +691,7 @@ void dipole_analysis(double num_w,double dw,double *timet,double *dipole, int nc
 	   omega += dw;
 	}
 
-    printf("\n"); close(fhhg);
+    printf("\n"); fclose(fhhg);
 
 }
 

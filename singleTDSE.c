@@ -3,6 +3,8 @@
 #include<stdlib.h>
 #include<malloc.h>
 #include<math.h>
+#include "hdf5.h"
+#include "mpi.h"
 
 
 
@@ -11,7 +13,7 @@
 struct Efield_var Efield;
 struct trg_def trg;
 struct analy_def analy;
-struct outputs_def outputs;
+// struct outputs_def outputs;
 double *y,*x,*a,*c,sum,*diagonal,*off_diagonal,*eigenvector,*u,*r,*vector;
 double *timet,*dipole;
 double dx,xmax,Eguess,Einit,CV,phi,omega,E0,period,Pi,tfinal,alpha,v,mod1,mod2,dE,Estep,norm_gauss,x_int,textend;
@@ -75,7 +77,7 @@ int call1DTDSE(struct inputs_def inputs, struct outputs_def outputs) // this is 
 	dt = inputs.dt; // resolution in time
 	Ntinterp = inputs.Ntinterp; // Number of points of the spatial grid for the expansion
 	textend = inputs.textend; // extension of the calculation after the last fields ends !!! NOW ONLY FOR ANALYTICAL FIELD //700
-	analy.writewf = inputs.analy.writewf; // writewavefunction (1-writting every tprint)
+	analy.writewft = inputs.analy.writewft; // writewavefunction (1-writting every tprint)
 	analy.tprint = inputs.analy.tprint; // time spacing for writing the wavefunction	
 	x_int = inputs.x_int; // the limit of the integral for the ionisation //2 2 works fine with the lenth gauge and strong fields
 	PrintGaborAndSpectrum = inputs.PrintGaborAndSpectrum; // print Gabor and partial spectra (1-yes)
@@ -87,8 +89,8 @@ int call1DTDSE(struct inputs_def inputs, struct outputs_def outputs) // this is 
 	tmin2window = inputs.tmin2window; // analyse 2nd part of the dipole
 	tmax2window = inputs.tmax2window; // analyse 2nd part of the dipole
 	PrintOutputMethod = inputs.PrintOutputMethod; // (0 - only text, 1 - only binaries, 2 - both)
-	IonisationFilterForTheSourceTerm = inputs.IonisationFilterForTheSourceTerm; // filter source term by high-ionisation components (1-yes)
-	IonFilterThreshold = inputs.IonFilterThreshold; // threshold for the ionisation [-]
+	// IonisationFilterForTheSourceTerm = inputs.IonisationFilterForTheSourceTerm; // filter source term by high-ionisation components (1-yes)
+	// IonFilterThreshold = inputs.IonFilterThreshold; // threshold for the ionisation [-]
 	trg.a = inputs.trg.a; // the limit of the integral for the ionisation //2 2 works fine with the
 
 
