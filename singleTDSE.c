@@ -58,6 +58,7 @@ int call1DTDSE(struct inputs_def inputs, struct outputs_def outputs) // this is 
 {	
 	Pi = acos(-1.);
 
+
 	// Open the param.txt file for intialisation of the parameter
 	// param = fopen("param.txt" , "r");
 	// if(param == NULL) {printf("DATA could not be found in param.txt file\n");}
@@ -92,6 +93,8 @@ int call1DTDSE(struct inputs_def inputs, struct outputs_def outputs) // this is 
 	// IonisationFilterForTheSourceTerm = inputs.IonisationFilterForTheSourceTerm; // filter source term by high-ionisation components (1-yes)
 	// IonFilterThreshold = inputs.IonFilterThreshold; // threshold for the ionisation [-]
 	trg.a = inputs.trg.a; // the limit of the integral for the ionisation //2 2 works fine with the
+ 
+  Efield = inputs.Efield;
 
 
 
@@ -156,22 +159,28 @@ int call1DTDSE(struct inputs_def inputs, struct outputs_def outputs) // this is 
 		// Efield.Field = calloc(Efield.Nt,sizeof(double)); 
 
 		// LOAD FILES		
+    printf("bfields, Efield[0] = %e, (tgrid[0], tgrid[1]) = (%e,%e) \n", Efield.Field[0],Efield.tgrid[0],Efield.tgrid[1]);
 		for(k1 = 0 ; k1 <= Efield.Nt-1 ; k1++) //Efield.Nt-1 // use vectorisation (BLAS)
 		{
-				Efield.tgrid[k1] = Efield.tgrid[k1]*41.34144728; // timegrid in a.u.
+				Efield.tgrid[k1] = Efield.tgrid[k1]*1e15*41.34144728; // timegrid in a.u. // input is now in SI
 				Efield.Field[k1] = Efield.Field[k1]*0.001944689151; // corresponding field
 		}	
+    printf("afields\n");
 		// fclose(file1);
 		// fclose(file2);		
 
 		// k1 = 0; k2 = 0;	findinterval(Efield.Nt, 0., Efield.tgrid, &k1, &k2);// find zero of the grid, the best resolution is around 0
 		switch ( input0 ){case 0: dumint = 0; break; case 1: dumint = round(Efield.Nt/2.); /* field centered around 0 */ break;} // original definition
+   
+   printf("test1\n");
 	
 		Efield.dt = Efield.tgrid[dumint+1]-Efield.tgrid[dumint]; // Efield.dt = Efield.tgrid[1+round(Efield.Nt/2.)]-Efield.tgrid[round(Efield.Nt/2.)];
 		tmax = Efield.tgrid[Efield.Nt]-Efield.tgrid[0];
+   
+    printf("test2\n");
 
 		// PRINT field and its transform
-		file1 = fopen("inputs/InputField.dat" , "w"); file2 = fopen("inputs/InputFField.dat" , "w"); printFFTW3(file1, file2, Efield.Field, Efield.Nt, Efield.dt); fclose(file1); fclose(file2);
+		// file1 = fopen("inputs/InputField.dat" , "w"); file2 = fopen("inputs/InputFField.dat" , "w"); printFFTW3(file1, file2, Efield.Field, Efield.Nt, Efield.dt); fclose(file1); fclose(file2);
 		
 		// find the padding we need (now we assume coarser grid in the input, need an "if" otherwise)
 		if (InterpByDTorNT == 1)
@@ -183,12 +192,14 @@ int call1DTDSE(struct inputs_def inputs, struct outputs_def outputs) // this is 
 
 		dt = Efield.dt/((double)k1); // redefine dt properly
 
+    printf("binterp\n");
 		Efield.Field = FourInterp(k1, Efield.Field, Efield.Nt); // make the interpolation !!!!!! tgrid does not correspond any more
+    printf("ainterp\n");
 
 		Nt = k1*Efield.Nt + 1;
 
 		// PRINT new field and its transform
-		file1 = fopen("inputs/InputField2.dat" , "w"); file2 = fopen("inputs/InputFField2.dat" , "w"); printFFTW3(file1, file2, Efield.Field, Nt, dt); fclose(file1); fclose(file2);
+		// file1 = fopen("inputs/InputField2.dat" , "w"); file2 = fopen("inputs/InputFField2.dat" , "w"); printFFTW3(file1, file2, Efield.Field, Nt, dt); fclose(file1); fclose(file2);
 
 		
 		num_t = floor((2*Pi)/(0.057*dt)); num_t++; 
@@ -251,12 +262,12 @@ int call1DTDSE(struct inputs_def inputs, struct outputs_def outputs) // this is 
 	timet = calloc(Nt,sizeof(double));
 	dipole = calloc(2*Nt,sizeof(double));
 
-	eingenvaluef = fopen("results/eingenvalue.dat", "w" );
-	eingenvectorf = fopen("results/eingenvector.dat", "w" );
-	pot = fopen("results/latice.dat", "w" );
+	//eingenvaluef = fopen("results/eingenvalue.dat", "w" );
+	//eingenvectorf = fopen("results/eingenvector.dat", "w" );
+	//pot = fopen("results/latice.dat", "w" );
 
-	if(eingenvaluef==NULL || eingenvectorf==NULL)
-	{printf("pb d'ouverture de fichier");}
+	//if(eingenvaluef==NULL || eingenvectorf==NULL)
+	//{printf("pb d'ouverture de fichier");}
 	
 
 	printf("Initialisation \n");
@@ -278,7 +289,7 @@ int call1DTDSE(struct inputs_def inputs, struct outputs_def outputs) // this is 
 	printf("Calculation of the energy of the ground sate ; Eguess : %f\n",Eguess);
 
 	Einit = Einitialise(trg,psi0,off_diagonal,diagonal,off_diagonal,x,Eguess,CV,num_r);
-	for(i=0;i<=num_r;i++) {fprintf(eingenvectorf,"%f\t%e\t%e\n",x[i],psi0[2*i],psi0[2*i+1]); fprintf(pot,"%f\t%e\n",x[i],potential(x[i],trg));}
+	//for(i=0;i<=num_r;i++) {fprintf(eingenvectorf,"%f\t%e\t%e\n",x[i],psi0[2*i],psi0[2*i+1]); fprintf(pot,"%f\t%e\n",x[i],potential(x[i],trg));}
 
 	 
 	printf("Initial energy is : %1.12f\n",Einit);
@@ -294,6 +305,7 @@ int call1DTDSE(struct inputs_def inputs, struct outputs_def outputs) // this is 
 	start = clock();
 
 	psi = propagation(trg,Efield,tmin,Nt,num_t,dt,num_r,num_exp,dx,psi0,psi,x,timef,timef2,ton,toff,timet,dipole,gauge,transformgauge,x_int,analy,outputs);
+  printf("TDSE done ...\n");
 
 /*	printf("\ntmax test\n");	*/
 /*	printf("tmax,  %lf \n",*outputs.tmax);*/

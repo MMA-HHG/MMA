@@ -238,6 +238,7 @@ int main(int argc, char *argv[])
 
 		// THE TASK IS DONE HERE, we can call 1D/3D TDSE, etc. here
 		// for (k1 = 0; k1 < dims2[0]; k1++){SourceTerms[k1]=2.0*Fields[k1];}; // just 2-multiplication
+    inputs.Efield.tgrid = tgrid;
 		inputs.Efield.Field = Fields;
 		call1DTDSE(inputs, outputs);
 		for (k1 = 0; k1 < dims2[0]; k1++){SourceTerms[k1]=outputs.sourceterm[k1];}; // assign results
