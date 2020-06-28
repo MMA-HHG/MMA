@@ -84,7 +84,7 @@ int main(int argc, char *argv[])
 	MPI_Init(&argc,&argv);
 	MPI_Comm_size(MPI_COMM_WORLD,&nprocs);
 	MPI_Comm_rank(MPI_COMM_WORLD,&myrank);
-
+  if (comment_operation == 1 ){printf("Proc %i started the program\n",myrank);}
 
     // test pointers
 	// the file is opened for read only by all the processes independently, every process then has its own copy of variables.
