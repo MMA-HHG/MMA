@@ -255,7 +255,7 @@ int main(int argc, char *argv[])
 //  finish2 = clock();
 //  printf("\nFirst processor measured time: %f sec\n\n",(double)(finish2 - start2) / CLOCKS_PER_SEC);
 //  }
-    MPI_Win_free(&mc_win)
+  MPI_Win_free(&mc_win);
 	MPI_Finalize();
 	return 0;	
 }
