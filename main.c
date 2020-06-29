@@ -61,7 +61,7 @@ https://portal.hdfgroup.org/display/HDF5/Collective+Calling+Requirements+in+Para
 // hdf5 operation:
 herr_t  h5error;
 hid_t file_id; // file pointer
-hid_t filespace, dataspace_id, dataset_id; // dataspace pointers
+hid_t filespace, dataspace_id, dataset_id, dset_id, dspace_id; // dataspace pointers
 
 struct inputs_def inputs;
 struct outputs_def outputs;
@@ -117,14 +117,14 @@ int main(int argc, char *argv[])
 	if (comment_operation == 1 ){printf("Proc %i uses dx = %e \n",myrank,inputs.dx);}
 	
 
-	//load the tgrid
+	// load the tgrid
 	inputs.Efield.tgrid =  readreal1Darray_fort(file_id, "IRProp/tgrid",&h5error,&inputs.Efield.Nt); // tgrid is not changed when program runs
 	// convert to atomic units
 	for(k1 = 0 ; k1 < inputs.Efield.Nt; k1++){inputs.Efield.tgrid[k1] = inputs.Efield.tgrid[k1]*1e15*41.34144728;}
 
-
+  // dimension of the 3D array containing all the inputs
 	hsize_t * dims; int ndims; hid_t datatype;
-	dims = get_dimensions_h5(file_id, "IRProp/Fields_rzt", &h5error, &ndims, &datatype)
+	dims = get_dimensions_h5(file_id, "IRProp/Fields_rzt", &h5error, &ndims, &datatype);
 	hsize_t dim_t = dims[0], dim_r = dims[1], dim_z = dims[2]; // label the dims by physical axes
 	if ( ( comment_operation == 1 ) && ( myrank == 0 ) ){printf("Fields dimensions (t,r,z) = (%i,%i,%i)\n",dims[0],dims[1],dims[2]);}
 
