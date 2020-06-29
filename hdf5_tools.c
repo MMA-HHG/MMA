@@ -37,7 +37,7 @@ double * readreal1Darray_fort(hid_t file_id, char *dset_name, herr_t *h5error, i
 
 
 	// double tgrid[dims[0]]; // allocate the grid
-  double *array = malloc((int)dims[0],sizeof(double));
+  double *array = malloc((int)dims[0]*sizeof(double));
   
 	/*see https://stackoverflow.com/questions/10575544/difference-between-array-type-and-array-allocated-with-malloc
 	      https://stackoverflow.com/questions/216259/is-there-a-max-array-length-limit-in-c/216731#216731  */

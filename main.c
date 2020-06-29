@@ -129,13 +129,13 @@ int main(int argc, char *argv[])
     for (k1 = 0; k1 < inputs.Efield.Nt; k1++){tgrid_by_reference[k1]=tgrid[k1];}; // just 2-multiplication
 
 	// we move to the Fields
-	dset_id = H5Dopen2 (file_id, "IRProp/Fields_rzt", H5P_DEFAULT); // open dataset	     
-	dspace_id = H5Dget_space (dset_id); // Get the dataspace ID     
+	hid_t dset_id = H5Dopen2 (file_id, "IRProp/Fields_rzt", H5P_DEFAULT); // open dataset	     
+	hid_t dspace_id = H5Dget_space (dset_id); // Get the dataspace ID     
 	const int ndims2 = H5Sget_simple_extent_ndims(dspace_id); // number of dimensions for the fields
 	hsize_t dims2[ndims2]; // variable to access
 	H5Sget_simple_extent_dims(dspace_id, dims2, NULL); // get dimensions
 	if ( ( comment_operation == 1 ) && ( myrank == 0 ) ){printf("Fields dimensions (t,r,z) = (%i,%i,%i)\n",dims2[0],dims2[1],dims2[2]);}
-	datatype  = H5Dget_type(dset_id);     // get datatype
+	hid_t datatype  = H5Dget_type(dset_id);     // get datatype
 	hsize_t dim_t = dims2[0], dim_r = dims2[1], dim_z = dims2[2]; // label the dims by physical axes
 
 	// based on dimensions, we set a counter (queue length)
