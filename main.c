@@ -122,27 +122,23 @@ int main(int argc, char *argv[])
 	// convert to atomic units
 	for(k1 = 0 ; k1 < inputs.Efield.Nt; k1++){inputs.Efield.tgrid[k1] = inputs.Efield.tgrid[k1]*1e15*41.34144728;}
 
-  // dimension of the 3D array containing all the inputs
+	// dimension of the 3D array containing all the inputs
 	hsize_t * dims; int ndims; hid_t datatype;
 	dims = get_dimensions_h5(file_id, "IRProp/Fields_rzt", &h5error, &ndims, &datatype);
 	hsize_t dim_t = dims[0], dim_r = dims[1], dim_z = dims[2]; // label the dims by physical axes
 	if ( ( comment_operation == 1 ) && ( myrank == 0 ) ){printf("Fields dimensions (t,r,z) = (%i,%i,%i)\n",dims[0],dims[1],dims[2]);}
 
 
-	// based on dimensions, we set a counter (queue length)
-	int Ntot = dim_r*dim_z;
-	// selections (hyperslabs) are needed
-	hsize_t  offset[ndims], stride[ndims], count[ndims], block[ndims];
-
-	double Fields[dims[0]], SourceTerms[dims[0]]; // Here we store the field and computed SOurce Term for every case	
-	
-	hsize_t field_dims[1]; // we need to specify the length of the array this way for HDF5
-	field_dims[0] = dims[0];
-
+	// We prepare the storage for data and set up the run	
+	int Ntot = dim_r*dim_z; // counter (queue length)	
+	hsize_t  offset[ndims], stride[ndims], count[ndims], block[ndims]; // selections (hyperslabs) are needed	
+	hsize_t field_dims[1]; field_dims[0] = dims[0]; // a way to specify the length of the array for HDF5	
 	hid_t memspace_id = H5Screate_simple(1,field_dims,NULL); // this memspace correspond to one Field/SourceTerm hyperslab, we will keep it accross the code
+	double Fields[dims[0]], SourceTerms[dims[0]]; // Here we store the field and computed Source Term for every case	
 
-
-	// THE MAIN OPERATION LEADING TO OUTPUT STARTS HERE
+	//////////////////////////
+	// COMPUTATIONAL PAHASE //
+	//////////////////////////
 
 	// create counter and mutex in one pointer
 	MPE_MC_KEYVAL = MPE_Counter_create(MPI_COMM_WORLD, 2, &mc_win); // first is counter, second mutex
@@ -166,8 +162,8 @@ int main(int argc, char *argv[])
 	}
 	// an empty dataset is prepared to be filled with the data
  
-  start_main = clock(); // the clock
-  finish4_main = clock();
+	start_main = clock(); // the clock
+	finish4_main = clock();
 		
 
 	// we now process the MPI queue
@@ -213,27 +209,27 @@ int main(int argc, char *argv[])
 		outputs = call1DTDSE(inputs); // THE TDSE
    
    
-    if ( ( comment_operation == 1 ) && ( Nsim < 20 ) ){printf("Proc %i finished TDSE job %i \n",myrank,Nsim);}
-    printf("address2 %p \n",outputs.Efield);
-    if ( ( comment_operation == 1 ) && ( Nsim < 20 ) ){printf("%e \n",outputs.Efield[0]);}
-    if ( ( comment_operation == 1 ) && ( Nsim < 20 ) ){printf("Proc %i, job %i some outputs are: %e, %e, %e \n",myrank,Nsim, outputs.tgrid[0], outputs.Efield[0], outputs.sourceterm[0]);}
+		if ( ( comment_operation == 1 ) && ( Nsim < 20 ) ){printf("Proc %i finished TDSE job %i \n",myrank,Nsim);}
+		printf("address2 %p \n",outputs.Efield);
+		if ( ( comment_operation == 1 ) && ( Nsim < 20 ) ){printf("%e \n",outputs.Efield[0]);}
+		if ( ( comment_operation == 1 ) && ( Nsim < 20 ) ){printf("Proc %i, job %i some outputs are: %e, %e, %e \n",myrank,Nsim, outputs.tgrid[0], outputs.Efield[0], outputs.sourceterm[0]);}
 		for (k1 = 0; k1 < dims[0]; k1++){SourceTerms[k1]=outputs.sourceterm[k1];}; // assign results
-    if ( ( comment_operation == 1 ) && ( Nsim < 20 ) ){printf("Proc %i finished TDSE job %i \n",myrank,Nsim);}
+    	if ( ( comment_operation == 1 ) && ( Nsim < 20 ) ){printf("Proc %i finished TDSE job %i \n",myrank,Nsim);}
 		
 		// print the output in the file
-    finish1_main = clock();
+		finish1_main = clock();
     
 		MPE_Mutex_acquire(mc_win, 1, MPE_MC_KEYVAL); // mutex is acquired
 
 		finish2_main = clock();
-    if ( ( comment_operation == 1 ) && ( Nsim < 20 ) ){
-    printf("Proc %i will write in the hyperslab (kr,kz)=(%i,%i), job %i \n",myrank,kr,kz,Nsim);
-    printf("Proc %i, returned mutex last time  : %f sec\n",myrank,(double)(finish4_main - start_main) / CLOCKS_PER_SEC);
-    printf("Proc %i, before job started        : %f sec\n",myrank,(double)(finish3_main - start_main) / CLOCKS_PER_SEC);
-    printf("Proc %i, clock the umnutexed value : %f sec\n",myrank,(double)(finish1_main - start_main) / CLOCKS_PER_SEC);
-    printf("Proc %i, clock in the mutex block  : %f sec\n",myrank,(double)(finish2_main - start_main) / CLOCKS_PER_SEC);
-    fflush(NULL); // force write
-    }
+		if ( ( comment_operation == 1 ) && ( Nsim < 20 ) ){
+			printf("Proc %i will write in the hyperslab (kr,kz)=(%i,%i), job %i \n",myrank,kr,kz,Nsim);
+			printf("Proc %i, returned mutex last time  : %f sec\n",myrank,(double)(finish4_main - start_main) / CLOCKS_PER_SEC);
+			printf("Proc %i, before job started        : %f sec\n",myrank,(double)(finish3_main - start_main) / CLOCKS_PER_SEC);
+			printf("Proc %i, clock the umnutexed value : %f sec\n",myrank,(double)(finish1_main - start_main) / CLOCKS_PER_SEC);
+			printf("Proc %i, clock in the mutex block  : %f sec\n",myrank,(double)(finish2_main - start_main) / CLOCKS_PER_SEC);
+			fflush(NULL); // force write
+    	}
     
 
 		file_id = H5Fopen ("results2.h5", H5F_ACC_RDWR, H5P_DEFAULT); // open file
@@ -259,7 +255,7 @@ int main(int argc, char *argv[])
 //  finish2 = clock();
 //  printf("\nFirst processor measured time: %f sec\n\n",(double)(finish2 - start2) / CLOCKS_PER_SEC);
 //  }
-  
+    MPI_Win_free(&mc_win)
 	MPI_Finalize();
 	return 0;	
 }
