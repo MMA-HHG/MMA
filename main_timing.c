@@ -172,83 +172,21 @@ int main(int argc, char *argv[])
 	int Nsim, kr, kz; // counter of simulations, indices in the FIeld array
 	MPE_Counter_nxtval(mc_win, 0, &Nsim, MPE_MC_KEYVAL); // get my first task (every worker calls)
 
-	do { // run till queue is not treated
-		kr = Nsim % dim_r; kz = Nsim - kr;  kz = kz / dim_r; // compute offsets in each dimension
-
-		// prepare the part in the arrray to r/w
-		offset[0] = 0; offset[1] = kr; offset[2] = kz; 
-		stride[0] = 1; stride[1] = 1; stride[2] = 1;
-		count[0] = dims[0]; count[1] = 1; count[2] = 1; // takes all t
-		block[0] = 1; block[1] = 1; block[2] = 1;
-
-		// read the HDF5 file
-
-		// MPE_Mutex_acquire(mc_win, 1, MPE_MC_KEYVAL); // We now use different input and output file, input is for read-only, this mutex is here in the case we have only one file for I/O.
-		if ( ( comment_operation == 1 ) && ( Nsim < 20 ) ){printf("Proc %i will read from (kr,kz)=(%i,%i), job %i \n",myrank,kr,kz,Nsim);}
-
-		file_id = H5Fopen ("results.h5", H5F_ACC_RDONLY, H5P_DEFAULT); // same as shown
-		dset_id = H5Dopen2 (file_id, "IRProp/Fields_rzt", H5P_DEFAULT); 
-		dspace_id = H5Dget_space (dset_id);
-
-		h5error = H5Sselect_hyperslab (dspace_id, H5S_SELECT_SET, offset, stride, count, block); // operation with only a part of the array = hyperslab
-		h5error = H5Dread (dset_id, datatype, memspace_id, dspace_id, H5P_DEFAULT, Fields); // read only the hyperslab
-
-		h5error = H5Dclose(dset_id); // dataset
-		h5error = H5Sclose(dspace_id); // dataspace
-		h5error = H5Fclose(file_id); // file
-
-		if ( ( comment_operation == 1 ) && ( Nsim < 20 ) ){printf("Proc %i finished read of job %i \n",myrank, Nsim);}
-		// MPE_Mutex_release(mc_win, 1, MPE_MC_KEYVAL);
-
-		if ( ( comment_operation == 1 ) && ( Nsim < 20 ) ){printf("Proc %i doing the job %i \n",myrank,Nsim);}
-
-		// THE TASK IS DONE HERE, we can call 1D/3D TDSE, etc. here
-		// for (k1 = 0; k1 < dims2[0]; k1++){SourceTerms[k1]=2.0*Fields[k1];}; // just 2-multiplication
-   
-		inputs.Efield.Field = Fields;
-   
-  	finish3_main = clock();
-		// outputs = call1DTDSE(inputs); // THE TDSE
-    sleep(3);
-   
-   
-		// if ( ( comment_operation == 1 ) && ( Nsim < 20 ) ){printf("Proc %i finished TDSE job %i \n",myrank,Nsim);}
-		// printf("address2 %p \n",outputs.Efield);
-		// if ( ( comment_operation == 1 ) && ( Nsim < 20 ) ){printf("%e \n",outputs.Efield[0]);}
-		// if ( ( comment_operation == 1 ) && ( Nsim < 20 ) ){printf("Proc %i, job %i some outputs are: %e, %e, %e \n",myrank,Nsim, outputs.tgrid[0], outputs.Efield[0], outputs.sourceterm[0]);}
-		// for (k1 = 0; k1 < dims[0]; k1++){SourceTerms[k1]=outputs.sourceterm[k1];}; // assign results
-    for (k1 = 0; k1 < dims[0]; k1++){SourceTerms[k1]=2.0;}; // assign results
- 	  // if ( ( comment_operation == 1 ) && ( Nsim < 20 ) ){printf("Proc %i finished TDSE job %i \n",myrank,Nsim);}
-		
-		// print the output in the file
-		finish1_main = clock();
-    
-		//MPE_Mutex_acquire(mc_win, 1, MPE_MC_KEYVAL); // mutex is acquired
-
+	do { // run till queue is not treated   
+  		finish3_main = clock();
+    	sleep(3);
+		finish1_main = clock();    
+		MPE_Mutex_acquire(mc_win, 1, MPE_MC_KEYVAL); // mutex is acquired
 		finish2_main = clock();
 		if ( ( comment_operation == 1 ) && ( Nsim < 20 ) ){
-			printf("Proc %i will write in the hyperslab (kr,kz)=(%i,%i), job %i \n",myrank,kr,kz,Nsim);
+			printf("Proc %i, job %i \n",myrank,Nsim);
 			printf("Proc %i, returned mutex last time  : %f sec\n",myrank,(double)(finish4_main - start_main) / CLOCKS_PER_SEC);
 			printf("Proc %i, before job started        : %f sec\n",myrank,(double)(finish3_main - start_main) / CLOCKS_PER_SEC);
 			printf("Proc %i, clock the umnutexed value : %f sec\n",myrank,(double)(finish1_main - start_main) / CLOCKS_PER_SEC);
 			printf("Proc %i, clock in the mutex block  : %f sec\n",myrank,(double)(finish2_main - start_main) / CLOCKS_PER_SEC);
 			fflush(NULL); // force write
     	}
-    
-
-		file_id = H5Fopen ("results2.h5", H5F_ACC_RDWR, H5P_DEFAULT); // open file
-		dset_id = H5Dopen2 (file_id, "/SourceTerms", H5P_DEFAULT); // open dataset
-		filespace = H5Dget_space (dset_id); // Get the dataspace ID   
-		h5error = H5Sselect_hyperslab (dspace_id, H5S_SELECT_SET, offset, stride, count, block); // again the same hyperslab as for reading
-
-		//h5error = H5Dwrite(dset_id,datatype,memspace_id,filespace,H5P_DEFAULT,SourceTerms); // write the data
-
-		// close
-		h5error = H5Dclose(dset_id); // dataset
-		h5error = H5Sclose(filespace); // dataspace
-		h5error = H5Fclose(file_id); // file
-
-		//MPE_Mutex_release(mc_win, 1, MPE_MC_KEYVAL);
+		MPE_Mutex_release(mc_win, 1, MPE_MC_KEYVAL);
     	finish4_main = clock();
 		MPE_Counter_nxtval(mc_win, 0, &Nsim, MPE_MC_KEYVAL); // get my next task
 	} while (Nsim < Ntot);
