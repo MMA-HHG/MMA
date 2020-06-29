@@ -160,4 +160,5 @@ void readreal(hid_t, char *, herr_t *, double *);
 void readint(hid_t, char *, herr_t *, int *);
 
 double * readreal1Darray_fort(hid_t, char *, herr_t *, int *);
+hsize_t * get_dimensions_h5(hid_t, char *, herr_t *, int *, hid_t *);
 // int linkexists(hid_t, char *, herr_t *, double *);

@@ -43,10 +43,26 @@ double * readreal1Darray_fort(hid_t file_id, char *dset_name, herr_t *h5error, i
 	      https://stackoverflow.com/questions/216259/is-there-a-max-array-length-limit-in-c/216731#216731  */
 	*h5error = H5Dread(dset_id,  datatype, H5S_ALL, H5S_ALL, H5P_DEFAULT, array); // read the grid
 	// if ( ( comment_operation == 1 ) && ( myrank == 0 ) ){printf("(t_init,t_end) = (%e,%e) \n",tgrid[0],tgrid[dims[0]-1]);}
+  *h5error = H5Dclose(dspace_id);
 	*h5error = H5Dclose(dset_id);
 
   *N_points = (int)dims[0];
   return array;
+}
+
+
+hsize_t * get_dimensions_h5(hid_t file_id, char *dset_name, herr_t *h5error, int *ndims, hid_t *datatype)
+{
+	hid_t dset_id = H5Dopen2 (file_id, dset_name, H5P_DEFAULT); // open dataset	     
+	hid_t dspace_id = H5Dget_space (dset_id); // Get the dataspace ID     
+	*ndims = H5Sget_simple_extent_ndims(dspace_id); // number of dimensions for the fields
+	hsize_t dims[ndims]; // variable to access
+	H5Sget_simple_extent_dims(dspace_id, dims, NULL); // get dimensions
+	*datatype  = H5Dget_type(dset_id);     // get datatype
+
+  *h5error = H5Dclose(dspace_id);
+	*h5error = H5Dclose(dset_id);
+  return dims;
 }
 
 //int linkexists(hid_t file_id, char *link_name, herr_t *h5error)

@@ -117,36 +117,27 @@ int main(int argc, char *argv[])
 	if (comment_operation == 1 ){printf("Proc %i uses dx = %e \n",myrank,inputs.dx);}
 	
 
-	// we load the tgrid
+	//load the tgrid
+	inputs.Efield.tgrid =  readreal1Darray_fort(file_id, "IRProp/tgrid",&h5error,&inputs.Efield.Nt); // tgrid is not changed when program runs
+	// convert to atomic units
+	for(k1 = 0 ; k1 < inputs.Efield.Nt; k1++){inputs.Efield.tgrid[k1] = inputs.Efield.tgrid[k1]*1e15*41.34144728;}
 
-	double *tgrid;
-	tgrid =  readreal1Darray_fort(file_id, "IRProp/tgrid",&h5error,&inputs.Efield.Nt);
 
-	if ( ( comment_operation == 1 ) && ( myrank == 0 ) ){printf("(t_init,t_end) = (%e,%e) \n",tgrid[0],tgrid[inputs.Efield.Nt-1]);}
+	hsize_t * dims; int ndims; hid_t datatype;
+	dims = get_dimensions_h5(file_id, "IRProp/Fields_rzt", &h5error, &ndims, &datatype)
+	hsize_t dim_t = dims[0], dim_r = dims[1], dim_z = dims[2]; // label the dims by physical axes
+	if ( ( comment_operation == 1 ) && ( myrank == 0 ) ){printf("Fields dimensions (t,r,z) = (%i,%i,%i)\n",dims[0],dims[1],dims[2]);}
 
-	// inputs.Efield.Nt = (int)dims[0]; // needed within TDSE slover
-    double tgrid_by_reference[inputs.Efield.Nt]; // this is a hotfix to keep the input value due to passing by reference
-    for (k1 = 0; k1 < inputs.Efield.Nt; k1++){tgrid_by_reference[k1]=tgrid[k1];}; // just 2-multiplication
-
-	// we move to the Fields
-	hid_t dset_id = H5Dopen2 (file_id, "IRProp/Fields_rzt", H5P_DEFAULT); // open dataset	     
-	hid_t dspace_id = H5Dget_space (dset_id); // Get the dataspace ID     
-	const int ndims2 = H5Sget_simple_extent_ndims(dspace_id); // number of dimensions for the fields
-	hsize_t dims2[ndims2]; // variable to access
-	H5Sget_simple_extent_dims(dspace_id, dims2, NULL); // get dimensions
-	if ( ( comment_operation == 1 ) && ( myrank == 0 ) ){printf("Fields dimensions (t,r,z) = (%i,%i,%i)\n",dims2[0],dims2[1],dims2[2]);}
-	hid_t datatype  = H5Dget_type(dset_id);     // get datatype
-	hsize_t dim_t = dims2[0], dim_r = dims2[1], dim_z = dims2[2]; // label the dims by physical axes
 
 	// based on dimensions, we set a counter (queue length)
 	int Ntot = dim_r*dim_z;
 	// selections (hyperslabs) are needed
-	hsize_t  offset[ndims2], stride[ndims2], count[ndims2], block[ndims2];
+	hsize_t  offset[ndims], stride[ndims], count[ndims], block[ndims];
 
-	double Fields[dims2[0]], SourceTerms[dims2[0]]; // Here we store the field and computed SOurce Term for every case	
+	double Fields[dims[0]], SourceTerms[dims[0]]; // Here we store the field and computed SOurce Term for every case	
 	
 	hsize_t field_dims[1]; // we need to specify the length of the array this way for HDF5
-	field_dims[0] = dims2[0];
+	field_dims[0] = dims[0];
 
 	hid_t memspace_id = H5Screate_simple(1,field_dims,NULL); // this memspace correspond to one Field/SourceTerm hyperslab, we will keep it accross the code
 
@@ -162,7 +153,7 @@ int main(int argc, char *argv[])
 	MPE_Mutex_acquire(mc_win, 1, MPE_MC_KEYVAL);
 
 	file_id = H5Fopen ("results2.h5", H5F_ACC_RDWR, H5P_DEFAULT); // we use a different output file to testing, can be changed to have only one file
-	dataspace_id = H5Screate_simple(ndims2, dims2, NULL); // create dataspace for outputs
+	dataspace_id = H5Screate_simple(ndims, dims, NULL); // create dataspace for outputs
 	dataset_id = H5Dcreate2(file_id, "/SourceTerms", datatype, dataspace_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT); // create dataset
 
 	// close it
@@ -189,7 +180,7 @@ int main(int argc, char *argv[])
 		// prepare the part in the arrray to r/w
 		offset[0] = 0; offset[1] = kr; offset[2] = kz; 
 		stride[0] = 1; stride[1] = 1; stride[2] = 1;
-		count[0] = dims2[0]; count[1] = 1; count[2] = 1; // takes all t
+		count[0] = dims[0]; count[1] = 1; count[2] = 1; // takes all t
 		block[0] = 1; block[1] = 1; block[2] = 1;
 
 		// read the HDF5 file
@@ -215,11 +206,10 @@ int main(int argc, char *argv[])
 
 		// THE TASK IS DONE HERE, we can call 1D/3D TDSE, etc. here
 		// for (k1 = 0; k1 < dims2[0]; k1++){SourceTerms[k1]=2.0*Fields[k1];}; // just 2-multiplication
-    for (k1 = 0; k1 < dims2[0]; k1++){tgrid[k1]=tgrid_by_reference[k1];}; // just 2-multiplication
-    inputs.Efield.tgrid = tgrid;
+   
 		inputs.Efield.Field = Fields;
    
-    finish3_main = clock();
+    	finish3_main = clock();
 		outputs = call1DTDSE(inputs); // THE TDSE
    
    
@@ -227,7 +217,7 @@ int main(int argc, char *argv[])
     printf("address2 %p \n",outputs.Efield);
     if ( ( comment_operation == 1 ) && ( Nsim < 20 ) ){printf("%e \n",outputs.Efield[0]);}
     if ( ( comment_operation == 1 ) && ( Nsim < 20 ) ){printf("Proc %i, job %i some outputs are: %e, %e, %e \n",myrank,Nsim, outputs.tgrid[0], outputs.Efield[0], outputs.sourceterm[0]);}
-		for (k1 = 0; k1 < dims2[0]; k1++){SourceTerms[k1]=outputs.sourceterm[k1];}; // assign results
+		for (k1 = 0; k1 < dims[0]; k1++){SourceTerms[k1]=outputs.sourceterm[k1];}; // assign results
     if ( ( comment_operation == 1 ) && ( Nsim < 20 ) ){printf("Proc %i finished TDSE job %i \n",myrank,Nsim);}
 		
 		// print the output in the file

@@ -161,11 +161,11 @@ struct outputs_def call1DTDSE(struct inputs_def inputs) // this is a wrapper tha
 
 		// LOAD FILES		
     printf("bfields, Efield[0] = %e, (tgrid[0], tgrid[1]) = (%e,%e) \n", Efield.Field[0],Efield.tgrid[0],Efield.tgrid[1]);
-		for(k1 = 0 ; k1 <= Efield.Nt-1 ; k1++) //Efield.Nt-1 // use vectorisation (BLAS)
-		{
-				Efield.tgrid[k1] = Efield.tgrid[k1]*1e15*41.34144728; // timegrid in a.u. // input is now in SI
-				Efield.Field[k1] = Efield.Field[k1]*0.001944689151; // corresponding field
-		}	
+		// for(k1 = 0 ; k1 <= Efield.Nt-1 ; k1++) //Efield.Nt-1 // use vectorisation (BLAS)
+		// {
+		// 		Efield.tgrid[k1] = Efield.tgrid[k1]*1e15*41.34144728; // timegrid in a.u. // input is now in SI
+		// 		Efield.Field[k1] = Efield.Field[k1]*0.001944689151; // corresponding field
+		// }	
     printf("afields\n");
 		// fclose(file1);
 		// fclose(file2);		
