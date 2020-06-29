@@ -24,6 +24,31 @@ void readint(hid_t file_id, char *dset_name, herr_t *h5error, int *value)
   *h5error = H5Dclose(dset_id);
 }
 
+
+double * readreal1Darray_fort(hid_t file_id, char *dset_name, herr_t *h5error, int *N_points) // fort is for the extra diemnsion due to fortran
+{
+	hid_t dset_id = H5Dopen2 (file_id, dset_name, H5P_DEFAULT); // open dataset	     
+	hid_t dspace_id = H5Dget_space (dset_id); // Get the dataspace ID     
+	const int ndims = H5Sget_simple_extent_ndims(dspace_id); // number of dimensions in the tgrid
+	hsize_t dims[ndims]; // we need the size to allocate tgrid for us
+	H5Sget_simple_extent_dims(dspace_id, dims, NULL); // get dimensions
+
+	hid_t datatype  = H5Dget_type(dset_id);     // we get the type of data (SINGLE, DOUBLE, etc. from HDF5)
+
+
+	// double tgrid[dims[0]]; // allocate the grid
+  double *array = malloc((int)dims[0],sizeof(double));
+  
+	/*see https://stackoverflow.com/questions/10575544/difference-between-array-type-and-array-allocated-with-malloc
+	      https://stackoverflow.com/questions/216259/is-there-a-max-array-length-limit-in-c/216731#216731  */
+	*h5error = H5Dread(dset_id,  datatype, H5S_ALL, H5S_ALL, H5P_DEFAULT, array); // read the grid
+	// if ( ( comment_operation == 1 ) && ( myrank == 0 ) ){printf("(t_init,t_end) = (%e,%e) \n",tgrid[0],tgrid[dims[0]-1]);}
+	*h5error = H5Dclose(dset_id);
+
+  *N_points = (int)dims[0];
+  return array;
+}
+
 //int linkexists(hid_t file_id, char *link_name, herr_t *h5error)
 //{
 //  hid_t dset_id = H5Lexists (file_id, link_name, H5P_DEFAULT); // open dataset

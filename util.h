@@ -158,4 +158,6 @@ int MPE_Mutex_release(MPI_Win, int, int);
 void addone(int *); // to test pointers
 void readreal(hid_t, char *, herr_t *, double *);
 void readint(hid_t, char *, herr_t *, int *);
+
+double * readreal1Darray_fort(hid_t, char *, herr_t *, int *);
 // int linkexists(hid_t, char *, herr_t *, double *);
