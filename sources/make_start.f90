@@ -9,7 +9,8 @@ PROGRAM make_start
 
   ! INTEGER(HID_T) :: file_id                          ! File identifier
   ! INTEGER        :: error                            ! Error flag
-  INTEGER(HSIZE_T), DIMENSION(1:1) :: data_dims        
+  INTEGER(HSIZE_T), DIMENSION(1:1) :: data_dims       
+  PRINT *,"Pre-processor started"
   PRINT*, 'Specify name of parameterfile' 
   READ(5,*) filename
 
@@ -23,6 +24,7 @@ PROGRAM make_start
   CALL readint(file_id, 'inputs/number_of_processors', num_proc)
   num_proc = 2
   CALL readreal(file_id, 'inputs/run_time_in_hours', time_limit)
+  time_limit = 0.48d0
   CALL readreal(file_id, 'inputs/length_of_window_for_t_normalized_to_pulse_duration', lt)
   CALL readint(file_id, 'inputs/number_of_points_in_t', dim_t)
   CALL readreal(file_id, 'inputs/length_of_window_for_r_normalized_to_beamwaist', lr)
@@ -30,7 +32,9 @@ PROGRAM make_start
   CALL readint(file_id, 'inputs/number_of_absorber_points_in_time', absorb)
   CALL readreal(file_id, 'inputs/phase_threshold_for_decreasing_delta_z', decrease)
   CALL readreal(file_id, 'inputs/physical_distance_of_propagation', proplength_m_phys)
+  proplength_m_phys = 5.d-3
   CALL readreal(file_id, 'inputs/physical_output_distance_for_matlab_files', outlength_m_phys)
+  outlength_m_phys = 1.d-3
   CALL readint(file_id, 'inputs/output_distance_in_z-steps_for_fluence_and_power', rhodist)
   CALL readreal(file_id, 'inputs/radius_for_diagnostics', rfil_mm_phys)
   CALL readreal(file_id, 'inputs/physical_first_stepwidth', delta_z_mm_phys)
@@ -49,6 +53,7 @@ PROGRAM make_start
   CALL readreal(file_id, 'inputs/pulse_duration_in_1_e', tp_fs_phys)
   CALL readint(file_id, 'inputs/degree_of_supergaussian_in_time', super_t)
   CALL readreal(file_id, 'inputs/ratio_pin_pcr', numcrit)
+  numcrit = 1.d0
   CALL readint(file_id, 'inputs/input', switch_start)
 
   if(switch_start.GT.4) then
@@ -107,7 +112,7 @@ PROGRAM make_start
     write(6,*) ' The code will be stopped'
     STOP
   ENDIF
-
+  switch_rho = 8
   CALL readreal(file_id, 'inputs/mpi_cross_section_for_method_1-2', sigmak_phys)
   CALL readint(file_id, 'inputs/angular_momentum_for_method_3_7', angular_momentum)
   CALL readreal(file_id, 'inputs/effective_residue_charge_for_method_3-4_7', residue_charge)
@@ -181,4 +186,5 @@ PROGRAM make_start
   CALL h5fclose_f(file_id, error)
   ! Close FORTRAN HDF5 interface.
   CALL h5close_f(error)  
+  PRINT *,"Pre-processor done"
 END PROGRAM make_start

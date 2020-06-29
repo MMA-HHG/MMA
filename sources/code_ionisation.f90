@@ -361,7 +361,7 @@ CONTAINS
     PPT_TABLE(1, 3) = 0.d0
 
     IF (THEORY == "PPT") THEN
-      INQUIRE(FILE="calculated_tables.h5", EXIST=file_exists)
+      INQUIRE(FILE=filename, EXIST=file_exists)
       IF (file_exists.EQV..TRUE.) THEN
         ! print *, "File exists"
         just_read = .TRUE.
@@ -572,8 +572,6 @@ MODULE Complex_rotation
   INTEGER, SAVE            :: JLOTI, JLOTIP1                          ! Integer for Intensity Index
   DOUBLE PRECISION, DIMENSION(:,:), ALLOCATABLE :: CPR_TABLE 
 
-
-
 CONTAINS
 
 
@@ -583,6 +581,8 @@ CONTAINS
   SUBROUTINE RESCALE_TABLE_CPR
     USE mpi_stuff
     USE libraries
+    USE HDF5
+    USE HDF5_helper
     IMPLICIT NONE
     DOUBLE PRECISION, PARAMETER :: PI = 3.14159265d0
     DOUBLE PRECISION, PARAMETER :: field_intensity_au = 3.50944758d16 !field intensity in atomic units
@@ -593,6 +593,14 @@ CONTAINS
     DOUBLE PRECISION            :: ionisation_rate
     INTEGER                     :: i
     DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: dumvect
+    LOGICAL                     :: file_exists
+    CHARACTER(LEN=25)           :: filename = "calculated_tables.h5", groupname = "PPT"
+    INTEGER                     :: error
+    INTEGER(HID_T)              :: file_id, group_id, dset_id
+    REAL(8), ALLOCATABLE        :: rates_atomic(:,:)
+    INTEGER(HSIZE_T), DIMENSION(2) :: dims_cpr
+    
+
 
     INTERFACE
      FUNCTION IONISATION_RATE_CPR(intensity)
@@ -609,9 +617,6 @@ CONTAINS
      END FUNCTION
     END INTERFACE
 
-    IF(my_rank.EQ.0) DIMENSION_CPR = filelength('rates_atomic.dat')
-    CALL MPI_BCAST(DIMENSION_CPR,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
-    ALLOCATE(CPR_TABLE(DIMENSION_CPR, 3),dumvect(DIMENSION_CPR))
 
     ! Normalised factors
     intensity_factor = 4.d0 * PI * beam_waist**2 * 1.d-9 / critical_power 
@@ -621,9 +626,46 @@ CONTAINS
          (photon_energy**2) * (beam_waist**2) * pulse_duration
     MPA_factor       = n0_indice * critical_density * ionisation_potential * 45.5635 * 4.359d-10 / &
          (photon_energy * pulse_duration * 2.d0 * PI)
-    
-    ! Rescale the Table (done only by one worker)
-    IF(my_rank.EQ.0) THEN
+    INQUIRE(FILE="calculated_tables.h5", EXIST=file_exists)
+    IF (file_exists) THEN
+        CALL h5open_f(error)
+        CALL h5fopen_f(filename, H5F_ACC_RDONLY_F, file_id, error)
+        CALL h5gopen_f(file_id, groupname, group_id, error)
+        CALL ask_for_size(group_id, 'rates_atomic', dims_cpr)
+        DIMENSION_CPR = dims_cpr(1)
+        ALLOCATE(CPR_TABLE(DIMENSION_CPR, 3))
+        ALLOCATE(rates_atomic(DIMENSION_CPR, 2))
+        CALL read_2D_array_real_dset_slice(group_id, 'rates_atomic', rates_atomic, DIMENSION_CPR, 2, DIMENSION_CPR, 2, 0, 0)
+        CALL h5gclose_f(group_id, error)
+        CALL h5fclose_f(file_id, error)
+        CALL h5close_f(error)
+        open(UNIT=4,FILE='reference_table.dat',FORM="FORMATTED",action='write');
+        DO i = 2, DIMENSION_CPR
+          intensity = rates_atomic(i, 1)
+          ionisation_rate = rates_atomic(i,2)
+          intensity = intensity * intensity * field_intensity_au !rescale intensity intensity from atomic units to W/cm^2 (not SI)
+          WRITE(4, '(3(2x, e12.5))') sqrt(intensity/field_intensity_au), intensity, ionisation_rate
+!       intensity = (i-1) * intensity_step
+!       ionisation_rate = ionisation_rate_PPT(intensity)
+          CPR_TABLE(i, 1) = intensity * intensity_factor   ! Normalised Intensity
+          CPR_TABLE(i, 2) = ionisation_rate * rate_factor  ! Gamma
+          IF (ionisation_rate.EQ.0.D0) THEN
+             CPR_TABLE(i, 3) = 0.D0
+          ELSE
+             CPR_TABLE(i, 3) = MPA_factor * ( ionisation_rate  * rate_factor/ intensity )  ! Normalised MPA
+          ENDIF
+       ENDDO
+
+       CPR_TABLE(1, 1) = 0.d0   ! first row in input stores the result of CPR for zero field, not meaningful + divisio
+       CPR_TABLE(1, 2) = 0.d0
+       CPR_TABLE(1, 3) = 0.d0
+       close(4)
+    ELSE
+      IF(my_rank.EQ.0) DIMENSION_CPR = filelength('rates_atomic.dat')
+      CALL MPI_BCAST(DIMENSION_CPR,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
+      ALLOCATE(CPR_TABLE(DIMENSION_CPR, 3),dumvect(DIMENSION_CPR))
+      ! Rescale the Table (done only by one worker)
+      IF(my_rank.EQ.0) THEN
 	    open(UNIT=3,FILE='rates_atomic.dat',FORM="FORMATTED",action='read');    
 	    open(UNIT=4,FILE='reference_table.dat',FORM="FORMATTED",action='write');
 
@@ -651,7 +693,7 @@ CONTAINS
 	    CPR_TABLE(1, 3) = 0.d0
 	   
 	    close(3); close(4);
-    ENDIF
+      ENDIF
     
 !    IF(my_rank.EQ.0) THEN
 !       OPEN(UNIT=2,FORM='unformatted',FILE='table_binary.dat')
@@ -660,21 +702,20 @@ CONTAINS
 !    ENDIF
    
 
-    IF(my_rank.EQ.0) dumvect = CPR_TABLE(:, 1)
-    CALL MPI_BCAST(dumvect,DIMENSION_CPR,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
-    IF(my_rank.NE.0)  CPR_TABLE(:, 1) = dumvect
+      IF(my_rank.EQ.0) dumvect = CPR_TABLE(:, 1)
+      CALL MPI_BCAST(dumvect,DIMENSION_CPR,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
+      IF(my_rank.NE.0)  CPR_TABLE(:, 1) = dumvect
 
-    IF(my_rank.EQ.0) dumvect = CPR_TABLE(:, 2)
-    CALL MPI_BCAST(dumvect,DIMENSION_CPR,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
-    IF(my_rank.NE.0)  CPR_TABLE(:, 2) = dumvect
+      IF(my_rank.EQ.0) dumvect = CPR_TABLE(:, 2)
+      CALL MPI_BCAST(dumvect,DIMENSION_CPR,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
+      IF(my_rank.NE.0)  CPR_TABLE(:, 2) = dumvect
 
+      IF(my_rank.EQ.0) dumvect = CPR_TABLE(:, 3)
+      CALL MPI_BCAST(dumvect,DIMENSION_CPR,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
+      IF(my_rank.NE.0)  CPR_TABLE(:, 3) = dumvect
+      deallocate(dumvect)
+   ENDIF
 
-    IF(my_rank.EQ.0) dumvect = CPR_TABLE(:, 3)
-    CALL MPI_BCAST(dumvect,DIMENSION_CPR,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
-    IF(my_rank.NE.0)  CPR_TABLE(:, 3) = dumvect
-
-
-    deallocate(dumvect)
 
    IF(my_rank.EQ.0) THEN
        OPEN (UNIT = 2, FILE = 'ionisation_table.dat', STATUS = 'unknown')

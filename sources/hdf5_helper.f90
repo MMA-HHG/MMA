@@ -173,6 +173,7 @@ MODULE hdf5_helper
       INTEGER(HSIZE_T), DIMENSION(1:2) :: offset ! Hyperslab offset
       INTEGER(HSIZE_T), DIMENSION(1:2) :: stride = (/1,1/) ! Hyperslab stride
       INTEGER(HSIZE_T), DIMENSION(1:2) :: block = (/1,1/)  ! Hyperslab block size
+      !print *, shape(var)
       count = (/slice_x,slice_y/)
       offset = (/offset_x,offset_y/)
       rank = 2
@@ -181,7 +182,7 @@ MODULE hdf5_helper
       CALL h5dopen_f(file_id, name, dset_id, error)
       CALL h5dget_space_f(dset_id, dataspace, error)
       CALL h5sget_simple_extent_dims_f(dataspace, dims, maxdims, error)
-      ! print *, dims
+      !print *, name, dims
       CALL h5sselect_hyperslab_f(dataspace, H5S_SELECT_SET_F, offset, count, error, stride, BLOCK)
       CALL h5screate_simple_f(rank, slice_dims, memspace, error)
       CALL h5dread_f(dset_id, H5T_NATIVE_DOUBLE, var, slice_dims, error, memspace, dataspace)
@@ -190,6 +191,20 @@ MODULE hdf5_helper
       CALL h5dclose_f(dset_id, error)
       !print *,"res loaded ok", dims_x, dims_y
     END SUBROUTINE read_2D_array_real_dset_slice
+
+    SUBROUTINE ask_for_size(file_id, name, var)
+      USE HDF5
+      INTEGER(4)               :: file_id, dset_id, dataspace
+      CHARACTER(*)             :: name
+      INTEGER(HSIZE_T), DIMENSION(2) :: var, maxdims
+      INTEGER                  :: error
+      CALL h5dopen_f(file_id, name, dset_id, error)
+      CALL h5dget_space_f(dset_id, dataspace, error)
+      CALL h5sget_simple_extent_dims_f(dataspace, var, maxdims, error)
+      CALL h5sclose_f(dataspace, error)
+      CALL h5dclose_f(dset_id, error)
+    END SUBROUTINE ask_for_size
+
     !*******!
     ! WRITE !
     !*******!

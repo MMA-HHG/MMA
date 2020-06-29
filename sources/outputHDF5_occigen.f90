@@ -75,6 +75,7 @@ CONTAINS
 
     ! HDF5 general purpose variables
      INTEGER(HID_T) :: file_id       ! File identifier 
+     INTEGER(HID_T) :: group_id      ! Group identifier 
      INTEGER(HID_T) :: dset_id       ! Dataset identifier 
      INTEGER(HID_T) :: dataspace     ! Dataspace identifier in file 
      INTEGER(HID_T) :: filespace     ! Filespace identifier
@@ -99,7 +100,7 @@ CONTAINS
      CHARACTER(LEN=12), PARAMETER :: zgrid_dset_name = "IRprop/zgrid" ! Dataset name
      CHARACTER(LEN=12), PARAMETER :: tgrid_dset_name = "IRprop/tgrid" ! Dataset name
      CHARACTER(LEN=12), PARAMETER :: rgrid_dset_name = "IRprop/rgrid" ! Dataset name
-
+     CHARACTER(LEN=12), PARAMETER :: groupname = "IRprop"
     ! THE CODE
 
     
@@ -148,11 +149,13 @@ IF ( HDF5write_count == 1) THEN
         CALL h5pset_fapl_mpio_f(h5parameters, MPI_COMM_WORLD, MPI_INFO_NULL, error) ! set parameters for MPI access
         CALL h5fopen_f(filename, H5F_ACC_RDWR_F, file_id, error, access_prp = h5parameters ) ! Open collectivelly the file
         CALL h5pclose_f(h5parameters,error) ! close the parameters
+        CALL h5gcreate_f(file_id, groupname, group_id, error) 
+        CALL h5gclose_f(group_id, error)
         !!!!!
         !!!!! An extendible dataset seems to be a serious issue. We stick to pre-computing dataset size for now (see the piece ofthe code at the end of this file for details)
         !!!!! 
         dims = (/int(Nz_points,HSIZE_T),int(dim_r,HSIZE_T), int(dim_t,HSIZE_T)/) ! full prealocated dimension
-        CALL h5screate_simple_f(field_dimensions, dims, filespace, error) ! Create the dataspace for the  dataset	
+        CALL h5screate_simple_f(field_dimensions, dims, filespace, error) ! Create the dataspace for the  dataset
         CALL h5dcreate_f(file_id, Fields_dset_name, H5T_NATIVE_REAL, filespace, dset_id, error)  ! create the dataset collectivelly
         offset = (/int(HDF5write_count-1,HSIZE_T),int(dim_r_start(num_proc)-1,HSIZE_T),int(0,HSIZE_T)/) ! (c-indexing from 0)
         ccount = (/int(1,HSIZE_T), int(dim_r_local,HSIZE_T) , int(dim_t,HSIZE_T)/) ! size of the chunk used by this MPI-worker

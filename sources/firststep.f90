@@ -329,15 +329,17 @@ CONTAINS
     DO j=1,dim_t
        efield_osc(j) = exp(CMPLX(0.D0,-omega_uppe*(tlo+REAL(j,8)*delta_t),8)) ! fast oscillating term exp(-i*omegauppe*t)
     ENDDO
-    DO k1=1, dim_t
-      DO k2=1, dim_r/num_proc
-        real_part = 1/efield_factor*(cos(efield_osc(k2))*real_e(k1,k2) + sin(efield_osc(k2))*imag_e(k1,k2))
-        imag_part = 1/efield_factor*(cos(efield_osc(k2))*imag_e(k1,k2) - sin(efield_osc(k2))*real_e(k1,k2))
-        real_e(k1,k2) = real_part
-        imag_e(k1,k2) = imag_part
-      ENDDO
-    ENDDO
     e = CMPLX(real_e,imag_e)
+    DO k1=1, dim_t
+      !DO k2=1, dim_r/num_proc
+      !  real_part = 1/efield_factor*(cos(efield_osc(k1))*real_e(k1,k2) + sin(efield_osc(k1))*imag_e(k1,k2))
+      !  imag_part = 1/efield_factor*(cos(efield_osc(k1))*imag_e(k1,k2) - sin(efield_osc(k1))*real_e(k1,k2))
+      !  real_e(k1,k2) = real_part
+      !  imag_e(k1,k2) = imag_part
+      !ENDDO
+      e(k1,:) = (1/efield_factor)*CONJG(efield_osc(k1))*e(k1,:)
+    ENDDO
+    !e = CMPLX(real_e,imag_e)
 
     !CALL read_2D_array_complex_dset_slice(group_id,'startfield',e,dim_r,dim_t,dim_r/num_proc,dim_t,(dim_r/num_proc)*my_rank,0)
     CALL h5gclose_f(group_id, error)
