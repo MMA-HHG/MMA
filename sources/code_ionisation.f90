@@ -98,12 +98,12 @@ CONTAINS
     C_factor = 2.d0**(2.d0*n_star) / (n_star * gamm(n_star+l_star+1.d0)* &
          gamm(n_star - l_star) )
     SELECT CASE(angular_momentum)
-	CASE(0) 
-    f_factor = 1.d0
-        CASE(1)
-    f_factor = 3.d0
-	CASE(2)
-    f_factor = 5.D0	
+    CASE(0) 
+      f_factor = 1.d0
+    CASE(1)
+      f_factor = 3.d0
+    CASE(2)
+      f_factor = 5.D0
     END SELECT
      
          
@@ -168,12 +168,12 @@ CONTAINS
     C_factor = 2.d0**(2.d0*n_star) / (n_star * gamm(n_star+l_star+1.d0)* &
          gamm(n_star - l_star) )
     SELECT CASE(angular_momentum)
-	CASE(0) 
-    f_factor = 1.d0
-        CASE(1)
-    f_factor = 3.d0
-	CASE(2)
-    f_factor = 5.D0	
+    CASE(0) 
+      f_factor = 1.d0
+    CASE(1)
+      f_factor = 3.d0
+    CASE(2)
+      f_factor = 5.D0
     END SELECT
      
          
@@ -310,7 +310,7 @@ CONTAINS
     DOUBLE PRECISION            :: ionisation_rate
     DOUBLE PRECISION            :: o_atom_dens, o_crit_dens, o_beam_waist, o_photenergy, o_pulse_duration, o_n0, o_ionpot
     INTEGER                     :: i,error
-    INTEGER(HID_T)              :: file_id, group_id, dset_id
+    INTEGER(HID_T)              :: file_id, group_id
     CHARACTER(LEN=25)           :: filename = "calculated_tables.h5", groupname = "PPT"
     REAL(8), ALLOCATABLE        :: rates_table(:,:), reference_table(:,:)
     LOGICAL                     :: file_exists, just_read = .FALSE.
@@ -368,35 +368,40 @@ CONTAINS
         CALL h5open_f(error)
         CALL h5fopen_f(filename, H5F_ACC_RDONLY_F, file_id, error)
         CALL h5gopen_f(file_id, groupname, group_id, error)
-        CALL readreal(group_id, 'atom_dens', o_atom_dens)
+        CALL read_dset(group_id, 'atom_dens', o_atom_dens)
         IF (atomic_density.NE.o_atom_dens) THEN
           just_read = .FALSE.
           ! print *,"atomic density did not match"
         ENDIF
-        CALL readreal(group_id, 'crit_dens', o_crit_dens)
+        CALL read_dset(group_id, 'crit_dens', o_crit_dens)
         IF (critical_density.NE.o_crit_dens) THEN
           just_read = .FALSE.        
           ! print *,"critical density did not match"
         ENDIF
-        CALL readreal(group_id, 'beam_waist', o_beam_waist)
+        CALL read_dset(group_id, 'beam_waist', o_beam_waist)
         IF (beam_waist.NE.o_beam_waist) THEN
           just_read = .FALSE.
           ! print *,"beam waist did not match"
         ENDIF
-        CALL readreal(group_id, 'photenergy', o_photenergy)
+        CALL read_dset(group_id, 'photenergy', o_photenergy)
         IF (photon_energy.NE.o_photenergy) THEN
           just_read = .FALSE.
           ! print *,"photon energy did not match"
         ENDIF
-        CALL readreal(group_id, 'pulse_duration', o_pulse_duration)
+        CALL read_dset(group_id, 'pulse_duration', o_pulse_duration)
         IF (pulse_duration.NE.o_pulse_duration) THEN
           just_read = .FALSE.
           ! print *,"pulse duration did not match"
         ENDIF
-        CALL readreal(group_id, 'n0', o_n0)
+        CALL read_dset(group_id, 'n0', o_n0)
         IF (n0_indice.NE.o_n0) THEN
           just_read = .FALSE.
           ! print *,"n0 indice did not match"
+        ENDIF
+        CALL read_dset(group_id, 'ionisation_potential', o_ionpot)
+        IF (ionisation_potential.NE.o_ionpot) THEN
+          just_read = .FALSE.
+          ! print *,"photon energy did not match"
         ENDIF
         CALL h5gclose_f(group_id, error)
         CALL h5fclose_f(file_id, error)
@@ -406,7 +411,7 @@ CONTAINS
         CALL h5open_f(error)
         CALL h5fopen_f(filename, H5F_ACC_RDONLY_F, file_id, error)
         CALL h5gopen_f(file_id, groupname, group_id, error)
-        CALL read_2D_array_real_dset_slice(group_id, 'ppt_table', PPT_TABLE, DIMENSION_PPT, 3, DIMENSION_PPT, 3, 0, 0)
+        CALL read_dset(group_id, 'ppt_table', PPT_TABLE, DIMENSION_PPT, 3, DIMENSION_PPT, 3, 0, 0)
         CALL h5gclose_f(group_id, error)
         CALL h5fclose_f(file_id, error)
         CALL h5close_f(error)
@@ -435,15 +440,16 @@ CONTAINS
           CALL h5open_f(error)
           CALL h5fcreate_f(filename, H5F_ACC_TRUNC_F, file_id, error)
           CALL h5gcreate_f(file_id, groupname, group_id, error)
-          CALL create_scalar_real_dset(group_id, 'atom_dens', atomic_density)
-          CALL create_scalar_real_dset(group_id, 'crit_dens', critical_density)
-          CALL create_scalar_real_dset(group_id, 'beam_waist', beam_waist)
-          CALL create_scalar_real_dset(group_id, 'photenergy', photon_energy)
-          CALL create_scalar_real_dset(group_id, 'pulse_duration', pulse_duration)
-          CALL create_scalar_real_dset(group_id, 'n0', n0_indice)
-          CALL create_2D_array_real_dset(group_id, "rates_atomic", rates_table, DIMENSION_PPT, 2)
-          CALL create_2D_array_real_dset(group_id, "reference_table", reference_table, DIMENSION_PPT, 3)
-          CALL create_2D_array_real_dset(group_id, "ppt_table", PPT_TABLE, DIMENSION_PPT, 3)
+          CALL create_dset(group_id, 'atom_dens', atomic_density)
+          CALL create_dset(group_id, 'crit_dens', critical_density)
+          CALL create_dset(group_id, 'beam_waist', beam_waist)
+          CALL create_dset(group_id, 'photenergy', photon_energy)
+          CALL create_dset(group_id, 'pulse_duration', pulse_duration)
+          CALL create_dset(group_id, 'n0', n0_indice)
+          CALL create_dset(group_id, 'ionisation_potential', ionisation_potential)
+          CALL create_dset(group_id, "rates_atomic", rates_table, DIMENSION_PPT, 2)
+          CALL create_dset(group_id, "reference_table", reference_table, DIMENSION_PPT, 3)
+          CALL create_dset(group_id, "ppt_table", PPT_TABLE, DIMENSION_PPT, 3)
           CALL h5gclose_f(group_id, error)
           CALL h5fclose_f(file_id, error)
         ENDIF
@@ -538,22 +544,20 @@ module libraries
 IMPLICIT NONE;
 CONTAINS
 
-integer FUNCTION filelength(filename); 
-	character(*), intent(in) :: filename;
+  integer FUNCTION filelength(filename); 
+    character(*), intent(in) :: filename;
 
-	integer :: IO, N_load;
-	
-	open(UNIT=1,FILE=filename,FORM="FORMATTED",action='read');
-	N_load = 0; IO = 0;
-		do while(IO >= 0)
-			read(1,*,IOSTAT = IO); N_load = N_load+1; 
-		enddo
-	close(1);
- 	N_load = N_load - 1; !# of lines in the loaded file
-	filelength = N_load;
+    integer :: IO, N_load;
 
-end function filelength; 
-
+    open(UNIT=1,FILE=filename,FORM="FORMATTED",action='read');
+    N_load = 0; IO = 0;
+    do while(IO >= 0)
+      read(1,*,IOSTAT = IO); N_load = N_load+1; 
+    enddo
+    close(1);
+    N_load = N_load - 1; !# of lines in the loaded file
+    filelength = N_load;
+  end function filelength; 
 end module libraries
 
 MODULE Complex_rotation
@@ -596,7 +600,7 @@ CONTAINS
     LOGICAL                     :: file_exists
     CHARACTER(LEN=25)           :: filename = "calculated_tables.h5", groupname = "PPT"
     INTEGER                     :: error
-    INTEGER(HID_T)              :: file_id, group_id, dset_id
+    INTEGER(HID_T)              :: file_id, group_id
     REAL(8), ALLOCATABLE        :: rates_atomic(:,:)
     INTEGER(HSIZE_T), DIMENSION(2) :: dims_cpr
     
@@ -635,7 +639,7 @@ CONTAINS
         DIMENSION_CPR = dims_cpr(1)
         ALLOCATE(CPR_TABLE(DIMENSION_CPR, 3))
         ALLOCATE(rates_atomic(DIMENSION_CPR, 2))
-        CALL read_2D_array_real_dset_slice(group_id, 'rates_atomic', rates_atomic, DIMENSION_CPR, 2, DIMENSION_CPR, 2, 0, 0)
+        CALL read_dset(group_id, 'rates_atomic', rates_atomic, DIMENSION_CPR, 2, DIMENSION_CPR, 2, 0, 0)
         CALL h5gclose_f(group_id, error)
         CALL h5fclose_f(file_id, error)
         CALL h5close_f(error)
@@ -666,33 +670,30 @@ CONTAINS
       ALLOCATE(CPR_TABLE(DIMENSION_CPR, 3),dumvect(DIMENSION_CPR))
       ! Rescale the Table (done only by one worker)
       IF(my_rank.EQ.0) THEN
-	    open(UNIT=3,FILE='rates_atomic.dat',FORM="FORMATTED",action='read');    
-	    open(UNIT=4,FILE='reference_table.dat',FORM="FORMATTED",action='write');
+        open(UNIT=3,FILE='rates_atomic.dat',FORM="FORMATTED",action='read');    
+        open(UNIT=4,FILE='reference_table.dat',FORM="FORMATTED",action='write');
 
-	    DO i = 2, DIMENSION_CPR
-	       read(unit=3,fmt=*) intensity, ionisation_rate !the organisation:  ||field omplitude imag. part of eigenerg. || all in atomic units
-	       intensity = intensity * intensity * field_intensity_au !rescale intensity intensity from atomic units to W/cm^2 (not SI)
-	       
+        DO i = 2, DIMENSION_CPR
+          read(unit=3,fmt=*) intensity, ionisation_rate !the organisation:  ||field omplitude imag. part of eigenerg. || all in atomic units
+          intensity = intensity * intensity * field_intensity_au !rescale intensity intensity from atomic units to W/cm^2 (not SI)
 
-	       WRITE(4, '(3(2x, e12.5))') sqrt(intensity/field_intensity_au), intensity, ionisation_rate
+          WRITE(4, '(3(2x, e12.5))') sqrt(intensity/field_intensity_au), intensity, ionisation_rate
+  !       intensity = (i-1) * intensity_step
+!       ionisation_rate = ionisation_rate_PPT(intensity)
+          CPR_TABLE(i, 1) = intensity * intensity_factor     ! Normalised Intensity
+          CPR_TABLE(i, 2) = ionisation_rate * rate_factor    ! Gamma
+          IF (ionisation_rate.EQ.0.D0) THEN
+            CPR_TABLE(i, 3) = 0.D0
+          ELSE
+            CPR_TABLE(i, 3) = MPA_factor * ( ionisation_rate  * rate_factor/ intensity )  ! Normalised MPA
+          ENDIF
+        ENDDO
 
-	       
-	!       intensity = (i-1) * intensity_step
-	!       ionisation_rate = ionisation_rate_PPT(intensity)
-	       CPR_TABLE(i, 1) = intensity * intensity_factor 		! Normalised Intensity
-	       CPR_TABLE(i, 2) = ionisation_rate * rate_factor                   		! Gamma
-	       IF (ionisation_rate.EQ.0.D0) THEN
-	          CPR_TABLE(i, 3) = 0.D0
-           ELSE
-	          CPR_TABLE(i, 3) = MPA_factor * ( ionisation_rate  * rate_factor/ intensity )	! Normalised MPA
-           ENDIF
-	    ENDDO
-
-	    CPR_TABLE(1, 1) = 0.d0   ! first row in input stores the result of CPR for zero field, not meaningful + division                
-	    CPR_TABLE(1, 2) = 0.d0
-	    CPR_TABLE(1, 3) = 0.d0
-	   
-	    close(3); close(4);
+        CPR_TABLE(1, 1) = 0.d0   ! first row in input stores the result of CPR for zero field, not meaningful + division                
+        CPR_TABLE(1, 2) = 0.d0
+        CPR_TABLE(1, 3) = 0.d0
+ 
+        close(3); close(4);
       ENDIF
     
 !    IF(my_rank.EQ.0) THEN

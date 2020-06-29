@@ -10,7 +10,7 @@ CONTAINS
     USE fft
     IMPLICIT NONE
 
-    INTEGER(4) j,k,l, k1, k2
+    INTEGER(4) j,k,l
     REAL(8) rhotemp,r,mpa
     COMPLEX(8) help
     CHARACTER*10 iz,filename
@@ -115,7 +115,7 @@ CONTAINS
     IMPLICIT  NONE
 
     INTEGER(4) j,k,i_x,i_z
-    CHARACTER*10  iz,id,filename
+    CHARACTER*15  iz,id,filename
 
     WRITE(iz,920) z
     DO  k=1,10

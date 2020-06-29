@@ -1,4 +1,13 @@
 MODULE hdf5_helper
+  USE HDF5
+  INTERFACE read_dset
+    PROCEDURE readint, readreal, readbool, readstring, read_array_complex_dset, read_2D_array_complex_dset, &
+      read_2D_array_complex_dset_slice, read_2D_array_real_dset_slice
+  END INTERFACE
+  INTERFACE create_dset
+    PROCEDURE create_scalar_boolean_dset, create_scalar_int_dset, create_scalar_real_dset, create_1D_array_real_dset, &
+      create_array_complex_dset, create_2D_array_complex_dset, create_2D_array_real_dset
+  END INTERFACE
   CONTAINS
 
     !******!
@@ -6,7 +15,6 @@ MODULE hdf5_helper
     !******!
 
     SUBROUTINE readint(file_id, name, var)
-      USE HDF5
       INTEGER(4)     :: file_id
       CHARACTER(*)   :: name
       INTEGER(4)     :: var
@@ -20,7 +28,6 @@ MODULE hdf5_helper
     END SUBROUTINE
 
     SUBROUTINE readreal(file_id, name, var)
-      USE HDF5
       INTEGER(4)     :: file_id
       CHARACTER(*)   :: name
       REAL(8)        :: var
@@ -34,7 +41,6 @@ MODULE hdf5_helper
     END SUBROUTINE
 
     SUBROUTINE readbool(file_id, name, var)
-      USE HDF5
       INTEGER(4)     :: file_id
       CHARACTER(*)   :: name
       LOGICAL        :: var
@@ -54,7 +60,6 @@ MODULE hdf5_helper
     END SUBROUTINE
   
    SUBROUTINE readstring(file_id, name, var)
-      USE HDF5
       INTEGER(4)                       :: file_id
       CHARACTER(*)                     :: name
       INTEGER(SIZE_T), PARAMETER       :: length = 15
@@ -82,7 +87,6 @@ MODULE hdf5_helper
     END SUBROUTINE
     
     SUBROUTINE read_array_complex_dset(file_id, name, var, dims_y)
-      USE HDF5
       COMPLEX(8), DIMENSION(:) :: var
       INTEGER(4)               :: file_id
       CHARACTER(*)             :: name
@@ -102,7 +106,6 @@ MODULE hdf5_helper
     END SUBROUTINE read_array_complex_dset
     
     SUBROUTINE read_2D_array_complex_dset(file_id, name, var, dims_x, dims_y)
-      USE HDF5
       COMPLEX(8), DIMENSION(:,:) :: var
       INTEGER(4)               :: file_id
       CHARACTER(*)             :: name
@@ -125,7 +128,6 @@ MODULE hdf5_helper
     END SUBROUTINE read_2D_array_complex_dset
     
     SUBROUTINE read_2D_array_complex_dset_slice(file_id, name, var, dims_x, dims_y, slice_x, slice_y, offset_x, offset_y)
-      USE HDF5
       COMPLEX(8), DIMENSION(:,:) :: var
       INTEGER(4)               :: file_id
       CHARACTER(*)             :: name
@@ -161,14 +163,12 @@ MODULE hdf5_helper
 
 
     SUBROUTINE read_2D_array_real_dset_slice(file_id, name, var, dims_x, dims_y, slice_x, slice_y, offset_x, offset_y)
-      USE HDF5
       REAL(8), DIMENSION(:,:) :: var
       INTEGER(4)               :: file_id
       CHARACTER(*)             :: name
       INTEGER                  :: dims_x, dims_y, offset_x, offset_y, slice_x, slice_y, rank, error
       INTEGER(HID_T)           :: dset_id,dataspace,memspace
       INTEGER(HSIZE_T), DIMENSION(2) :: data_dims, slice_dims, dims, maxdims
-      REAL(8), DIMENSION(dims_y,dims_x) :: res
       INTEGER(HSIZE_T), DIMENSION(1:2) :: count  ! Size of hyperslab
       INTEGER(HSIZE_T), DIMENSION(1:2) :: offset ! Hyperslab offset
       INTEGER(HSIZE_T), DIMENSION(1:2) :: stride = (/1,1/) ! Hyperslab stride
@@ -193,7 +193,6 @@ MODULE hdf5_helper
     END SUBROUTINE read_2D_array_real_dset_slice
 
     SUBROUTINE ask_for_size(file_id, name, var)
-      USE HDF5
       INTEGER(4)               :: file_id, dset_id, dataspace
       CHARACTER(*)             :: name
       INTEGER(HSIZE_T), DIMENSION(2) :: var, maxdims
@@ -210,7 +209,6 @@ MODULE hdf5_helper
     !*******!
     
     SUBROUTINE create_scalar_boolean_dset(file_id, name, var)
-      USE HDF5
       INTEGER(4)    :: file_id
       CHARACTER(*)  :: name
       LOGICAL       :: var
@@ -229,7 +227,6 @@ MODULE hdf5_helper
     END SUBROUTINE create_scalar_boolean_dset
 
     SUBROUTINE create_scalar_int_dset(file_id, name, var)
-      USE HDF5
       INTEGER(4)     :: file_id
       CHARACTER(*)   :: name
       INTEGER(4)     :: var
@@ -244,7 +241,6 @@ MODULE hdf5_helper
     END SUBROUTINE create_scalar_int_dset
 
     SUBROUTINE create_scalar_real_dset(file_id, name, var)
-      USE HDF5
       INTEGER(4)     :: file_id
       CHARACTER(*)   :: name
       REAL(8)     :: var
@@ -257,10 +253,25 @@ MODULE hdf5_helper
       CALL h5dclose_f(dset_id, error)
       CALL h5sclose_f(dataspace_id, error)
     END SUBROUTINE create_scalar_real_dset
+    
+    SUBROUTINE create_1D_array_real_dset(file_id, name, var, dims)
+      REAL, DIMENSION(:)       :: var
+      INTEGER(4)               :: file_id
+      CHARACTER(*)             :: name
+      INTEGER                  :: error, dims
+      INTEGER                  :: rank = 1
+      INTEGER(HID_T) :: dset_id, dataspace_id
+      INTEGER(HSIZE_T), DIMENSION(1) :: data_dims
+      data_dims = (/dims/)
+      CALL h5screate_simple_f(rank, data_dims, dataspace_id, error)
+      CALL h5dcreate_f(file_id, name, H5T_NATIVE_DOUBLE, dataspace_id, dset_id, error)
+      CALL h5dwrite_f(dset_id, H5T_NATIVE_DOUBLE, var, data_dims, error)
+      CALL h5dclose_f(dset_id, error)
+      CALL h5sclose_f(dataspace_id, error)
+    END SUBROUTINE create_1D_array_real_dset
   
     ! This subroutine supports only arrays of rank 1
     SUBROUTINE create_array_complex_dset(file_id, name, var, dims_y)
-      USE HDF5
       COMPLEX(8), DIMENSION(:) :: var
       INTEGER(4)               :: file_id
       CHARACTER(*)             :: name
@@ -285,7 +296,6 @@ MODULE hdf5_helper
     END SUBROUTINE create_array_complex_dset
     
     SUBROUTINE create_2D_array_complex_dset(file_id, name, var, dims_x, dims_y)
-      USE HDF5
       COMPLEX(8), DIMENSION(:,:) :: var
       INTEGER(4)               :: file_id
       CHARACTER(*)             :: name
@@ -314,14 +324,12 @@ MODULE hdf5_helper
     END SUBROUTINE create_2D_array_complex_dset
 
     SUBROUTINE create_2D_array_real_dset(file_id, name, var, dims_x, dims_y)
-      USE HDF5
       REAL(8), DIMENSION(:,:)  :: var
       INTEGER(4)               :: file_id
       CHARACTER(*)             :: name
       INTEGER                  :: dims_x, dims_y, error
       INTEGER                  :: rank = 2
       INTEGER(HID_T) :: dset_id, dataspace_id
-      INTEGER(HSIZE_T), DIMENSION(2) :: dims
       INTEGER(HSIZE_T), DIMENSION(2) :: data_dims
       data_dims = (/dims_x, dims_y/)
       CALL h5screate_simple_f(rank, data_dims, dataspace_id, error)
@@ -331,52 +339,117 @@ MODULE hdf5_helper
       CALL h5sclose_f(dataspace_id, error)
     END SUBROUTINE create_2D_array_real_dset
 
+    SUBROUTINE h5_add_units_1D(file_id, name, units_value)
+      INTEGER(HID_T) :: file_id, dset_id       ! File and Dataset identifiers
+      CHARACTER(*)             :: name
+      character(*) :: units_value
+      INTEGER :: error
+      INTEGER(HSIZE_T), DIMENSION(1):: dumh51D
+      ! ATTRIBUTES OF HDF5 DATASETS
+      CHARACTER(LEN=5), PARAMETER :: aname = "units"   ! Attribute name
+      INTEGER(HID_T) :: attr_id       ! Attribute identifier
+      INTEGER(HID_T) :: aspace_id     ! Attribute Dataspace identifier
+      INTEGER(HID_T) :: atype_id      ! Attribute Dataspace identifier
+      CHARACTER(LEN=10), DIMENSION(1) ::  attr_data  ! Attribute data
+      ! add attributes ( https://support.hdfgroup.org/ftp/HDF5/current/src/unpacked/fortran/examples/h5_crtatt.f90 )
+      CALL h5dopen_f(file_id, name, dset_id, error)
+      dumh51D = (/int(1,HSIZE_T)/) ! attribute dimension
+      CALL h5screate_simple_f(1, dumh51D, aspace_id, error) ! Create scalar data space for the attribute. 1 stands for the rank
+      CALL h5tcopy_f(H5T_NATIVE_CHARACTER, atype_id, error) ! Create datatype for the attribute.
+      CALL h5tset_size_f(atype_id, int(10,HSIZE_T), error) ! 10 is attribute length	
+      CALL h5acreate_f(dset_id, aname, atype_id, aspace_id, attr_id, error) ! Create dataset attribute.
+      dumh51D = (/int(1,HSIZE_T)/) ! dimension of attributes
+      attr_data(1) = units_value 
+      CALL h5awrite_f(attr_id, atype_id, attr_data, dumh51D, error)
+      CALL h5aclose_f(attr_id, error)  ! Close the attribute.
+      CALL h5tclose_f(atype_id, error)  ! Close the attribute datatype.
+      CALL h5sclose_f(aspace_id, error) ! Terminate access to the attributes data space.
+      CALL h5dclose_f(dset_id, error)
+      ! attributes added
+    END SUBROUTINE  h5_add_units_1D
 
-    ! Remove from final version
-    SUBROUTINE test(process_rank)
-        USE HDF5
-        INTEGER       :: process_rank
-        CHARACTER(LEN=10), PARAMETER :: filename = "sds.h5"  ! File name
-        CHARACTER(LEN=10), PARAMETER :: name = "testfield"
-        INTEGER(HID_T) :: file_id       ! File identifier 
-        INTEGER(HID_T) :: plist_id      ! Property list identifier 
-        INTEGER(HID_T) :: dset_id, dataspace_id
-        INTEGER        :: error
-        REAL(8), DIMENSION(2) :: testing_field
-        INTEGER :: comm, info, rank
-        INTEGER(HSIZE_T), DIMENSION(2) :: data_dims 
-        print *,"my_rank = ", process_rank
-        testing_field(1:process_rank+1) = process_rank
-        rank = 2
-        comm = MPI_COMM_WORLD
-        info = MPI_INFO_NULL
-        data_dims(1) = 1
-        data_dims(2) = 2
-        ! Initialize FORTRAN predefined datatypes
-        CALL h5open_f(error) 
+    ! File has to be opened collectively
+    SUBROUTINE create_3D_array_real_dset_p(file_id, name, var, data_dims, offset, hyperslab_size)
+      REAL, DIMENSION(:,:,:)   :: var
+      INTEGER(4)               :: file_id
+      CHARACTER(*)             :: name
+      INTEGER(HID_T)           :: dset_id, filespace, memspace, h5_parameters
+      INTEGER(HSIZE_T), DIMENSION(3) :: data_dims, offset, hyperslab_size
+      INTEGER                  :: rank, error
+      rank = 3
+      CALL h5screate_simple_f(rank, data_dims, filespace, error) ! Create the dataspace for the  dataset
+      CALL h5dcreate_f(file_id, name, H5T_NATIVE_REAL, filespace, dset_id, error)  ! create the dataset collectivelly
+      CALL h5screate_simple_f(rank, hyperslab_size, memspace, error) ! dataset dimensions in memory (this worker)  
+      CALL h5sselect_hyperslab_f(filespace, H5S_SELECT_SET_F, offset, hyperslab_size, error)
+      CALL h5pcreate_f(H5P_DATASET_XFER_F, h5_parameters, error) ! Create access parameters for writing
+      CALL h5pset_dxpl_mpio_f(h5_parameters, H5FD_MPIO_COLLECTIVE_F, error) ! specify the collective writting
+      CALL h5dwrite_f(dset_id, H5T_NATIVE_REAL, var, data_dims, error, &
+        file_space_id=filespace,mem_space_id=memspace,xfer_prp = h5_parameters)
+      CALL h5sclose_f(filespace,error)
+      CALL h5sclose_f(memspace,error)
+      CALL h5dclose_f(dset_id,error)
+      CALL h5pclose_f(h5_parameters,error)
+    END SUBROUTINE create_3D_array_real_dset_p
 
-        ! Setup file access property list with parallel I/O access.
-        CALL h5pcreate_f(H5P_FILE_ACCESS_F, plist_id, error)
-        CALL h5pset_fapl_mpio_f(plist_id, comm, info, error)
+    SUBROUTINE create_1D_dset_unlimited(file_id, name, var)
+      REAL                     :: var
+      INTEGER(4)               :: file_id
+      CHARACTER(*)             :: name
+      INTEGER(HID_T)           :: dset_id, dataspace, h5_parameters
+      INTEGER                  :: error
+      INTEGER(HSIZE_T), DIMENSION(1):: dumh51D, dumh51D2
+      dumh51D = (/int(1,HSIZE_T)/) ! dim
+      dumh51D2 = (/H5S_UNLIMITED_F/) ! maxdim
+      CALL h5screate_simple_f(1, dumh51D, dataspace, error, dumh51D2 ) ! Create the data space with unlimited dimensions.
+      CALL h5pcreate_f(H5P_DATASET_CREATE_F, h5_parameters, error) ! Modify dataset creation properties, i.e. enable chunking
+      CALL h5pset_chunk_f(h5_parameters, 1, dumh51D, error) ! enable chunking (1 is the dimension of the dataset)
+      CALL h5dcreate_f(file_id, name, H5T_NATIVE_REAL, dataspace, dset_id, error, h5_parameters) ! create dataset
+      dumh51D = (/int(1,HSIZE_T)/) ! dimension of data
+      CALL h5dwrite_f(dset_id, H5T_NATIVE_REAL, var, dumh51D, error)
+      CALL h5sclose_f(dataspace, error)
+      CALL h5pclose_f(h5_parameters, error)
+      CALL h5dclose_f(dset_id, error)
+    END SUBROUTINE create_1D_dset_unlimited 
 
-        ! H5F_ACC_EXCL_F - fail if file already exists, ..._TRUNC_F - overwrites existing file
-        print *, "proc ", process_rank
-          
-        CALL h5fcreate_f(filename, H5F_ACC_TRUNC_F, file_id, error, access_prp=plist_id)
-        print *,"file created"
-        CALL h5screate_simple_f(rank, data_dims, dataspace_id, error)
-        print *,"dataspce created"
-        CALL h5dcreate_f(file_id, name, H5T_NATIVE_DOUBLE, dataspace_id, dset_id, error)
-        print *,"written ",testing_field
-        CALL h5dwrite_f(dset_id, H5T_NATIVE_DOUBLE, testing_field, data_dims, error)
-        CALL h5dclose_f(dset_id, error)
-        CALL h5sclose_f(dataspace_id, error)
-        CALL h5fclose_f(file_id, error)
-          
-        ! Close property list
-        CALL h5pclose_f(plist_id, error)
-        ! Close FORTRAN interface
-        CALL h5close_f(error)
-    END SUBROUTINE test
+!!! extendible dataset for single-writter (following the tuto https://portal.hdfgroup.org/display/HDF5/Examples+from+Learning+the+Basics#ExamplesfromLearningtheBasics-changingex https://bitbucket.hdfgroup.org/projects/HDFFV/repos/hdf5/browse/fortran/examples/h5_extend.f90?at=89fbe00dec8187305b518d91c3ddb7d910665f79&raw )
 
+    SUBROUTINE extend_1D_dset_unlimited(file_id, name, var, new_dims, memspace_dims, offset, hyperslab_size)
+      REAL                     :: var
+      INTEGER(4)               :: file_id
+      CHARACTER(*)             :: name
+      INTEGER(HID_T)           :: dset_id, dataspace
+      INTEGER                  :: error
+      INTEGER(HSIZE_T), DIMENSION(1):: new_dims, memspace_dims, offset, hyperslab_size
+      CALL h5dopen_f(file_id, name, dset_id, error)   !Open the  dataset
+      CALL h5dset_extent_f(dset_id, new_dims, error) ! extend the dataset
+      CALL h5dget_space_f(dset_id, dataspace, error) ! get the dataspace of the dataset
+      CALL h5screate_simple_f (1, memspace_dims, memspace, error) ! create memory space
+      CALL h5sselect_hyperslab_f(dataspace, H5S_SELECT_SET_F, offset, hyperslab_size, error) ! choose the hyperslab in the file
+      CALL h5dwrite_f(dset_id, H5T_NATIVE_REAL, var, hyperslab_size, error, memspace, dataspace) ! wrtiting the data
+      CALL h5sclose_f(memspace, error)
+      CALL h5sclose_f(dataspace, error)
+      CALL h5dclose_f(dset_id, error)
+    END SUBROUTINE extend_1D_dset_unlimited
+
+    SUBROUTINE write_hyperslab_to_dset(file_id, name, var, offset, hyperslab_size)
+      REAL, DIMENSION(:,:,:)       :: var
+      INTEGER(4)               :: file_id
+      CHARACTER(*)             :: name
+      INTEGER(HID_T)           :: dset_id, filespace, memspace, h5_parameters
+      INTEGER(HSIZE_T), DIMENSION(3) :: data_dims, offset, hyperslab_size
+      INTEGER                  :: rank, error
+      rank = 3
+      CALL h5dopen_f(file_id, name, dset_id, error) ! open the dataset (already created)
+      CALL h5dget_space_f(dset_id,filespace, error) ! filespace from the dataset (get instead of create)
+      CALL h5screate_simple_f(rank, hyperslab_size, memspace, error) ! dataset dimensions in memory 
+      CALL h5sselect_hyperslab_f(filespace, H5S_SELECT_SET_F, offset, hyperslab_size, error)
+      CALL h5pcreate_f(H5P_DATASET_XFER_F, h5_parameters, error) ! Create access parametwers
+      CALL h5pset_dxpl_mpio_f(h5_parameters, H5FD_MPIO_COLLECTIVE_F, error) ! collective writting
+      CALL h5dwrite_f(dset_id, H5T_NATIVE_REAL, var, data_dims, error, & 
+        file_space_id=filespace,mem_space_id=memspace,xfer_prp = h5_parameters)
+      CALL h5dclose_f(dset_id,error)
+      CALL h5sclose_f(filespace,error)
+      CALL h5sclose_f(memspace,error)
+      CALL h5pclose_f(h5_parameters, error)
+    END SUBROUTINE write_hyperslab_to_dset
 END MODULE hdf5_helper
