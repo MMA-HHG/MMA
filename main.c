@@ -196,16 +196,17 @@ int main(int argc, char *argv[])
 		h5error = H5Fclose(file_id); // file
 
 		if ( ( comment_operation == 1 ) && ( Nsim < 20 ) ){printf("Proc %i finished read of job %i \n",myrank, Nsim);}
+		if ( ( comment_operation == 1 ) && ( Nsim < 20 ) ){printf("Proc %i, job %i, field[0] = %e \n",myrank, Nsim,Fields[0]);}
 		// MPE_Mutex_release(mc_win, 1, MPE_MC_KEYVAL);
 
 		if ( ( comment_operation == 1 ) && ( Nsim < 20 ) ){printf("Proc %i doing the job %i \n",myrank,Nsim);}
 
 		// THE TASK IS DONE HERE, we can call 1D/3D TDSE, etc. here
-		// for (k1 = 0; k1 < dims2[0]; k1++){SourceTerms[k1]=2.0*Fields[k1];}; // just 2-multiplication
+		for (k1 = 0; k1 < dims[0]; k1++){SourceTerms[k1]=2.0*Fields[k1];}; // just 2-multiplication
    
 		inputs.Efield.Field = Fields;
    
-    	finish3_main = clock();
+    		finish3_main = clock();
 		outputs = call1DTDSE(inputs); // THE TDSE
    
    
@@ -213,8 +214,8 @@ int main(int argc, char *argv[])
 		printf("address2 %p \n",outputs.Efield);
 		if ( ( comment_operation == 1 ) && ( Nsim < 20 ) ){printf("%e \n",outputs.Efield[0]);}
 		if ( ( comment_operation == 1 ) && ( Nsim < 20 ) ){printf("Proc %i, job %i some outputs are: %e, %e, %e \n",myrank,Nsim, outputs.tgrid[0], outputs.Efield[0], outputs.sourceterm[0]);}
-		for (k1 = 0; k1 < dims[0]; k1++){SourceTerms[k1]=outputs.sourceterm[k1];}; // assign results
-    	if ( ( comment_operation == 1 ) && ( Nsim < 20 ) ){printf("Proc %i finished TDSE job %i \n",myrank,Nsim);}
+		// for (k1 = 0; k1 < dims[0]; k1++){SourceTerms[k1]=outputs.sourceterm[k1];}; // assign results
+    		if ( ( comment_operation == 1 ) && ( Nsim < 20 ) ){printf("Proc %i finished TDSE job %i \n",myrank,Nsim);}
 		
 		// print the output in the file
 		finish1_main = clock();
@@ -235,7 +236,7 @@ int main(int argc, char *argv[])
 		file_id = H5Fopen ("results2.h5", H5F_ACC_RDWR, H5P_DEFAULT); // open file
 		dset_id = H5Dopen2 (file_id, "/SourceTerms", H5P_DEFAULT); // open dataset
 		filespace = H5Dget_space (dset_id); // Get the dataspace ID   
-		h5error = H5Sselect_hyperslab (dspace_id, H5S_SELECT_SET, offset, stride, count, block); // again the same hyperslab as for reading
+		h5error = H5Sselect_hyperslab(filespace, H5S_SELECT_SET, offset, stride, count, block); // again the same hyperslab as for reading
 
 		h5error = H5Dwrite(dset_id,datatype,memspace_id,filespace,H5P_DEFAULT,SourceTerms); // write the data
 
