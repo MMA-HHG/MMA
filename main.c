@@ -202,7 +202,7 @@ int main(int argc, char *argv[])
 		if ( ( comment_operation == 1 ) && ( Nsim < 20 ) ){printf("Proc %i doing the job %i \n",myrank,Nsim);}
 
 		// THE TASK IS DONE HERE, we can call 1D/3D TDSE, etc. here
-		for (k1 = 0; k1 < dims[0]; k1++){SourceTerms[k1]=2.0*Fields[k1];}; // just 2-multiplication
+		for (k1 = 0; k1 < inputs.Efield.Nt; k1++){SourceTerms[k1]=2.0*Fields[k1];}; // just 2-multiplication
    
 		inputs.Efield.Field = Fields;
    
@@ -214,7 +214,7 @@ int main(int argc, char *argv[])
 		printf("address2 %p \n",outputs.Efield);
 		if ( ( comment_operation == 1 ) && ( Nsim < 20 ) ){printf("%e \n",outputs.Efield[0]);}
 		if ( ( comment_operation == 1 ) && ( Nsim < 20 ) ){printf("Proc %i, job %i some outputs are: %e, %e, %e \n",myrank,Nsim, outputs.tgrid[0], outputs.Efield[0], outputs.sourceterm[0]);}
-		// for (k1 = 0; k1 < dims[0]; k1++){SourceTerms[k1]=outputs.sourceterm[k1];}; // assign results
+		// for (k1 = 0; k1 < inputs.Efield.Nt; k1++){SourceTerms[k1]=outputs.sourceterm[k1];}; // assign results
     		if ( ( comment_operation == 1 ) && ( Nsim < 20 ) ){printf("Proc %i finished TDSE job %i \n",myrank,Nsim);}
 		
 		// print the output in the file
@@ -229,6 +229,7 @@ int main(int argc, char *argv[])
 			printf("Proc %i, before job started        : %f sec\n",myrank,(double)(finish3_main - start_main) / CLOCKS_PER_SEC);
 			printf("Proc %i, clock the umnutexed value : %f sec\n",myrank,(double)(finish1_main - start_main) / CLOCKS_PER_SEC);
 			printf("Proc %i, clock in the mutex block  : %f sec\n",myrank,(double)(finish2_main - start_main) / CLOCKS_PER_SEC);
+			printf("first element to write: %e \n",SourceTerms[0]);
 			fflush(NULL); // force write
     	}
     
@@ -256,7 +257,7 @@ int main(int argc, char *argv[])
 //  finish2 = clock();
 //  printf("\nFirst processor measured time: %f sec\n\n",(double)(finish2 - start2) / CLOCKS_PER_SEC);
 //  }
-  MPI_Win_free(&mc_win);
+  // MPI_Win_free(&mc_win);
 	MPI_Finalize();
 	return 0;	
 }
