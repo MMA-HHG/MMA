@@ -247,6 +247,24 @@ double Einitialise(struct trg_def trg, double *psi0,double *dinf,double *d,doubl
 	dsupnew = (double *)calloc(size,sizeof(double));
 	diag = (double *)calloc(size,sizeof(double));
 
+
+	printf("%e \n",psi0[0]);
+printf("%e \n",psi0[0]);
+printf("%e \n",dinf[0]);
+printf("%e \n",d[0]);
+printf("%e \n",dsup[0]);
+printf("%e \n",x[0]);
+printf("%e \n",CV);
+
+
+	printf("%e \n",psi0[3]);
+printf("%e \n",psi0[3]);
+printf("%e \n",dinf[3]);
+printf("%e \n",d[3]);
+printf("%e \n",dsup[3]);
+printf("%e \n",x[3]);
+printf("%e \n",CV);
+
 	
 	  for(i=0;i<=num_r;i++)
 	  {
