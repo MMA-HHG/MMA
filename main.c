@@ -66,7 +66,7 @@ hid_t filespace, dataspace_id, dataset_id, dset_id, dspace_id; // dataspace poin
 struct inputs_def inputs;
 struct outputs_def outputs;
 
-int k1;
+int k1, k2, k3;
 
 
 clock_t start_main, finish2_main, finish1_main, finish3_main, finish4_main;
@@ -141,11 +141,16 @@ int main(int argc, char *argv[])
 	hid_t memspace_id = H5Screate_simple(1,field_dims,NULL); // this memspace correspond to one Field/SourceTerm hyperslab, we will keep it accross the code
 	double Fields[dims[0]], SourceTerms[dims[0]]; // Here we store the field and computed Source Term for every case
 
+
+
+
 	// Prepare the ground state
+	if ( myrank == 0 )
+	{
 
 	// Initialise vectors and Matrix 
-	Initialise_GS(inputs.num_r);
-	for(i=0;i<=inputs.num_r;i++){psi0[2*i] = 1.0; psi0[2*i+1] = 0.; psiexc[2*i] = 1; psiexc[2*i+1] = 0.;}
+	// Initialise_GS(inputs.num_r);
+	
 	//normalise(psi0,inputs.num_r); // Initialise psi0 for Einitialise
 	//normalise(psiexc,inputs.num_r);
 
@@ -158,13 +163,23 @@ int main(int argc, char *argv[])
 	*/
 	
 	printf("Calculation of the energy of the ground sate ; Eguess : %f\n",inputs.Eguess);
-	double *psi0, *off_diagonal, *diagonal, *x;
+	int size = 2*(inputs.num_r+1);
+	double *psi0, *off_diagonal, *diagonal, *x, *psiexc;
+	double Einit = 0.0, Einit2 = 0.0;
+	psi0 = calloc(size,sizeof(double));
+	psiexc = calloc(size,sizeof(double));
+	for(k1=0;k1<=inputs.num_r;k1++){psi0[2*k1] = 1.0; psi0[2*k1+1] = 0.; psiexc[2*k1] = 1; psiexc[2*k1+1] = 0.;}
+	printf("binit\n");
 	Initialise_grid_and_D2(inputs.dx, inputs.num_r, &x, &diagonal, &off_diagonal);
-	Einit = Einitialise(trg,psi0,off_diagonal,diagonal,off_diagonal,x,inputs.Eguess,CV,inputs.num_r);
+	printf("in main %e \n",x[23]);
+	printf("bEinit\n");
+	exit(0);
+	Einit = Einitialise(inputs.trg,psi0,off_diagonal,diagonal,off_diagonal,x,inputs.Eguess,CV,inputs.num_r);
 	//for(i=0;i<=inputs.num_r;i++) {fprintf(eingenvectorf,"%f\t%e\t%e\n",x[i],psi0[2*i],psi0[2*i+1]); fprintf(pot,"%f\t%e\n",x[i],potential(x[i],trg));}
 
 	printf("Initial energy is : %1.12f\n",Einit);
 	printf("first excited energy is : %1.12f\n",Einit2);
+	}
 
 	//////////////////////////
 	// COMPUTATIONAL PAHASE //
