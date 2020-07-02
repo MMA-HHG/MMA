@@ -85,9 +85,12 @@ int main(int argc, char *argv[])
 	MPI_Comm_size(MPI_COMM_WORLD,&nprocs);
 	MPI_Comm_rank(MPI_COMM_WORLD,&myrank);
 	if (comment_operation == 1 ){printf("Proc %i started the program\n",myrank);}
-	
 
-	// OPEN THE FILE
+	////////////////////////
+	// PREPARATION PAHASE //
+	////////////////////////	
+
+	// READ DATA
 	/* to check if exists use printf("link exists 1: %i\n",H5Lexists(file_id, "IRProp/lambda", H5P_DEFAULT)); */
 	file_id = H5Fopen ("results.h5", H5F_ACC_RDONLY, H5P_DEFAULT); // the file is opened for read only by all the processes independently, every process then has its own copy of variables.
 
@@ -129,12 +132,39 @@ int main(int argc, char *argv[])
 	if ( ( comment_operation == 1 ) && ( myrank == 0 ) ){printf("Fields dimensions (t,r,z) = (%i,%i,%i)\n",dims[0],dims[1],dims[2]);}
 
 
+	// PREPARE DATA
+
 	// We prepare the storage for data and set up the run	
 	int Ntot = dim_r*dim_z; // counter (queue length)	
 	hsize_t  offset[ndims], stride[ndims], count[ndims], block[ndims]; // selections (hyperslabs) are needed	
 	hsize_t field_dims[1]; field_dims[0] = dims[0]; // a way to specify the length of the array for HDF5	
 	hid_t memspace_id = H5Screate_simple(1,field_dims,NULL); // this memspace correspond to one Field/SourceTerm hyperslab, we will keep it accross the code
-	double Fields[dims[0]], SourceTerms[dims[0]]; // Here we store the field and computed Source Term for every case	
+	double Fields[dims[0]], SourceTerms[dims[0]]; // Here we store the field and computed Source Term for every case
+
+	// Prepare the ground state
+
+	// Initialise vectors and Matrix 
+	Initialise_GS(inputs.num_r);
+	for(i=0;i<=inputs.num_r;i++){psi0[2*i] = 1.0; psi0[2*i+1] = 0.; psiexc[2*i] = 1; psiexc[2*i+1] = 0.;}
+	//normalise(psi0,inputs.num_r); // Initialise psi0 for Einitialise
+	//normalise(psiexc,inputs.num_r);
+
+	double CV = 1E-20; // CV criteria
+
+	/* This number has to be small enough to assure a good convregence of the wavefunction
+	if it is not the case, then the saclar product of the the ground state and the excited states 
+	is not quite 0 and those excited appears in the energy analysis of the gorund states, so the propagation !!
+	CV = 1E-25 has been choosen to have a scalar product of 10^-31 with the third excited state for num_r = 5000 and dx=0.1
+	*/
+	
+	printf("Calculation of the energy of the ground sate ; Eguess : %f\n",inputs.Eguess);
+	double *psi0, *off_diagonal, *diagonal, *x;
+	Initialise_grid_and_D2(inputs.dx, inputs.num_r, &x, &diagonal, &off_diagonal);
+	Einit = Einitialise(trg,psi0,off_diagonal,diagonal,off_diagonal,x,inputs.Eguess,CV,inputs.num_r);
+	//for(i=0;i<=inputs.num_r;i++) {fprintf(eingenvectorf,"%f\t%e\t%e\n",x[i],psi0[2*i],psi0[2*i+1]); fprintf(pot,"%f\t%e\n",x[i],potential(x[i],trg));}
+
+	printf("Initial energy is : %1.12f\n",Einit);
+	printf("first excited energy is : %1.12f\n",Einit2);
 
 	//////////////////////////
 	// COMPUTATIONAL PAHASE //

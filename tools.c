@@ -19,6 +19,26 @@ extern double* timet,dipole;
 // extern struct Efield_var;
 
 
+void Initialise_grid_and_D2(double dx, int num_r, double **x, double **diagonal, double **off_diagonal) // Initialise ground-state
+{
+    double xmax = 0.5*num_r*dx;
+	x = calloc((num_r+1),sizeof(double));
+	off_diagonal = calloc(2*(num_r+1),sizeof(double));
+	diagonal = calloc(2*(num_r+1),sizeof(double));	
+
+	//Initialisation Matrix corresponding to D2
+	for(i=0;i<=num_r;i++)
+	{
+		x[i] = i*dx-xmax; 
+		off_diagonal[2*i] = -0.5/(dx*dx); off_diagonal[2*i + 1] = 0.;
+		diagonal[2*i] = 1./(dx*dx); diagonal[2*i + 1] = 0.;
+	}
+
+	
+}
+
+
+
 void printresults(struct trg_def trg, struct Efield_var Efield, FILE *file1, int k, double *psi, int num_r, double *psi0, double tt, double *x, double dx, double Field, double Apot, double x_int, double dip_pre, struct outputs_def outputs)
 {
 	double dip,pop_re,pop_im,pop_tot,current,position,ion_prob2, dum;

@@ -147,6 +147,8 @@ void define_analytical(struct Efield_var *, FILE *);
 
 struct outputs_def call1DTDSE(struct inputs_def);
 
+void Initialise_grid_and_D2(double, int, double **, double **, double **);
+
 // MPI
 int MPE_Counter_create(MPI_Comm, int, MPI_Win *);
 int MPE_Counter_nxtval(MPI_Win, int, int *, int);

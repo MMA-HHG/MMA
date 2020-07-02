@@ -56,19 +56,9 @@ char filename1[25], filename2[25];
 
 struct outputs_def call1DTDSE(struct inputs_def inputs) // this is a wrapper that will by bypassed. It's here due to the design of the original code.
 {
-  struct outputs_def outputs;	
+	struct outputs_def outputs;	
 	Pi = acos(-1.);
-
-
-	// Open the param.txt file for intialisation of the parameter
-	// param = fopen("param.txt" , "r");
-	// if(param == NULL) {printf("DATA could not be found in param.txt file\n");}
-
-	// dumint=fscanf(param, "%*[^\n]\n", NULL);
 	Efield.fieldtype = 0; // 0-numerical, loaded in femtosecons, 1-numerical, loaded in atomic units in whole grid, 2-analytical
-
-
-	// dumint=fscanf(param, "%*[^\n]\n", NULL);
 
 
 	Eguess = inputs.Eguess; // Energy of the initial state
@@ -95,31 +85,8 @@ struct outputs_def call1DTDSE(struct inputs_def inputs) // this is a wrapper tha
 	// IonFilterThreshold = inputs.IonFilterThreshold; // threshold for the ionisation [-]
 	trg.a = inputs.trg.a; // the limit of the integral for the ionisation //2 2 works fine with the
  
-  Efield = inputs.Efield;
+	Efield = inputs.Efield;
 
-
-
-	// paramters either for numerical field or analytic
-// 	switch (Efield.fieldtype){
-// 	case 2:
-// 		// GAUGES
-// 		dumint=fscanf(param,"%i %*[^\n]\n",&gauge); // 0-length, otherwise velocity, velocity available only for analytic field (A needed)
-// 		dumint=fscanf(param,"%i %*[^\n]\n",&transformgauge); // 1 - transform also to another gauge during the calculation, (A needed)
-// /*		printf("gauge,  %i \n",gauge);*/
-// 	break;
-// 	case 0:	case 1:
-// 		// FILENAMES
-
-// 		dumint=fscanf(param,"%s %*[^\n]\n",filename1); // filename1
-// 		dumint=fscanf(param,"%s %*[^\n]\n",filename2); // filename2
-// 		dumint=fscanf(param, "%*[^\n]\n", NULL);
-// 		dumint=fscanf(param,"%i %*[^\n]\n",&fieldinau); // 0-input inatomic units, 1 - in femto and GV/m
-// 		dumint=fscanf(param,"%i %*[^\n]\n",&input0); // 0 field starts with 0, 1 in the middle of the file
-
-// 		printf("filename1  %s \n",filename1);
-// 	break;
-
-// 	}
 
 	gauge = 1;
 	transformgauge = 0;
@@ -130,13 +97,6 @@ struct outputs_def call1DTDSE(struct inputs_def inputs) // this is a wrapper tha
 
 	// define the properties of the temporal grid
 	switch (Efield.fieldtype){
-// 	case 2:
-// 		printf("Analytical fields are used\n");
-// /*		dumint=fscanf(param, "%*[^\n]\n", NULL); // move in file*/
-// /*		dumint=fscanf(param,"%lf %*[^\n]\n",&dum); printf("E0,  %f \n",dum);*/
-
-// 		define_analytical(&Efield, param);
-// 	break;
 	case 0:
 		printf("Numerical field 1 (in femtoseconds) is used\n");
 	break;
@@ -145,31 +105,9 @@ struct outputs_def call1DTDSE(struct inputs_def inputs) // this is a wrapper tha
 	break;
 
 	}
-
-	// fclose(param);
-
-
-	// !!!!! loading procedure (we go for CUPRAD outs only now)
-		// LOAD THE FILES		
-		
-		// file1 = fopen(filename1 , "r"); if(file1 == NULL) {printf("timegrid file %s doesn't exist\n",filename1);}
-		// file2 = fopen(filename2 , "r"); if(file2 == NULL) {printf("Field file %s doesn't exist\n", filename2);}	
-			
-			
-		// Efield.tgrid = calloc(Efield.Nt,sizeof(double)); // this we have from HDF5
-		// Efield.Field = calloc(Efield.Nt,sizeof(double)); 
-
-		// LOAD FILES		
-    printf("bfields, Efield[0] = %e, (tgrid[0], tgrid[1]) = (%e,%e) \n", Efield.Field[0],Efield.tgrid[0],Efield.tgrid[1]);
-		// for(k1 = 0 ; k1 <= Efield.Nt-1 ; k1++) //Efield.Nt-1 // use vectorisation (BLAS)
-		// {
-		// 		Efield.tgrid[k1] = Efield.tgrid[k1]*1e15*41.34144728; // timegrid in a.u. // input is now in SI
-		// 		Efield.Field[k1] = Efield.Field[k1]*0.001944689151; // corresponding field
-		// }	
+	
+    printf("bfields, Efield[0] = %e, (tgrid[0], tgrid[1]) = (%e,%e) \n", Efield.Field[0],Efield.tgrid[0],Efield.tgrid[1]);	
     printf("afields\n");
-		// fclose(file1);
-		// fclose(file2);		
-
 		// k1 = 0; k2 = 0;	findinterval(Efield.Nt, 0., Efield.tgrid, &k1, &k2);// find zero of the grid, the best resolution is around 0
 		switch ( input0 ){case 0: dumint = 0; break; case 1: dumint = round(Efield.Nt/2.); /* field centered around 0 */ break;} // original definition
    
@@ -271,30 +209,10 @@ struct outputs_def call1DTDSE(struct inputs_def inputs) // this is a wrapper tha
 	//{printf("pb d'ouverture de fichier");}
 	
 
-	printf("Initialisation \n");
 
-	// Initialise vectors and Matrix 
-	Initialise(num_r);
-	for(i=0;i<=num_r;i++){psi0[2*i] = 1.0; psi0[2*i+1] = 0.; psiexc[2*i] = 1; psiexc[2*i+1] = 0.;}
-	//normalise(psi0,num_r); // Initialise psi0 for Einitialise
-	//normalise(psiexc,num_r);
-
-	CV = 1E-20; // CV criteria
-
-	/* This number has to be small enough to assure a good convregence of the wavefunction
-	if it is not the case, then the saclar product of the the ground state and the excited states 
-	is not quite 0 and those excited appears in the energy analysis of the gorund states, so the propagation !!
-	CV = 1E-25 has been choosen to have a scalar product of 10^-31 with the third excited state for num_r = 5000 and dx=0.1
-	*/
-
-	printf("Calculation of the energy of the ground sate ; Eguess : %f\n",Eguess);
-
-	// Einit = Einitialise(trg,psi0,off_diagonal,diagonal,off_diagonal,x,Eguess,CV,num_r);
-	//for(i=0;i<=num_r;i++) {fprintf(eingenvectorf,"%f\t%e\t%e\n",x[i],psi0[2*i],psi0[2*i+1]); fprintf(pot,"%f\t%e\n",x[i],potential(x[i],trg));}
 
 	 
-	printf("Initial energy is : %1.12f\n",Einit);
-	printf("first excited energy is : %1.12f\n",Einit2);
+
 
 	printf("\n");	
 	printf("Propagation procedure ...\n");
@@ -465,7 +383,7 @@ fclose(eingenvaluef); fclose(eingenvectorf); fclose(pot);
 
 void Initialise(int num_r)
 {
-        double xmax = 0.5*num_r*dx;
+    double xmax = 0.5*num_r*dx;
 	x = calloc((num_r+1),sizeof(double));
 	off_diagonal = calloc(2*(num_r+1),sizeof(double));
 	diagonal = calloc(2*(num_r+1),sizeof(double));	
