@@ -27,26 +27,15 @@ void Initialise_grid_and_D2(double dx, int num_r, double **x, double **diagonal,
 	*x = calloc((num_r+1),sizeof(double));
 	*off_diagonal = calloc(2*(num_r+1),sizeof(double));
 	*diagonal = calloc(2*(num_r+1),sizeof(double));	
-	printf("aaloc\n");
-	printf("access x : %e \n",x[0]);
-printf("access x : %e \n",*x[1]);
-printf("access x : %e \n",*x[2]);
-printf("access x : %e \n",*x[3]);
-// printf("access x : %e \n",*x[4]);
 
 
 	//Initialisation Matrix corresponding to D2
 	for(k1=0;k1<=num_r;k1++)
 	{
-		printf("iteration: %i \n",k1);
-		(*x)[k1] = (double)k1; //k1*dx-xmax; 
-printf("t1, %e \n",(*x)[k1]);
-		//*off_diagonal[2*k1] = -0.5/(dx*dx); *off_diagonal[2*k1 + 1] = 0.;
-printf("t2\n");
-		//*diagonal[2*k1] = 1./(dx*dx); *diagonal[2*k1 + 1] = 0.;
-	}
-	printf("done init: %e \n",*x[1]);
-	
+		(*x)[k1] = (double)k1*dx-xmax;
+		(*off_diagonal)[2*k1] = -0.5/(dx*dx); (*off_diagonal)[2*k1 + 1] = 0.;
+		(*diagonal)[2*k1] = 1./(dx*dx); (*diagonal)[2*k1 + 1] = 0.;
+	}	
 }
 
 
