@@ -257,12 +257,12 @@ printf("%e \n",x[0]);
 printf("%e \n",CV);
 
 
-	printf("%e \n",psi0[3]);
-printf("%e \n",psi0[3]);
-printf("%e \n",dinf[3]);
-printf("%e \n",d[3]);
-printf("%e \n",dsup[3]);
-printf("%e \n",x[3]);
+	printf("%e \n",psi0[4]);
+printf("%e \n",psi0[4]);
+printf("%e \n",dinf[4]);
+printf("%e \n",d[4]);
+printf("%e \n",dsup[4]);
+printf("%e \n",x[4]);
 printf("%e \n",CV);
 
 	

@@ -170,7 +170,7 @@ int main(int argc, char *argv[])
 	psiexc = calloc(size,sizeof(double));
 	for(k1=0;k1<=inputs.num_r;k1++){psi0[2*k1] = 1.0; psi0[2*k1+1] = 0.; psiexc[2*k1] = 1; psiexc[2*k1+1] = 0.;}
 	printf("binit\n");
-	Initialise_grid_and_D2(inputs.dx, inputs.num_r, &x, &diagonal, &off_diagonal);
+	Initialise_grid_and_D2(inputs.dx, inputs.num_r, &x, &diagonal, &off_diagonal); // !!!! dx has to be small enough, it doesn't converge otherwise
 	printf("bEinit\n");
 	Einit = Einitialise(inputs.trg,psi0,off_diagonal,diagonal,off_diagonal,x,inputs.Eguess,CV,inputs.num_r);
 	//for(i=0;i<=inputs.num_r;i++) {fprintf(eingenvectorf,"%f\t%e\t%e\n",x[i],psi0[2*i],psi0[2*i+1]); fprintf(pot,"%f\t%e\n",x[i],potential(x[i],trg));}
