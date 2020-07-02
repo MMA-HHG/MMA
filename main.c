@@ -177,7 +177,6 @@ int main(int argc, char *argv[])
 
 	printf("Initial energy is : %1.12f\n",Einit);
 	printf("first excited energy is : %1.12f\n",Einit2);
-	exit(0);
 	}
 
 	//////////////////////////
