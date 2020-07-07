@@ -23,6 +23,11 @@ clock_t start_main, finish2_main, finish1_main, finish3_main, finish4_main;
 
 int main(int argc, char *argv[]) 
 {
+	// vars:
+	// dummy
+	int dum3int[3];
+	// Processing the queue
+	int Nsim, kr, kz; // counter of simulations, indices in the Field array
 
 	int comment_operation = 1;
 
@@ -34,9 +39,6 @@ int main(int argc, char *argv[])
 	MPI_Comm_size(MPI_COMM_WORLD,&nprocs);
 	MPI_Comm_rank(MPI_COMM_WORLD,&myrank);
 	if (comment_operation == 1 ){printf("Proc %i started the program\n",myrank);}
-
-	// Processing the queue
-	int Nsim, kr, kz; // counter of simulations, indices in the Field array
 
 	////////////////////////
 	// PREPARATION PAHASE //
@@ -162,7 +164,8 @@ int main(int argc, char *argv[])
 
 		// h5error = H5Dclose(dset_id); // dataset
 		// h5error = H5Sclose(dspace_id); // dataspace
-		readreal_fullhyperslab_3d_h5(file_id,"IRProp/Fields_rzt",&h5error,{dim_t,dim_r,dim_z},{-1,kr,kz},&Fields)
+		dum3int[0]=-1; dum3int[1]=kr; dum3int[2]=kz;
+		readreal_fullhyperslab_3d_h5(file_id,"IRProp/Fields_rzt",&h5error,dims,dum3int,Fields);
 		h5error = H5Fclose(file_id); // file
 
 		inputs.Efield.Field = Fields;
