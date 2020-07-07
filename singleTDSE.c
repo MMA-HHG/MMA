@@ -186,10 +186,10 @@ struct outputs_def call1DTDSE(struct inputs_def inputs) // this is a wrapper tha
 
 	// ALLOCATE MEMORY, COPY INITIAL ARRAYS AND PREPARE THEM FOR THE PROPAGATOR
 
-	x = malloc((num_r+1),sizeof(double)); // we keep this construction and not use directly initial x due to the extensibility of the grid
-	memcpy(x,init.x,(num_r+1)*sizeof(double));
-	psi0 = malloc(size,sizeof(double));	
-	memcpy(psi0,init.psi0,(num_r+1)*sizeof(double));
+	x = malloc((num_r+1)*sizeof(double)); // we keep this construction and not use directly initial x due to the extensibility of the grid
+	memcpy(x,inputs.x,(num_r+1)*sizeof(double));
+	psi0 = malloc(size*sizeof(double));	
+	memcpy(psi0,inputs.psi0,(num_r+1)*sizeof(double));
 	psi = calloc(size,sizeof(double));
 	t = calloc(Nt,sizeof(double));
 	timet = calloc(Nt,sizeof(double));

@@ -35,6 +35,9 @@ int main(int argc, char *argv[])
 	MPI_Comm_rank(MPI_COMM_WORLD,&myrank);
 	if (comment_operation == 1 ){printf("Proc %i started the program\n",myrank);}
 
+	// Processing the queue
+	int Nsim, kr, kz; // counter of simulations, indices in the Field array
+
 	////////////////////////
 	// PREPARATION PAHASE //
 	////////////////////////	
@@ -120,7 +123,7 @@ int main(int argc, char *argv[])
 	double Einit = 0.0, Einit2 = 0.0;
 	inputs.psi0 = calloc(size,sizeof(double));
 	psiexc = calloc(size,sizeof(double));
-	for(k1=0;k1<=inputs.num_r;k1++){psi0[2*k1] = 1.0; psi0[2*k1+1] = 0.; psiexc[2*k1] = 1; psiexc[2*k1+1] = 0.;}
+	for(k1=0;k1<=inputs.num_r;k1++){inputs.psi0[2*k1] = 1.0; inputs.psi0[2*k1+1] = 0.; psiexc[2*k1] = 1; psiexc[2*k1+1] = 0.;}
 	printf("binit\n");
 	Initialise_grid_and_D2(inputs.dx, inputs.num_r, &inputs.x, &diagonal, &off_diagonal); // !!!! dx has to be small enough, it doesn't converge otherwise
 	printf("bEinit\n");
@@ -147,7 +150,9 @@ int main(int argc, char *argv[])
 		MPE_Counter_nxtval(mc_win, 0, &Nsim, MPE_MC_KEYVAL); // get my first task
 	}
 	MPI_Barrier(MPI_COMM_WORLD); // Barrier
+	printf("Proc %i abarier \n",myrank);
 	if ( myrank == 0 ){
+		kr = Nsim % dim_r; kz = Nsim - kr;  kz = kz / dim_r; // compute offsets in each dimension
 		offset[1] = kr; offset[2] = kz;
 		count[0] = dim_t; // for read
 	
@@ -155,14 +160,20 @@ int main(int argc, char *argv[])
 		dset_id = H5Dopen2 (file_id, "IRProp/Fields_rzt", H5P_DEFAULT); 
 		dspace_id = H5Dget_space (dset_id);
 
-		h5error = H5Sselect_hyperslab (dspace_id, H5S_SELECT_SET, offset, stride, count, block); // operation with only a part of the array = hyperslab
+		h5error = H5Sselect_hyperslab (dspace_id, H5S_SELECT_SET, offset, stride, count, block); // operation with only a part of the array = hyperslab		
 		h5error = H5Dread (dset_id, datatype, memspace_id, dspace_id, H5P_DEFAULT, Fields); // read only the hyperslab
 
 		h5error = H5Dclose(dset_id); // dataset
 		h5error = H5Sclose(dspace_id); // dataspace
 		h5error = H5Fclose(file_id); // file
 
+		inputs.Efield.Field = Fields;
+
+		printf("0: bcall \n");
+
 		outputs = call1DTDSE(inputs); // THE TDSE
+		printf("0: acall \n");
+		printf("0: sourceterm out: %e, %e \n",outputs.sourceterm[0],outputs.sourceterm[1]);
 		dims[0] = outputs.Nt; // length obtained from TDSE used to the output dataset
 		count[0] = outputs.Nt; // length obtained from TDSE
 
@@ -171,7 +182,17 @@ int main(int argc, char *argv[])
 		dataset_id = H5Dcreate2(file_id, "/SourceTerms", datatype, dataspace_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT); // create dataset
 
 		h5error = H5Sselect_hyperslab(dataspace_id, H5S_SELECT_SET, offset, stride, count, block); // again the same hyperslab as for reading
-		h5error = H5Dwrite(dset_id,datatype,memspace_id,dataspace_id,H5P_DEFAULT,outputs.Efield); // write the data
+
+		double SourceTerm2[dims[0]];
+		for(k1 = 0 ; k1 <= dims[0]; k1++){SourceTerm2[k1] = outputs.sourceterm[k1];}
+
+		printf("0: nxt sourceterm: %e, %e \n",SourceTerm2[0],SourceTerm2[1]);
+
+		hsize_t field_dims2[1]; field_dims2[0] = (hsize_t)outputs.Nt;
+
+		hid_t memspace_id2 = H5Screate_simple(1,field_dims2,NULL); // this memspace correspond to one Field/SourceTerm hyperslab, we will keep it accross the code
+
+		h5error = H5Dwrite(dataset_id,datatype,memspace_id2,dataspace_id,H5P_DEFAULT,SourceTerm2); // write the data
 
 		// close it
 		h5error = H5Dclose(dataset_id); // dataset
@@ -189,7 +210,6 @@ int main(int argc, char *argv[])
 		
 
 	// we now process the MPI queue
-	int Nsim, kr, kz; // counter of simulations, indices in the FIeld array
 	MPE_Counter_nxtval(mc_win, 0, &Nsim, MPE_MC_KEYVAL); // get my first task (every worker calls, second call for proc 0 due to the preparation phase)
 
 	do { // run till queue is not treated
