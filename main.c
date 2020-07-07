@@ -171,7 +171,7 @@ int main(int argc, char *argv[])
 		dataset_id = H5Dcreate2(file_id, "/SourceTerms", datatype, dataspace_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT); // create dataset
 
 		h5error = H5Sselect_hyperslab(dataspace_id, H5S_SELECT_SET, offset, stride, count, block); // again the same hyperslab as for reading
-		h5error = H5Dwrite(dset_id,datatype,memspace_id,dataspace_id,H5P_DEFAULT,SourceTerms); // write the data
+		h5error = H5Dwrite(dset_id,datatype,memspace_id,dataspace_id,H5P_DEFAULT,outputs.Efield); // write the data
 
 		// close it
 		h5error = H5Dclose(dataset_id); // dataset
@@ -249,7 +249,7 @@ int main(int argc, char *argv[])
 			printf("Proc %i, before job started        : %f sec\n",myrank,(double)(finish3_main - start_main) / CLOCKS_PER_SEC);
 			printf("Proc %i, clock the umnutexed value : %f sec\n",myrank,(double)(finish1_main - start_main) / CLOCKS_PER_SEC);
 			printf("Proc %i, clock in the mutex block  : %f sec\n",myrank,(double)(finish2_main - start_main) / CLOCKS_PER_SEC);
-			printf("first element to write: %e \n",SourceTerms[0]);
+			printf("first element to write: %e \n",outputs.Efield[0]);
 			fflush(NULL); // force write
     	}
     
@@ -259,7 +259,7 @@ int main(int argc, char *argv[])
 		filespace = H5Dget_space (dset_id); // Get the dataspace ID   
 		h5error = H5Sselect_hyperslab(filespace, H5S_SELECT_SET, offset, stride, count, block); // again the same hyperslab as for reading
 
-		h5error = H5Dwrite(dset_id,datatype,memspace_id,filespace,H5P_DEFAULT,SourceTerms); // write the data
+		h5error = H5Dwrite(dset_id,datatype,memspace_id,filespace,H5P_DEFAULT,outputs.Efield); // write the data
 
 		// close
 		h5error = H5Dclose(dset_id); // dataset
