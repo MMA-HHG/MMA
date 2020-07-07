@@ -170,11 +170,13 @@ int main(int argc, char *argv[])
 
 		inputs.Efield.Field = Fields;
 
-		printf("0: bcall \n");
+		printf("0: bcall \n"); printf("field[0]= %e \n",Fields[0]);
+
 
 		outputs = call1DTDSE(inputs); // THE TDSE
 		printf("0: acall \n");
 		printf("0: sourceterm out: %e, %e \n",outputs.sourceterm[0],outputs.sourceterm[1]);
+		offset[1] = kr; offset[2] = kz;
 		dims[0] = outputs.Nt; // length obtained from TDSE used to the output dataset
 		count[0] = outputs.Nt; // length obtained from TDSE
 

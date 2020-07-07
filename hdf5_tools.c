@@ -33,6 +33,7 @@ void readreal_fullhyperslab_3d_h5(hid_t file_id, char *dset_name, herr_t *h5erro
   *h5error = H5Dread (dset_id, datatype, memspace_id, dspace_id, H5P_DEFAULT, array1D); // read only the hyperslab
   *h5error = H5Dclose(dset_id); // dataset
   *h5error = H5Sclose(dspace_id); // dataspace
+  *h5error = H5Sclose(memspace_id); // dataspace
 }
 
 
