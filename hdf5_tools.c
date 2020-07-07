@@ -8,6 +8,28 @@
 #include "mpi.h"
 
 
+void readreal_fullhyperslab_3d_h5(hid_t file_id, char *dset_name, herr_t *h5error, int *dimensions, int *selection, double **array1D) // This function reads full line from a 3-D array, the selected dimension is given by (-1), the rest of selection is the offset
+{ 
+  int k1;
+  hsize_t  offset[3], stride[3]={1,1,1}, count[3], block[3]={1,1,1};
+  for(k1 = 0; k1 < 3, k1++){
+    if (selection[k1] < 0){
+      offset[k1] = 0;
+      count[k1] = dimensions[k1];
+    }else{
+      offset[k1] = selection[k1];
+      count[k1] = 1;
+    }
+  }
+  hid_t dset_id = H5Dopen2 (file_id, dset_name, H5P_DEFAULT);
+  hid_t dspace_id = H5Dget_space (dset_id);
+  *h5error = H5Sselect_hyperslab (dspace_id, H5S_SELECT_SET, offset, stride, count, block); // operation with only a part of the array = hyperslab	
+  *h5error = H5Dread (dset_id, datatype, memspace_id, dspace_id, H5P_DEFAULT, *array1D); // read only the hyperslab
+  *h5error = H5Dclose(dset_id); // dataset
+  *h5error = H5Sclose(dspace_id); // dataspace
+}
+
+
 void readreal(hid_t file_id, char *dset_name, herr_t *h5error, double *value)
 {
   hid_t dset_id = H5Dopen2 (file_id, dset_name, H5P_DEFAULT); // open dataset
@@ -15,6 +37,7 @@ void readreal(hid_t file_id, char *dset_name, herr_t *h5error, double *value)
   *h5error = H5Dread(dset_id,  datatype, H5S_ALL, H5S_ALL, H5P_DEFAULT, value);
   *h5error = H5Dclose(dset_id);
 }
+
 
 void readint(hid_t file_id, char *dset_name, herr_t *h5error, int *value)
 {

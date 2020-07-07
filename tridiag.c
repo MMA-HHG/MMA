@@ -247,25 +247,6 @@ double Einitialise(struct trg_def trg, double *psi0,double *dinf,double *d,doubl
 	dsupnew = (double *)calloc(size,sizeof(double));
 	diag = (double *)calloc(size,sizeof(double));
 
-
-	printf("%e \n",psi0[0]);
-printf("%e \n",psi0[0]);
-printf("%e \n",dinf[0]);
-printf("%e \n",d[0]);
-printf("%e \n",dsup[0]);
-printf("%e \n",x[0]);
-printf("%e \n",CV);
-
-
-	printf("%e \n",psi0[4]);
-printf("%e \n",psi0[4]);
-printf("%e \n",dinf[4]);
-printf("%e \n",d[4]);
-printf("%e \n",dsup[4]);
-printf("%e \n",x[4]);
-printf("%e \n",CV);
-
-	
 	  for(i=0;i<=num_r;i++)
 	  {
 		  dinfnew[2*i] = dinf[2*i] - Eguess/12. + potential(x[i],trg)/12.; dinfnew[2*i+1] = dinf[2*i+1];		  
@@ -278,7 +259,6 @@ printf("%e \n",CV);
 
 
 	Eold = Eguess;
-	printf(" Energy : %e\n",Eold);
 	do
 	{
 	

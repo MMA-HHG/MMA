@@ -161,6 +161,7 @@ int MPE_Mutex_release(MPI_Win, int, int);
 void addone(int *); // to test pointers
 void readreal(hid_t, char *, herr_t *, double *);
 void readint(hid_t, char *, herr_t *, int *);
+void readreal_fullhyperslab_3d_h5(hid_t, char *, herr_t *, int *, int *, double **);
 
 double * readreal1Darray_fort(hid_t, char *, herr_t *, int *);
 hsize_t * get_dimensions_h5(hid_t, char *, herr_t *, int *, hid_t *);

@@ -100,9 +100,6 @@ int main(int argc, char *argv[])
 	block[0] = 1;  block[1] = 1;  block[2] = 1;
 
 	// Prepare the ground state
-	if ( myrank == 0 )
-	{
-
 	// Initialise vectors and Matrix 
 	// Initialise_GS(inputs.num_r);
 	
@@ -132,7 +129,7 @@ int main(int argc, char *argv[])
 
 	printf("Initial energy is : %1.12f\n",Einit);
 	printf("first excited energy is : %1.12f\n",Einit2);
-	}
+	
 
 	//////////////////////////
 	// COMPUTATIONAL PAHASE //
@@ -153,18 +150,19 @@ int main(int argc, char *argv[])
 	printf("Proc %i abarier \n",myrank);
 	if ( myrank == 0 ){
 		kr = Nsim % dim_r; kz = Nsim - kr;  kz = kz / dim_r; // compute offsets in each dimension
-		offset[1] = kr; offset[2] = kz;
-		count[0] = dim_t; // for read
+		// offset[1] = kr; offset[2] = kz;
+		// count[0] = dim_t; // for read
 	
 		file_id = H5Fopen ("results.h5", H5F_ACC_RDONLY, H5P_DEFAULT); // same as shown
-		dset_id = H5Dopen2 (file_id, "IRProp/Fields_rzt", H5P_DEFAULT); 
-		dspace_id = H5Dget_space (dset_id);
+		// dset_id = H5Dopen2 (file_id, "IRProp/Fields_rzt", H5P_DEFAULT); 
+		// dspace_id = H5Dget_space (dset_id);
 
-		h5error = H5Sselect_hyperslab (dspace_id, H5S_SELECT_SET, offset, stride, count, block); // operation with only a part of the array = hyperslab		
-		h5error = H5Dread (dset_id, datatype, memspace_id, dspace_id, H5P_DEFAULT, Fields); // read only the hyperslab
+		// h5error = H5Sselect_hyperslab (dspace_id, H5S_SELECT_SET, offset, stride, count, block); // operation with only a part of the array = hyperslab		
+		// h5error = H5Dread (dset_id, datatype, memspace_id, dspace_id, H5P_DEFAULT, Fields); // read only the hyperslab
 
-		h5error = H5Dclose(dset_id); // dataset
-		h5error = H5Sclose(dspace_id); // dataspace
+		// h5error = H5Dclose(dset_id); // dataset
+		// h5error = H5Sclose(dspace_id); // dataspace
+		readreal_fullhyperslab_3d_h5(file_id,"IRProp/Fields_rzt",&h5error,{dim_t,dim_r,dim_z},{-1,kr,kz},&Fields)
 		h5error = H5Fclose(file_id); // file
 
 		inputs.Efield.Field = Fields;
