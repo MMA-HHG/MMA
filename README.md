@@ -12,6 +12,8 @@
 
 - DEVELOPMENT: wrap the call of singleTDSE, where propagation is called to test, erase this extra step after
 
+!!! There is memory allocated in every TDSE. Check there are no memory leaks, it matters now.
+
 
 ## Extensions/features already presented in 1DTDSE
 THere is a list of features we added in the code throughout the time, we don't have them in the sheduler. But it would be worthy to re-introduce them simply by modifying the output structure.
@@ -41,9 +43,13 @@ Implementation: since this is I/O operation with one file, we need r/w. Maybe re
 For reading, it should be easy. ** R/W may occur simultaneously in in the MPI loop. Separate I/O at the instant or ensure it will work (R/W from independent datasets may be fine???).
 https://support.hdfgroup.org/HDF5/Tutor/selectsimple.html
 
+2) Actual construction does some prparations within 1 TDSE simulation, it is desirable to separate preparations and core propagation, it's then more versatile for the MPI-calling.
+2.solution) pass all by reference and pre-allocate all necessary in main.
 
-2) we get rid of mutexes and use rather parallel acces to files all the time.
-2.develop) it seems that many-readers many-writers would be possible by HDF5 parallel since we will not modify the file much. However, we may also try stick with independent files and eventually 
+3) The code is inconsistent. SOme outputs from the first version are listed as independent variables and not encapsulated in structures. Fix it.
+
+4) we get rid of mutexes and use rather parallel acces to files all the time.
+4.develop) it seems that many-readers many-writers would be possible by HDF5 parallel since we will not modify the file much. However, we may also try stick with independent files and eventually 
 https://stackoverflow.com/questions/49851046/merge-all-h5-files-using-h5py
 https://portal.hdfgroup.org/display/HDF5/Collective+Calling+Requirements+in+Parallel+HDF5+Applications
 </pre>

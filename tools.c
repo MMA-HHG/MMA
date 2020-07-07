@@ -12,12 +12,28 @@
 #define Pi acos(-1.)
 clock_t start, finish;
 clock_t start2, finish2;
-#pragma warning( disable : 4996 ) // warning for fopen in visual 2005
 
 extern double* timet,dipole;
 
 // extern struct Efield_var;
 
+
+void outputs_constructor(struct outputs_def *outputs, int Nt) 
+{
+	(*outputs).tgrid = calloc((Nt+1),sizeof(double));
+	(*outputs).Efield = calloc((Nt+1),sizeof(double));
+	(*outputs).sourceterm = calloc((Nt+1),sizeof(double));
+	(*outputs).PopTot = calloc((Nt+1),sizeof(double));
+	(*outputs).Nt = Nt+1;
+}
+
+void outputs_destructor(struct outputs_def *outputs) // frees memory allocated for outputs
+{
+	free((*outputs).tgrid);
+	free((*outputs).Efield);
+	free((*outputs).sourceterm);
+	free((*outputs).PopTot);
+}
 
 void Initialise_grid_and_D2(double dx, int num_r, double **x, double **diagonal, double **off_diagonal) // Initialise ground-state
 {

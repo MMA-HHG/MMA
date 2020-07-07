@@ -1,54 +1,3 @@
-/*
-The plot of the code:
-
-1) See the comment at the end of the file for deatils about the MPI-scheduler.
-
-2) The main program (MP) reads all the parameters from an input HDF5-archive (each process independently, read-only).
-
-3) MP decides based on parameters the type of input field. Fist implementation: stick to numerical fields from CUPRAD stored in the archive.
-
-4) MPI-scheduler executes a simulation in every point. THe data are directly written into the output using the mutex.
-
-5) The code finishes.
-
-DEVELOPMENT: wrap the call of singleTDSE, where propagation is called to test, erase this extra step after
-
------------------------------------------------------------------------------------------------------------------------
-Extensions/features already presented in 1DTDSE and needed to implement in a test mode. We wil add them as optional outputs.
-
-The features already presented in TDSE:
-	1) Print wavefunction
-	2) Print Gabor transformation
-	3) Photoelectron spectrum (Fabrice)
-
-2) is computationally demanding; 1) 2) are both data-storage demandig. It should be used then only in few prescribed points.
-
-
-There is possibility of various inputs:
-	1) Numerical/analytic field
-	2) Computation on velocity/length gauge
-
-We have already an analytic model of a beam (Python/MATLAB), we will then rewrite it and construct the parameters on-the-fly.
-The versatility in numeric-or-analytic field length-or-velocity gauge is ideal for testing of numerical vector potential that we can use after in SFA.
-
-
-------------------------------------------------------------------------------------------------------------------------
-Development notes:
-
-1) We can use checks whether parameters exist in the input HDF5-archive. If not, we can create them with default values.
-Implementation: since this is I/O operation with one file, we need r/w. Maybe read paramc only by proc 0 and the broadcast structure (see the MPI book for transfering structs).
-
-For reading, it should be easy. ** R/W may occur simultaneously in in the MPI loop. Separate I/O at the instant or ensure it will work (R/W from independent datasets may be fine???).
-https://support.hdfgroup.org/HDF5/Tutor/selectsimple.html
-
-
-2) we get rid of mutexes and use rather parallel acces to files all the time.
-2.develop) it seems that many-readers many-writers would be possible by HDF5 parallel since we will not modify the file much. However, we may also try stick with independent files and eventually 
-https://stackoverflow.com/questions/49851046/merge-all-h5-files-using-h5py
-https://portal.hdfgroup.org/display/HDF5/Collective+Calling+Requirements+in+Parallel+HDF5+Applications
-
-*/
-
 #include<time.h> 
 #include<stdio.h>
 #include <mpi.h>
@@ -141,8 +90,11 @@ int main(int argc, char *argv[])
 	hid_t memspace_id = H5Screate_simple(1,field_dims,NULL); // this memspace correspond to one Field/SourceTerm hyperslab, we will keep it accross the code
 	double Fields[dims[0]], SourceTerms[dims[0]]; // Here we store the field and computed Source Term for every case
 
-
-
+	// some shared placements in global array already known, find the others during the calculation
+	offset[0] = 0;  
+	stride[0] = 1; stride[1] = 1; stride[2] = 1;
+	               count[1] = 1;  count[2] = 1; // takes all t
+	block[0] = 1;  block[1] = 1;  block[2] = 1;
 
 	// Prepare the ground state
 	if ( myrank == 0 )
@@ -164,15 +116,15 @@ int main(int argc, char *argv[])
 	
 	printf("Calculation of the energy of the ground sate ; Eguess : %f\n",inputs.Eguess);
 	int size = 2*(inputs.num_r+1);
-	double *psi0, *off_diagonal, *diagonal, *x, *psiexc;
+	double *off_diagonal, *diagonal, *x, *psiexc;
 	double Einit = 0.0, Einit2 = 0.0;
-	psi0 = calloc(size,sizeof(double));
+	inputs.psi0 = calloc(size,sizeof(double));
 	psiexc = calloc(size,sizeof(double));
 	for(k1=0;k1<=inputs.num_r;k1++){psi0[2*k1] = 1.0; psi0[2*k1+1] = 0.; psiexc[2*k1] = 1; psiexc[2*k1+1] = 0.;}
 	printf("binit\n");
-	Initialise_grid_and_D2(inputs.dx, inputs.num_r, &x, &diagonal, &off_diagonal); // !!!! dx has to be small enough, it doesn't converge otherwise
+	Initialise_grid_and_D2(inputs.dx, inputs.num_r, &inputs.x, &diagonal, &off_diagonal); // !!!! dx has to be small enough, it doesn't converge otherwise
 	printf("bEinit\n");
-	Einit = Einitialise(inputs.trg,psi0,off_diagonal,diagonal,off_diagonal,x,inputs.Eguess,CV,inputs.num_r);
+	Einit = Einitialise(inputs.trg,inputs.psi0,off_diagonal,diagonal,off_diagonal,inputs.x,inputs.Eguess,CV,inputs.num_r);
 	//for(i=0;i<=inputs.num_r;i++) {fprintf(eingenvectorf,"%f\t%e\t%e\n",x[i],psi0[2*i],psi0[2*i+1]); fprintf(pot,"%f\t%e\n",x[i],potential(x[i],trg));}
 
 	printf("Initial energy is : %1.12f\n",Einit);
@@ -187,23 +139,50 @@ int main(int argc, char *argv[])
 	MPE_MC_KEYVAL = MPE_Counter_create(MPI_COMM_WORLD, 2, &mc_win); // first is counter, second mutex
 
 
-	if ( myrank == 0 )  // first process is preparing the file and the rest may do their own work (the file is locked in the case they want to write); it creates the resulting dataset
-	{
-	MPE_Mutex_acquire(mc_win, 1, MPE_MC_KEYVAL);
-
-	file_id = H5Fopen ("results2.h5", H5F_ACC_RDWR, H5P_DEFAULT); // we use a different output file to testing, can be changed to have only one file
-	dataspace_id = H5Screate_simple(ndims, dims, NULL); // create dataspace for outputs
-	dataset_id = H5Dcreate2(file_id, "/SourceTerms", datatype, dataspace_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT); // create dataset
-
-	// close it
-	h5error = H5Dclose(dataset_id); // dataset
-	h5error = H5Sclose(dataspace_id); // dataspace
-	h5error = H5Fclose(file_id); // file
-
-	MPE_Mutex_release(mc_win, 1, MPE_MC_KEYVAL);
- 
-	}
+	// first process is preparing the file and the rest may do their own work (the file is locked in the case they want to write); it creates the resulting dataset
 	// an empty dataset is prepared to be filled with the data
+
+	if ( myrank == 0 ){
+		MPE_Mutex_acquire(mc_win, 1, MPE_MC_KEYVAL); // first process get mutex and hold it to ensure to prepare the file before the others
+		MPE_Counter_nxtval(mc_win, 0, &Nsim, MPE_MC_KEYVAL); // get my first task
+	}
+	MPI_Barrier(MPI_COMM_WORLD); // Barrier
+	if ( myrank == 0 ){
+		offset[1] = kr; offset[2] = kz;
+		count[0] = dim_t; // for read
+	
+		file_id = H5Fopen ("results.h5", H5F_ACC_RDONLY, H5P_DEFAULT); // same as shown
+		dset_id = H5Dopen2 (file_id, "IRProp/Fields_rzt", H5P_DEFAULT); 
+		dspace_id = H5Dget_space (dset_id);
+
+		h5error = H5Sselect_hyperslab (dspace_id, H5S_SELECT_SET, offset, stride, count, block); // operation with only a part of the array = hyperslab
+		h5error = H5Dread (dset_id, datatype, memspace_id, dspace_id, H5P_DEFAULT, Fields); // read only the hyperslab
+
+		h5error = H5Dclose(dset_id); // dataset
+		h5error = H5Sclose(dspace_id); // dataspace
+		h5error = H5Fclose(file_id); // file
+
+		outputs = call1DTDSE(inputs); // THE TDSE
+		dims[0] = outputs.Nt; // length obtained from TDSE used to the output dataset
+		count[0] = outputs.Nt; // length obtained from TDSE
+
+		file_id = H5Fopen ("results2.h5", H5F_ACC_RDWR, H5P_DEFAULT); // we use a different output file to testing, can be changed to have only one file
+		dataspace_id = H5Screate_simple(ndims, dims, NULL); // create dataspace for outputs
+		dataset_id = H5Dcreate2(file_id, "/SourceTerms", datatype, dataspace_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT); // create dataset
+
+		h5error = H5Sselect_hyperslab(dataspace_id, H5S_SELECT_SET, offset, stride, count, block); // again the same hyperslab as for reading
+		h5error = H5Dwrite(dset_id,datatype,memspace_id,dataspace_id,H5P_DEFAULT,SourceTerms); // write the data
+
+		// close it
+		h5error = H5Dclose(dataset_id); // dataset
+		h5error = H5Sclose(dataspace_id); // dataspace
+		h5error = H5Fclose(file_id); // file
+
+		MPE_Mutex_release(mc_win, 1, MPE_MC_KEYVAL);
+	}
+	free(dims);
+	// first process prepare file based on the first simulation
+	// first process release mutex
  
 	start_main = clock(); // the clock
 	finish4_main = clock();
@@ -211,16 +190,14 @@ int main(int argc, char *argv[])
 
 	// we now process the MPI queue
 	int Nsim, kr, kz; // counter of simulations, indices in the FIeld array
-	MPE_Counter_nxtval(mc_win, 0, &Nsim, MPE_MC_KEYVAL); // get my first task (every worker calls)
+	MPE_Counter_nxtval(mc_win, 0, &Nsim, MPE_MC_KEYVAL); // get my first task (every worker calls, second call for proc 0 due to the preparation phase)
 
 	do { // run till queue is not treated
 		kr = Nsim % dim_r; kz = Nsim - kr;  kz = kz / dim_r; // compute offsets in each dimension
 
 		// prepare the part in the arrray to r/w
-		offset[0] = 0; offset[1] = kr; offset[2] = kz; 
-		stride[0] = 1; stride[1] = 1; stride[2] = 1;
-		count[0] = dims[0]; count[1] = 1; count[2] = 1; // takes all t
-		block[0] = 1; block[1] = 1; block[2] = 1;
+		offset[1] = kr; offset[2] = kz; 
+		count[0] = dim_t; // for read
 
 		// read the HDF5 file
 
@@ -245,7 +222,7 @@ int main(int argc, char *argv[])
 		if ( ( comment_operation == 1 ) && ( Nsim < 20 ) ){printf("Proc %i doing the job %i \n",myrank,Nsim);}
 
 		// THE TASK IS DONE HERE, we can call 1D/3D TDSE, etc. here
-		for (k1 = 0; k1 < inputs.Efield.Nt; k1++){SourceTerms[k1]=2.0*Fields[k1];}; // just 2-multiplication
+		// for (k1 = 0; k1 < inputs.Efield.Nt; k1++){SourceTerms[k1]=2.0*Fields[k1];}; // just 2-multiplication
    
 		inputs.Efield.Field = Fields;
    
@@ -291,6 +268,7 @@ int main(int argc, char *argv[])
 
 		MPE_Mutex_release(mc_win, 1, MPE_MC_KEYVAL);
     	finish4_main = clock();
+		// outputs_destructor(outputs); // free memory
 		MPE_Counter_nxtval(mc_win, 0, &Nsim, MPE_MC_KEYVAL); // get my next task
 	} while (Nsim < Ntot);
 	h5error = H5Sclose(memspace_id);

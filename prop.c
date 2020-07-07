@@ -11,7 +11,6 @@
 #define Pi acos(-1.)
 clock_t start, finish;
 clock_t start2, finish2;
-#pragma warning( disable : 4996 ) // warning for fopen in visual 2005
 
 extern double* timet,dipole;
 

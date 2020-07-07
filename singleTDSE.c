@@ -1,5 +1,6 @@
 #include<time.h>
 #include<stdio.h>
+#include<string.h> 
 #include<stdlib.h>
 #include<malloc.h>
 #include<math.h>
@@ -24,7 +25,7 @@ double dt, tmax,tmin;
 int Nt;
 
 double dum,dum1,dum2;
-double *psi0,*psi,*psi2,Einit2,ps_re,ps_im,*psiexc,*psi_rmv_gs;
+double *psi0,*psi,Einit2,ps_re,ps_im,*psi_rmv_gs;
 double E_start,ton,toff,dw;
 int num_E,num_exp,num_w,N_t,dumint;
 
@@ -50,16 +51,21 @@ FILE *newygrid,*eingenvaluef,*eingenvectorf,*timef,*timef2,*gaussianwp,*volkovwp
 
 char filename1[25], filename2[25];
 
-//#pragma warning( disable : 4996 ) // warning for fopen in visual 2005
 
 
 
 struct outputs_def call1DTDSE(struct inputs_def inputs) // this is a wrapper that will by bypassed. It's here due to the design of the original code.
 {
+	// declarations
 	struct outputs_def outputs;	
 	Pi = acos(-1.);
-	Efield.fieldtype = 0; // 0-numerical, loaded in femtosecons, 1-numerical, loaded in atomic units in whole grid, 2-analytical
 
+	///////////////////////////////////////////////
+	// local copies of variables given by inputs //
+	///////////////////////////////////////////////
+	// (maybe can bypass)
+
+	Efield.fieldtype = 0; // 0-numerical, loaded in femtosecons, 1-numerical, loaded in atomic units in whole grid, 2-analytical
 
 	Eguess = inputs.Eguess; // Energy of the initial state
 	num_r = inputs.num_r; // Number of points of the initial spatial grid 16000
@@ -90,21 +96,16 @@ struct outputs_def call1DTDSE(struct inputs_def inputs) // this is a wrapper tha
 
 	gauge = 1;
 	transformgauge = 0;
-	
 
+
+	////////////////////////////////
+	// PREPARATIONAL COMPUTATIONS //
+	////////////////////////////////
+
+
+	// TDSE needs to refine time grid (maybe move to the main part of the code and resolve before inputs are created)
+	
 	num_t = floor((2.*Pi)/(0.057*dt)); // the length of one cycle for 800 nm (i.e. omega=0.057) 
-	
-
-	// define the properties of the temporal grid
-	switch (Efield.fieldtype){
-	case 0:
-		printf("Numerical field 1 (in femtoseconds) is used\n");
-	break;
-	case 1:
-		printf("Numerical field 2 (in atomic units) is used\n");
-	break;
-
-	}
 	
     printf("bfields, Efield[0] = %e, (tgrid[0], tgrid[1]) = (%e,%e) \n", Efield.Field[0],Efield.tgrid[0],Efield.tgrid[1]);	
     printf("afields\n");
@@ -183,34 +184,24 @@ struct outputs_def call1DTDSE(struct inputs_def inputs) // this is a wrapper tha
 
 	printf("test1 %i \n",size);
 
-	x = calloc((num_r+1),sizeof(double));
-	printf("test2 \n"); 
-	off_diagonal = calloc(size,sizeof(double));
-	printf("test3 \n"); 
-	diagonal = calloc(size,sizeof(double));
-	vector = calloc(size,sizeof(double));
-	psi0 = calloc(size,sizeof(double));
-	psi2 = calloc(size,sizeof(double));
+	// ALLOCATE MEMORY, COPY INITIAL ARRAYS AND PREPARE THEM FOR THE PROPAGATOR
+
+	x = malloc((num_r+1),sizeof(double)); // we keep this construction and not use directly initial x due to the extensibility of the grid
+	memcpy(x,init.x,(num_r+1)*sizeof(double));
+	psi0 = malloc(size,sizeof(double));	
+	memcpy(psi0,init.psi0,(num_r+1)*sizeof(double));
 	psi = calloc(size,sizeof(double));
-	psiexc = calloc(size,sizeof(double));
-	
 	t = calloc(Nt,sizeof(double));
-
-	printf("test4 \n");
-
 	timet = calloc(Nt,sizeof(double));
 	dipole = calloc(2*Nt,sizeof(double));
 
-	//eingenvaluef = fopen("results/eingenvalue.dat", "w" );
-	//eingenvectorf = fopen("results/eingenvector.dat", "w" );
-	//pot = fopen("results/latice.dat", "w" );
-
-	//if(eingenvaluef==NULL || eingenvectorf==NULL)
-	//{printf("pb d'ouverture de fichier");}
-	
 
 
-
+	// prepare outputs (there should be written a constructor depending on required values and a destructor on allocated memory should be called in the main code)
+	// ineficient allocate every time... Should be done by reference as well.
+	// outputs_constructor(outputs,Nt);
+	outputs.tgrid = calloc((Nt+1),sizeof(double)); outputs.Efield = calloc((Nt+1),sizeof(double)); outputs.sourceterm = calloc((Nt+1),sizeof(double)); outputs.PopTot = calloc((Nt+1),sizeof(double));
+	outputs.Nt = (Nt+1);
 	 
 
 
@@ -219,17 +210,12 @@ struct outputs_def call1DTDSE(struct inputs_def inputs) // this is a wrapper tha
 	printf("\n");	
 
 
-	outputs.tgrid = calloc((Nt+1),sizeof(double)); outputs.Efield = calloc((Nt+1),sizeof(double)); outputs.sourceterm = calloc((Nt+1),sizeof(double)); outputs.PopTot = calloc((Nt+1),sizeof(double));
 
 	start = clock();
 
 	psi = propagation(trg,Efield,tmin,Nt,num_t,dt,num_r,num_exp,dx,psi0,psi,x,timef,timef2,ton,toff,timet,dipole,gauge,transformgauge,x_int,analy,outputs);
-  printf("TDSE done ...\n");
+	printf("TDSE done ...\n");
 
-/*	printf("\ntmax test\n");	*/
-/*	printf("tmax,  %lf \n",*outputs.tmax);*/
-
-//	volkov_state_vg();
 
 	
 	// TEST filtering for high ionisation // MORE EFFICIENT WOULD BE FILTER WHILE ASSIGNING VALUE
@@ -371,7 +357,7 @@ return outputs;
 
 /*
 free(psi); free(psi_rmv_gs); free(psi0); free(x); free(off_diagonal);
-free(diagonal); free(vector); free(psi2); free(psiexc); 
+free(diagonal); free(vector);
 free(t); free(timet); free(dipole); 
 
 fclose(eingenvaluef); fclose(eingenvectorf); fclose(pot); 

@@ -47,7 +47,7 @@ struct analy_def{
 struct inputs_def{
 	struct trg_def trg;
 	struct Efield_var Efield;
-  double Eguess;
+	double Eguess;
 	double tmin;
 	int Nt;
 	int num_t;
@@ -80,6 +80,7 @@ struct outputs_def{
 	double *Fsourceterm;
 	double *PopTot;
 	double *sourcetermfiltered;
+	int Nt;
 /*	double *tmax;*/
 };
 
