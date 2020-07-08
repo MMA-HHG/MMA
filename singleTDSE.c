@@ -107,17 +107,14 @@ struct outputs_def call1DTDSE(struct inputs_def inputs) // this is a wrapper tha
 	
 	num_t = floor((2.*Pi)/(0.057*dt)); // the length of one cycle for 800 nm (i.e. omega=0.057) 
 	
-    printf("bfields, Efield[0] = %e, (tgrid[0], tgrid[1]) = (%e,%e) \n", Efield.Field[0],Efield.tgrid[0],Efield.tgrid[1]);	
-    printf("afields\n");
+
 		// k1 = 0; k2 = 0;	findinterval(Efield.Nt, 0., Efield.tgrid, &k1, &k2);// find zero of the grid, the best resolution is around 0
 		switch ( input0 ){case 0: dumint = 0; break; case 1: dumint = round(Efield.Nt/2.); /* field centered around 0 */ break;} // original definition
    
-   printf("test1\n");
 	
 		Efield.dt = Efield.tgrid[dumint+1]-Efield.tgrid[dumint]; // Efield.dt = Efield.tgrid[1+round(Efield.Nt/2.)]-Efield.tgrid[round(Efield.Nt/2.)];
 		tmax = Efield.tgrid[Efield.Nt]-Efield.tgrid[0];
    
-    printf("test2\n");
 
 		// PRINT field and its transform
 		// file1 = fopen("inputs/InputField.dat" , "w"); file2 = fopen("inputs/InputFField.dat" , "w"); printFFTW3(file1, file2, Efield.Field, Efield.Nt, Efield.dt); fclose(file1); fclose(file2);
@@ -132,9 +129,9 @@ struct outputs_def call1DTDSE(struct inputs_def inputs) // this is a wrapper tha
 
 		dt = Efield.dt/((double)k1); // redefine dt properly
 
-    printf("binterp\n");
+
 		Efield.Field = FourInterp(k1, Efield.Field, Efield.Nt); // make the interpolation !!!!!! tgrid does not correspond any more
-    printf("ainterp\n");
+
 
 		Nt = k1*Efield.Nt + 1;
 
