@@ -156,7 +156,7 @@ int main(int argc, char *argv[])
 		dum3int[0]=-1; dum3int[1]=kr; dum3int[2]=kz; // set offset as inputs for hdf5-procedures
 	
 		file_id = H5Fopen ("results.h5", H5F_ACC_RDONLY, H5P_DEFAULT); // same as shown
-		readreal_fullhyperslab_nd_h5(file_id,"IRProp/Fields_rzt",&h5error,3,dims,dum3int,inputs.Efield.Field);
+		rw_real_fullhyperslab_nd_h5(file_id,"IRProp/Fields_rzt",&h5error,3,dims,dum3int,inputs.Efield.Field,'r');
 		h5error = H5Fclose(file_id); // file
 
 		//inputs.Efield.Field = Fields;
@@ -221,7 +221,7 @@ int main(int argc, char *argv[])
 		if ( ( comment_operation == 1 ) && ( Nsim < 20 ) ){printf("Proc %i will read from (kr,kz)=(%i,%i), job %i \n",myrank,kr,kz,Nsim);}
 
 		file_id = H5Fopen ("results.h5", H5F_ACC_RDONLY, H5P_DEFAULT); // same as shown
-		readreal_fullhyperslab_nd_h5(file_id,"IRProp/Fields_rzt",&h5error,3,dims,dum3int,inputs.Efield.Field);
+		rw_real_fullhyperslab_nd_h5(file_id,"IRProp/Fields_rzt",&h5error,3,dims,dum3int,inputs.Efield.Field,'r');
 		h5error = H5Fclose(file_id); // file
 
 		if ( ( comment_operation == 1 ) && ( Nsim < 20 ) ){printf("Proc %i finished read of job %i \n",myrank, Nsim);}

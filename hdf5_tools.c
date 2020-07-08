@@ -1,5 +1,6 @@
 #include<time.h> 
 #include<stdio.h>
+#include<string.h>
 #include <mpi.h>
 #include<stdlib.h>
 #include<malloc.h>
@@ -8,7 +9,7 @@
 #include "mpi.h"
 
 
-void readreal_fullhyperslab_nd_h5(hid_t file_id, char *dset_name, herr_t *h5error, int ndims, hsize_t *dimensions, int *selection, double *array1D) // This function reads full line from an n-D array, the selected dimension is given by (-1), the rest of selection is the offset
+void rw_real_fullhyperslab_nd_h5(hid_t file_id, char *dset_name, herr_t *h5error, int ndims, hsize_t *dimensions, int *selection, double *array1D, char *rw) // This function reads full line from an n-D array, the selected dimension is given by (-1), the rest of selection is the offset
 { 
   int k1;
   hid_t memspace_id;
@@ -31,7 +32,14 @@ void readreal_fullhyperslab_nd_h5(hid_t file_id, char *dset_name, herr_t *h5erro
   hid_t dspace_id = H5Dget_space (dset_id);
   hid_t datatype  = H5Dget_type(dset_id);
   *h5error = H5Sselect_hyperslab (dspace_id, H5S_SELECT_SET, offset, stride, count, block); // operation with only a part of the array = hyperslab	
-  *h5error = H5Dread (dset_id, datatype, memspace_id, dspace_id, H5P_DEFAULT, array1D); // read only the hyperslab
+  if (strcmp(rw,'r')){
+    *h5error = H5Dread (dset_id, datatype, memspace_id, dspace_id, H5P_DEFAULT, array1D); // read only the hyperslab
+  } else if (){
+    *h5error = H5Dwrite (dset_id, datatype, memspace_id, dspace_id, H5P_DEFAULT, array1D); // write the data
+  } else {
+    printf("wrongly sepcified r/w: nothing done\n"); 
+  }
+  
   *h5error = H5Dclose(dset_id); // dataset
   *h5error = H5Sclose(dspace_id); // dataspace
   *h5error = H5Sclose(memspace_id); // dataspace
