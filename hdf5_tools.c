@@ -22,7 +22,7 @@ void rw_real_fullhyperslab_nd_h5(hid_t file_id, char *dset_name, herr_t *h5error
       offset[k1] = 0;
       count[k1] = dimensions[k1];
       field_dims[0] = dimensions[k1]; // a way to specify the length of the array for HDF5	
-      memspace_id = H5Screate_simple(1,field_dims,NULL); // this memspace correspond to one Field/SourceTerm hyperslab, we will keep it accross the code
+      memspace_id = H5Screate_simple(1,field_dims,NULL);
     }else{
       offset[k1] = selection[k1];
       count[k1] = 1;
