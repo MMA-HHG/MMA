@@ -8,7 +8,7 @@
 #include "mpi.h"
 
 
-void readreal_fullhyperslab_3d_h5(hid_t file_id, char *dset_name, herr_t *h5error, int ndims, hsize_t *dimensions, int *selection, double *array1D) // This function reads full line from an n-D array, the selected dimension is given by (-1), the rest of selection is the offset
+void readreal_fullhyperslab_nd_h5(hid_t file_id, char *dset_name, herr_t *h5error, int ndims, hsize_t *dimensions, int *selection, double *array1D) // This function reads full line from an n-D array, the selected dimension is given by (-1), the rest of selection is the offset
 { 
   int k1;
   hid_t memspace_id;

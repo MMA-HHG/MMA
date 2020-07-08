@@ -94,6 +94,7 @@ int main(int argc, char *argv[])
 	hsize_t field_dims[1]; field_dims[0] = dims[0]; // a way to specify the length of the array for HDF5	
 	hid_t memspace_id = H5Screate_simple(1,field_dims,NULL); // this memspace correspond to one Field/SourceTerm hyperslab, we will keep it accross the code
 	double Fields[dims[0]], SourceTerms[dims[0]]; // Here we store the field and computed Source Term for every case
+	inputs.Efield.Field = malloc(((int)dims[0])*sizeof(double));
 
 	// some shared placements in global array already known, find the others during the calculation
 	offset[0] = 0;  
@@ -211,6 +212,7 @@ int main(int argc, char *argv[])
 		// prepare the part in the arrray to r/w
 		offset[1] = kr; offset[2] = kz; 
 		count[0] = dim_t; // for read
+		dum3int[0]=-1; dum3int[1]=kr; dum3int[2]=kz; // set offset as inputs for hdf5-procedures
 
 		// read the HDF5 file
 
@@ -218,14 +220,7 @@ int main(int argc, char *argv[])
 		if ( ( comment_operation == 1 ) && ( Nsim < 20 ) ){printf("Proc %i will read from (kr,kz)=(%i,%i), job %i \n",myrank,kr,kz,Nsim);}
 
 		file_id = H5Fopen ("results.h5", H5F_ACC_RDONLY, H5P_DEFAULT); // same as shown
-		dset_id = H5Dopen2 (file_id, "IRProp/Fields_rzt", H5P_DEFAULT); 
-		dspace_id = H5Dget_space (dset_id);
-
-		h5error = H5Sselect_hyperslab (dspace_id, H5S_SELECT_SET, offset, stride, count, block); // operation with only a part of the array = hyperslab
-		h5error = H5Dread (dset_id, datatype, memspace_id, dspace_id, H5P_DEFAULT, Fields); // read only the hyperslab
-
-		h5error = H5Dclose(dset_id); // dataset
-		h5error = H5Sclose(dspace_id); // dataspace
+		readreal_fullhyperslab_nd_h5(file_id,"IRProp/Fields_rzt",&h5error,3,dims,dum3int,inputs.Efield.Field);
 		h5error = H5Fclose(file_id); // file
 
 		if ( ( comment_operation == 1 ) && ( Nsim < 20 ) ){printf("Proc %i finished read of job %i \n",myrank, Nsim);}
@@ -237,7 +232,7 @@ int main(int argc, char *argv[])
 		// THE TASK IS DONE HERE, we can call 1D/3D TDSE, etc. here
 		// for (k1 = 0; k1 < inputs.Efield.Nt; k1++){SourceTerms[k1]=2.0*Fields[k1];}; // just 2-multiplication
    
-		inputs.Efield.Field = Fields;
+		//inputs.Efield.Field = Fields;
    
     		finish3_main = clock();
 		outputs = call1DTDSE(inputs); // THE TDSE
