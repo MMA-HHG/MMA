@@ -23,7 +23,10 @@ clock_t start_main, finish2_main, finish1_main, finish3_main, finish4_main;
 
 int main(int argc, char *argv[]) 
 {
-	// vars:
+	///////////////
+	// VARIABLES //
+	///////////////
+
 	// dummy
 	int dum3int[3];
 	hsize_t * dims; int ndims; hid_t datatype;
@@ -31,6 +34,10 @@ int main(int argc, char *argv[])
 	int Nsim, kr, kz; // counter of simulations, indices in the Field array
 
 	int comment_operation = 1;
+
+	////////////////////////
+	// PREPARATION PAHASE //
+	////////////////////////	
 
 	// Initialise MPI
 	int myrank, nprocs;
@@ -40,10 +47,6 @@ int main(int argc, char *argv[])
 	MPI_Comm_size(MPI_COMM_WORLD,&nprocs);
 	MPI_Comm_rank(MPI_COMM_WORLD,&myrank);
 	if (comment_operation == 1 ){printf("Proc %i started the program\n",myrank);}
-
-	////////////////////////
-	// PREPARATION PAHASE //
-	////////////////////////	
 
 	// READ DATA
 	/* to check if exists use printf("link exists 1: %i\n",H5Lexists(file_id, "IRProp/lambda", H5P_DEFAULT)); */
@@ -96,21 +99,14 @@ int main(int argc, char *argv[])
 	double Fields[dims[0]], SourceTerms[dims[0]]; // Here we store the field and computed Source Term for every case
 	inputs.Efield.Field = malloc(((int)dims[0])*sizeof(double));
 
-	// some shared placements in global array already known, find the others during the calculation
-	offset[0] = 0;  
-	stride[0] = 1; stride[1] = 1; stride[2] = 1;
-	               count[1] = 1;  count[2] = 1; // takes all t
-	block[0] = 1;  block[1] = 1;  block[2] = 1;
-
 	// Prepare the ground state
+
 	// Initialise vectors and Matrix 
 	// Initialise_GS(inputs.num_r);
 	
 	//normalise(psi0,inputs.num_r); // Initialise psi0 for Einitialise
-	//normalise(psiexc,inputs.num_r);
 
 	double CV = 1E-20; // CV criteria
-
 	/* This number has to be small enough to assure a good convregence of the wavefunction
 	if it is not the case, then the saclar product of the the ground state and the excited states 
 	is not quite 0 and those excited appears in the energy analysis of the gorund states, so the propagation !!
@@ -120,18 +116,13 @@ int main(int argc, char *argv[])
 	printf("Calculation of the energy of the ground sate ; Eguess : %f\n",inputs.Eguess);
 	int size = 2*(inputs.num_r+1);
 	double *off_diagonal, *diagonal, *x, *psiexc;
-	double Einit = 0.0, Einit2 = 0.0;
+	double Einit = 0.0;
 	inputs.psi0 = calloc(size,sizeof(double));
-	psiexc = calloc(size,sizeof(double));
-	for(k1=0;k1<=inputs.num_r;k1++){inputs.psi0[2*k1] = 1.0; inputs.psi0[2*k1+1] = 0.; psiexc[2*k1] = 1; psiexc[2*k1+1] = 0.;}
-	printf("binit\n");
+	for(k1=0;k1<=inputs.num_r;k1++){inputs.psi0[2*k1] = 1.0; inputs.psi0[2*k1+1] = 0.;}
 	Initialise_grid_and_D2(inputs.dx, inputs.num_r, &inputs.x, &diagonal, &off_diagonal); // !!!! dx has to be small enough, it doesn't converge otherwise
-	printf("bEinit\n");
-	Einit = Einitialise(inputs.trg,inputs.psi0,off_diagonal,diagonal,off_diagonal,inputs.x,inputs.Eguess,CV,inputs.num_r);
-	//for(i=0;i<=inputs.num_r;i++) {fprintf(eingenvectorf,"%f\t%e\t%e\n",x[i],psi0[2*i],psi0[2*i+1]); fprintf(pot,"%f\t%e\n",x[i],potential(x[i],trg));}
+	Einit = Einitialise(inputs.trg,inputs.psi0,off_diagonal,diagonal,off_diagonal,inputs.x,inputs.Eguess,CV,inputs.num_r); // originally, some possibility to have also excited state
 
 	printf("Initial energy is : %1.12f\n",Einit);
-	printf("first excited energy is : %1.12f\n",Einit2);
 	
 
 	//////////////////////////
@@ -153,45 +144,28 @@ int main(int argc, char *argv[])
 	printf("Proc %i abarier \n",myrank);
 	if ( myrank == 0 ){
 		kr = Nsim % dim_r; kz = Nsim - kr;  kz = kz / dim_r; // compute offsets in each dimension
-		dum3int[0]=-1; dum3int[1]=kr; dum3int[2]=kz; // set offset as inputs for hdf5-procedures
+		
+		dum3int[0]=-1; dum3int[1]=kr; dum3int[2]=kz; // specify the access to hyperslab for r/w
+		dims[0] = dim_t;
 	
 		file_id = H5Fopen ("results.h5", H5F_ACC_RDONLY, H5P_DEFAULT); // same as shown
 		rw_real_fullhyperslab_nd_h5(file_id,"IRProp/Fields_rzt",&h5error,3,dims,dum3int,inputs.Efield.Field,"r");
-		h5error = H5Fclose(file_id); // file
-
-		//inputs.Efield.Field = Fields;
+		h5error = H5Fclose(file_id); 
 
 		printf("0: bcall \n"); printf("field[0]= %e \n",inputs.Efield.Field[0]);
-
-
 		outputs = call1DTDSE(inputs); // THE TDSE
 		printf("0: acall \n");
 		printf("0: sourceterm out: %e, %e \n",outputs.sourceterm[0],outputs.sourceterm[1]);
 		offset[1] = kr; offset[2] = kz;
-		dims[0] = outputs.Nt; // length obtained from TDSE used to the output dataset
-		count[0] = outputs.Nt; // length obtained from TDSE
 
-		file_id = H5Fopen ("results2.h5", H5F_ACC_RDWR, H5P_DEFAULT); // we use a different output file to testing, can be changed to have only one file
-		dataspace_id = H5Screate_simple(ndims, dims, NULL); // create dataspace for outputs
-		dataset_id = H5Dcreate2(file_id, "/SourceTerms", datatype, dataspace_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT); // create dataset
+		// prepare the dataset(s) for outputs
 
-		h5error = H5Sselect_hyperslab(dataspace_id, H5S_SELECT_SET, offset, stride, count, block); // again the same hyperslab as for reading
-
-		double SourceTerm2[dims[0]];
-		for(k1 = 0 ; k1 <= dims[0]; k1++){SourceTerm2[k1] = outputs.sourceterm[k1];}
-
-		printf("0: nxt sourceterm: %e, %e \n",SourceTerm2[0],SourceTerm2[1]);
-
-		hsize_t field_dims2[1]; field_dims2[0] = (hsize_t)outputs.Nt;
-
-		hid_t memspace_id2 = H5Screate_simple(1,field_dims2,NULL); // this memspace correspond to one Field/SourceTerm hyperslab, we will keep it accross the code
-
-		h5error = H5Dwrite(dataset_id,datatype,memspace_id2,dataspace_id,H5P_DEFAULT,SourceTerm2); // write the data
-
-		// close it
-		h5error = H5Dclose(dataset_id); // dataset
-		h5error = H5Sclose(dataspace_id); // dataspace
-		h5error = H5Fclose(file_id); // file
+		dims[0] = outputs.Nt; // length defined by outputs
+		file_id = H5Fopen ("results2.h5", H5F_ACC_RDWR, H5P_DEFAULT);
+		dataspace_id = H5Screate_simple(ndims, dims, NULL); // dataspace for outputs
+		dataset_id = H5Dcreate2(file_id, "/SourceTerms", datatype, dataspace_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+		rw_real_fullhyperslab_nd_h5(file_id,"/SourceTerms",&h5error,3,dims,dum3int,outputs.Efield,"w");
+		h5error = H5Fclose(file_id);
 
 		MPE_Mutex_release(mc_win, 1, MPE_MC_KEYVAL);
 	}
@@ -208,52 +182,29 @@ int main(int argc, char *argv[])
 
 	do { // run till queue is not treated
 		kr = Nsim % dim_r; kz = Nsim - kr;  kz = kz / dim_r; // compute offsets in each dimension
-
-		// prepare the part in the arrray to r/w
-		offset[1] = kr; offset[2] = kz; 
-		count[0] = dim_t; // for read
-		dum3int[0]=-1; dum3int[1]=kr; dum3int[2]=kz; // set offset as inputs for hdf5-procedures
+		
+		dum3int[0]=-1; dum3int[1]=kr; dum3int[2]=kz; // specify the access to hyperslab for r/w
 		dims[0] = dim_t;
 
-		// read the HDF5 file
-
+		// read the fields
 		// MPE_Mutex_acquire(mc_win, 1, MPE_MC_KEYVAL); // We now use different input and output file, input is for read-only, this mutex is here in the case we have only one file for I/O.
-		if ( ( comment_operation == 1 ) && ( Nsim < 20 ) ){printf("Proc %i will read from (kr,kz)=(%i,%i), job %i \n",myrank,kr,kz,Nsim);}
 
-		file_id = H5Fopen ("results.h5", H5F_ACC_RDONLY, H5P_DEFAULT); // same as shown
+		file_id = H5Fopen ("results.h5", H5F_ACC_RDONLY, H5P_DEFAULT);
 		rw_real_fullhyperslab_nd_h5(file_id,"IRProp/Fields_rzt",&h5error,3,dims,dum3int,inputs.Efield.Field,"r");
-		h5error = H5Fclose(file_id); // file
-
-		if ( ( comment_operation == 1 ) && ( Nsim < 20 ) ){printf("Proc %i finished read of job %i \n",myrank, Nsim);}
-		if ( ( comment_operation == 1 ) && ( Nsim < 20 ) ){printf("Proc %i, job %i, field[0] = %e \n",myrank, Nsim,Fields[0]);}
-		// MPE_Mutex_release(mc_win, 1, MPE_MC_KEYVAL);
-
-		if ( ( comment_operation == 1 ) && ( Nsim < 20 ) ){printf("Proc %i doing the job %i \n",myrank,Nsim);}
-
-		// THE TASK IS DONE HERE, we can call 1D/3D TDSE, etc. here
-		// for (k1 = 0; k1 < inputs.Efield.Nt; k1++){SourceTerms[k1]=2.0*Fields[k1];}; // just 2-multiplication
+		h5error = H5Fclose(file_id);
    
-		//inputs.Efield.Field = Fields;
-   
-    		finish3_main = clock();
-		outputs = call1DTDSE(inputs); // THE TDSE
-   
-   
-		if ( ( comment_operation == 1 ) && ( Nsim < 20 ) ){printf("Proc %i finished TDSE job %i \n",myrank,Nsim);}
-		printf("address2 %p \n",outputs.Efield);
-		if ( ( comment_operation == 1 ) && ( Nsim < 20 ) ){printf("%e \n",outputs.Efield[0]);}
-		if ( ( comment_operation == 1 ) && ( Nsim < 20 ) ){printf("Proc %i, job %i some outputs are: %e, %e, %e \n",myrank,Nsim, outputs.tgrid[0], outputs.Efield[0], outputs.sourceterm[0]);}
-		// for (k1 = 0; k1 < inputs.Efield.Nt; k1++){SourceTerms[k1]=outputs.sourceterm[k1];}; // assign results
-    		if ( ( comment_operation == 1 ) && ( Nsim < 20 ) ){printf("Proc %i finished TDSE job %i \n",myrank,Nsim);}
-		
-		// print the output in the file
+		// do the calculation
+    	finish3_main = clock();
+		outputs = call1DTDSE(inputs);
 		finish1_main = clock();
     
-		MPE_Mutex_acquire(mc_win, 1, MPE_MC_KEYVAL); // mutex is acquired
+		// write results
+		MPE_Mutex_acquire(mc_win, 1, MPE_MC_KEYVAL);
 
 		finish2_main = clock();
 		if ( ( comment_operation == 1 ) && ( Nsim < 20 ) ){
 			printf("Proc %i will write in the hyperslab (kr,kz)=(%i,%i), job %i \n",myrank,kr,kz,Nsim);
+			printf("Proc %i, (Efield[0],out[0],out[1])=(%e,%e,%e), job %i \n",myrank,inputs.Efield.Field[0],outputs.Efield[0],outputs.Efield[1],Nsim);
 			printf("Proc %i, returned mutex last time  : %f sec\n",myrank,(double)(finish4_main - start_main) / CLOCKS_PER_SEC);
 			printf("Proc %i, before job started        : %f sec\n",myrank,(double)(finish3_main - start_main) / CLOCKS_PER_SEC);
 			printf("Proc %i, clock the umnutexed value : %f sec\n",myrank,(double)(finish1_main - start_main) / CLOCKS_PER_SEC);
@@ -261,24 +212,16 @@ int main(int argc, char *argv[])
 			printf("first element to write: %e \n",outputs.Efield[0]);
 			fflush(NULL); // force write
     	}
-    
 
-		file_id = H5Fopen ("results2.h5", H5F_ACC_RDWR, H5P_DEFAULT); // open file
-		dims[0] = outputs.Nt;
+
+		file_id = H5Fopen ("results2.h5", H5F_ACC_RDWR, H5P_DEFAULT);
+		dims[0] = outputs.Nt; // other dimensions are the same
 		rw_real_fullhyperslab_nd_h5(file_id,"/SourceTerms",&h5error,3,dims,dum3int,outputs.Efield,"w");
-		// dset_id = H5Dopen2 (file_id, "/SourceTerms", H5P_DEFAULT); // open dataset
-		// filespace = H5Dget_space (dset_id); // Get the dataspace ID   
-		// h5error = H5Sselect_hyperslab(filespace, H5S_SELECT_SET, offset, stride, count, block); // again the same hyperslab as for reading
-
-		// h5error = H5Dwrite(dset_id,datatype,memspace_id,filespace,H5P_DEFAULT,outputs.Efield); // write the data
-
-		// // close
-		// h5error = H5Dclose(dset_id); // dataset
-		// h5error = H5Sclose(filespace); // dataspace
-		h5error = H5Fclose(file_id); // file
+		h5error = H5Fclose(file_id); 
 
 		MPE_Mutex_release(mc_win, 1, MPE_MC_KEYVAL);
     	finish4_main = clock();
+
 		// outputs_destructor(outputs); // free memory
 		MPE_Counter_nxtval(mc_win, 0, &Nsim, MPE_MC_KEYVAL); // get my next task
 	} while (Nsim < Ntot);
