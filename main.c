@@ -31,6 +31,7 @@ int main(int argc, char *argv[])
 	int Nsim, kr, kz; // counter of simulations, indices in the Field array
 
 	int comment_operation = 1;
+	double t_mpi[5];
 
 	// Initialise MPI
 	int myrank, nprocs;
@@ -96,18 +97,12 @@ int main(int argc, char *argv[])
 	double Fields[dims[0]], SourceTerms[dims[0]]; // Here we store the field and computed Source Term for every case
 	inputs.Efield.Field = malloc(((int)dims[0])*sizeof(double));
 
-	// some shared placements in global array already known, find the others during the calculation
-	offset[0] = 0;  
-	stride[0] = 1; stride[1] = 1; stride[2] = 1;
-	               count[1] = 1;  count[2] = 1; // takes all t
-	block[0] = 1;  block[1] = 1;  block[2] = 1;
-
 	// Prepare the ground state
+
 	// Initialise vectors and Matrix 
 	// Initialise_GS(inputs.num_r);
 	
 	//normalise(psi0,inputs.num_r); // Initialise psi0 for Einitialise
-	//normalise(psiexc,inputs.num_r);
 
 	double CV = 1E-20; // CV criteria
 
@@ -119,19 +114,14 @@ int main(int argc, char *argv[])
 	
 	printf("Calculation of the energy of the ground sate ; Eguess : %f\n",inputs.Eguess);
 	int size = 2*(inputs.num_r+1);
-	double *off_diagonal, *diagonal, *x, *psiexc;
-	double Einit = 0.0, Einit2 = 0.0;
+	double *off_diagonal, *diagonal, *x;
+	double Einit = 0.0;
 	inputs.psi0 = calloc(size,sizeof(double));
-	psiexc = calloc(size,sizeof(double));
-	for(k1=0;k1<=inputs.num_r;k1++){inputs.psi0[2*k1] = 1.0; inputs.psi0[2*k1+1] = 0.; psiexc[2*k1] = 1; psiexc[2*k1+1] = 0.;}
-	printf("binit\n");
+	for(k1=0;k1<=inputs.num_r;k1++){inputs.psi0[2*k1] = 1.0; inputs.psi0[2*k1+1] = 0.;}
 	Initialise_grid_and_D2(inputs.dx, inputs.num_r, &inputs.x, &diagonal, &off_diagonal); // !!!! dx has to be small enough, it doesn't converge otherwise
-	printf("bEinit\n");
-	Einit = Einitialise(inputs.trg,inputs.psi0,off_diagonal,diagonal,off_diagonal,inputs.x,inputs.Eguess,CV,inputs.num_r);
-	//for(i=0;i<=inputs.num_r;i++) {fprintf(eingenvectorf,"%f\t%e\t%e\n",x[i],psi0[2*i],psi0[2*i+1]); fprintf(pot,"%f\t%e\n",x[i],potential(x[i],trg));}
+	Einit = Einitialise(inputs.trg,inputs.psi0,off_diagonal,diagonal,off_diagonal,inputs.x,inputs.Eguess,CV,inputs.num_r); // originally, some possibility to have also excited state
 
 	printf("Initial energy is : %1.12f\n",Einit);
-	printf("first excited energy is : %1.12f\n",Einit2);
 	
 
 	//////////////////////////
@@ -157,39 +147,22 @@ int main(int argc, char *argv[])
 	
 		file_id = H5Fopen ("results.h5", H5F_ACC_RDONLY, H5P_DEFAULT); // same as shown
 		rw_real_fullhyperslab_nd_h5(file_id,"IRProp/Fields_rzt",&h5error,3,dims,dum3int,inputs.Efield.Field,"r");
-		h5error = H5Fclose(file_id); // file
-
-		//inputs.Efield.Field = Fields;
+		h5error = H5Fclose(file_id);
 
 		printf("0: bcall \n"); printf("field[0]= %e \n",inputs.Efield.Field[0]);
-
-
 		outputs = call1DTDSE(inputs); // THE TDSE
 		printf("0: acall \n");
 		printf("0: sourceterm out: %e, %e \n",outputs.sourceterm[0],outputs.sourceterm[1]);
 		offset[1] = kr; offset[2] = kz;
-		dims[0] = outputs.Nt; // length obtained from TDSE used to the output dataset
-		count[0] = outputs.Nt; // length obtained from TDSE
 
+		// prepare the dataset(s) for outputs
+
+		dims[0] = outputs.Nt; // length defined by outputs
 		file_id = H5Fopen ("results2.h5", H5F_ACC_RDWR, H5P_DEFAULT); // we use a different output file to testing, can be changed to have only one file
 		dataspace_id = H5Screate_simple(ndims, dims, NULL); // create dataspace for outputs
 		dataset_id = H5Dcreate2(file_id, "/SourceTerms", datatype, dataspace_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT); // create dataset
 		h5error = H5Sclose(dataspace_id);
 		h5error = H5Dclose(dataset_id);
-
-		//h5error = H5Sselect_hyperslab(dataspace_id, H5S_SELECT_SET, offset, stride, count, block); // again the same hyperslab as for reading
-
-		//double SourceTerm2[dims[0]];
-		//for(k1 = 0 ; k1 <= dims[0]; k1++){SourceTerm2[k1] = outputs.sourceterm[k1];}
-
-		//printf("0: nxt sourceterm: %e, %e \n",SourceTerm2[0],SourceTerm2[1]);
-
-		//hsize_t field_dims2[1]; field_dims2[0] = (hsize_t)outputs.Nt;
-
-		//hid_t memspace_id2 = H5Screate_simple(1,field_dims2,NULL); // this memspace correspond to one Field/SourceTerm hyperslab, we will keep it accross the code
-
-		//h5error = H5Dwrite(dataset_id,datatype,memspace_id2,dataspace_id,H5P_DEFAULT,SourceTerm2); // write the data
-
 		rw_real_fullhyperslab_nd_h5(file_id,"/SourceTerms",&h5error,3,dims,dum3int,outputs.Efield,"w");
 		h5error = H5Fclose(file_id); // file
 
@@ -199,8 +172,8 @@ int main(int argc, char *argv[])
 	// first process prepare file based on the first simulation
 	// first process release mutex
  
-	start_main = clock(); // the clock
-	finish4_main = clock();
+	t_mpi[0] = MPI_Wtime();	start_main = clock(); // the clock
+	t_mpi[4] = MPI_Wtime();	finish4_main = clock();
 		
 
 	// we now process the MPI queue
@@ -221,22 +194,25 @@ int main(int argc, char *argv[])
 		h5error = H5Fclose(file_id); // file
 		// MPE_Mutex_release(mc_win, 1, MPE_MC_KEYVAL);
 
-    		finish3_main = clock();
+    	t_mpi[3] = MPI_Wtime(); finish3_main = clock();
 		outputs = call1DTDSE(inputs); // THE TDSE  
- 
-		
-		// print the output in the file
-		finish1_main = clock();
-    
+		t_mpi[1] = MPI_Wtime(); finish1_main = clock();
+
+		// write results
 		MPE_Mutex_acquire(mc_win, 1, MPE_MC_KEYVAL); // mutex is acquired
 
-		finish2_main = clock();
+		t_mpi[2] = MPI_Wtime(); finish2_main = clock();
 		if ( ( comment_operation == 1 ) && ( Nsim < 20 ) ){
 			printf("Proc %i will write in the hyperslab (kr,kz)=(%i,%i), job %i \n",myrank,kr,kz,Nsim);
 			printf("Proc %i, returned mutex last time  : %f sec\n",myrank,(double)(finish4_main - start_main) / CLOCKS_PER_SEC);
 			printf("Proc %i, before job started        : %f sec\n",myrank,(double)(finish3_main - start_main) / CLOCKS_PER_SEC);
 			printf("Proc %i, clock the umnutexed value : %f sec\n",myrank,(double)(finish1_main - start_main) / CLOCKS_PER_SEC);
 			printf("Proc %i, clock in the mutex block  : %f sec\n",myrank,(double)(finish2_main - start_main) / CLOCKS_PER_SEC);
+			printf("MPI clocks \n");
+			printf("Proc %i, returned mutex last time  : %f sec\n",myrank,t_mpi[4]-t_mpi[0]);
+			printf("Proc %i, before job started        : %f sec\n",myrank,t_mpi[3]-t_mpi[0]);
+			printf("Proc %i, clock the umnutexed value : %f sec\n",myrank,t_mpi[1]-t_mpi[0]);
+			printf("Proc %i, clock in the mutex block  : %f sec\n",myrank,t_mpi[2]-t_mpi[0]);
 			printf("first element to write: %e \n",outputs.Efield[0]);
 			fflush(NULL); // force write
     	}
@@ -248,7 +224,8 @@ int main(int argc, char *argv[])
 		h5error = H5Fclose(file_id); // file
 
 		MPE_Mutex_release(mc_win, 1, MPE_MC_KEYVAL);
-    	finish4_main = clock();
+    	t_mpi[4] = MPI_Wtime(); finish4_main = clock();
+		
 		// outputs_destructor(outputs); // free memory
 		MPE_Counter_nxtval(mc_win, 0, &Nsim, MPE_MC_KEYVAL); // get my next task
 	} while (Nsim < Ntot);
