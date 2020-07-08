@@ -44,7 +44,8 @@ For reading, it should be easy. ** R/W may occur simultaneously in in the MPI lo
 https://support.hdfgroup.org/HDF5/Tutor/selectsimple.html
 
 2) Actual construction does some prparations within 1 TDSE simulation, it is desirable to separate preparations and core propagation, it's then more versatile for the MPI-calling.
-2.solution) pass all by reference and pre-allocate all necessary in main.
+2.solution) separate all preparatory work from singleTDSE into one procedure, called pecedently the calculations, the "pure" propagation then wites into its template.
+2.develop) keep in mind that this approach may not be possible every time and one run has to be done before alligning it... Try to code it clever way.
 
 3) The code is inconsistent. SOme outputs from the first version are listed as independent variables and not encapsulated in structures. Fix it.
 

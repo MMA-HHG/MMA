@@ -152,25 +152,15 @@ int main(int argc, char *argv[])
 	printf("Proc %i abarier \n",myrank);
 	if ( myrank == 0 ){
 		kr = Nsim % dim_r; kz = Nsim - kr;  kz = kz / dim_r; // compute offsets in each dimension
-		// offset[1] = kr; offset[2] = kz;
-		// count[0] = dim_t; // for read
+		dum3int[0]=-1; dum3int[1]=kr; dum3int[2]=kz; // set offset as inputs for hdf5-procedures
 	
 		file_id = H5Fopen ("results.h5", H5F_ACC_RDONLY, H5P_DEFAULT); // same as shown
-		// dset_id = H5Dopen2 (file_id, "IRProp/Fields_rzt", H5P_DEFAULT); 
-		// dspace_id = H5Dget_space (dset_id);
-
-		// h5error = H5Sselect_hyperslab (dspace_id, H5S_SELECT_SET, offset, stride, count, block); // operation with only a part of the array = hyperslab		
-		// h5error = H5Dread (dset_id, datatype, memspace_id, dspace_id, H5P_DEFAULT, Fields); // read only the hyperslab
-
-		// h5error = H5Dclose(dset_id); // dataset
-		// h5error = H5Sclose(dspace_id); // dataspace
-		dum3int[0]=-1; dum3int[1]=kr; dum3int[2]=kz;
-		readreal_fullhyperslab_3d_h5(file_id,"IRProp/Fields_rzt",&h5error,dims,dum3int,Fields);
+		readreal_fullhyperslab_nd_h5(file_id,"IRProp/Fields_rzt",&h5error,3,dims,dum3int,inputs.Efield.Field);
 		h5error = H5Fclose(file_id); // file
 
-		inputs.Efield.Field = Fields;
+		//inputs.Efield.Field = Fields;
 
-		printf("0: bcall \n"); printf("field[0]= %e \n",Fields[0]);
+		printf("0: bcall \n"); printf("field[0]= %e \n",inputs.Efield.Field[0]);
 
 
 		outputs = call1DTDSE(inputs); // THE TDSE
