@@ -19,7 +19,6 @@ int k1, k2, k3;
 
 
 clock_t start_main, finish2_main, finish1_main, finish3_main, finish4_main;
-double * t_mpi;
 
 
 int main(int argc, char *argv[]) 
@@ -35,7 +34,6 @@ int main(int argc, char *argv[])
 	int Nsim, kr, kz; // counter of simulations, indices in the Field array
 
 	int comment_operation = 1;
-	t_mpi = calloc(5,sizeof(double));
 
 	////////////////////////
 	// PREPARATION PAHASE //
@@ -174,9 +172,9 @@ int main(int argc, char *argv[])
 	
 	// first process prepare file based on the first simulation
 	// first process release mutex
-	
-	t_mpi[0] = MPI_Wtime(); start_main = clock(); // the clock
-	t_mpi[4] = MPI_Wtime(); finish4_main = clock();
+ 
+	start_main = clock(); // the clock
+	finish4_main = clock();
 		
 
 	// we now process the MPI queue
@@ -196,9 +194,9 @@ int main(int argc, char *argv[])
 		h5error = H5Fclose(file_id);
    
 		// do the calculation
-    	t_mpi[3] = MPI_Wtime(); finish3_main = clock();
+    	finish3_main = clock();
 		outputs = call1DTDSE(inputs);
-		t_mpi[1] = MPI_Wtime(); finish1_main = clock();
+		finish1_main = clock();
     
 		// write results
 		MPE_Mutex_acquire(mc_win, 1, MPE_MC_KEYVAL);
@@ -211,11 +209,6 @@ int main(int argc, char *argv[])
 			printf("Proc %i, before job started        : %f sec\n",myrank,(double)(finish3_main - start_main) / CLOCKS_PER_SEC);
 			printf("Proc %i, clock the umnutexed value : %f sec\n",myrank,(double)(finish1_main - start_main) / CLOCKS_PER_SEC);
 			printf("Proc %i, clock in the mutex block  : %f sec\n",myrank,(double)(finish2_main - start_main) / CLOCKS_PER_SEC);
-			printf("MPI clocks \n");
-			printf("Proc %i, returned mutex last time  : %f sec\n",myrank,t_mpi[4]-t_mpi[0]);
-			printf("Proc %i, before job started        : %f sec\n",myrank,t_mpi[3]-t_mpi[0]);
-			printf("Proc %i, clock the umnutexed value : %f sec\n",myrank,t_mpi[1]-t_mpi[0]);
-			printf("Proc %i, clock in the mutex block  : %f sec\n",myrank,t_mpi[2]-t_mpi[0]);
 			printf("first element to write: %e \n",outputs.Efield[0]);
 			fflush(NULL); // force write
     	}
@@ -227,7 +220,7 @@ int main(int argc, char *argv[])
 		h5error = H5Fclose(file_id); 
 
 		MPE_Mutex_release(mc_win, 1, MPE_MC_KEYVAL);
-    	t_mpi[4] = MPI_Wtime(); finish4_main = clock();
+    	finish4_main = clock();
 
 		// outputs_destructor(outputs); // free memory
 		MPE_Counter_nxtval(mc_win, 0, &Nsim, MPE_MC_KEYVAL); // get my next task
