@@ -264,15 +264,17 @@ int main(int argc, char *argv[])
     
 
 		file_id = H5Fopen ("results2.h5", H5F_ACC_RDWR, H5P_DEFAULT); // open file
-		dset_id = H5Dopen2 (file_id, "/SourceTerms", H5P_DEFAULT); // open dataset
-		filespace = H5Dget_space (dset_id); // Get the dataspace ID   
-		h5error = H5Sselect_hyperslab(filespace, H5S_SELECT_SET, offset, stride, count, block); // again the same hyperslab as for reading
+		dims[0] = outputs.Nt;
+		rw_real_fullhyperslab_nd_h5(file_id,"IRProp/Fields_rzt",&h5error,3,dims,dum3int,inputs.Efield.Field,"w");
+		// dset_id = H5Dopen2 (file_id, "/SourceTerms", H5P_DEFAULT); // open dataset
+		// filespace = H5Dget_space (dset_id); // Get the dataspace ID   
+		// h5error = H5Sselect_hyperslab(filespace, H5S_SELECT_SET, offset, stride, count, block); // again the same hyperslab as for reading
 
-		h5error = H5Dwrite(dset_id,datatype,memspace_id,filespace,H5P_DEFAULT,outputs.Efield); // write the data
+		// h5error = H5Dwrite(dset_id,datatype,memspace_id,filespace,H5P_DEFAULT,outputs.Efield); // write the data
 
-		// close
-		h5error = H5Dclose(dset_id); // dataset
-		h5error = H5Sclose(filespace); // dataspace
+		// // close
+		// h5error = H5Dclose(dset_id); // dataset
+		// h5error = H5Sclose(filespace); // dataspace
 		h5error = H5Fclose(file_id); // file
 
 		MPE_Mutex_release(mc_win, 1, MPE_MC_KEYVAL);
