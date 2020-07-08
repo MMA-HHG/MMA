@@ -32,9 +32,9 @@ void rw_real_fullhyperslab_nd_h5(hid_t file_id, char *dset_name, herr_t *h5error
   hid_t dspace_id = H5Dget_space (dset_id);
   hid_t datatype  = H5Dget_type(dset_id);
   *h5error = H5Sselect_hyperslab (dspace_id, H5S_SELECT_SET, offset, stride, count, block); // operation with only a part of the array = hyperslab	
-  if (strcmp(rw,'r')){
+  if (strcmp(rw,"r")==0){
     *h5error = H5Dread (dset_id, datatype, memspace_id, dspace_id, H5P_DEFAULT, array1D); // read only the hyperslab
-  } else if (){
+  } else if (strcmp(rw,"w")==0){
     *h5error = H5Dwrite (dset_id, datatype, memspace_id, dspace_id, H5P_DEFAULT, array1D); // write the data
   } else {
     printf("wrongly sepcified r/w: nothing done\n"); 
