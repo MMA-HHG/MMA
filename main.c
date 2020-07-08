@@ -26,6 +26,7 @@ int main(int argc, char *argv[])
 	// vars:
 	// dummy
 	int dum3int[3];
+	hsize_t * dims; int ndims; hid_t datatype;
 	// Processing the queue
 	int Nsim, kr, kz; // counter of simulations, indices in the Field array
 
@@ -80,7 +81,6 @@ int main(int argc, char *argv[])
 	for(k1 = 0 ; k1 < inputs.Efield.Nt; k1++){inputs.Efield.tgrid[k1] = inputs.Efield.tgrid[k1]*1e15*41.34144728;}
 
 	// dimension of the 3D array containing all the inputs
-	hsize_t * dims; int ndims; hid_t datatype;
 	dims = get_dimensions_h5(file_id, "IRProp/Fields_rzt", &h5error, &ndims, &datatype);
 	hsize_t dim_t = dims[0], dim_r = dims[1], dim_z = dims[2]; // label the dims by physical axes
 	if ( ( comment_operation == 1 ) && ( myrank == 0 ) ){printf("Fields dimensions (t,r,z) = (%i,%i,%i)\n",dims[0],dims[1],dims[2]);}
@@ -195,7 +195,7 @@ int main(int argc, char *argv[])
 
 		MPE_Mutex_release(mc_win, 1, MPE_MC_KEYVAL);
 	}
-	free(dims);
+	
 	// first process prepare file based on the first simulation
 	// first process release mutex
  
@@ -213,6 +213,7 @@ int main(int argc, char *argv[])
 		offset[1] = kr; offset[2] = kz; 
 		count[0] = dim_t; // for read
 		dum3int[0]=-1; dum3int[1]=kr; dum3int[2]=kz; // set offset as inputs for hdf5-procedures
+		dims[0] = dim_t;
 
 		// read the HDF5 file
 
@@ -280,6 +281,8 @@ int main(int argc, char *argv[])
 		MPE_Counter_nxtval(mc_win, 0, &Nsim, MPE_MC_KEYVAL); // get my next task
 	} while (Nsim < Ntot);
 	h5error = H5Sclose(memspace_id);
+
+	free(dims);
  
 //  if ( myrank == 0 )  // time
 //	{
