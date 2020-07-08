@@ -265,7 +265,7 @@ int main(int argc, char *argv[])
 
 		file_id = H5Fopen ("results2.h5", H5F_ACC_RDWR, H5P_DEFAULT); // open file
 		dims[0] = outputs.Nt;
-		rw_real_fullhyperslab_nd_h5(file_id,"IRProp/Fields_rzt",&h5error,3,dims,dum3int,inputs.Efield.Field,"w");
+		rw_real_fullhyperslab_nd_h5(file_id,"/SourceTerms",&h5error,3,dims,dum3int,outputs.Efield,"w");
 		// dset_id = H5Dopen2 (file_id, "/SourceTerms", H5P_DEFAULT); // open dataset
 		// filespace = H5Dget_space (dset_id); // Get the dataspace ID   
 		// h5error = H5Sselect_hyperslab(filespace, H5S_SELECT_SET, offset, stride, count, block); // again the same hyperslab as for reading
