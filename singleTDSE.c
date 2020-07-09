@@ -344,7 +344,7 @@ struct outputs_def call1DTDSE(struct inputs_def inputs) // this is a wrapper tha
 
 	
 	//printf("\n");
-	printf("Duration of calculation %f sec\n",(double)(finish - start) / CLOCKS_PER_SEC);
+	// printf("Duration of calculation %f sec\n",(double)(finish - start) / CLOCKS_PER_SEC);
 	//printf("\n");
  
   //printf("%e \n",outputs.Efield[0]);

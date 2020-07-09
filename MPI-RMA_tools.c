@@ -7,13 +7,14 @@
 #include "hdf5.h"
 #include "mpi.h"
 
-
+extern int MPE_COUNTER_KEYVAL;
 extern int MPEi_CounterFree(MPI_Win counter_win, int keyval, void *attr_val, void *extra_state);
 
 
 int MPE_Counter_create(MPI_Comm comm, int num, MPI_Win *counter_win) // MPI-3 version
 {
 static int MPE_COUNTER_KEYVAL = MPI_KEYVAL_INVALID;
+//int MPE_COUNTER_KEYVAL = MPI_KEYVAL_INVALID;
 int size, rank, lnum, lleft, i, *counterMem=0;
 MPI_Aint counterSize;
 MPI_Comm_rank(comm, &rank);

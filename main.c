@@ -130,17 +130,17 @@ int main(int argc, char *argv[])
 	//////////////////////////
 
 	// create counter and mutex in one pointer
-	MPE_MC_KEYVAL = MPE_Counter_create(MPI_COMM_WORLD, 2, &mc_win); // first is counter, second mutex
-	//MPE_M_KEYVAL = MPE_Counter_create(MPI_COMM_WORLD, 1, &m_win); // first is counter, second mutex
-	//MPE_C_KEYVAL = MPE_Counter_create(MPI_COMM_WORLD, 1, &c_win); // first is counter, second mutex
+	//MPE_MC_KEYVAL = MPE_Counter_create(MPI_COMM_WORLD, 2, &mc_win); // first is counter, second mutex
+	MPE_M_KEYVAL = MPE_Counter_create(MPI_COMM_WORLD, 1, &m_win); // first is counter, second mutex
+	MPE_C_KEYVAL = MPE_Counter_create(MPI_COMM_WORLD, 1, &c_win); // first is counter, second mutex
 
 
 	// first process is preparing the file and the rest may do their own work (the file is locked in the case they want to write); it creates the resulting dataset
 	// an empty dataset is prepared to be filled with the data
 	
 	if ( myrank == 0 ){
-		MPE_Mutex_acquire(mc_win, 1, MPE_MC_KEYVAL); // first process get mutex and hold it to ensure to prepare the file before the others
-		MPE_Counter_nxtval(mc_win, 0, &Nsim, MPE_MC_KEYVAL); // get my first task
+		MPE_Mutex_acquire(m_win, 0, MPE_M_KEYVAL); // first process get mutex and hold it to ensure to prepare the file before the others
+		MPE_Counter_nxtval(c_win, 0, &Nsim, MPE_C_KEYVAL); // get my first task
 	}
 	MPI_Barrier(MPI_COMM_WORLD); // Barrier
 	printf("Proc %i abarier \n",myrank);
@@ -169,7 +169,7 @@ int main(int argc, char *argv[])
 		rw_real_fullhyperslab_nd_h5(file_id,"/SourceTerms",&h5error,3,dims,dum3int,outputs.Efield,"w");
 		h5error = H5Fclose(file_id); // file
 
-		MPE_Mutex_release(mc_win, 1, MPE_MC_KEYVAL);
+		MPE_Mutex_release(m_win, 0, MPE_M_KEYVAL);
 	}
 
 	t_mpi[6] = MPI_Wtime();
@@ -182,7 +182,7 @@ int main(int argc, char *argv[])
 		
 
 	// we now process the MPI queue
-	MPE_Counter_nxtval(mc_win, 0, &Nsim, MPE_MC_KEYVAL); // get my first task (every worker calls, second call for proc 0 due to the preparation phase)
+	MPE_Counter_nxtval(c_win, 0, &Nsim, MPE_C_KEYVAL); // get my first task (every worker calls, second call for proc 0 due to the preparation phase)
 
 	t_mpi[7] = MPI_Wtime();
 	printf("Proc %i, reached the point 2  : %f sec\n",myrank,t_mpi[7]-t_mpi[0]);
@@ -209,7 +209,7 @@ int main(int argc, char *argv[])
 		t_mpi[1] = MPI_Wtime(); finish1_main = clock();
 
 		// write results
-		MPE_Mutex_acquire(mc_win, 1, MPE_MC_KEYVAL); // mutex is acquired
+		MPE_Mutex_acquire(m_win, 0, MPE_M_KEYVAL); // mutex is acquired
 
 		t_mpi[2] = MPI_Wtime(); finish2_main = clock();
 		if ( ( comment_operation == 1 ) && ( Nsim < 20 ) ){
@@ -229,11 +229,11 @@ int main(int argc, char *argv[])
 		rw_real_fullhyperslab_nd_h5(file_id,"/SourceTerms",&h5error,3,dims,dum3int,outputs.Efield,"w");
 		h5error = H5Fclose(file_id); // file
 
-		MPE_Mutex_release(mc_win, 1, MPE_MC_KEYVAL);
+		MPE_Mutex_release(m_win, 0, MPE_M_KEYVAL);
     	t_mpi[4] = MPI_Wtime(); finish4_main = clock();
 		
 		// outputs_destructor(outputs); // free memory
-		MPE_Counter_nxtval(mc_win, 0, &Nsim, MPE_MC_KEYVAL); // get my next task
+		MPE_Counter_nxtval(c_win, 0, &Nsim, MPE_C_KEYVAL); // get my next task
 		t_mpi[5] = MPI_Wtime();
 	} while (Nsim < Ntot);
 	h5error = H5Sclose(memspace_id);
