@@ -107,17 +107,17 @@ struct outputs_def call1DTDSE(struct inputs_def inputs) // this is a wrapper tha
 	
 	num_t = floor((2.*Pi)/(0.057*dt)); // the length of one cycle for 800 nm (i.e. omega=0.057) 
 	
-    printf("bfields, Efield[0] = %e, (tgrid[0], tgrid[1]) = (%e,%e) \n", Efield.Field[0],Efield.tgrid[0],Efield.tgrid[1]);	
-    printf("afields\n");
+    //printf("bfields, Efield[0] = %e, (tgrid[0], tgrid[1]) = (%e,%e) \n", Efield.Field[0],Efield.tgrid[0],Efield.tgrid[1]);	
+   // printf("afields\n");
 		// k1 = 0; k2 = 0;	findinterval(Efield.Nt, 0., Efield.tgrid, &k1, &k2);// find zero of the grid, the best resolution is around 0
 		switch ( input0 ){case 0: dumint = 0; break; case 1: dumint = round(Efield.Nt/2.); /* field centered around 0 */ break;} // original definition
    
-   printf("test1\n");
+   //printf("test1\n");
 	
 		Efield.dt = Efield.tgrid[dumint+1]-Efield.tgrid[dumint]; // Efield.dt = Efield.tgrid[1+round(Efield.Nt/2.)]-Efield.tgrid[round(Efield.Nt/2.)];
 		tmax = Efield.tgrid[Efield.Nt]-Efield.tgrid[0];
    
-    printf("test2\n");
+    //printf("test2\n");
 
 		// PRINT field and its transform
 		// file1 = fopen("inputs/InputField.dat" , "w"); file2 = fopen("inputs/InputFField.dat" , "w"); printFFTW3(file1, file2, Efield.Field, Efield.Nt, Efield.dt); fclose(file1); fclose(file2);
@@ -132,9 +132,9 @@ struct outputs_def call1DTDSE(struct inputs_def inputs) // this is a wrapper tha
 
 		dt = Efield.dt/((double)k1); // redefine dt properly
 
-    printf("binterp\n");
+    //printf("binterp\n");
 		Efield.Field = FourInterp(k1, Efield.Field, Efield.Nt); // make the interpolation !!!!!! tgrid does not correspond any more
-    printf("ainterp\n");
+    //printf("ainterp\n");
 
 		Nt = k1*Efield.Nt + 1;
 
@@ -144,8 +144,8 @@ struct outputs_def call1DTDSE(struct inputs_def inputs) // this is a wrapper tha
 		
 		num_t = floor((2*Pi)/(0.057*dt)); num_t++; 
 		printf("Efield.dt,  %lf \n",Efield.dt);
-		printf("points per interval  %i \n",num_t);
-		printf("number of interpolated points per interval  %i \n",Ntinterp);
+		//printf("points per interval  %i \n",num_t);
+		//printf("number of interpolated points per interval  %i \n",Ntinterp);
 	
 
 	
@@ -155,12 +155,12 @@ struct outputs_def call1DTDSE(struct inputs_def inputs) // this is a wrapper tha
 	//printf("Efield.tgrid[Efield.Nt-1],  %lf \n",Efield.tgrid[Efield.Nt-1]);
 
 	// dum = (double)Nt;
-	printf("Implicitly in atomic units \n");
+	//printf("Implicitly in atomic units \n");
 
-	printf("\ntime properties \n");	
+	//printf("\ntime properties \n");	
 	printf("dt,  %lf \n",dt);
 	//printf("points per cycle,  %i \n",num_t);
-	printf("total points,  %i \n",Nt);
+	//printf("total points,  %i \n",Nt);
 	// printf("Nt_old,  %i \n",nc*(num_t+1));
 
 	/*
@@ -169,20 +169,20 @@ struct outputs_def call1DTDSE(struct inputs_def inputs) // this is a wrapper tha
 	printf("omega0,  %lf \n",Efield.trap.omega);
 	*/
 
-	printf("\nspace properties\n");	
-	printf("dx,  %lf \n",dx);
-	printf("intial nmax : %i \n",num_r);
-	printf("nextend : %i \n",num_exp);	
-	printf("initial xmax : %lf \n",num_r*dx/2.);
+	//printf("\nspace properties\n");	
+	//printf("dx,  %lf \n",dx);
+	//printf("intial nmax : %i \n",num_r);
+	//printf("nextend : %i \n",num_exp);	
+	//printf("initial xmax : %lf \n",num_r*dx/2.);
 
-	printf("\n\n");	
+	//printf("\n\n");	
 
 	size = 2*(num_r+1);// for complex number
 
 
 	// Allocation memory
 
-	printf("test1 %i \n",size);
+	//printf("test1 %i \n",size);
 
 	// ALLOCATE MEMORY, COPY INITIAL ARRAYS AND PREPARE THEM FOR THE PROPAGATOR
 
@@ -205,9 +205,9 @@ struct outputs_def call1DTDSE(struct inputs_def inputs) // this is a wrapper tha
 	 
 
 
-	printf("\n");	
-	printf("Propagation procedure ...\n");
-	printf("\n");	
+	//printf("\n");	
+	//printf("Propagation procedure ...\n");
+	//printf("\n");	
 
 
 
@@ -309,8 +309,8 @@ struct outputs_def call1DTDSE(struct inputs_def inputs) // this is a wrapper tha
 
 
 
-	printf("\n");
-	printf("Calculation of the HHG spectrum \n");
+	//printf("\n");
+	//printf("Calculation of the HHG spectrum \n");
 
 
 	// print Gabor and partial spectra
@@ -343,14 +343,14 @@ struct outputs_def call1DTDSE(struct inputs_def inputs) // this is a wrapper tha
 	//fclose(eingenvectorf);
 
 	
-	printf("\n");
+	//printf("\n");
 	printf("Duration of calculation %f sec\n",(double)(finish - start) / CLOCKS_PER_SEC);
-	printf("\n");
+	//printf("\n");
  
-  printf("%e \n",outputs.Efield[0]);
-  printf("address %p \n",outputs.Efield);
+  //printf("%e \n",outputs.Efield[0]);
+ // printf("address %p \n",outputs.Efield);
 	
-	printf("Calculation terminated ; good analysis\n");
+	//printf("Calculation terminated ; good analysis\n");
 
 	
 return outputs;
