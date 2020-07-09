@@ -14,6 +14,9 @@
 
 !!! There is memory allocated in every TDSE. Check there are no memory leaks, it matters now.
 
+## Local prolems:
+single_caller.c is a program to call a single TDSE simulation. The input is one numerical field at the instant.
+
 
 ## Extensions/features already presented in 1DTDSE
 THere is a list of features we added in the code throughout the time, we don't have them in the sheduler. But it would be worthy to re-introduce them simply by modifying the output structure.
@@ -49,8 +52,11 @@ https://support.hdfgroup.org/HDF5/Tutor/selectsimple.html
 
 3) The code is inconsistent. SOme outputs from the first version are listed as independent variables and not encapsulated in structures. Fix it.
 
-4) we get rid of mutexes and use rather parallel acces to files all the time.
-4.develop) it seems that many-readers many-writers would be possible by HDF5 parallel since we will not modify the file much. However, we may also try stick with independent files and eventually 
+4) There is a "better" mutex proposed in the MPI3-book, ref. [44] therein. Try to implement it.
+4.add) The shared mutex seems to be wrong by some reason.
+
+5) we get rid of mutexes and use rather parallel acces to files all the time.
+5.develop) it seems that many-readers many-writers would be possible by HDF5 parallel since we will not modify the file much. However, we may also try stick with independent files and eventually 
 https://stackoverflow.com/questions/49851046/merge-all-h5-files-using-h5py
 https://portal.hdfgroup.org/display/HDF5/Collective+Calling+Requirements+in+Parallel+HDF5+Applications
 </pre>
