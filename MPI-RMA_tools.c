@@ -4,7 +4,6 @@
 #include<stdlib.h>
 #include<malloc.h>
 #include<math.h>
-#include "hdf5.h"
 #include "mpi.h"
 
 extern int MPE_COUNTER_KEYVAL;
