@@ -189,7 +189,7 @@ int main(int argc, char *argv[])
 
 	t_mpi[5] = MPI_Wtime(); 
 
-	do { // run till queue is not treated
+	while (Nsim < Ntot){ // run till queue is not treated
 		kr = Nsim % dim_r; kz = Nsim - kr;  kz = kz / dim_r; // compute offsets in each dimension
 
 		// prepare the part in the arrray to r/w
@@ -235,7 +235,7 @@ int main(int argc, char *argv[])
 		// outputs_destructor(outputs); // free memory
 		MPE_Counter_nxtval(c_win, 0, &Nsim, MPE_C_KEYVAL); // get my next task
 		t_mpi[5] = MPI_Wtime();
-	} while (Nsim < Ntot);
+	}
 	h5error = H5Sclose(memspace_id);
 
 	free(dims);

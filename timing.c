@@ -87,7 +87,7 @@ int main(int argc, char *argv[])
 	t_mpi[5] = MPI_Wtime(); 
 
     
-	do { // run till queue is not treated
+	while (Nsim < Ntot){ // run till queue is not treated
 
 		// MPE_Mutex_release(mc_win, 1, MPE_MC_KEYVAL);
 
@@ -117,7 +117,7 @@ int main(int argc, char *argv[])
 		// outputs_destructor(outputs); // free memory
 		MPE_Counter_nxtval(c_win, 0, &Nsim, MPE_C_KEYVAL); // get my next task
 		t_mpi[5] = MPI_Wtime();
-	} while (Nsim < Ntot);
+	}
 
 
 	
