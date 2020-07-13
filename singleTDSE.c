@@ -63,7 +63,8 @@ struct outputs_def call1DTDSE(struct inputs_def inputs) // this is a wrapper tha
 	///////////////////////////////////////////////
 	// local copies of variables given by inputs //
 	///////////////////////////////////////////////
-	// (maybe can bypass)
+
+	// (bypass ?)
 
 	Efield.fieldtype = 0; // 0-numerical, loaded in femtosecons, 1-numerical, loaded in atomic units in whole grid, 2-analytical
 
@@ -102,78 +103,27 @@ struct outputs_def call1DTDSE(struct inputs_def inputs) // this is a wrapper tha
 	// PREPARATIONAL COMPUTATIONS //
 	////////////////////////////////
 
-
-	// TDSE needs to refine time grid (maybe move to the main part of the code and resolve before inputs are created)
+	// find dt from the grid around 0	
+	switch ( input0 ){case 0: dumint = 0; break; case 1: dumint = round(Efield.Nt/2.); /* field centered around 0 */ break;} // choosing the best resolution	
+	Efield.dt = Efield.tgrid[dumint+1]-Efield.tgrid[dumint]; // 
 	
-	num_t = floor((2.*Pi)/(0.057*dt)); // the length of one cycle for 800 nm (i.e. omega=0.057) 
-	
-    //printf("bfields, Efield[0] = %e, (tgrid[0], tgrid[1]) = (%e,%e) \n", Efield.Field[0],Efield.tgrid[0],Efield.tgrid[1]);	
-   // printf("afields\n");
-		// k1 = 0; k2 = 0;	findinterval(Efield.Nt, 0., Efield.tgrid, &k1, &k2);// find zero of the grid, the best resolution is around 0
-		switch ( input0 ){case 0: dumint = 0; break; case 1: dumint = round(Efield.Nt/2.); /* field centered around 0 */ break;} // original definition
+	tmax = Efield.tgrid[Efield.Nt]-Efield.tgrid[0]; // total length of the grid
    
-   //printf("test1\n");
-	
-		Efield.dt = Efield.tgrid[dumint+1]-Efield.tgrid[dumint]; // Efield.dt = Efield.tgrid[1+round(Efield.Nt/2.)]-Efield.tgrid[round(Efield.Nt/2.)];
-		tmax = Efield.tgrid[Efield.Nt]-Efield.tgrid[0];
-   
-    //printf("test2\n");
-
-		// PRINT field and its transform
-		// file1 = fopen("inputs/InputField.dat" , "w"); file2 = fopen("inputs/InputFField.dat" , "w"); printFFTW3(file1, file2, Efield.Field, Efield.Nt, Efield.dt); fclose(file1); fclose(file2);
-		
-		// find the padding we need (now we assume coarser grid in the input, need an "if" otherwise)
-		if (InterpByDTorNT == 1)
-		{
-			k1 = Ntinterp + 1;
-		} else {
-			k1 = floor(Efield.dt/dt); Ntinterp = k1; k1++;
-		}
-
-		dt = Efield.dt/((double)k1); // redefine dt properly
+	// refine dt either by given number of points or by required dt
+	if (InterpByDTorNT == 1){k1 = Ntinterp + 1;} else { k1 = floor(Efield.dt/dt); Ntinterp = k1; k1++; }
+	dt = Efield.dt/((double)k1); // redefine dt properly
 
 
-		Efield.Field = FourInterp(k1, Efield.Field, Efield.Nt); // make the interpolation !!!!!! tgrid does not correspond any more
-		Nt = k1*Efield.Nt + 1;
+	Efield.Field = FourInterp(k1, Efield.Field, Efield.Nt); // make the interpolation !!!!!! tgrid does not correspond any more
+	Nt = k1*Efield.Nt + 1; // not very nice to compute it, FourInterp should do it
 
-		// PRINT new field and its transform
-		// file1 = fopen("inputs/InputField2.dat" , "w"); file2 = fopen("inputs/InputFField2.dat" , "w"); printFFTW3(file1, file2, Efield.Field, Nt, dt); fclose(file1); fclose(file2);
-
-		
-		num_t = floor((2*Pi)/(0.057*dt)); num_t++; 
-		printf("Efield.dt,  %lf \n",Efield.dt);  fflush(NULL);
-		//printf("points per interval  %i \n",num_t);
-		//printf("number of interpolated points per interval  %i \n",Ntinterp);
-	
+	// PRINT new field and its transform == assign to outputs
+	// file1 = fopen("inputs/InputField2.dat" , "w"); file2 = fopen("inputs/InputFField2.dat" , "w"); printFFTW3(file1, file2, Efield.Field, Nt, dt); fclose(file1); fclose(file2);
 
 	
-
-	
-	//printf("Efield.tgrid[0],  %lf \n",Efield.tgrid[0]);
-	//printf("Efield.tgrid[Efield.Nt-1],  %lf \n",Efield.tgrid[Efield.Nt-1]);
-
-	// dum = (double)Nt;
-	//printf("Implicitly in atomic units \n");
-
-	//printf("\ntime properties \n");	
+	num_t = floor((2*Pi)/(0.057*dt)); num_t++;  // the length of one cycle for 800 nm (i.e. omega=0.057) 
+	printf("Efield.dt,  %lf \n",Efield.dt);  fflush(NULL);
 	printf("dt,  %lf \n",dt);
-	//printf("points per cycle,  %i \n",num_t);
-	//printf("total points,  %i \n",Nt);
-	// printf("Nt_old,  %i \n",nc*(num_t+1));
-
-	/*
-	printf("\nField properties \n");	
-	printf("Amplitude,  %lf \n",Efield.trap.E0);
-	printf("omega0,  %lf \n",Efield.trap.omega);
-	*/
-
-	//printf("\nspace properties\n");	
-	//printf("dx,  %lf \n",dx);
-	//printf("intial nmax : %i \n",num_r);
-	//printf("nextend : %i \n",num_exp);	
-	//printf("initial xmax : %lf \n",num_r*dx/2.);
-
-	//printf("\n\n");	
 
 	size = 2*(num_r+1);// for complex number
 
@@ -186,8 +136,10 @@ struct outputs_def call1DTDSE(struct inputs_def inputs) // this is a wrapper tha
 
 	x = malloc((num_r+1)*sizeof(double)); // we keep this construction and not use directly initial x due to the extensibility of the grid
 	memcpy(x,inputs.x,(num_r+1)*sizeof(double));
+
 	psi0 = malloc(size*sizeof(double));	
 	memcpy(psi0,inputs.psi0,(num_r+1)*sizeof(double));
+
 	psi = calloc(size,sizeof(double));
 	t = calloc(Nt,sizeof(double));
 	timet = calloc(Nt,sizeof(double));
@@ -231,26 +183,13 @@ struct outputs_def call1DTDSE(struct inputs_def inputs) // this is a wrapper tha
 	// PRINT field and source terms in both domains // ADD switch to do one of them or both of them
 	
 
-	// switch (PrintOutputMethod){
-	// printf("\nPrintingResults\n");
-	// case 0:
-	// 	file1 = fopen("results/TimeDomain.dat" , "w"); file2 = fopen("results/OmegaDomain.dat" , "w");
-	// 	print2FFTW3(file1, file2, outputs.Efield, outputs.sourceterm, (Nt+1), dt, outputs.tgrid[Nt]);
-	// 	fclose(file1); fclose(file2);
-	// 	file1 = fopen("results/GS_population.dat" , "w");
-	// 	for(k1 = 0; k1 <= Nt; k1++){fprintf(file1,"%e\t%e\n", outputs.tgrid[k1] , outputs.PopTot[k1]);}
-	// 	fclose(file1);
 
-    //             if(IonisationFilterForTheSourceTerm == 1){
-	// 	file1 = fopen("results/TimeDomainFiltered.dat" , "w"); file2 = fopen("results/OmegaDomainFiltered.dat" , "w");
-	// 	print2FFTW3(file1, file2, outputs.Efield, outputs.sourcetermfiltered, (Nt+1), dt, outputs.tgrid[Nt]);
-	// 	fclose(file1); fclose(file2);
-	// 	}
-	// break;
 	// case 1:
 	// 	file1 = fopen("results/tgrid.bin","wb"); file2 = fopen("results/Efield.bin","wb"); file3 = fopen("results/SourceTerm.bin","wb");
 	// 	file4 = fopen("results/omegagrid.bin","wb"); file5 = fopen("results/FEfield.bin","wb"); file6 = fopen("results/FSourceTerm.bin","wb");
 	// 	file7 = fopen("results/Spectrum2Efield.bin","wb"); file8 = fopen("results/Spectrum2SourceTerm.bin","wb"); file9 = fopen("results/GridDimensionsForBinaries.dat","w");
+	
+	
 	// 	print2FFTW3binary(file1, file2, file3, file4, file5, file6, file7, file8, file9, outputs.Efield, outputs.sourceterm, (Nt+1), dt, outputs.tgrid[Nt]);
 	// 	fclose(file1); fclose(file2); fclose(file3); fclose(file4); fclose(file5); fclose(file6); fclose(file7); fclose(file8); fclose(file9);
 
@@ -267,48 +206,7 @@ struct outputs_def call1DTDSE(struct inputs_def inputs) // this is a wrapper tha
 	// 	dumint=remove("results/tmp1.bin"); dumint=remove("results/tmp2.bin"); dumint=remove("results/tmp3.bin"); dumint=remove("results/tmp4.bin");
 	// 	dumint=remove("results/tmp5.bin"); dumint=remove("results/tmp1.bin"); dumint=remove("results/tmp1.dat");
 	// 	}
-	// break;
-	// case 2:
-	// 	file1 = fopen("results/tgrid.bin","wb"); file2 = fopen("results/Efield.bin","wb"); file3 = fopen("results/SourceTerm.bin","wb");
-	// 	file4 = fopen("results/omegagrid.bin","wb"); file5 = fopen("results/FEfield.bin","wb"); file6 = fopen("results/FSourceTerm.bin","wb");
-	// 	file7 = fopen("results/Spectrum2Efield.bin","wb"); file8 = fopen("results/Spectrum2SourceTerm.bin","wb"); file9 = fopen("results/GridDimensionsForBinaries.dat","w");
-	// 	print2FFTW3binary(file1, file2, file3, file4, file5, file6, file7, file8, file9, outputs.Efield, outputs.sourceterm, (Nt+1), dt, outputs.tgrid[Nt]);
-	// 	fclose(file1); fclose(file2); fclose(file3); fclose(file4); fclose(file5); fclose(file6); fclose(file7); fclose(file8); fclose(file9);
 
-	// 	file1 = fopen("results/GS_population.bin","wb");
-	// 	fwrite(outputs.PopTot,sizeof(double),(Nt+1),file1);
-	// 	fclose(file1);
-
-    //     if(IonisationFilterForTheSourceTerm == 1){
-	// 	file1 = fopen("results/tmp1.bin","wb"); file2 = fopen("results/tmp2.bin","wb"); file3 = fopen("results/SourceTermFiltered.bin","wb"); // We just use the function as it is and remove redundant files... not optimal
-	// 	file4 = fopen("results/tmp3.bin","wb"); file5 = fopen("results/tmp4.bin","wb"); file6 = fopen("results/FSourceTermFiltered.bin","wb");
-	// 	file7 = fopen("results/tmp5.bin","wb"); file8 = fopen("results/Spectrum2SourceTermFiltered.bin","wb"); file9 = fopen("results/tmp1.dat","w");
-	// 	print2FFTW3binary(file1, file2, file3, file4, file5, file6, file7, file8, file9, outputs.Efield, outputs.sourcetermfiltered, (Nt+1), dt, outputs.tgrid[Nt]);
-	// 	fclose(file1); fclose(file2); fclose(file3); fclose(file4); fclose(file5); fclose(file6); fclose(file7); fclose(file8); fclose(file9);
-	// 	dumint=remove("results/tmp1.bin"); dumint=remove("results/tmp2.bin"); dumint=remove("results/tmp3.bin"); dumint=remove("results/tmp4.bin");
-	// 	dumint=remove("results/tmp5.bin"); dumint=remove("results/tmp1.bin"); dumint=remove("results/tmp1.dat");
-	// 	}
-
-	// 	file1 = fopen("results/TimeDomain.dat" , "w"); file2 = fopen("results/OmegaDomain.dat" , "w");
-	// 	print2FFTW3(file1, file2, outputs.Efield, outputs.sourceterm, (Nt+1), dt, outputs.tgrid[Nt]);
-	// 	fclose(file1); fclose(file2);
-	// 	file1 = fopen("results/GS_population.dat" , "w");
-	// 	for(k1 = 0; k1 <= Nt; k1++){fprintf(file1,"%e\t%e\n", outputs.tgrid[k1] , outputs.PopTot[k1]);}
-	// 	fclose(file1);
-
-    //             if(IonisationFilterForTheSourceTerm == 1){
-	// 	file1 = fopen("results/TimeDomainFiltered.dat" , "w"); file2 = fopen("results/OmegaDomainFiltered.dat" , "w");
-	// 	print2FFTW3(file1, file2, outputs.Efield, outputs.sourcetermfiltered, (Nt+1), dt, outputs.tgrid[Nt]);
-	// 	fclose(file1); fclose(file2);
-	// 	}
-	// break;
-	// }
-
-
-
-
-	//printf("\n");
-	//printf("Calculation of the HHG spectrum \n");
 
 
 	// print Gabor and partial spectra
