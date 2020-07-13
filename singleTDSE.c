@@ -97,8 +97,6 @@ struct outputs_def call1DTDSE(struct inputs_def inputs) // this is a wrapper tha
 	gauge = 1;
 	transformgauge = 0;
 
-	printf("call started\n"); fflush(NULL);
-
 
 	////////////////////////////////
 	// PREPARATIONAL COMPUTATIONS //
