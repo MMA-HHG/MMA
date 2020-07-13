@@ -1,8 +1,11 @@
-#include<math.h>
-#include<malloc.h>
-#include<stdlib.h>
+#include<time.h> 
 #include<stdio.h>
-#include"util.h"
+#include <mpi.h>
+#include<stdlib.h>
+#include<malloc.h>
+#include<math.h>
+#include "hdf5.h"
+#include "util.h"
 
 
 void Init_constants(void){
@@ -13,7 +16,7 @@ void Init_constants(void){
     c_light = 299792458;
     elcharge = 1.602176565e-19;
     elmass = 9.10938356e-31;
-    mu0 = 4*pi*1e-7;
-    eps0 = 1/(mu0*c_light^2);
-    r_Bohr = 4*pi*eps0*hbar^2/(elmass*elcharge^2);
+    mu0 = 4.0*pi*1e-7;
+    eps0 = 1.0/(mu0*c_light*c_light);
+    r_Bohr = 4.0*pi*eps0*hbar*hbar/(elmass*elcharge*elcharge);
 }
