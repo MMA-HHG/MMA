@@ -35,6 +35,9 @@ int main()
 	////////////////////////
 	// PREPARATION PAHASE //
 	////////////////////////
+
+	printf("program started\n");
+	fflush(NULL);
 		start_main = clock(); // the clock	
 
 	// READ DATA
@@ -63,17 +66,22 @@ int main()
 	readint(file_id, "TDSE_inputs/PrintOutputMethod"		,&h5error,&inputs.PrintOutputMethod); // (0 - only text, 1 - only binaries, 2 - both)
 //	readint(file_id, "TDSE_inputs/IonisationFilterForTheSourceTerm"	,&h5error,&inputs.IonisationFilterForTheSourceTerm); // filter source term by high-ionisation components (1-yes)
 //	readreal(file_id, "TDSE_inputs/IonFilterThreshold"		,&h5error,&inputs.IonFilterThreshold); // threshold for the ionisation [-]
+	readreal(file_id, "TDSE_inputs/trg_a"		,&h5error,&inputs.trg.a); // (0 - only text, 1 - only binaries, 2 - both)
 
 	if (comment_operation == 1 ){printf("dx = %e \n",inputs.dx);}
 	
 
 	// load the tgrid
-	inputs.Efield.tgrid =  readreal1Darray_fort(file_id, "IRProp/tgrid",&h5error,&inputs.Efield.Nt); // tgrid is not changed when program runs
+	inputs.Efield.tgrid =  readreal1Darray_fort(file_id, "IRField/tgrid",&h5error,&inputs.Efield.Nt); // tgrid is not changed when program runs
+	inputs.Efield.Field =  readreal1Darray_fort(file_id, "IRField/Field",&h5error,&inputs.Efield.Nt); // tgrid is not changed when program runs
 	// convert to atomic units
 	for(k1 = 0 ; k1 < inputs.Efield.Nt; k1++){inputs.Efield.tgrid[k1] = inputs.Efield.tgrid[k1]*1e15*41.34144728;}
 
-    // load field
-    inputs.Efield.Field = malloc(((int)dims[0])*sizeof(double));
+	printf("a tgrid\n");
+	fflush(NULL);
+
+    	// load field
+    	//inputs.Efield.Field = malloc(((int)dims[0])*sizeof(double));
 
 	// Prepare the ground state
 
@@ -81,6 +89,7 @@ int main()
 	// Initialise_GS(inputs.num_r);
 	
 	//normalise(psi0,inputs.num_r); // Initialise psi0 for Einitialise
+	printf("test\n"); fflush(NULL);
 
 	double CV = 1E-20; // CV criteria
 
@@ -90,7 +99,7 @@ int main()
 	CV = 1E-25 has been choosen to have a scalar product of 10^-31 with the third excited state for num_r = 5000 and dx=0.1
 	*/
 	
-	printf("Calculation of the energy of the ground sate ; Eguess : %f\n",inputs.Eguess);
+	printf("Calculation of the energy of the ground sate ; Eguess : %f\n",inputs.Eguess); fflush(NULL);
 	int size = 2*(inputs.num_r+1);
 	double *off_diagonal, *diagonal, *x;
 	double Einit = 0.0;
@@ -99,7 +108,7 @@ int main()
 	Initialise_grid_and_D2(inputs.dx, inputs.num_r, &inputs.x, &diagonal, &off_diagonal); // !!!! dx has to be small enough, it doesn't converge otherwise
 	Einit = Einitialise(inputs.trg,inputs.psi0,off_diagonal,diagonal,off_diagonal,inputs.x,inputs.Eguess,CV,inputs.num_r); // originally, some possibility to have also excited state
 
-	printf("Initial energy is : %1.12f\n",Einit);
+	printf("Initial energy is : %1.12f\n",Einit); fflush(NULL);
 	
 
 	//////////////////////////
@@ -107,7 +116,7 @@ int main()
 	//////////////////////////
 
 
-		outputs = call1DTDSE(inputs); // THE TDSE
+	outputs = call1DTDSE(inputs); // THE TDSE
         printf("sourceterm out: %e, %e, %e \n",outputs.sourceterm[0],outputs.sourceterm[1],outputs.sourceterm[2]);
         printf("efield out    : %e, %e, %e \n",outputs.Efield[0],outputs.Efield[1],outputs.Efield[2]);
 

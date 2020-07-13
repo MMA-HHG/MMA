@@ -97,6 +97,8 @@ struct outputs_def call1DTDSE(struct inputs_def inputs) // this is a wrapper tha
 	gauge = 1;
 	transformgauge = 0;
 
+	printf("call started\n"); fflush(NULL);
+
 
 	////////////////////////////////
 	// PREPARATIONAL COMPUTATIONS //
@@ -132,10 +134,8 @@ struct outputs_def call1DTDSE(struct inputs_def inputs) // this is a wrapper tha
 
 		dt = Efield.dt/((double)k1); // redefine dt properly
 
-    //printf("binterp\n");
-		Efield.Field = FourInterp(k1, Efield.Field, Efield.Nt); // make the interpolation !!!!!! tgrid does not correspond any more
-    //printf("ainterp\n");
 
+		Efield.Field = FourInterp(k1, Efield.Field, Efield.Nt); // make the interpolation !!!!!! tgrid does not correspond any more
 		Nt = k1*Efield.Nt + 1;
 
 		// PRINT new field and its transform
@@ -143,7 +143,7 @@ struct outputs_def call1DTDSE(struct inputs_def inputs) // this is a wrapper tha
 
 		
 		num_t = floor((2*Pi)/(0.057*dt)); num_t++; 
-		printf("Efield.dt,  %lf \n",Efield.dt);
+		printf("Efield.dt,  %lf \n",Efield.dt);  fflush(NULL);
 		//printf("points per interval  %i \n",num_t);
 		//printf("number of interpolated points per interval  %i \n",Ntinterp);
 	

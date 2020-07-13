@@ -247,6 +247,8 @@ double Einitialise(struct trg_def trg, double *psi0,double *dinf,double *d,doubl
 	dsupnew = (double *)calloc(size,sizeof(double));
 	diag = (double *)calloc(size,sizeof(double));
 
+printf("test1\n"); fflush(NULL);
+
 	  for(i=0;i<=num_r;i++)
 	  {
 		  dinfnew[2*i] = dinf[2*i] - Eguess/12. + potential(x[i],trg)/12.; dinfnew[2*i+1] = dinf[2*i+1];		  
@@ -254,8 +256,6 @@ double Einitialise(struct trg_def trg, double *psi0,double *dinf,double *d,doubl
 		  dsupnew[2*i] = dsup[2*i] - Eguess/12. + potential(x[i+1],trg)/12.; dsupnew[2*i+1] = dsup[2*i+1];
 		  diag[2*i] = potential(x[i],trg)+ d[2*i] ; diag[2*i+1] = d[2*i+1];
 	  }
-
-
 
 
 	Eold = Eguess;
@@ -285,10 +285,8 @@ double Einitialise(struct trg_def trg, double *psi0,double *dinf,double *d,doubl
 	//for(i=0;i<num_r;i++){sum = sum + psi0[2*i]*psi0[2*i]*potential(x[i],trg);}
 	//printf("Average value of the potential : %e\n",sum);
 	
-	
-	return Energy;
-
 	free(dnew); free(res); free(diag);free(dinfnew);free(dsupnew);
+	return Energy;	
 }
 
 
