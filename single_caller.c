@@ -76,7 +76,7 @@ int main()
 	inputs.Efield.tgrid =  readreal1Darray_fort(file_id, "IRField/tgrid",&h5error,&inputs.Efield.Nt); // tgrid is not changed when program runs
 	inputs.Efield.Field =  readreal1Darray_fort(file_id, "IRField/Field",&h5error,&inputs.Efield.Nt); // tgrid is not changed when program runs
 	
-	for(k1 = 0 ; k1 < inputs.Efield.Nt; k1++){inputs.Efield.tgrid[k1] = inputs.Efield.tgrid[k1]*1e15*41.34144728;} // convert to atomic units
+	for(k1 = 0 ; k1 < inputs.Efield.Nt; k1++){inputs.Efield.tgrid[k1] = inputs.Efield.tgrid[k1]*1e-15/TIMEau; inputs.Efield.Field[k1] = inputs.Efield.Field[k1]*1e9/EFIELDau;} // convert to atomic units (fs->a.u.), (GV/m->a.u.)
 
 	printf("a tgrid\n");
 	fflush(NULL);

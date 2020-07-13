@@ -19,4 +19,9 @@ void Init_constants(void){
     mu0 = 4.0*pi*1e-7;
     eps0 = 1.0/(mu0*c_light*c_light);
     r_Bohr = 4.0*pi*eps0*hbar*hbar/(elmass*elcharge*elcharge);
+    TIMEau =(elmass*r_Bohr*r_Bohr)/hbar;
+    EFIELDau = hbar*hbar/(emass*rBohr*rBohr*rBohr**echarge);
+    k_Boltz = 1.38064852e-23;
+    absolute_zero = -273.15;
+    torr2SI = 101325./760.;
 }
