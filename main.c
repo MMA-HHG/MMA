@@ -73,7 +73,7 @@ int main(int argc, char *argv[])
 	readint(file_id, "TDSE_inputs/PrintOutputMethod"		,&h5error,&inputs.PrintOutputMethod); // (0 - only text, 1 - only binaries, 2 - both)
 //	readint(file_id, "TDSE_inputs/IonisationFilterForTheSourceTerm"	,&h5error,&inputs.IonisationFilterForTheSourceTerm); // filter source term by high-ionisation components (1-yes)
 //	readreal(file_id, "TDSE_inputs/IonFilterThreshold"		,&h5error,&inputs.IonFilterThreshold); // threshold for the ionisation [-]
-	readreal(file_id, "TDSE_inputs/trg_a"		,&h5error,&inputs.trg.a); // (0 - only text, 1 - only binaries, 2 - both)
+	readreal(file_id, "TDSE_inputs/trg_a"		,&h5error,&inputs.trg.a); 
 
 	if (comment_operation == 1 ){printf("Proc %i uses dx = %e \n",myrank,inputs.dx);}
 	

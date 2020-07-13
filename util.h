@@ -166,3 +166,9 @@ void rw_real_fullhyperslab_nd_h5(hid_t, char *, herr_t *, int, hsize_t *, int *,
 double * readreal1Darray_fort(hid_t, char *, herr_t *, int *);
 hsize_t * get_dimensions_h5(hid_t, char *, herr_t *, int *, hid_t *);
 // int linkexists(hid_t, char *, herr_t *, double *);
+
+
+
+// Physical constants
+void Init_constants(void);
+double Ip_HeV, hbar, alpha_fine, c_light, elcharge, elmass, mu0, eps0, rBohr;

@@ -38,7 +38,10 @@ int main()
 
 	printf("program started\n");
 	fflush(NULL);
-		start_main = clock(); // the clock	
+	start_main = clock(); // the clock	
+	Init_constants();
+	printf("hbar and rBohr are %e, %e\n",hbar,r_Bohr);
+
 
 	// READ DATA
 	/* to check if exists use printf("link exists 1: %i\n",H5Lexists(file_id, "IRProp/lambda", H5P_DEFAULT)); */
@@ -66,16 +69,14 @@ int main()
 	readint(file_id, "TDSE_inputs/PrintOutputMethod"		,&h5error,&inputs.PrintOutputMethod); // (0 - only text, 1 - only binaries, 2 - both)
 //	readint(file_id, "TDSE_inputs/IonisationFilterForTheSourceTerm"	,&h5error,&inputs.IonisationFilterForTheSourceTerm); // filter source term by high-ionisation components (1-yes)
 //	readreal(file_id, "TDSE_inputs/IonFilterThreshold"		,&h5error,&inputs.IonFilterThreshold); // threshold for the ionisation [-]
-	readreal(file_id, "TDSE_inputs/trg_a"		,&h5error,&inputs.trg.a); // (0 - only text, 1 - only binaries, 2 - both)
+	readreal(file_id, "TDSE_inputs/trg_a"		,&h5error,&inputs.trg.a);
 
-	if (comment_operation == 1 ){printf("dx = %e \n",inputs.dx);}
-	
 
 	// load the tgrid
 	inputs.Efield.tgrid =  readreal1Darray_fort(file_id, "IRField/tgrid",&h5error,&inputs.Efield.Nt); // tgrid is not changed when program runs
 	inputs.Efield.Field =  readreal1Darray_fort(file_id, "IRField/Field",&h5error,&inputs.Efield.Nt); // tgrid is not changed when program runs
-	// convert to atomic units
-	for(k1 = 0 ; k1 < inputs.Efield.Nt; k1++){inputs.Efield.tgrid[k1] = inputs.Efield.tgrid[k1]*1e15*41.34144728;}
+	
+	for(k1 = 0 ; k1 < inputs.Efield.Nt; k1++){inputs.Efield.tgrid[k1] = inputs.Efield.tgrid[k1]*1e15*41.34144728;} // convert to atomic units
 
 	printf("a tgrid\n");
 	fflush(NULL);
