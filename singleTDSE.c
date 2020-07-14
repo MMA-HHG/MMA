@@ -207,11 +207,6 @@ struct outputs_def call1DTDSE(struct inputs_def inputs) // this is a wrapper tha
 	// 	dumint=remove("results/tmp5.bin"); dumint=remove("results/tmp1.bin"); dumint=remove("results/tmp1.dat");
 	// 	}
 
-
-	// SAVE THE RESULTS
-	calc2FFTW3(outputs.Nt, dt, tmax, outputs.Efield, outputs.sourceterm, &outputs.tgrid_fftw, &outputs.omegagrid, &outputs.FEfield,
-				&outputs.Fsourceterm, &outputs.FEfieldM2, &outputs.FsourcetermM2, &outputs.Nomega) //takes real signal speced by given "dt" and it computes and prints its FFTW3
-
 	// TO COMPARE
 		file1 = fopen("results/TimeDomain.dat" , "w"); file2 = fopen("results/OmegaDomain.dat" , "w");
 		print2FFTW3(file1, file2, outputs.Efield, outputs.sourceterm, (Nt+1), dt, outputs.tgrid[Nt]);
@@ -225,6 +220,11 @@ struct outputs_def call1DTDSE(struct inputs_def inputs) // this is a wrapper tha
 		print2FFTW3(file1, file2, outputs.Efield, outputs.sourcetermfiltered, (Nt+1), dt, outputs.tgrid[Nt]);
 		fclose(file1); fclose(file2);
 		}
+
+
+	// SAVE THE RESULTS
+	calc2FFTW3(outputs.Nt, dt, tmax, outputs.Efield, outputs.sourceterm, &outputs.tgrid_fftw, &outputs.omegagrid, &outputs.FEfield,
+				&outputs.Fsourceterm, &outputs.FEfieldM2, &outputs.FsourcetermM2, &outputs.Nomega); //takes real signal speced by given "dt" and it computes and prints its FFTW3
 
 
 	// print Gabor and partial spectra
