@@ -76,7 +76,8 @@ int main()
 	inputs.Efield.tgrid =  readreal1Darray_fort(file_id, "IRField/tgrid",&h5error,&inputs.Efield.Nt); // tgrid is not changed when program runs
 	inputs.Efield.Field =  readreal1Darray_fort(file_id, "IRField/Field",&h5error,&inputs.Efield.Nt); // tgrid is not changed when program runs
 	
-	for(k1 = 0 ; k1 < inputs.Efield.Nt; k1++){inputs.Efield.tgrid[k1] = inputs.Efield.tgrid[k1]*1e-15/TIMEau; inputs.Efield.Field[k1] = inputs.Efield.Field[k1]*1e9/EFIELDau;} // convert to atomic units (fs->a.u.), (GV/m->a.u.)
+	// for(k1 = 0 ; k1 < inputs.Efield.Nt; k1++){inputs.Efield.tgrid[k1] = inputs.Efield.tgrid[k1]*1e-15/TIMEau; inputs.Efield.Field[k1] = inputs.Efield.Field[k1]*1e9/EFIELDau;} // convert to atomic units (fs->a.u.), (GV/m->a.u.)
+	for(k1 = 0 ; k1 < inputs.Efield.Nt; k1++){inputs.Efield.tgrid[k1] = inputs.Efield.tgrid[k1]/TIMEau; inputs.Efield.Field[k1] = inputs.Efield.Field[k1]/EFIELDau;} // convert to atomic units (fs->a.u.), (GV/m->a.u.)
 
 	printf("a tgrid\n");
 	fflush(NULL);
@@ -121,7 +122,8 @@ int main()
 	printf("TDSE done, in the caller\n"); fflush(NULL);
 	
         //printf("sourceterm out: %e, %e, %e \n",outputs.sourceterm[0],outputs.sourceterm[1],outputs.sourceterm[2]);
-        //printf("efield out    : %e, %e, %e \n",outputs.Efield[0],outputs.Efield[1],outputs.Efield[2]);
+        printf("efield out    : %e, %e, %e \n",outputs.Efield[0],outputs.Efield[1],outputs.Efield[2]);
+	printf("Fefield out    : %e, %e \n%e, %e \n%e, %e \n",outputs.FEfield[0][0],outputs.FEfield[0][1],outputs.FEfield[1][0],outputs.FEfield[1][1],outputs.FEfield[2][0],outputs.FEfield[2][1]);
 
 		//printf("\nFField: \n%e, %e,\n%e, %e \n%e, %e \n",
 		//outputs.Fsourceterm[0][0],outputs.Fsourceterm[0][1],

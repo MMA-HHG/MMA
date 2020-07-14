@@ -97,6 +97,8 @@ struct outputs_def call1DTDSE(struct inputs_def inputs) // this is a wrapper tha
 
 	gauge = 1;
 	transformgauge = 0;
+	input0 = 1;
+	printf("tgrid,  %e, %e \n",Efield.tgrid[0],Efield.tgrid[1]);
 
 
 	////////////////////////////////
@@ -122,8 +124,8 @@ struct outputs_def call1DTDSE(struct inputs_def inputs) // this is a wrapper tha
 
 	
 	num_t = floor((2*Pi)/(0.057*dt)); num_t++;  // the length of one cycle for 800 nm (i.e. omega=0.057) 
-	printf("Efield.dt,  %lf \n",Efield.dt);  fflush(NULL);
-	printf("dt,  %lf \n",dt);
+	printf("Efield.dt,  %e \n",Efield.dt);  fflush(NULL);
+	printf("dt,  %e \n",dt);
 
 	size = 2*(num_r+1);// for complex number
 
