@@ -137,13 +137,14 @@ int main()
         // prepare the dataset(s) for outputs
 
         // dims[0] = outputs.Nt; // length defined by outputs
-        // file_id = H5Fopen ("results2.h5", H5F_ACC_RDWR, H5P_DEFAULT); // we use a different output file to testing, can be changed to have only one file
+        file_id = H5Fopen ("results2.h5", H5F_ACC_RDWR, H5P_DEFAULT); // we use a different output file to testing, can be changed to have only one file
+		print_nd_array_h5(file_id, "test", &h5error, 1, dims, outputs.Efield, H5T_NATIVE_DOUBLE); // https://support.hdfgroup.org/HDF5/doc1.6/PredefDTypes.html
         // dataspace_id = H5Screate_simple(ndims, dims, NULL); // create dataspace for outputs
         // dataset_id = H5Dcreate2(file_id, "/SourceTerms", datatype, dataspace_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT); // create dataset
         // h5error = H5Sclose(dataspace_id);
         // h5error = H5Dclose(dataset_id);
         // rw_real_fullhyperslab_nd_h5(file_id,"/SourceTerms",&h5error,3,dims,dum3int,outputs.Efield,"w");
-        // h5error = H5Fclose(file_id); // file
+        h5error = H5Fclose(file_id); // file
     printf("Done \n");
 
 }

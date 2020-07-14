@@ -9,6 +9,17 @@
 #include "mpi.h"
 
 
+
+void print_nd_array_h5(hid_t file_id, char *dset_name, herr_t *h5error, int ndims, hsize_t *dimensions, void * array, hid_t datatype) // fort is for the extra diemnsion due to fortran
+{
+  hid_t dspace_id = H5Screate_simple(ndims, dimensions, NULL);
+  hid_t dset_id = H5Dcreate2(file_id, dset_name, datatype, dspace_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+  *h5error = H5Dwrite(dset_id, datatype, H5S_ALL, H5S_ALL, H5P_DEFAULT, array);
+  *h5error = H5Sclose(dspace_id);
+  *h5error = H5Dclose(dset_id);	
+}
+
+
 void rw_real_fullhyperslab_nd_h5(hid_t file_id, char *dset_name, herr_t *h5error, int ndims, hsize_t *dimensions, int *selection, double *array1D, char *rw) // This function reads full line from an n-D array, the selected dimension is given by (-1), the rest of selection is the offset
 { 
   int k1;
