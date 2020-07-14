@@ -1303,7 +1303,7 @@ void calc2FFTW3(int N, double dx, double xmax, double *signal1, double *signal2,
 
 	int dumint = 3;
 	printf("alloc_t1\n");  fflush(NULL);
-	double (*arr) [dumint][2] = malloc(sizeof(double[dumint][2])); // 
+	double (*arr) [Nc][2] = malloc(sizeof(double[Nc][2])); // 
 	(*arr)[0][0] = 1.6;
 	printf("accessed\n");  fflush(NULL);
 	printf("%e \n",(*arr)[0][0]);  fflush(NULL);
@@ -1321,11 +1321,11 @@ void calc2FFTW3(int N, double dx, double xmax, double *signal1, double *signal2,
 	for(k1 = 0; k1 <= (N-1); k1++){(*xgrid)[k1]=((double)k1)*dx;}
 	printf("axgrid\n");  fflush(NULL);
 	for(k1 = 0; k1 <= (Nc-1); k1++){
-		(*xigrid)[k1] = ((double)k1)*dxi; printf("1\n");  fflush(NULL);
+		(*xigrid)[k1] = ((double)k1)*dxi;               // printf("1\n");  fflush(NULL);
 		//(*fsig1)[k1][0] = coeff1*out1[k1][0]; (*fsig1)[k1][1] = coeff1*out1[k1][1]; printf("2\n");  fflush(NULL);
-		(*arr)[k1][0] = coeff1*out1[k1][0]; (*arr)[k1][1] = coeff1*out1[k1][1]; printf("2\n");  fflush(NULL);
+		(*arr)[k1][0] = coeff1*out1[k1][0]; (*arr)[k1][1] = coeff1*out1[k1][1]; //printf("2\n");  fflush(NULL);
 		//(*fsig2)[k1][0] = coeff1*out2[k1][0]; (*fsig2)[k1][1] = coeff1*out2[k1][1]; printf("3\n");  fflush(NULL);
-		(*fsig1M2)[k1] = coeff2*(out1[k1][0]*out1[k1][0]+out1[k1][1]*out1[k1][1]); printf("4\n");  fflush(NULL);
+		(*fsig1M2)[k1] = coeff2*(out1[k1][0]*out1[k1][0]+out1[k1][1]*out1[k1][1]); //printf("4\n");  fflush(NULL);
 		(*fsig2M2)[k1] = coeff2*(out2[k1][0]*out2[k1][0]+out2[k1][1]*out2[k1][1]);
 	}
 
@@ -1337,6 +1337,7 @@ void calc2FFTW3(int N, double dx, double xmax, double *signal1, double *signal2,
 
 
 	// assign results
+	*fsig1 = *arr;
 	*Nxi = Nc;
 	//**fsig1 = &out1;
 

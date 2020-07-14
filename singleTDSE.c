@@ -226,6 +226,8 @@ struct outputs_def call1DTDSE(struct inputs_def inputs) // this is a wrapper tha
 	calc2FFTW3(outputs.Nt, dt, tmax, outputs.Efield, outputs.sourceterm, &outputs.tgrid_fftw, &outputs.omegagrid, &outputs.FEfield,
 				&outputs.Fsourceterm, &outputs.FEfieldM2, &outputs.FsourcetermM2, &outputs.Nomega); //takes real signal speced by given "dt" and it computes and prints its FFTW3
 
+	printf("fftw_computed in single\n");  fflush(NULL);
+
 
 	// print Gabor and partial spectra
 	if (PrintGaborAndSpectrum == 1){
@@ -243,9 +245,9 @@ struct outputs_def call1DTDSE(struct inputs_def inputs) // this is a wrapper tha
 	}
 
 
-	// Remove the Ground state from Psi
-	psi_rmv_gs = calloc(2*(num_r+1),sizeof(double));
-	psi_rmv_gs = rmv_gs(psi0,psi,x,num_r);
+	//  Remove the Ground state from Psi
+	// psi_rmv_gs = calloc(2*(num_r+1),sizeof(double));
+	// psi_rmv_gs = rmv_gs(psi0,psi,x,num_r);
 
 
 

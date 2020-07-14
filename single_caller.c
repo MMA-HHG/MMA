@@ -118,13 +118,15 @@ int main()
 
 
 	outputs = call1DTDSE(inputs); // THE TDSE
-        printf("sourceterm out: %e, %e, %e \n",outputs.sourceterm[0],outputs.sourceterm[1],outputs.sourceterm[2]);
-        printf("efield out    : %e, %e, %e \n",outputs.Efield[0],outputs.Efield[1],outputs.Efield[2]);
+	printf("TDSE done, in the caller\n"); fflush(NULL);
+	
+        //printf("sourceterm out: %e, %e, %e \n",outputs.sourceterm[0],outputs.sourceterm[1],outputs.sourceterm[2]);
+        //printf("efield out    : %e, %e, %e \n",outputs.Efield[0],outputs.Efield[1],outputs.Efield[2]);
 
-		printf("\nFField: \n%e, %e,\n%e, %e \n%e, %e \n",
-		outputs.Fsourceterm[0][0],outputs.Fsourceterm[0][1],
-		outputs.Fsourceterm[1][0],outputs.Fsourceterm[1][1],
-		outputs.Fsourceterm[2][0],outputs.Fsourceterm[2][1]);
+		//printf("\nFField: \n%e, %e,\n%e, %e \n%e, %e \n",
+		//outputs.Fsourceterm[0][0],outputs.Fsourceterm[0][1],
+		//outputs.Fsourceterm[1][0],outputs.Fsourceterm[1][1],
+		//outputs.Fsourceterm[2][0],outputs.Fsourceterm[2][1]);
 
         // prepare the dataset(s) for outputs
 
