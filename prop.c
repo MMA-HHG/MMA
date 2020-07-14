@@ -274,8 +274,8 @@ double* propagation(struct trg_def trg, struct Efield_var Efield, double tmin, i
 
 		// PRINTING
 		dip=0.; for(k1 = 0 ; k1 <= num_r ; k1++) {dip = dip + (psi[2*k1]*psi[2*k1] + psi[2*k1+1]*psi[2*k1+1])*gradpot(x[k1],trg);};
-		// outputs.tgrid[k+1] = tt, outputs.sourceterm[k+1] = -dip+Field; outputs.Efield[k+1]=Field;
-		outputs.tgrid[k+1] = tt, outputs.sourceterm[k+1] = Field; outputs.Efield[k+1]=Field;
+		outputs.tgrid[k+1] = tt, outputs.sourceterm[k+1] = -dip+Field; outputs.Efield[k+1]=Field;
+		//outputs.tgrid[k+1] = tt, outputs.sourceterm[k+1] = Field; outputs.Efield[k+1]=Field;
 
 
 		// printresults(trg,Efield, timef,k,psi,num_r,psi0,tt,x,dx,Field,Apot,x_int,dip,outputs); population was computed there
