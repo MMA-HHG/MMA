@@ -1268,9 +1268,8 @@ void calc2FFTW3(int N, double dx, double xmax, double *signal1, double *signal2,
 	fftw_plan p;
 	int k1;
 
-	printf("fftw3_t1\n");  fflush(NULL);
 
-	// do the transforms
+	// DO THE TRANSFORMS
 	
 	Nc = floor(((double)N) / 2.); Nc++; // # of points
 	in = calloc(2*Nc,sizeof(double));
@@ -1278,80 +1277,44 @@ void calc2FFTW3(int N, double dx, double xmax, double *signal1, double *signal2,
 	out1 = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * Nc); 
 	for(k1 = 0; k1 <= (N-1); k1++){in[k1]=signal1[k1];} // !!! REDUNDANT	
 	p = fftw_plan_dft_r2c_1d(N, in, out1, FFTW_ESTIMATE); //fftw_plan_dft_r2c_1d(int n, double *in, fftw_complex *out, unsigned flags); // plan FFTW
-	fftw_execute(p); // run FFTW
+	fftw_execute(p);
 
 	out2 = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * Nc);
 	for(k1 = 0; k1 <= (N-1); k1++){in[k1]=signal2[k1];} // !!! REDUNDANT
 	p = fftw_plan_dft_r2c_1d(N, in, out2, FFTW_ESTIMATE); //fftw_plan_dft_r2c_1d(int n, double *in, fftw_complex *out, unsigned flags); // plan FFTW
-	fftw_execute(p); // run FFTW
+	fftw_execute(p);
 
-	printf("afftw3\n");  fflush(NULL);
 
-	
+	//	RESCALE TO OUTPUTS
+
 	dxi = 2.*Pi/xmax;
 	coeff1 = dx/ sqrt(2.*Pi); coeff2 = dx*dx/(2.*Pi);
 
-	printf("aalloc\n");  fflush(NULL);
-	int size2D = sizeof(double *) * Nc + sizeof(double) * 2 * Nc; // Nc-rows
+
+	int size2D = sizeof(double *) * Nc + sizeof(double) * 2 * Nc; // Nc-rows - the size required for the array in the memory
+	double *ptr1, *ptr2;
 	*xgrid = (double*) calloc(N,sizeof(double));
 	*xigrid = (double*) calloc(Nc,sizeof(double));
 	*fsig1 = (double**) malloc(size2D);
-	// *fsig2 = (double**) malloc(size2D);
+	*fsig2 = (double**) malloc(size2D);
 	*fsig1M2 = (double*) calloc(Nc,sizeof(double));
 	*fsig2M2 = (double*) calloc(Nc,sizeof(double));
-	printf("balloc\n");  fflush(NULL);
 
-	// int dumint = 3;
-	printf("alloc_t1\n");  fflush(NULL);
-	double **arr, *ptr; // 
-	arr = (double**) malloc(size2D);
-	ptr = (double *) (arr + Nc);
-	for(k1=0; k1 < Nc; k1++){(*fsig1)[k1] = ptr + 2 * k1;}
-	printf("aloop\n");  fflush(NULL);
-	//arr[0][0] = 1.6;
-	//printf("accessed\n");  fflush(NULL);
-	//printf("%e \n",arr[0][0]);  fflush(NULL);
-
-
-	printf("alloc_t-done\n");  fflush(NULL);
-
-
-	//(*fsig1)[0][0]=1.0; 
-	//printf("accessed2\n");  fflush(NULL);
-	//printf("%e \n",(*fsig1)[0][0]);  fflush(NULL);
-
+	ptr1 = (double *) ((*fsig1) + Nc); ptr2 = (double *) ((*fsig2) + Nc);
+	for(k1=0; k1 < Nc; k1++){(*fsig1)[k1] = ptr1 + 2 * k1; (*fsig2)[k1] = ptr2 + 2 * k1;}
 
 	// write results
 	for(k1 = 0; k1 <= (N-1); k1++){(*xgrid)[k1]=((double)k1)*dx;}
-	printf("axgrid\n");  fflush(NULL);
 	for(k1 = 0; k1 <= (Nc-1); k1++){
-		(*xigrid)[k1] = ((double)k1)*dxi;               // printf("1\n");  fflush(NULL);
+		(*xigrid)[k1] = ((double)k1)*dxi;
 		(*fsig1)[k1][0] = coeff1*out1[k1][0]; (*fsig1)[k1][1] = - coeff1*out1[k1][1]; // !!!!! OUR CONVENTION OF ft IS COMLEX CONJUGATE WRT dft
-		// arr[k1][0] = coeff1*out1[k1][0]; arr[k1][1] = coeff1*out1[k1][1]; //printf("2\n");  fflush(NULL);
-		//(*fsig2)[k1][0] = coeff1*out2[k1][0]; (*fsig2)[k1][1] = coeff1*out2[k1][1]; printf("3\n");  fflush(NULL);
-		(*fsig1M2)[k1] = coeff2*(out1[k1][0]*out1[k1][0]+out1[k1][1]*out1[k1][1]); //printf("4\n");  fflush(NULL);
+		(*fsig2)[k1][0] = coeff1*out2[k1][0]; (*fsig2)[k1][1] = - coeff1*out2[k1][1];
+		(*fsig1M2)[k1] = coeff2*(out1[k1][0]*out1[k1][0]+out1[k1][1]*out1[k1][1]);
 		(*fsig2M2)[k1] = coeff2*(out2[k1][0]*out2[k1][0]+out2[k1][1]*out2[k1][1]);
 	}
 
-	//fprintf(GridDimensions,"%i\n", N);
-	//fprintf(GridDimensions,"%i\n", Nc);
 	fftw_free(out1); fftw_free(out2); free(in);
-
-	printf("fftw_computed\n");  fflush(NULL);
-
-
-	// assign results
-	//*fsig1 = arr;
 	*Nxi = Nc;
-	//**fsig1 = &out1;
-
-/*	for(k1 = 0; k1 <= (Nc-1); k1++){*/
-/*					fprintf(fsig,"%e\t%e\t%e\t%e\t%e\t%e\t%e\n",((double)k1)*dxi,coeff1*out1[k1][0], -coeff1*out1[k1][1] , coeff2*(out1[k1][0]*out1[k1][0]+out1[k1][1]*out1[k1][1]),coeff1*out2[k1][0], -coeff1*out2[k1][1] , coeff2*(out2[k1][0]*out2[k1][0]+out2[k1][1]*out2[k1][1]));*/
-/*					}*/
-	//fclose(file1);
-
-	
-
 	return;
 
 }

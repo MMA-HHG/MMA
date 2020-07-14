@@ -123,12 +123,16 @@ int main()
 	
         //printf("sourceterm out: %e, %e, %e \n",outputs.sourceterm[0],outputs.sourceterm[1],outputs.sourceterm[2]);
         printf("efield out    : %e, %e, %e \n",outputs.Efield[0],outputs.Efield[1],outputs.Efield[2]);
-	printf("Fefield out    : %e, %e \n%e, %e \n%e, %e \n",outputs.FEfield[0][0],outputs.FEfield[0][1],outputs.FEfield[1][0],outputs.FEfield[1][1],outputs.FEfield[2][0],outputs.FEfield[2][1]);
+	printf("\nFefield out    : %e, %e \n%e, %e \n%e, %e \n",outputs.FEfield[0][0],outputs.FEfield[0][1],outputs.FEfield[1][0],outputs.FEfield[1][1],outputs.FEfield[2][0],outputs.FEfield[2][1]);
 
-		//printf("\nFField: \n%e, %e,\n%e, %e \n%e, %e \n",
-		//outputs.Fsourceterm[0][0],outputs.Fsourceterm[0][1],
-		//outputs.Fsourceterm[1][0],outputs.Fsourceterm[1][1],
-		//outputs.Fsourceterm[2][0],outputs.Fsourceterm[2][1]);
+		printf("\nFSourceTerm: \n%e, %e,\n%e, %e \n%e, %e \n",
+		outputs.Fsourceterm[0][0],outputs.Fsourceterm[0][1],
+		outputs.Fsourceterm[1][0],outputs.Fsourceterm[1][1],
+		outputs.Fsourceterm[2][0],outputs.Fsourceterm[2][1]);
+
+		printf("FfieldM2      : %e, %e, %e \n",outputs.FEfieldM2[0],outputs.FEfieldM2[1],outputs.FEfieldM2[2]);
+		printf("FSourceTermM2 : %e, %e, %e \n",outputs.FsourcetermM2[0],outputs.FsourcetermM2[1],outputs.FsourcetermM2[2]);
+		printf("Nomega        : %i \n",outputs.Nomega);
 
         // prepare the dataset(s) for outputs
 
