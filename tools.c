@@ -1262,15 +1262,11 @@ void vander(double x[], double w[], double q[], int n)
 void calc2FFTW3(int N, double dx, double xmax, double *signal1, double *signal2, double **xgrid, double **xigrid, double ***fsig1, double ***fsig2, double **fsig1M2, double **fsig2M2, int *Nxi) //takes real signal speced by given "dt" and it computes and prints its FFTW3
 {
 	int Nc;
-	fftw_complex *out1, *out2, *in2;
+	fftw_complex *out1, *out2;
 	double *in, *dum;
 	double dxi,coeff1,coeff2;
 	fftw_plan p;
 	int k1;
-
-	// prepare grid
-	*xgrid = (double*) calloc(N,sizeof(double));
-	for(k1 = 0; k1 <= (N-1); k1++){(*xgrid)[k1]=((double)k1)*dx;}
 
 	// do the transforms
 	
@@ -1287,13 +1283,13 @@ void calc2FFTW3(int N, double dx, double xmax, double *signal1, double *signal2,
 	p = fftw_plan_dft_r2c_1d(N, in, out2, FFTW_ESTIMATE); //fftw_plan_dft_r2c_1d(int n, double *in, fftw_complex *out, unsigned flags); // plan FFTW
 	fftw_execute(p); // run FFTW
 
-	free(in);
 
 	
 	dxi = 2.*Pi/xmax;
 	coeff1 = dx/ sqrt(2.*Pi); coeff2 = dx*dx/(2.*Pi);
 
 	int size2D = sizeof(double *) * Nc + sizeof(double) * 2 * Nc; // Nc-rows
+	*xgrid = (double*) calloc(N,sizeof(double));
 	*xigrid = (double*) calloc(Nc,sizeof(double));
 	*fsig1 = (double**) malloc(size2D);
 	*fsig2 = (double**) malloc(size2D);
@@ -1301,14 +1297,19 @@ void calc2FFTW3(int N, double dx, double xmax, double *signal1, double *signal2,
 	*fsig2M2 = (double*) calloc(Nc,sizeof(double));
 
 
-	for(k1 = 0; k1 <= (Nc-1); k1++){dum[0]=((double)k1)*dxi; fwrite(dum,sizeof(double),1,xigrid);}
-	for(k1 = 0; k1 <= (Nc-1); k1++){dum[0]=coeff1*out1[k1][0]; fwrite(dum,sizeof(double),1,fsig1);dum[0]=-coeff1*out1[k1][1]; fwrite(dum,sizeof(double),1,fsig1);}
-	for(k1 = 0; k1 <= (Nc-1); k1++){dum[0]=coeff1*out2[k1][0]; fwrite(dum,sizeof(double),1,fsig2);dum[0]=-coeff1*out2[k1][1]; fwrite(dum,sizeof(double),1,fsig2);}
-	for(k1 = 0; k1 <= (Nc-1); k1++){dum[0]=coeff2*(out1[k1][0]*out1[k1][0]+out1[k1][1]*out1[k1][1]); fwrite(dum,sizeof(double),1,fsig1M2);}	
-	for(k1 = 0; k1 <= (Nc-1); k1++){dum[0]=coeff2*(out2[k1][0]*out2[k1][0]+out2[k1][1]*out2[k1][1]); fwrite(dum,sizeof(double),1,fsig2M2);}
+	// write results
+	for(k1 = 0; k1 <= (N-1); k1++){(*xgrid)[k1]=((double)k1)*dx;}
+	for(k1 = 0; k1 <= (Nc-1); k1++){
+		(*xigrid)[k1] = ((double)k1)*dxi;
+		(*fsig1)[k1][0] = coeff1*out1[k1][0]; (*fsig1)[k1][1] = coeff1*out1[k1][1];
+		(*fsig2)[k1][0] = coeff1*out2[k1][0]; (*fsig2)[k1][1] = coeff1*out2[k1][1];
+		(*fsig1M2)[k1] = coeff2*(out1[k1][0]*out1[k1][0]+out1[k1][1]*out1[k1][1]);
+		(*fsig2M2)[k1] = coeff2*(out2[k1][0]*out2[k1][0]+out2[k1][1]*out2[k1][1]);
+	}
 
 	fprintf(GridDimensions,"%i\n", N);
 	fprintf(GridDimensions,"%i\n", Nc);
+	fftw_free(out1); fftw_free(out2); free(in);
 
 
 	// assign results

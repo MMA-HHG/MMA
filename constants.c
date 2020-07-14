@@ -13,7 +13,7 @@ void Init_constants(void){
     Ip_HeV = 27.21138602;
     hbar = 1.054571800e-34;
     alpha_fine = 1/137.035999139;
-    c_light = 299792458;
+    c_light = 299792458.;
     elcharge = 1.602176565e-19;
     elmass = 9.10938356e-31;
     mu0 = 4.0*pi*1e-7;

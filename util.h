@@ -73,14 +73,18 @@ struct inputs_def{
 // all have to be defined as pointers for calling by reference
 struct outputs_def{
 	double *tgrid;
+	double *tgrid_fftw;
 	double *Efield;
 	double *sourceterm;
 	double *omegagrid;
-	double *FEfield;
-	double *Fsourceterm;
+	double **FEfield;
+	double **Fsourceterm;
+	double *FEfieldM2;
+	double *FsourcetermM2;
 	double *PopTot;
 	double *sourcetermfiltered;
 	int Nt;
+	int Nomega;
 /*	double *tmax;*/
 };
 
@@ -172,3 +176,7 @@ hsize_t * get_dimensions_h5(hid_t, char *, herr_t *, int *, hid_t *);
 // Physical constants
 void Init_constants(void);
 double Ip_HeV, hbar, alpha_fine, c_light, elcharge, elmass, mu0, eps0, r_Bohr, TIMEau, EFIELDau, TIMEau, EFIELDau, k_Boltz, absolute_zero, torr2SI;
+
+
+
+void calc2FFTW3(int, double, double, double *, double *, double **, double **, double ***, double ***, double **, double **, int *);

@@ -208,6 +208,24 @@ struct outputs_def call1DTDSE(struct inputs_def inputs) // this is a wrapper tha
 	// 	}
 
 
+	// SAVE THE RESULTS
+	calc2FFTW3(outputs.Nt, dt, tmax, outputs.Efield, outputs.sourceterm, &outputs.tgrid_fftw, &outputs.omegagrid, &outputs.FEfield,
+				&outputs.Fsourceterm, &outputs.FEfieldM2, &outputs.FsourcetermM2, &outputs.Nomega) //takes real signal speced by given "dt" and it computes and prints its FFTW3
+
+	// TO COMPARE
+		file1 = fopen("results/TimeDomain.dat" , "w"); file2 = fopen("results/OmegaDomain.dat" , "w");
+		print2FFTW3(file1, file2, outputs.Efield, outputs.sourceterm, (Nt+1), dt, outputs.tgrid[Nt]);
+		fclose(file1); fclose(file2);
+		file1 = fopen("results/GS_population.dat" , "w");
+		for(k1 = 0; k1 <= Nt; k1++){fprintf(file1,"%e\t%e\n", outputs.tgrid[k1] , outputs.PopTot[k1]);}
+		fclose(file1);
+
+                if(IonisationFilterForTheSourceTerm == 1){
+		file1 = fopen("results/TimeDomainFiltered.dat" , "w"); file2 = fopen("results/OmegaDomainFiltered.dat" , "w");
+		print2FFTW3(file1, file2, outputs.Efield, outputs.sourcetermfiltered, (Nt+1), dt, outputs.tgrid[Nt]);
+		fclose(file1); fclose(file2);
+		}
+
 
 	// print Gabor and partial spectra
 	if (PrintGaborAndSpectrum == 1){
