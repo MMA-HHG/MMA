@@ -123,7 +123,7 @@ int main()
 	
         //printf("sourceterm out: %e, %e, %e \n",outputs.sourceterm[0],outputs.sourceterm[1],outputs.sourceterm[2]);
         printf("efield out    : %e, %e, %e \n",outputs.Efield[0],outputs.Efield[1],outputs.Efield[2]);
-	printf("\nFefield out    : %e, %e \n%e, %e \n%e, %e \n",outputs.FEfield[0][0],outputs.FEfield[0][1],outputs.FEfield[1][0],outputs.FEfield[1][1],outputs.FEfield[2][0],outputs.FEfield[2][1]);
+	printf("\nFefield out    : \n%e, %e \n%e, %e \n%e, %e \n",outputs.FEfield[0][0],outputs.FEfield[0][1],outputs.FEfield[1][0],outputs.FEfield[1][1],outputs.FEfield[2][0],outputs.FEfield[2][1]);
 
 		printf("\nFSourceTerm: \n%e, %e,\n%e, %e \n%e, %e \n",
 		outputs.Fsourceterm[0][0],outputs.Fsourceterm[0][1],
@@ -144,9 +144,19 @@ int main()
 
 	hsize_t dims3[2]; dims3[0] = outputs.Nomega; dims3[1] = 2;
 	double myarray[outputs.Nomega][2];
-	for(k1 = 0; k1<outputs.Nomega;k1++){myarray[k1][0] = outputs.FEfield[k1][0];myarray[k1][1] = outputs.FEfield[k1][1];}
+	for(k1 = 0; k1 < outputs.Nomega;k1++){myarray[k1][0] = outputs.FEfield[k1][0];myarray[k1][1] = outputs.FEfield[k1][1];}
 	//print_nd_array_h5(file_id, "/test2", &h5error, 2, dims3, (double*)((*outputs.FEfield) + outputs.Nomega), H5T_NATIVE_DOUBLE); // https://support.hdfgroup.org/HDF5/doc1.6/PredefDTypes.html
 	print_nd_array_h5(file_id, "/test2", &h5error, 2, dims3, myarray, H5T_NATIVE_DOUBLE); // https://support.hdfgroup.org/HDF5/doc1.6/PredefDTypes.html
+
+	double *myarray2;
+	myarray2 = (double*) malloc(2*outputs.Nomega*sizeof(double));
+	for(k1 = 0; k1 < outputs.Nomega;k1++){myarray2[2*k1] = outputs.FEfield[k1][0]; myarray2[2*k1+1] = outputs.FEfield[k1][1];}
+	print_nd_array_h5(file_id, "/test3", &h5error, 2, dims3, myarray2, H5T_NATIVE_DOUBLE); // https://support.hdfgroup.org/HDF5/doc1.6/PredefDTypes.html
+
+	double **array_accessor;
+	array_accessor = (double**) malloc(outputs.Nomega*sizeof(double));
+	for(k1 = 0; k1 < outputs.Nomega;k1++){array_accessor[k1] = &myarray2[2*k1];}
+	printf("\narray accessor    : \n%e, %e \n%e, %e \n%e, %e \n",array_accessor[0][0],array_accessor[0][1],array_accessor[1][0],array_accessor[1][1],array_accessor[2][0],array_accessor[2][1]);
 
 
         // dataspace_id = H5Screate_simple(ndims, dims, NULL); // create dataspace for outputs
