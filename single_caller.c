@@ -159,6 +159,9 @@ int main()
 	printf("\narray accessor    : \n%e, %e \n%e, %e \n%e, %e \n",array_accessor[0][0],array_accessor[0][1],array_accessor[1][0],array_accessor[1][1],array_accessor[2][0],array_accessor[2][1]);
 
 
+	array_accessor[0][0] = 1.6;
+	printf("changed array : %e \n",array_accessor[0][0]);
+
         // dataspace_id = H5Screate_simple(ndims, dims, NULL); // create dataspace for outputs
         // dataset_id = H5Dcreate2(file_id, "/SourceTerms", datatype, dataspace_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT); // create dataset
         // h5error = H5Sclose(dataspace_id);
