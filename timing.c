@@ -72,8 +72,6 @@ int main(int argc, char *argv[])
 	t_mpi[6] = MPI_Wtime();
 	printf("Proc %i, reached the point 1  : %f sec\n",myrank,t_mpi[6]-t_mpi[0]);
 	
-	// first process prepare file based on the first simulation
-	// first process release mutex
  
 	t_mpi[4] = MPI_Wtime();	
 		
