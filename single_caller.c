@@ -196,6 +196,8 @@ int main()
 	print_nd_array_h5(file_id, "/TDSEsingle/tgrid_fftw", &h5error, 1, dims2, outputs.tgrid_fftw, H5T_NATIVE_DOUBLE);
 	hsize_t dims4[1]; dims4[0] = outputs.Nomega;
 	print_nd_array_h5(file_id, "/TDSEsingle/omegagrid", &h5error, 1, dims4, outputs.omegagrid, H5T_NATIVE_DOUBLE);
+	print_nd_array_h5(file_id, "/TDSEsingle/FEfieldM2", &h5error, 1, dims4, outputs.FEfieldM2, H5T_NATIVE_DOUBLE);
+	print_nd_array_h5(file_id, "/TDSEsingle/FSourceTermM2", &h5error, 1, dims4, outputs.FsourcetermM2, H5T_NATIVE_DOUBLE);
 
 
    
