@@ -1352,7 +1352,7 @@ void calcFFTW3(int N, double dx, double xmax, double *signal, double **xgrid, do
 	
 	out = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * Nc); 
 	for(k1 = 0; k1 <= (N-1); k1++){in[k1]=signal[k1];} // !!! REDUNDANT	
-	p = fftw_plan_dft_r2c_1d(N, in, out1, FFTW_ESTIMATE); //fftw_plan_dft_r2c_1d(int n, double *in, fftw_complex *out, unsigned flags); // plan FFTW
+	p = fftw_plan_dft_r2c_1d(N, in, out, FFTW_ESTIMATE); //fftw_plan_dft_r2c_1d(int n, double *in, fftw_complex *out, unsigned flags); // plan FFTW
 	fftw_execute(p);
 
 	//	RESCALE TO OUTPUTS
@@ -1371,8 +1371,8 @@ void calcFFTW3(int N, double dx, double xmax, double *signal, double **xgrid, do
 	for(k1 = 0; k1 <= (N-1); k1++){(*xgrid)[k1]=((double)k1)*dx;}
 	for(k1 = 0; k1 <= (Nc-1); k1++){
 		(*xigrid)[k1] = ((double)k1)*dxi;
-		(*fsig)[2*k1] = coeff1*out1[k1][0]; (*fsig)[2*k1+1] = - coeff1*out1[k1][1]; // !!!!! OUR CONVENTION OF ft IS COMLEX CONJUGATE WRT dft
-		(*fsigM2)[k1] = coeff2*(out1[k1][0]*out1[k1][0]+out1[k1][1]*out1[k1][1]);
+		(*fsig)[2*k1] = coeff1*out[k1][0]; (*fsig)[2*k1+1] = - coeff1*out[k1][1]; // !!!!! OUR CONVENTION OF ft IS COMLEX CONJUGATE WRT dft
+		(*fsigM2)[k1] = coeff2*(out[k1][0]*out[k1][0]+out[k1][1]*out[k1][1]);
 	}
 
 	fftw_free(out); free(in);

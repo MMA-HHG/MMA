@@ -121,6 +121,10 @@ int main()
 	outputs = call1DTDSE(inputs); // THE TDSE
 	printf("TDSE done, in the caller\n"); fflush(NULL);
 
+	int mydims[2] = {outputs.Nomega,2};
+	outputs.FEfield = create_2Darray_accessor_real(mydims, outputs.FEfield_data);
+	outputs.Fsourceterm = create_2Darray_accessor_real(mydims, outputs.Fsourceterm_data);
+
 
 	
         //printf("sourceterm out: %e, %e, %e \n",outputs.sourceterm[0],outputs.sourceterm[1],outputs.sourceterm[2]);
@@ -140,13 +144,14 @@ int main()
 
         // dims[0] = outputs.Nt; // length defined by outputs
         file_id = H5Fopen ("results2.h5", H5F_ACC_RDWR, H5P_DEFAULT); // we use a different output file to testing, can be changed to have only one file
+	hsize_t dims3[2]; dims3[0] = outputs.Nomega; dims3[1] = 2;
 
-		print_nd_array_h5(file_id, "/test4", &h5error, 2, dims3, outputs.FEfield_data, H5T_NATIVE_DOUBLE); // https://support.hdfgroup.org/HDF5/doc1.6/PredefDTypes.html
+	print_nd_array_h5(file_id, "/test4", &h5error, 2, dims3, outputs.FEfield_data, H5T_NATIVE_DOUBLE); // https://support.hdfgroup.org/HDF5/doc1.6/PredefDTypes.html
 	
 	hsize_t dims2[1]; dims2[0] = outputs.Nt;
 	print_nd_array_h5(file_id, "/test", &h5error, 1, dims2, outputs.Efield, H5T_NATIVE_DOUBLE); // https://support.hdfgroup.org/HDF5/doc1.6/PredefDTypes.html
 
-	hsize_t dims3[2]; dims3[0] = outputs.Nomega; dims3[1] = 2;
+	
 	double myarray[outputs.Nomega][2];
 	for(k1 = 0; k1 < outputs.Nomega;k1++){myarray[k1][0] = outputs.FEfield[k1][0];myarray[k1][1] = outputs.FEfield[k1][1];}
 	//print_nd_array_h5(file_id, "/test2", &h5error, 2, dims3, (double*)((*outputs.FEfield) + outputs.Nomega), H5T_NATIVE_DOUBLE); // https://support.hdfgroup.org/HDF5/doc1.6/PredefDTypes.html
@@ -179,7 +184,7 @@ int main()
 	// TEST FULL STRUCTURE PRINT
 	/* Create a group named "/MyGroup" in the file. */
    	hid_t g_id = H5Gcreate2(file_id, "/TDSEsingle", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
-	h5error = H5Gclose(group_id);
+	h5error = H5Gclose(g_id);
 	print_nd_array_h5(file_id, "/TDSEsingle/FEfield", &h5error, 2, dims3, outputs.FEfield_data, H5T_NATIVE_DOUBLE);
 	print_nd_array_h5(file_id, "/TDSEsingle/FSourceTerm", &h5error, 2, dims3, outputs.Fsourceterm_data, H5T_NATIVE_DOUBLE);
 
