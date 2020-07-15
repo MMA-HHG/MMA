@@ -18,7 +18,7 @@ struct outputs_def outputs;
 int k1, k2, k3;
 
 
-clock_t start_main, finish2_main, finish1_main, finish3_main, finish4_main;
+clock_t start_clock, end_clock;
 
 
 int main() 
@@ -38,9 +38,9 @@ int main()
 
 	printf("program started\n");
 	fflush(NULL);
-	start_main = clock(); // the clock	
+	start_clock = clock(); // the clock	
 	Init_constants();
-	printf("hbar and rBohr are %e, %e\n",hbar,r_Bohr);
+	// printf("hbar and rBohr are %e, %e\n",hbar,r_Bohr);
 
 
 	// READ DATA
@@ -79,8 +79,8 @@ int main()
 	// for(k1 = 0 ; k1 < inputs.Efield.Nt; k1++){inputs.Efield.tgrid[k1] = inputs.Efield.tgrid[k1]*1e-15/TIMEau; inputs.Efield.Field[k1] = inputs.Efield.Field[k1]*1e9/EFIELDau;} // convert to atomic units (fs->a.u.), (GV/m->a.u.)
 	for(k1 = 0 ; k1 < inputs.Efield.Nt; k1++){inputs.Efield.tgrid[k1] = inputs.Efield.tgrid[k1]/TIMEau; inputs.Efield.Field[k1] = inputs.Efield.Field[k1]/EFIELDau;} // convert to atomic units (fs->a.u.), (GV/m->a.u.)
 
-	printf("a tgrid\n");
-	fflush(NULL);
+	// printf("a tgrid\n");
+	// fflush(NULL);
 
     	// load field
     	//inputs.Efield.Field = malloc(((int)dims[0])*sizeof(double));
@@ -91,7 +91,7 @@ int main()
 	// Initialise_GS(inputs.num_r);
 	
 	//normalise(psi0,inputs.num_r); // Initialise psi0 for Einitialise
-	printf("test\n"); fflush(NULL);
+	// printf("test\n"); fflush(NULL);
 
 	double CV = 1E-20; // CV criteria
 
@@ -121,87 +121,127 @@ int main()
 	outputs = call1DTDSE(inputs); // THE TDSE
 	printf("TDSE done, in the caller\n"); fflush(NULL);
 
-	int mydims[2] = {outputs.Nomega,2};
-	outputs.FEfield = create_2Darray_accessor_real(mydims, outputs.FEfield_data);
-	outputs.Fsourceterm = create_2Darray_accessor_real(mydims, outputs.Fsourceterm_data);
+
+	////////////////////
+	//PROCESS OUTPUTS //
+	////////////////////
 
 
-	
-        //printf("sourceterm out: %e, %e, %e \n",outputs.sourceterm[0],outputs.sourceterm[1],outputs.sourceterm[2]);
-        printf("efield out    : %e, %e, %e \n",outputs.Efield[0],outputs.Efield[1],outputs.Efield[2]);
-		printf("\nFefield out    : \n%e, %e \n%e, %e \n%e, %e \n",outputs.FEfield[0][0],outputs.FEfield[0][1],outputs.FEfield[1][0],outputs.FEfield[1][1],outputs.FEfield[2][0],outputs.FEfield[2][1]);
+	printf("Printing the outputs \n");
+	//outputs.FEfield = create_2Darray_accessor_real(mydims, outputs.FEfield_data); // in the case we would like to access the array usual way
+	//outputs.Fsourceterm = create_2Darray_accessor_real(mydims, outputs.Fsourceterm_data);
+	hsize_t output_dims[2]; // never exceeds 2 in this case, can be longer
 
-		printf("\nFSourceTerm: \n%e, %e,\n%e, %e \n%e, %e \n",
-		outputs.Fsourceterm[0][0],outputs.Fsourceterm[0][1],
-		outputs.Fsourceterm[1][0],outputs.Fsourceterm[1][1],
-		outputs.Fsourceterm[2][0],outputs.Fsourceterm[2][1]);
-
-		printf("FfieldM2      : %e, %e, %e \n",outputs.FEfieldM2[0],outputs.FEfieldM2[1],outputs.FEfieldM2[2]);
-		printf("FSourceTermM2 : %e, %e, %e \n",outputs.FsourcetermM2[0],outputs.FsourcetermM2[1],outputs.FsourcetermM2[2]);
-		printf("Nomega        : %i \n",outputs.Nomega);
-
-        // prepare the dataset(s) for outputs
-
-        // dims[0] = outputs.Nt; // length defined by outputs
-        file_id = H5Fopen ("results2.h5", H5F_ACC_RDWR, H5P_DEFAULT); // we use a different output file to testing, can be changed to have only one file
-	hsize_t dims3[2]; dims3[0] = outputs.Nomega; dims3[1] = 2;
-
-	print_nd_array_h5(file_id, "/test4", &h5error, 2, dims3, outputs.FEfield_data, H5T_NATIVE_DOUBLE); // https://support.hdfgroup.org/HDF5/doc1.6/PredefDTypes.html
-	
-	hsize_t dims2[1]; dims2[0] = outputs.Nt;
-	print_nd_array_h5(file_id, "/test", &h5error, 1, dims2, outputs.Efield, H5T_NATIVE_DOUBLE); // https://support.hdfgroup.org/HDF5/doc1.6/PredefDTypes.html
-
-	
-	double myarray[outputs.Nomega][2];
-	for(k1 = 0; k1 < outputs.Nomega;k1++){myarray[k1][0] = outputs.FEfield[k1][0];myarray[k1][1] = outputs.FEfield[k1][1];}
-	//print_nd_array_h5(file_id, "/test2", &h5error, 2, dims3, (double*)((*outputs.FEfield) + outputs.Nomega), H5T_NATIVE_DOUBLE); // https://support.hdfgroup.org/HDF5/doc1.6/PredefDTypes.html
-	print_nd_array_h5(file_id, "/test2", &h5error, 2, dims3, myarray, H5T_NATIVE_DOUBLE); // https://support.hdfgroup.org/HDF5/doc1.6/PredefDTypes.html
-
-	double *myarray2;
-	myarray2 = (double*) malloc(2*outputs.Nomega*sizeof(double));
-	for(k1 = 0; k1 < outputs.Nomega;k1++){myarray2[2*k1] = outputs.FEfield[k1][0]; myarray2[2*k1+1] = outputs.FEfield[k1][1];}
-	print_nd_array_h5(file_id, "/test3", &h5error, 2, dims3, myarray2, H5T_NATIVE_DOUBLE); // https://support.hdfgroup.org/HDF5/doc1.6/PredefDTypes.html
-
-	
-
-	double **array_accessor;
-	array_accessor = (double**) malloc(outputs.Nomega*sizeof(double));
-	for(k1 = 0; k1 < outputs.Nomega;k1++){array_accessor[k1] = &myarray2[2*k1];}
-	printf("\narray accessor    : \n%e, %e \n%e, %e \n%e, %e \n",array_accessor[0][0],array_accessor[0][1],array_accessor[1][0],array_accessor[1][1],array_accessor[2][0],array_accessor[2][1]);
-
-
-	array_accessor[0][0] = 1.6;
-	printf("changed array : %e \n",array_accessor[0][0]);
-
-        // dataspace_id = H5Screate_simple(ndims, dims, NULL); // create dataspace for outputs
-        // dataset_id = H5Dcreate2(file_id, "/SourceTerms", datatype, dataspace_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT); // create dataset
-        // h5error = H5Sclose(dataspace_id);
-        // h5error = H5Dclose(dataset_id);
-        // rw_real_fullhyperslab_nd_h5(file_id,"/SourceTerms",&h5error,3,dims,dum3int,outputs.Efield,"w");
-
-
-
-	// TEST FULL STRUCTURE PRINT
-	/* Create a group named "/MyGroup" in the file. */
-   	hid_t g_id = H5Gcreate2(file_id, "/TDSEsingle", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+	file_id = H5Fopen ("results2.h5", H5F_ACC_RDWR, H5P_DEFAULT); // we use a different output file to testing, can be changed to have only one file
+	hid_t g_id = H5Gcreate2(file_id, "/TDSEsingle", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
 	h5error = H5Gclose(g_id);
-	print_nd_array_h5(file_id, "/TDSEsingle/FEfield", &h5error, 2, dims3, outputs.FEfield_data, H5T_NATIVE_DOUBLE);
-	print_nd_array_h5(file_id, "/TDSEsingle/FSourceTerm", &h5error, 2, dims3, outputs.Fsourceterm_data, H5T_NATIVE_DOUBLE);
 
-	print_nd_array_h5(file_id, "/TDSEsingle/SourceTerm", &h5error, 1, dims2, outputs.sourceterm, H5T_NATIVE_DOUBLE);
-	print_nd_array_h5(file_id, "/TDSEsingle/Efield", &h5error, 1, dims2, outputs.Efield, H5T_NATIVE_DOUBLE);
-	print_nd_array_h5(file_id, "/TDSEsingle/PopTot", &h5error, 1, dims2, outputs.PopTot, H5T_NATIVE_DOUBLE);
+	// time domain
+	output_dims[0] = outputs.Nt; output_dims[1] = 0;
 
-	print_nd_array_h5(file_id, "/TDSEsingle/tgrid", &h5error, 1, dims2, outputs.tgrid, H5T_NATIVE_DOUBLE);
-	print_nd_array_h5(file_id, "/TDSEsingle/tgrid_fftw", &h5error, 1, dims2, outputs.tgrid_fftw, H5T_NATIVE_DOUBLE);
-	hsize_t dims4[1]; dims4[0] = outputs.Nomega;
-	print_nd_array_h5(file_id, "/TDSEsingle/omegagrid", &h5error, 1, dims4, outputs.omegagrid, H5T_NATIVE_DOUBLE);
-	print_nd_array_h5(file_id, "/TDSEsingle/FEfieldM2", &h5error, 1, dims4, outputs.FEfieldM2, H5T_NATIVE_DOUBLE);
-	print_nd_array_h5(file_id, "/TDSEsingle/FSourceTermM2", &h5error, 1, dims4, outputs.FsourcetermM2, H5T_NATIVE_DOUBLE);
+	print_nd_array_h5(file_id, "/TDSEsingle/SourceTerm", &h5error, 1, output_dims, outputs.sourceterm, H5T_NATIVE_DOUBLE);
+	print_nd_array_h5(file_id, "/TDSEsingle/Efield", &h5error, 1, output_dims, outputs.Efield, H5T_NATIVE_DOUBLE);
+	print_nd_array_h5(file_id, "/TDSEsingle/PopTot", &h5error, 1, output_dims, outputs.PopTot, H5T_NATIVE_DOUBLE);
+
+	print_nd_array_h5(file_id, "/TDSEsingle/tgrid", &h5error, 1, output_dims, outputs.tgrid, H5T_NATIVE_DOUBLE);
+	print_nd_array_h5(file_id, "/TDSEsingle/tgrid_fftw", &h5error, 1, output_dims, outputs.tgrid_fftw, H5T_NATIVE_DOUBLE);
+
+	// omega domain - complex
+	output_dims[0] = outputs.Nomega; output_dims[1] = 2;
+
+	print_nd_array_h5(file_id, "/TDSEsingle/FEfield", &h5error, 2, output_dims, outputs.FEfield_data, H5T_NATIVE_DOUBLE);
+	print_nd_array_h5(file_id, "/TDSEsingle/FSourceTerm", &h5error, 2, output_dims, outputs.Fsourceterm_data, H5T_NATIVE_DOUBLE);
+
+	// omega domain - real
+	output_dims[0] = outputs.Nomega; output_dims[1] = 0;
+	print_nd_array_h5(file_id, "/TDSEsingle/omegagrid", &h5error, 1, output_dims, outputs.omegagrid, H5T_NATIVE_DOUBLE);
+	print_nd_array_h5(file_id, "/TDSEsingle/FEfieldM2", &h5error, 1, output_dims, outputs.FEfieldM2, H5T_NATIVE_DOUBLE);
+	print_nd_array_h5(file_id, "/TDSEsingle/FSourceTermM2", &h5error, 1, output_dims, outputs.FsourcetermM2, H5T_NATIVE_DOUBLE);
+
+	// durations of calculation
+	output_dims[0] = 1; output_dims[1] = 0;	
+	end_clock = clock();
+	print_nd_array_h5(file_id, "/TDSEsingle/full_time_of_calculation", &h5error, 1, &((double)((end_clock - start_clock)/CLOCKS_PER_SEC)), outputs.FsourcetermM2, H5T_NATIVE_DOUBLE);
+
+
+	h5error = H5Fclose(file_id); // file
+
+
+
+
+
+	// int mydims[2] = {outputs.Nomega,2};
+
+	
+
+	// //
+
+	
+    //     //printf("sourceterm out: %e, %e, %e \n",outputs.sourceterm[0],outputs.sourceterm[1],outputs.sourceterm[2]);
+    //     printf("efield out    : %e, %e, %e \n",outputs.Efield[0],outputs.Efield[1],outputs.Efield[2]);
+	// 	printf("\nFefield out    : \n%e, %e \n%e, %e \n%e, %e \n",outputs.FEfield[0][0],outputs.FEfield[0][1],outputs.FEfield[1][0],outputs.FEfield[1][1],outputs.FEfield[2][0],outputs.FEfield[2][1]);
+
+	// 	printf("\nFSourceTerm: \n%e, %e,\n%e, %e \n%e, %e \n",
+	// 	outputs.Fsourceterm[0][0],outputs.Fsourceterm[0][1],
+	// 	outputs.Fsourceterm[1][0],outputs.Fsourceterm[1][1],
+	// 	outputs.Fsourceterm[2][0],outputs.Fsourceterm[2][1]);
+
+	// 	printf("FfieldM2      : %e, %e, %e \n",outputs.FEfieldM2[0],outputs.FEfieldM2[1],outputs.FEfieldM2[2]);
+	// 	printf("FSourceTermM2 : %e, %e, %e \n",outputs.FsourcetermM2[0],outputs.FsourcetermM2[1],outputs.FsourcetermM2[2]);
+	// 	printf("Nomega        : %i \n",outputs.Nomega);
+
+    //     // prepare the dataset(s) for outputs
+
+    //     // dims[0] = outputs.Nt; // length defined by outputs
+        
+	// hsize_t dims3[2]; dims3[0] = outputs.Nomega; dims3[1] = 2;
+
+	// print_nd_array_h5(file_id, "/test4", &h5error, 2, dims3, outputs.FEfield_data, H5T_NATIVE_DOUBLE); // https://support.hdfgroup.org/HDF5/doc1.6/PredefDTypes.html
+	
+	// hsize_t dims2[1]; dims2[0] = outputs.Nt;
+	// print_nd_array_h5(file_id, "/test", &h5error, 1, dims2, outputs.Efield, H5T_NATIVE_DOUBLE); // https://support.hdfgroup.org/HDF5/doc1.6/PredefDTypes.html
+
+	
+	// double myarray[outputs.Nomega][2];
+	// for(k1 = 0; k1 < outputs.Nomega;k1++){myarray[k1][0] = outputs.FEfield[k1][0];myarray[k1][1] = outputs.FEfield[k1][1];}
+	// //print_nd_array_h5(file_id, "/test2", &h5error, 2, dims3, (double*)((*outputs.FEfield) + outputs.Nomega), H5T_NATIVE_DOUBLE); // https://support.hdfgroup.org/HDF5/doc1.6/PredefDTypes.html
+	// print_nd_array_h5(file_id, "/test2", &h5error, 2, dims3, myarray, H5T_NATIVE_DOUBLE); // https://support.hdfgroup.org/HDF5/doc1.6/PredefDTypes.html
+
+	// double *myarray2;
+	// myarray2 = (double*) malloc(2*outputs.Nomega*sizeof(double));
+	// for(k1 = 0; k1 < outputs.Nomega;k1++){myarray2[2*k1] = outputs.FEfield[k1][0]; myarray2[2*k1+1] = outputs.FEfield[k1][1];}
+	// print_nd_array_h5(file_id, "/test3", &h5error, 2, dims3, myarray2, H5T_NATIVE_DOUBLE); // https://support.hdfgroup.org/HDF5/doc1.6/PredefDTypes.html
+
+	
+
+	// double **array_accessor;
+	// array_accessor = (double**) malloc(outputs.Nomega*sizeof(double));
+	// for(k1 = 0; k1 < outputs.Nomega;k1++){array_accessor[k1] = &myarray2[2*k1];}
+	// printf("\narray accessor    : \n%e, %e \n%e, %e \n%e, %e \n",array_accessor[0][0],array_accessor[0][1],array_accessor[1][0],array_accessor[1][1],array_accessor[2][0],array_accessor[2][1]);
+
+
+	// array_accessor[0][0] = 1.6;
+	// printf("changed array : %e \n",array_accessor[0][0]);
+
+    //     // dataspace_id = H5Screate_simple(ndims, dims, NULL); // create dataspace for outputs
+    //     // dataset_id = H5Dcreate2(file_id, "/SourceTerms", datatype, dataspace_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT); // create dataset
+    //     // h5error = H5Sclose(dataspace_id);
+    //     // h5error = H5Dclose(dataset_id);
+    //     // rw_real_fullhyperslab_nd_h5(file_id,"/SourceTerms",&h5error,3,dims,dum3int,outputs.Efield,"w");
+
+
+
+   	
+	
+
+
+
+	// hsize_t dims4[1]; dims4[0] = outputs.Nomega;
+
 
 
    
-    h5error = H5Fclose(file_id); // file
+    
     printf("Done \n");
 
 }
