@@ -225,8 +225,8 @@ struct outputs_def call1DTDSE(struct inputs_def inputs) // this is a wrapper tha
 
 
 	// SAVE THE RESULTS
-	calc2FFTW3(outputs.Nt, dt, tmax, outputs.Efield, outputs.sourceterm, &outputs.tgrid_fftw, &outputs.omegagrid, &outputs.FEfield,
-				&outputs.Fsourceterm, &outputs.FEfieldM2, &outputs.FsourcetermM2, &outputs.Nomega); //takes real signal speced by given "dt" and it computes and prints its FFTW3
+	calc2FFTW3(outputs.Nt, dt, tmax, outputs.Efield, outputs.sourceterm, &outputs.tgrid_fftw, &outputs.omegagrid, &outputs.FEfield_data,
+				&outputs.Fsourceterm_data, &outputs.FEfieldM2, &outputs.FsourcetermM2, &outputs.Nomega); //takes real signal speced by given "dt" and it computes and prints its FFTW3
 
 	printf("fftw_computed in single\n");  fflush(NULL);
 

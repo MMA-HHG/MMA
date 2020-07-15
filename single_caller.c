@@ -120,6 +120,13 @@ int main()
 
 	outputs = call1DTDSE(inputs); // THE TDSE
 	printf("TDSE done, in the caller\n"); fflush(NULL);
+
+	printf("test accessor\n"); fflush(NULL);
+	int[2] mydims = {outputs.Nomega,2};
+	outputs.FEfield = create_2Darray_accessor_real(mydims, outputs.FEfield_data);
+	outputs.Fsourceterm = create_2Darray_accessor_real(mydims, outputs.Fsourceterm_data);
+
+	printf("aaccessor\n"); fflush(NULL);
 	
         //printf("sourceterm out: %e, %e, %e \n",outputs.sourceterm[0],outputs.sourceterm[1],outputs.sourceterm[2]);
         printf("efield out    : %e, %e, %e \n",outputs.Efield[0],outputs.Efield[1],outputs.Efield[2]);
@@ -152,6 +159,8 @@ int main()
 	myarray2 = (double*) malloc(2*outputs.Nomega*sizeof(double));
 	for(k1 = 0; k1 < outputs.Nomega;k1++){myarray2[2*k1] = outputs.FEfield[k1][0]; myarray2[2*k1+1] = outputs.FEfield[k1][1];}
 	print_nd_array_h5(file_id, "/test3", &h5error, 2, dims3, myarray2, H5T_NATIVE_DOUBLE); // https://support.hdfgroup.org/HDF5/doc1.6/PredefDTypes.html
+
+	print_nd_array_h5(file_id, "/test4", &h5error, 2, dims3, outputs.FEfield_data, H5T_NATIVE_DOUBLE); // https://support.hdfgroup.org/HDF5/doc1.6/PredefDTypes.html
 
 	double **array_accessor;
 	array_accessor = (double**) malloc(outputs.Nomega*sizeof(double));

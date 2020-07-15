@@ -1259,7 +1259,7 @@ void vander(double x[], double w[], double q[], int n)
 
 
 
-void calc2FFTW3(int N, double dx, double xmax, double *signal1, double *signal2, double **xgrid, double **xigrid, double ***fsig1, double ***fsig2, double **fsig1M2, double **fsig2M2, int *Nxi) //takes real signal speced by given "dt" and it computes and prints its FFTW3
+void calc2FFTW3(int N, double dx, double xmax, double *signal1, double *signal2, double **xgrid, double **xigrid, double **fsig1, double **fsig2, double **fsig1M2, double **fsig2M2, int *Nxi) //takes real signal speced by given "dt" and it computes and prints its FFTW3
 {
 	int Nc;
 	fftw_complex *out1, *out2;
@@ -1291,24 +1291,24 @@ void calc2FFTW3(int N, double dx, double xmax, double *signal1, double *signal2,
 	coeff1 = dx/ sqrt(2.*Pi); coeff2 = dx*dx/(2.*Pi);
 
 
-	int size2D = sizeof(double *) * Nc + sizeof(double) * 2 * Nc; // Nc-rows - the size required for the array in the memory
-	double *ptr1, *ptr2;
+	// int size2D = sizeof(double *) * Nc + sizeof(double) * 2 * Nc; // Nc-rows - the size required for the array in the memory
+	// double *ptr1, *ptr2;
 	*xgrid = (double*) calloc(N,sizeof(double));
 	*xigrid = (double*) calloc(Nc,sizeof(double));
-	*fsig1 = (double**) malloc(size2D);
-	*fsig2 = (double**) malloc(size2D);
+	*fsig1 = (double*) calloc(2*Nc,sizeof(double));
+	*fsig2 = (double*) calloc(2*Nc,sizeof(double));
 	*fsig1M2 = (double*) calloc(Nc,sizeof(double));
 	*fsig2M2 = (double*) calloc(Nc,sizeof(double));
 
-	ptr1 = (double *) ((*fsig1) + Nc); ptr2 = (double *) ((*fsig2) + Nc);
-	for(k1=0; k1 < Nc; k1++){(*fsig1)[k1] = ptr1 + 2 * k1; (*fsig2)[k1] = ptr2 + 2 * k1;}
+	// ptr1 = (double *) ((*fsig1) + Nc); ptr2 = (double *) ((*fsig2) + Nc);
+	// for(k1=0; k1 < Nc; k1++){(*fsig1)[k1] = ptr1 + 2 * k1; (*fsig2)[k1] = ptr2 + 2 * k1;}
 
 	// write results
 	for(k1 = 0; k1 <= (N-1); k1++){(*xgrid)[k1]=((double)k1)*dx;}
 	for(k1 = 0; k1 <= (Nc-1); k1++){
 		(*xigrid)[k1] = ((double)k1)*dxi;
-		(*fsig1)[k1][0] = coeff1*out1[k1][0]; (*fsig1)[k1][1] = - coeff1*out1[k1][1]; // !!!!! OUR CONVENTION OF ft IS COMLEX CONJUGATE WRT dft
-		(*fsig2)[k1][0] = coeff1*out2[k1][0]; (*fsig2)[k1][1] = - coeff1*out2[k1][1];
+		(*fsig1)[2*k1] = coeff1*out1[k1][0]; (*fsig1)[2*k1+1] = - coeff1*out1[k1][1]; // !!!!! OUR CONVENTION OF ft IS COMLEX CONJUGATE WRT dft
+		(*fsig2)[2*k1] = coeff1*out2[k1][0]; (*fsig2)[2*k1+1] = - coeff1*out2[k1][1];
 		(*fsig1M2)[k1] = coeff2*(out1[k1][0]*out1[k1][0]+out1[k1][1]*out1[k1][1]);
 		(*fsig2M2)[k1] = coeff2*(out2[k1][0]*out2[k1][0]+out2[k1][1]*out2[k1][1]);
 	}
@@ -1318,3 +1318,14 @@ void calc2FFTW3(int N, double dx, double xmax, double *signal1, double *signal2,
 	return;
 
 }
+
+
+double ** create_2Darray_accessor_real(int * dims, double *array_data) //takes a contiguous block of memory and reconstruct a 2D arroy from that !!! generalise it to nD using void* (see discussion)
+{
+	int k1;
+	double **array_accessor;
+	array_accessor = (double**) malloc(dims[0]*sizeof(double));
+	for(k1 = 0; k1 < dims[0];k1++){array_accessor[k1] = &myarray2[dims[1]*k1];}	
+	return array_accessor;
+}
+// how-to generalise: there could be a problem to declare a correct number of '*', chain somehow voids (seems to be possible)? or hot-fix it by log if?

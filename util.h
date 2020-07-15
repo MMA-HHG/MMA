@@ -77,8 +77,8 @@ struct outputs_def{
 	double *Efield;
 	double *sourceterm;
 	double *omegagrid;
-	double **FEfield;
-	double **Fsourceterm;
+	double **FEfield, *FEfield_data;
+	double **Fsourceterm, *Fsourceterm_data;
 	double *FEfieldM2;
 	double *FsourcetermM2;
 	double *PopTot;
@@ -153,6 +153,8 @@ void define_analytical(struct Efield_var *, FILE *);
 struct outputs_def call1DTDSE(struct inputs_def);
 
 void Initialise_grid_and_D2(double, int, double **, double **, double **);
+
+double ** create_2Darray_accessor_real(int *, double *);
 
 // MPI
 int MPE_Counter_create(MPI_Comm, int, MPI_Win *);
