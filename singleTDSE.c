@@ -59,6 +59,7 @@ struct outputs_def call1DTDSE(struct inputs_def inputs) // this is a wrapper tha
 	// declarations
 	struct outputs_def outputs;	
 	Pi = acos(-1.);
+	double * dumptr_real;
 
 	///////////////////////////////////////////////
 	// local copies of variables given by inputs //
@@ -130,10 +131,6 @@ struct outputs_def call1DTDSE(struct inputs_def inputs) // this is a wrapper tha
 	size = 2*(num_r+1);// for complex number
 
 
-	// Allocation memory
-
-	//printf("test1 %i \n",size);
-
 	// ALLOCATE MEMORY, COPY INITIAL ARRAYS AND PREPARE THEM FOR THE PROPAGATOR
 
 	x = malloc((num_r+1)*sizeof(double)); // we keep this construction and not use directly initial x due to the extensibility of the grid
@@ -152,17 +149,16 @@ struct outputs_def call1DTDSE(struct inputs_def inputs) // this is a wrapper tha
 	// prepare outputs (there should be written a constructor depending on required values and a destructor on allocated memory should be called in the main code)
 	// ineficient allocate every time... Should be done by reference as well.
 	// outputs_constructor(outputs,Nt);
-	outputs.tgrid = calloc((Nt+1),sizeof(double)); outputs.Efield = calloc((Nt+1),sizeof(double)); outputs.sourceterm = calloc((Nt+1),sizeof(double)); outputs.PopTot = calloc((Nt+1),sizeof(double));
+
+	outputs.tgrid = calloc((Nt+1),sizeof(double));
+	outputs.Efield = calloc((Nt+1),sizeof(double));
+	outputs.sourceterm = calloc((Nt+1),sizeof(double));
+	outputs.PopTot = calloc((Nt+1),sizeof(double));
 	outputs.Nt = (Nt+1);
-	 
-
-
-	//printf("\n");	
-	//printf("Propagation procedure ...\n");
-	//printf("\n");	
 
 
 
+	// do the calculation
 	start = clock();
 
 	psi = propagation(trg,Efield,tmin,Nt,num_t,dt,num_r,num_exp,dx,psi0,psi,x,timef,timef2,ton,toff,timet,dipole,gauge,transformgauge,x_int,analy,outputs);
@@ -225,8 +221,11 @@ struct outputs_def call1DTDSE(struct inputs_def inputs) // this is a wrapper tha
 
 
 	// SAVE THE RESULTS
-	calc2FFTW3(outputs.Nt, dt, tmax, outputs.Efield, outputs.sourceterm, &outputs.tgrid_fftw, &outputs.omegagrid, &outputs.FEfield_data,
-				&outputs.Fsourceterm_data, &outputs.FEfieldM2, &outputs.FsourcetermM2, &outputs.Nomega); //takes real signal speced by given "dt" and it computes and prints its FFTW3
+	// calc2FFTW3(outputs.Nt, dt, tmax, outputs.Efield, outputs.sourceterm, &outputs.tgrid_fftw, &outputs.omegagrid, &outputs.FEfield_data,
+	// 			&outputs.Fsourceterm_data, &outputs.FEfieldM2, &outputs.FsourcetermM2, &outputs.Nomega); //takes real signal speced by given "dt" and it computes and prints its FFTW3
+
+	calcFFTW3(outputs.Nt, dt, tmax, outputs.Efield, &dumptr_real, &outputs.omegagrid, &outputs.FEfield_data, &outputs.FEfieldM2, &outputs.Nomega); free(dumptr_real);
+	calcFFTW3(outputs.Nt, dt, tmax, outputs.sourceterm, &outputs.tgrid_fftw, &outputs.omegagrid, &outputs.Fsourceterm_data, &outputs.FsourcetermM2, &outputs.Nomega);
 
 	printf("fftw_computed in single\n");  fflush(NULL);
 

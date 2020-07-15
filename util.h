@@ -44,6 +44,12 @@ struct analy_def{
 	int writewft;
 };
 
+struct output_print_def{
+	int Efield, FEfield, sourceterm, Fsourceterm, FEfieldM2, FsourceTermM2, PopTot, tgrid, omegagrid;
+};
+
+struct output_print_def Initialise_Printing_struct(void);
+
 struct inputs_def{
 	struct trg_def trg;
 	struct Efield_var Efield;
@@ -66,8 +72,9 @@ struct inputs_def{
 	int transformgauge;
 	double x_int;
 	struct analy_def analy;	
-  int InterpByDTorNT, Ntinterp, PrintGaborAndSpectrum, PrintOutputMethod;	
-  double textend, dtGabor, tmin1window, tmin2window, tmax1window, tmax2window, a_Gabor, omegaMaxGabor;
+	int InterpByDTorNT, Ntinterp, PrintGaborAndSpectrum, PrintOutputMethod;	
+	double textend, dtGabor, tmin1window, tmin2window, tmax1window, tmax2window, a_Gabor, omegaMaxGabor;
+	struct output_print_def Print;
 };
 
 // all have to be defined as pointers for calling by reference
@@ -183,3 +190,4 @@ double Ip_HeV, hbar, alpha_fine, c_light, elcharge, elmass, mu0, eps0, r_Bohr, T
 
 
 void calc2FFTW3(int, double, double, double *, double *, double **, double **, double **, double **, double **, double **, int *);
+void calcFFTW3(int, double, double, double *, double **, double **, double **, double **, int *);

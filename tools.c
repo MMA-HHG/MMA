@@ -17,6 +17,20 @@ extern double* timet,dipole;
 
 // extern struct Efield_var;
 
+struct output_print_def Initialise_Printing_struct(void) // Initialise ground-state
+{
+	struct output_print_def res;
+	res.Efield = 0;
+	res.FEfield = 0;
+	res.sourceterm = 0;
+	res.Fsourceterm = 0;
+	res.FEfieldM2 = 0;
+	res.FsourceTermM2 = 0;
+	res.PopTot = 0;
+	res.tgrid = 0;
+	res.omegagrid = 0;
+	return res;
+}
 
 void outputs_constructor(struct outputs_def *outputs, int Nt) 
 {
@@ -1314,6 +1328,54 @@ void calc2FFTW3(int N, double dx, double xmax, double *signal1, double *signal2,
 	}
 
 	fftw_free(out1); fftw_free(out2); free(in);
+	*Nxi = Nc;
+	return;
+
+}
+
+
+
+void calcFFTW3(int N, double dx, double xmax, double *signal, double **xgrid, double **xigrid, double **fsig, double **fsigM2, int *Nxi) //takes real signal speced by given "dt" and it computes and prints its FFTW3
+{
+	int Nc;
+	fftw_complex *out;
+	double *in, *dum;
+	double dxi,coeff1,coeff2;
+	fftw_plan p;
+	int k1;
+
+
+	// DO THE TRANSFORMS
+	
+	Nc = floor(((double)N) / 2.); Nc++; // # of points
+	in = calloc(2*Nc,sizeof(double));
+	
+	out = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * Nc); 
+	for(k1 = 0; k1 <= (N-1); k1++){in[k1]=signal[k1];} // !!! REDUNDANT	
+	p = fftw_plan_dft_r2c_1d(N, in, out1, FFTW_ESTIMATE); //fftw_plan_dft_r2c_1d(int n, double *in, fftw_complex *out, unsigned flags); // plan FFTW
+	fftw_execute(p);
+
+	//	RESCALE TO OUTPUTS
+	dxi = 2.*Pi/xmax;
+	coeff1 = dx/ sqrt(2.*Pi); coeff2 = dx*dx/(2.*Pi);
+
+
+	// int size2D = sizeof(double *) * Nc + sizeof(double) * 2 * Nc; // Nc-rows - the size required for the array in the memory
+	// double *ptr1, *ptr2;
+	*xgrid = (double*) calloc(N,sizeof(double));
+	*xigrid = (double*) calloc(Nc,sizeof(double));
+	*fsig = (double*) calloc(2*Nc,sizeof(double));
+	*fsigM2 = (double*) calloc(Nc,sizeof(double));
+
+	// write results
+	for(k1 = 0; k1 <= (N-1); k1++){(*xgrid)[k1]=((double)k1)*dx;}
+	for(k1 = 0; k1 <= (Nc-1); k1++){
+		(*xigrid)[k1] = ((double)k1)*dxi;
+		(*fsig)[2*k1] = coeff1*out1[k1][0]; (*fsig)[2*k1+1] = - coeff1*out1[k1][1]; // !!!!! OUR CONVENTION OF ft IS COMLEX CONJUGATE WRT dft
+		(*fsigM2)[k1] = coeff2*(out1[k1][0]*out1[k1][0]+out1[k1][1]*out1[k1][1]);
+	}
+
+	fftw_free(out); free(in);
 	*Nxi = Nc;
 	return;
 
