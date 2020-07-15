@@ -182,4 +182,4 @@ double Ip_HeV, hbar, alpha_fine, c_light, elcharge, elmass, mu0, eps0, r_Bohr, T
 
 
 
-void calc2FFTW3(int, double, double, double *, double *, double **, double **, double ***, double ***, double **, double **, int *);
+void calc2FFTW3(int, double, double, double *, double *, double **, double **, double **, double **, double **, double **, int *);

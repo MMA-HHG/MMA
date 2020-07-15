@@ -1325,7 +1325,7 @@ double ** create_2Darray_accessor_real(int * dims, double *array_data) //takes a
 	int k1;
 	double **array_accessor;
 	array_accessor = (double**) malloc(dims[0]*sizeof(double));
-	for(k1 = 0; k1 < dims[0];k1++){array_accessor[k1] = &myarray2[dims[1]*k1];}	
+	for(k1 = 0; k1 < dims[0];k1++){array_accessor[k1] = &array_data[dims[1]*k1];}	
 	return array_accessor;
 }
 // how-to generalise: there could be a problem to declare a correct number of '*', chain somehow voids (seems to be possible)? or hot-fix it by log if?

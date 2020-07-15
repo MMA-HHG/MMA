@@ -122,7 +122,7 @@ int main()
 	printf("TDSE done, in the caller\n"); fflush(NULL);
 
 	printf("test accessor\n"); fflush(NULL);
-	int[2] mydims = {outputs.Nomega,2};
+	int mydims[2] = {outputs.Nomega,2};
 	outputs.FEfield = create_2Darray_accessor_real(mydims, outputs.FEfield_data);
 	outputs.Fsourceterm = create_2Darray_accessor_real(mydims, outputs.Fsourceterm_data);
 
