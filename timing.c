@@ -21,7 +21,7 @@ int main(int argc, char *argv[])
 	// Processing the queue
 
 
-	int comment_operation = 1;
+	int comment_operation = 1, disp_tasks = 50;
 	double t_mpi[10]; 
 
 	// Initialise MPI
@@ -41,6 +41,7 @@ int main(int argc, char *argv[])
     int Ntot = 6;
     int t_job = 15; // [s]
     int Nsim; 
+    int local_counter = 0;
 
 	
 
@@ -50,7 +51,7 @@ int main(int argc, char *argv[])
 
 	// create counter and mutex in one pointer
 	//MPE_MC_KEYVAL = MPE_Counter_create(MPI_COMM_WORLD, 2, &mc_win); // first is counter, second mutex
-	MPE_M_KEYVAL = MPE_Counter_create(MPI_COMM_WORLD, 1, &m_win); // first is counter, second mutex
+	//MPE_M_KEYVAL = MPE_Counter_create(MPI_COMM_WORLD, 1, &m_win); // first is counter, second mutex
 	MPE_C_KEYVAL = MPE_Counter_create(MPI_COMM_WORLD, 1, &c_win); // first is counter, second mutex
 
 
@@ -58,15 +59,16 @@ int main(int argc, char *argv[])
 	// an empty dataset is prepared to be filled with the data
 	
 	if ( myrank == 0 ){
-		MPE_Mutex_acquire(m_win, 0, MPE_M_KEYVAL); // first process get mutex and hold it to ensure to prepare the file before the others
+		//MPE_Mutex_acquire(m_win, 0, MPE_M_KEYVAL); // first process get mutex and hold it to ensure to prepare the file before the others
 		MPE_Counter_nxtval(c_win, 0, &Nsim, MPE_C_KEYVAL); // get my first task
 	}
 	MPI_Barrier(MPI_COMM_WORLD); // Barrier
 	printf("Proc %i abarier \n",myrank);
 	if ( myrank == 0 ){
 		sleep(t_job);
+		local_counter++;
 
-		MPE_Mutex_release(m_win, 0, MPE_M_KEYVAL);
+		//MPE_Mutex_release(m_win, 0, MPE_M_KEYVAL);
 	}
 
 	t_mpi[6] = MPI_Wtime();
@@ -84,20 +86,21 @@ int main(int argc, char *argv[])
 
 	t_mpi[5] = MPI_Wtime(); 
 
-    
+ 	MPE_M_KEYVAL = MPE_Counter_create(MPI_COMM_WORLD, 1, &m_win); // first is counter, second mutex   
 	while (Nsim < Ntot){ // run till queue is not treated
 
 		// MPE_Mutex_release(mc_win, 1, MPE_MC_KEYVAL);
 
     	t_mpi[3] = MPI_Wtime(); finish3_main = clock();
 		sleep(t_job); 
+		local_counter++;
 		t_mpi[1] = MPI_Wtime(); finish1_main = clock();
 
 		// write results
 		MPE_Mutex_acquire(m_win, 0, MPE_M_KEYVAL); // mutex is acquired
 
 		t_mpi[2] = MPI_Wtime(); finish2_main = clock();
-		if ( ( comment_operation == 1 ) && ( Nsim < 20 ) ){
+		if ( ( comment_operation == 1 ) && ( Nsim < disp_tasks ) ){
 			printf("Proc %i job %i\n",myrank,Nsim);
 			printf("Proc %i, returned mutex last time   : %f sec\n",myrank,t_mpi[4]-t_mpi[0]);
 			printf("Proc %i, obtained counter last time : %f sec\n",myrank,t_mpi[5]-t_mpi[0]);
@@ -126,6 +129,9 @@ int main(int argc, char *argv[])
 //  printf("\nFirst processor measured time: %f sec\n\n",(double)(finish2 - start2) / CLOCKS_PER_SEC);
 //  }
   // MPI_Win_free(&mc_win);
+
+	MPI_Barrier(MPI_COMM_WORLD); // Barrier
+	printf("Proc %i did %i jobs in total\n",myrank,local_counter);
 	MPI_Finalize();
 	return 0;	
 }

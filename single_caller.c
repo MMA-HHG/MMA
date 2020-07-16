@@ -161,7 +161,8 @@ int main()
 	// durations of calculation
 	output_dims[0] = 1; output_dims[1] = 0;	
 	end_clock = clock();
-	print_nd_array_h5(file_id, "/TDSEsingle/full_time_of_calculation", &h5error, 1, &((double)((end_clock - start_clock)/CLOCKS_PER_SEC)), outputs.FsourcetermM2, H5T_NATIVE_DOUBLE);
+	double elapsed_time = (double)((end_clock - start_clock)/CLOCKS_PER_SEC);
+	print_nd_array_h5(file_id, "/TDSEsingle/full_time_of_calculation", &h5error, 1, output_dims, &elapsed_time, H5T_NATIVE_DOUBLE);
 
 
 	h5error = H5Fclose(file_id); // file
