@@ -78,23 +78,23 @@ int main(int argc, char *argv[])
     MPE_Counter_nxtval(c_win, 0, &Nsim, MPE_C_KEYVAL); 
     sleep(t_job);
     t_mpi[1] = MPI_Wtime();
-    printf("Proc %i, point 1\narrived:           %f sec\nattempted to lock: %f sec\nhaving lock:       %f sec\nincreased value:   %f sec\nunlocked window:   %f sec\n\n",
-	myrank,t_mpi[1]-t_mpi[0],t_mpi[4]-t_mpi[0],t_mpi[5]-t_mpi[0],t_mpi[2]-t_mpi[0],t_mpi[3]-t_mpi[0]);
+    printf("Proc %i, point 1, value %i\narrived:           %f sec\nattempted to lock: %f sec\nhaving lock:       %f sec\nincreased value:   %f sec\nunlocked window:   %f sec\n\n",
+	myrank,Nsim,t_mpi[1]-t_mpi[0],t_mpi[4]-t_mpi[0],t_mpi[5]-t_mpi[0],t_mpi[2]-t_mpi[0],t_mpi[3]-t_mpi[0]);
     MPE_Counter_nxtval(c_win, 0, &Nsim, MPE_C_KEYVAL); 
     sleep(t_job);
     t_mpi[1] = MPI_Wtime();
     //printf("Proc %i, 2  : %f sec\n",myrank,t_mpi[1]-t_mpi[0]);
     //printf("Proc %i, point 2\n  arrived: %f sec\nincreased value %f sec\nunlocked window: %f sec\n\n",myrank,t_mpi[1]-t_mpi[0],t_mpi[2]-t_mpi[0],t_mpi[3]-t_mpi[0]);
-    printf("Proc %i, point 2\narrived:           %f sec\nattempted to lock: %f sec\nhaving lock:       %f sec\nincreased value:   %f sec\nunlocked window:   %f sec\n\n",
-	myrank,t_mpi[1]-t_mpi[0],t_mpi[4]-t_mpi[0],t_mpi[5]-t_mpi[0],t_mpi[2]-t_mpi[0],t_mpi[3]-t_mpi[0]);
+    printf("Proc %i, point 2, value %i\narrived:           %f sec\nattempted to lock: %f sec\nhaving lock:       %f sec\nincreased value:   %f sec\nunlocked window:   %f sec\n\n",
+	myrank,Nsim,t_mpi[1]-t_mpi[0],t_mpi[4]-t_mpi[0],t_mpi[5]-t_mpi[0],t_mpi[2]-t_mpi[0],t_mpi[3]-t_mpi[0]);
 
     MPE_Counter_nxtval(c_win, 0, &Nsim, MPE_C_KEYVAL); 
     sleep(t_job);
     t_mpi[1] = MPI_Wtime();
     //printf("Proc %i, 3  : %f sec\n",myrank,t_mpi[1]-t_mpi[0]);
     //printf("Proc %i, point 3\n  arrived: %f sec\nincreased value %f sec\nunlocked window: %f sec\n\n",myrank,t_mpi[1]-t_mpi[0],t_mpi[2]-t_mpi[0],t_mpi[3]-t_mpi[0]);
-    printf("Proc %i, point 3\narrived:           %f sec\nattempted to lock: %f sec\nhaving lock:       %f sec\nincreased value:   %f sec\nunlocked window:   %f sec\n\n",
-	myrank,t_mpi[1]-t_mpi[0],t_mpi[4]-t_mpi[0],t_mpi[5]-t_mpi[0],t_mpi[2]-t_mpi[0],t_mpi[3]-t_mpi[0]);
+    printf("Proc %i, point 3, value %i\narrived:           %f sec\nattempted to lock: %f sec\nhaving lock:       %f sec\nincreased value:   %f sec\nunlocked window:   %f sec\n\n",
+	myrank,Nsim,t_mpi[1]-t_mpi[0],t_mpi[4]-t_mpi[0],t_mpi[5]-t_mpi[0],t_mpi[2]-t_mpi[0],t_mpi[3]-t_mpi[0]);
 
 	// t_mpi[6] = MPI_Wtime();
     // sleep(t_job);
