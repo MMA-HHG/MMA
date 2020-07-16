@@ -108,16 +108,16 @@ double potential(double, struct trg_def);
 double gradpot(double, struct trg_def);
 double norme(double *,int);
 void normalise(double *,int);
-void Initialise(int);
+// void Initialise(int);
 double Einitialise(struct trg_def, double *,double *,double *,double *,double *,double,double ,int);
 double E_calculation(double *,double *,double *,double *,int);
 double E_calculation_numerov(struct trg_def, double *,double ,double *,int );
 double EField(double,double,double,double,int,double,double);
 double AField(struct Efield_var,double);
 double dAField(struct Efield_var,double);
-void gaussian(void);
-void volkov_state(void);
-void volkov_state_vg(void);
+// void gaussian(void);
+// void volkov_state(void);
+// void volkov_state_vg(void);
 
 
 double* propagation(struct trg_def, struct Efield_var,double,int,int,double,int,int,double,double *,double *,double *
@@ -125,7 +125,7 @@ double* propagation(struct trg_def, struct Efield_var,double,int,int,double,int,
 void window_analysis(struct trg_def,double,double,double,int,int,double,double*,double*,double*,double*,double*);
 void dipole_analysis(double,double,double*,double*,int,int);
 double* extend_grid(double *,int,int,int);
-double* rmv_gs(double*,double*,double*,double);
+// double* rmv_gs(double*,double*,double*,double);
 double interpolate( int , double , double* , double* );
 double interpolate2n( int , double , double* , double* , int );
 void findinterval(int , double , double* , int* , int* );
@@ -162,32 +162,6 @@ struct outputs_def call1DTDSE(struct inputs_def);
 void Initialise_grid_and_D2(double, int, double **, double **, double **);
 
 double ** create_2Darray_accessor_real(int *, double *);
-
-// MPI
-int MPE_Counter_create(MPI_Comm, int, MPI_Win *);
-int MPE_Counter_nxtval(MPI_Win, int, int *, int);
-int MPE_Mutex_acquire(MPI_Win, int, int);
-int MPE_Mutex_release(MPI_Win, int, int);
-
-
-// HDF5
-void addone(int *); // to test pointers
-void readreal(hid_t, char *, herr_t *, double *);
-void readint(hid_t, char *, herr_t *, int *);
-void rw_real_fullhyperslab_nd_h5(hid_t, char *, herr_t *, int, hsize_t *, int *, double *, char *);
-void print_nd_array_h5(hid_t, char *, herr_t *, int, hsize_t *, void *, hid_t);
-
-double * readreal1Darray_fort(hid_t, char *, herr_t *, int *);
-hsize_t * get_dimensions_h5(hid_t, char *, herr_t *, int *, hid_t *);
-// int linkexists(hid_t, char *, herr_t *, double *);
-
-
-
-// Physical constants
-void Init_constants(void);
-double Ip_HeV, hbar, alpha_fine, c_light, elcharge, elmass, mu0, eps0, r_Bohr, TIMEau, EFIELDau, TIMEau, EFIELDau, k_Boltz, absolute_zero, torr2SI;
-
-
 
 void calc2FFTW3(int, double, double, double *, double *, double **, double **, double **, double **, double **, double **, int *);
 void calcFFTW3(int, double, double, double *, double **, double **, double **, double **, int *);
