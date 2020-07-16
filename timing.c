@@ -1,4 +1,4 @@
- #include<time.h> 
+#include<time.h> 
 #include<stdio.h>
 #include <mpi.h>
 #include<stdlib.h>
@@ -51,7 +51,7 @@ int main(int argc, char *argv[])
 
 	// create counter and mutex in one pointer
 	//MPE_MC_KEYVAL = MPE_Counter_create(MPI_COMM_WORLD, 2, &mc_win); // first is counter, second mutex
-	//MPE_M_KEYVAL = MPE_Counter_create(MPI_COMM_WORLD, 1, &m_win); // first is counter, second mutex
+	MPE_M_KEYVAL = MPE_Counter_create(MPI_COMM_WORLD, 1, &m_win); // first is counter, second mutex
 	MPE_C_KEYVAL = MPE_Counter_create(MPI_COMM_WORLD, 1, &c_win); // first is counter, second mutex
 
 
@@ -59,7 +59,7 @@ int main(int argc, char *argv[])
 	// an empty dataset is prepared to be filled with the data
 	
 	if ( myrank == 0 ){
-		//MPE_Mutex_acquire(m_win, 0, MPE_M_KEYVAL); // first process get mutex and hold it to ensure to prepare the file before the others
+		MPE_Mutex_acquire(m_win, 0, MPE_M_KEYVAL); // first process get mutex and hold it to ensure to prepare the file before the others
 		MPE_Counter_nxtval(c_win, 0, &Nsim, MPE_C_KEYVAL); // get my first task
 	}
 	MPI_Barrier(MPI_COMM_WORLD); // Barrier
@@ -68,7 +68,7 @@ int main(int argc, char *argv[])
 		sleep(t_job);
 		local_counter++;
 
-		//MPE_Mutex_release(m_win, 0, MPE_M_KEYVAL);
+		MPE_Mutex_release(m_win, 0, MPE_M_KEYVAL);
 	}
 
 	t_mpi[6] = MPI_Wtime();
@@ -86,7 +86,7 @@ int main(int argc, char *argv[])
 
 	t_mpi[5] = MPI_Wtime(); 
 
- 	MPE_M_KEYVAL = MPE_Counter_create(MPI_COMM_WORLD, 1, &m_win); // first is counter, second mutex   
+ 	//MPE_M_KEYVAL = MPE_Counter_create(MPI_COMM_WORLD, 1, &m_win); // first is counter, second mutex   
 	while (Nsim < Ntot){ // run till queue is not treated
 
 		// MPE_Mutex_release(mc_win, 1, MPE_MC_KEYVAL);
