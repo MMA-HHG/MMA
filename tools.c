@@ -44,9 +44,21 @@ void outputs_constructor(struct outputs_def *outputs, int Nt)
 void outputs_destructor(struct outputs_def *outputs) // frees memory allocated for outputs
 {
 	free((*outputs).tgrid);
+	free((*outputs).omegagrid);
+	free((*outputs).tgrid_fftw);
+
 	free((*outputs).Efield);
 	free((*outputs).sourceterm);
 	free((*outputs).PopTot);
+
+	free((*outputs).FEfield_data);
+	free((*outputs).Fsourceterm_data);
+
+	free((*outputs).FEfieldM2);
+	free((*outputs).FsourcetermM2);
+
+	(*outputs).Nt = 0;
+	(*outputs).Nomega = 0;
 }
 
 void Initialise_grid_and_D2(double dx, int num_r, double **x, double **diagonal, double **off_diagonal) // Initialise ground-state
@@ -1391,3 +1403,27 @@ double ** create_2Darray_accessor_real(int * dims, double *array_data) //takes a
 	return array_accessor;
 }
 // how-to generalise: there could be a problem to declare a correct number of '*', chain somehow voids (seems to be possible)? or hot-fix it by log if?
+
+
+// void * create_nDarray_accessor(int ndims, int * dims, void *array_data) //takes a contiguous block of memory and reconstruct a 2D array from that !!! generalise it to nD using void* (see discussion)
+// { // it's quite intersting exercise, but the gain is small anyway, write rather just index-mapping function
+// 	int k1;
+// 	size_t size = sizeof(&array_data[0]); 
+// 	// we find respective sizes of pointers
+// 	size_t * sizes;
+// 	void * ptr;
+// 	sizes[0] = sizeof(&array_data[0]); ptr = malloc(sizes[0]);
+// 	for(k1=1; k1<ndims; k1++){sizes[k1]=sizeof(&ptr[k1-1]); free(ptr); ptr = malloc(sizes[k1]);}
+// 	void * accesor;
+// 	size_t accessor_size;
+// 	accesor_size = dims[0]*sizes[0];
+// 	for(k1=1; k1 < ndims; k1++){accesor_size+=dims[k1]*sizes[k1];} // product shoul be involved, not only sum
+// 	accesor = malloc(accesor_size); // much bigger draw it by multiplications, aftermost pointers should point to every line (i.e. N1*N2*...*N(n-1))-pointers
+// 	// fill pointers here // most of them points within the structure and only last ones outside to the array
+	
+// 	// double **array_accessor;
+// 	// array_accessor = (double**) malloc(dims[0]*sizeof(double));
+// 	// for(k1 = 0; k1 < dims[0];k1++){array_accessor[k1] = &array_data[dims[1]*k1];}	
+// 	// return array_accessor;
+// 	return accessor;
+// }
