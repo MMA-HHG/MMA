@@ -4,9 +4,12 @@
 #include<stdlib.h>
 #include<malloc.h>
 #include<math.h>
+#include<unistd.h>
+#include"util_mpi.h"
 
 
 int k1, k2, k3;
+double t_mpi[10]; 
 
 
 clock_t start_main, finish2_main, finish1_main, finish3_main, finish4_main;
@@ -22,13 +25,14 @@ int main(int argc, char *argv[])
 
 
 	int comment_operation = 1, disp_tasks = 50;
-	double t_mpi[10]; 
+	
 
 	// Initialise MPI
 	int myrank, nprocs;
 	int MPE_MC_KEYVAL, MPE_C_KEYVAL, MPE_M_KEYVAL; // this is used to address the mutex and counter
 	MPI_Win mc_win, c_win, m_win; // this is the shared window, it is used both  for mutices and counter
 	MPI_Init(&argc,&argv);
+	t_mpi[0] = MPI_Wtime(); // the clock
 	MPI_Comm_size(MPI_COMM_WORLD,&nprocs);
 	MPI_Comm_rank(MPI_COMM_WORLD,&myrank);
 	if (comment_operation == 1 ){printf("Proc %i started the program\n",myrank);}
@@ -36,10 +40,10 @@ int main(int argc, char *argv[])
 	////////////////////////
 	// PREPARATION PAHASE //
 	////////////////////////
-	t_mpi[0] = MPI_Wtime();	start_main = clock(); // the clock	
+		
 
     int Ntot = 6;
-    int t_job = 15; // [s]
+    int t_job = 10; // [s]
     int Nsim; 
     int local_counter = 0;
 
@@ -74,16 +78,23 @@ int main(int argc, char *argv[])
     MPE_Counter_nxtval(c_win, 0, &Nsim, MPE_C_KEYVAL); 
     sleep(t_job);
     t_mpi[1] = MPI_Wtime();
-    printf("Proc %i, 1  : %f sec\n",myrank,t_mpi[1]-t_mpi[0]);
+    printf("Proc %i, point 1\narrived:           %f sec\nattempted to lock: %f sec\nhaving lock:       %f sec\nincreased value:   %f sec\nunlocked window:   %f sec\n\n",
+	myrank,t_mpi[1]-t_mpi[0],t_mpi[4]-t_mpi[0],t_mpi[5]-t_mpi[0],t_mpi[2]-t_mpi[0],t_mpi[3]-t_mpi[0]);
     MPE_Counter_nxtval(c_win, 0, &Nsim, MPE_C_KEYVAL); 
     sleep(t_job);
     t_mpi[1] = MPI_Wtime();
-    printf("Proc %i, 2  : %f sec\n",myrank,t_mpi[1]-t_mpi[0]);
-    MPE_Counter_nxtval(c_win, 0, &Nsim, MPE_C_KEYVAL); 
-    sleep(t_job);
-    t_mpi[1] = MPI_Wtime();
-    printf("Proc %i, 3  : %f sec\n",myrank,t_mpi[1]-t_mpi[0]);
+    //printf("Proc %i, 2  : %f sec\n",myrank,t_mpi[1]-t_mpi[0]);
+    //printf("Proc %i, point 2\n  arrived: %f sec\nincreased value %f sec\nunlocked window: %f sec\n\n",myrank,t_mpi[1]-t_mpi[0],t_mpi[2]-t_mpi[0],t_mpi[3]-t_mpi[0]);
+    printf("Proc %i, point 2\narrived:           %f sec\nattempted to lock: %f sec\nhaving lock:       %f sec\nincreased value:   %f sec\nunlocked window:   %f sec\n\n",
+	myrank,t_mpi[1]-t_mpi[0],t_mpi[4]-t_mpi[0],t_mpi[5]-t_mpi[0],t_mpi[2]-t_mpi[0],t_mpi[3]-t_mpi[0]);
 
+    MPE_Counter_nxtval(c_win, 0, &Nsim, MPE_C_KEYVAL); 
+    sleep(t_job);
+    t_mpi[1] = MPI_Wtime();
+    //printf("Proc %i, 3  : %f sec\n",myrank,t_mpi[1]-t_mpi[0]);
+    //printf("Proc %i, point 3\n  arrived: %f sec\nincreased value %f sec\nunlocked window: %f sec\n\n",myrank,t_mpi[1]-t_mpi[0],t_mpi[2]-t_mpi[0],t_mpi[3]-t_mpi[0]);
+    printf("Proc %i, point 3\narrived:           %f sec\nattempted to lock: %f sec\nhaving lock:       %f sec\nincreased value:   %f sec\nunlocked window:   %f sec\n\n",
+	myrank,t_mpi[1]-t_mpi[0],t_mpi[4]-t_mpi[0],t_mpi[5]-t_mpi[0],t_mpi[2]-t_mpi[0],t_mpi[3]-t_mpi[0]);
 
 	// t_mpi[6] = MPI_Wtime();
     // sleep(t_job);
@@ -93,7 +104,6 @@ int main(int argc, char *argv[])
 
 
 	MPI_Barrier(MPI_COMM_WORLD); // Barrier
-	printf("Proc %i did %i jobs in total\n",myrank,local_counter);
 	MPI_Finalize();
 	return 0;	
 }

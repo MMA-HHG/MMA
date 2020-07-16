@@ -4,7 +4,7 @@
 #include<stdlib.h>
 #include<malloc.h>
 #include<math.h>
-#include "mpi.h"
+#include"util_mpi.h"
 
 extern int MPE_COUNTER_KEYVAL;
 extern int MPEi_CounterFree(MPI_Win counter_win, int keyval, void *attr_val, void *extra_state);
@@ -60,9 +60,13 @@ size = (MPI_Aint)attrval; /* We stored the integer as a pointer */
 lrank = counterNum % size;
 lidx = counterNum / size;
 /* Update and return the counter */
+t_mpi[4] = MPI_Wtime();
 MPI_Win_lock(MPI_LOCK_SHARED, 0, lrank, counterWin);
+t_mpi[5] = MPI_Wtime();
 MPI_Fetch_and_op(&one, value, MPI_INT,lrank, lidx, MPI_SUM, counterWin);
+t_mpi[2] = MPI_Wtime();
 MPI_Win_unlock(lrank, counterWin);
+t_mpi[3] = MPI_Wtime();
 return 0;
 }
 
