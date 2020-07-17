@@ -4,7 +4,11 @@
 #include<stdlib.h>
 #include<malloc.h>
 #include<math.h>
+
 #include "hdf5.h"
+#include "numerical_constants.h"
+#include "util.h"
+#include "util_hdf5.h"
 
 
 
@@ -17,7 +21,7 @@ void print_nd_array_h5(hid_t file_id, char *dset_name, herr_t *h5error, int ndim
   *h5error = H5Dclose(dset_id);	
 }
 
-void PrintOutputs(hid_t file_id, char *path, struct inputs_def *in, struct outputs_def *out)
+void PrintOutputs(hid_t file_id, char *path, herr_t *h5error, struct inputs_def *in, struct outputs_def *out)
 {
 	hsize_t output_dims[2]; // never exceeds 2 in this case, can be longer
 
