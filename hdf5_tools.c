@@ -21,9 +21,10 @@ void print_nd_array_h5(hid_t file_id, char *dset_name, herr_t *h5error, int ndim
   *h5error = H5Dclose(dset_id);	
 }
 
-void PrintOutputs(hid_t file_id, char *path, herr_t *h5error, struct inputs_def *in, struct outputs_def *out)
+void PrintOutputs(hid_t file_id, char *inpath, herr_t *h5error, struct inputs_def *in, struct outputs_def *out)
 {
 	hsize_t output_dims[2]; // never exceeds 2 in this case, can be longer
+	char path[50];
 	printf("t1 \n"); fflush(NULL);
 
 	output_dims[0] = (*out).Nt; output_dims[1] = 0;
@@ -31,9 +32,12 @@ void PrintOutputs(hid_t file_id, char *path, herr_t *h5error, struct inputs_def 
 		printf("t2 \n"); fflush(NULL);
 		print_nd_array_h5(file_id, "/TDSEsingle_f/Efield", h5error, 1, output_dims, (*out).Efield, H5T_NATIVE_DOUBLE);
 		printf("t3 \n"); fflush(NULL);
-		//printf("%s \n", strcat(path,"Efield2")); fflush(NULL); // needs space for the string
-		//print_nd_array_h5(file_id, strcat(path,"Efield2"), h5error, 1, output_dims, (*out).Efield, H5T_NATIVE_DOUBLE);
-		//printf("t4 \n"); fflush(NULL);
+		path[0] = '\0';		
+		strcat(strcat(path,inpath),"Efield2");
+		//strcat(path,"Efield2");
+		printf("%s \n", path); fflush(NULL); // needs space for the string
+		print_nd_array_h5(file_id, path, h5error, 1, output_dims, (*out).Efield, H5T_NATIVE_DOUBLE);
+		printf("t4 \n"); fflush(NULL);
 	}
 	//res.Efield = 0;
 	//res.FEfield = 0;
