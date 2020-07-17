@@ -27,51 +27,68 @@ void PrintOutputs(hid_t file_id, char *inpath, herr_t *h5error, struct inputs_de
 	char path[50];
 	printf("t1 \n"); fflush(NULL);
 
+  // time domain
 	output_dims[0] = (*out).Nt; output_dims[1] = 0;
-	if ( (*in).Print.Efield == 1 ){
-		printf("t2 \n"); fflush(NULL);
-		print_nd_array_h5(file_id, "/TDSEsingle_f/Efield", h5error, 1, output_dims, (*out).Efield, H5T_NATIVE_DOUBLE);
-		printf("t3 \n"); fflush(NULL);
-		path[0] = '\0';		
-		strcat(strcat(path,inpath),"Efield2");
-		//strcat(path,"Efield2");
-		printf("%s \n", path); fflush(NULL); // needs space for the string
+	if ( (*in).Print.Efield == 1 )
+  {
+		path[0] = '\0';	strcat(strcat(path,inpath),"Efield");
 		print_nd_array_h5(file_id, path, h5error, 1, output_dims, (*out).Efield, H5T_NATIVE_DOUBLE);
-		printf("t4 \n"); fflush(NULL);
-	}
-	//res.Efield = 0;
-	//res.FEfield = 0;
-	//res.sourceterm = 0;
-	//res.Fsourceterm = 0;
-	//res.FEfieldM2 = 0;
-	//res.FsourceTermM2 = 0;
-	//res.PopTot = 0;
-	//res.tgrid = 0;
-	//res.omegagrid = 0;
+  }
 
+  if ( (*in).Print.sourceterm == 1 )
+  {
+		path[0] = '\0';	strcat(strcat(path,inpath),"SourceTerm");
+		print_nd_array_h5(file_id, path, h5error, 1, output_dims, (*out).sourceterm, H5T_NATIVE_DOUBLE);
+  }
 
-	// 	// time domain
-	// output_dims[0] = outputs.Nt; output_dims[1] = 0;
+  if ( (*in).Print.PopTot == 1 )
+  {
+		path[0] = '\0';	strcat(strcat(path,inpath),"PopTot");
+		print_nd_array_h5(file_id, path, h5error, 1, output_dims, (*out).PopTot, H5T_NATIVE_DOUBLE);
+  }
 
-	// print_nd_array_h5(file_id, "/TDSEsingle/SourceTerm", &h5error, 1, output_dims, outputs.sourceterm, H5T_NATIVE_DOUBLE);
-	// print_nd_array_h5(file_id, "/TDSEsingle/Efield", &h5error, 1, output_dims, outputs.Efield, H5T_NATIVE_DOUBLE);
-	// print_nd_array_h5(file_id, "/TDSEsingle/PopTot", &h5error, 1, output_dims, outputs.PopTot, H5T_NATIVE_DOUBLE);
+  // the grid
+  if ( (*in).Print.Efield == 1 || (*in).Print.sourceterm == 1 || (*in).Print.PopTot == 1 )
+  {
+		path[0] = '\0';	strcat(strcat(path,inpath),"tgrid");
+		print_nd_array_h5(file_id, path, h5error, 1, output_dims, (*out).tgrid, H5T_NATIVE_DOUBLE);
+  }
 
-	// print_nd_array_h5(file_id, "/TDSEsingle/tgrid", &h5error, 1, output_dims, outputs.tgrid, H5T_NATIVE_DOUBLE);
-	// print_nd_array_h5(file_id, "/TDSEsingle/tgrid_fftw", &h5error, 1, output_dims, outputs.tgrid_fftw, H5T_NATIVE_DOUBLE);
+  // omega domain - complex
+  output_dims[0] = outputs.Nomega; output_dims[1] = 2;
+  if ( (*in).Print.FEfield == 1 )
+  {
+		path[0] = '\0';	strcat(strcat(path,inpath),"FEfield");
+		print_nd_array_h5(file_id, path, h5error, 1, output_dims, (*out).FEfield_data, H5T_NATIVE_DOUBLE);
+  }
 
-	// // omega domain - complex
-	// output_dims[0] = outputs.Nomega; output_dims[1] = 2;
+  if ( (*in).Print.Fsourceterm == 1 )
+  {
+		path[0] = '\0';	strcat(strcat(path,inpath),"FSourceTerm");
+		print_nd_array_h5(file_id, path, h5error, 1, output_dims, (*out).Fsourceterm_data, H5T_NATIVE_DOUBLE);
+  }
 
-	// print_nd_array_h5(file_id, "/TDSEsingle/FEfield", &h5error, 2, output_dims, outputs.FEfield_data, H5T_NATIVE_DOUBLE);
-	// print_nd_array_h5(file_id, "/TDSEsingle/FSourceTerm", &h5error, 2, output_dims, outputs.Fsourceterm_data, H5T_NATIVE_DOUBLE);
+  // omega domain - real
+  output_dims[0] = outputs.Nomega; output_dims[1] = 0;
 
-	// // omega domain - real
-	// output_dims[0] = outputs.Nomega; output_dims[1] = 0;
-	// print_nd_array_h5(file_id, "/TDSEsingle/omegagrid", &h5error, 1, output_dims, outputs.omegagrid, H5T_NATIVE_DOUBLE);
-	// print_nd_array_h5(file_id, "/TDSEsingle/FEfieldM2", &h5error, 1, output_dims, outputs.FEfieldM2, H5T_NATIVE_DOUBLE);
-	// print_nd_array_h5(file_id, "/TDSEsingle/FSourceTermM2", &h5error, 1, output_dims, outputs.FsourcetermM2, H5T_NATIVE_DOUBLE);
+  if ( (*in).Print.FEfieldM2 == 1 )
+  {
+		path[0] = '\0';	strcat(strcat(path,inpath),"FEfieldM2");
+		print_nd_array_h5(file_id, path, h5error, 1, output_dims, (*out).FEfieldM2, H5T_NATIVE_DOUBLE);
+  }
 
+  if ( (*in).Print.FsourceTermM2 == 1 )
+  {
+		path[0] = '\0';	strcat(strcat(path,inpath),"FSourceTermM2");
+		print_nd_array_h5(file_id, path, h5error, 1, output_dims, (*out).FsourcetermM2, H5T_NATIVE_DOUBLE);
+  }
+
+  // the grid
+  if ( (*in).Print.FEfield == 1 || (*in).Print.Fsourceterm == 1 || (*in).Print.FEfieldM2 == 1 || (*in).Print.FsourceTermM2 == 1 )
+  {
+		path[0] = '\0';	strcat(strcat(path,inpath),"omegagrid");
+		print_nd_array_h5(file_id, path, h5error, 1, output_dims, (*out).omegagrid, H5T_NATIVE_DOUBLE);
+  }
 }
 
 

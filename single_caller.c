@@ -143,7 +143,8 @@ int main()
 	g_id = H5Gcreate2(file_id, "/TDSEsingle_f", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
 	h5error = H5Gclose(g_id);
 
-	inputs.Print.Efield = 1;
+	inputs.Print = Set_all_prints;
+
 	PrintOutputs(file_id, "/TDSEsingle_f/", &h5error, &inputs, &outputs);
 
 	// time domain

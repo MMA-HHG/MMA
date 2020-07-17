@@ -34,6 +34,23 @@ struct output_print_def Initialise_Printing_struct(void) // Initialise ground-st
 	return res;
 }
 
+struct output_print_def Set_all_prints(void) // Initialise ground-state
+{
+	struct output_print_def res;
+
+	res.Efield = 1;
+	res.FEfield = 1;
+	res.sourceterm = 1;
+	res.Fsourceterm = 1;
+	res.FEfieldM2 = 1;
+	res.FsourceTermM2 = 1;
+	res.PopTot = 1;
+	res.tgrid = 1;
+	res.omegagrid = 1;
+
+	return res;
+}
+
 // void outputs_constructor(struct outputs_def *outputs, int Nt) 
 // {
 // 	(*outputs).tgrid = calloc((Nt+1),sizeof(double));

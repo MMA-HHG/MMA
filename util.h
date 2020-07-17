@@ -168,3 +168,4 @@ void calcFFTW3(int, double, double, double *, double **, double **, double **, d
 
 void outputs_destructor(struct outputs_def *);
 struct output_print_def Initialise_Printing_struct(void);
+struct output_print_def Set_all_prints(void);
