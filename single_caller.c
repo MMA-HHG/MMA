@@ -167,7 +167,7 @@ int main()
 
 
 	h5error = H5Fclose(file_id); // file
-	outputs_destructor(outputs);
+	outputs_destructor(&outputs);
 
 
 

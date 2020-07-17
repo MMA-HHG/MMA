@@ -254,7 +254,7 @@ double* propagation(struct trg_def trg, struct Efield_var Efield, double tmin, i
 		// 	{	phiabs = x[j]-x[num_r-300];
 		// 		phiabs *= 1./(x[num_r]-x[num_r-300]);
 		// 		atten = 1-phiabs;
-		// 		phiabs *= pi*0.5;
+		// 		phiabs *= Pi*0.5;
 		// 		atten *= cos(phiabs);
 		// 	}
 		// 	else {atten = 1;}
@@ -263,7 +263,7 @@ double* propagation(struct trg_def trg, struct Efield_var Efield, double tmin, i
 		// 	{	phiabs = x[j]-x[300];
 		// 		phiabs *= 1./(x[0]-x[300]);
 		// 		atten = 1-phiabs;
-		// 		phiabs *= pi*0.5;
+		// 		phiabs *= Pi*0.5;
 		// 		atten *= cos(phiabs);
 		// 	}
 		// 	else {if (j < (num_r-300)) atten = 1;}
@@ -478,7 +478,7 @@ void projection_analysis(double Estep,double E_start,int num_E,int num_r,double 
 	  prob_re *= dx/delta; prob_im *= dx/delta; 	
 
 
-	  prob = (prob_re*prob_re+prob_im*prob_im)/(2.0*pi);
+	  prob = (prob_re*prob_re+prob_im*prob_im)/(2.0*Pi);
 
 
 	  fprintf(fel,"%e\t%e\n",Estep*i,prob);

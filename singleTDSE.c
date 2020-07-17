@@ -56,7 +56,6 @@ struct outputs_def call1DTDSE(struct inputs_def inputs) // this is a wrapper tha
 {
 	// declarations
 	struct outputs_def outputs;	
-	Pi = acos(-1.);
 	double * dumptr_real;
 
 	///////////////////////////////////////////////
