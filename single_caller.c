@@ -140,11 +140,11 @@ int main()
 	hid_t g_id = H5Gcreate2(file_id, "/TDSEsingle", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
 	h5error = H5Gclose(g_id);
 
-	hid_t g_id = H5Gcreate2(file_id, "/TDSEsingle_f", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+	g_id = H5Gcreate2(file_id, "/TDSEsingle_f", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
 	h5error = H5Gclose(g_id);
 
 	inputs.Print.Efield = 1;
-	PrintOutputs(file_id, "/TDSEsingle_f/", &inputs, &outputs);
+	PrintOutputs(file_id, "/TDSEsingle_f/", &h5error, &inputs, &outputs);
 
 	// time domain
 	output_dims[0] = outputs.Nt; output_dims[1] = 0;
