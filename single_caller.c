@@ -166,7 +166,7 @@ int main()
 
 
 	h5error = H5Fclose(file_id); // file
-	outputs_destructor(struct outputs_def *);
+	outputs_destructor(outputs);
 
 
 

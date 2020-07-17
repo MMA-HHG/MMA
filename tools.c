@@ -36,15 +36,15 @@ struct output_print_def Initialise_Printing_struct(void) // Initialise ground-st
 void PrintOutputs(hid_t file_id, struct inputs_def *in, struct outputs_def *out) // Initialise ground-state
 {
 	if ( (*in).Print.Efield == 1 ){}
-	res.Efield = 0;
-	res.FEfield = 0;
-	res.sourceterm = 0;
-	res.Fsourceterm = 0;
-	res.FEfieldM2 = 0;
-	res.FsourceTermM2 = 0;
-	res.PopTot = 0;
-	res.tgrid = 0;
-	res.omegagrid = 0;
+	//res.Efield = 0;
+	//res.FEfield = 0;
+	//res.sourceterm = 0;
+	//res.Fsourceterm = 0;
+	//res.FEfieldM2 = 0;
+	//res.FsourceTermM2 = 0;
+	//res.PopTot = 0;
+	//res.tgrid = 0;
+	//res.omegagrid = 0;
 }
 
 // void outputs_constructor(struct outputs_def *outputs, int Nt) 
