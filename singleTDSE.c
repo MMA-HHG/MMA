@@ -7,19 +7,19 @@
 #include "hdf5.h"
 #include "mpi.h"
 
+#include "physical_constants.h"
+#include "util.h"
+#include "util_hdf5.h"
 
-#include"util.h"
-#include"util_mpi.h"
-#include"util_hdf5.h"
-#include"physical_constants.h"
 
 struct Efield_var Efield;
 struct trg_def trg;
 struct analy_def analy;
-// struct outputs_def outputs;
-double *y,*x,*a,*c,sum,*diagonal,*off_diagonal,*eigenvector,*u,*r,*vector;
+
+
+double *x;
 double *timet,*dipole;
-double dx,xmax,Eguess,Einit,CV,phi,omega,E0,period,Pi,tfinal,alpha,v,mod1,mod2,dE,Estep,norm_gauss,x_int,textend;
+double dx,xmax,Eguess,Einit,phi,omega,E0,period,tfinal,alpha,v,mod1,mod2,dE,Estep,norm_gauss,x_int,textend;
 
 int gauge,transformgauge,fieldinau,input0,Ntinterp,InterpByDTorNT;
 
@@ -45,13 +45,9 @@ double *dinf,*dsup,*d,*u1,*res,*t;
 int i,j,k,l,m,num_r,num_t,err,max_iteration_count,size,nc,k1,k2,k2,k3,k5;
 clock_t start, finish;
 
-char ch;
-
 int size_exp,shift;
 
 FILE *newygrid,*eingenvaluef,*eingenvectorf,*timef,*timef2,*gaussianwp,*volkovwp,*param,*pot,*file1,*file3,*file2,*file4,*file5,*file6,*file7,*file8,*file9;
-
-char filename1[25], filename2[25];
 
 
 

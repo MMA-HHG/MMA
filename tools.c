@@ -9,7 +9,6 @@
 
 #include"util.h"
 
-#define Pi acos(-1.)
 clock_t start, finish;
 clock_t start2, finish2;
 
@@ -20,6 +19,7 @@ extern double* timet,dipole;
 struct output_print_def Initialise_Printing_struct(void) // Initialise ground-state
 {
 	struct output_print_def res;
+
 	res.Efield = 0;
 	res.FEfield = 0;
 	res.sourceterm = 0;
@@ -29,17 +29,32 @@ struct output_print_def Initialise_Printing_struct(void) // Initialise ground-st
 	res.PopTot = 0;
 	res.tgrid = 0;
 	res.omegagrid = 0;
+
 	return res;
 }
 
-void outputs_constructor(struct outputs_def *outputs, int Nt) 
+void PrintOutputs(hid_t file_id, struct inputs_def *in, struct outputs_def *out) // Initialise ground-state
 {
-	(*outputs).tgrid = calloc((Nt+1),sizeof(double));
-	(*outputs).Efield = calloc((Nt+1),sizeof(double));
-	(*outputs).sourceterm = calloc((Nt+1),sizeof(double));
-	(*outputs).PopTot = calloc((Nt+1),sizeof(double));
-	(*outputs).Nt = Nt+1;
+	if ( (*in).Print.Efield == 1 ){}
+	res.Efield = 0;
+	res.FEfield = 0;
+	res.sourceterm = 0;
+	res.Fsourceterm = 0;
+	res.FEfieldM2 = 0;
+	res.FsourceTermM2 = 0;
+	res.PopTot = 0;
+	res.tgrid = 0;
+	res.omegagrid = 0;
 }
+
+// void outputs_constructor(struct outputs_def *outputs, int Nt) 
+// {
+// 	(*outputs).tgrid = calloc((Nt+1),sizeof(double));
+// 	(*outputs).Efield = calloc((Nt+1),sizeof(double));
+// 	(*outputs).sourceterm = calloc((Nt+1),sizeof(double));
+// 	(*outputs).PopTot = calloc((Nt+1),sizeof(double));
+// 	(*outputs).Nt = Nt+1;
+// }
 
 void outputs_destructor(struct outputs_def *outputs) // frees memory allocated for outputs
 {
@@ -276,8 +291,8 @@ double AfieldEsin2(double t, double ti, double A0, double oc, double phi0, doubl
 	if ( (t <= ti) )
 	{
 		return 0.;
-	} else if ( t >= (ti+Pi/oc) ){
-		return Primsin2cos(oc, o, phi, phi0, (ti+Pi/oc) ) - Primsin2cos(oc, o, phi, phi0, ti);
+	} else if ( t >= (ti+pi/oc) ){
+		return Primsin2cos(oc, o, phi, phi0, (ti+pi/oc) ) - Primsin2cos(oc, o, phi, phi0, ti);
 	} else {
 		return Primsin2cos(oc, o, phi, phi0, t) - Primsin2cos(oc, o, phi, phi0, ti);
 	}
@@ -313,7 +328,7 @@ double Afieldflattop1(double t, double ti, double ton, double toff, double T, do
 {
 	double envelope;
 
-	//oc2 = Pi/(2.*toff); phienvel = Pi - oc2*(T+ton+toff); tend = T+ton+toff;
+	//oc2 = pi/(2.*toff); phienvel = pi - oc2*(T+ton+toff); tend = T+ton+toff;
 	//return A0*pow(sin(oc2*t+phienvel),2.)*sin(o*t+phi);
 	
 	
@@ -329,7 +344,7 @@ double Afieldflattop1ch(double t, double ti, double ton, double toff, double T, 
 {
 	double envelope;
 
-	//oc2 = Pi/(2.*toff); phienvel = Pi - oc2*(T+ton+toff); tend = T+ton+toff;
+	//oc2 = pi/(2.*toff); phienvel = pi - oc2*(T+ton+toff); tend = T+ton+toff;
 	//return A0*pow(sin(oc2*t+phienvel),2.)*sin(o*t+phi);
 	
 	
@@ -343,7 +358,7 @@ double Afieldflattop1ch(double t, double ti, double ton, double toff, double T, 
 
 double Afieldsin2(double t, double ti, double A0, double oc, double phi0, double o, double phi)
 {
-	if ( (t <= ti) || ( t >= (ti+Pi/oc) ) )
+	if ( (t <= ti) || ( t >= (ti+pi/oc) ) )
 	{
 		return 0.;
 	} else {
@@ -418,7 +433,7 @@ switch (F.fieldtype){
 
 double dAfieldsin2(double t, double ti, double A0, double oc, double phi0, double o, double phi)
 {
-	if ( (t <= ti) || ( t >= (ti+Pi/oc) ) )
+	if ( (t <= ti) || ( t >= (ti+pi/oc) ) )
 	{
 		return 0.;
 	} else {
@@ -442,19 +457,19 @@ double Afieldflattop3(double t, double ton, double toff, double T, double o, dou
 
 	if( (t >= ton ) && ( t <= (ton+T) ) )
 	{
-		oc1 = Pi/(2.*ton);
+		oc1 = pi/(2.*ton);
 		dum2 = (4*o*oc1*cos(phi + o*ton)*sin(2*oc1*ton) + 2*(pow(o,2) - 4*pow(oc1,2) - pow(o,2)*cos(2*oc1*ton))*sin(phi + o*ton))/(4.*(pow(o,3) - 4*o*pow(oc1,2))); // A(ton)
 		dum2 = o*dum2;
 		return A0*(sin(o*t+phi)-sin(o*ton+phi)+dum2);
 	} else if (t < ton) {
-		oc1 = Pi/(2.*ton);
+		oc1 = pi/(2.*ton);
 
 		A = (2*(-pow(o,2) + 4*pow(oc1,2) + pow(o,2)*cos(2*oc1*t))*cos(phi + o*t) + 4*o*oc1*sin(2*oc1*t)*sin(phi + o*t))/(4.*(pow(o,3) - 4*o*pow(oc1,2))); // undefinite integral result
 		dum1 = (2*pow(oc1,2)*cos(phi))/(pow(o,3) - 4*o*pow(oc1,2)); // A(0)
 		// dum2 = (4*o*oc1*cos(phi + o*ton)*sin(2*oc1*ton) + 2*(pow(o,2) - 4*pow(oc1,2) - pow(o,2)*cos(2*oc1*ton))*sin(phi + o*ton))/(4.*(pow(o,3) - 4*o*pow(oc1,2))); // A(ton)
 		return o*A0*(A-dum1); // shift to be 0 in 0
 	} else {
-		oc2 = Pi/(2.*toff); phienvel = (Pi/2) - oc2*(T+ton); tend = T+ton+toff;
+		oc2 = pi/(2.*toff); phienvel = (pi/2) - oc2*(T+ton); tend = T+ton+toff;
 
 		A = ((-2*cos(phi + o*t))/o + cos(phi - 2*phienvel + o*t - 2*oc2*t)/(o - 2*oc2) + cos(phi + 2*phienvel + o*t + 2*oc2*t)/(o + 2*oc2))/4.; // undefinite integral result
 		dum1 = ((-2*cos(phi + o*tend))/o + cos(phi - 2*phienvel + o*tend - 2*oc2*tend)/(o - 2*oc2) + cos(phi + 2*phienvel + o*tend + 2*oc2*tend)/(o + 2*oc2))/4.; // A(tend)
@@ -752,9 +767,9 @@ void printFFTW3(FILE *sig, FILE *fsig, double *signal, int N, double dx) //takes
 	// print fourier transform
 	// file1 = fopen("ftransform.dat" , "w");
 
-	dxi = 2.*Pi/(  ((double)N) * dx); 
+	dxi = 2.*pi/(  ((double)N) * dx);
 
-	coeff1 = dx/ sqrt(2.*Pi); coeff2 = dx*dx/(2.*Pi);	
+	coeff1 = dx/ sqrt(2.*pi); coeff2 = dx*dx/(2.*pi);	
 
 	for(k1 = 0; k1 <= (Nc-1); k1++){
 					fprintf(fsig,"%e\t%e\t%e\t%e\n",((double)k1)*dxi,coeff1*out[k1][0], -coeff1*out[k1][1] , coeff2*(out[k1][0]*out[k1][0]+out[k1][1]*out[k1][1]));
@@ -804,10 +819,10 @@ void print2FFTW3(FILE *sig, FILE *fsig, double *signal1, double *signal2, int N,
 	// print fourier transform
 	// file1 = fopen("ftransform.dat" , "w");
 
-/*	dxi = 2.*Pi/(  ((double)N) * dx); */
-	dxi = 2.*Pi/xmax; 
+/*	dxi = 2.*pi/(  ((double)N) * dx); */
+	dxi = 2.*pi/xmax; 
 
-	coeff1 = dx/ sqrt(2.*Pi); coeff2 = dx*dx/(2.*Pi);	
+	coeff1 = dx/ sqrt(2.*pi); coeff2 = dx*dx/(2.*pi);	
 
 	for(k1 = 0; k1 <= (Nc-1); k1++){
 					fprintf(fsig,"%e\t%e\t%e\t%e\t%e\t%e\t%e\n",((double)k1)*dxi,coeff1*out1[k1][0], -coeff1*out1[k1][1] , coeff2*(out1[k1][0]*out1[k1][0]+out1[k1][1]*out1[k1][1]),coeff1*out2[k1][0], -coeff1*out2[k1][1] , coeff2*(out2[k1][0]*out2[k1][0]+out2[k1][1]*out2[k1][1]));
@@ -854,8 +869,8 @@ void printGaborFFTW3(FILE *Gsig, FILE *xgrid, FILE *xigrid, FILE *Gsigbin, doubl
 	out = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * Nc);
 
 
-	dxi = 2.*Pi/(  ((double)N) * dx); // dimension-preserving coefficients
-	coeff1 = dx/ sqrt(2.*Pi); coeff2 = dx*dx/(2.*Pi);
+	dxi = 2.*pi/(  ((double)N) * dx); // dimension-preserving coefficients
+	coeff1 = dx/ sqrt(2.*pi); coeff2 = dx*dx/(2.*pi);
 
 	Ncprint = floor( xiMaxPrint/dxi ); Ncprint++; if (Ncprint > (Nc-1) ){Ncprint = Nc-1;} // maximum frequency
 
@@ -947,10 +962,10 @@ void print2FFTW3binary(FILE *xgrid, FILE *sig1, FILE *sig2, FILE *xigrid, FILE *
 	// print fourier transform
 	// file1 = fopen("ftransform.dat" , "w");
 
-/*	dxi = 2.*Pi/(  ((double)N) * dx); */
-	dxi = 2.*Pi/xmax; 
+/*	dxi = 2.*pi/(  ((double)N) * dx); */
+	dxi = 2.*pi/xmax; 
 
-	coeff1 = dx/ sqrt(2.*Pi); coeff2 = dx*dx/(2.*Pi);
+	coeff1 = dx/ sqrt(2.*pi); coeff2 = dx*dx/(2.*pi);
 
 	for(k1 = 0; k1 <= (Nc-1); k1++){dum[0]=((double)k1)*dxi; fwrite(dum,sizeof(double),1,xigrid);}
 	for(k1 = 0; k1 <= (Nc-1); k1++){dum[0]=coeff1*out1[k1][0]; fwrite(dum,sizeof(double),1,fsig1);dum[0]=-coeff1*out1[k1][1]; fwrite(dum,sizeof(double),1,fsig1);}
@@ -1007,9 +1022,9 @@ void printlimitedFFTW3(FILE *fsig, double *signal, int N, double dx, double xmin
 	// print fourier transform
 	// file1 = fopen("ftransform.dat" , "w");
 
-	dxi = 2.*Pi/(  ((double)NF) * dx); 
+	dxi = 2.*pi/(  ((double)NF) * dx); 
 
-	coeff1 = dx/ sqrt(2.*Pi); coeff2 = dx*dx/(2.*Pi);	
+	coeff1 = dx/ sqrt(2.*pi); coeff2 = dx*dx/(2.*pi);	
 
 	for(k1 = 0; k1 <= (Nc-1); k1++){
 					fprintf(fsig,"%e\t%e\t%e\t%e\n",((double)k1)*dxi,coeff1*out[k1][0], -coeff1*out[k1][1] , coeff2*(out[k1][0]*out[k1][0]+out[k1][1]*out[k1][1]));
@@ -1051,8 +1066,8 @@ void printGaborFFTW3binary(FILE *Gsize, FILE *xgrid, FILE *xigrid, FILE *Gsigbin
 	out = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * Nc);
 
 
-	dxi = 2.*Pi/(  ((double)N) * dx); // dimension-preserving coefficients
-	coeff1 = dx/ sqrt(2.*Pi); coeff2 = dx*dx/(2.*Pi);
+	dxi = 2.*pi/(  ((double)N) * dx); // dimension-preserving coefficients
+	coeff1 = dx/ sqrt(2.*pi); coeff2 = dx*dx/(2.*pi);
 
 	Ncprint = floor( xiMaxPrint/dxi ); Ncprint++; if (Ncprint > (Nc-1) ){Ncprint = Nc-1;} // maximum frequency
 	fprintf(Gsize,"%i\n", Ncprint+1);
@@ -1313,8 +1328,8 @@ void calc2FFTW3(int N, double dx, double xmax, double *signal1, double *signal2,
 
 	//	RESCALE TO OUTPUTS
 
-	dxi = 2.*Pi/xmax;
-	coeff1 = dx/ sqrt(2.*Pi); coeff2 = dx*dx/(2.*Pi);
+	dxi = 2.*pi/xmax;
+	coeff1 = dx/ sqrt(2.*pi); coeff2 = dx*dx/(2.*pi);
 
 
 	// int size2D = sizeof(double *) * Nc + sizeof(double) * 2 * Nc; // Nc-rows - the size required for the array in the memory
@@ -1368,8 +1383,8 @@ void calcFFTW3(int N, double dx, double xmax, double *signal, double **xgrid, do
 	fftw_execute(p);
 
 	//	RESCALE TO OUTPUTS
-	dxi = 2.*Pi/xmax;
-	coeff1 = dx/ sqrt(2.*Pi); coeff2 = dx*dx/(2.*Pi);
+	dxi = 2.*pi/xmax;
+	coeff1 = dx/ sqrt(2.*pi); coeff2 = dx*dx/(2.*pi);
 
 
 	// int size2D = sizeof(double *) * Nc + sizeof(double) * 2 * Nc; // Nc-rows - the size required for the array in the memory

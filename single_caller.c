@@ -4,8 +4,11 @@
 #include<stdlib.h>
 #include<malloc.h>
 #include<math.h>
-#include "hdf5.h"
+#include<hdf5.h>
+
+#include "physical_constants.h"
 #include "util.h"
+#include "util_hdf5.h"
 
 // hdf5 operation:
 herr_t  h5error;
@@ -79,7 +82,8 @@ int main()
 	// for(k1 = 0 ; k1 < inputs.Efield.Nt; k1++){inputs.Efield.tgrid[k1] = inputs.Efield.tgrid[k1]*1e-15/TIMEau; inputs.Efield.Field[k1] = inputs.Efield.Field[k1]*1e9/EFIELDau;} // convert to atomic units (fs->a.u.), (GV/m->a.u.)
 	for(k1 = 0 ; k1 < inputs.Efield.Nt; k1++){inputs.Efield.tgrid[k1] = inputs.Efield.tgrid[k1]/TIMEau; inputs.Efield.Field[k1] = inputs.Efield.Field[k1]/EFIELDau;} // convert to atomic units (fs->a.u.), (GV/m->a.u.)
 
-
+	// crete printing driver
+	inputs.Print = Initialise_Printing_struct();
 
 	// Prepare the ground state
 
@@ -162,6 +166,7 @@ int main()
 
 
 	h5error = H5Fclose(file_id); // file
+	outputs_destructor(struct outputs_def *);
 
 
 

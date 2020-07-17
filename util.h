@@ -165,3 +165,6 @@ double ** create_2Darray_accessor_real(int *, double *);
 
 void calc2FFTW3(int, double, double, double *, double *, double **, double **, double **, double **, double **, double **, int *);
 void calcFFTW3(int, double, double, double *, double **, double **, double **, double **, int *);
+
+void outputs_destructor(struct outputs_def *);
+struct output_print_def Initialise_Printing_struct(void);
