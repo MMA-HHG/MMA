@@ -17,6 +17,48 @@ void print_nd_array_h5(hid_t file_id, char *dset_name, herr_t *h5error, int ndim
   *h5error = H5Dclose(dset_id);	
 }
 
+void PrintOutputs(hid_t file_id, char *path, struct inputs_def *in, struct outputs_def *out)
+{
+	hsize_t output_dims[2]; // never exceeds 2 in this case, can be longer
+
+	if ( (*in).Print.Efield == 1 ){
+		print_nd_array_h5(file_id, strcat(path,"Efield"), &h5error, 1, output_dims, (*outputs).Efield, H5T_NATIVE_DOUBLE);
+	}
+	//res.Efield = 0;
+	//res.FEfield = 0;
+	//res.sourceterm = 0;
+	//res.Fsourceterm = 0;
+	//res.FEfieldM2 = 0;
+	//res.FsourceTermM2 = 0;
+	//res.PopTot = 0;
+	//res.tgrid = 0;
+	//res.omegagrid = 0;
+
+
+	// 	// time domain
+	// output_dims[0] = outputs.Nt; output_dims[1] = 0;
+
+	// print_nd_array_h5(file_id, "/TDSEsingle/SourceTerm", &h5error, 1, output_dims, outputs.sourceterm, H5T_NATIVE_DOUBLE);
+	// print_nd_array_h5(file_id, "/TDSEsingle/Efield", &h5error, 1, output_dims, outputs.Efield, H5T_NATIVE_DOUBLE);
+	// print_nd_array_h5(file_id, "/TDSEsingle/PopTot", &h5error, 1, output_dims, outputs.PopTot, H5T_NATIVE_DOUBLE);
+
+	// print_nd_array_h5(file_id, "/TDSEsingle/tgrid", &h5error, 1, output_dims, outputs.tgrid, H5T_NATIVE_DOUBLE);
+	// print_nd_array_h5(file_id, "/TDSEsingle/tgrid_fftw", &h5error, 1, output_dims, outputs.tgrid_fftw, H5T_NATIVE_DOUBLE);
+
+	// // omega domain - complex
+	// output_dims[0] = outputs.Nomega; output_dims[1] = 2;
+
+	// print_nd_array_h5(file_id, "/TDSEsingle/FEfield", &h5error, 2, output_dims, outputs.FEfield_data, H5T_NATIVE_DOUBLE);
+	// print_nd_array_h5(file_id, "/TDSEsingle/FSourceTerm", &h5error, 2, output_dims, outputs.Fsourceterm_data, H5T_NATIVE_DOUBLE);
+
+	// // omega domain - real
+	// output_dims[0] = outputs.Nomega; output_dims[1] = 0;
+	// print_nd_array_h5(file_id, "/TDSEsingle/omegagrid", &h5error, 1, output_dims, outputs.omegagrid, H5T_NATIVE_DOUBLE);
+	// print_nd_array_h5(file_id, "/TDSEsingle/FEfieldM2", &h5error, 1, output_dims, outputs.FEfieldM2, H5T_NATIVE_DOUBLE);
+	// print_nd_array_h5(file_id, "/TDSEsingle/FSourceTermM2", &h5error, 1, output_dims, outputs.FsourcetermM2, H5T_NATIVE_DOUBLE);
+
+}
+
 
 void rw_real_fullhyperslab_nd_h5(hid_t file_id, char *dset_name, herr_t *h5error, int ndims, hsize_t *dimensions, int *selection, double *array1D, char *rw) // This function reads full line from an n-D array, the selected dimension is given by (-1), the rest of selection is the offset
 { 

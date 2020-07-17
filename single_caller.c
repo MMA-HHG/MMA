@@ -140,6 +140,12 @@ int main()
 	hid_t g_id = H5Gcreate2(file_id, "/TDSEsingle", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
 	h5error = H5Gclose(g_id);
 
+	hid_t g_id = H5Gcreate2(file_id, "/TDSEsingle_f", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+	h5error = H5Gclose(g_id);
+
+	inputs.Print.Efield = 1;
+	PrintOutputs(file_id, "/TDSEsingle_f/", &inputs, &outputs);
+
 	// time domain
 	output_dims[0] = outputs.Nt; output_dims[1] = 0;
 
@@ -162,15 +168,17 @@ int main()
 	print_nd_array_h5(file_id, "/TDSEsingle/FEfieldM2", &h5error, 1, output_dims, outputs.FEfieldM2, H5T_NATIVE_DOUBLE);
 	print_nd_array_h5(file_id, "/TDSEsingle/FSourceTermM2", &h5error, 1, output_dims, outputs.FsourcetermM2, H5T_NATIVE_DOUBLE);
 
+	outputs_destructor(&outputs);
+
 	// durations of calculation
 	output_dims[0] = 1; output_dims[1] = 0;	
 	end_clock = clock();
 	double elapsed_time = (double)((end_clock - start_clock)/CLOCKS_PER_SEC);
-	print_nd_array_h5(file_id, "/TDSEsingle/full_time_of_calculation", &h5error, 1, output_dims, &elapsed_time, H5T_NATIVE_DOUBLE);
+	print_nd_array_h5(file_id, "/TDSEsingle/full_runtime", &h5error, 1, output_dims, &elapsed_time, H5T_NATIVE_DOUBLE);
 
 
 	h5error = H5Fclose(file_id); // file
-	outputs_destructor(&outputs);
+	
 
 
 
