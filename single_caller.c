@@ -128,9 +128,12 @@ int main()
 	////////////////////
 
 
-	printf("Printing the outputs \n");
+	printf("Printing the outputs \n"); fflush(NULL);
 	//outputs.FEfield = create_2Darray_accessor_real(mydims, outputs.FEfield_data); // in the case we would like to access the array usual way
 	//outputs.Fsourceterm = create_2Darray_accessor_real(mydims, outputs.Fsourceterm_data);
+	//printf("efield out    : %e, %e, %e \n",outputs.Efield[0],outputs.Efield[1],outputs.Efield[2]); fflush(NULL);
+
+
 	hsize_t output_dims[2]; // never exceeds 2 in this case, can be longer
 
 	file_id = H5Fopen ("results2.h5", H5F_ACC_RDWR, H5P_DEFAULT); // we use a different output file to testing, can be changed to have only one file
