@@ -140,35 +140,12 @@ int main()
 	hid_t g_id = H5Gcreate2(file_id, "/TDSEsingle", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
 	h5error = H5Gclose(g_id);
 
-	g_id = H5Gcreate2(file_id, "/TDSEsingle_f", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
-	h5error = H5Gclose(g_id);
-
-	inputs.Print = Set_all_prints;
-
-	PrintOutputs(file_id, "/TDSEsingle_f/", &h5error, &inputs, &outputs);
+	inputs.Print = Set_all_prints();
+	PrintOutputs(file_id, "/TDSEsingle/", &h5error, &inputs, &outputs);
 
 	// time domain
 	output_dims[0] = outputs.Nt; output_dims[1] = 0;
-
-	print_nd_array_h5(file_id, "/TDSEsingle/SourceTerm", &h5error, 1, output_dims, outputs.sourceterm, H5T_NATIVE_DOUBLE);
-	print_nd_array_h5(file_id, "/TDSEsingle/Efield", &h5error, 1, output_dims, outputs.Efield, H5T_NATIVE_DOUBLE);
-	print_nd_array_h5(file_id, "/TDSEsingle/PopTot", &h5error, 1, output_dims, outputs.PopTot, H5T_NATIVE_DOUBLE);
-
-	print_nd_array_h5(file_id, "/TDSEsingle/tgrid", &h5error, 1, output_dims, outputs.tgrid, H5T_NATIVE_DOUBLE);
-	print_nd_array_h5(file_id, "/TDSEsingle/tgrid_fftw", &h5error, 1, output_dims, outputs.tgrid_fftw, H5T_NATIVE_DOUBLE);
-
-	// omega domain - complex
-	output_dims[0] = outputs.Nomega; output_dims[1] = 2;
-
-	print_nd_array_h5(file_id, "/TDSEsingle/FEfield", &h5error, 2, output_dims, outputs.FEfield_data, H5T_NATIVE_DOUBLE);
-	print_nd_array_h5(file_id, "/TDSEsingle/FSourceTerm", &h5error, 2, output_dims, outputs.Fsourceterm_data, H5T_NATIVE_DOUBLE);
-
-	// omega domain - real
-	output_dims[0] = outputs.Nomega; output_dims[1] = 0;
-	print_nd_array_h5(file_id, "/TDSEsingle/omegagrid", &h5error, 1, output_dims, outputs.omegagrid, H5T_NATIVE_DOUBLE);
-	print_nd_array_h5(file_id, "/TDSEsingle/FEfieldM2", &h5error, 1, output_dims, outputs.FEfieldM2, H5T_NATIVE_DOUBLE);
-	print_nd_array_h5(file_id, "/TDSEsingle/FSourceTermM2", &h5error, 1, output_dims, outputs.FsourcetermM2, H5T_NATIVE_DOUBLE);
-
+	print_nd_array_h5(file_id, "/TDSEsingle/tgrid_fftw", &h5error, 1, output_dims, outputs.tgrid_fftw, H5T_NATIVE_DOUBLE)
 	outputs_destructor(&outputs);
 
 	// durations of calculation

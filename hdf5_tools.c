@@ -55,21 +55,21 @@ void PrintOutputs(hid_t file_id, char *inpath, herr_t *h5error, struct inputs_de
   }
 
   // omega domain - complex
-  output_dims[0] = outputs.Nomega; output_dims[1] = 2;
+  output_dims[0] = (*out).Nomega; output_dims[1] = 2;
   if ( (*in).Print.FEfield == 1 )
   {
 		path[0] = '\0';	strcat(strcat(path,inpath),"FEfield");
-		print_nd_array_h5(file_id, path, h5error, 1, output_dims, (*out).FEfield_data, H5T_NATIVE_DOUBLE);
+		print_nd_array_h5(file_id, path, h5error, 2, output_dims, (*out).FEfield_data, H5T_NATIVE_DOUBLE);
   }
 
   if ( (*in).Print.Fsourceterm == 1 )
   {
 		path[0] = '\0';	strcat(strcat(path,inpath),"FSourceTerm");
-		print_nd_array_h5(file_id, path, h5error, 1, output_dims, (*out).Fsourceterm_data, H5T_NATIVE_DOUBLE);
+		print_nd_array_h5(file_id, path, h5error, 2, output_dims, (*out).Fsourceterm_data, H5T_NATIVE_DOUBLE);
   }
 
   // omega domain - real
-  output_dims[0] = outputs.Nomega; output_dims[1] = 0;
+  output_dims[0] = (*out).Nomega; output_dims[1] = 0;
 
   if ( (*in).Print.FEfieldM2 == 1 )
   {
