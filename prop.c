@@ -4,6 +4,7 @@
 #include<stdio.h>
 #include<time.h>
 
+#include "numerical_constants.h"
 #include "util.h"
 
 clock_t start, finish;

@@ -1,12 +1,9 @@
-#include<time.h> 
-#include<stdio.h>
-#include <mpi.h>
 #include<stdlib.h>
-#include<malloc.h>
 #include<math.h>
-#include "hdf5.h"
-#include "physical_constants.h"
 
+#include "numerical_constants.h"
+
+const double Pi = M_PI;
 
 void Init_constants(void){
     double pi = acos(-1.0);
