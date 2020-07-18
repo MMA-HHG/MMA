@@ -18,8 +18,8 @@ void ReadInputs(hid_t file_id, char *inpath, herr_t *h5error, struct inputs_def 
 	printf("t1 \n"); fflush(NULL);
 
   path[0] = '\0';	strcat(strcat(path,inpath),"Eguess");
-  //readreal(file_id, path, h5error,&(*in).Eguess); // Energy of the initial state
-  readreal(file_id, path, h5error,in.Eguess); // Energy of the initial state
+  readreal(file_id, path, h5error,&(*in).Eguess); // Energy of the initial state
+  //readreal(file_id, path, h5error,(*in.Eguess); // Energy of the initial state
 
 }
 

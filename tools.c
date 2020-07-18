@@ -27,13 +27,14 @@ void Initialise_grid_and_ground_state(struct inputs_def *in, double * Einit)
 	is not quite 0 and those excited appears in the energy analysis of the gorund states, so the propagation !!
 	CV = 1E-25 has been choosen to have a scalar product of 10^-31 with the third excited state for num_r = 5000 and dx=0.1
 	*/
+	int k1;
 	int size = 2*((*in).num_r+1);
 	double *off_diagonal, *diagonal, *x;
 	// double Einit = 0.0;
 	(*in).psi0 = calloc(size,sizeof(double));
 	for(k1=0;k1<=(*in).num_r;k1++){(*in).psi0[2*k1] = 1.0; (*in).psi0[2*k1+1] = 0.;}
-	Initialise_grid_and_D2((*in).dx, (*in).num_r, in.x, &diagonal, &off_diagonal); // !!!! dx has to be small enough, it doesn't converge otherwise
-	Einit = Einitialise((*in).trg, (*in).psi0, off_diagonal, diagonal, off_diagonal, (*in).x, (*in).Eguess, (*in).CV, (*in).num_r); // originally, some possibility to have also excited state
+	Initialise_grid_and_D2((*in).dx, (*in).num_r, &((*in).x), &diagonal, &off_diagonal); // !!!! dx has to be small enough, it doesn't converge otherwise
+	*Einit = Einitialise((*in).trg, (*in).psi0, off_diagonal, diagonal, off_diagonal, (*in).x, (*in).Eguess, (*in).CV, (*in).num_r); // originally, some possibility to have also excited state
 	free(diagonal); free(off_diagonal);
 }
 
