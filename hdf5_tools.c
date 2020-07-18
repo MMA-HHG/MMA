@@ -19,8 +19,95 @@ void ReadInputs(hid_t file_id, char *inpath, herr_t *h5error, struct inputs_def 
 
   path[0] = '\0';	strcat(strcat(path,inpath),"Eguess");
   readreal(file_id, path, h5error,&(*in).Eguess); // Energy of the initial state
-  //readreal(file_id, path, h5error,(*in.Eguess); // Energy of the initial state
 
+  path[0] = '\0';	strcat(strcat(path,inpath),"N_r_grid");
+  readint(file_id, path, h5error,&(*in).num_r); // Number of points of the initial spatial grid 16000
+
+  path[0] = '\0';	strcat(strcat(path,inpath),"N_r_grid_exp");
+  readint(file_id, path, h5error,&(*in).num_r); // Number of points of the spatial grid for the expansion
+
+  path[0] = '\0';	strcat(strcat(path,inpath),"dx");
+  readreal(file_id, path, h5error,&(*in).dx); // resolution for the grid
+
+  path[0] = '\0';	strcat(strcat(path,inpath),"InterpByDTorNT");
+  readint(file_id, path, h5error,&(*in).InterpByDTorNT);
+
+  path[0] = '\0';	strcat(strcat(path,inpath),"dt");
+  readreal(file_id, path, h5error,&(*in).dt); // resolution in time
+
+  path[0] = '\0';	strcat(strcat(path,inpath),"Ntinterp");
+  readint(file_id, path, h5error,&(*in).Ntinterp); // Number of points of the spatial grid for the expansion
+
+  path[0] = '\0';	strcat(strcat(path,inpath),"textend");
+  readreal(file_id, path, h5error,&(*in).textend); // extension of the calculation after the last fields ends !!! NOW ONLY FOR ANALYTICAL FIELD //700
+
+  path[0] = '\0';	strcat(strcat(path,inpath),"analy_writewft");
+  readint(file_id, path, h5error,&(*in).analy_writewft); // writewavefunction (1-writting every tprint)
+
+  path[0] = '\0';	strcat(strcat(path,inpath),"analy_tprint");
+  readreal(file_id, path, h5error,&(*in).analy_tprint); // time spacing for writing the wavefunction	
+
+  path[0] = '\0';	strcat(strcat(path,inpath),"x_int");
+  readreal(file_id, path, h5error,&(*in).x_int); // the limit of the integral for the ionisation //2 2 works fine with the lenth gauge and strong fields
+
+  path[0] = '\0';	strcat(strcat(path,inpath),"PrintGaborAndSpectrum");
+  readint(file_id, path, h5error,&(*in).PrintGaborAndSpectrum); // print Gabor and partial spectra (1-yes)
+
+  path[0] = '\0';	strcat(strcat(path,inpath),"a_Gabor");
+  readreal(file_id, path, h5error,&(*in).a_Gabor); // the parameter of the gabor window [a.u.]
+
+  path[0] = '\0';	strcat(strcat(path,inpath),"omegaMaxGabor");
+  readreal(file_id, path, h5error,&(*in).omegaMaxGabor); // maximal frequency in Gabor [a.u.]
+
+  path[0] = '\0';	strcat(strcat(path,inpath),"dtGabor");
+  readreal(file_id, path, h5error,&(*in).dtGabor); // spacing in Gabor
+
+  path[0] = '\0';	strcat(strcat(path,inpath),"tmin1window");
+  readreal(file_id, path, h5error,&(*in).tmin1window); // analyse 1st part of the dipole
+
+  path[0] = '\0';	strcat(strcat(path,inpath),"tmax1window");
+  readreal(file_id, path, h5error,&(*in).tmax1window); // analyse 1st part of the dipole
+
+  path[0] = '\0';	strcat(strcat(path,inpath),"tmin2window");
+  readreal(file_id, path, h5error,&(*in).tmin2window); // analyse 2nd part of the dipole
+
+  path[0] = '\0';	strcat(strcat(path,inpath),"tmax2window");
+  readreal(file_id, path, h5error,&(*in).tmax2window); // analyse 2nd part of the dipole
+
+  path[0] = '\0';	strcat(strcat(path,inpath),"PrintOutputMethod");
+  readint(file_id, path, h5error,&(*in).PrintOutputMethod); // (0 - only text, 1 - only binaries, 2 - both)
+
+  path[0] = '\0';	strcat(strcat(path,inpath),"trg_a");
+  readreal(file_id, path, h5error,&(*in).trg.a); // analyse 2nd part of the dipole
+
+//	readint(file_id, "TDSE_inputs/IonisationFilterForTheSourceTerm"	,&h5error,&inputs.IonisationFilterForTheSourceTerm); // filter source term by high-ionisation components (1-yes)
+//	readreal(file_id, "TDSE_inputs/IonFilterThreshold"		,&h5error,&inputs.IonFilterThreshold); // threshold for the ionisation [-]
+
+	// readreal(file_id, "TDSE_inputs/Eguess"					,&h5error,&inputs.Eguess); // Energy of the initial state
+	// readint(file_id, "TDSE_inputs/N_r_grid"					,&h5error,&inputs.num_r); // Number of points of the initial spatial grid 16000
+	// readint(file_id, "TDSE_inputs/N_r_grid_exp"				,&h5error,&inputs.num_exp); // Number of points of the spatial grid for the expansion
+	// readreal(file_id, "TDSE_inputs/dx"						,&h5error,&inputs.dx); // resolution for the grid
+	// readint(file_id, "TDSE_inputs/InterpByDTorNT"			,&h5error,&inputs.InterpByDTorNT); 
+	// readreal(file_id, "TDSE_inputs/dt"						,&h5error,&inputs.dt); // resolution in time
+	// readint(file_id, "TDSE_inputs/Ntinterp"					,&h5error,&inputs.Ntinterp); // Number of points of the spatial grid for the expansion
+	// readreal(file_id, "TDSE_inputs/textend"					,&h5error,&inputs.textend); // extension of the calculation after the last fields ends !!! NOW ONLY FOR ANALYTICAL FIELD //700
+	// readint(file_id, "TDSE_inputs/analy_writewft"			,&h5error,&inputs.analy.writewft); // writewavefunction (1-writting every tprint)
+	// readreal(file_id, "TDSE_inputs/analy_tprint"			,&h5error,&inputs.analy.tprint); // time spacing for writing the wavefunction	
+	// readreal(file_id, "TDSE_inputs/x_int"					,&h5error,&inputs.x_int); // the limit of the integral for the ionisation //2 2 works fine with the lenth gauge and strong fields
+	// readint(file_id, "TDSE_inputs/PrintGaborAndSpectrum"	,&h5error,&inputs.PrintGaborAndSpectrum); // print Gabor and partial spectra (1-yes)
+	// readreal(file_id, "TDSE_inputs/a_Gabor"					,&h5error,&inputs.a_Gabor); // the parameter of the gabor window [a.u.]
+	// readreal(file_id, "TDSE_inputs/omegaMaxGabor"			,&h5error,&inputs.omegaMaxGabor); // maximal frequency in Gabor [a.u.]
+	// readreal(file_id, "TDSE_inputs/dtGabor"					,&h5error,&inputs.dtGabor); // spacing in Gabor
+	// readreal(file_id, "TDSE_inputs/tmin1window"				,&h5error,&inputs.tmin1window); // analyse 1st part of the dipole
+	// readreal(file_id, "TDSE_inputs/tmax1window"				,&h5error,&inputs.tmax1window); // analyse 1st part of the dipole
+	// readreal(file_id, "TDSE_inputs/tmin2window"				,&h5error,&inputs.tmin2window); // analyse 2nd part of the dipole
+	// readreal(file_id, "TDSE_inputs/tmax2window"				,&h5error,&inputs.tmax2window); // analyse 2nd part of the dipole
+	// readint(file_id, "TDSE_inputs/PrintOutputMethod"		,&h5error,&inputs.PrintOutputMethod); // (0 - only text, 1 - only binaries, 2 - both)
+
+	// readreal(file_id, "TDSE_inputs/trg_a"		,&h5error,&inputs.trg.a);
+
+	(*in).Efield.tgrid =  readreal1Darray_fort(file_id, "IRField/tgrid",&h5error,&inputs.Efield.Nt); // tgrid is not changed when program runs
+	(*in).Efield.Field =  readreal1Darray_fort(file_id, "IRField/Field",&h5error,&inputs.Efield.Nt); // tgrid is not changed when program runs  
 }
 
 
