@@ -17,6 +17,28 @@ extern double* timet,dipole;
 
 // extern struct Efield_var;
 
+
+void Initialise_grid_and_ground_state(struct inputs_def *in, double * Einit)
+{
+	/* 
+	Comment to the choice of the CV criterion:
+	This number has to be small enough to assure a good convregence of the wavefunction
+	if it is not the case, then the saclar product of the the ground state and the excited states 
+	is not quite 0 and those excited appears in the energy analysis of the gorund states, so the propagation !!
+	CV = 1E-25 has been choosen to have a scalar product of 10^-31 with the third excited state for num_r = 5000 and dx=0.1
+	*/
+	int size = 2*((*in).num_r+1);
+	double *off_diagonal, *diagonal, *x;
+	// double Einit = 0.0;
+	(*in).psi0 = calloc(size,sizeof(double));
+	for(k1=0;k1<=(*in).num_r;k1++){(*in).psi0[2*k1] = 1.0; (*in).psi0[2*k1+1] = 0.;}
+	Initialise_grid_and_D2((*in).dx, (*in).num_r, in.x, &diagonal, &off_diagonal); // !!!! dx has to be small enough, it doesn't converge otherwise
+	Einit = Einitialise((*in).trg, (*in).psi0, off_diagonal, diagonal, off_diagonal, (*in).x, (*in).Eguess, (*in).CV, (*in).num_r); // originally, some possibility to have also excited state
+	free(diagonal); free(off_diagonal);
+}
+
+
+
 struct output_print_def Initialise_Printing_struct(void) // Initialise ground-state
 {
 	struct output_print_def res;
@@ -78,6 +100,12 @@ void outputs_destructor(struct outputs_def *outputs) // frees memory allocated f
 
 	(*outputs).Nt = 0;
 	(*outputs).Nomega = 0;
+}
+
+void inputs_destructor(struct inputs_def *in) // frees memory allocated for outputs
+{
+	free((*in).psi0);
+	free((*in).x);
 }
 
 void Initialise_grid_and_D2(double dx, int num_r, double **x, double **diagonal, double **off_diagonal) // Initialise ground-state

@@ -35,17 +35,13 @@ int main()
 
 	int comment_operation = 1;
 
-	////////////////////////
-	// PREPARATION PAHASE //
-	////////////////////////
+	///////////////////////
+	// PREPARATION PHASE //
+	///////////////////////
 
-	printf("program started\n");
-	printf("test pi = %e\n", Pi);
-	fflush(NULL);
+	printf("program started\n"); fflush(NULL);
 	start_clock = clock(); // the clock	
 	Init_constants();
-	// printf("hbar and rBohr are %e, %e\n",hbar,r_Bohr);
-
 
 	// READ DATA
 	/* to check if exists use printf("link exists 1: %i\n",H5Lexists(file_id, "IRProp/lambda", H5P_DEFAULT)); */
@@ -79,7 +75,9 @@ int main()
 	// load the tgrid
 	inputs.Efield.tgrid =  readreal1Darray_fort(file_id, "IRField/tgrid",&h5error,&inputs.Efield.Nt); // tgrid is not changed when program runs
 	inputs.Efield.Field =  readreal1Darray_fort(file_id, "IRField/Field",&h5error,&inputs.Efield.Nt); // tgrid is not changed when program runs
-	
+
+	h5error = H5Fclose(file_id); // file
+
 	// for(k1 = 0 ; k1 < inputs.Efield.Nt; k1++){inputs.Efield.tgrid[k1] = inputs.Efield.tgrid[k1]*1e-15/TIMEau; inputs.Efield.Field[k1] = inputs.Efield.Field[k1]*1e9/EFIELDau;} // convert to atomic units (fs->a.u.), (GV/m->a.u.)
 	for(k1 = 0 ; k1 < inputs.Efield.Nt; k1++){inputs.Efield.tgrid[k1] = inputs.Efield.tgrid[k1]/TIMEau; inputs.Efield.Field[k1] = inputs.Efield.Field[k1]/EFIELDau;} // convert to atomic units (fs->a.u.), (GV/m->a.u.)
 
@@ -104,7 +102,7 @@ int main()
 	
 	printf("Calculation of the energy of the ground sate ; Eguess : %f\n",inputs.Eguess); fflush(NULL);
 	int size = 2*(inputs.num_r+1);
-	double *off_diagonal, *diagonal, *x;
+	double *off_diagonal, *diagonal;
 	double Einit = 0.0;
 	inputs.psi0 = calloc(size,sizeof(double));
 	for(k1=0;k1<=inputs.num_r;k1++){inputs.psi0[2*k1] = 1.0; inputs.psi0[2*k1+1] = 0.;}
@@ -112,7 +110,13 @@ int main()
 	Einit = Einitialise(inputs.trg,inputs.psi0,off_diagonal,diagonal,off_diagonal,inputs.x,inputs.Eguess,CV,inputs.num_r); // originally, some possibility to have also excited state
 
 	printf("Initial energy is : %1.12f\n",Einit); fflush(NULL);
-	
+	printf("xgrid, psi0 : %e %e %e %e %e %e\n", inputs.x[0],inputs.x[1],inputs.x[2],inputs.psi0[0],inputs.psi0[1],inputs.psi0[2]); fflush(NULL);
+
+	free(inputs.x); free(inputs.psi0);
+	inputs.CV = 1E-20; 	
+	Initialise_grid_and_ground_state(&inputs, &Einit);
+	printf("Initial energy is : %1.12f\n",Einit); fflush(NULL);
+	printf("xgrid, psi0 : %e %e %e %e %e %e\n", inputs.x[0],inputs.x[1],inputs.x[2],inputs.psi0[0],inputs.psi0[1],inputs.psi0[2]); fflush(NULL);
 
 	//////////////////////////
 	// COMPUTATIONAL PAHASE //
@@ -123,9 +127,9 @@ int main()
 	printf("TDSE done, in the caller\n"); fflush(NULL);
 
 
-	////////////////////
-	//PROCESS OUTPUTS //
-	////////////////////
+	/////////////////////
+	// PROCESS OUTPUTS //
+	/////////////////////
 
 
 	printf("Printing the outputs \n"); fflush(NULL);
@@ -155,7 +159,7 @@ int main()
 	print_nd_array_h5(file_id, "/TDSEsingle/full_runtime", &h5error, 1, output_dims, &elapsed_time, H5T_NATIVE_DOUBLE);
 
 
-	h5error = H5Fclose(file_id); // file
+	h5error = H5Fclose(file_id);
 	
 
 

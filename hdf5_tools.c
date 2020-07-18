@@ -12,6 +12,18 @@
 
 
 
+void ReadInputs(hid_t file_id, char *inpath, herr_t *h5error, struct inputs_def *in)
+{
+	char path[50];
+	printf("t1 \n"); fflush(NULL);
+
+  path[0] = '\0';	strcat(strcat(path,inpath),"Eguess");
+  //readreal(file_id, path, h5error,&(*in).Eguess); // Energy of the initial state
+  readreal(file_id, path, h5error,in.Eguess); // Energy of the initial state
+
+}
+
+
 void print_nd_array_h5(hid_t file_id, char *dset_name, herr_t *h5error, int ndims, hsize_t *dimensions, void * array, hid_t datatype) // fort is for the extra diemnsion due to fortran
 {
   hid_t dspace_id = H5Screate_simple(ndims, dimensions, NULL);
