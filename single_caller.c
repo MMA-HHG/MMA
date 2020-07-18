@@ -47,6 +47,12 @@ int main()
 	/* to check if exists use printf("link exists 1: %i\n",H5Lexists(file_id, "IRProp/lambda", H5P_DEFAULT)); */
 	file_id = H5Fopen ("results.h5", H5F_ACC_RDONLY, H5P_DEFAULT); // the file is opened for read only by all the processes independently, every process then has its own copy of variables.
 
+	ReadInputs(file_id, "TDSE_inputs/", &h5error, &inputs);
+	printf("Initial guess: %e\n", inputs.Eguess); fflush(NULL);	
+	
+	printf("Read tested\n"); fflush(NULL);
+	
+	return 0;
 	readreal(file_id, "TDSE_inputs/Eguess"					,&h5error,&inputs.Eguess); // Energy of the initial state
 	readint(file_id, "TDSE_inputs/N_r_grid"					,&h5error,&inputs.num_r); // Number of points of the initial spatial grid 16000
 	readint(file_id, "TDSE_inputs/N_r_grid_exp"				,&h5error,&inputs.num_exp); // Number of points of the spatial grid for the expansion
