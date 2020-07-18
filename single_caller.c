@@ -78,9 +78,9 @@ int main()
 // 	readreal(file_id, "TDSE_inputs/trg_a"		,&h5error,&inputs.trg.a);
 
 
-	// load the tgrid
-	inputs.Efield.tgrid =  readreal1Darray_fort(file_id, "IRField/tgrid",&h5error,&inputs.Efield.Nt); // tgrid is not changed when program runs
-	inputs.Efield.Field =  readreal1Darray_fort(file_id, "IRField/Field",&h5error,&inputs.Efield.Nt); // tgrid is not changed when program runs
+	// // load the tgrid
+	// inputs.Efield.tgrid =  readreal1Darray_fort(file_id, "IRField/tgrid",&h5error,&inputs.Efield.Nt); // tgrid is not changed when program runs
+	// inputs.Efield.Field =  readreal1Darray_fort(file_id, "IRField/Field",&h5error,&inputs.Efield.Nt); // tgrid is not changed when program runs
 
 	h5error = H5Fclose(file_id); // file
 
