@@ -42,10 +42,10 @@ void ReadInputs(hid_t file_id, char *inpath, herr_t *h5error, struct inputs_def 
   readreal(file_id, path, h5error,&(*in).textend); // extension of the calculation after the last fields ends !!! NOW ONLY FOR ANALYTICAL FIELD //700
 
   path[0] = '\0';	strcat(strcat(path,inpath),"analy_writewft");
-  readint(file_id, path, h5error,&(*in).analy_writewft); // writewavefunction (1-writting every tprint)
+  readint(file_id, path, h5error,&(*in).analy.writewft); // writewavefunction (1-writting every tprint)
 
   path[0] = '\0';	strcat(strcat(path,inpath),"analy_tprint");
-  readreal(file_id, path, h5error,&(*in).analy_tprint); // time spacing for writing the wavefunction	
+  readreal(file_id, path, h5error,&(*in).analy.tprint); // time spacing for writing the wavefunction	
 
   path[0] = '\0';	strcat(strcat(path,inpath),"x_int");
   readreal(file_id, path, h5error,&(*in).x_int); // the limit of the integral for the ionisation //2 2 works fine with the lenth gauge and strong fields
@@ -106,8 +106,8 @@ void ReadInputs(hid_t file_id, char *inpath, herr_t *h5error, struct inputs_def 
 
 	// readreal(file_id, "TDSE_inputs/trg_a"		,&h5error,&inputs.trg.a);
 
-	(*in).Efield.tgrid =  readreal1Darray_fort(file_id, "IRField/tgrid",&h5error,&inputs.Efield.Nt); // tgrid is not changed when program runs
-	(*in).Efield.Field =  readreal1Darray_fort(file_id, "IRField/Field",&h5error,&inputs.Efield.Nt); // tgrid is not changed when program runs  
+	(*in).Efield.tgrid =  readreal1Darray_fort(file_id, "IRField/tgrid",h5error,&(*in).Efield.Nt); // tgrid is not changed when program runs
+	(*in).Efield.Field =  readreal1Darray_fort(file_id, "IRField/Field",h5error,&(*in).Efield.Nt); // tgrid is not changed when program runs  
 }
 
 
