@@ -80,6 +80,13 @@ void ReadInputs(hid_t file_id, char *inpath, herr_t *h5error, struct inputs_def 
   path[0] = '\0';	strcat(strcat(path,inpath),"trg_a");
   readreal(file_id, path, h5error,&(*in).trg.a); // analyse 2nd part of the dipole
 
+  // CV criterion will be added as an input
+  (*in).CV = 1E-20; 
+
+	(*in).Efield.tgrid =  readreal1Darray_fort(file_id, "IRField/tgrid",h5error,&(*in).Efield.Nt); // tgrid is not changed when program runs
+	(*in).Efield.Field =  readreal1Darray_fort(file_id, "IRField/Field",h5error,&(*in).Efield.Nt); // tgrid is not changed when program runs  
+
+
 // these two aren't in this version waiting to reintroduce
 //	readint(file_id, "TDSE_inputs/IonisationFilterForTheSourceTerm"	,&h5error,&inputs.IonisationFilterForTheSourceTerm); // filter source term by high-ionisation components (1-yes)
 //	readreal(file_id, "TDSE_inputs/IonFilterThreshold"		,&h5error,&inputs.IonFilterThreshold); // threshold for the ionisation [-]
@@ -108,9 +115,6 @@ void ReadInputs(hid_t file_id, char *inpath, herr_t *h5error, struct inputs_def 
 	// readint(file_id, "TDSE_inputs/PrintOutputMethod"		,&h5error,&inputs.PrintOutputMethod); // (0 - only text, 1 - only binaries, 2 - both)
 
 	// readreal(file_id, "TDSE_inputs/trg_a"		,&h5error,&inputs.trg.a);
-
-	(*in).Efield.tgrid =  readreal1Darray_fort(file_id, "IRField/tgrid",h5error,&(*in).Efield.Nt); // tgrid is not changed when program runs
-	(*in).Efield.Field =  readreal1Darray_fort(file_id, "IRField/Field",h5error,&(*in).Efield.Nt); // tgrid is not changed when program runs  
 }
 
 
