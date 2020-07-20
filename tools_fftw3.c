@@ -4,13 +4,94 @@
 #include<stdio.h>
 #include<time.h>
 #include<fftw3.h>
-#include "hdf5.h"
-#include "mpi.h"
 
 #include "numerical_constants.h"
 #include "util.h"
 
 
+
+
+// FOURIER INTERPOLATION
+double* FourInterp(int k, double *signal, int N)
+{
+	FILE *file1, *file2, *newxgrid, *newygrid, *newgrid;
+	int Nc, N2, Nc2;
+	fftw_complex *out, *in2;
+	double *in, *out2;
+	fftw_plan p;
+	int k1;
+
+
+
+	Nc = floor(((double)N) / 2.); Nc++;
+
+	in = calloc(2*Nc,sizeof(double));	
+	
+	out = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * Nc);
+
+	for(k1 = 0; k1 <= (N-1); k1++){in[k1]=signal[k1];} // !!! REDUNDANT
+
+	
+	p = fftw_plan_dft_r2c_1d(N, in, out, FFTW_ESTIMATE); //fftw_plan_dft_r2c_1d(int n, double *in, fftw_complex *out, unsigned flags); // plan FFTW
+	fftw_execute(p); // run FFTW
+
+	/*
+	// WRITE RESULT	
+	file1 = fopen("ftransform.dat" , "w");	
+	for(k1 = 0; k1 <= (Nc-1); k1++){
+					fprintf(file1,"%e\t%e\n",out[k1][0],out[k1][1]);
+					} // !!!!!!!!!!! WHY POINTERS THING DOESN'T WORK?!
+	fclose(file1);
+	*/
+
+		
+	// INVERSE + PADDING
+	N2 = k*N;
+
+	Nc2 = floor(((double)N2) / 2.); Nc2++;
+	
+	in2 = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * Nc2);
+	out2 =  calloc(2*Nc2,sizeof(double));
+	
+	
+	// zeroes
+	for(k1 = 0; k1 <= (Nc2-1); k1++){in2[k1][0]=0.; in2[k1][1]=0.;}// zeroes initialised
+
+
+	//for(k1 = 0; k1 <= (1077-1); k1++){in2[k1][0]=out[k1][0]/N; in2[k1][1]=out[k1][1]/N;} // previous data + normalisation	!!! TEST FOR NOISE 0-PADDING
+	for(k1 = 0; k1 <= (Nc-1); k1++){in2[k1][0]=out[k1][0]/N; in2[k1][1]=out[k1][1]/N;} // previous data + normalisation	
+
+	p = fftw_plan_dft_c2r_1d(N2, in2, out2, FFTW_ESTIMATE); // plan iFFTW
+	fftw_execute(p); // run iFFTW
+
+	/*
+	// WRITE THE RESULTS
+	Nxnew = N2;
+	// dx = (xgrid[Nx-1]-xgrid[0])/((double)Nxnew);
+
+	// newxgrid = fopen( "newxgrid.dat", "w" );
+	
+	// newgrid = fopen( "newgrid.dat", "w" );
+
+	// x = xgrid[7990]+dx;
+	// printf("x,  %lf \n",x);
+
+	
+	printf("ftest1 \n");
+	newygrid = fopen( "newygrid.dat", "w" );;
+	for ( k1 = 0 ; k1 <= (N2-1); k1++)
+	{
+		fprintf(newygrid,"%e\n",out2[k1]);
+	}
+
+	fclose(newygrid);
+	printf("writting done \n");
+	*/
+	
+
+	return out2;
+
+}
 
 
 // PRINT FFTW3 of a signal
