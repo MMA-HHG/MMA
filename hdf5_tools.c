@@ -114,6 +114,7 @@ void ReadInputs(hid_t file_id, char *inpath, herr_t *h5error, struct inputs_def 
 }
 
 
+
 void print_nd_array_h5(hid_t file_id, char *dset_name, herr_t *h5error, int ndims, hsize_t *dimensions, void * array, hid_t datatype) // fort is for the extra diemnsion due to fortran
 {
   hid_t dspace_id = H5Screate_simple(ndims, dimensions, NULL);
@@ -122,6 +123,8 @@ void print_nd_array_h5(hid_t file_id, char *dset_name, herr_t *h5error, int ndim
   *h5error = H5Sclose(dspace_id);
   *h5error = H5Dclose(dset_id);	
 }
+
+
 
 void PrintOutputs(hid_t file_id, char *inpath, herr_t *h5error, struct inputs_def *in, struct outputs_def *out)
 {
@@ -191,6 +194,11 @@ void PrintOutputs(hid_t file_id, char *inpath, herr_t *h5error, struct inputs_de
 		path[0] = '\0';	strcat(strcat(path,inpath),"omegagrid");
 		print_nd_array_h5(file_id, path, h5error, 1, output_dims, (*out).omegagrid, H5T_NATIVE_DOUBLE);
   }
+
+  // various scalars
+  output_dims[0] = 1; output_dims[1] = 0;
+  path[0] = '\0'; strcat(strcat(path,inpath),"Energy_of_the_ground_state");
+  print_nd_array_h5(file_id, path, h5error, 1, output_dims, &(*in).Einit, H5T_NATIVE_DOUBLE);
 }
 
 

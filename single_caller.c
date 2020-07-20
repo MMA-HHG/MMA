@@ -59,7 +59,6 @@ int main()
 	// Prepare the ground state
 
 	inputs.CV = 1E-20; 
-	// double Einit = 0.0;	
 	Initialise_grid_and_ground_state(&inputs);
 	printf("Initial energy is : %1.12f\n",inputs.Einit); fflush(NULL);
 	printf("xgrid, psi0 : %e %e %e %e %e %e\n", inputs.x[0],inputs.x[1],inputs.x[2],inputs.psi0[0],inputs.psi0[1],inputs.psi0[2]); fflush(NULL);
