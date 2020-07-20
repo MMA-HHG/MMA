@@ -53,7 +53,7 @@ struct output_print_def Initialise_Printing_struct(void);
 struct inputs_def{
 	struct trg_def trg;
 	struct Efield_var Efield;
-	double Eguess;
+	double Eguess, Einit;
 	double tmin;
 	int Nt;
 	int num_t;
@@ -170,4 +170,4 @@ void calcFFTW3(int, double, double, double *, double **, double **, double **, d
 void outputs_destructor(struct outputs_def *);
 struct output_print_def Initialise_Printing_struct(void);
 struct output_print_def Set_all_prints(void);
-void Initialise_grid_and_ground_state(struct inputs_def *, double *);
+void Initialise_grid_and_ground_state(struct inputs_def *);

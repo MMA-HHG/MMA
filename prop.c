@@ -493,7 +493,7 @@ void projection_analysis(double Estep,double E_start,int num_E,int num_r,double 
 
 }
 
-void projection_analysis_EV(struct trg_def trg, double dE,double Estep,double E_start,int num_E,int num_r,double dx,double *psi,double *dinf,double *d,double *dsup,double *x)
+void projection_analysis_EV(struct trg_def trg, double dE,double Estep,double E_start,int num_E,int num_r,double dx,double *psi,double *dinf,double *d,double *dsup,double *x) // inti procedure incompatible
 {
 
 

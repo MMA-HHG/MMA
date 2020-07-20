@@ -18,7 +18,7 @@ extern double* timet,dipole;
 // extern struct Efield_var;
 
 
-void Initialise_grid_and_ground_state(struct inputs_def *in, double * Einit)
+void Initialise_grid_and_ground_state(struct inputs_def *in)
 {
 	/* 
 	Comment to the choice of the CV criterion:
@@ -34,7 +34,7 @@ void Initialise_grid_and_ground_state(struct inputs_def *in, double * Einit)
 	(*in).psi0 = calloc(size,sizeof(double));
 	for(k1=0;k1<=(*in).num_r;k1++){(*in).psi0[2*k1] = 1.0; (*in).psi0[2*k1+1] = 0.;}
 	Initialise_grid_and_D2((*in).dx, (*in).num_r, &((*in).x), &diagonal, &off_diagonal); // !!!! dx has to be small enough, it doesn't converge otherwise
-	*Einit = Einitialise((*in).trg, (*in).psi0, off_diagonal, diagonal, off_diagonal, (*in).x, (*in).Eguess, (*in).CV, (*in).num_r); // originally, some possibility to have also excited state
+	(*in).Einit = Einitialise((*in).trg, (*in).psi0, off_diagonal, diagonal, off_diagonal, (*in).x, (*in).Eguess, (*in).CV, (*in).num_r); // originally, some possibility to have also excited state
 	free(diagonal); free(off_diagonal);
 }
 
