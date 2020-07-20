@@ -125,9 +125,9 @@ int main()
 	printf("Initial energy is : %1.12f\n",Einit); fflush(NULL);
 	printf("xgrid, psi0 : %e %e %e %e %e %e\n", inputs.x[0],inputs.x[1],inputs.x[2],inputs.psi0[0],inputs.psi0[1],inputs.psi0[2]); fflush(NULL);
 
-	//////////////////////////
-	// COMPUTATIONAL PAHASE //
-	//////////////////////////
+	/////////////////////////
+	// COMPUTATIONAL PHASE //
+	/////////////////////////
 
 
 	outputs = call1DTDSE(inputs); // THE TDSE

@@ -29,7 +29,7 @@ void Initialise_grid_and_ground_state(struct inputs_def *in, double * Einit)
 	*/
 	int k1;
 	int size = 2*((*in).num_r+1);
-	double *off_diagonal, *diagonal, *x;
+	double *off_diagonal, *diagonal;
 	// double Einit = 0.0;
 	(*in).psi0 = calloc(size,sizeof(double));
 	for(k1=0;k1<=(*in).num_r;k1++){(*in).psi0[2*k1] = 1.0; (*in).psi0[2*k1+1] = 0.;}
