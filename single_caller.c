@@ -85,7 +85,9 @@ int main()
 	h5error = H5Fclose(file_id); // file
 
 	// for(k1 = 0 ; k1 < inputs.Efield.Nt; k1++){inputs.Efield.tgrid[k1] = inputs.Efield.tgrid[k1]*1e-15/TIMEau; inputs.Efield.Field[k1] = inputs.Efield.Field[k1]*1e9/EFIELDau;} // convert to atomic units (fs->a.u.), (GV/m->a.u.)
-	for(k1 = 0 ; k1 < inputs.Efield.Nt; k1++){inputs.Efield.tgrid[k1] = inputs.Efield.tgrid[k1]/TIMEau; inputs.Efield.Field[k1] = inputs.Efield.Field[k1]/EFIELDau;} // convert to atomic units (fs->a.u.), (GV/m->a.u.)
+	for(k1 = 0 ; k1 < inputs.Efield.Nt; k1++){inputs.Efield.tgrid[k1] = inputs.Efield.tgrid[k1]/TIMEau;
+					 	//inputs.Efield.Field[k1] = inputs.Efield.Field[k1]/EFIELDau;
+	} // convert to atomic units (fs->a.u.), (GV/m->a.u.)
 
 	// crete printing driver
 	inputs.Print = Initialise_Printing_struct();
@@ -98,7 +100,7 @@ int main()
 	//normalise(psi0,inputs.num_r); // Initialise psi0 for Einitialise
 	// printf("test\n"); fflush(NULL);
 
-	double CV = 1E-20; // CV criteria
+	// double CV = 1E-20; // CV criteria
 
 	/* This number has to be small enough to assure a good convregence of the wavefunction
 	if it is not the case, then the saclar product of the the ground state and the excited states 
@@ -106,22 +108,22 @@ int main()
 	CV = 1E-25 has been choosen to have a scalar product of 10^-31 with the third excited state for num_r = 5000 and dx=0.1
 	*/
 	
-	printf("Calculation of the energy of the ground sate ; Eguess : %f\n",inputs.Eguess); fflush(NULL);
-	int size = 2*(inputs.num_r+1);
-	double *off_diagonal, *diagonal;
-	double Einit = 0.0;
-	inputs.psi0 = calloc(size,sizeof(double));
-	for(k1=0;k1<=inputs.num_r;k1++){inputs.psi0[2*k1] = 1.0; inputs.psi0[2*k1+1] = 0.;}
-	Initialise_grid_and_D2(inputs.dx, inputs.num_r, &inputs.x, &diagonal, &off_diagonal); // !!!! dx has to be small enough, it doesn't converge otherwise
-	Einit = Einitialise(inputs.trg,inputs.psi0,off_diagonal,diagonal,off_diagonal,inputs.x,inputs.Eguess,CV,inputs.num_r); // originally, some possibility to have also excited state
+	// printf("Calculation of the energy of the ground sate ; Eguess : %f\n",inputs.Eguess); fflush(NULL);
+	// int size = 2*(inputs.num_r+1);
+	// double *off_diagonal, *diagonal;
+	// double Einit = 0.0;
+	// inputs.psi0 = calloc(size,sizeof(double));
+	// for(k1=0;k1<=inputs.num_r;k1++){inputs.psi0[2*k1] = 1.0; inputs.psi0[2*k1+1] = 0.;}
+	// Initialise_grid_and_D2(inputs.dx, inputs.num_r, &inputs.x, &diagonal, &off_diagonal); // !!!! dx has to be small enough, it doesn't converge otherwise
+	// Einit = Einitialise(inputs.trg,inputs.psi0,off_diagonal,diagonal,off_diagonal,inputs.x,inputs.Eguess,CV,inputs.num_r); // originally, some possibility to have also excited state
 
-	printf("Initial energy is : %1.12f\n",Einit); fflush(NULL);
-	printf("xgrid, psi0 : %e %e %e %e %e %e\n", inputs.x[0],inputs.x[1],inputs.x[2],inputs.psi0[0],inputs.psi0[1],inputs.psi0[2]); fflush(NULL);
+	// printf("Initial energy is : %1.12f\n",Einit); fflush(NULL);
+	// printf("xgrid, psi0 : %e %e %e %e %e %e\n", inputs.x[0],inputs.x[1],inputs.x[2],inputs.psi0[0],inputs.psi0[1],inputs.psi0[2]); fflush(NULL);
 
-	free(inputs.x); free(inputs.psi0);
+	// free(inputs.x); free(inputs.psi0);
 
 	inputs.CV = 1E-20; 
-	// double Einit = 0.0;	
+	double Einit = 0.0;	
 	Initialise_grid_and_ground_state(&inputs, &Einit);
 	printf("Initial energy is : %1.12f\n",Einit); fflush(NULL);
 	printf("xgrid, psi0 : %e %e %e %e %e %e\n", inputs.x[0],inputs.x[1],inputs.x[2],inputs.psi0[0],inputs.psi0[1],inputs.psi0[2]); fflush(NULL);

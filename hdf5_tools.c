@@ -24,7 +24,7 @@ void ReadInputs(hid_t file_id, char *inpath, herr_t *h5error, struct inputs_def 
   readint(file_id, path, h5error,&(*in).num_r); // Number of points of the initial spatial grid 16000
 
   path[0] = '\0';	strcat(strcat(path,inpath),"N_r_grid_exp");
-  readint(file_id, path, h5error,&(*in).num_r); // Number of points of the spatial grid for the expansion
+  readint(file_id, path, h5error,&(*in).num_exp); // Number of points of the spatial grid for the expansion
 
   path[0] = '\0';	strcat(strcat(path,inpath),"dx");
   readreal(file_id, path, h5error,&(*in).dx); // resolution for the grid
@@ -80,9 +80,12 @@ void ReadInputs(hid_t file_id, char *inpath, herr_t *h5error, struct inputs_def 
   path[0] = '\0';	strcat(strcat(path,inpath),"trg_a");
   readreal(file_id, path, h5error,&(*in).trg.a); // analyse 2nd part of the dipole
 
+// these two aren't in this version waiting to reintroduce
 //	readint(file_id, "TDSE_inputs/IonisationFilterForTheSourceTerm"	,&h5error,&inputs.IonisationFilterForTheSourceTerm); // filter source term by high-ionisation components (1-yes)
 //	readreal(file_id, "TDSE_inputs/IonFilterThreshold"		,&h5error,&inputs.IonFilterThreshold); // threshold for the ionisation [-]
 
+
+// these are old ones
 	// readreal(file_id, "TDSE_inputs/Eguess"					,&h5error,&inputs.Eguess); // Energy of the initial state
 	// readint(file_id, "TDSE_inputs/N_r_grid"					,&h5error,&inputs.num_r); // Number of points of the initial spatial grid 16000
 	// readint(file_id, "TDSE_inputs/N_r_grid_exp"				,&h5error,&inputs.num_exp); // Number of points of the spatial grid for the expansion
