@@ -44,7 +44,7 @@ int main(int argc, char *argv[])
 	MPI_Init(&argc,&argv);
 	MPI_Comm_size(MPI_COMM_WORLD,&nprocs);
 	MPI_Comm_rank(MPI_COMM_WORLD,&myrank);
-    nxtval_init(myrank,&Nsim);
+	nxtval_init(-nprocs+myrank,&Nsim);
 
 	if (comment_operation == 1 ){printf("Proc %i started the program\n",myrank);}
 
@@ -91,6 +91,13 @@ int main(int argc, char *argv[])
 	//////////////////////////
 	// COMPUTATIONAL PAHASE //
 	//////////////////////////
+
+
+	// create counter and mutex in one pointer
+	//MPE_MC_KEYVAL = MPE_Counter_create(MPI_COMM_WORLD, 2, &mc_win); // first is counter, second mutex
+	MPE_M_KEYVAL = MPE_Counter_create(MPI_COMM_WORLD, 1, &m_win); // first is counter, second mutex
+	//MPE_C_KEYVAL = MPE_Counter_create(MPI_COMM_WORLD, 1, &c_win); // first is counter, second mutex
+
 
 	// first process is preparing the file and the rest may do their own work (the file is locked in the case they want to write); it creates the resulting dataset
 	// an empty dataset is prepared to be filled with the data
@@ -186,7 +193,7 @@ int main(int argc, char *argv[])
 		h5error = H5Fclose(file_id); // file
 
 		MPE_Mutex_release(m_win, 0, MPE_M_KEYVAL);
-    	t_mpi[4] = MPI_Wtime(); finish4_main = clock();
+    		t_mpi[4] = MPI_Wtime(); finish4_main = clock();
 		
 		// outputs_destructor(outputs); // free memory
 		nxtval_strided(nprocs,&Nsim);
