@@ -13,7 +13,15 @@ clock_t start2, finish2;
 
 extern double* timet,dipole;
 
+void nxtval_init(int init_offset, int *val)
+{
+	*val = init_offset;
+}
 
+void nxtval_strided(int stride, int *val)
+{
+	*val = *val + stride;
+}
 
 // MANIPULATION WITH DATA
 

@@ -117,6 +117,16 @@ void ReadInputs(hid_t file_id, char *inpath, herr_t *h5error, struct inputs_def 
 	// readreal(file_id, "TDSE_inputs/trg_a"		,&h5error,&inputs.trg.a);
 }
 
+void Read_1_field_and_grid(hid_t file_id, char *inpath, herr_t *h5error, struct inputs_def *in)
+{
+	char path[50];
+	printf("read 1d\n"); fflush(NULL);
+
+  path[0] = '\0';	strcat(strcat(path,inpath),"tgrid");
+	(*in).Efield.tgrid =  readreal1Darray_fort(file_id, path, h5error, &(*in).Efield.Nt); // tgrid is not changed when program runs
+  path[0] = '\0';	strcat(strcat(path,inpath),"Field");
+	(*in).Efield.Field =  readreal1Darray_fort(file_id, path, h5error, &(*in).Efield.Nt); // tgrid is not changed when program runs  
+}
 
 
 void print_nd_array_h5(hid_t file_id, char *dset_name, herr_t *h5error, int ndims, hsize_t *dimensions, void * array, hid_t datatype) // fort is for the extra diemnsion due to fortran

@@ -166,6 +166,8 @@ double interpolate2n( int , double , double* , double* , int );
 void findinterval(int , double , double* , int* , int* );
 double findnextinterpolatedzero(int, double, double* , double* );
 
+void nxtval_init(int, int *);
+void nxtval_strided(int, int *);
 
 
 
