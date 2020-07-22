@@ -60,3 +60,25 @@ https://support.hdfgroup.org/HDF5/Tutor/selectsimple.html
 https://stackoverflow.com/questions/49851046/merge-all-h5-files-using-h5py
 https://portal.hdfgroup.org/display/HDF5/Collective+Calling+Requirements+in+Parallel+HDF5+Applications
 </pre>
+
+## Valgrind
+<pre>
+	  for(i=0;i<=num_r;i++)
+	  {
+		  dinfnew[2*i] = dinf[2*i] - Eguess/12. + potential(x[i],trg)/12.; dinfnew[2*i+1] = dinf[2*i+1];
+		  dnew[2*i] = 10*potential(x[i],trg)/12.+ d[2*i] - 10*Eguess/12.; dnew[2*i+1] = d[2*i+1];
+		  dsupnew[2*i] = dsup[2*i] - Eguess/12. + potential(x[i+1],trg)/12.; dsupnew[2*i+1] = dsup[2*i+1];
+		  diag[2*i] = potential(x[i],trg)+ d[2*i] ; diag[2*i+1] = d[2*i+1];
+	  }
+</pre>
+wrongly specified x(n+1) element. Hotfixed.
+
+<pre>
+		for(j = 0 ; j<= num_r ; j++) 
+		{	
+			dinfnew1[2*j] = 1/12.; dinfnew1[2*j+1] = 0.5*dt*( -0.5/(dx*dx) )+0.5*dt*1/12.*(cpot*potential(x[j],trg));
+			dnew1[2*j] = 10/12.; dnew1[2*j+1] = 0.5*dt*( 1./(dx*dx) )+0.5*dt*10/12.*(cpot*potential(x[j],trg));
+			//dsupnew1[2*j] = 1/12.; dsupnew1[2*j+1] = 0.5*dt*( -0.5/(dx*dx) )+0.5*dt*1/12.*(cpot*potential(x[j+1],trg));			
+		}
+</pre>
+dtto

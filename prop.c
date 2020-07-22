@@ -133,6 +133,7 @@ double* propagation(struct trg_def trg, struct Efield_var Efield, double tmin, i
 	for(k = 0 ; k < Nt ; k++)
 	{
 
+		printf("tcycle %i \n",k); fflush(NULL);	
 		if( k%num_t == 0 )
 		{
 		start = clock();	
@@ -155,8 +156,10 @@ double* propagation(struct trg_def trg, struct Efield_var Efield, double tmin, i
 		{	
 			dinfnew1[2*j] = 1/12.; dinfnew1[2*j+1] = 0.5*dt*( -0.5/(dx*dx) )+0.5*dt*1/12.*(cpot*potential(x[j],trg));
 			dnew1[2*j] = 10/12.; dnew1[2*j+1] = 0.5*dt*( 1./(dx*dx) )+0.5*dt*10/12.*(cpot*potential(x[j],trg));
-			dsupnew1[2*j] = 1/12.; dsupnew1[2*j+1] = 0.5*dt*( -0.5/(dx*dx) )+0.5*dt*1/12.*(cpot*potential(x[j+1],trg));			
+			//dsupnew1[2*j] = 1/12.; dsupnew1[2*j+1] = 0.5*dt*( -0.5/(dx*dx) )+0.5*dt*1/12.*(cpot*potential(x[j+1],trg));			
 		}
+		for(j = 0 ; j<num_r ; j++) { dsupnew1[2*j] = 1/12.; dsupnew1[2*j+1] = 0.5*dt*( -0.5/(dx*dx) )+0.5*dt*1/12.*(cpot*potential(x[j+1],trg));}
+		dsupnew1[2*num_r ] = 1/12.; dsupnew1[2*num_r +1] = 0.5*dt*( -0.5/(dx*dx) )+0.5*dt*1/12.*(cpot*potential(x[num_r]+dx,trg));	
 		
 		// first part of the evolution (H0+V)
 

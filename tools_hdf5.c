@@ -83,8 +83,8 @@ void ReadInputs(hid_t file_id, char *inpath, herr_t *h5error, struct inputs_def 
   // CV criterion will be added as an input
   (*in).CV = 1E-20; 
 
-	(*in).Efield.tgrid =  readreal1Darray_fort(file_id, "IRField/tgrid",h5error,&(*in).Efield.Nt); // tgrid is not changed when program runs
-	(*in).Efield.Field =  readreal1Darray_fort(file_id, "IRField/Field",h5error,&(*in).Efield.Nt); // tgrid is not changed when program runs  
+	//(*in).Efield.tgrid =  readreal1Darray_fort(file_id, "IRField/tgrid",h5error,&(*in).Efield.Nt); // tgrid is not changed when program runs
+	//(*in).Efield.Field =  readreal1Darray_fort(file_id, "IRField/Field",h5error,&(*in).Efield.Nt); // tgrid is not changed when program runs  
 
 
 // these two aren't in this version waiting to reintroduce

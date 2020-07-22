@@ -55,7 +55,7 @@ struct outputs_def call1DTDSE(struct inputs_def inputs) // this is a wrapper tha
 {
 	// declarations
 	struct outputs_def outputs;	
-	double * dumptr_real;
+	double * dumptrs_real[2];
 
 	///////////////////////////////////////////////
 	// local copies of variables given by inputs //
@@ -106,7 +106,7 @@ struct outputs_def call1DTDSE(struct inputs_def inputs) // this is a wrapper tha
 	switch ( input0 ){case 0: dumint = 0; break; case 1: dumint = round(Efield.Nt/2.); /* field centered around 0 */ break;} // choosing the best resolution	
 	Efield.dt = Efield.tgrid[dumint+1]-Efield.tgrid[dumint]; // 
 	
-	tmax = Efield.tgrid[Efield.Nt]-Efield.tgrid[0]; // total length of the grid
+	tmax = Efield.tgrid[Efield.Nt-1]-Efield.tgrid[0]; // total length of the grid
    
 	// refine dt either by given number of points or by required dt
 	if (InterpByDTorNT == 1){k1 = Ntinterp + 1;} else { k1 = floor(Efield.dt/dt); Ntinterp = k1; k1++; }
@@ -167,7 +167,7 @@ struct outputs_def call1DTDSE(struct inputs_def inputs) // this is a wrapper tha
 	// calc2FFTW3(outputs.Nt, dt, tmax, outputs.Efield, outputs.sourceterm, &outputs.tgrid_fftw, &outputs.omegagrid, &outputs.FEfield_data,
 	// 			&outputs.Fsourceterm_data, &outputs.FEfieldM2, &outputs.FsourcetermM2, &outputs.Nomega); //takes real signal speced by given "dt" and it computes and prints its FFTW3
 
-	calcFFTW3(outputs.Nt, dt, tmax, outputs.Efield, &dumptr_real, &outputs.omegagrid, &outputs.FEfield_data, &outputs.FEfieldM2, &outputs.Nomega); free(dumptr_real);
+	calcFFTW3(outputs.Nt, dt, tmax, outputs.Efield, &(dumptrs_real[0]), &(dumptrs_real[1]), &outputs.FEfield_data, &outputs.FEfieldM2, &outputs.Nomega); free(dumptrs_real[0]); free(dumptrs_real[1]);
 	calcFFTW3(outputs.Nt, dt, tmax, outputs.sourceterm, &outputs.tgrid_fftw, &outputs.omegagrid, &outputs.Fsourceterm_data, &outputs.FsourcetermM2, &outputs.Nomega);
 
 	printf("fftw_computed in single\n");  fflush(NULL);

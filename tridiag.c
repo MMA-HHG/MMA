@@ -236,7 +236,7 @@ void Inv_Tridiagonal_Matrix_complex( double *a, double *b, double *c, double *r,
 double Einitialise(struct trg_def trg, double *psi0,double *dinf,double *d,double *dsup,double *x,double Eguess,double CV,int num_r)
 {
     	double *res,*dnew,*diag,*dinfnew,*dsupnew;
-	double Energy,test,Eold;
+	double Energy,test,Eold,dx;
 	int i,size = 2*(num_r+1);
 	double sum;
 
@@ -252,9 +252,12 @@ printf("test1\n"); fflush(NULL);
 	  {
 		  dinfnew[2*i] = dinf[2*i] - Eguess/12. + potential(x[i],trg)/12.; dinfnew[2*i+1] = dinf[2*i+1];		  
 		  dnew[2*i] = 10*potential(x[i],trg)/12.+ d[2*i] - 10*Eguess/12.; dnew[2*i+1] = d[2*i+1];
-		  dsupnew[2*i] = dsup[2*i] - Eguess/12. + potential(x[i+1],trg)/12.; dsupnew[2*i+1] = dsup[2*i+1];
+		  //dsupnew[2*i] = dsup[2*i] - Eguess/12. + potential(x[i+1],trg)/12.; dsupnew[2*i+1] = dsup[2*i+1];
 		  diag[2*i] = potential(x[i],trg)+ d[2*i] ; diag[2*i+1] = d[2*i+1];
 	  }
+	  for(i=0;i<num_r;i++){dsupnew[2*i] = dsup[2*i] - Eguess/12. + potential(x[i+1],trg)/12.; dsupnew[2*i+1] = dsup[2*i+1];}
+	  dx = x[num_r]-x[num_r-1];
+	  dsupnew[2*num_r] = dsup[2*num_r] - Eguess/12. + potential(x[num_r]+dx,trg)/12.; dsupnew[2*num_r+1] = dsup[2*num_r+1];
 
 
 	Eold = Eguess;

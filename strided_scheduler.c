@@ -104,6 +104,7 @@ int main(int argc, char *argv[])
 	
 	if ( myrank == 0 ){
         nxtval_strided(nprocs,&Nsim);
+	printf("Proc %i c %i\n",myrank,Nsim); fflush(NULL);
 	}
 	MPI_Barrier(MPI_COMM_WORLD); // Barrier
 	printf("Proc %i abarier \n",myrank);
@@ -146,6 +147,7 @@ int main(int argc, char *argv[])
 
 	// we now process the MPI queue
 	nxtval_strided(nprocs,&Nsim);
+	printf("Proc %i c %i\n",myrank,Nsim); fflush(NULL);
 
 	t_mpi[7] = MPI_Wtime();
 	printf("Proc %i, reached the point 2  : %f sec\n",myrank,t_mpi[7]-t_mpi[0]);
@@ -197,6 +199,7 @@ int main(int argc, char *argv[])
 		
 		// outputs_destructor(outputs); // free memory
 		nxtval_strided(nprocs,&Nsim);
+		printf("Proc %i c %i\n",myrank,Nsim); fflush(NULL);
 		t_mpi[5] = MPI_Wtime();
 	}
 	h5error = H5Sclose(memspace_id);

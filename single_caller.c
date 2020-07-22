@@ -4,6 +4,7 @@
 #include<malloc.h>
 #include<math.h>
 #include<hdf5.h>
+#include<fftw3.h> // for finalising the plans
 
 #include "numerical_constants.h"
 #include "util.h"
@@ -89,5 +90,6 @@ int main()
 
 
 	h5error = H5Fclose(file_id);
+	fftw_cleanup();
     printf("Done \n");
 }

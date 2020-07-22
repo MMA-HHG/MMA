@@ -35,6 +35,8 @@ double* FourInterp(int k, double *signal, int N)
 	p = fftw_plan_dft_r2c_1d(N, in, out, FFTW_ESTIMATE); //fftw_plan_dft_r2c_1d(int n, double *in, fftw_complex *out, unsigned flags); // plan FFTW
 	fftw_execute(p); // run FFTW
 
+	fftw_destroy_plan(p); // deallocate plan memory
+
 	/*
 	// WRITE RESULT	
 	file1 = fopen("ftransform.dat" , "w");	
@@ -64,6 +66,8 @@ double* FourInterp(int k, double *signal, int N)
 	p = fftw_plan_dft_c2r_1d(N2, in2, out2, FFTW_ESTIMATE); // plan iFFTW
 	fftw_execute(p); // run iFFTW
 
+	fftw_destroy_plan(p); // deallocate plan memory
+
 	/*
 	// WRITE THE RESULTS
 	Nxnew = N2;
@@ -88,7 +92,7 @@ double* FourInterp(int k, double *signal, int N)
 	printf("writting done \n");
 	*/
 	
-
+	free(in); fftw_free(in2); fftw_free(out);
 	return out2;
 
 }
@@ -679,11 +683,13 @@ void calc2FFTW3(int N, double dx, double xmax, double *signal1, double *signal2,
 	for(k1 = 0; k1 <= (N-1); k1++){in[k1]=signal1[k1];} // !!! REDUNDANT	
 	p = fftw_plan_dft_r2c_1d(N, in, out1, FFTW_ESTIMATE); //fftw_plan_dft_r2c_1d(int n, double *in, fftw_complex *out, unsigned flags); // plan FFTW
 	fftw_execute(p);
+	fftw_destroy_plan(p); // deallocate plan memory
 
 	out2 = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * Nc);
 	for(k1 = 0; k1 <= (N-1); k1++){in[k1]=signal2[k1];} // !!! REDUNDANT
 	p = fftw_plan_dft_r2c_1d(N, in, out2, FFTW_ESTIMATE); //fftw_plan_dft_r2c_1d(int n, double *in, fftw_complex *out, unsigned flags); // plan FFTW
 	fftw_execute(p);
+	fftw_destroy_plan(p); // deallocate plan memory
 
 
 	//	RESCALE TO OUTPUTS
@@ -762,7 +768,8 @@ void calcFFTW3(int N, double dx, double xmax, double *signal, double **xgrid, do
 		(*fsigM2)[k1] = coeff2*(out[k1][0]*out[k1][0]+out[k1][1]*out[k1][1]);
 	}
 
-	fftw_free(out); free(in);
+	fftw_destroy_plan(p); // deallocate plan memory
+	fftw_free(out); free(in); 
 	*Nxi = Nc;
 	return;
 
