@@ -97,10 +97,14 @@ void outputs_destructor(struct outputs_def *outputs) // frees memory allocated f
 	(*outputs).Nomega = 0;
 }
 
-void inputs_destructor(struct inputs_def *in) // frees memory allocated for outputs
+void inputs_destructor(struct inputs_def *in) // frees memory allocated for inputs
 {
 	free((*in).psi0);
 	free((*in).x);
+	free((*in).timet);
+	free((*in).dipole);
+	free((*in).Efield.tgrid);
+	free((*in).Efield.Field);
 }
 
 void Initialise_grid_and_D2(double dx, int num_r, double **x, double **diagonal, double **off_diagonal) // Initialise ground-state

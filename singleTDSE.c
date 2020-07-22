@@ -114,6 +114,8 @@ struct outputs_def call1DTDSE(struct inputs_def inputs) // this is a wrapper tha
 
 
 	Efield.Field = FourInterp(k1, Efield.Field, Efield.Nt); // make the interpolation !!!!!! tgrid does not correspond any more
+	// Efield.Field = dumptrs_real[0]; dumptrs_real[0] = NULL;
+
 	Nt = k1*Efield.Nt + 1; // not very nice to compute it, FourInterp should do it
 
 	// PRINT new field and its transform == assign to outputs
@@ -136,9 +138,9 @@ struct outputs_def call1DTDSE(struct inputs_def inputs) // this is a wrapper tha
 	memcpy(psi0,inputs.psi0,(num_r+1)*sizeof(double));
 
 	psi = calloc(size,sizeof(double));
-	t = calloc(Nt,sizeof(double));
-	timet = calloc(Nt,sizeof(double));
-	dipole = calloc(2*Nt,sizeof(double));
+	// t = calloc(Nt,sizeof(double));
+	// timet = calloc(Nt,sizeof(double));
+	// dipole = calloc(2*Nt,sizeof(double));
 
 
 
@@ -170,9 +172,19 @@ struct outputs_def call1DTDSE(struct inputs_def inputs) // this is a wrapper tha
 	calcFFTW3(outputs.Nt, dt, tmax, outputs.Efield, &(dumptrs_real[0]), &(dumptrs_real[1]), &outputs.FEfield_data, &outputs.FEfieldM2, &outputs.Nomega); free(dumptrs_real[0]); free(dumptrs_real[1]);
 	calcFFTW3(outputs.Nt, dt, tmax, outputs.sourceterm, &outputs.tgrid_fftw, &outputs.omegagrid, &outputs.Fsourceterm_data, &outputs.FsourcetermM2, &outputs.Nomega);
 
+	free(x); free(psi); free(psi0);
+	free(Efield.Field); // this is a tricky free. We pass the inputs "by value", this means that the memory in the original code is unaffected by reallocation. ! BUT it can be freed if coded badly...
 	printf("fftw_computed in single\n");  fflush(NULL);
 	return outputs;
 }
+
+
+
+
+
+
+
+
 
 
 /* SOME OLD PROCEDURES TO REINTRODUCE FOLOW */

@@ -81,6 +81,7 @@ int main()
 	output_dims[0] = outputs.Nt; output_dims[1] = 0;
 	print_nd_array_h5(file_id, "/TDSEsingle/tgrid_fftw", &h5error, 1, output_dims, outputs.tgrid_fftw, H5T_NATIVE_DOUBLE);
 	outputs_destructor(&outputs);
+	inputs_destructor(&inputs);
 
 	// durations of calculation
 	output_dims[0] = 1; output_dims[1] = 0;	

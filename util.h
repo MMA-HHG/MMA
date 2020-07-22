@@ -127,6 +127,7 @@ struct outputs_def{ // only * can be modified by direct inputs
 // functions operating on them
 struct output_print_def Initialise_Printing_struct(void);
 void outputs_destructor(struct outputs_def *);
+void inputs_destructor(struct inputs_def *);
 struct output_print_def Initialise_Printing_struct(void);
 struct output_print_def Set_all_prints(void);
 void Initialise_grid_and_ground_state(struct inputs_def *);

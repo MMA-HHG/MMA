@@ -82,3 +82,10 @@ wrongly specified x(n+1) element. Hotfixed.
 		}
 </pre>
 dtto
+
+
+<pre>
+Efield.Field = FourInterp(k1, Efield.Field, Efield.Nt); // make the interpolation !!!!!! tgrid does not correspond any more
+</pre>
+tricky since a pointer may be lost
+
