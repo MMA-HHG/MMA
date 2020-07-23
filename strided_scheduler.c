@@ -80,7 +80,7 @@ int main(int argc, char *argv[])
 	int Ntot = dim_r*dim_z; // counter (queue length)	
 	hsize_t  offset[ndims], stride[ndims], count[ndims], block[ndims]; // selections (hyperslabs) are needed	
 	hsize_t field_dims[1]; field_dims[0] = dims[0]; // a way to specify the length of the array for HDF5	
-	hid_t memspace_id = H5Screate_simple(1,field_dims,NULL); // this memspace correspond to one Field/SourceTerm hyperslab, we will keep it accross the code
+	//hid_t memspace_id = H5Screate_simple(1,field_dims,NULL); // this memspace correspond to one Field/SourceTerm hyperslab, we will keep it accross the code
 	double Fields[dims[0]], SourceTerms[dims[0]]; // Here we store the field and computed Source Term for every case
 	inputs.Efield.Field = malloc(((int)dims[0])*sizeof(double));
 
@@ -169,7 +169,7 @@ int main(int argc, char *argv[])
 		h5error = H5Fclose(file_id); // file
 		// MPE_Mutex_release(mc_win, 1, MPE_MC_KEYVAL);
 
-    	t_mpi[3] = MPI_Wtime(); finish3_main = clock();
+    		t_mpi[3] = MPI_Wtime(); finish3_main = clock();
 		outputs = call1DTDSE(inputs); // THE TDSE  
 		t_mpi[1] = MPI_Wtime(); finish1_main = clock();
 
@@ -177,6 +177,7 @@ int main(int argc, char *argv[])
 		MPE_Mutex_acquire(m_win, 0, MPE_M_KEYVAL); // mutex is acquired
 
 		t_mpi[2] = MPI_Wtime(); finish2_main = clock();
+
 		if ( ( comment_operation == 1 ) && ( Nsim < 20 ) ){
 			printf("Proc %i, will write in the hyperslab (kr,kz)=(%i,%i), job %i\n",myrank,kr,kz,Nsim);
 			printf("Proc %i, returned mutex last time   : %f sec\n",myrank,t_mpi[4]-t_mpi[0]);
@@ -186,14 +187,16 @@ int main(int argc, char *argv[])
 			printf("Proc %i, clock in the mutex block   : %f sec\n",myrank,t_mpi[2]-t_mpi[0]);
 			printf("first element to write: %e \n",outputs.Efield[0]);
 			fflush(NULL); // force write
-    	}
+ 		}
     
 
 		file_id = H5Fopen ("results2.h5", H5F_ACC_RDWR, H5P_DEFAULT); // open file
 		dims[0] = outputs.Nt;
 		rw_real_fullhyperslab_nd_h5(file_id,"/SourceTerms",&h5error,3,dims,dum3int,outputs.Efield,"w");
 		h5error = H5Fclose(file_id); // file
-
+		sleep(2);
+		
+		printf("Proc %i, will return the mutex, job %i\n",myrank,Nsim); fflush(NULL);
 		MPE_Mutex_release(m_win, 0, MPE_M_KEYVAL);
     		t_mpi[4] = MPI_Wtime(); finish4_main = clock();
 		
@@ -202,7 +205,7 @@ int main(int argc, char *argv[])
 		printf("Proc %i c %i\n",myrank,Nsim); fflush(NULL);
 		t_mpi[5] = MPI_Wtime();
 	}
-	h5error = H5Sclose(memspace_id);
+	//h5error = H5Sclose(memspace_id);
 
 	free(dims);
  

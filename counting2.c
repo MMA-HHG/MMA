@@ -17,23 +17,41 @@ clock_t start_main, finish2_main, finish1_main, finish3_main, finish4_main;
 
 int main(int argc, char *argv[]) 
 {
+	// vars:
+	// dummy
+	int dum3int[3];
 
-    // Initialise MPI
-    int myrank, nprocs;
-    MPI_Win mc_win, c_win, m_win; // this is the shared window, it is used both  for mutices and counter
-    MPI_Init(&argc,&argv);
-    t_mpi[0] = MPI_Wtime(); // the clock
-    MPI_Comm_size(MPI_COMM_WORLD,&nprocs);
-    MPI_Comm_rank(MPI_COMM_WORLD,&myrank);
-    printf("Proc %i started the program\n",myrank);
+	// Processing the queue
 
-    int t_job = 10; // [s]
-    int Nsim; 
+
+	int comment_operation = 1, disp_tasks = 50;
+	
+
+	// Initialise MPI
+	int myrank, nprocs;
+	MPI_Win mc_win, c_win, m_win; // this is the shared window, it is used both  for mutices and counter
+	MPI_Init(&argc,&argv);
+	t_mpi[0] = MPI_Wtime(); // the clock
+	MPI_Comm_size(MPI_COMM_WORLD,&nprocs);
+	MPI_Comm_rank(MPI_COMM_WORLD,&myrank);
+	if (comment_operation == 1 ){printf("Proc %i started the program\n",myrank);}
+
+	////////////////////////
+	// PREPARATION PAHASE //
+	////////////////////////
 		
 
+    int Ntot = 6;
+    int t_job = 10; // [s]
+    int Nsim; 
+    int local_counter = 0;
     printf("invalid keyval %i\n",MPI_KEYVAL_INVALID);
 
 	
+
+	//////////////////////////
+	// COMPUTATIONAL PAHASE //
+	//////////////////////////
 
     MPE_Counter_create(MPI_COMM_WORLD, 2, &c_win);
 

@@ -133,7 +133,7 @@ double* propagation(struct trg_def trg, struct Efield_var Efield, double tmin, i
 	for(k = 0 ; k < Nt ; k++)
 	{
 
-		printf("tcycle %i \n",k); fflush(NULL);	
+		//printf("tcycle %i \n",k); fflush(NULL);	
 		if( k%num_t == 0 )
 		{
 		start = clock();	

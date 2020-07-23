@@ -95,7 +95,7 @@ struct outputs_def call1DTDSE(struct inputs_def inputs) // this is a wrapper tha
 	gauge = 1;
 	transformgauge = 0;
 	input0 = 1;
-	printf("tgrid,  %e, %e \n",Efield.tgrid[0],Efield.tgrid[1]);
+	// printf("tgrid,  %e, %e \n",Efield.tgrid[0],Efield.tgrid[1]);
 
 
 	////////////////////////////////
@@ -123,8 +123,8 @@ struct outputs_def call1DTDSE(struct inputs_def inputs) // this is a wrapper tha
 
 	
 	num_t = floor((2*Pi)/(0.057*dt)); num_t++;  // the length of one cycle for 800 nm (i.e. omega=0.057) 
-	printf("Efield.dt,  %e \n",Efield.dt);  fflush(NULL);
-	printf("dt,  %e \n",dt);
+	// printf("Efield.dt,  %e \n",Efield.dt);  fflush(NULL);
+	// printf("dt,  %e \n",dt);
 
 	size = 2*(num_r+1);// for complex number
 
@@ -160,7 +160,7 @@ struct outputs_def call1DTDSE(struct inputs_def inputs) // this is a wrapper tha
 	start = clock();
 
 	psi = propagation(trg,Efield,tmin,Nt,num_t,dt,num_r,num_exp,dx,psi0,psi,x,timef,timef2,ton,toff,timet,dipole,gauge,transformgauge,x_int,analy,outputs);
-	printf("TDSE done ...\n");
+	// printf("TDSE done ...\n");
 	//printf("efield out    : %e, %e, %e \n",outputs.Efield[0],outputs.Efield[1],outputs.Efield[2]);
 
 
@@ -174,7 +174,7 @@ struct outputs_def call1DTDSE(struct inputs_def inputs) // this is a wrapper tha
 
 	free(x); free(psi); free(psi0);
 	free(Efield.Field); // this is a tricky free. We pass the inputs "by value", this means that the memory in the original code is unaffected by reallocation. ! BUT it can be freed if coded badly...
-	printf("fftw_computed in single\n");  fflush(NULL);
+	// printf("fftw_computed in single\n");  fflush(NULL);
 	return outputs;
 }
 
