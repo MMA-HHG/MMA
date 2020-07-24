@@ -139,7 +139,7 @@ CONTAINS
 
       ENDIF ! single-write end
     ELSE !!!! APPENDING THE DATA IN NEXT ITERATIONS
-      CALL write_hyperslab_to_dset(file_id, Fields_dset_name, fields_array, offset, ccount)
+      CALL write_hyperslab_to_dset_p(file_id, Fields_dset_name, fields_array, offset, ccount)
       CALL h5fclose_f(file_id,error)
       IF (my_rank.EQ.0) THEN ! only one worker is extending the zgrid
         CALL h5open_f(error)  !Initialize HDF5

@@ -84,6 +84,7 @@ CONTAINS
     REAL(8), ALLOCATABLE :: real_e(:,:),imag_e(:,:)
 
     HDF5write_count = 1
+    output_write_count = 1
     CALL MPI_Init(ierr)
     CALL MPI_Comm_rank(MPI_COMM_WORLD,my_rank,ierr)
     CALL MPI_Comm_size(MPI_COMM_WORLD,num_proc,ierr)

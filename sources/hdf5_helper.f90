@@ -338,6 +338,25 @@ MODULE hdf5_helper
       CALL h5dclose_f(dset_id, error)
       CALL h5sclose_f(dataspace_id, error)
     END SUBROUTINE create_2D_array_real_dset
+    
+    SUBROUTINE create_3D_array_real_dset(file_id, name, var, data_dims, offset, hyperslab_size)
+      REAL, DIMENSION(:,:,:)   :: var
+      INTEGER(4)               :: file_id
+      CHARACTER(*)             :: name
+      INTEGER(HID_T)           :: dset_id, filespace, memspace
+      INTEGER(HSIZE_T), DIMENSION(3) :: data_dims, offset, hyperslab_size
+      INTEGER                  :: rank, error
+      rank = 3
+      CALL h5screate_simple_f(rank, data_dims, filespace, error) ! Create the dataspace for the  dataset
+      CALL h5dcreate_f(file_id, name, H5T_NATIVE_REAL, filespace, dset_id, error)  ! create the dataset collectivelly
+      CALL h5screate_simple_f(rank, hyperslab_size, memspace, error) ! dataset dimensions in memory (this worker)  
+      CALL h5sselect_hyperslab_f(filespace, H5S_SELECT_SET_F, offset, hyperslab_size, error)
+      CALL h5dwrite_f(dset_id, H5T_NATIVE_REAL, var, data_dims, error, &
+        file_space_id=filespace,mem_space_id=memspace)
+      CALL h5sclose_f(filespace,error)
+      CALL h5sclose_f(memspace,error)
+      CALL h5dclose_f(dset_id,error)
+    END SUBROUTINE create_3D_array_real_dset
 
     SUBROUTINE h5_add_units_1D(file_id, name, units_value)
       INTEGER(HID_T) :: file_id, dset_id       ! File and Dataset identifiers
@@ -368,6 +387,7 @@ MODULE hdf5_helper
       ! attributes added
     END SUBROUTINE  h5_add_units_1D
 
+    ! This subroutine creates 3D array of real numbers parallelly
     ! File has to be opened collectively
     SUBROUTINE create_3D_array_real_dset_p(file_id, name, var, data_dims, offset, hyperslab_size)
       REAL, DIMENSION(:,:,:)   :: var
@@ -435,6 +455,25 @@ MODULE hdf5_helper
       REAL, DIMENSION(:,:,:)       :: var
       INTEGER(4)               :: file_id
       CHARACTER(*)             :: name
+      INTEGER(HID_T)           :: dset_id, filespace, memspace
+      INTEGER(HSIZE_T), DIMENSION(3) :: data_dims, offset, hyperslab_size
+      INTEGER                  :: rank, error
+      rank = 3
+      CALL h5dopen_f(file_id, name, dset_id, error) ! open the dataset (already created)
+      CALL h5dget_space_f(dset_id,filespace, error) ! filespace from the dataset (get instead of create)
+      CALL h5screate_simple_f(rank, hyperslab_size, memspace, error) ! dataset dimensions in memory 
+      CALL h5sselect_hyperslab_f(filespace, H5S_SELECT_SET_F, offset, hyperslab_size, error)
+      CALL h5dwrite_f(dset_id, H5T_NATIVE_REAL, var, data_dims, error, & 
+        file_space_id=filespace,mem_space_id=memspace)
+      CALL h5dclose_f(dset_id,error)
+      CALL h5sclose_f(filespace,error)
+      CALL h5sclose_f(memspace,error)
+    END SUBROUTINE write_hyperslab_to_dset
+
+    SUBROUTINE write_hyperslab_to_dset_p(file_id, name, var, offset, hyperslab_size)
+      REAL, DIMENSION(:,:,:)       :: var
+      INTEGER(4)               :: file_id
+      CHARACTER(*)             :: name
       INTEGER(HID_T)           :: dset_id, filespace, memspace, h5_parameters
       INTEGER(HSIZE_T), DIMENSION(3) :: data_dims, offset, hyperslab_size
       INTEGER                  :: rank, error
@@ -451,5 +490,5 @@ MODULE hdf5_helper
       CALL h5sclose_f(filespace,error)
       CALL h5sclose_f(memspace,error)
       CALL h5pclose_f(h5_parameters, error)
-    END SUBROUTINE write_hyperslab_to_dset
+    END SUBROUTINE write_hyperslab_to_dset_p
 END MODULE hdf5_helper

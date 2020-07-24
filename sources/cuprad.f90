@@ -31,7 +31,8 @@ PROGRAM cuprad
         ENDIF
 
         IF(z_out.LE.z) THEN
-           CALL matlab_out ! that's the printing
+           !CALL matlab_out ! that's the printing
+           CALL write_output
            z_out=z_out+outlength
         ENDIF
 
@@ -73,7 +74,7 @@ PROGRAM cuprad
         ENDIF
      ENDIF
      CALL field_out
-     CALL matlab_out 
+     CALL write_output ! matlab_out 
      rhodist=count
      CALL propagation
      CALL finalize
