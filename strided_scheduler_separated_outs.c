@@ -36,7 +36,7 @@ int main(int argc, char *argv[])
 	hsize_t * dims; int ndims; hid_t datatype;
 	char dumchar1[50], dumchar2[50];
 	// Processing the queue
-	int Nsim, kr, kz; // counter of simulations, indices in the Field array
+	int Nsim, Nsim_loc = -1, kr, kz; // counter of simulations, indices in the Field array
 
 	int comment_operation = 1;
 	double t_mpi[10]; 
@@ -102,7 +102,7 @@ int main(int argc, char *argv[])
 	// first simulation prepares the outputfile
 	
 
-	nxtval_strided(nprocs,&Nsim);
+	nxtval_strided(nprocs,&Nsim); Nsim_loc++;
 	if (Nsim < Ntot){
 		kr = Nsim % dim_r; kz = Nsim - kr;  kz = kz / dim_r; // compute offsets in each dimension
 		dum3int[0]=-1; dum3int[1]=kr; dum3int[2]=kz; // set offset as inputs for hdf5-procedures
@@ -115,6 +115,11 @@ int main(int argc, char *argv[])
 		outputs = call1DTDSE(inputs); // THE TDSE
 		printf("0: acall \n");
 		printf("0: sourceterm out: %e, %e \n",outputs.sourceterm[0],outputs.sourceterm[1]);
+
+
+		printf("FEfield: %e, %e, %e, %e \n",outputs.FEfield_data[0],outputs.FEfield_data[1],outputs.FEfield_data[2],outputs.FEfield_data[3]);
+
+
 		offset[1] = kr; offset[2] = kz;
 
 		// prepare the dataset(s) for outputs
@@ -123,22 +128,36 @@ int main(int argc, char *argv[])
 
 		dumchar1[0] = '\0';	
 		sprintf(dumchar1, "%07d", myrank);
+		printf("1: file: %s \n", dumchar1); fflush(NULL);
 
-		dumchar2[0] = '\0'; strcat(strcat(out_temp_filename,dumchar1),".h5");
+		dumchar2[0] = '\0';
+		strcpy(dumchar2,out_temp_filename);
+		printf("2: file: %s \n", dumchar2); fflush(NULL);
+		strcat(dumchar2,dumchar1); strcat(dumchar2,".h5");
+		printf("0: acall \n"); fflush(NULL);
+		printf("3: file: %s \n", dumchar2); fflush(NULL);
 		//strcat(strcat(path,inpath),"Eguess");
-		file_id = H5Fcreate (dumchar2, H5F_ACC_RDWR, H5P_DEFAULT); // we use a different output file to testing, can be changed to have only one file
+		file_id = H5Fcreate (dumchar2, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT); // we use a different output file to testing, can be changed to have only one file
 
 
-		output_dims[0] = Ntot/Nsim + 1;
-		create_nd_array_h5(file_id, "keys", &h5error, 1, output_dims, H5T_NATIVE_INTEGER);
+		output_dims[0] = Ntot/nprocs + 1;
+		create_nd_array_h5(file_id, "/keys", &h5error, 1, output_dims, H5T_NATIVE_INT);
+		int off1=1;
+		rw_hyperslab_nd_h5(file_id, "/keys", &h5error, off1, &off1, &Nsim_loc, &off1, &Nsim, "w");
 
-		output_dims[1] = outputs.Nt;
-		create_nd_array_h5(file_id, "Efield", &h5error, 2, output_dims, H5T_NATIVE_DOUBLE);
-		dum3int[0] = Nsim; dum3int[0] = outputs.Nt;
+		output_dims[0] = outputs.Nt; output_dims[1] = Ntot/nprocs + 1;
+		create_nd_array_h5(file_id, "/Efield", &h5error, 2, output_dims, H5T_NATIVE_DOUBLE);
+		dum3int[0] = Nsim; dum3int[0] = -1;
 		rw_real_fullhyperslab_nd_h5(file_id, "/Efield", &h5error, 2, output_dims, dum3int, outputs.Efield, "w");
+		// rw_real_fullhyperslab_nd_h5(file_id,"/SourceTerms",&h5error,3,dims,dum3int,outputs.Efield,"w");
 
-		//output_dims[1] = outputs.Nomega; output_dims[2] = 2;
-		// create_nd_array_h5(file_id, "FEfield", &h5error, 2, output_dims, H5T_NATIVE_DOUBLE);
+		output_dims[0] = outputs.Nomega; output_dims[1] = 2; output_dims[2] = Ntot/nprocs + 1;
+		create_nd_array_h5(file_id, "/FEfield", &h5error, 3, output_dims, H5T_NATIVE_DOUBLE);
+
+		int hcount[3] = {outputs.Nomega,2,1};
+		int hoffset[3] = {0,0,Nsim_loc};
+		int dimsloc[2] = {outputs.Nomega,2};
+		rw_hyperslab_nd_h5(file_id, "/FEfield", &h5error, 2, dimsloc, hoffset, hcount, outputs.FEfield_data, "w");
 
 		// dataspace_id = H5Screate_simple(ndims, dims, NULL); // create dataspace for outputs
 
@@ -153,27 +172,30 @@ int main(int argc, char *argv[])
 		h5error = H5Fclose(file_id); // file
 	}
 
+	MPI_Finalize();
+	return 0;	
 
 
 
-	t_mpi[6] = MPI_Wtime();
-	printf("Proc %i, reached the point 1  : %f sec\n",myrank,t_mpi[6]-t_mpi[0]);
+
+	//t_mpi[6] = MPI_Wtime();
+	//printf("Proc %i, reached the point 1  : %f sec\n",myrank,t_mpi[6]-t_mpi[0]);
 	
 	// first process prepare file based on the first simulation
 	// first process release mutex
  
-	t_mpi[4] = MPI_Wtime();	finish4_main = clock();
+	//t_mpi[4] = MPI_Wtime();	finish4_main = clock();
 		
 
 	// we now process the MPI queue
-	nxtval_strided(nprocs,&Nsim);
+	nxtval_strided(nprocs,&Nsim); Nsim_loc++;
 	printf("Proc %i c %i\n",myrank,Nsim); fflush(NULL);
 
-	t_mpi[7] = MPI_Wtime();
-	printf("Proc %i, reached the point 2  : %f sec\n",myrank,t_mpi[7]-t_mpi[0]);
+	//t_mpi[7] = MPI_Wtime();
+	//printf("Proc %i, reached the point 2  : %f sec\n",myrank,t_mpi[7]-t_mpi[0]);
 
-	t_mpi[5] = MPI_Wtime(); 
-
+	//t_mpi[5] = MPI_Wtime(); 
+	int off1=1;
 	while (Nsim < Ntot){ // run till queue is not treated
 		kr = Nsim % dim_r; kz = Nsim - kr;  kz = kz / dim_r; // compute offsets in each dimension
 
@@ -186,6 +208,9 @@ int main(int argc, char *argv[])
 		// MPE_Mutex_acquire(mc_win, 1, MPE_MC_KEYVAL); // We now use different input and output file, input is for read-only, this mutex is here in the case we have only one file for I/O.
 		file_id = H5Fopen ("results.h5", H5F_ACC_RDONLY, H5P_DEFAULT); // same as shown
 		rw_real_fullhyperslab_nd_h5(file_id,"IRProp/Fields_rzt",&h5error,3,dims,dum3int,inputs.Efield.Field,"r");
+
+
+
 		h5error = H5Fclose(file_id); // file
 		// MPE_Mutex_release(mc_win, 1, MPE_MC_KEYVAL);
 
@@ -196,14 +221,24 @@ int main(int argc, char *argv[])
 
     
 
-		file_id = H5Fopen ("results2.h5", H5F_ACC_RDWR, H5P_DEFAULT); // open file
-		dims[0] = outputs.Nt;
-		rw_real_fullhyperslab_nd_h5(file_id,"/SourceTerms",&h5error,3,dims,dum3int,outputs.Efield,"w");
+		file_id = H5Fopen (dumchar2, H5F_ACC_RDWR, H5P_DEFAULT); // open file
+
+		//dims[0] = outputs.Nt;
+		//rw_real_fullhyperslab_nd_h5(file_id,"/SourceTerms",&h5error,3,dims,dum3int,outputs.Efield,"w");
+
+		rw_hyperslab_nd_h5(file_id, "/keys", &h5error, off1, &off1, &Nsim_loc, &off1, &Nsim, "w");
+
+		output_dims[0] = outputs.Nt; output_dims[1] = Ntot/nprocs + 1;
+		// create_nd_array_h5(file_id, "/Efield", &h5error, 2, output_dims, H5T_NATIVE_DOUBLE);
+		dum3int[0] = Nsim; dum3int[0] = -1;
+		rw_real_fullhyperslab_nd_h5(file_id, "/Efield", &h5error, 2, output_dims, dum3int, outputs.Efield, "w");
+
+
 		h5error = H5Fclose(file_id); // file
 
 		
 		// outputs_destructor(outputs); // free memory
-		nxtval_strided(nprocs,&Nsim);
+		nxtval_strided(nprocs,&Nsim); Nsim_loc++;
 		printf("Proc %i c %i\n",myrank,Nsim); fflush(NULL);
 		t_mpi[5] = MPI_Wtime();
 	}

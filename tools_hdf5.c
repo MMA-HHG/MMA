@@ -223,6 +223,35 @@ void PrintOutputs(hid_t file_id, char *inpath, herr_t *h5error, struct inputs_de
 }
 
 
+void rw_hyperslab_nd_h5(hid_t file_id, char *dset_name, herr_t *h5error, int nhyperslab_dimensions, int *hyperslab_dimensions_int, int *offset_int, int *count_int, void *array, char *rw) // This function reads full line from an n-D array, the selected dimension is given by (-1), the rest of selection is the offset
+{ 
+  int ndims, k1;
+  hid_t datatype;
+  hsize_t *dims; dims = get_dimensions_h5(file_id, dset_name, h5error, &ndims, &datatype);
+  hsize_t hyperslab_dimensions[nhyperslab_dimensions];
+  for(k1 = 0; k1 < nhyperslab_dimensions; k1++){hyperslab_dimensions[k1] = hyperslab_dimensions_int[k1];}
+  hid_t memspace_id = H5Screate_simple(nhyperslab_dimensions,hyperslab_dimensions,NULL);
+  hsize_t  offset[ndims], count[ndims];
+  for(k1 = 0; k1 < ndims; k1++){offset[k1] = offset_int[k1]; count[k1] = count_int[k1]; //printf("offset: %i \n", offset[k1]); fflush(NULL); printf("count: %i \n", count[k1]); fflush(NULL);
+	}
+
+  hid_t dset_id = H5Dopen2 (file_id, dset_name, H5P_DEFAULT);
+  hid_t dspace_id = H5Dget_space (dset_id);
+  *h5error = H5Sselect_hyperslab (dspace_id, H5S_SELECT_SET, offset, NULL, count, NULL); // operation with only a part of the array = hyperslab	
+  if (strcmp(rw,"r")==0){
+    *h5error = H5Dread (dset_id, datatype, memspace_id, dspace_id, H5P_DEFAULT, array); // read only the hyperslab
+  } else if (strcmp(rw,"w")==0){
+    *h5error = H5Dwrite (dset_id, datatype, memspace_id, dspace_id, H5P_DEFAULT, array); // write the data
+  } else {
+    printf("wrongly sepcified r/w: nothing done\n"); 
+  }
+  
+  *h5error = H5Dclose(dset_id); // dataset
+  *h5error = H5Sclose(dspace_id); // dataspace
+  *h5error = H5Sclose(memspace_id); // dataspace
+}
+
+
 void rw_real_fullhyperslab_nd_h5(hid_t file_id, char *dset_name, herr_t *h5error, int ndims, hsize_t *dimensions, int *selection, double *array1D, char *rw) // This function reads full line from an n-D array, the selected dimension is given by (-1), the rest of selection is the offset
 { 
   int k1;
