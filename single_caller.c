@@ -33,7 +33,7 @@ int main()
 	printf("program started\n"); fflush(NULL);
 	start_clock = clock(); // the clock	
 	Init_constants();
-	inputs.Print = Initialise_Printing_struct(); // crete printing driver
+	inputs.Print = Initialise_Printing_struct(); // create printing driver
 
 
 	// read inputs

@@ -10,7 +10,19 @@
 #include "util.h"
 #include "util_hdf5.h"
 
-
+hid_t dtype_h5(char *foo)
+{
+  if (strcmp(foo,"d")==0){
+    return H5T_NATIVE_DOUBLE;
+  } else if (strcmp(foo,"s")==0){
+    return H5T_NATIVE_FLOAT;
+  } else if (strcmp(foo,"i")==0){
+    return H5T_NATIVE_INT;
+  } else {
+    fprintf(stderr,"wrongly sepcified r/w: nothing done\n"); 
+    return H5T_ORDER_ERROR; // should choose better error, it's just a random valid error I've found.
+  }
+}
 
 void ReadInputs(hid_t file_id, char *inpath, herr_t *h5error, struct inputs_def *in)
 {

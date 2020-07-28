@@ -20,6 +20,7 @@ struct inputs_def inputs;
 struct outputs_def outputs;
 
 int k1, k2, k3;
+const int one=1;
 
 
 clock_t start_main, finish2_main, finish1_main, finish3_main, finish4_main;
@@ -29,7 +30,8 @@ int main(int argc, char *argv[])
 {
 	// vars:
 
-	const char out_temp_filename[] = "hdf5_temp_"; 
+	const char filename_stub[] = "hdf5_temp_";
+	char local_filename[50]; 
 
 	// dummy
 	int dum3int[3];
@@ -43,6 +45,10 @@ int main(int argc, char *argv[])
 
 	hsize_t output_dims[4];
 
+	////////////////////////
+	// PREPARATION PAHASE //
+	////////////////////////
+
 	// Initialise MPI
 	int myrank, nprocs;
 	int MPE_MC_KEYVAL, MPE_C_KEYVAL, MPE_M_KEYVAL; // this is used to address the mutex and counter
@@ -55,45 +61,31 @@ int main(int argc, char *argv[])
 
 	if (comment_operation == 1 ){printf("Proc %i started the program\n",myrank);}
 
-	////////////////////////
-	// PREPARATION PAHASE //
-	////////////////////////
 	t_mpi[0] = MPI_Wtime();	start_main = clock(); // the clock	
 
-	// READ DATA
-	/* to check if exists use printf("link exists 1: %i\n",H5Lexists(file_id, "IRProp/lambda", H5P_DEFAULT)); */
+	// create parameters & load initial data
 	file_id = H5Fopen ("results.h5", H5F_ACC_RDONLY, H5P_DEFAULT); // the file is opened for read only by all the processes independently, every process then has its own copy of variables.
-
 	ReadInputs(file_id, "TDSE_inputs/", &h5error, &inputs);
+	dims = get_dimensions_h5(file_id, "IRProp/Fields_rzt", &h5error, &ndims, &datatype);
+	hsize_t dim_t = dims[0], dim_r = dims[1], dim_z = dims[2]; // label the dims by physical axes	
+
+	// create space for the fields & load the tgrid
+	inputs.Efield.Field = malloc(((int)dims[0])*sizeof(double));
+	inputs.Efield.tgrid =  readreal1Darray_fort(file_id, "IRProp/tgrid",&h5error,&inputs.Efield.Nt); // tgrid is not changed when program runs
+	// convert units
+	for(k1 = 0 ; k1 < inputs.Efield.Nt; k1++){inputs.Efield.tgrid[k1] = inputs.Efield.tgrid[k1]/TIMEau; /*inputs.Efield.Field[k1] = inputs.Efield.Field[k1]/EFIELDau;*/} // convert to atomic units (fs->a.u.), (GV/m->a.u.)
+
 
 	if (comment_operation == 1 ){printf("Proc %i uses dx = %e \n",myrank,inputs.dx);}
-	
-
-	// load the tgrid
-	inputs.Efield.tgrid =  readreal1Darray_fort(file_id, "IRProp/tgrid",&h5error,&inputs.Efield.Nt); // tgrid is not changed when program runs
-	// convert to atomic units
-	// for(k1 = 0 ; k1 < inputs.Efield.Nt; k1++){inputs.Efield.tgrid[k1] = inputs.Efield.tgrid[k1]*1e15*41.34144728;}
-    // for(k1 = 0 ; k1 < inputs.Efield.Nt; k1++){inputs.Efield.tgrid[k1] = inputs.Efield.tgrid[k1]}
-
-	// dimension of the 3D array containing all the inputs
-	dims = get_dimensions_h5(file_id, "IRProp/Fields_rzt", &h5error, &ndims, &datatype);
-	hsize_t dim_t = dims[0], dim_r = dims[1], dim_z = dims[2]; // label the dims by physical axes
 	if ( ( comment_operation == 1 ) && ( myrank == 0 ) ){printf("Fields dimensions (t,r,z) = (%i,%i,%i)\n",dims[0],dims[1],dims[2]);}
 
 
-	// PREPARE DATA
-
-	// We prepare the storage for data and set up the run	
-	int Ntot = dim_r*dim_z; // counter (queue length)	
-	hsize_t  offset[ndims], stride[ndims], count[ndims], block[ndims]; // selections (hyperslabs) are needed	
-	hsize_t field_dims[1]; field_dims[0] = dims[0]; // a way to specify the length of the array for HDF5	
-	//hid_t memspace_id = H5Screate_simple(1,field_dims,NULL); // this memspace correspond to one Field/SourceTerm hyperslab, we will keep it accross the code
-	double Fields[dims[0]], SourceTerms[dims[0]]; // Here we store the field and computed Source Term for every case
-	inputs.Efield.Field = malloc(((int)dims[0])*sizeof(double));
-
 	// Prepare the ground state (it's the state of the atom before the interaction)
 	Initialise_grid_and_ground_state(&inputs);
-	
+
+	int Ntot = dim_r*dim_z; // counter (queue length)	
+
+
 
 	//////////////////////////
 	// COMPUTATIONAL PAHASE //
@@ -101,33 +93,23 @@ int main(int argc, char *argv[])
 
 
 	// first simulation prepares the outputfile
-	
-
 	nxtval_strided(nprocs,&Nsim); Nsim_loc++;
 	if (Nsim < Ntot){
-		kr = Nsim % dim_r; kz = Nsim - kr;  kz = kz / dim_r; // compute offsets in each dimension
-		dum3int[0]=-1; dum3int[1]=kr; dum3int[2]=kz; // set offset as inputs for hdf5-procedures
 
-		file_id = H5Fopen ("results.h5", H5F_ACC_RDONLY, H5P_DEFAULT); // same as shown
+		// find proper simulation & load the field
+		file_id = H5Fopen ("results.h5", H5F_ACC_RDONLY, H5P_DEFAULT);
+		kr = Nsim % dim_r; kz = Nsim - kr;  kz = kz / dim_r; // compute offsets in each dimension
+		dum3int[0]=-1; dum3int[1]=kr; dum3int[2]=kz;		
 		rw_real_fullhyperslab_nd_h5(file_id,"IRProp/Fields_rzt",&h5error,3,dims,dum3int,inputs.Efield.Field,"r");
 		h5error = H5Fclose(file_id);
 
-		printf("0: bcall \n"); printf("field[0]= %e \n",inputs.Efield.Field[0]);
-
+		// convert units
 		for(k1 = 0 ; k1 < inputs.Efield.Nt; k1++){inputs.Efield.Field[k1] = inputs.Efield.Field[k1]*1e-15;}
 
+		// do the calculation
 		outputs = call1DTDSE(inputs); // THE TDSE
-		printf("0: acall \n");
-		printf("0: sourceterm out: %e, %e \n",outputs.sourceterm[0],outputs.sourceterm[1]);
 
-
-		printf("FEfield: %e, %e, %e, %e \n",outputs.FEfield_data[0],outputs.FEfield_data[1],outputs.FEfield_data[2],outputs.FEfield_data[3]);
-
-
-		offset[1] = kr; offset[2] = kz;
-
-		// prepare the dataset(s) for outputs
-
+		// prepare the output file
 		dims[0] = outputs.Nt; // length defined by outputs
 
 		dumchar1[0] = '\0';	
@@ -135,19 +117,18 @@ int main(int argc, char *argv[])
 		printf("1: file: %s \n", dumchar1); fflush(NULL);
 
 		dumchar2[0] = '\0';
-		strcpy(dumchar2,out_temp_filename);
+		strcpy(dumchar2,filename_stub);
 		printf("2: file: %s \n", dumchar2); fflush(NULL);
 		strcat(dumchar2,dumchar1); strcat(dumchar2,".h5");
 		printf("0: acall \n"); fflush(NULL);
 		printf("3: file: %s \n", dumchar2); fflush(NULL);
 		//strcat(strcat(path,inpath),"Eguess");
-		file_id = H5Fcreate (dumchar2, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT); // we use a different output file to testing, can be changed to have only one file
-
+		file_id = H5Fcreate (dumchar2, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
+		
 
 		output_dims[0] = Ntot/nprocs + 1;
 		create_nd_array_h5(file_id, "/keys", &h5error, 1, output_dims, H5T_NATIVE_INT);
-		int off1=1;
-		rw_hyperslab_nd_h5(file_id, "/keys", &h5error, off1, &off1, &Nsim_loc, &off1, &Nsim, "w");
+		rw_hyperslab_nd_h5(file_id, "/keys", &h5error, one, &one, &Nsim_loc, &one, &Nsim, "w");
 
 		output_dims[0] = outputs.Nt; output_dims[1] = Ntot/nprocs + 1;
 		create_nd_array_h5(file_id, "/Efield", &h5error, 2, output_dims, H5T_NATIVE_DOUBLE);
@@ -163,16 +144,6 @@ int main(int argc, char *argv[])
 		int dimsloc[2] = {outputs.Nomega,2};
 		rw_hyperslab_nd_h5(file_id, "/FEfield", &h5error, 2, dimsloc, hoffset, hcount, outputs.FEfield_data, "w");
 
-		// dataspace_id = H5Screate_simple(ndims, dims, NULL); // create dataspace for outputs
-
-		
-
-
-		// dataset_id = H5Dcreate2(file_id, "/Efiel", datatype, dataspace_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT); // create dataset
-
-		//h5error = H5Sclose(dataspace_id);
-		//h5error = H5Dclose(dataset_id);
-		//rw_real_fullhyperslab_nd_h5(file_id,"/SourceTerms",&h5error,3,dims,dum3int,outputs.Efield,"w");
 		h5error = H5Fclose(file_id); // file
 	}
 
@@ -199,7 +170,6 @@ int main(int argc, char *argv[])
 	//printf("Proc %i, reached the point 2  : %f sec\n",myrank,t_mpi[7]-t_mpi[0]);
 
 	//t_mpi[5] = MPI_Wtime(); 
-	int off1=1;
 	while (Nsim < Ntot){ // run till queue is not treated
 		kr = Nsim % dim_r; kz = Nsim - kr;  kz = kz / dim_r; // compute offsets in each dimension
 
@@ -230,7 +200,7 @@ int main(int argc, char *argv[])
 		//dims[0] = outputs.Nt;
 		//rw_real_fullhyperslab_nd_h5(file_id,"/SourceTerms",&h5error,3,dims,dum3int,outputs.Efield,"w");
 
-		rw_hyperslab_nd_h5(file_id, "/keys", &h5error, off1, &off1, &Nsim_loc, &off1, &Nsim, "w");
+		rw_hyperslab_nd_h5(file_id, "/keys", &h5error, one, &one, &Nsim_loc, &one, &Nsim, "w");
 
 		output_dims[0] = outputs.Nt; output_dims[1] = Ntot/nprocs + 1;
 		// create_nd_array_h5(file_id, "/Efield", &h5error, 2, output_dims, H5T_NATIVE_DOUBLE);
@@ -259,3 +229,7 @@ int main(int argc, char *argv[])
 	MPI_Finalize();
 	return 0;	
 }
+
+
+
+/* to check if exists use printf("link exists 1: %i\n",H5Lexists(file_id, "IRProp/lambda", H5P_DEFAULT)); */

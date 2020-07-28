@@ -40,13 +40,15 @@ The versatility in numeric-or-analytic field length-or-velocity gauge is ideal f
 
 ## Development notes:
 <pre>
+0) Use void*-types for inputs and link it with the required ouput precision.
+
 1) We can use checks whether parameters exist in the input HDF5-archive. If not, we can create them with default values.
 Implementation: since this is I/O operation with one file, we need r/w. Maybe read paramc only by proc 0 and the broadcast structure (see the MPI book for transfering structs).
 
 For reading, it should be easy. ** R/W may occur simultaneously in in the MPI loop. Separate I/O at the instant or ensure it will work (R/W from independent datasets may be fine???).
 https://support.hdfgroup.org/HDF5/Tutor/selectsimple.html
 
-2) Actual construction does some prparations within 1 TDSE simulation, it is desirable to separate preparations and core propagation, it's then more versatile for the MPI-calling.
+2) Actual construction does some preparations within 1 TDSE simulation, it is desirable to separate preparations and core propagation, it's then more versatile for the MPI-calling.
 2.solution) separate all preparatory work from singleTDSE into one procedure, called pecedently the calculations, the "pure" propagation then wites into its template.
 2.develop) keep in mind that this approach may not be possible every time and one run has to be done before alligning it... Try to code it clever way.
 
