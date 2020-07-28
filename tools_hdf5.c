@@ -129,7 +129,7 @@ void Read_1_field_and_grid(hid_t file_id, char *inpath, herr_t *h5error, struct 
 }
 
 
-void print_nd_array_h5(hid_t file_id, char *dset_name, herr_t *h5error, int ndims, hsize_t *dimensions, void * array, hid_t datatype) // fort is for the extra diemnsion due to fortran
+void print_nd_array_h5(hid_t file_id, char *dset_name, herr_t *h5error, int ndims, hsize_t *dimensions, void * array, hid_t datatype)
 {
   hid_t dspace_id = H5Screate_simple(ndims, dimensions, NULL);
   hid_t dset_id = H5Dcreate2(file_id, dset_name, datatype, dspace_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
@@ -138,6 +138,13 @@ void print_nd_array_h5(hid_t file_id, char *dset_name, herr_t *h5error, int ndim
   *h5error = H5Dclose(dset_id);	
 }
 
+void create_nd_array_h5(hid_t file_id, char *dset_name, herr_t *h5error, int ndims, hsize_t *dimensions, hid_t datatype)
+{
+  hid_t dspace_id = H5Screate_simple(ndims, dimensions, NULL);
+  hid_t dset_id = H5Dcreate2(file_id, dset_name, datatype, dspace_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+  *h5error = H5Sclose(dspace_id);
+  *h5error = H5Dclose(dset_id);	
+}
 
 
 void PrintOutputs(hid_t file_id, char *inpath, herr_t *h5error, struct inputs_def *in, struct outputs_def *out)
@@ -235,6 +242,45 @@ void rw_real_fullhyperslab_nd_h5(hid_t file_id, char *dset_name, herr_t *h5error
       count[k1] = 1;
     }
   }
+  hid_t dset_id = H5Dopen2 (file_id, dset_name, H5P_DEFAULT);
+  hid_t dspace_id = H5Dget_space (dset_id);
+  hid_t datatype  = H5Dget_type(dset_id);
+  *h5error = H5Sselect_hyperslab (dspace_id, H5S_SELECT_SET, offset, stride, count, block); // operation with only a part of the array = hyperslab	
+  if (strcmp(rw,"r")==0){
+    *h5error = H5Dread (dset_id, datatype, memspace_id, dspace_id, H5P_DEFAULT, array1D); // read only the hyperslab
+  } else if (strcmp(rw,"w")==0){
+    *h5error = H5Dwrite (dset_id, datatype, memspace_id, dspace_id, H5P_DEFAULT, array1D); // write the data
+  } else {
+    printf("wrongly sepcified r/w: nothing done\n"); 
+  }
+  
+  *h5error = H5Dclose(dset_id); // dataset
+  *h5error = H5Sclose(dspace_id); // dataspace
+  *h5error = H5Sclose(memspace_id); // dataspace
+}
+
+void rw_real_full2Dhyperslab_nd_h5(hid_t file_id, char *dset_name, herr_t *h5error, int ndims, hsize_t *dimensions, int *selection, double *array1D, char *rw) // This function reads full line from an n-D array, the selected dimension is given by (-1), the rest of selection is the offset
+{ 
+  int k1, k2 = 0;
+  hid_t memspace_id;
+  hsize_t field_dims[2];  
+  hsize_t  offset[ndims], stride[ndims], count[ndims], block[ndims];
+
+  for(k1 = 0; k1 < ndims; k1++){
+    stride[k1] = 1; block[k1] = 1;
+    if (selection[k1] < 0){
+      offset[k1] = 0;
+      count[k1] = dimensions[k1];
+      field_dims[k2] = dimensions[k1]; // a way to specify the length of the array for HDF5
+      k2++;	
+    }else{
+      offset[k1] = selection[k1];
+      count[k1] = 1;
+    }
+  }
+
+  memspace_id = H5Screate_simple(2,field_dims,NULL);
+
   hid_t dset_id = H5Dopen2 (file_id, dset_name, H5P_DEFAULT);
   hid_t dspace_id = H5Dget_space (dset_id);
   hid_t datatype  = H5Dget_type(dset_id);
