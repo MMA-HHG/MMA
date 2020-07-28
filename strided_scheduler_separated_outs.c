@@ -51,6 +51,7 @@ int main(int argc, char *argv[])
 	MPI_Comm_size(MPI_COMM_WORLD,&nprocs);
 	MPI_Comm_rank(MPI_COMM_WORLD,&myrank);
 	nxtval_init(-nprocs+myrank,&Nsim);
+	Init_constants();
 
 	if (comment_operation == 1 ){printf("Proc %i started the program\n",myrank);}
 
@@ -112,6 +113,9 @@ int main(int argc, char *argv[])
 		h5error = H5Fclose(file_id);
 
 		printf("0: bcall \n"); printf("field[0]= %e \n",inputs.Efield.Field[0]);
+
+		for(k1 = 0 ; k1 < inputs.Efield.Nt; k1++){inputs.Efield.Field[k1] = inputs.Efield.Field[k1]*1e-15;}
+
 		outputs = call1DTDSE(inputs); // THE TDSE
 		printf("0: acall \n");
 		printf("0: sourceterm out: %e, %e \n",outputs.sourceterm[0],outputs.sourceterm[1]);
