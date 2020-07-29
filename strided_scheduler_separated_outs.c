@@ -114,7 +114,7 @@ int main(int argc, char *argv[])
 		local_filename[0] = '\0'; dumchar1[0] = '\0'; sprintf(dumchar1, "%07d", myrank);
 		strcat(local_filename,filename_stub); strcat(local_filename,dumchar1); strcat(local_filename,".h5");		
 		file_id = H5Fcreate (local_filename, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
-		prepare_local_output_fixed_print_grids_h5(file_id, "", &h5error, &inputs, &outputs, Ntot/nprocs + 1);
+		prepare_local_output_fixed_print_grids_h5(file_id, "", &h5error, &inputs, &outputs, Ntot/nprocs + 1, dims);
 		print_local_output_fixed_h5(file_id,"", &h5error, &inputs, &outputs, Ntot/nprocs + 1, Nsim, Nsim_loc);
 		h5error = H5Fclose(file_id); // file
 		outputs_destructor(&outputs); // clean ouputs
