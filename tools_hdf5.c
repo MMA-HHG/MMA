@@ -94,6 +94,7 @@ void ReadInputs(hid_t file_id, char *inpath, herr_t *h5error, struct inputs_def 
 
   // CV criterion will be added as an input
   (*in).CV = 1E-20; 
+  (*in).precision = "d";
 
 	//(*in).Efield.tgrid =  readreal1Darray_fort(file_id, "IRField/tgrid",h5error,&(*in).Efield.Nt); // tgrid is not changed when program runs
 	//(*in).Efield.Field =  readreal1Darray_fort(file_id, "IRField/Field",h5error,&(*in).Efield.Nt); // tgrid is not changed when program runs  
@@ -163,7 +164,6 @@ void PrintOutputs(hid_t file_id, char *inpath, herr_t *h5error, struct inputs_de
 {
 	hsize_t output_dims[2]; // never exceeds 2 in this case, can be longer
 	char path[50];
-	printf("t1 \n"); fflush(NULL);
 
   // time domain
 	output_dims[0] = (*out).Nt; output_dims[1] = 0;
@@ -403,3 +403,86 @@ hsize_t * get_dimensions_h5(hid_t file_id, char *dset_name, herr_t *h5error, int
 //}
 
 void addone(int *val ){*val=*val+1;} // to test pointers
+
+
+
+
+
+void prepare_local_output_fixed_print_grids_h5(hid_t file_id, char *inpath, herr_t *h5error, struct inputs_def *in, struct outputs_def *out, int nsimulations)
+{
+	hsize_t output_dims[3]; // never exceeds 2 in this case, can be longer
+	char path[50];
+
+  // keys for post-processing
+  output_dims[0] = nsimulations;
+  create_nd_array_h5(file_id, "/keys", &h5error, 1, output_dims, H5T_NATIVE_INT);
+
+  // time domain
+	output_dims[0] = outputs.Nt; output_dims[1] = nsimulations;
+	if ( (*in).Print.Efield == 1 ) 
+  {
+		path[0] = '\0';	strcat(strcat(path,inpath),"/Efield");
+    create_nd_array_h5(file_id, path, &h5error, 2, output_dims, dtype_h5((*in).precision));
+		//print_nd_array_h5(file_id, path, h5error, 1, output_dims, (*out).Efield, H5T_NATIVE_DOUBLE);
+  }
+
+  // if ( (*in).Print.sourceterm == 1 )
+  // {
+	// 	path[0] = '\0';	strcat(strcat(path,inpath),"SourceTerm");
+	// 	print_nd_array_h5(file_id, path, h5error, 1, output_dims, (*out).sourceterm, H5T_NATIVE_DOUBLE);
+  // }
+
+  // if ( (*in).Print.PopTot == 1 )
+  // {
+	// 	path[0] = '\0';	strcat(strcat(path,inpath),"PopTot");
+	// 	print_nd_array_h5(file_id, path, h5error, 1, output_dims, (*out).PopTot, H5T_NATIVE_DOUBLE);
+  // }
+
+  // // the grid
+  // if ( (*in).Print.Efield == 1 || (*in).Print.sourceterm == 1 || (*in).Print.PopTot == 1 )
+  // {
+	// 	path[0] = '\0';	strcat(strcat(path,inpath),"tgrid");
+	// 	print_nd_array_h5(file_id, path, h5error, 1, output_dims, (*out).tgrid, H5T_NATIVE_DOUBLE);
+  // }
+
+  // // omega domain - complex
+  // output_dims[0] = (*out).Nomega; output_dims[1] = 2;
+  // if ( (*in).Print.FEfield == 1 )
+  // {
+	// 	path[0] = '\0';	strcat(strcat(path,inpath),"FEfield");
+	// 	print_nd_array_h5(file_id, path, h5error, 2, output_dims, (*out).FEfield_data, H5T_NATIVE_DOUBLE);
+  // }
+
+  // if ( (*in).Print.Fsourceterm == 1 )
+  // {
+	// 	path[0] = '\0';	strcat(strcat(path,inpath),"FSourceTerm");
+	// 	print_nd_array_h5(file_id, path, h5error, 2, output_dims, (*out).Fsourceterm_data, H5T_NATIVE_DOUBLE);
+  // }
+
+  // // omega domain - real
+  // output_dims[0] = (*out).Nomega; output_dims[1] = 0;
+
+  // if ( (*in).Print.FEfieldM2 == 1 )
+  // {
+	// 	path[0] = '\0';	strcat(strcat(path,inpath),"FEfieldM2");
+	// 	print_nd_array_h5(file_id, path, h5error, 1, output_dims, (*out).FEfieldM2, H5T_NATIVE_DOUBLE);
+  // }
+
+  // if ( (*in).Print.FsourceTermM2 == 1 )
+  // {
+	// 	path[0] = '\0';	strcat(strcat(path,inpath),"FSourceTermM2");
+	// 	print_nd_array_h5(file_id, path, h5error, 1, output_dims, (*out).FsourcetermM2, H5T_NATIVE_DOUBLE);
+  // }
+
+  // // the grid
+  // if ( (*in).Print.FEfield == 1 || (*in).Print.Fsourceterm == 1 || (*in).Print.FEfieldM2 == 1 || (*in).Print.FsourceTermM2 == 1 )
+  // {
+	// 	path[0] = '\0';	strcat(strcat(path,inpath),"omegagrid");
+	// 	print_nd_array_h5(file_id, path, h5error, 1, output_dims, (*out).omegagrid, H5T_NATIVE_DOUBLE);
+  // }
+
+  // // various scalars
+  // output_dims[0] = 1; output_dims[1] = 0;
+  // path[0] = '\0'; strcat(strcat(path,inpath),"Energy_of_the_ground_state");
+  // print_nd_array_h5(file_id, path, h5error, 1, output_dims, &(*in).Einit, H5T_NATIVE_DOUBLE);
+}

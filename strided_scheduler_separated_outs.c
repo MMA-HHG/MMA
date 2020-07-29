@@ -31,7 +31,7 @@ int main(int argc, char *argv[])
 	// vars:
 
 	const char filename_stub[] = "hdf5_temp_";
-	char local_filename[50]; 
+	char local_filename[50];
 
 	// dummy
 	int dum3int[3];
@@ -56,8 +56,11 @@ int main(int argc, char *argv[])
 	MPI_Init(&argc,&argv);
 	MPI_Comm_size(MPI_COMM_WORLD,&nprocs);
 	MPI_Comm_rank(MPI_COMM_WORLD,&myrank);
-	nxtval_init(-nprocs+myrank,&Nsim);
+	nxtval_init(-nprocs+myrank,&Nsim)
+
 	Init_constants();
+	inputs.Print = Initialise_Printing_struct();
+	inputs.Print = Set_all_prints();
 
 	if (comment_operation == 1 ){printf("Proc %i started the program\n",myrank);}
 
@@ -122,9 +125,15 @@ int main(int argc, char *argv[])
 		strcat(dumchar2,dumchar1); strcat(dumchar2,".h5");
 		printf("0: acall \n"); fflush(NULL);
 		printf("3: file: %s \n", dumchar2); fflush(NULL);
-		//strcat(strcat(path,inpath),"Eguess");
-		file_id = H5Fcreate (dumchar2, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
+
+
+		local_filename[0] = "\0"; dumchar1[0] = '\0'; sprintf(dumchar1, "%07d", myrank);
+		strcpy(strcpy(strcpy(local_filename,filename_stub),dumchar1),".h5");
 		
+		
+		//strcat(strcat(path,inpath),"Eguess");
+		file_id = H5Fcreate (local_filename, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
+
 
 		output_dims[0] = Ntot/nprocs + 1;
 		create_nd_array_h5(file_id, "/keys", &h5error, 1, output_dims, H5T_NATIVE_INT);
