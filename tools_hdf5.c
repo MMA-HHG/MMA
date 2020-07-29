@@ -508,7 +508,7 @@ void print_local_output_fixed_h5(hid_t file_id, char *inpath, herr_t *h5error, s
   // keys for post-processing
   output_dims[0] = nsimulations;
   path[0] = '\0';	strcat(strcat(path,inpath),"keys");
-  rw_hyperslab_nd_h5(file_id, path, &h5error, one, &one, &Nsim_loc, &one, &Nsim, "w");
+  rw_hyperslab_nd_h5(file_id, path, h5error, one, &one, &Nsim_loc, &one, &Nsim, "w");
   // create_nd_array_h5(file_id, path, h5error, 1, output_dims, H5T_NATIVE_INT);
 
   // time domain
