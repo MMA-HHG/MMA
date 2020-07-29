@@ -10,6 +10,8 @@
 #include "util.h"
 #include "util_hdf5.h"
 
+int one;
+
 hid_t dtype_h5(char *foo)
 {
   if (strcmp(foo,"d")==0){
@@ -489,6 +491,10 @@ void prepare_local_output_fixed_print_grids_h5(hid_t file_id, char *inpath, herr
   output_dims[0] = 1; output_dims[1] = 0;
   path[0] = '\0'; strcat(strcat(path,inpath),"Energy_of_the_ground_state");
   print_nd_array_h5(file_id, path, h5error, 1, output_dims, &(*in).Einit, H5T_NATIVE_DOUBLE);
+
+  path[0] = '\0'; strcat(strcat(path,inpath),"number_of_local_simulations");
+  create_nd_array_h5(file_id, path, h5error, 1, output_dims, H5T_NATIVE_INT);
+  //print_nd_array_h5(file_id, path, h5error, 1, output_dims, &one, H5T_NATIVE_DOUBLE);
 }
 
 
@@ -502,6 +508,7 @@ void print_local_output_fixed_h5(hid_t file_id, char *inpath, herr_t *h5error, s
   // keys for post-processing
   output_dims[0] = nsimulations;
   path[0] = '\0';	strcat(strcat(path,inpath),"keys");
+  rw_hyperslab_nd_h5(file_id, path, &h5error, one, &one, &Nsim_loc, &one, &Nsim, "w");
   // create_nd_array_h5(file_id, path, h5error, 1, output_dims, H5T_NATIVE_INT);
 
   // time domain
@@ -511,74 +518,62 @@ void print_local_output_fixed_h5(hid_t file_id, char *inpath, herr_t *h5error, s
   {
 		path[0] = '\0';	strcat(strcat(path,inpath),"Efield");
     rw_real_fullhyperslab_nd_h5(file_id, path, h5error, 2, output_dims, offsets, (*out).Efield, "w");
-    //create_nd_array_h5(file_id, path, h5error, 2, output_dims, dtype_h5((*in).precision));
   }
 
-  // if ( (*in).Print.sourceterm == 1 )
-  // {
-	// 	path[0] = '\0';	strcat(strcat(path,inpath),"SourceTerm");
-	// 	create_nd_array_h5(file_id, path, h5error, 2, output_dims, dtype_h5((*in).precision));
-  // }
+  if ( (*in).Print.sourceterm == 1 )
+  {
+		path[0] = '\0';	strcat(strcat(path,inpath),"SourceTerm");
+		rw_real_fullhyperslab_nd_h5(file_id, path, h5error, 2, output_dims, offsets, (*out).sourceterm, "w");
+  }
 
-  // if ( (*in).Print.PopTot == 1 )
-  // {
-	// 	path[0] = '\0';	strcat(strcat(path,inpath),"PopTot");
-	// 	create_nd_array_h5(file_id, path, h5error, 2, output_dims, dtype_h5((*in).precision));
-  // }
-
-  // // the grid
-  // output_dims[0] = (*out).Nt; output_dims[1] = 0;
-  // if ( (*in).Print.Efield == 1 || (*in).Print.sourceterm == 1 || (*in).Print.PopTot == 1 )
-  // {
-	// 	path[0] = '\0';	strcat(strcat(path,inpath),"tgrid");
-	// 	print_nd_array_h5(file_id, path, h5error, 1, output_dims, (*out).tgrid, H5T_NATIVE_DOUBLE);
-  // }
+  if ( (*in).Print.PopTot == 1 )
+  {
+		path[0] = '\0';	strcat(strcat(path,inpath),"PopTot");
+		rw_real_fullhyperslab_nd_h5(file_id, path, h5error, 2, output_dims, offsets, (*out).PopTot, "w");
+  }
 
   // omega domain - complex
-  //output_dims[0] = (*out).Nomega; output_dims[1] = 2;
+  int hcount[3] = {(*out).Nomega,2,1};
+  int hoffset[3] = {0,0,Nsim_loc};
+  int dimsloc[2] = {(*out).Nomega,2};
   output_dims[0] = (*out).Nomega; output_dims[1] = 2; output_dims[2] = nsimulations;
+  
   if ( (*in).Print.FEfield == 1 )
   {
-		path[0] = '\0';	strcat(strcat(path,inpath),"FEfield");
-		//create_nd_array_h5(file_id, path, h5error, 3, output_dims, dtype_h5((*in).precision));
-    int hcount[3] = {(*out).Nomega,2,1};
-		int hoffset[3] = {0,0,Nsim_loc};
-		int dimsloc[2] = {(*out).Nomega,2};
+		path[0] = '\0';	strcat(strcat(path,inpath),"FEfield");	
 		rw_hyperslab_nd_h5(file_id, path, h5error, 2, dimsloc, hoffset, hcount, (*out).FEfield_data, "w");
   }
 
-  // if ( (*in).Print.Fsourceterm == 1 )
-  // {
-	// 	path[0] = '\0';	strcat(strcat(path,inpath),"FSourceTerm");
-	// 	create_nd_array_h5(file_id, path, h5error, 3, output_dims, dtype_h5((*in).precision));
-  // }
+  if ( (*in).Print.Fsourceterm == 1 )
+  {
+		path[0] = '\0';	strcat(strcat(path,inpath),"FSourceTerm");
+		rw_hyperslab_nd_h5(file_id, path, h5error, 2, dimsloc, hoffset, hcount, (*out).Fsourceterm_data, "w");
+  }
 
-  // // omega domain - real
-  // // output_dims[0] = (*out).Nomega; output_dims[1] = 0;
-  // output_dims[0] = (*out).Nomega; output_dims[1] = nsimulations;
+  // omega domain - real
+  output_dims[0] = (*out).Nomega; output_dims[1] = nsimulations;
+  offsets[0] = -1; offsets[1] = Nsim_loc;
 
-  // if ( (*in).Print.FEfieldM2 == 1 )
-  // {
-	// 	path[0] = '\0';	strcat(strcat(path,inpath),"FEfieldM2");
-	// 	create_nd_array_h5(file_id, path, h5error, 2, output_dims, dtype_h5((*in).precision));
-  // }
+  if ( (*in).Print.FEfieldM2 == 1 )
+  {
+		path[0] = '\0';	strcat(strcat(path,inpath),"FEfieldM2");
+    rw_real_fullhyperslab_nd_h5(file_id, path, h5error, 2, output_dims, offsets, (*out).FEfieldM2, "w");
+  }
 
-  // if ( (*in).Print.FsourceTermM2 == 1 )
-  // {
-	// 	path[0] = '\0';	strcat(strcat(path,inpath),"FSourceTermM2");
-	// 	create_nd_array_h5(file_id, path, h5error, 2, output_dims, dtype_h5((*in).precision));
-  // }
-
-  // // the grid
-  // output_dims[0] = (*out).Nomega; output_dims[1] = 0;
-  // if ( (*in).Print.FEfield == 1 || (*in).Print.Fsourceterm == 1 || (*in).Print.FEfieldM2 == 1 || (*in).Print.FsourceTermM2 == 1 )
-  // {
-	// 	path[0] = '\0';	strcat(strcat(path,inpath),"omegagrid");
-	// 	print_nd_array_h5(file_id, path, h5error, 1, output_dims, (*out).omegagrid, H5T_NATIVE_DOUBLE);
-  // }
+  if ( (*in).Print.FsourceTermM2 == 1 )
+  {
+		path[0] = '\0';	strcat(strcat(path,inpath),"FSourceTermM2");
+		rw_real_fullhyperslab_nd_h5(file_id, path, h5error, 2, output_dims, offsets, (*out).FsourcetermM2, "w");
+  }
 
   // // various scalars
-  // output_dims[0] = 1; output_dims[1] = 0;
+  output_dims[0] = 1; output_dims[1] = 0;
   // path[0] = '\0'; strcat(strcat(path,inpath),"Energy_of_the_ground_state");
   // print_nd_array_h5(file_id, path, h5error, 1, output_dims, &(*in).Einit, H5T_NATIVE_DOUBLE);
+  
+  path[0] = '\0'; strcat(strcat(path,inpath),"number_of_local_simulations");
+  int foo = Nsim_loc + 1;
+  hid_t dset_id = H5Dopen2 (file_id, path, H5P_DEFAULT);
+  *h5error = H5Dwrite (dset_id, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, H5P_DEFAULT, &foo);
+  *h5error = H5Dclose(dset_id); // dataset
 }
