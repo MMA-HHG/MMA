@@ -20,7 +20,7 @@ struct inputs_def inputs;
 struct outputs_def outputs;
 
 int k1, k2, k3;
-const int one=1;
+int one = 1;
 
 
 clock_t start_main, finish2_main, finish1_main, finish3_main, finish4_main;
@@ -56,7 +56,7 @@ int main(int argc, char *argv[])
 	MPI_Init(&argc,&argv);
 	MPI_Comm_size(MPI_COMM_WORLD,&nprocs);
 	MPI_Comm_rank(MPI_COMM_WORLD,&myrank);
-	nxtval_init(-nprocs+myrank,&Nsim)
+	nxtval_init(-nprocs+myrank,&Nsim);
 
 	Init_constants();
 	inputs.Print = Initialise_Printing_struct();
@@ -115,32 +115,23 @@ int main(int argc, char *argv[])
 		// prepare the output file
 		dims[0] = outputs.Nt; // length defined by outputs
 
-		dumchar1[0] = '\0';	
-		sprintf(dumchar1, "%07d", myrank);
-		printf("1: file: %s \n", dumchar1); fflush(NULL);
-
-		dumchar2[0] = '\0';
-		strcpy(dumchar2,filename_stub);
-		printf("2: file: %s \n", dumchar2); fflush(NULL);
-		strcat(dumchar2,dumchar1); strcat(dumchar2,".h5");
-		printf("0: acall \n"); fflush(NULL);
-		printf("3: file: %s \n", dumchar2); fflush(NULL);
 
 
-		local_filename[0] = "\0"; dumchar1[0] = '\0'; sprintf(dumchar1, "%07d", myrank);
-		strcpy(strcpy(strcpy(local_filename,filename_stub),dumchar1),".h5");
+		local_filename[0] = '\0'; dumchar1[0] = '\0'; sprintf(dumchar1, "%07d", myrank);
+		strcat(local_filename,filename_stub); strcat(local_filename,dumchar1); strcat(local_filename,".h5");
 		
 		
 		//strcat(strcat(path,inpath),"Eguess");
 		file_id = H5Fcreate (local_filename, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
+		prepare_local_output_fixed_print_grids_h5(file_id, "", &h5error, &inputs, &outputs, Ntot/nprocs + 1);
 
 
 		output_dims[0] = Ntot/nprocs + 1;
-		create_nd_array_h5(file_id, "/keys", &h5error, 1, output_dims, H5T_NATIVE_INT);
+		//create_nd_array_h5(file_id, "/keys", &h5error, 1, output_dims, H5T_NATIVE_INT);
 		rw_hyperslab_nd_h5(file_id, "/keys", &h5error, one, &one, &Nsim_loc, &one, &Nsim, "w");
 
 		output_dims[0] = outputs.Nt; output_dims[1] = Ntot/nprocs + 1;
-		create_nd_array_h5(file_id, "/Efield", &h5error, 2, output_dims, H5T_NATIVE_DOUBLE);
+		//create_nd_array_h5(file_id, "/Efield", &h5error, 2, output_dims, H5T_NATIVE_DOUBLE);
 		dum3int[0] = Nsim; dum3int[0] = -1;
 		rw_real_fullhyperslab_nd_h5(file_id, "/Efield", &h5error, 2, output_dims, dum3int, outputs.Efield, "w");
 		// rw_real_fullhyperslab_nd_h5(file_id,"/SourceTerms",&h5error,3,dims,dum3int,outputs.Efield,"w");

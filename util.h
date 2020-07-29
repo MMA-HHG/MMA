@@ -106,7 +106,7 @@ struct inputs_def{
 	double textend, dtGabor, tmin1window, tmin2window, tmax1window, tmax2window, a_Gabor, omegaMaxGabor;
 	struct output_print_def Print;
 	double CV;
-	char[2] precision;
+	char precision[2];
 };
 struct outputs_def{ // only * can be modified by direct inputs
 	double *tgrid;
