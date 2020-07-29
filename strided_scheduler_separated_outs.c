@@ -124,7 +124,7 @@ int main(int argc, char *argv[])
 		//strcat(strcat(path,inpath),"Eguess");
 		file_id = H5Fcreate (local_filename, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
 		prepare_local_output_fixed_print_grids_h5(file_id, "", &h5error, &inputs, &outputs, Ntot/nprocs + 1);
-		print_local_output_fixed_h5(file_id,"", &h5error, &inputs, &outputs, Ntot/nprocs + 1, Nsim, Nsim_loc)
+		print_local_output_fixed_h5(file_id,"", &h5error, &inputs, &outputs, Ntot/nprocs + 1, Nsim, Nsim_loc);
 
 		// output_dims[0] = Ntot/nprocs + 1;
 		// //create_nd_array_h5(file_id, "/keys", &h5error, 1, output_dims, H5T_NATIVE_INT);

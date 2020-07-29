@@ -506,11 +506,11 @@ void print_local_output_fixed_h5(hid_t file_id, char *inpath, herr_t *h5error, s
 
   // time domain
 	output_dims[0] = (*out).Nt; output_dims[1] = nsimulations;
-  offsets[0] = Nsim; offsets[1] = -1;
+  offsets[0] = -1; offsets[1] = Nsim_loc;
 	if ( (*in).Print.Efield == 1 ) 
   {
 		path[0] = '\0';	strcat(strcat(path,inpath),"Efield");
-    rw_real_fullhyperslab_nd_h5(file_id, path, &h5error, 2, output_dims, offsets, (*out).Efield, "w");
+    rw_real_fullhyperslab_nd_h5(file_id, path, h5error, 2, output_dims, offsets, (*out).Efield, "w");
     //create_nd_array_h5(file_id, path, h5error, 2, output_dims, dtype_h5((*in).precision));
   }
 
@@ -541,10 +541,10 @@ void print_local_output_fixed_h5(hid_t file_id, char *inpath, herr_t *h5error, s
   {
 		path[0] = '\0';	strcat(strcat(path,inpath),"FEfield");
 		//create_nd_array_h5(file_id, path, h5error, 3, output_dims, dtype_h5((*in).precision));
-    int hcount[3] = {outputs.Nomega,2,1};
+    int hcount[3] = {(*out).Nomega,2,1};
 		int hoffset[3] = {0,0,Nsim_loc};
-		int dimsloc[2] = {outputs.Nomega,2};
-		rw_hyperslab_nd_h5(file_id, path, &h5error, 2, dimsloc, hoffset, hcount, (*out).FEfield_data, "w");
+		int dimsloc[2] = {(*out).Nomega,2};
+		rw_hyperslab_nd_h5(file_id, path, h5error, 2, dimsloc, hoffset, hcount, (*out).FEfield_data, "w");
   }
 
   // if ( (*in).Print.Fsourceterm == 1 )
