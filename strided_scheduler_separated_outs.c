@@ -124,25 +124,25 @@ int main(int argc, char *argv[])
 		//strcat(strcat(path,inpath),"Eguess");
 		file_id = H5Fcreate (local_filename, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
 		prepare_local_output_fixed_print_grids_h5(file_id, "", &h5error, &inputs, &outputs, Ntot/nprocs + 1);
+		print_local_output_fixed_h5(file_id,"", &h5error, &inputs, &outputs, Ntot/nprocs + 1, Nsim, Nsim_loc)
 
+		// output_dims[0] = Ntot/nprocs + 1;
+		// //create_nd_array_h5(file_id, "/keys", &h5error, 1, output_dims, H5T_NATIVE_INT);
+		// rw_hyperslab_nd_h5(file_id, "/keys", &h5error, one, &one, &Nsim_loc, &one, &Nsim, "w");
 
-		output_dims[0] = Ntot/nprocs + 1;
-		//create_nd_array_h5(file_id, "/keys", &h5error, 1, output_dims, H5T_NATIVE_INT);
-		rw_hyperslab_nd_h5(file_id, "/keys", &h5error, one, &one, &Nsim_loc, &one, &Nsim, "w");
+		// output_dims[0] = outputs.Nt; output_dims[1] = Ntot/nprocs + 1;
+		// //create_nd_array_h5(file_id, "/Efield", &h5error, 2, output_dims, H5T_NATIVE_DOUBLE);
+		// dum3int[0] = Nsim; dum3int[0] = -1;
+		// //rw_real_fullhyperslab_nd_h5(file_id, "/Efield", &h5error, 2, output_dims, dum3int, outputs.Efield, "w");
+		// // rw_real_fullhyperslab_nd_h5(file_id,"/SourceTerms",&h5error,3,dims,dum3int,outputs.Efield,"w");
 
-		output_dims[0] = outputs.Nt; output_dims[1] = Ntot/nprocs + 1;
-		//create_nd_array_h5(file_id, "/Efield", &h5error, 2, output_dims, H5T_NATIVE_DOUBLE);
-		dum3int[0] = Nsim; dum3int[0] = -1;
-		rw_real_fullhyperslab_nd_h5(file_id, "/Efield", &h5error, 2, output_dims, dum3int, outputs.Efield, "w");
-		// rw_real_fullhyperslab_nd_h5(file_id,"/SourceTerms",&h5error,3,dims,dum3int,outputs.Efield,"w");
+		// output_dims[0] = outputs.Nomega; output_dims[1] = 2; output_dims[2] = Ntot/nprocs + 1;
+		// create_nd_array_h5(file_id, "/FEfield", &h5error, 3, output_dims, H5T_NATIVE_DOUBLE);
 
-		output_dims[0] = outputs.Nomega; output_dims[1] = 2; output_dims[2] = Ntot/nprocs + 1;
-		create_nd_array_h5(file_id, "/FEfield", &h5error, 3, output_dims, H5T_NATIVE_DOUBLE);
-
-		int hcount[3] = {outputs.Nomega,2,1};
-		int hoffset[3] = {0,0,Nsim_loc};
-		int dimsloc[2] = {outputs.Nomega,2};
-		rw_hyperslab_nd_h5(file_id, "/FEfield", &h5error, 2, dimsloc, hoffset, hcount, outputs.FEfield_data, "w");
+		// int hcount[3] = {outputs.Nomega,2,1};
+		// int hoffset[3] = {0,0,Nsim_loc};
+		// int dimsloc[2] = {outputs.Nomega,2};
+		// rw_hyperslab_nd_h5(file_id, "/FEfield", &h5error, 2, dimsloc, hoffset, hcount, outputs.FEfield_data, "w");
 
 		h5error = H5Fclose(file_id); // file
 	}

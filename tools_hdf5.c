@@ -415,66 +415,162 @@ void prepare_local_output_fixed_print_grids_h5(hid_t file_id, char *inpath, herr
 
   // keys for post-processing
   output_dims[0] = nsimulations;
-  create_nd_array_h5(file_id, "/keys", h5error, 1, output_dims, H5T_NATIVE_INT);
+  path[0] = '\0';	strcat(strcat(path,inpath),"keys");
+  create_nd_array_h5(file_id, path, h5error, 1, output_dims, H5T_NATIVE_INT);
 
   // time domain
 	output_dims[0] = (*out).Nt; output_dims[1] = nsimulations;
 	if ( (*in).Print.Efield == 1 ) 
   {
-		path[0] = '\0';	strcat(strcat(path,inpath),"/Efield");
+		path[0] = '\0';	strcat(strcat(path,inpath),"Efield");
     create_nd_array_h5(file_id, path, h5error, 2, output_dims, dtype_h5((*in).precision));
-		//print_nd_array_h5(file_id, path, h5error, 1, output_dims, (*out).Efield, H5T_NATIVE_DOUBLE);
+  }
+
+  if ( (*in).Print.sourceterm == 1 )
+  {
+		path[0] = '\0';	strcat(strcat(path,inpath),"SourceTerm");
+		create_nd_array_h5(file_id, path, h5error, 2, output_dims, dtype_h5((*in).precision));
+  }
+
+  if ( (*in).Print.PopTot == 1 )
+  {
+		path[0] = '\0';	strcat(strcat(path,inpath),"PopTot");
+		create_nd_array_h5(file_id, path, h5error, 2, output_dims, dtype_h5((*in).precision));
+  }
+
+  // the grid
+  output_dims[0] = (*out).Nt; output_dims[1] = 0;
+  if ( (*in).Print.Efield == 1 || (*in).Print.sourceterm == 1 || (*in).Print.PopTot == 1 )
+  {
+		path[0] = '\0';	strcat(strcat(path,inpath),"tgrid");
+		print_nd_array_h5(file_id, path, h5error, 1, output_dims, (*out).tgrid, H5T_NATIVE_DOUBLE);
+  }
+
+  // omega domain - complex
+  //output_dims[0] = (*out).Nomega; output_dims[1] = 2;
+  output_dims[0] = (*out).Nomega; output_dims[1] = 2; output_dims[2] = nsimulations;
+  if ( (*in).Print.FEfield == 1 )
+  {
+		path[0] = '\0';	strcat(strcat(path,inpath),"FEfield");
+		create_nd_array_h5(file_id, path, h5error, 3, output_dims, dtype_h5((*in).precision));
+  }
+
+  if ( (*in).Print.Fsourceterm == 1 )
+  {
+		path[0] = '\0';	strcat(strcat(path,inpath),"FSourceTerm");
+		create_nd_array_h5(file_id, path, h5error, 3, output_dims, dtype_h5((*in).precision));
+  }
+
+  // omega domain - real
+  // output_dims[0] = (*out).Nomega; output_dims[1] = 0;
+  output_dims[0] = (*out).Nomega; output_dims[1] = nsimulations;
+
+  if ( (*in).Print.FEfieldM2 == 1 )
+  {
+		path[0] = '\0';	strcat(strcat(path,inpath),"FEfieldM2");
+		create_nd_array_h5(file_id, path, h5error, 2, output_dims, dtype_h5((*in).precision));
+  }
+
+  if ( (*in).Print.FsourceTermM2 == 1 )
+  {
+		path[0] = '\0';	strcat(strcat(path,inpath),"FSourceTermM2");
+		create_nd_array_h5(file_id, path, h5error, 2, output_dims, dtype_h5((*in).precision));
+  }
+
+  // the grid
+  output_dims[0] = (*out).Nomega; output_dims[1] = 0;
+  if ( (*in).Print.FEfield == 1 || (*in).Print.Fsourceterm == 1 || (*in).Print.FEfieldM2 == 1 || (*in).Print.FsourceTermM2 == 1 )
+  {
+		path[0] = '\0';	strcat(strcat(path,inpath),"omegagrid");
+		print_nd_array_h5(file_id, path, h5error, 1, output_dims, (*out).omegagrid, H5T_NATIVE_DOUBLE);
+  }
+
+  // various scalars
+  output_dims[0] = 1; output_dims[1] = 0;
+  path[0] = '\0'; strcat(strcat(path,inpath),"Energy_of_the_ground_state");
+  print_nd_array_h5(file_id, path, h5error, 1, output_dims, &(*in).Einit, H5T_NATIVE_DOUBLE);
+}
+
+
+
+void print_local_output_fixed_h5(hid_t file_id, char *inpath, herr_t *h5error, struct inputs_def *in, struct outputs_def *out, int nsimulations, int Nsim, int Nsim_loc)
+{
+	hsize_t output_dims[3]; // never exceeds 2 in this case, can be longer
+  int offsets[3];
+	char path[50];
+
+  // keys for post-processing
+  output_dims[0] = nsimulations;
+  path[0] = '\0';	strcat(strcat(path,inpath),"keys");
+  // create_nd_array_h5(file_id, path, h5error, 1, output_dims, H5T_NATIVE_INT);
+
+  // time domain
+	output_dims[0] = (*out).Nt; output_dims[1] = nsimulations;
+  offsets[0] = Nsim; offsets[1] = -1;
+	if ( (*in).Print.Efield == 1 ) 
+  {
+		path[0] = '\0';	strcat(strcat(path,inpath),"Efield");
+    rw_real_fullhyperslab_nd_h5(file_id, path, &h5error, 2, output_dims, offsets, (*out).Efield, "w");
+    //create_nd_array_h5(file_id, path, h5error, 2, output_dims, dtype_h5((*in).precision));
   }
 
   // if ( (*in).Print.sourceterm == 1 )
   // {
 	// 	path[0] = '\0';	strcat(strcat(path,inpath),"SourceTerm");
-	// 	print_nd_array_h5(file_id, path, h5error, 1, output_dims, (*out).sourceterm, H5T_NATIVE_DOUBLE);
+	// 	create_nd_array_h5(file_id, path, h5error, 2, output_dims, dtype_h5((*in).precision));
   // }
 
   // if ( (*in).Print.PopTot == 1 )
   // {
 	// 	path[0] = '\0';	strcat(strcat(path,inpath),"PopTot");
-	// 	print_nd_array_h5(file_id, path, h5error, 1, output_dims, (*out).PopTot, H5T_NATIVE_DOUBLE);
+	// 	create_nd_array_h5(file_id, path, h5error, 2, output_dims, dtype_h5((*in).precision));
   // }
 
   // // the grid
+  // output_dims[0] = (*out).Nt; output_dims[1] = 0;
   // if ( (*in).Print.Efield == 1 || (*in).Print.sourceterm == 1 || (*in).Print.PopTot == 1 )
   // {
 	// 	path[0] = '\0';	strcat(strcat(path,inpath),"tgrid");
 	// 	print_nd_array_h5(file_id, path, h5error, 1, output_dims, (*out).tgrid, H5T_NATIVE_DOUBLE);
   // }
 
-  // // omega domain - complex
-  // output_dims[0] = (*out).Nomega; output_dims[1] = 2;
-  // if ( (*in).Print.FEfield == 1 )
-  // {
-	// 	path[0] = '\0';	strcat(strcat(path,inpath),"FEfield");
-	// 	print_nd_array_h5(file_id, path, h5error, 2, output_dims, (*out).FEfield_data, H5T_NATIVE_DOUBLE);
-  // }
+  // omega domain - complex
+  //output_dims[0] = (*out).Nomega; output_dims[1] = 2;
+  output_dims[0] = (*out).Nomega; output_dims[1] = 2; output_dims[2] = nsimulations;
+  if ( (*in).Print.FEfield == 1 )
+  {
+		path[0] = '\0';	strcat(strcat(path,inpath),"FEfield");
+		//create_nd_array_h5(file_id, path, h5error, 3, output_dims, dtype_h5((*in).precision));
+    int hcount[3] = {outputs.Nomega,2,1};
+		int hoffset[3] = {0,0,Nsim_loc};
+		int dimsloc[2] = {outputs.Nomega,2};
+		rw_hyperslab_nd_h5(file_id, path, &h5error, 2, dimsloc, hoffset, hcount, (*out).FEfield_data, "w");
+  }
 
   // if ( (*in).Print.Fsourceterm == 1 )
   // {
 	// 	path[0] = '\0';	strcat(strcat(path,inpath),"FSourceTerm");
-	// 	print_nd_array_h5(file_id, path, h5error, 2, output_dims, (*out).Fsourceterm_data, H5T_NATIVE_DOUBLE);
+	// 	create_nd_array_h5(file_id, path, h5error, 3, output_dims, dtype_h5((*in).precision));
   // }
 
   // // omega domain - real
-  // output_dims[0] = (*out).Nomega; output_dims[1] = 0;
+  // // output_dims[0] = (*out).Nomega; output_dims[1] = 0;
+  // output_dims[0] = (*out).Nomega; output_dims[1] = nsimulations;
 
   // if ( (*in).Print.FEfieldM2 == 1 )
   // {
 	// 	path[0] = '\0';	strcat(strcat(path,inpath),"FEfieldM2");
-	// 	print_nd_array_h5(file_id, path, h5error, 1, output_dims, (*out).FEfieldM2, H5T_NATIVE_DOUBLE);
+	// 	create_nd_array_h5(file_id, path, h5error, 2, output_dims, dtype_h5((*in).precision));
   // }
 
   // if ( (*in).Print.FsourceTermM2 == 1 )
   // {
 	// 	path[0] = '\0';	strcat(strcat(path,inpath),"FSourceTermM2");
-	// 	print_nd_array_h5(file_id, path, h5error, 1, output_dims, (*out).FsourcetermM2, H5T_NATIVE_DOUBLE);
+	// 	create_nd_array_h5(file_id, path, h5error, 2, output_dims, dtype_h5((*in).precision));
   // }
 
   // // the grid
+  // output_dims[0] = (*out).Nomega; output_dims[1] = 0;
   // if ( (*in).Print.FEfield == 1 || (*in).Print.Fsourceterm == 1 || (*in).Print.FEfieldM2 == 1 || (*in).Print.FsourceTermM2 == 1 )
   // {
 	// 	path[0] = '\0';	strcat(strcat(path,inpath),"omegagrid");
