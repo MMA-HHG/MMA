@@ -88,6 +88,7 @@ int main()
 	end_clock = clock();
 	double elapsed_time = (double)((end_clock - start_clock)/CLOCKS_PER_SEC);
 	print_nd_array_h5(file_id, "/TDSEsingle/full_runtime", &h5error, 1, output_dims, &elapsed_time, H5T_NATIVE_DOUBLE);
+	add_units_1D_h5(file_id, "/TDSEsingle/full_runtime", &h5error, "[s]");
 
 
 	h5error = H5Fclose(file_id);

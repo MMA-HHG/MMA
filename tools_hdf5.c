@@ -12,6 +12,21 @@
 
 int one;
 
+void add_units_1D_h5(hid_t file_id, char *dset_name, herr_t *h5error, char *units_value)
+{
+  hid_t dset_id = H5Dopen2 (file_id, dset_name, H5P_DEFAULT);
+  hsize_t dumh51D[1] = {1};
+  hid_t aspace_id = H5Screate_simple(1, dumh51D, dumh51D);
+  hid_t atype_id = H5Tcopy(H5T_C_S1);
+  *h5error = H5Tset_size(atype_id, (size_t) 10);
+  hid_t attr_id = H5Acreate2(dset_id, "units", atype_id, aspace_id, H5P_DEFAULT, H5P_DEFAULT);
+  *h5error = H5Awrite(attr_id, atype_id, units_value);
+  *h5error = H5Aclose(attr_id);
+  *h5error = H5Tclose(atype_id);
+  *h5error = H5Sclose(aspace_id);
+  *h5error = H5Dclose(dset_id);
+}
+
 hid_t dtype_h5(char *foo)
 {
   if (strcmp(foo,"d")==0){
