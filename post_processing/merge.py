@@ -26,18 +26,45 @@ import glob
 print(mn.IsPowerOf2(4))
 
 files = glob.glob('hdf5_temp_*.h5')
+outfname = "merged.h5"
+available_outputs_list = ['Efield', 'Gabor']
+
 print(files)
 
+def prepare_ouput_file(f,outf,dset_list):
+    joint_rz_shape = (mn.readscalardataset(f,'Nr_orig','N')[0], mn.readscalardataset(f,'Nz_orig','N')[0])
+    for dsetname in dset_list:
+        if (dsetname in available_outputs_list):
+            dset = f[dsetname]
+            newshape = dset.shape[0:-1] + joint_rz_shape
+            newdset = outf.create_dataset(dsetname, newshape,'d')
 
 
-k1 = 0;
-for fname in files:
-    print("file")
-    with h5py.File(fname,'r') as f:
-        # if first: prepare
-        # else: print
 
-        print(list(f.keys()))
+
+
+
+
+with h5py.File(outfname,'w') as outf:
+    firstrun = True;
+    for fname in files:
+        print("file")
+        with h5py.File(fname,'r') as f:
+            dset_list = list(f.keys())
+            if firstrun:
+                prepare_ouput_file(f, outf, dset_list)
+                firstrun = False;
+            else:
+                pass
+            nsim_loc = mn.readscalardataset(f,'number_of_local_simulations','N')[0]
+            print(nsim_loc)
+            data = f["Efield"][()]
+            print(data[:,0:nsim_loc])
+            # if first: prepare
+            # else: print
+            print(list(f.keys()))
+            myshape = f["FEfield"].shape
+            print(myshape[0:-1])
 
 
 reflist = ["a", "car", "dog"]
