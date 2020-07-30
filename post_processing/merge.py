@@ -23,7 +23,7 @@ import glob
 
 files = glob.glob('hdf5_temp_*.h5') # filter all the single-proc files
 outfname = "results_merged.h5"
-available_outputs_list = ['Efield', 'FEfield', 'SourceTerm', 'FSourceterm', 'FEfieldM2', 'FSourceTermM2', 'PopTot', 'Gabor']
+available_outputs_list = ['Efield', 'FEfield', 'SourceTerm', 'FSourceTerm', 'FEfieldM2', 'FSourceTermM2', 'PopTot', 'Gabor'] # Gabor is not implemented, it's here to test an extra argument
 available_further_data = ['tgrid', 'omegagrid', 'Energy_of_the_ground_state'] # these are in all the files and supposed to be same, e.g. grids
 precision = 'd'
 
@@ -70,5 +70,5 @@ with h5py.File(outfname,'w') as outf:
                 prepare_ouput_file(f, outf, dset_list)
                 firstrun = False
             print_ouput_file(f, outf, dset_list)
-            
+
 print('Done')
