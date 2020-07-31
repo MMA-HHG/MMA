@@ -20,27 +20,31 @@ CONTAINS
     
     INTEGER :: field_dimensions ! Dataset rank & # of points in z
     ! the kind of this variable has to correspond with the precision stored in HDF5-file
-    REAL(4), ALLOCATABLE :: fields_array(:,:,:), plasma_array(:,:,:), spect_array(:,:,:) 
-    
+    REAL(4), ALLOCATABLE :: fields_array(:,:,:), plasma_array(:,:,:) 
+    REAL(4), ALLOCATABLE :: spect_array_1(:),  spect_array_2(:,:), spect_array_3(:,:), spect_array_4(:,:), spect_array_5(:,:) 
     INTEGER(HSIZE_T)               :: r_offset
 
     INTEGER(4) j,k,l
     REAL(8) rhotemp,r,mpa
     COMPLEX(8) help
     CHARACTER*10 iz
+    LOGICAL :: first = .FALSE.
     INTEGER(HID_T) :: file_id       ! File identifier 
     INTEGER(HID_T) :: group_id      ! Group identifier 
     INTEGER(HID_T) :: h5parameters  ! Property list identifier 
-    INTEGER(HSIZE_T), DIMENSION(3) :: dims
-    INTEGER(HSIZE_T), DIMENSION(3) :: ccount  
-    INTEGER(HSIZE_T), DIMENSION(3) :: offset 
-    INTEGER :: error
+    INTEGER(HSIZE_T), DIMENSION(3) :: dims, offset, ccount
+    INTEGER(HSIZE_T), DIMENSION(2) :: dims_2d, offset_2d, ccount_2d
+    INTEGER                        :: error
+    LOGICAL                        :: group_status
     CHARACTER(LEN=15) :: h5_filename="results.h5"
     CHARACTER(LEN=15) :: groupname="outputs"
     CHARACTER(LEN=25) :: field_dset_name="outputs/output_field"
     CHARACTER(LEN=25) :: plasma_dset_name="outputs/output_plasma"
-    CHARACTER(LEN=25) :: spect_1d_dset_name="outputs/spect_1d"
-  
+    CHARACTER(LEN=25) :: spect_1d_dset_name_1="outputs/spect_1d_column_1"
+    CHARACTER(LEN=25) :: spect_1d_dset_name_2="outputs/spect_1d_column_2"
+    CHARACTER(LEN=25) :: spect_1d_dset_name_3="outputs/spect_1d_column_3"
+    CHARACTER(LEN=25) :: spect_1d_dset_name_4="outputs/spect_1d_column_4"
+    CHARACTER(LEN=25) :: spect_1d_dset_name_5="outputs/spect_1d_column_5"
 
       
     field_dimensions = 3
@@ -81,6 +85,13 @@ CONTAINS
       k1 = k1 + 1
     ENDDO
 
+    IF ( output_write_count .EQ. 1) THEN
+      first = .TRUE.
+    ELSE
+      first = .FALSE.
+    ENDIF
+
+    ! Calculate dimensions for the field to be preallocated, the offset and the hyperslab size
     dims = (/int(Nz_points,HSIZE_T),int(dim_r,HSIZE_T), int(dim_t,HSIZE_T)/)
     offset = (/int(output_write_count-1,HSIZE_T),int(dim_r_start(num_proc)-1,HSIZE_T),int(0,HSIZE_T)/)
     ccount = (/int(1,HSIZE_T), int(dim_r_local,HSIZE_T) , int(dim_t,HSIZE_T)/)
@@ -89,10 +100,13 @@ CONTAINS
     CALL h5pset_fapl_mpio_f(h5parameters, MPI_COMM_WORLD, MPI_INFO_NULL, error) ! set parameters for MPI access
     CALL h5fopen_f(h5_filename, H5F_ACC_RDWR_F, file_id, error, access_prp = h5parameters ) ! Open collectivelly the file
     CALL h5pclose_f(h5parameters,error) ! close the parameters
-    IF ( output_write_count == 1) THEN 
-      !Create group for the output
-      CALL h5gcreate_f(file_id, groupname, group_id, error) 
-      CALL h5gclose_f(group_id, error)
+    IF ( first ) THEN
+      !Create group for the output if it does not already exist
+      CALL h5lexists_f(file_id, groupname, group_status, error)
+      IF ( group_status .EQV. .FALSE. ) THEN
+        CALL h5gcreate_f(file_id, groupname, group_id, error) 
+        CALL h5gclose_f(group_id, error)
+      ENDIF
           
       ! Call writing routine
       CALL create_3D_array_real_dset_p(file_id, field_dset_name, fields_array, dims, offset, ccount)
@@ -101,10 +115,10 @@ CONTAINS
       ! Terminate
       CALL h5fclose_f(file_id,error)
 
-      IF (my_rank.EQ.0) THEN
+      IF (my_rank.EQ.0) THEN ! single-write start
         CALL h5fopen_f (h5_filename, H5F_ACC_RDWR_F, file_id, error) ! Open an existing file.
         CALL h5_add_units_1D(file_id, field_dset_name, '[V/m]') ! add units
-        CALL h5fclose_f(file_id, error)
+        CALL h5fclose_f(file_id, error) ! close the file
       ENDIF ! single-write end
     ELSE !!!! APPENDING THE DATA IN NEXT ITERATIONS
       CALL write_hyperslab_to_dset_p(file_id, field_dset_name, fields_array, offset, ccount)
@@ -112,10 +126,11 @@ CONTAINS
       CALL h5fclose_f(file_id,error)
     ENDIF
 
-
+    ! Deallocate no longer needed arrays
     deallocate(fields_array)
     deallocate(plasma_array)
-    CALL h5close_f(error)
+    CALL h5close_f(error) ! Close fortran H5 interface
+
     etemp=CSHIFT(e,dim_t/2-1,1)
     CALL dfftw_execute(plan_spec)
     DO l=dim_r_start(num_proc),dim_r_end(num_proc)
@@ -138,27 +153,46 @@ CONTAINS
     CALL MPI_REDUCE(e_2(1:dim_t),e_2KK(1:dim_t),dim_t,MPI_DOUBLE_PRECISION,MPI_SUM,0,MPI_COMM_WORLD,ierr)
     CALL MPI_REDUCE(e_2KKm2(1:dim_t),e_2(1:dim_t),dim_t,MPI_DOUBLE_PRECISION,MPI_SUM,0,MPI_COMM_WORLD,ierr)
     IF (my_rank.EQ.0) THEN
-      dims = (/int(Nz_points,HSIZE_T),int(5,HSIZE_T), int(dim_t,HSIZE_T)/)
-      offset = (/int(output_write_count-1,HSIZE_T),int(0,HSIZE_T),int(0,HSIZE_T)/)
-      ccount = (/int(1,HSIZE_T),int(5,HSIZE_T),int(dim_t,HSIZE_T)/)
-      allocate(spect_array(1,5,1:dim_t))
+      dims_2d = (/int(Nz_points,HSIZE_T), int(dim_t,HSIZE_T)/)
+      offset_2d = (/int(output_write_count-1,HSIZE_T),int(0,HSIZE_T)/)
+      ccount_2d = (/int(1,HSIZE_T),int(dim_t,HSIZE_T)/)
+      IF ( first ) THEN
+        allocate(spect_array_1(1:dim_t),spect_array_2(1,1:dim_t),spect_array_3(1,1:dim_t), &
+          spect_array_4(1,1:dim_t),spect_array_5(1,1:dim_t))
+      ELSE
+        allocate(spect_array_2(1,1:dim_t),spect_array_3(1,1:dim_t), spect_array_4(1,1:dim_t),spect_array_5(1,1:dim_t))
+      ENDIF
       CALL h5open_f(error)
       CALL h5fopen_f(h5_filename, H5F_ACC_RDWR_F, file_id, error)
-      DO j=1,dim_t
-         spect_array(1,1,j) = REAL(k_t*REAL(j-1-dim_th,8)+omega_uppe,4) 
-         spect_array(1,2,j) = REAL(e_2KK(j),4)
-         spect_array(1,3,j) = REAL(e_2(j),4)
-         spect_array(1,4,j) = REAL(ABS(etemp(j,1))**2,4)
-         spect_array(1,5,j) = REAL(ATAN2(AIMAG(etemp(j,1)),REAL(etemp(j,1))+1.D-20),4)
-      ENDDO
-      IF ( output_write_count .EQ. 1) THEN
-        CALL create_3D_array_real_dset(file_id, spect_1d_dset_name, spect_array, dims, offset, ccount)
+      IF ( first ) THEN
+        DO j=1,dim_t
+          spect_array_1(j) = REAL(k_t*REAL(j-1-dim_th,8)+omega_uppe,4) 
+          spect_array_2(1,j) = REAL(e_2KK(j),4)
+          spect_array_3(1,j) = REAL(e_2(j),4)
+          spect_array_4(1,j) = REAL(ABS(etemp(j,1))**2,4)
+          spect_array_5(1,j) = REAL(ATAN2(AIMAG(etemp(j,1)),REAL(etemp(j,1))+1.D-20),4)
+        ENDDO
+        CALL create_1D_array_real_dset(file_id, spect_1d_dset_name_1, spect_array_1, dim_t)
+        CALL create_and_preallocate_2D_array_real_dset(file_id, spect_1d_dset_name_2, spect_array_2, dims_2d, offset_2d, ccount_2d)
+        CALL create_and_preallocate_2D_array_real_dset(file_id, spect_1d_dset_name_3, spect_array_3, dims_2d, offset_2d, ccount_2d)
+        CALL create_and_preallocate_2D_array_real_dset(file_id, spect_1d_dset_name_4, spect_array_4, dims_2d, offset_2d, ccount_2d)
+        CALL create_and_preallocate_2D_array_real_dset(file_id, spect_1d_dset_name_5, spect_array_5, dims_2d, offset_2d, ccount_2d)
+        deallocate(spect_array_1, spect_array_2, spect_array_3, spect_array_4, spect_array_5)
       ELSE
-        CALL write_hyperslab_to_dset(file_id, spect_1d_dset_name, spect_array, offset, ccount)
+        DO j=1,dim_t
+          spect_array_2(1,j) = REAL(e_2KK(j),4)
+          spect_array_3(1,j) = REAL(e_2(j),4)
+          spect_array_4(1,j) = REAL(ABS(etemp(j,1))**2,4)
+          spect_array_5(1,j) = REAL(ATAN2(AIMAG(etemp(j,1)),REAL(etemp(j,1))+1.D-20),4)
+        ENDDO
+        CALL write_hyperslab_to_2D_dset(file_id, spect_1d_dset_name_2, spect_array_2, offset_2d, ccount_2d)
+        CALL write_hyperslab_to_2D_dset(file_id, spect_1d_dset_name_3, spect_array_3, offset_2d, ccount_2d)
+        CALL write_hyperslab_to_2D_dset(file_id, spect_1d_dset_name_4, spect_array_4, offset_2d, ccount_2d)
+        CALL write_hyperslab_to_2D_dset(file_id, spect_1d_dset_name_5, spect_array_5, offset_2d, ccount_2d)
+        deallocate(spect_array_2, spect_array_3, spect_array_4, spect_array_5)
       ENDIF
       CALL h5fclose_f(file_id, error)
       CALL h5close_f(error) ! close the HDF5 workspace
-      deallocate(spect_array)
     ENDIF
     output_write_count = output_write_count + 1 !increase counter in all cases
     RETURN
@@ -271,11 +305,26 @@ CONTAINS
 
   SUBROUTINE  field_out
     USE ppt
+    USE normalization
+    USE HDF5
+    USE HDF5_helper
     IMPLICIT  NONE
 
-    INTEGER(4) j,k,i_x,i_z
+    INTEGER(4) j,k,k1,k2,i_x,i_z
     CHARACTER*10  iz,filename
     CHARACTER*15  id
+    INTEGER(HSIZE_T)               :: r_offset
+    INTEGER(HID_T) :: file_id       ! File identifier 
+    INTEGER(HID_T) :: group_id      ! Group identifier 
+    INTEGER(HID_T) :: field_group_id! Field out group identifier
+    INTEGER(HID_T) :: h5parameters  ! Property list identifier 
+    INTEGER(HSIZE_T), DIMENSION(2) :: dims, offset, ccount
+    INTEGER :: error
+    LOGICAL :: group_status
+    CHARACTER(LEN=15) :: h5_filename="results.h5"
+    CHARACTER(LEN=15) :: groupname="outputs"
+    CHARACTER(LEN=25) :: field_out_groupname="outputs/field_out"
+    REAL(4), ALLOCATABLE :: real_e(:,:),imag_e(:,:)
 
     WRITE(iz,920) z
     DO  k=1,10
@@ -293,189 +342,132 @@ CONTAINS
     ENDIF
     CALL MPI_BCAST(filename,10,MPI_CHARACTER,0,MPI_COMM_WORLD,ierr)
     IF (filename.NE.iz) THEN
+       CALL h5open_f(error)
+       CALL h5pcreate_f(H5P_FILE_ACCESS_F, h5parameters, error) ! create HDF5 access parameters
+       CALL h5pset_fapl_mpio_f(h5parameters, MPI_COMM_WORLD, MPI_INFO_NULL, error) ! set parameters for MPI access
+       CALL h5fopen_f(h5_filename, H5F_ACC_RDWR_F, file_id, error, access_prp = h5parameters ) ! Open collectivelly the file
+       CALL h5pclose_f(h5parameters,error) ! close the parameters
+       !Create group for the output if it does not already exist
+       CALL h5lexists_f(file_id, groupname, group_status, error)
+       IF ( group_status .EQV. .FALSE. ) THEN
+         CALL h5gcreate_f(file_id, groupname, group_id, error) 
+         CALL h5gclose_f(group_id, error)
+       ENDIF
+       CALL h5gcreate_f(file_id, field_out_groupname, field_group_id, error) 
        IF(my_rank.EQ.0) THEN
           OPEN(unit_logfile,FILE='PROP_RAD.LOG',STATUS='UNKNOWN',POSITION='APPEND')
           WRITE(unit_logfile,*) iz    
           CLOSE(unit_logfile)
        ENDIF
        OPEN(unit_field,FILE=iz//'_'//ip//'.DAT',STATUS='UNKNOWN',FORM='UNFORMATTED')
-       id='num_proc'
-       WRITE(unit_field) id,num_proc
-       id='dim_t'
-       WRITE(unit_field) id,dim_t
-       id='dim_r'
-       WRITE(unit_field) id,dim_r
-       id='rek0'
-       WRITE(unit_field) id,rek0
-       id='rekp'
-       WRITE(unit_field) id,rekp
-       id='c3'
-       WRITE(unit_field) id,c3
-       id='c5'
-       WRITE(unit_field) id,c5
-       id='gamma1'
-       WRITE(unit_field) id,gamma1
-       id='gamma2'
-       WRITE(unit_field) id,gamma2
-       id='muk'
-       WRITE(unit_field) id,muk
-       id='betainv2KK'
-       WRITE(unit_field) id,beta_inv_2KK
-       id='KK'
-       WRITE(unit_field) id,KK
-       id='rho0'
-       WRITE(unit_field) id,rho0
-       id='nu'
-       WRITE(unit_field) id,nu
-       id='alpha'
-       WRITE(unit_field) id,alpha
-       id='alphaquad'
-       WRITE(unit_field) id,alphaquad
-       id='rhoat_inv'
-       WRITE(unit_field) id,rhoat_inv
-       id='xdk'
-       WRITE(unit_field) id,xdk
-       id='tdk'
-       WRITE(unit_field) id,tdk
-       id='raman'
-       WRITE(unit_field) id,raman
-       id='omega'
-       WRITE(unit_field) id,omega
-       id='komega'
-       WRITE(unit_field) id,komega(1:dim_t)
-       id='NN'
-       WRITE(unit_field) id,NN
-       id='eta1'
-       WRITE(unit_field) id,eta1
-       id='eta2'
-       WRITE(unit_field) id,eta2
-       id='lt'
-       WRITE(unit_field) id,lt
-       id='lr'
-       WRITE(unit_field) id,lr
-       id='proplength'
-       WRITE(unit_field) id,proplength
-       id='outlength'
-       WRITE(unit_field) id,outlength
-       id='delta_z'
-       WRITE(unit_field) id,delta_z
-       id='z'
-       WRITE(unit_field) id,z
-       id='z_out'
-       WRITE(unit_field) id,z_out
-       id='rfil'
-       WRITE(unit_field) id,rfil
-       id='switch_rho'
-       WRITE(unit_field) id,switch_rho
-       id='switchKerr'
-       WRITE(unit_field) id,switch_dKerr
-       id='switch_T'
-       WRITE(unit_field) id,switch_T
-       id='absorb'
-       WRITE(unit_field) id,absorb
-       id='increase'
-       WRITE(unit_field) id,increase
-       id='decrease'
-       WRITE(unit_field) id,decrease
-       id='rhodist'
-       WRITE(unit_field) id,rhodist
-       id='timelimit'
-       WRITE(unit_field) id,timelimit
-       id='photenergy'
-       WRITE(unit_field) id,photon_energy
-       id='pulsedurat'
-       WRITE(unit_field) id,pulse_duration
-       id='critpower'
-       WRITE(unit_field) id,critical_power
-       id='beam_waist'
-       WRITE(unit_field) id,beam_waist
-       id='ionpot'
-       WRITE(unit_field) id,ionisation_potential
-       id='rescharge'
-       WRITE(unit_field) id,residue_charge
-       id='n0_indice'
-       WRITE(unit_field) id,n0_indice
-       id='critdens'
-       WRITE(unit_field) id,critical_density
-       id='atomdens'
-       WRITE(unit_field) id,atomic_density
-       id='reducmass'
-       WRITE(unit_field) id,reduced_mass
-       id='angmom'
-       WRITE(unit_field) id,angular_momentum
-       id='KKp'
-       WRITE(unit_field) id,KKp
-       id='beta_inv_2KKp'
-       WRITE(unit_field) id,beta_inv_2KKp
-       id='mukp'
-       WRITE(unit_field) id,mukp
-       id='beta_inv_2'
-       WRITE(unit_field) id,beta_inv_2
-       id='mu'
-       WRITE(unit_field) id,mu
-       id='KKpp'
-       WRITE(unit_field) id,KKpp
-       id='beta_inv_2KKpp'
-       WRITE(unit_field) id,beta_inv_2KKpp
-       id='mukpp'
-       WRITE(unit_field) id,mukpp
-       id='eti_ref'
-       WRITE(unit_field) id,eti_ref
-       id='exp_ref'
-       WRITE(unit_field) id,exp_ref
-       id='alpha1'
-       WRITE(unit_field) id,alpha1
-       id='alpha2'
-       WRITE(unit_field) id,alpha2
-       id='alphah'
-       WRITE(unit_field) id,alphah
-       id='rhosat'
-       WRITE(unit_field) id,rhosat
-       id='finished'
-       WRITE(unit_field) id,finished
-       id='omega_uppe'
-       WRITE(unit_field) id,omega_uppe
-       id='gamma1e'
-       WRITE(10) id,gamma1e
-       id='nuO2'
-       WRITE(10) id,nuO2
-       id='nuN2'
-       WRITE(10) id,nuN2
-       id='T_init_eV_phys'
-       WRITE(10) id,T_init_eV_phys
-       id='nukB'
-       WRITE(10) id,nukB
-       id='nucp'
-       WRITE(10) id,nucp
-       id='nucO2'
-       WRITE(10) id,nucO2
-       id='nucN2'
-       WRITE(10) id,nucN2
-       id='rhoat_N2_inv'
-       WRITE(10) id,rhoat_N2_inv
-       id='ionpotN2'
-       WRITE(10) id,ionisation_potential_N2
-       id='rescharge_N2'
-       WRITE(10) id,residue_charge_N2
-       id='atomdens_N2'
-       WRITE(10) id,atomic_density_N2
-       id='angmom_N2'
-       WRITE(10) id,angular_momentum_N2
-       id='startfield'
-       WRITE(unit_field) id
-       DO j=dim_r_start(num_proc),dim_r_end(num_proc)
-          WRITE(unit_field) e(1:dim_t,j)
+       CALL create_dset(field_group_id,'num_proc',num_proc)
+       CALL create_dset(field_group_id,'dim_t',dim_t)
+       CALL create_dset(field_group_id,'dim_r',dim_r)
+       CALL create_dset(field_group_id,'rek0',rek0)
+       CALL create_dset(field_group_id,'rekp',rekp)
+       CALL create_dset(field_group_id,'c3',c3)
+       CALL create_dset(field_group_id,'c5',c5)
+       CALL create_dset(field_group_id,'gamma1',gamma1)
+       CALL create_dset(field_group_id,'gamma2',gamma2)
+       CALL create_dset(field_group_id,'muk',muk)
+       CALL create_dset(field_group_id,'betainv2KK',beta_inv_2KK)
+       CALL create_dset(field_group_id,'KK',KK)
+       CALL create_dset(field_group_id,'rho0',rho0)
+       CALL create_dset(field_group_id,'nu',nu)
+       CALL create_dset(field_group_id,'alpha',alpha)
+       CALL create_dset(field_group_id,'alphaquad',alphaquad)
+       CALL create_dset(field_group_id,'rhoat_inv',rhoat_inv)
+       CALL create_dset(field_group_id,'xdk',xdk)
+       CALL create_dset(field_group_id,'tdk',tdk)
+       CALL create_dset(field_group_id,'raman',raman)
+       CALL create_dset(field_group_id,'omega',omega)
+       CALL create_dset(field_group_id,'komega',komega(1:dim_t),dim_t)
+       CALL create_dset(field_group_id,'NN',NN)
+       CALL create_dset(field_group_id,'eta1',eta1)
+       CALL create_dset(field_group_id,'eta2',eta2)
+       CALL create_dset(field_group_id,'lt',lt)
+       CALL create_dset(field_group_id,'lr',lr)
+       CALL create_dset(field_group_id,'proplength',proplength)
+       CALL create_dset(field_group_id,'outlength',outlength)
+       CALL create_dset(field_group_id,'delta_z',delta_z)
+       CALL create_dset(field_group_id,'z',z)
+       CALL create_dset(field_group_id,'z_out',z_out)
+       CALL create_dset(field_group_id,'rfil',rfil)
+       CALL create_dset(field_group_id,'switch_rho',switch_rho)
+       CALL create_dset(field_group_id,'switchKerr',switch_dKerr)
+       CALL create_dset(field_group_id,'switch_T',switch_T)
+       CALL create_dset(field_group_id,'absorb',absorb)
+       CALL create_dset(field_group_id,'increase',increase)
+       CALL create_dset(field_group_id,'decrease',decrease)
+       CALL create_dset(field_group_id,'rhodist',rhodist)
+       CALL create_dset(field_group_id,'timelimit',timelimit)
+       CALL create_dset(field_group_id,'photenergy',photon_energy)
+       CALL create_dset(field_group_id,'pulsedurat',pulse_duration)
+       CALL create_dset(field_group_id,'critpower',critical_power)
+       CALL create_dset(field_group_id,'beam_waist',beam_waist)
+       CALL create_dset(field_group_id,'ionpot',ionisation_potential)
+       CALL create_dset(field_group_id,'rescharge',residue_charge)
+       CALL create_dset(field_group_id,'n0_indice',n0_indice)
+       CALL create_dset(field_group_id,'critdens',critical_density)
+       CALL create_dset(field_group_id,'atomdens',atomic_density)
+       CALL create_dset(field_group_id,'reducmass',reduced_mass)
+       CALL create_dset(field_group_id,'angmom',angular_momentum)
+       CALL create_dset(field_group_id,'KKp',KKp)
+       CALL create_dset(field_group_id,'beta_inv_2KKp',beta_inv_2KKp)
+       CALL create_dset(field_group_id,'mukp',mukp)
+       CALL create_dset(field_group_id,'beta_inv_2',beta_inv_2)
+       CALL create_dset(field_group_id,'mu',mu)
+       CALL create_dset(field_group_id,'KKpp',KKpp)
+       CALL create_dset(field_group_id,'beta_inv_2KKpp',beta_inv_2KKpp)
+       CALL create_dset(field_group_id,'mukpp',mukpp)
+       CALL create_dset(field_group_id,'eti_ref',eti_ref)
+       CALL create_dset(field_group_id,'exp_ref',exp_ref)
+       CALL create_dset(field_group_id,'alpha1',alpha1)
+       CALL create_dset(field_group_id,'alpha2',alpha2)
+       CALL create_dset(field_group_id,'alphah',alphah)
+       CALL create_dset(field_group_id,'rhosat',rhosat)
+       CALL create_dset(field_group_id,'finished',finished)
+       CALL create_dset(field_group_id,'omega_uppe',omega_uppe)
+       CALL create_dset(field_group_id,'gamma1e',gamma1e)
+       CALL create_dset(field_group_id,'nuO2',nuO2)
+       CALL create_dset(field_group_id,'nuN2',nuN2)
+       CALL create_dset(field_group_id,'T_init_eV_phys',T_init_eV_phys)
+       CALL create_dset(field_group_id,'nukB',nukB)
+       CALL create_dset(field_group_id,'nucp',nucp)
+       CALL create_dset(field_group_id,'nucO2',nucO2)
+       CALL create_dset(field_group_id,'nucN2',nucN2)
+       CALL create_dset(field_group_id,'rhoat_N2_inv',rhoat_N2_inv)
+       CALL create_dset(field_group_id,'ionpotN2',ionisation_potential_N2)
+       CALL create_dset(field_group_id,'rescharge_N2',residue_charge_N2)
+       CALL create_dset(field_group_id,'atomdens_N2',atomic_density_N2)
+       CALL create_dset(field_group_id,'angmom_N2',angular_momentum_N2)
+       efield_factor = SQRT(critical_power*1.D9*3.D8*4.D0*3.1415D-7/(4.D0*3.1415D0*beam_waist**2*1.D-4*2.D0*n0_indice))*2.D0 ! normalization factor electric field V/m
+       ALLOCATE(real_e(dim_t,dim_r/num_proc),imag_e(dim_t,dim_r/num_proc))
+       r_offset = dim_r/num_proc*my_rank
+       DO k1=1, dim_t
+         DO k2=1, dim_r/num_proc
+            real_e(k1,k2) = REAL(REAL((efield_factor*efield_osc(k2)*e(k1,k2+r_offset))),4)
+            imag_e(k1,k2) = REAL(IMAG((efield_factor*efield_osc(k2)*e(k1,k2+r_offset))),4)
+         ENDDO
        ENDDO
-       id='index'
-       WRITE(unit_field) id
-       WRITE(unit_field) i_x_max, i_z_max
-       WRITE(unit_field) (xx(i_x),i_x=1,i_x_max)
-       DO i_z = 1, i_z_max
-          WRITE(unit_field) zz(i_z)
-          WRITE(unit_field) (Indice_norm(i_x,i_z),i_x=1,i_x_max)
-       ENDDO
-       CLOSE(unit_field)
-       CALL MPI_Barrier(MPI_COMM_WORLD,ierr)
+       dims = (/int(dim_t,HSIZE_T), int(dim_r,HSIZE_T)/)
+       offset = (/int(0,HSIZE_T),int(dim_r/num_proc*my_rank,HSIZE_T)/)
+       ccount = (/int(dim_t,HSIZE_T),int(dim_r/num_proc,HSIZE_T)/)
+       CALL create_2D_array_real_dset_p(field_group_id, "startfield_r", real_e, dims, offset, ccount)
+       CALL create_2D_array_real_dset_p(field_group_id, "startfield_i", imag_e, dims, offset, ccount)
+       DEALLOCATE(real_e,imag_e)
+      !id='index'
+      ! WRITE(unit_field) id
+      ! WRITE(unit_field) i_x_max, i_z_max
+      ! WRITE(unit_field) (xx(i_x),i_x=1,i_x_max)
+      ! DO i_z = 1, i_z_max
+      !    WRITE(unit_field) zz(i_z)
+      !    WRITE(unit_field) (Indice_norm(i_x,i_z),i_x=1,i_x_max)
+      ! ENDDO
+      ! CLOSE(unit_field)
+      CALL h5gclose_f(field_group_id, error)
+      CALL h5fclose_f(file_id, error)
+      CALL h5close_f(error)
     ENDIF
 
 920 FORMAT (F10.6)
