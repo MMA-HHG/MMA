@@ -9,6 +9,12 @@ MODULE fields
   LOGICAL, ALLOCATABLE     :: send_first(:)
 END MODULE fields
 
+MODULE longstep_vars
+  INTEGER :: number_of_steps
+  REAL,ALLOCATABLE :: data_to_write(:,:)
+  INTEGER :: original_rhodist
+END MODULE longstep_vars
+
 MODULE parameters
   REAL(8) :: rek0,rekp,c3,c5,gamma1,gamma2,muk,beta_inv_2KK,omega, eta1, eta2, omega_uppe
   REAL(8) :: beta_inv_2KKp,eti_ref,exp_ref,beta_inv_2,mukp,mu,mukpp,beta_inv_2KKpp

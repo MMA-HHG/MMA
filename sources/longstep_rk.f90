@@ -262,11 +262,31 @@ CONTAINS
     USE fields
     USE fft
     USE mpi_stuff
+    USE HDF5
+    USE HDF5_helper
+    USE longstep_vars
+
     IMPLICIT NONE
 
     INTEGER(4) j,l,k
     REAL(8)  phase,maxphase_part,peakmax_part,energy_part,energy_fil_part,rhomax_part,delkerr,delkerrp,rhotemp,mpa,r,phase_p,phase_j,losses_j,phase_index
     REAL(8) mediumabs , rhoabs_max_part, rhoabstemp, rhoO2max_part, rhoN2max_part, Tevmax_part
+
+    ! For storing in HDF5
+    INTEGER(HID_T) :: file_id       ! File identifier 
+    INTEGER(HID_T) :: group_id      ! Group identifier 
+    INTEGER(HID_T) :: h5parameters  ! Property list identifier 
+    INTEGER        :: error
+    LOGICAL        :: group_status
+    CHARACTER(LEN=15) :: h5_filename="results.h5"
+    CHARACTER(LEN=15) :: groupname="longstep"
+    CHARACTER(LEN=25) :: rhoabs_max_dset_name="longstep/rhoexcmax_max"
+    CHARACTER(LEN=25) :: peakmax_dset_name="longstep/peakmax"
+    CHARACTER(LEN=25) :: energy_dset_name="longstep/energy"
+    CHARACTER(LEN=25) :: energy_fil_dset_name="longstep/energy_fil"
+    CHARACTER(LEN=25) :: rhomax_dset_name="longstep/rhomax"
+    CHARACTER(LEN=25) :: powmax_dset_name="longstep/powmax"
+    INTEGER(HSIZE_T), DIMENSION(2) :: new_dims, memspace_dims, offset, hyperslab_size
 
     rho=0.D0
     rhoabs = 0.D0 
@@ -474,6 +494,14 @@ CONTAINS
        ENDDO
        CALL MPI_REDUCE(e_2(1:dim_t),e_2KK(1:dim_t),dim_t,MPI_DOUBLE_PRECISION,MPI_SUM,0,MPI_COMM_WORLD,ierr)
        IF(my_rank.EQ.0) THEN
+          CALL h5open_f(error) ! Prepare the HDF5 writing
+          CALL h5fopen_f(h5_filename, H5F_ACC_RDWR_F, file_id, error ) ! Open the HDF5 file
+          ! Create long_step group if it does not exist yet
+          CALL h5lexists_f(file_id, groupname, group_status, error)
+          IF ( group_status .EQV. .FALSE. ) THEN
+            CALL h5gcreate_f(file_id, groupname, group_id, error) 
+            CALL h5gclose_f(group_id, error)
+          ENDIF
           OPEN(unit_rhoabs_max, FILE='rhoexcmax.dat',STATUS='UNKNOWN',POSITION='APPEND') 
           OPEN(unit_peakmax,FILE='peakmax.dat',STATUS='UNKNOWN',POSITION='APPEND')
           OPEN(unit_energy,FILE='energy.dat',STATUS='UNKNOWN',POSITION='APPEND')
@@ -485,7 +513,61 @@ CONTAINS
              WRITE(unit_rhomax,*) REAL(z_buff(j),4) ,REAL(rhomax(j),4)
              WRITE(unit_energy,*) REAL(z_buff(j),4),REAL(6.2831853D0*energy(j)*delta_t*delta_r**2,4), &
                   REAL(6.2831853D0*energy_fil(j)*delta_t*delta_r**2,4)
+             print *,z_buff(j)
           ENDDO
+          IF (number_of_steps.EQ.0) THEN
+            ALLOCATE(data_to_write(1,1:rhodist))
+            data_to_write(1,1:rhodist) = REAL(rhoabs_max(1:rhodist),4)
+            CALL create_2D_dset_unlimited(file_id, rhoabs_max_dset_name, data_to_write, (count))
+            data_to_write(1,1:rhodist) = REAL(peakmax(1:rhodist),4)
+            CALL create_2D_dset_unlimited(file_id, peakmax_dset_name, data_to_write, (count))
+            data_to_write(1,1:rhodist) = REAL(rhomax(1:rhodist),4)
+            CALL create_2D_dset_unlimited(file_id, rhomax_dset_name, data_to_write, (count))
+            data_to_write(1,1:rhodist) = REAL(6.2831853D0*energy(1:rhodist)*delta_t*delta_r**2,4)
+            CALL create_2D_dset_unlimited(file_id, energy_dset_name, data_to_write, (count))
+            data_to_write(1,1:rhodist) = REAL(6.2831853D0*energy_fil(1:rhodist)*delta_t*delta_r**2,4)
+            CALL create_2D_dset_unlimited(file_id, energy_fil_dset_name, data_to_write, (count))
+            number_of_steps = number_of_steps + 1
+            original_rhodist = rhodist
+          ELSE
+            number_of_steps = number_of_steps + 1
+            IF (rhodist.NE.original_rhodist) THEN
+              new_dims = (/int(number_of_steps, 8), int(original_rhodist, 8)/)
+            ELSE
+              new_dims = (/int(number_of_steps, 8), int(rhodist, 8)/)
+            ENDIF
+            memspace_dims = (/int(1,HSIZE_T), int(original_rhodist,HSIZE_T)/)
+            offset = (/int(number_of_steps-1,HSIZE_T),int(0,HSIZE_T)/)
+            hyperslab_size = (/int(1,HSIZE_T),int(original_rhodist,HSIZE_T)/)
+            IF (count .EQ. 0) THEN
+              print *,"last write skipped"
+            ELSE
+              data_to_write(1,1:count) = REAL(rhoabs_max(1:count),4)
+              IF (count .NE. original_rhodist) THEN
+                DO j=count+1,original_rhodist
+                  data_to_write(1,j) = 0d0
+                ENDDO
+              ENDIF
+              CALL extend_2D_dset_unlimited(file_id, rhoabs_max_dset_name, data_to_write, new_dims, &
+                memspace_dims, offset, hyperslab_size)
+              
+              data_to_write(1,1:count) = REAL(peakmax(1:count),4)
+              CALL extend_2D_dset_unlimited(file_id, peakmax_dset_name, data_to_write, new_dims, &
+                memspace_dims, offset, hyperslab_size)
+              
+              data_to_write(1,1:count) = REAL(rhomax(1:count),4)
+              CALL extend_2D_dset_unlimited(file_id, rhomax_dset_name, data_to_write, new_dims, &
+                memspace_dims, offset, hyperslab_size)
+
+              data_to_write(1,1:count) = REAL(6.2831853D0*energy(1:count)*delta_t*delta_r**2,4)
+              CALL extend_2D_dset_unlimited(file_id, energy_dset_name, data_to_write, new_dims, &
+                memspace_dims, offset, hyperslab_size)
+              
+              data_to_write(1,1:count) = REAL(6.2831853D0*energy_fil(1:count)*delta_t*delta_r**2,4)
+              CALL extend_2D_dset_unlimited(file_id, energy_fil_dset_name, data_to_write, new_dims, &
+                memspace_dims, offset, hyperslab_size)
+            ENDIF
+          ENDIF
           WRITE(unit_rho,*) REAL(z,4),REAL(6.2831853D0*MAXVAL(e_2KK)*delta_r**2,4)
           CLOSE(unit_rhoabs_max)
           CLOSE(unit_peakmax)
@@ -502,6 +584,9 @@ CONTAINS
           OPEN(unit_rho,FILE='ONAX_T.DAT',STATUS='UNKNOWN',FORM='UNFORMATTED',POSITION='APPEND')
           WRITE(unit_rho) REAL(z,4),REAL(ABS(e(1:dim_t,1)),4)
           CLOSE(unit_rho)
+          ! Terminate HDF5 file access
+          CALL h5fclose_f(file_id, error)
+          CALL h5close_f(error)
        ENDIF
        OPEN(unit_rho,FILE='FLUENCE_'//ip//'.DAT',STATUS='UNKNOWN',FORM='UNFORMATTED',POSITION='APPEND')
        WRITE(unit_rho) REAL(z,4),REAL(fluence*delta_t,4)
@@ -544,7 +629,6 @@ CONTAINS
           CLOSE(unit_rho)
        ENDIF
     ENDIF
-
     RETURN
   END SUBROUTINE mult_phase
 
@@ -554,7 +638,7 @@ CONTAINS
     USE mpi_stuff
 
     IMPLICIT NONE
-
+    
     CALL fft_forward_inplace(.FALSE.)
     CALL mult_propagator
     CALL fft_backward2_inplace
