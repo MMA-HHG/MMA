@@ -265,6 +265,8 @@ CONTAINS
     USE HDF5
     USE HDF5_helper
     USE longstep_vars
+    USE linked_list
+    USE ll_data
 
     IMPLICIT NONE
 
@@ -273,20 +275,34 @@ CONTAINS
     REAL(8) mediumabs , rhoabs_max_part, rhoabstemp, rhoO2max_part, rhoN2max_part, Tevmax_part
 
     ! For storing in HDF5
-    INTEGER(HID_T) :: file_id       ! File identifier 
-    INTEGER(HID_T) :: group_id      ! Group identifier 
-    INTEGER(HID_T) :: h5parameters  ! Property list identifier 
-    INTEGER        :: error
-    LOGICAL        :: group_status
-    CHARACTER(LEN=15) :: h5_filename="results.h5"
-    CHARACTER(LEN=15) :: groupname="longstep"
+    INTEGER(HID_T)    :: file_id       ! File identifier 
+    INTEGER(HID_T)    :: group_id      ! Group identifier 
+    INTEGER(HID_T)    :: h5parameters  ! Property list identifier 
+    INTEGER           :: error         ! hdferr
+    LOGICAL           :: group_status  ! boolean - does the group exists?
+    CHARACTER(LEN=15) :: h5_filename="results.h5" ! hdf5 file name
+    
+    ! Names of dsets and groups
+    CHARACTER(LEN=15) :: groupname="longstep"     
     CHARACTER(LEN=25) :: rhoabs_max_dset_name="longstep/rhoexcmax_max"
     CHARACTER(LEN=25) :: peakmax_dset_name="longstep/peakmax"
     CHARACTER(LEN=25) :: energy_dset_name="longstep/energy"
     CHARACTER(LEN=25) :: energy_fil_dset_name="longstep/energy_fil"
     CHARACTER(LEN=25) :: rhomax_dset_name="longstep/rhomax"
     CHARACTER(LEN=25) :: powmax_dset_name="longstep/powmax"
-    INTEGER(HSIZE_T), DIMENSION(2) :: new_dims, memspace_dims, offset, hyperslab_size
+    CHARACTER(LEN=25) :: z_buff_dset_name="longstep/z_buff"
+    CHARACTER(LEN=25) :: every_rhodist_z_dset_name="longstep/every_rhodist_z"
+    CHARACTER(LEN=25) :: onax_t_dset_name="longstep/onax_t"
+    
+    ! Arrays needed for temporary storing of dataset content and their writing
+    INTEGER(HSIZE_T), DIMENSION(1) :: new_dims, memspace_dims, offset, hyperslab_size
+    REAL,DIMENSION(1,2) :: powmax_data
+    REAL,ALLOCATABLE  :: onax_t_data(:,:)
+    REAL,DIMENSION(1) :: z_data
+
+    ! Variables needed for linked list buffering
+    REAL, ALLOCATABLE, TARGET  :: linked_list_data(:)
+    TYPE(list_t), POINTER      :: temporary_var
 
     rho=0.D0
     rhoabs = 0.D0 
@@ -486,8 +502,16 @@ CONTAINS
     CALL MPI_REDUCE(rhoO2max_part,rhoO2max(count),1,MPI_DOUBLE_PRECISION,MPI_MAX,0,MPI_COMM_WORLD,ierr)
     CALL MPI_REDUCE(rhoN2max_part,rhoN2max(count),1,MPI_DOUBLE_PRECISION,MPI_MAX,0,MPI_COMM_WORLD,ierr)
     CALL MPI_REDUCE(Tevmax_part,Tevmax(count),1,MPI_DOUBLE_PRECISION,MPI_MAX,0,MPI_COMM_WORLD,ierr)
+    ALLOCATE(onax_t_data(1,1:dim_t))
     IF(my_rank.EQ.0) z_buff(count)=z
     IF(count.GE.rhodist) THEN
+      !
+      !
+      ! For FLUENCE, etc. create linked lists for each core, store the arrays there and at the end first find out how long the
+      ! linked list is, preallocate sufficient dset and write to it parallelly at the end
+      !
+      !
+
        e_2=0.D0
        DO l=dim_r_start(num_proc),dim_r_end(num_proc)
           e_2=e_2+ABS(e(1:dim_t,l))**2*REAL(l-1,8)
@@ -502,71 +526,96 @@ CONTAINS
             CALL h5gcreate_f(file_id, groupname, group_id, error) 
             CALL h5gclose_f(group_id, error)
           ENDIF
-          OPEN(unit_rhoabs_max, FILE='rhoexcmax.dat',STATUS='UNKNOWN',POSITION='APPEND') 
-          OPEN(unit_peakmax,FILE='peakmax.dat',STATUS='UNKNOWN',POSITION='APPEND')
-          OPEN(unit_energy,FILE='energy.dat',STATUS='UNKNOWN',POSITION='APPEND')
-          OPEN(unit_rhomax,FILE='rhomax.dat',STATUS='UNKNOWN',POSITION='APPEND')
-          OPEN(unit_rho,FILE='powmax.dat',STATUS='UNKNOWN',POSITION='APPEND')
-          DO j=1,count
-             WRITE(unit_rhoabs_max,*) REAL(z_buff(j),4) ,REAL(rhoabs_max(j),4)
-             WRITE(unit_peakmax,*) REAL(z_buff(j),4),REAL(peakmax(j),4)
-             WRITE(unit_rhomax,*) REAL(z_buff(j),4) ,REAL(rhomax(j),4)
-             WRITE(unit_energy,*) REAL(z_buff(j),4),REAL(6.2831853D0*energy(j)*delta_t*delta_r**2,4), &
-                  REAL(6.2831853D0*energy_fil(j)*delta_t*delta_r**2,4)
-             print *,z_buff(j)
-          ENDDO
-          IF (number_of_steps.EQ.0) THEN
-            ALLOCATE(data_to_write(1,1:rhodist))
-            data_to_write(1,1:rhodist) = REAL(rhoabs_max(1:rhodist),4)
-            CALL create_2D_dset_unlimited(file_id, rhoabs_max_dset_name, data_to_write, (count))
-            data_to_write(1,1:rhodist) = REAL(peakmax(1:rhodist),4)
-            CALL create_2D_dset_unlimited(file_id, peakmax_dset_name, data_to_write, (count))
-            data_to_write(1,1:rhodist) = REAL(rhomax(1:rhodist),4)
-            CALL create_2D_dset_unlimited(file_id, rhomax_dset_name, data_to_write, (count))
-            data_to_write(1,1:rhodist) = REAL(6.2831853D0*energy(1:rhodist)*delta_t*delta_r**2,4)
-            CALL create_2D_dset_unlimited(file_id, energy_dset_name, data_to_write, (count))
-            data_to_write(1,1:rhodist) = REAL(6.2831853D0*energy_fil(1:rhodist)*delta_t*delta_r**2,4)
-            CALL create_2D_dset_unlimited(file_id, energy_fil_dset_name, data_to_write, (count))
-            number_of_steps = number_of_steps + 1
+          IF (longstep_write_count.EQ.0) THEN
+            CALL create_1D_dset_unlimited(file_id, z_buff_dset_name, REAL(z_buff(1:rhodist),4), rhodist)
+            CALL create_1D_dset_unlimited(file_id, rhoabs_max_dset_name, REAL(rhoabs_max(1:rhodist),4), rhodist)
+            CALL create_1D_dset_unlimited(file_id, peakmax_dset_name, REAL(peakmax(1:rhodist),4), rhodist)
+            CALL create_1D_dset_unlimited(file_id, rhomax_dset_name, REAL(rhomax(1:rhodist),4), rhodist)
+            CALL create_1D_dset_unlimited(file_id, energy_dset_name, &
+              REAL(6.2831853D0*energy(1:rhodist)*delta_t*delta_r**2,4), rhodist)
+            CALL create_1D_dset_unlimited(file_id, energy_fil_dset_name, &
+              REAL(6.2831853D0*energy_fil(1:rhodist)*delta_t*delta_r**2,4), rhodist)
+            powmax_data(1,1) = REAL(z,4)
+            powmax_data(1,2) = REAL(6.2831853D0*MAXVAL(e_2KK)*delta_r**2,4)
+            z_data(1) = REAL(z,4)
+            onax_t_data(1,:) = REAL(ABS(e(1:dim_t,1)),4) 
+            IF ( dset_write_count .EQ. 0 ) THEN
+              CALL create_2D_dset_unlimited(file_id, powmax_dset_name, powmax_data, 2)
+              CALL create_2D_dset_unlimited(file_id, onax_t_dset_name, onax_t_data, dim_t)
+              CALL create_1D_dset_unlimited(file_id, every_rhodist_z_dset_name, z_data, 1)
+            ELSE
+              CALL extend_2D_dset_unlimited(file_id, powmax_dset_name, powmax_data, & 
+                new_dims = (/int(dset_write_count + 1, HSIZE_T), int(2, HSIZE_T)/), & 
+                memspace_dims = (/int(1,HSIZE_T), int(2, HSIZE_T)/), & 
+                offset = (/int(dset_write_count,HSIZE_T),int(0,HSIZE_T)/), & 
+                hyperslab_size = (/int(1,HSIZE_T), int(2, HSIZE_T)/))
+              CALL extend_2D_dset_unlimited(file_id, onax_t_dset_name, onax_t_data, & 
+                new_dims = (/int(dset_write_count + 1, HSIZE_T), int(dim_t, HSIZE_T)/), & 
+                memspace_dims = (/int(1,HSIZE_T), int(dim_t, HSIZE_T)/), & 
+                offset = (/int(dset_write_count,HSIZE_T),int(0,HSIZE_T)/), & 
+                hyperslab_size = (/int(1,HSIZE_T), int(dim_t, HSIZE_T)/))
+              CALL extend_1D_dset_unlimited(file_id, every_rhodist_z_dset_name, z_data, &
+                new_dims=(/int(dset_write_count + 1, HSIZE_T)/), memspace_dims=(/int(1,HSIZE_T)/), &
+                offset = (/int(dset_write_count, HSIZE_T)/), hyperslab_size = (/int(1,HSIZE_T)/))
+            ENDIF
+            dset_write_count = dset_write_count + 1
+            longstep_write_count = longstep_write_count + 1
             original_rhodist = rhodist
           ELSE
-            number_of_steps = number_of_steps + 1
             IF (rhodist.NE.original_rhodist) THEN
-              new_dims = (/int(number_of_steps, 8), int(original_rhodist, 8)/)
+              new_dims = (/int(longstep_write_count*original_rhodist+rhodist, HSIZE_T)/)
             ELSE
-              new_dims = (/int(number_of_steps, 8), int(rhodist, 8)/)
+              new_dims = (/int((longstep_write_count+1)*rhodist, HSIZE_T)/)
             ENDIF
-            memspace_dims = (/int(1,HSIZE_T), int(original_rhodist,HSIZE_T)/)
-            offset = (/int(number_of_steps-1,HSIZE_T),int(0,HSIZE_T)/)
-            hyperslab_size = (/int(1,HSIZE_T),int(original_rhodist,HSIZE_T)/)
+            memspace_dims = (/int(rhodist,HSIZE_T)/)
+            offset = (/int(longstep_write_count*original_rhodist,HSIZE_T)/)
+            hyperslab_size = (/int(rhodist,HSIZE_T)/)
             IF (count .EQ. 0) THEN
               print *,"last write skipped"
             ELSE
-              data_to_write(1,1:count) = REAL(rhoabs_max(1:count),4)
-              IF (count .NE. original_rhodist) THEN
-                DO j=count+1,original_rhodist
-                  data_to_write(1,j) = 0d0
-                ENDDO
-              ENDIF
-              CALL extend_2D_dset_unlimited(file_id, rhoabs_max_dset_name, data_to_write, new_dims, &
+              CALL extend_1D_dset_unlimited(file_id, z_buff_dset_name, & 
+                REAL(z_buff(1:count),4), new_dims, &
                 memspace_dims, offset, hyperslab_size)
               
-              data_to_write(1,1:count) = REAL(peakmax(1:count),4)
-              CALL extend_2D_dset_unlimited(file_id, peakmax_dset_name, data_to_write, new_dims, &
+              CALL extend_1D_dset_unlimited(file_id, rhoabs_max_dset_name, & 
+                REAL(rhoabs_max(1:count),4), new_dims, &
                 memspace_dims, offset, hyperslab_size)
               
-              data_to_write(1,1:count) = REAL(rhomax(1:count),4)
-              CALL extend_2D_dset_unlimited(file_id, rhomax_dset_name, data_to_write, new_dims, &
+              CALL extend_1D_dset_unlimited(file_id, peakmax_dset_name, & 
+                REAL(peakmax(1:count),4), new_dims, &
+                memspace_dims, offset, hyperslab_size)
+              
+              CALL extend_1D_dset_unlimited(file_id, rhomax_dset_name, & 
+                REAL(rhomax(1:count),4), new_dims, &
                 memspace_dims, offset, hyperslab_size)
 
-              data_to_write(1,1:count) = REAL(6.2831853D0*energy(1:count)*delta_t*delta_r**2,4)
-              CALL extend_2D_dset_unlimited(file_id, energy_dset_name, data_to_write, new_dims, &
+              CALL extend_1D_dset_unlimited(file_id, energy_dset_name, & 
+                REAL(6.2831853D0*energy(1:count)*delta_t*delta_r**2,4), new_dims, &
                 memspace_dims, offset, hyperslab_size)
               
-              data_to_write(1,1:count) = REAL(6.2831853D0*energy_fil(1:count)*delta_t*delta_r**2,4)
-              CALL extend_2D_dset_unlimited(file_id, energy_fil_dset_name, data_to_write, new_dims, &
+              CALL extend_1D_dset_unlimited(file_id, energy_fil_dset_name, &
+                REAL(6.2831853D0*energy_fil(1:count)*delta_t*delta_r**2,4), new_dims, &
                 memspace_dims, offset, hyperslab_size)
             ENDIF
+            powmax_data(1,1) = REAL(z,4)
+            powmax_data(1,2) = REAL(6.2831853D0*MAXVAL(e_2KK)*delta_r**2,4)
+            z_data(1) = REAL(z,4)
+            onax_t_data(1,:) = REAL(ABS(e(1:dim_t,1)),4) 
+            CALL extend_2D_dset_unlimited(file_id, powmax_dset_name, powmax_data, & 
+              new_dims = (/int(dset_write_count + 1, HSIZE_T), int(2, HSIZE_T)/), & 
+              memspace_dims = (/int(1,HSIZE_T), int(2, HSIZE_T)/), & 
+              offset = (/int(dset_write_count,HSIZE_T),int(0,HSIZE_T)/), & 
+              hyperslab_size = (/int(1,HSIZE_T), int(2, HSIZE_T)/))
+            CALL extend_2D_dset_unlimited(file_id, onax_t_dset_name, onax_t_data, & 
+              new_dims = (/int(dset_write_count + 1, HSIZE_T), int(dim_t, HSIZE_T)/), & 
+              memspace_dims = (/int(1,HSIZE_T), int(dim_t, HSIZE_T)/), & 
+              offset = (/int(dset_write_count,HSIZE_T),int(0,HSIZE_T)/), & 
+              hyperslab_size = (/int(1,HSIZE_T), int(dim_t, HSIZE_T)/))
+            CALL extend_1D_dset_unlimited(file_id, every_rhodist_z_dset_name, z_data, &
+              new_dims=(/int(dset_write_count + 1,HSIZE_T)/), memspace_dims=(/int(1,HSIZE_T)/), &
+              offset = (/int(dset_write_count, HSIZE_T)/), hyperslab_size = (/int(1,HSIZE_T)/))
+            dset_write_count = dset_write_count + 1
+            longstep_write_count = longstep_write_count + 1
           ENDIF
           WRITE(unit_rho,*) REAL(z,4),REAL(6.2831853D0*MAXVAL(e_2KK)*delta_r**2,4)
           CLOSE(unit_rhoabs_max)
@@ -591,6 +640,44 @@ CONTAINS
        OPEN(unit_rho,FILE='FLUENCE_'//ip//'.DAT',STATUS='UNKNOWN',FORM='UNFORMATTED',POSITION='APPEND')
        WRITE(unit_rho) REAL(z,4),REAL(fluence*delta_t,4)
        CLOSE(unit_rho)
+       ALLOCATE(linked_list_data(1:dim_r/num_proc))
+       ! Initialize two data objects
+       linked_list_data(:) = REAL(fluence*delta_t,4)
+
+       ! Initialize the list with linked_list_data
+       ptr => linked_list_data
+       print *,linked_list_data(1:5)
+       IF (length_of_linked_list .EQ. 0) THEN
+         call list_init(fluence_ll, DATA=transfer(ptr, list_data))
+       ELSE
+         call list_append(fluence_ll, DATA=transfer(ptr, list_data))
+         ! Get the next node
+         !ptr = transfer(list_get(list_next(fluence_ll)), ptr)
+         !print *, 'Second node data:', ptr
+       ENDIF
+       length_of_linked_list = length_of_linked_list + 1
+
+       ! Get the next node
+       IF ( length_of_linked_list .GE. 2) THEN
+         ptr = transfer(list_get(list_next(fluence_ll)), ptr)
+         !print *, 'Second node data:', ptr(1:5)
+       ENDIF
+       IF (length_of_linked_list .EQ. 3) THEN
+          !print *,"test 3"
+          temporary_var => list_next(fluence_ll)
+          ptr = transfer(list_get(list_next(temporary_var)), ptr)
+          !print *, 'Third node:', ptr(1:5)
+       ENDIF
+       IF (length_of_linked_list .EQ. 4) THEN
+          !print *,"test 4"
+          temporary_var => list_next(fluence_ll)
+          temporary_var => list_next(temporary_var)
+          ptr = transfer(list_get(list_next(temporary_var)), ptr)
+          !print *, 'fourth node:', ptr(1:5)
+       ENDIF
+       !Free the list
+       !call list_free(fluence_ll)
+       DEALLOCATE(linked_list_data)
        OPEN(unit_rho,FILE='PLASMACHANNEL_'//ip//'.DAT',STATUS='UNKNOWN',FORM='UNFORMATTED',POSITION='APPEND')
        WRITE(unit_rho) REAL(z,4),REAL(rho,4)
        CLOSE(unit_rho)
@@ -602,6 +689,7 @@ CONTAINS
        CLOSE(unit_rho)
        count=0
     ENDIF
+    ! This might cause duplicity error when count >= rhodist and z <= delta_z at the same time
     IF (z.LE.delta_z) THEN
        OPEN(unit_rho,FILE='FLUENCE_'//ip//'.DAT',STATUS='UNKNOWN',FORM='UNFORMATTED',POSITION='APPEND')
        WRITE(unit_rho) REAL(z,4),REAL(fluence*delta_t,4)
@@ -621,12 +709,44 @@ CONTAINS
        ENDDO
        CALL MPI_REDUCE(e_2(1:dim_t),e_2KK(1:dim_t),dim_t,MPI_DOUBLE_PRECISION,MPI_SUM,0,MPI_COMM_WORLD,ierr)
        IF(my_rank.EQ.0) THEN
+          CALL h5open_f(error) ! Prepare the HDF5 writing
+          CALL h5fopen_f(h5_filename, H5F_ACC_RDWR_F, file_id, error ) ! Open the HDF5 file
+          ! Create long_step group if it does not exist yet
+          CALL h5lexists_f(file_id, groupname, group_status, error)
+          IF ( group_status .EQV. .FALSE. ) THEN
+            CALL h5gcreate_f(file_id, groupname, group_id, error) 
+            CALL h5gclose_f(group_id, error)
+          ENDIF
           OPEN(unit_rho,FILE='powmax.dat',STATUS='UNKNOWN',POSITION='APPEND')
           WRITE(unit_rho,*) REAL(z,4),REAL(6.2831853D0*MAXVAL(e_2KK)*delta_r**2,4)
           CLOSE(unit_rho)
+          powmax_data(1,1) = REAL(z,4)
+          powmax_data(1,2) = REAL(6.2831853D0*MAXVAL(e_2KK)*delta_r**2,4)
+          z_data(1) = REAL(z,4)
+          onax_t_data(1,:) = REAL(ABS(e(1:dim_t,1)),4) 
+          IF ( dset_write_count .EQ. 0 ) THEN
+            CALL create_2D_dset_unlimited(file_id, powmax_dset_name, powmax_data, 2)
+            CALL create_2D_dset_unlimited(file_id, onax_t_dset_name, onax_t_data, dim_t)
+            CALL create_1D_dset_unlimited(file_id, every_rhodist_z_dset_name, z_data, 1)
+          ELSE
+            CALL extend_2D_dset_unlimited(file_id, powmax_dset_name, powmax_data, & 
+              new_dims = (/int(dset_write_count + 1, HSIZE_T), int(2, HSIZE_T)/), & 
+              memspace_dims = (/int(1,HSIZE_T), int(2, HSIZE_T)/), & 
+              offset = (/int(dset_write_count,HSIZE_T),int(0,HSIZE_T)/), & 
+              hyperslab_size = (/int(1,HSIZE_T), int(2, HSIZE_T)/))
+            CALL extend_2D_dset_unlimited(file_id, onax_t_dset_name, onax_t_data, & 
+              new_dims = (/int(dset_write_count + 1, HSIZE_T), int(dim_t, HSIZE_T)/), & 
+              memspace_dims = (/int(1,HSIZE_T), int(dim_t, HSIZE_T)/), & 
+              offset = (/int(dset_write_count,HSIZE_T),int(0,HSIZE_T)/), & 
+              hyperslab_size = (/int(1,HSIZE_T), int(dim_t, HSIZE_T)/))
+            CALL extend_1D_dset_unlimited(file_id, every_rhodist_z_dset_name, z_data, &
+              new_dims=(/int(dset_write_count + 1,HSIZE_T)/), memspace_dims=(/int(1,HSIZE_T)/), &
+              offset = (/int(dset_write_count, HSIZE_T)/), hyperslab_size = (/int(1,HSIZE_T)/))
+          ENDIF
           OPEN(unit_rho,FILE='ONAX_T.DAT',STATUS='UNKNOWN',FORM='UNFORMATTED',POSITION='APPEND')
           WRITE(unit_rho) REAL(z,4),REAL(ABS(e(1:dim_t,1)),4)
           CLOSE(unit_rho)
+          dset_write_count = dset_write_count + 1
        ENDIF
     ENDIF
     RETURN
