@@ -474,5 +474,55 @@ CONTAINS
 
     RETURN
   END SUBROUTINE field_out
+  
+  SUBROUTINE linked_list_out
+    USE linked_list
+    USE longstep_vars
+    USE HDF5_helper
+
+    IMPLICIT NONE
+    
+    INTEGER        :: i
+    INTEGER(HID_T) :: file_id       ! File identifier 
+    INTEGER(HID_T) :: group_id      ! Group identifier 
+    INTEGER(HID_T) :: h5parameters  ! Property list identifier 
+    INTEGER(HSIZE_T), DIMENSION(2) :: dims, offset, ccount
+    INTEGER                        :: error
+    CHARACTER(LEN=15) :: h5_filename="results.h5"
+    CHARACTER(LEN=15) :: groupname="longstep"
+    CHARACTER(LEN=25) :: dset_name="longstep/ll_test"
+    REAL(4), ALLOCATABLE :: fluence_part(:,:)
+    TYPE(list_t), POINTER      :: next_ll
+    
+    ! Open HDF5 archive collectivelly
+    CALL h5open_f(error)
+    CALL h5pcreate_f(H5P_FILE_ACCESS_F, h5parameters, error) ! create HDF5 access parameters
+    CALL h5pset_fapl_mpio_f(h5parameters, MPI_COMM_WORLD, MPI_INFO_NULL, error) ! set parameters for MPI access
+    CALL h5fopen_f(h5_filename, H5F_ACC_RDWR_F, file_id, error, access_prp = h5parameters ) ! Open collectivelly the file
+    CALL h5pclose_f(h5parameters,error) ! close the parameters
+    
+    ! Calculate the size of the dataset
+    dims = (/int(length_of_linked_list,HSIZE_T),int(dim_r,HSIZE_T)/)
+    ALLOCATE(fluence_part(1,dim_r_local))
+
+    DO i=1,length_of_linked_list
+      offset = (/int(i-1,HSIZE_T),int(dim_r_start(num_proc)-1,HSIZE_T)/)
+      ccount = (/int(1,HSIZE_T), int(dim_r_local,HSIZE_T)/)
+      IF (i .EQ. 1) THEN
+        fluence_part(1,:) = transfer(list_get(fluence_ll), fluence_part(1,:))   
+        next_ll => list_next(fluence_ll)
+        CALL create_2D_array_real_dset_p(file_id, dset_name, fluence_part, dims, offset, ccount)
+      ELSE
+        fluence_part(1,:) = transfer(list_get(next_ll), fluence_part(1,:))
+        CALL write_hyperslab_to_2D_dset(file_id, dset_name, fluence_part, offset, ccount)
+        next_ll => list_next(next_ll)
+      ENDIF
+    END DO
+    CALL list_free(fluence_ll)
+    
+    ! Terminate
+    CALL h5fclose_f(file_id, error)
+    CALL h5close_f(error)
+  END SUBROUTINE linked_list_out
 
 END MODULE output

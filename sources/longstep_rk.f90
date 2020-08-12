@@ -504,6 +504,7 @@ CONTAINS
     CALL MPI_REDUCE(Tevmax_part,Tevmax(count),1,MPI_DOUBLE_PRECISION,MPI_MAX,0,MPI_COMM_WORLD,ierr)
     ALLOCATE(onax_t_data(1,1:dim_t))
     IF(my_rank.EQ.0) z_buff(count)=z
+    IF (count.GE.rhodist .OR. z.LE.delta_z) ALLOCATE(linked_list_data(1:dim_r/num_proc))
     IF(count.GE.rhodist) THEN
       !
       !
@@ -640,8 +641,7 @@ CONTAINS
        OPEN(unit_rho,FILE='FLUENCE_'//ip//'.DAT',STATUS='UNKNOWN',FORM='UNFORMATTED',POSITION='APPEND')
        WRITE(unit_rho) REAL(z,4),REAL(fluence*delta_t,4)
        CLOSE(unit_rho)
-       ALLOCATE(linked_list_data(1:dim_r/num_proc))
-       ! Initialize two data objects
+       ! Initialize data object
        linked_list_data(:) = REAL(fluence*delta_t,4)
 
        ! Initialize the list with linked_list_data
@@ -656,28 +656,7 @@ CONTAINS
          !print *, 'Second node data:', ptr
        ENDIF
        length_of_linked_list = length_of_linked_list + 1
-
-       ! Get the next node
-       IF ( length_of_linked_list .GE. 2) THEN
-         ptr = transfer(list_get(list_next(fluence_ll)), ptr)
-         !print *, 'Second node data:', ptr(1:5)
-       ENDIF
-       IF (length_of_linked_list .EQ. 3) THEN
-          !print *,"test 3"
-          temporary_var => list_next(fluence_ll)
-          ptr = transfer(list_get(list_next(temporary_var)), ptr)
-          !print *, 'Third node:', ptr(1:5)
-       ENDIF
-       IF (length_of_linked_list .EQ. 4) THEN
-          !print *,"test 4"
-          temporary_var => list_next(fluence_ll)
-          temporary_var => list_next(temporary_var)
-          ptr = transfer(list_get(list_next(temporary_var)), ptr)
-          !print *, 'fourth node:', ptr(1:5)
-       ENDIF
-       !Free the list
-       !call list_free(fluence_ll)
-       DEALLOCATE(linked_list_data)
+       
        OPEN(unit_rho,FILE='PLASMACHANNEL_'//ip//'.DAT',STATUS='UNKNOWN',FORM='UNFORMATTED',POSITION='APPEND')
        WRITE(unit_rho) REAL(z,4),REAL(rho,4)
        CLOSE(unit_rho)
@@ -688,12 +667,22 @@ CONTAINS
        WRITE(unit_rho) REAL(z,4),REAL(losses_ionization*delta_t,4)
        CLOSE(unit_rho)
        count=0
-    ENDIF
-    ! This might cause duplicity error when count >= rhodist and z <= delta_z at the same time
-    IF (z.LE.delta_z) THEN
+    ELSE IF (z.LE.delta_z) THEN
        OPEN(unit_rho,FILE='FLUENCE_'//ip//'.DAT',STATUS='UNKNOWN',FORM='UNFORMATTED',POSITION='APPEND')
        WRITE(unit_rho) REAL(z,4),REAL(fluence*delta_t,4)
        CLOSE(unit_rho)
+       ! Initialize data object
+       linked_list_data(:) = REAL(fluence*delta_t,4)
+
+       ! Initialize the list with linked_list_data
+       ptr => linked_list_data
+       print *,linked_list_data(1:5)
+       IF (length_of_linked_list .EQ. 0) THEN
+         call list_init(fluence_ll, DATA=transfer(ptr, list_data))
+       ELSE
+         call list_append(fluence_ll, DATA=transfer(ptr, list_data))
+       ENDIF
+       length_of_linked_list = length_of_linked_list + 1
        OPEN(unit_rho,FILE='PLASMACHANNEL_'//ip//'.DAT',STATUS='UNKNOWN',FORM='UNFORMATTED',POSITION='APPEND')
        WRITE(unit_rho) REAL(z,4),REAL(rho,4)
        CLOSE(unit_rho)
@@ -748,6 +737,7 @@ CONTAINS
           CLOSE(unit_rho)
           dset_write_count = dset_write_count + 1
        ENDIF
+       DEALLOCATE(linked_list_data)
     ENDIF
     RETURN
   END SUBROUTINE mult_phase

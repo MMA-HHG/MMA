@@ -29,7 +29,7 @@ CONTAINS
 
     ! General purpose variables: looping, dummy variables
     INTEGER(4) k1,k2
-    REAL(4) dumr4
+    REAL(4), DIMENSION(1) :: dumr4
     INTEGER(HSIZE_T), DIMENSION(1):: dumh51D, dumh51D2
 
     ! HDF5 general purpose variables
@@ -125,8 +125,8 @@ CONTAINS
 
         !!!! HERE WE WRITE z-grid, appended in each iteration
         ! we will still be working with the file
-        dumr4 = REAL(four_z_Rayleigh*z,4) ! the actual z-coordinate in SI units 
-        CALL create_1D_dset_unlimited(file_id, zgrid_dset_name, dumr4)
+        dumr4(1) = REAL(four_z_Rayleigh*z,4) ! the actual z-coordinate in SI units 
+        CALL create_1D_dset_unlimited(file_id, zgrid_dset_name, dumr4, 1)
         CALL h5_add_units_1D(file_id, zgrid_dset_name, '[SI]')
 
         CALL create_dset(file_id, rgrid_dset_name, rgrid, dim_r)
@@ -147,7 +147,7 @@ CONTAINS
         ! only z-grid in 1D
         dumh51D = (/int(HDF5write_count-1,HSIZE_T)/) ! offset
         dumh51D2 = (/int(1,HSIZE_T)/) ! count
-        dumr4 = REAL(four_z_Rayleigh*z,4) ! the actual z-coordinate in SI units 
+        dumr4(1) = REAL(four_z_Rayleigh*z,4) ! the actual z-coordinate in SI units 
         CALL extend_1D_dset_unlimited(file_id, zgrid_dset_name, dumr4, new_dims=(/int(HDF5write_count,HSIZE_T)/), & 
           memspace_dims=(/int(1,HSIZE_T)/), offset=dumh51D, hyperslab_size=dumh51D2)
         CALL h5fclose_f(file_id,error)

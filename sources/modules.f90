@@ -10,9 +10,16 @@ MODULE fields
 END MODULE fields
 
 MODULE longstep_vars
-  INTEGER :: number_of_steps
-  REAL,ALLOCATABLE :: data_to_write(:,:)
+  USE linked_list
+  INTEGER :: longstep_write_count = 0
   INTEGER :: original_rhodist
+  INTEGER :: dset_write_count = 0
+  
+  ! Variables needed for linked list buffering
+  REAL, DIMENSION(:), POINTER :: ptr
+  TYPE(list_t), POINTER :: fluence_ll => NULL()
+  TYPE(list_t), POINTER :: tmp_ll => NULL()
+  INTEGER :: length_of_linked_list = 0
 END MODULE longstep_vars
 
 MODULE parameters

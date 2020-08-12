@@ -453,7 +453,7 @@ MODULE hdf5_helper
     END SUBROUTINE create_3D_array_real_dset_p
 
     SUBROUTINE create_1D_dset_unlimited(file_id, name, var, dim)
-      REAL                     :: var
+      REAL,DIMENSION(:)        :: var
       INTEGER(4)               :: file_id
       CHARACTER(*)             :: name
       INTEGER(HID_T)           :: dset_id, dataspace, h5_parameters
@@ -465,7 +465,6 @@ MODULE hdf5_helper
       CALL h5pcreate_f(H5P_DATASET_CREATE_F, h5_parameters, error) ! Modify dataset creation properties, i.e. enable chunking
       CALL h5pset_chunk_f(h5_parameters, 1, dumh51D, error) ! enable chunking (1 is the dimension of the dataset)
       CALL h5dcreate_f(file_id, name, H5T_NATIVE_REAL, dataspace, dset_id, error, h5_parameters) ! create dataset
-      dumh51D = (/int(1,HSIZE_T)/) ! dimension of data
       CALL h5dwrite_f(dset_id, H5T_NATIVE_REAL, var, dumh51D, error)
       CALL h5sclose_f(dataspace, error)
       CALL h5pclose_f(h5_parameters, error)
@@ -505,7 +504,7 @@ MODULE hdf5_helper
 !!! extendible dataset for single-writter (following the tuto https://portal.hdfgroup.org/display/HDF5/Examples+from+Learning+the+Basics#ExamplesfromLearningtheBasics-changingex https://bitbucket.hdfgroup.org/projects/HDFFV/repos/hdf5/browse/fortran/examples/h5_extend.f90?at=89fbe00dec8187305b518d91c3ddb7d910665f79&raw )
 
     SUBROUTINE extend_1D_dset_unlimited(file_id, name, var, new_dims, memspace_dims, offset, hyperslab_size)
-      REAL                     :: var
+      REAL,DIMENSION(:)        :: var
       INTEGER(4)               :: file_id
       CHARACTER(*)             :: name
       INTEGER(HID_T)           :: dset_id, dataspace
