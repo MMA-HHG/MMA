@@ -16,9 +16,14 @@ MODULE longstep_vars
   INTEGER :: dset_write_count = 0
   
   ! Variables needed for linked list buffering
-  REAL, DIMENSION(:), POINTER :: ptr
+  REAL, DIMENSION(:), POINTER :: ptr_f
+  REAL, DIMENSION(:), POINTER :: ptr_p
+  REAL, DIMENSION(:), POINTER :: ptr_lp
+  REAL, DIMENSION(:), POINTER :: ptr_li
   TYPE(list_t), POINTER :: fluence_ll => NULL()
-  TYPE(list_t), POINTER :: tmp_ll => NULL()
+  TYPE(list_t), POINTER :: plasma_channel_ll => NULL()
+  TYPE(list_t), POINTER :: losses_plasma_ll => NULL()
+  TYPE(list_t), POINTER :: losses_ionization_ll => NULL()
   INTEGER :: length_of_linked_list = 0
 END MODULE longstep_vars
 

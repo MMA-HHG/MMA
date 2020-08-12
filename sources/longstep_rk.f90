@@ -279,7 +279,7 @@ CONTAINS
     INTEGER(HID_T)    :: group_id      ! Group identifier 
     INTEGER(HID_T)    :: h5parameters  ! Property list identifier 
     INTEGER           :: error         ! hdferr
-    LOGICAL           :: group_status  ! boolean - does the group exists?
+    LOGICAL           :: group_status, rho_pavel_group_status  ! boolean - does the group exists?
     CHARACTER(LEN=15) :: h5_filename="results.h5" ! hdf5 file name
     
     ! Names of dsets and groups
@@ -293,6 +293,10 @@ CONTAINS
     CHARACTER(LEN=25) :: z_buff_dset_name="longstep/z_buff"
     CHARACTER(LEN=25) :: every_rhodist_z_dset_name="longstep/every_rhodist_z"
     CHARACTER(LEN=25) :: onax_t_dset_name="longstep/onax_t"
+    CHARACTER(LEN=25) :: pavel_groupname="longstep/rho_pavel"
+    CHARACTER(LEN=35) :: rho_pavel_rhoO2max="longstep/rho_pavel/rhoO2max"
+    CHARACTER(LEN=35) :: rho_pavel_rhoN2max="longstep/rho_pavel/rhoN2max"
+    CHARACTER(LEN=35) :: rho_pavel_Tevmax="longstep/rho_pavel/Tevmax"
     
     ! Arrays needed for temporary storing of dataset content and their writing
     INTEGER(HSIZE_T), DIMENSION(1) :: new_dims, memspace_dims, offset, hyperslab_size
@@ -301,8 +305,10 @@ CONTAINS
     REAL,DIMENSION(1) :: z_data
 
     ! Variables needed for linked list buffering
-    REAL, ALLOCATABLE, TARGET  :: linked_list_data(:)
-    TYPE(list_t), POINTER      :: temporary_var
+    REAL, ALLOCATABLE, TARGET  :: fluence_data(:)
+    REAL, ALLOCATABLE, TARGET  :: plasma_channel_data(:)
+    REAL, ALLOCATABLE, TARGET  :: losses_plasma_data(:)
+    REAL, ALLOCATABLE, TARGET  :: losses_ionization_data(:)
 
     rho=0.D0
     rhoabs = 0.D0 
@@ -502,17 +508,15 @@ CONTAINS
     CALL MPI_REDUCE(rhoO2max_part,rhoO2max(count),1,MPI_DOUBLE_PRECISION,MPI_MAX,0,MPI_COMM_WORLD,ierr)
     CALL MPI_REDUCE(rhoN2max_part,rhoN2max(count),1,MPI_DOUBLE_PRECISION,MPI_MAX,0,MPI_COMM_WORLD,ierr)
     CALL MPI_REDUCE(Tevmax_part,Tevmax(count),1,MPI_DOUBLE_PRECISION,MPI_MAX,0,MPI_COMM_WORLD,ierr)
-    ALLOCATE(onax_t_data(1,1:dim_t))
     IF(my_rank.EQ.0) z_buff(count)=z
-    IF (count.GE.rhodist .OR. z.LE.delta_z) ALLOCATE(linked_list_data(1:dim_r/num_proc))
+    IF (count.GE.rhodist .OR. z.LE.delta_z) THEN
+      ALLOCATE(onax_t_data(1,1:dim_t))
+      ALLOCATE(fluence_data(1:dim_r/num_proc))
+      ALLOCATE(plasma_channel_data(1:dim_r/num_proc))
+      ALLOCATE(losses_plasma_data(1:dim_r/num_proc))
+      ALLOCATE(losses_ionization_data(1:dim_r/num_proc))
+    ENDIF
     IF(count.GE.rhodist) THEN
-      !
-      !
-      ! For FLUENCE, etc. create linked lists for each core, store the arrays there and at the end first find out how long the
-      ! linked list is, preallocate sufficient dset and write to it parallelly at the end
-      !
-      !
-
        e_2=0.D0
        DO l=dim_r_start(num_proc),dim_r_end(num_proc)
           e_2=e_2+ABS(e(1:dim_t,l))**2*REAL(l-1,8)
@@ -527,6 +531,14 @@ CONTAINS
             CALL h5gcreate_f(file_id, groupname, group_id, error) 
             CALL h5gclose_f(group_id, error)
           ENDIF
+          IF (switch_rho.EQ.7) THEN
+            ! Create rho_pavel group if it does not exist yet
+            CALL h5lexists_f(file_id, pavel_groupname, rho_pavel_group_status, error)
+            IF ( group_status .EQV. .FALSE. ) THEN
+              CALL h5gcreate_f(file_id, groupname, group_id, error) 
+              CALL h5gclose_f(group_id, error)
+            ENDIF
+          ENDIF
           IF (longstep_write_count.EQ.0) THEN
             CALL create_1D_dset_unlimited(file_id, z_buff_dset_name, REAL(z_buff(1:rhodist),4), rhodist)
             CALL create_1D_dset_unlimited(file_id, rhoabs_max_dset_name, REAL(rhoabs_max(1:rhodist),4), rhodist)
@@ -536,6 +548,11 @@ CONTAINS
               REAL(6.2831853D0*energy(1:rhodist)*delta_t*delta_r**2,4), rhodist)
             CALL create_1D_dset_unlimited(file_id, energy_fil_dset_name, &
               REAL(6.2831853D0*energy_fil(1:rhodist)*delta_t*delta_r**2,4), rhodist)
+            IF (switch_rho.EQ.7) THEN
+              CALL create_1D_dset_unlimited(file_id, rho_pavel_rhoO2max, REAL(rhoO2max(1:rhodist),4), rhodist)
+              CALL create_1D_dset_unlimited(file_id, rho_pavel_rhoN2max, REAL(rhoN2max(1:rhodist),4), rhodist)
+              CALL create_1D_dset_unlimited(file_id, rho_pavel_Tevmax, REAL(Tevmax(1:rhodist),4), rhodist)
+            ENDIF
             powmax_data(1,1) = REAL(z,4)
             powmax_data(1,2) = REAL(6.2831853D0*MAXVAL(e_2KK)*delta_r**2,4)
             z_data(1) = REAL(z,4)
@@ -572,7 +589,7 @@ CONTAINS
             offset = (/int(longstep_write_count*original_rhodist,HSIZE_T)/)
             hyperslab_size = (/int(rhodist,HSIZE_T)/)
             IF (count .EQ. 0) THEN
-              print *,"last write skipped"
+              print *,"Last write skipped (longstep_rk.f90)"
             ELSE
               CALL extend_1D_dset_unlimited(file_id, z_buff_dset_name, & 
                 REAL(z_buff(1:count),4), new_dims, &
@@ -597,6 +614,20 @@ CONTAINS
               CALL extend_1D_dset_unlimited(file_id, energy_fil_dset_name, &
                 REAL(6.2831853D0*energy_fil(1:count)*delta_t*delta_r**2,4), new_dims, &
                 memspace_dims, offset, hyperslab_size)
+              IF (switch_rho.EQ.7) THEN
+                CALL extend_1D_dset_unlimited(file_id, rho_pavel_rhoO2max, &
+                  REAL(rhoO2max(1:rhodist),4), new_dims, &
+                memspace_dims, offset, hyperslab_size)
+
+                CALL extend_1D_dset_unlimited(file_id, rho_pavel_rhoN2max, &
+                  REAL(rhoN2max(1:rhodist),4), new_dims, &
+                memspace_dims, offset, hyperslab_size)
+
+                CALL extend_1D_dset_unlimited(file_id, rho_pavel_Tevmax, &
+                  REAL(Tevmax(1:rhodist),4), new_dims, &
+                memspace_dims, offset, hyperslab_size)
+              ENDIF
+              
             ENDIF
             powmax_data(1,1) = REAL(z,4)
             powmax_data(1,2) = REAL(6.2831853D0*MAXVAL(e_2KK)*delta_r**2,4)
@@ -618,80 +649,62 @@ CONTAINS
             dset_write_count = dset_write_count + 1
             longstep_write_count = longstep_write_count + 1
           ENDIF
-          WRITE(unit_rho,*) REAL(z,4),REAL(6.2831853D0*MAXVAL(e_2KK)*delta_r**2,4)
-          CLOSE(unit_rhoabs_max)
-          CLOSE(unit_peakmax)
-          CLOSE(unit_rhomax)
-          CLOSE(unit_energy)
-          CLOSE(unit_rho)
-          IF (switch_rho.EQ.7) THEN
-             OPEN(unit_rho,FILE='rho_pavel.dat',STATUS='UNKNOWN',POSITION='APPEND')
-             DO j=1,count
-                WRITE(unit_rho,*) REAL(z_buff(j),4) ,REAL(rhoO2max(j),4) ,REAL(rhoN2max(j),4) ,REAL(Tevmax(j),4)
-             ENDDO
-             CLOSE(unit_rho)
-          ENDIF
-          OPEN(unit_rho,FILE='ONAX_T.DAT',STATUS='UNKNOWN',FORM='UNFORMATTED',POSITION='APPEND')
-          WRITE(unit_rho) REAL(z,4),REAL(ABS(e(1:dim_t,1)),4)
-          CLOSE(unit_rho)
+          
           ! Terminate HDF5 file access
           CALL h5fclose_f(file_id, error)
           CALL h5close_f(error)
        ENDIF
-       OPEN(unit_rho,FILE='FLUENCE_'//ip//'.DAT',STATUS='UNKNOWN',FORM='UNFORMATTED',POSITION='APPEND')
-       WRITE(unit_rho) REAL(z,4),REAL(fluence*delta_t,4)
-       CLOSE(unit_rho)
-       ! Initialize data object
-       linked_list_data(:) = REAL(fluence*delta_t,4)
+       ! Initialize data objects
+       fluence_data(:) = REAL(fluence*delta_t,4)
+       plasma_channel_data(:) = REAL(rho,4)
+       losses_plasma_data(:) = REAL(losses_plasma*delta_t,4)  
+       losses_ionization_data(:) = REAL(losses_ionization*delta_t,4) 
 
-       ! Initialize the list with linked_list_data
-       ptr => linked_list_data
-       print *,linked_list_data(1:5)
+       ! Write to linked lists
+       ptr_f => fluence_data
+       ptr_p => plasma_channel_data
+       ptr_lp => losses_plasma_data
+       ptr_li => losses_ionization_data
        IF (length_of_linked_list .EQ. 0) THEN
-         call list_init(fluence_ll, DATA=transfer(ptr, list_data))
+         call list_init(fluence_ll, DATA=transfer(ptr_f, list_data))
+         call list_init(plasma_channel_ll, DATA=transfer(ptr_p, list_data))
+         call list_init(losses_plasma_ll, DATA=transfer(ptr_lp, list_data))
+         call list_init(losses_ionization_ll, DATA=transfer(ptr_li, list_data))
        ELSE
-         call list_append(fluence_ll, DATA=transfer(ptr, list_data))
-         ! Get the next node
-         !ptr = transfer(list_get(list_next(fluence_ll)), ptr)
-         !print *, 'Second node data:', ptr
+         call list_append(fluence_ll, DATA=transfer(ptr_f, list_data))
+         call list_append(plasma_channel_ll, DATA=transfer(ptr_p, list_data))
+         call list_append(losses_plasma_ll, DATA=transfer(ptr_lp, list_data))
+         call list_append(losses_ionization_ll, DATA=transfer(ptr_li, list_data))
        ENDIF
+       ! Increase the length counter
        length_of_linked_list = length_of_linked_list + 1
-       
-       OPEN(unit_rho,FILE='PLASMACHANNEL_'//ip//'.DAT',STATUS='UNKNOWN',FORM='UNFORMATTED',POSITION='APPEND')
-       WRITE(unit_rho) REAL(z,4),REAL(rho,4)
-       CLOSE(unit_rho)
-       OPEN(unit_rho,FILE='LOSSES_PLASMA_'//ip//'.DAT',STATUS='UNKNOWN',FORM='UNFORMATTED',POSITION='APPEND')
-       WRITE(unit_rho) REAL(z,4),REAL(losses_plasma*delta_t,4)
-       CLOSE(unit_rho)
-       OPEN(unit_rho,FILE='LOSSES_IONIZATION_'//ip//'.DAT',STATUS='UNKNOWN',FORM='UNFORMATTED',POSITION='APPEND')
-       WRITE(unit_rho) REAL(z,4),REAL(losses_ionization*delta_t,4)
-       CLOSE(unit_rho)
+       ! Reset the counter
        count=0
     ELSE IF (z.LE.delta_z) THEN
-       OPEN(unit_rho,FILE='FLUENCE_'//ip//'.DAT',STATUS='UNKNOWN',FORM='UNFORMATTED',POSITION='APPEND')
-       WRITE(unit_rho) REAL(z,4),REAL(fluence*delta_t,4)
-       CLOSE(unit_rho)
-       ! Initialize data object
-       linked_list_data(:) = REAL(fluence*delta_t,4)
+       ! Init-ialize data objects
+       fluence_data(:) = REAL(fluence*delta_t,4)
+       plasma_channel_data(:) = REAL(rho,4)
+       losses_plasma_data(:) = REAL(losses_plasma*delta_t,4)  
+       losses_ionization_data(:) = REAL(losses_ionization*delta_t,4) 
 
-       ! Initialize the list with linked_list_data
-       ptr => linked_list_data
-       print *,linked_list_data(1:5)
+       ! Write to linked lists
+       ptr_f => fluence_data
+       ptr_p => plasma_channel_data
+       ptr_lp => losses_plasma_data
+       ptr_li => losses_ionization_data
        IF (length_of_linked_list .EQ. 0) THEN
-         call list_init(fluence_ll, DATA=transfer(ptr, list_data))
+         call list_init(fluence_ll, DATA=transfer(ptr_f, list_data))
+         call list_init(plasma_channel_ll, DATA=transfer(ptr_p, list_data))
+         call list_init(losses_plasma_ll, DATA=transfer(ptr_lp, list_data))
+         call list_init(losses_ionization_ll, DATA=transfer(ptr_li, list_data))
        ELSE
-         call list_append(fluence_ll, DATA=transfer(ptr, list_data))
+         call list_append(fluence_ll, DATA=transfer(ptr_f, list_data))
+         call list_append(plasma_channel_ll, DATA=transfer(ptr_p, list_data))
+         call list_append(losses_plasma_ll, DATA=transfer(ptr_lp, list_data))
+         call list_append(losses_ionization_ll, DATA=transfer(ptr_li, list_data))
        ENDIF
+       ! Increase the length counter
        length_of_linked_list = length_of_linked_list + 1
-       OPEN(unit_rho,FILE='PLASMACHANNEL_'//ip//'.DAT',STATUS='UNKNOWN',FORM='UNFORMATTED',POSITION='APPEND')
-       WRITE(unit_rho) REAL(z,4),REAL(rho,4)
-       CLOSE(unit_rho)
-       OPEN(unit_rho,FILE='LOSSES_PLASMA_'//ip//'.DAT',STATUS='UNKNOWN',FORM='UNFORMATTED',POSITION='APPEND')
-       WRITE(unit_rho) REAL(z,4),REAL(losses_plasma*delta_t,4)
-       CLOSE(unit_rho)
-       OPEN(unit_rho,FILE='LOSSES_IONIZATION_'//ip//'.DAT',STATUS='UNKNOWN',FORM='UNFORMATTED',POSITION='APPEND')
-       WRITE(unit_rho) REAL(z,4),REAL(losses_ionization*delta_t,4)
-       CLOSE(unit_rho)
        e_2=0.D0
        DO l=dim_r_start(num_proc),dim_r_end(num_proc)
           e_2=e_2+ABS(e(1:dim_t,l))**2*REAL(l-1,8)
@@ -706,9 +719,6 @@ CONTAINS
             CALL h5gcreate_f(file_id, groupname, group_id, error) 
             CALL h5gclose_f(group_id, error)
           ENDIF
-          OPEN(unit_rho,FILE='powmax.dat',STATUS='UNKNOWN',POSITION='APPEND')
-          WRITE(unit_rho,*) REAL(z,4),REAL(6.2831853D0*MAXVAL(e_2KK)*delta_r**2,4)
-          CLOSE(unit_rho)
           powmax_data(1,1) = REAL(z,4)
           powmax_data(1,2) = REAL(6.2831853D0*MAXVAL(e_2KK)*delta_r**2,4)
           z_data(1) = REAL(z,4)
@@ -732,12 +742,9 @@ CONTAINS
               new_dims=(/int(dset_write_count + 1,HSIZE_T)/), memspace_dims=(/int(1,HSIZE_T)/), &
               offset = (/int(dset_write_count, HSIZE_T)/), hyperslab_size = (/int(1,HSIZE_T)/))
           ENDIF
-          OPEN(unit_rho,FILE='ONAX_T.DAT',STATUS='UNKNOWN',FORM='UNFORMATTED',POSITION='APPEND')
-          WRITE(unit_rho) REAL(z,4),REAL(ABS(e(1:dim_t,1)),4)
-          CLOSE(unit_rho)
           dset_write_count = dset_write_count + 1
        ENDIF
-       DEALLOCATE(linked_list_data)
+       DEALLOCATE(fluence_data, plasma_channel_data, losses_plasma_data, losses_ionization_data)
     ENDIF
     RETURN
   END SUBROUTINE mult_phase

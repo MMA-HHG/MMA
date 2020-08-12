@@ -490,9 +490,18 @@ CONTAINS
     INTEGER                        :: error
     CHARACTER(LEN=15) :: h5_filename="results.h5"
     CHARACTER(LEN=15) :: groupname="longstep"
-    CHARACTER(LEN=25) :: dset_name="longstep/ll_test"
+    CHARACTER(LEN=25) :: fluence_dset_name="longstep/fluence"
+    CHARACTER(LEN=25) :: plasma_channel_dset_name="longstep/plasma_channel"
+    CHARACTER(LEN=25) :: losses_plasma_dset_name="longstep/losses_plasma"
+    CHARACTER(LEN=30) :: losses_ionization_dset_name="longstep/losses_ionization"
     REAL(4), ALLOCATABLE :: fluence_part(:,:)
-    TYPE(list_t), POINTER      :: next_ll
+    REAL(4), ALLOCATABLE :: plasma_channel_part(:,:)
+    REAL(4), ALLOCATABLE :: losses_plasma_part(:,:)
+    REAL(4), ALLOCATABLE :: losses_ionization_part(:,:)
+    TYPE(list_t), POINTER      :: next_fluence_ll
+    TYPE(list_t), POINTER      :: next_plasma_channel_ll
+    TYPE(list_t), POINTER      :: next_losses_plasma_ll
+    TYPE(list_t), POINTER      :: next_losses_ionization_ll
     
     ! Open HDF5 archive collectivelly
     CALL h5open_f(error)
@@ -504,21 +513,52 @@ CONTAINS
     ! Calculate the size of the dataset
     dims = (/int(length_of_linked_list,HSIZE_T),int(dim_r,HSIZE_T)/)
     ALLOCATE(fluence_part(1,dim_r_local))
+    ALLOCATE(plasma_channel_part(1,dim_r_local))
+    ALLOCATE(losses_plasma_part(1,dim_r_local))
+    ALLOCATE(losses_ionization_part(1,dim_r_local))
 
     DO i=1,length_of_linked_list
       offset = (/int(i-1,HSIZE_T),int(dim_r_start(num_proc)-1,HSIZE_T)/)
       ccount = (/int(1,HSIZE_T), int(dim_r_local,HSIZE_T)/)
       IF (i .EQ. 1) THEN
         fluence_part(1,:) = transfer(list_get(fluence_ll), fluence_part(1,:))   
-        next_ll => list_next(fluence_ll)
-        CALL create_2D_array_real_dset_p(file_id, dset_name, fluence_part, dims, offset, ccount)
+        next_fluence_ll => list_next(fluence_ll)
+        CALL create_2D_array_real_dset_p(file_id, fluence_dset_name, fluence_part, dims, offset, ccount)
+
+        plasma_channel_part(1,:) = transfer(list_get(plasma_channel_ll), plasma_channel_part(1,:))   
+        next_plasma_channel_ll => list_next(plasma_channel_ll)
+        CALL create_2D_array_real_dset_p(file_id, plasma_channel_dset_name, plasma_channel_part, dims, offset, ccount)
+        
+        losses_plasma_part(1,:) = transfer(list_get(losses_plasma_ll), losses_plasma_part(1,:))   
+        next_losses_plasma_ll => list_next(losses_plasma_ll)
+        CALL create_2D_array_real_dset_p(file_id, losses_plasma_dset_name, losses_plasma_part, dims, offset, ccount)
+        
+        losses_ionization_part(1,:) = transfer(list_get(losses_ionization_ll), losses_ionization_part(1,:))   
+        next_losses_ionization_ll => list_next(losses_ionization_ll)
+        CALL create_2D_array_real_dset_p(file_id, losses_ionization_dset_name, losses_ionization_part, dims, offset, ccount)
       ELSE
-        fluence_part(1,:) = transfer(list_get(next_ll), fluence_part(1,:))
-        CALL write_hyperslab_to_2D_dset(file_id, dset_name, fluence_part, offset, ccount)
-        next_ll => list_next(next_ll)
+        fluence_part(1,:) = transfer(list_get(next_fluence_ll), fluence_part(1,:))
+        CALL write_hyperslab_to_2D_dset(file_id, fluence_dset_name, fluence_part, offset, ccount)
+        next_fluence_ll => list_next(next_fluence_ll)
+        
+        plasma_channel_part(1,:) = transfer(list_get(next_plasma_channel_ll), plasma_channel_part(1,:))   
+        CALL write_hyperslab_to_2D_dset(file_id, plasma_channel_dset_name, plasma_channel_part, offset, ccount)
+        next_plasma_channel_ll => list_next(next_plasma_channel_ll)
+        
+        losses_plasma_part(1,:) = transfer(list_get(next_losses_plasma_ll), losses_plasma_part(1,:))   
+        CALL write_hyperslab_to_2D_dset(file_id, losses_plasma_dset_name, losses_plasma_part, offset, ccount)
+        next_losses_plasma_ll => list_next(next_losses_plasma_ll)
+        
+        losses_ionization_part(1,:) = transfer(list_get(next_losses_ionization_ll), losses_ionization_part(1,:))  
+        CALL write_hyperslab_to_2D_dset(file_id, losses_ionization_dset_name, losses_ionization_part, offset, ccount)
+        next_losses_ionization_ll => list_next(next_losses_ionization_ll)
       ENDIF
     END DO
+    DEALLOCATE(fluence_part, plasma_channel_part, losses_plasma_part, losses_ionization_part)
     CALL list_free(fluence_ll)
+    CALL list_free(plasma_channel_ll)
+    CALL list_free(losses_plasma_ll)
+    CALL list_free(losses_ionization_ll)
     
     ! Terminate
     CALL h5fclose_f(file_id, error)
