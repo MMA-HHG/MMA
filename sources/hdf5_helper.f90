@@ -1,9 +1,11 @@
 MODULE hdf5_helper
   USE HDF5
+  ! Create an interface for reading a dset. It includes most of the reading subroutines, the ones that are uniquely identifiable by their parameters.
   INTERFACE read_dset
     PROCEDURE readint, readreal, readbool, readstring, read_array_complex_dset, read_2D_array_complex_dset, &
       read_2D_array_complex_dset_slice, read_2D_array_real_dset_slice
   END INTERFACE
+  ! Create an interface for creating a dset. It includes most of the writing subroutines, the ones that are uniquely identifiable by their parameters.
   INTERFACE create_dset
     PROCEDURE create_scalar_boolean_dset, create_scalar_int_dset, create_scalar_real_dset, create_1D_array_real_dset, &
       create_array_complex_dset, create_2D_array_complex_dset, create_2D_array_real_dset
@@ -14,112 +16,144 @@ MODULE hdf5_helper
     ! READ !
     !******!
 
+    ! This subroutine reads an integer from scalar dataset.
     SUBROUTINE readint(file_id, name, var)
-      INTEGER(4)     :: file_id
-      CHARACTER(*)   :: name
-      INTEGER(4)     :: var
-      INTEGER(HID_T) :: dset_id
-      INTEGER        :: error
-      INTEGER(HSIZE_T), DIMENSION(1:1) :: data_dims
+      INTEGER(4)     :: file_id ! the id of the already opened h5 file or a group in a file
+      CHARACTER(*)   :: name ! name of the dataset to be read
+      INTEGER(4)     :: var ! variable for that stores the value read from the dataset
+      INTEGER(HID_T) :: dset_id ! id of the dataset to be opened
+      INTEGER        :: error ! error variable
+      INTEGER(HSIZE_T), DIMENSION(1:1) :: data_dims ! dimension of the dataset
+      ! Open the dataset and store dataset id in dset_id
       CALL h5dopen_f(file_id, name, dset_id, error)
+      ! Read the value from dataset
       CALL h5dread_f(dset_id, H5T_NATIVE_INTEGER, var, data_dims, error)
-      !print *, name, var
+      ! Close the dataset
       CALL h5dclose_f(dset_id, error)
     END SUBROUTINE
 
+    ! This subroutine reads an integer from scalar dataset
     SUBROUTINE readreal(file_id, name, var)
-      INTEGER(4)     :: file_id
-      CHARACTER(*)   :: name
-      REAL(8)        :: var
-      INTEGER(HID_T) :: dset_id
-      INTEGER        :: error
-      INTEGER(HSIZE_T), DIMENSION(1:1) :: data_dims
+      INTEGER(4)     :: file_id ! the id of the already opened h5 file or a group in a file
+      CHARACTER(*)   :: name ! name of the dataset to be read
+      REAL(8)        :: var ! variable for that stores the value read from the dataset
+      INTEGER(HID_T) :: dset_id ! id of the dataset to be opened
+      INTEGER        :: error ! error variable
+      INTEGER(HSIZE_T), DIMENSION(1:1) :: data_dims ! dimension of the dataset
+      ! Open the dataset and store dataset id in dset_id
       CALL h5dopen_f(file_id, name, dset_id, error)
+      ! Read the value from dataset
       CALL h5dread_f(dset_id, H5T_NATIVE_DOUBLE, var, data_dims, error)
-      !print *, name, var
+      ! Close the dataset
       CALL h5dclose_f(dset_id, error)
     END SUBROUTINE
 
+    ! This subroutine reads an integer (either 0 or 1) and evaluates it as a boolean
     SUBROUTINE readbool(file_id, name, var)
-      INTEGER(4)     :: file_id
-      CHARACTER(*)   :: name
-      LOGICAL        :: var
-      INTEGER        :: value
-      INTEGER(HID_T) :: dset_id
-      INTEGER        :: error
-      INTEGER(HSIZE_T), DIMENSION(1:1) :: data_dims
+      INTEGER(4)     :: file_id ! the id of the already opened h5 file or a group in a file
+      CHARACTER(*)   :: name ! name of the dataset to be read
+      REAL(8)        :: var ! variable for that stores the value read from the dataset
+      INTEGER(HID_T) :: dset_id ! id of the dataset to be opened
+      INTEGER        :: error ! error variable
+      INTEGER(HSIZE_T), DIMENSION(1:1) :: data_dims ! dimension of the dataset
+      INTEGER        :: value ! Variable for the value to be analysed
+      ! Open the dataset and store dataset id in dset_id
       CALL h5dopen_f(file_id, name, dset_id, error)
+      ! Read the value from dataset
       CALL h5dread_f(dset_id, H5T_NATIVE_INTEGER, value, data_dims, error)
+      ! If value is 1, store .TRUE. in var, store .FALSE. otherwise
       IF(value.EQ.1)THEN
         var = .TRUE.
       ELSE
         var = .FALSE.
       ENDIF
-      !print *, name, var
+      ! Close the dataset
       CALL h5dclose_f(dset_id, error)
     END SUBROUTINE
   
-   SUBROUTINE readstring(file_id, name, var)
-      INTEGER(4)                       :: file_id
-      CHARACTER(*)                     :: name
-      INTEGER(SIZE_T), PARAMETER       :: length = 15
-      CHARACTER(LEN=length)            :: var
-      INTEGER(HID_T)                   :: dset_id, memtype, filetype, space
-      INTEGER                          :: error
-      INTEGER(HSIZE_T), DIMENSION(1:1) :: dims, maxdims
-      INTEGER(SIZE_T)                  :: size
+    ! This subroutine reads a string from scalar dataset
+    SUBROUTINE readstring(file_id, name, var)
+      INTEGER(4)                       :: file_id ! the id of the already opened h5 file or a group in a file
+      CHARACTER(*)                     :: name ! name of the dataset to be read
+      INTEGER(SIZE_T), PARAMETER       :: length = 15 ! length of the string, it can be enlarged if needed
+      CHARACTER(LEN=length)            :: var ! variable for that stores the value read from the dataset
+      INTEGER(HID_T)                   :: dset_id, memtype, filetype, space ! define necessary identifiers
+      INTEGER                          :: error ! error variable
+      INTEGER(HSIZE_T), DIMENSION(1:1) :: dims, maxdims ! dimension of the dataset and the 
+      INTEGER(SIZE_T)                  :: size ! real size of the string in the dataset
+      ! Open the dataset
       CALL h5dopen_f(file_id, name, dset_id, error)
+      ! Get the dataspace of the dataset
       CALL h5dget_type_f(dset_id, filetype, error)
-      CALL h5tget_size_f(filetype, size, error)
+      ! Get the real size of the string
+      CALL h5tget_size_f(filetype, size, error) 
 
+      ! Check if the length of the variable is large enough
       IF(size.GT.length)THEN
         PRINT*,'ERROR: Character LEN is to small'
         STOP
       ENDIF
 
+      ! Get the dataspace of the dataset
       CALL h5dget_space_f(dset_id, space, error)
+      ! Get the size and maximum sizes of each dimension of a dataspace
       CALL h5sget_simple_extent_dims_f(space, dims, maxdims, error)
+      ! The following returns a modifiable transient datatype which is a copy of H5T_FORTRAN_S1
       CALL h5tcopy_f(H5T_FORTRAN_S1, memtype, error)
+      ! Set size of the dataspaceto the length
       CALL h5tset_size_f(memtype, length, error)
+      ! Read the value from the dataset
       CALL h5dread_f(dset_id, memtype, var, dims, error, space)
-      !print *, name, var
+      ! Close the dataset
       CALL h5dclose_f(dset_id, error)
     END SUBROUTINE
     
+    ! This subroutine reads a 1D complex dataset
     SUBROUTINE read_array_complex_dset(file_id, name, var, dims_y)
-      COMPLEX(8), DIMENSION(:) :: var
-      INTEGER(4)               :: file_id
-      CHARACTER(*)             :: name
-      INTEGER                  :: dims_y, error
-      INTEGER(HID_T) :: dset_id
-      INTEGER(HSIZE_T), DIMENSION(2) :: data_dims
-      REAL(8), DIMENSION(2,dims_y) :: res
+      COMPLEX(8), DIMENSION(:) :: var ! variable for that stores the value read from the dataset
+      INTEGER(4)               :: file_id ! the id of the already opened h5 file or a group in a file
+      CHARACTER(*)             :: name ! name of the dataset to be read
+      INTEGER                  :: dims_y, error ! dims_y stores the size of the dataset to be read, error stores error messages
+      INTEGER(HID_T)           :: dset_id ! dataset id
+      ! As HDF5 does not support complex numbers, the dataset is a 2 by dims_y dataset of reals
+      INTEGER(HSIZE_T), DIMENSION(2) :: data_dims ! data dimensions array has two values because of that
+      REAL(8), DIMENSION(2,dims_y) :: res ! this variable stores the actual data from the dataset
+      ! Open the dataset
       CALL h5dopen_f(file_id, name, dset_id, error)
+      ! Initialize data dimensions variable 
       data_dims(1) = 2
       data_dims(2) = dims_y
+      ! Read the dataset
       CALL h5dread_f(dset_id, H5T_NATIVE_DOUBLE, res, data_dims, error)
+      ! Close the dataset
       CALL h5dclose_f(dset_id, error)
+      ! Use the temporary variable to fill in the output variable
       DO i = 1, dims_y
         var(i) = CMPLX(res(1,i),res(2,i))
       END DO
-      !print *,name," loaded"
     END SUBROUTINE read_array_complex_dset
     
+    ! This subroutine reads a 2D complex dataset
     SUBROUTINE read_2D_array_complex_dset(file_id, name, var, dims_x, dims_y)
-      COMPLEX(8), DIMENSION(:,:) :: var
-      INTEGER(4)               :: file_id
-      CHARACTER(*)             :: name
-      INTEGER                  :: dims_x, dims_y, error
-      INTEGER(HID_T) :: dset_id
-      INTEGER(HSIZE_T), DIMENSION(3) :: data_dims
-      REAL(8), DIMENSION(dims_y,dims_x,2) :: res
+      COMPLEX(8), DIMENSION(:,:) :: var ! variable for that stores the value read from the dataset
+      INTEGER(4)               :: file_id ! the id of the already opened h5 file or a group in a file
+      CHARACTER(*)             :: name ! name of the dataset to be read
+      INTEGER                  :: dims_x, dims_y, error ! dims_x and dims_y store the size of the dataset to be read, error stores error messages
+      INTEGER(HID_T)           :: dset_id ! dataset id
+      ! As HDF5 does not support complex numbers, the dataset is a 2 by dims_x by dims_y dataset of reals
+      INTEGER(HSIZE_T), DIMENSION(3) :: data_dims ! data dimensions array has three values because of that
+      REAL(8), DIMENSION(dims_y,dims_x,2) :: res ! this variable stores the actual data from the dataset
+      ! Open the dataset
       CALL h5dopen_f(file_id, name, dset_id, error)
+      ! Initialize data dimensions variable 
       data_dims(1) = dims_y
       data_dims(2) = dims_x
       data_dims(3) = 2
+      ! Read the dataset
       CALL h5dread_f(dset_id, H5T_NATIVE_DOUBLE, res, data_dims, error)
+      ! Close the dataset
       CALL h5dclose_f(dset_id, error)
-      !print *,"res loaded ok", dims_x, dims_y
+      ! Use the temporary variable to fill in the output variable      
       DO i = 1, dims_y
         DO j = 1, dims_x
           var(i,j) = CMPLX(res(j,i,1),res(j,i,2))
@@ -127,80 +161,106 @@ MODULE hdf5_helper
       END DO
     END SUBROUTINE read_2D_array_complex_dset
     
+    ! This subroutine reads a part of the 2D complex dataset
     SUBROUTINE read_2D_array_complex_dset_slice(file_id, name, var, dims_x, dims_y, slice_x, slice_y, offset_x, offset_y)
-      COMPLEX(8), DIMENSION(:,:) :: var
-      INTEGER(4)               :: file_id
-      CHARACTER(*)             :: name
-      INTEGER                  :: dims_x, dims_y, offset_x, offset_y, slice_x, slice_y, rank, error
-      INTEGER(HID_T)           :: dset_id,dataspace,memspace
-      INTEGER(HSIZE_T), DIMENSION(3) :: data_dims, slice_dims
-      REAL(8), DIMENSION(dims_y,dims_x,2) :: res
+      COMPLEX(8), DIMENSION(:,:) :: var ! variable for that stores the value read from the dataset
+      INTEGER(4)                 :: file_id ! the id of the already opened h5 file or a group in a file
+      CHARACTER(*)               :: name ! name of the dataset to be read
+      ! dims_x and dims_y store the size of the dataset to be read
+      ! offset_x and offset_y store the offset from the left top corner of the dataset
+      ! rank of the dataset, error stores error messages
+      INTEGER                    :: dims_x, dims_y, offset_x, offset_y, slice_x, slice_y, rank, error
+      INTEGER(HID_T)             :: dset_id,dataspace,memspace ! necessary identifiers
+      INTEGER(HSIZE_T), DIMENSION(3) :: data_dims, slice_dims ! dimesnions variables
+      REAL(8), DIMENSION(dims_y,dims_x,2) :: res ! temporary variable for storing read data
       INTEGER(HSIZE_T), DIMENSION(1:3) :: count  ! Size of hyperslab
       INTEGER(HSIZE_T), DIMENSION(1:3) :: offset ! Hyperslab offset
       INTEGER(HSIZE_T), DIMENSION(1:3) :: stride = (/1,1,1/) ! Hyperslab stride
       INTEGER(HSIZE_T), DIMENSION(1:3) :: block = (/1,1,1/)  ! Hyperslab block size
+      ! Initialize arrays
       count = (/2,slice_x,slice_y/)
       offset = (/0,offset_x,offset_y/)
-      rank = 3
       slice_dims = (/2,slice_x,slice_y/)
       data_dims = (/2,dims_x,dims_y/)
+      ! Initialize rank of the dataset
+      rank = 3
+      ! Open the dataset
       CALL h5dopen_f(file_id, name, dset_id, error)
+      ! Get dataspace of the dataset
       CALL h5dget_space_f(dset_id, dataspace, error)
+      ! Select the wanted hyperslab
       CALL h5sselect_hyperslab_f(dataspace, H5S_SELECT_SET_F, offset, count, error, stride, BLOCK)
+      ! Create a dataspace with a size of the slice
       CALL h5screate_simple_f(rank, slice_dims, memspace, error)
+      ! Read the dataset
       CALL h5dread_f(dset_id, H5T_NATIVE_DOUBLE, res, slice_dims, error, memspace, dataspace)
+      ! Close dataspaces and dataset
       CALL h5sclose_f(dataspace, error)
       CALL h5sclose_f(memspace, error)
       CALL h5dclose_f(dset_id, error)
-      !print *,"res loaded ok", dims_x, dims_y
+      ! Use the temporary variable to fill in the output variable
       DO i = 1, slice_y
         DO j = 1, slice_x
            var(i,j) = CMPLX(res(j,i,1),res(j,i,2))
         END DO
       END DO
-      !print *,"e:", var(1:5,1:5)
     END SUBROUTINE read_2D_array_complex_dset_slice
 
-
+    ! This subroutine reads a part of the 2D complex dataset
     SUBROUTINE read_2D_array_real_dset_slice(file_id, name, var, dims_x, dims_y, slice_x, slice_y, offset_x, offset_y)
-      REAL(8), DIMENSION(:,:) :: var
-      INTEGER(4)               :: file_id
-      CHARACTER(*)             :: name
+      REAL(8), DIMENSION(:,:) :: var ! variable for that stores the value read from the dataset
+      INTEGER(4)               :: file_id ! identifier of the file
+      CHARACTER(*)             :: name ! dataset name
+      ! dims_x and dims_y store the size of the dataset to be read
+      ! offset_x and offset_y store the offset from the left top corner of the dataset
+      ! rank of the dataset, error stores error messages
       INTEGER                  :: dims_x, dims_y, offset_x, offset_y, slice_x, slice_y, rank, error
+      ! Create necessary identifiers
       INTEGER(HID_T)           :: dset_id,dataspace,memspace
-      INTEGER(HSIZE_T), DIMENSION(2) :: data_dims, slice_dims, dims, maxdims
+      INTEGER(HSIZE_T), DIMENSION(2) :: data_dims, slice_dims, dims, maxdims ! Create necessary arrays
       INTEGER(HSIZE_T), DIMENSION(1:2) :: count  ! Size of hyperslab
       INTEGER(HSIZE_T), DIMENSION(1:2) :: offset ! Hyperslab offset
       INTEGER(HSIZE_T), DIMENSION(1:2) :: stride = (/1,1/) ! Hyperslab stride
       INTEGER(HSIZE_T), DIMENSION(1:2) :: block = (/1,1/)  ! Hyperslab block size
-      !print *, shape(var)
+      ! Initialize arrays and rank
       count = (/slice_x,slice_y/)
       offset = (/offset_x,offset_y/)
       rank = 2
       slice_dims = (/slice_x,slice_y/)
       data_dims = (/dims_x,dims_y/)
+      ! Open the dataset
       CALL h5dopen_f(file_id, name, dset_id, error)
+      ! Get the dataspace
       CALL h5dget_space_f(dset_id, dataspace, error)
+      ! Get the size and maximum sizes of each dimension of a dataspace
       CALL h5sget_simple_extent_dims_f(dataspace, dims, maxdims, error)
-      !print *, name, dims
+      ! Select hyperslab from the dataset
       CALL h5sselect_hyperslab_f(dataspace, H5S_SELECT_SET_F, offset, count, error, stride, BLOCK)
+      ! Create a dataspace with needed dimensions
       CALL h5screate_simple_f(rank, slice_dims, memspace, error)
+      ! Read the dataset
       CALL h5dread_f(dset_id, H5T_NATIVE_DOUBLE, var, slice_dims, error, memspace, dataspace)
+      ! Close dataspaces and dataset
       CALL h5sclose_f(dataspace, error)
       CALL h5sclose_f(memspace, error)
       CALL h5dclose_f(dset_id, error)
-      !print *,"res loaded ok", dims_x, dims_y
     END SUBROUTINE read_2D_array_real_dset_slice
 
+    ! This subroutine returns a size of a 2D dataset with given name
     SUBROUTINE ask_for_size(file_id, name, var)
-      INTEGER(4)               :: file_id, dset_id, dataspace
-      CHARACTER(*)             :: name
-      INTEGER(HSIZE_T), DIMENSION(2) :: var, maxdims
-      INTEGER                  :: error
+      INTEGER(4)               :: file_id, dset_id, dataspace ! necessary identifiers
+      CHARACTER(*)             :: name ! name of the dataset
+      INTEGER(HSIZE_T), DIMENSION(2) :: var, maxdims ! necessary arrays
+      INTEGER                  :: error ! error message
+      ! Open the dataset
       CALL h5dopen_f(file_id, name, dset_id, error)
+      ! Get the dataspace
       CALL h5dget_space_f(dset_id, dataspace, error)
+      ! Get the dimensions of the dataspace
       CALL h5sget_simple_extent_dims_f(dataspace, var, maxdims, error)
+      ! Close the dataspace
       CALL h5sclose_f(dataspace, error)
+      ! Close the dataset
       CALL h5dclose_f(dset_id, error)
     END SUBROUTINE ask_for_size
 
