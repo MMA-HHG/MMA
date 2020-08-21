@@ -7,6 +7,7 @@ PROGRAM cuprad
   USE long_step
   USE mpi_stuff
   USE run_status
+  USE longstep_vars
 
   IMPLICIT NONE
 
@@ -74,9 +75,11 @@ PROGRAM cuprad
         ENDIF
      ENDIF
      CALL field_out
-     CALL write_output ! matlab_out 
+     CALL write_output 
+     !CALL matlab_out 
      rhodist=count
      CALL propagation
+     CALL linked_list_out
      CALL finalize
   ENDIF
 

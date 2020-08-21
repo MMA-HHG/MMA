@@ -4,12 +4,6 @@ PROGRAM make_start
   USE HDF5_helper
 
   IMPLICIT NONE
-  CHARACTER(15) :: filename  ! File name
-  
-
-  ! INTEGER(HID_T) :: file_id                          ! File identifier
-  ! INTEGER        :: error                            ! Error flag
-  INTEGER(HSIZE_T), DIMENSION(1:1) :: data_dims       
   PRINT *,"Pre-processor started"
   PRINT*, 'Specify name of parameterfile' 
   READ(5,*) filename
@@ -36,6 +30,7 @@ PROGRAM make_start
   CALL read_dset(file_id, 'inputs/physical_output_distance_for_matlab_files', outlength_m_phys)
   outlength_m_phys = 1.d-3
   CALL read_dset(file_id, 'inputs/output_distance_in_z-steps_for_fluence_and_power', rhodist)
+  rhodist = 2
   CALL read_dset(file_id, 'inputs/radius_for_diagnostics', rfil_mm_phys)
   CALL read_dset(file_id, 'inputs/physical_first_stepwidth', delta_z_mm_phys)
   CALL read_dset(file_id, 'inputs/operators_t_t-1', switch_T)
@@ -150,10 +145,28 @@ PROGRAM make_start
   ! Close the file.
   ! CALL h5fclose_f(file_id, error)
   
-  PRINT*, 'Specify name of indexfile, or 0 to ignore'
+  PRINT*, 'Specify name of indexfile, or 1 to load from given HDF5 file, or 0 to ignore'
   READ(5,*) indexfile
 
-  IF (indexfile.NE.'0') THEN
+  IF (indexfile.EQ.'0') THEN
+    i_x_max=1
+    i_z_max=1
+    ALLOCATE(xx_mum(i_x_max),zz_mum(i_z_max),Indice(i_x_max,i_z_max))
+    xx_mum(i_x_max)=0.D0
+    zz_mum(i_z_max)=0.D0
+    Indice(i_x_max,i_z_max)=1.D0
+  ELSE IF (indexfile.EQ.'1') THEN
+    CALL h5open_f(error)
+    CALL h5fopen_f ("calculated_tables.h5", H5F_ACC_RDWR_F, file_id, error)
+    CALL ask_for_size_1D(file_id, "/indexes/r_vector", i_x_max)
+    CALL ask_for_size_1D(file_id, "/indexes/z_vector", i_z_max)
+    ALLOCATE(xx_mum(i_x_max),zz_mum(i_z_max),Indice(i_x_max,i_z_max))
+    CALL read_dset(file_id, "/indexes/indexes", Indice, i_x_max, i_z_max)
+    CALL read_dset(file_id, "/indexes/r_vector", xx_mum, i_x_max)
+    CALL read_dset(file_id, "/indexes/z_vector", zz_mum, i_z_max)
+    CALL h5fclose_f(file_id, error)
+    CALL h5close_f(error)
+  ELSE
     OPEN(12,FILE=indexfile,STATUS='UNKNOWN',FORM='UNFORMATTED')
     READ(12) i_x_max, i_z_max
     ALLOCATE(xx_mum(i_x_max),zz_mum(i_z_max),Indice(i_x_max,i_z_max))
@@ -163,13 +176,6 @@ PROGRAM make_start
       READ(12) (Indice(i_x,i_z),i_x=1,i_x_max)
     ENDDO
     CLOSE(12)
-  ELSE
-    i_x_max=1
-    i_z_max=1
-    ALLOCATE(xx_mum(i_x_max),zz_mum(i_z_max),Indice(i_x_max,i_z_max))
-    xx_mum(i_x_max)=0.D0
-    zz_mum(i_z_max)=0.D0
-    Indice(i_x_max,i_z_max)=1.D0
   ENDIF
 
   CALL compute_dispersion(switch_dispersion)
@@ -187,4 +193,5 @@ PROGRAM make_start
   ! Close FORTRAN HDF5 interface.
   CALL h5close_f(error)  
   PRINT *,"Pre-processor done"
+
 END PROGRAM make_start

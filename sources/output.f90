@@ -322,10 +322,12 @@ CONTAINS
     INTEGER :: error
     LOGICAL :: group_status
     CHARACTER(LEN=15) :: h5_filename="results.h5"
-    CHARACTER(LEN=15) :: groupname="outputs"
-    CHARACTER(LEN=25) :: field_out_groupname="outputs/field_out"
+    CHARACTER(LEN=15) :: groupname="/outputs"
+    CHARACTER(LEN=25) :: field_out_groupname="/outputs/field_out_group"
+    INTEGER(HID_T) :: indexes_group_id
+    CHARACTER(LEN=50) :: indexes_groupname="/outputs/field_out_group/indexes_group"    
     REAL(4), ALLOCATABLE :: real_e(:,:),imag_e(:,:)
-
+    
     WRITE(iz,920) z
     DO  k=1,10
        IF (iz(k:k).EQ.' ') iz(k:k)='0'
@@ -347,19 +349,25 @@ CONTAINS
        CALL h5pset_fapl_mpio_f(h5parameters, MPI_COMM_WORLD, MPI_INFO_NULL, error) ! set parameters for MPI access
        CALL h5fopen_f(h5_filename, H5F_ACC_RDWR_F, file_id, error, access_prp = h5parameters ) ! Open collectivelly the file
        CALL h5pclose_f(h5parameters,error) ! close the parameters
+
        !Create group for the output if it does not already exist
        CALL h5lexists_f(file_id, groupname, group_status, error)
        IF ( group_status .EQV. .FALSE. ) THEN
          CALL h5gcreate_f(file_id, groupname, group_id, error) 
-         CALL h5gclose_f(group_id, error)
+       ELSE
+         CALL h5gopen_f(file_id, groupname, group_id, error)
        ENDIF
-       CALL h5gcreate_f(file_id, field_out_groupname, field_group_id, error) 
+       CALL h5lexists_f(file_id, field_out_groupname, group_status, error)
+       IF ( group_status.EQV..FALSE.) THEN
+         CALL h5gcreate_f(file_id, field_out_groupname, field_group_id, error) 
+       ELSE
+         CALL h5gopen_f(file_id, field_out_groupname, field_group_id, error)
+       ENDIF
        IF(my_rank.EQ.0) THEN
           OPEN(unit_logfile,FILE='PROP_RAD.LOG',STATUS='UNKNOWN',POSITION='APPEND')
           WRITE(unit_logfile,*) iz    
           CLOSE(unit_logfile)
        ENDIF
-       OPEN(unit_field,FILE=iz//'_'//ip//'.DAT',STATUS='UNKNOWN',FORM='UNFORMATTED')
        CALL create_dset(field_group_id,'num_proc',num_proc)
        CALL create_dset(field_group_id,'dim_t',dim_t)
        CALL create_dset(field_group_id,'dim_r',dim_r)
@@ -456,18 +464,15 @@ CONTAINS
        CALL create_2D_array_real_dset_p(field_group_id, "startfield_r", real_e, dims, offset, ccount)
        CALL create_2D_array_real_dset_p(field_group_id, "startfield_i", imag_e, dims, offset, ccount)
        DEALLOCATE(real_e,imag_e)
-      !id='index'
-      ! WRITE(unit_field) id
-      ! WRITE(unit_field) i_x_max, i_z_max
-      ! WRITE(unit_field) (xx(i_x),i_x=1,i_x_max)
-      ! DO i_z = 1, i_z_max
-      !    WRITE(unit_field) zz(i_z)
-      !    WRITE(unit_field) (Indice_norm(i_x,i_z),i_x=1,i_x_max)
-      ! ENDDO
-      ! CLOSE(unit_field)
-      CALL h5gclose_f(field_group_id, error)
-      CALL h5fclose_f(file_id, error)
-      CALL h5close_f(error)
+       CALL h5gcreate_f(file_id, indexes_groupname, indexes_group_id, error)
+       CALL create_dset(indexes_group_id, "r_vector", REAL(xx(1:i_x_max),4), i_x_max)
+       CALL create_dset(indexes_group_id, "z_vector", REAL(zz(1:i_z_max),4), i_z_max)
+       CALL create_2D_array_real_dset(indexes_group_id, "indexes", REAL(Indice_norm(1:i_x_max, 1:i_z_max),8), i_x_max, i_z_max)
+       CALL h5gclose_f(indexes_group_id, error)
+       CALL h5gclose_f(field_group_id, error)
+       CALL h5gclose_f(group_id, error)
+       CALL h5fclose_f(file_id, error)
+       CALL h5close_f(error)
     ENDIF
 
 920 FORMAT (F10.6)
@@ -489,7 +494,6 @@ CONTAINS
     INTEGER(HSIZE_T), DIMENSION(2) :: dims, offset, ccount
     INTEGER                        :: error
     CHARACTER(LEN=15) :: h5_filename="results.h5"
-    CHARACTER(LEN=15) :: groupname="longstep"
     CHARACTER(LEN=25) :: fluence_dset_name="longstep/fluence"
     CHARACTER(LEN=25) :: plasma_channel_dset_name="longstep/plasma_channel"
     CHARACTER(LEN=25) :: losses_plasma_dset_name="longstep/losses_plasma"

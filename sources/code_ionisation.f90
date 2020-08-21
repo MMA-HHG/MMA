@@ -635,7 +635,7 @@ CONTAINS
         CALL h5open_f(error)
         CALL h5fopen_f(filename, H5F_ACC_RDONLY_F, file_id, error)
         CALL h5gopen_f(file_id, groupname, group_id, error)
-        CALL ask_for_size(group_id, 'rates_atomic', dims_cpr)
+        CALL ask_for_size_2D(group_id, 'rates_atomic', dims_cpr)
         DIMENSION_CPR = dims_cpr(1)
         ALLOCATE(CPR_TABLE(DIMENSION_CPR, 3))
         ALLOCATE(rates_atomic(DIMENSION_CPR, 2))
