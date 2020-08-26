@@ -20,7 +20,6 @@ PROGRAM cuprad
 !  starttime = time()
   call system_clock(tcount, count_rate, count_max)
   write(*,*) tcount, count_rate, count_max
-!  stop
   CALL initialize
   limit_s=timelimit*3600
   IF (.NOT.finished) THEN
@@ -74,11 +73,11 @@ PROGRAM cuprad
            CLOSE(unit_rho,STATUS='DELETE')
         ENDIF
      ENDIF
-     CALL field_out
      CALL write_output 
      !CALL matlab_out 
      rhodist=count
      CALL propagation
+     CALL field_out
      CALL linked_list_out
      CALL finalize
   ENDIF
