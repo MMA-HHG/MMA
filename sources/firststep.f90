@@ -343,31 +343,18 @@ CONTAINS
     !e = CMPLX(real_e,imag_e)
 
     !CALL read_dset(group_id,'startfield',e,dim_r,dim_t,dim_r/num_proc,dim_t,(dim_r/num_proc)*my_rank,0)
+    CALL ask_for_size_1D(group_id, "indexes_group/r_vector", i_x_max)
+    CALL ask_for_size_1D(group_id, "indexes_group/z_vector", i_z_max)
+    ALLOCATE(xx(i_x_max),zz(i_z_max),Indice_norm(i_x_max,i_z_max))
+    CALL read_dset(group_id, "indexes_group/indexes", Indice_norm, i_x_max, i_z_max)
+    CALL read_dset(group_id, "indexes_group/r_vector", xx, i_x_max)
+    CALL read_dset(group_id, "indexes_group/z_vector", zz, i_z_max)
+    
     CALL h5gclose_f(group_id, error)
     CALL h5fclose_f(file_id, error)
     CALL h5close_f(error)
 ! CLOSE HDF5 interface
 
-    i_x_max = 1    
-    i_z_max = 1
-    ALLOCATE(xx(i_x_max),zz(i_z_max),Indice_norm(i_x_max, i_z_max))
-    zz(1:1) = 0
-    xx(1:1) = 0
-    Indice_norm(1,1) = 0
-    ! The weird indexes are below
-    !READ(unit_field) id
-    !IF (id.NE.'index') THEN
-    !   PRINT*, 'Error reading index variations'
-    !   READ(5,*)
-    !ENDIF
-    !READ(unit_field) i_x_max, i_z_max
-    !ALLOCATE(xx(i_x_max),zz(i_z_max),Indice_norm(i_x_max, i_z_max))
-    !READ(unit_field) (xx(i_x),i_x=1,i_x_max)
-    !DO i_z = 1, i_z_max
-    !   READ(unit_field) zz(i_z)
-    !   READ(unit_field) (Indice_norm(i_x,i_z),i_x=1,i_x_max)
-    !ENDDO  
-    !CLOSE(unit_field)
     i_x_old=2
     i_z_old=2
     ALLOCATE(peakmax(rhodist),rhomax(rhodist),rhoabs_max(rhodist),energy(rhodist),z_buff(rhodist),energy_fil(rhodist),rhoO2max(rhodist),rhoN2max(rhodist),Tevmax(rhodist))
