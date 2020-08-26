@@ -5,7 +5,7 @@ PROGRAM make_start
 
   IMPLICIT NONE
   PRINT *,"Pre-processor started"
-  PRINT*, 'Specify name of parameterfile' 
+  PRINT*, 'Specify name of parameterfile (HDF5 format)' 
   READ(5,*) filename
 
   ! Open FORTRAN HDF5 interface
