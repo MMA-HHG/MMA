@@ -358,43 +358,6 @@ CONTAINS
     i_x_old=2
     i_z_old=2
     ALLOCATE(peakmax(rhodist),rhomax(rhodist),rhoabs_max(rhodist),energy(rhodist),z_buff(rhodist),energy_fil(rhodist),rhoO2max(rhodist),rhoN2max(rhodist),Tevmax(rhodist))
-    INQUIRE(FILE='FLUENCE_'//ip//'.DAT',EXIST=ext)
-    IF (.NOT.ext) THEN
-       OPEN(unit_rho,FILE='FLUENCE_'//ip//'.DAT',STATUS='NEW',FORM='UNFORMATTED')
-       WRITE(unit_rho) num_proc,dim_r
-       WRITE(unit_rho) (REAL(REAL(j-1,8)*delta_r,4),j=dim_r_start(num_proc),dim_r_end(num_proc))
-       CLOSE(unit_rho)
-    ENDIF
-    INQUIRE(FILE='PLASMACHANNEL_'//ip//'.DAT',EXIST=ext)
-    IF (.NOT.ext) THEN
-       OPEN(unit_rho,FILE='PLASMACHANNEL_'//ip//'.DAT',STATUS='NEW',FORM='UNFORMATTED')
-       WRITE(unit_rho) num_proc,dim_r
-       WRITE(unit_rho) (REAL(REAL(j-1,8)*delta_r,4),j=dim_r_start(num_proc),dim_r_end(num_proc))
-       CLOSE(unit_rho)
-    ENDIF
-    INQUIRE(FILE='LOSSES_IONIZATION_'//ip//'.DAT',EXIST=ext)
-    IF (.NOT.ext) THEN
-       OPEN(unit_rho,FILE='LOSSES_IONIZATION_'//ip//'.DAT',STATUS='NEW',FORM='UNFORMATTED')
-       WRITE(unit_rho) num_proc,dim_r
-       WRITE(unit_rho) (REAL(REAL(j-1,8)*delta_r,4),j=dim_r_start(num_proc),dim_r_end(num_proc))
-       CLOSE(unit_rho)
-    ENDIF
-    INQUIRE(FILE='LOSSES_PLASMA_'//ip//'.DAT',EXIST=ext)
-    IF (.NOT.ext) THEN
-       OPEN(unit_rho,FILE='LOSSES_PLASMA_'//ip//'.DAT',STATUS='NEW',FORM='UNFORMATTED')
-       WRITE(unit_rho) num_proc,dim_r
-       WRITE(unit_rho) (REAL(REAL(j-1,8)*delta_r,4),j=dim_r_start(num_proc),dim_r_end(num_proc))
-       CLOSE(unit_rho)
-    ENDIF
-    IF (my_rank.EQ.0)  THEN
-       INQUIRE(FILE='ONAX_T.DAT',EXIST=ext)
-       IF (.NOT.ext) THEN
-          OPEN(unit_rho,FILE='ONAX_T.DAT',STATUS='NEW',FORM='UNFORMATTED')
-          WRITE(unit_rho) dim_t
-          WRITE(unit_rho) (REAL(tlo+REAL(j-1,8)*delta_t,4),j=1,dim_t)
-          CLOSE(unit_rho)
-       ENDIF
-    ENDIF
     ALLOCATE(rho(dim_r_start(num_proc):dim_r_end(num_proc)),fluence(dim_r_start(num_proc):dim_r_end(num_proc)))
     ALLOCATE(losses_ionization(dim_r_start(num_proc):dim_r_end(num_proc)),losses_plasma(dim_r_start(num_proc):dim_r_end(num_proc)))
     ALLOCATE(rhoabs(dim_r_start(num_proc):dim_r_end(num_proc)))
