@@ -267,7 +267,7 @@ CONTAINS
     USE longstep_vars
     USE linked_list
     USE ll_data
-
+    USE ppt
     IMPLICIT NONE
 
     INTEGER(4) j,l,k
@@ -509,6 +509,7 @@ CONTAINS
     CALL MPI_REDUCE(rhoN2max_part,rhoN2max(count),1,MPI_DOUBLE_PRECISION,MPI_MAX,0,MPI_COMM_WORLD,ierr)
     CALL MPI_REDUCE(Tevmax_part,Tevmax(count),1,MPI_DOUBLE_PRECISION,MPI_MAX,0,MPI_COMM_WORLD,ierr)
     IF(my_rank.EQ.0) z_buff(count)=z
+    ! If any writting is going to happen, allocate arrays with flag target for addition to linked list buffers
     IF (count.GE.rhodist .OR. z.LE.delta_z) THEN
       ALLOCATE(onax_t_data(1,1:dim_t))
       ALLOCATE(fluence_data(1:dim_r/num_proc))
@@ -539,28 +540,59 @@ CONTAINS
               CALL h5gclose_f(group_id, error)
             ENDIF
           ENDIF
+          ! if z was not lower or equal than delta_z and rhodist was reached for the first time
           IF (longstep_write_count.EQ.0) THEN
-            CALL create_1D_dset_unlimited(file_id, z_buff_dset_name, REAL(z_buff(1:rhodist),4), rhodist)
-            CALL create_1D_dset_unlimited(file_id, rhoabs_max_dset_name, REAL(rhoabs_max(1:rhodist),4), rhodist)
+            ! z_buff dataset creation and writting, originally the z_buff was paired with each of the values from following
+            ! datasets, here it has it's own dataset, the dimensions are equivalent
+            CALL create_1D_dset_unlimited(file_id, z_buff_dset_name, REAL(z_buff(1:rhodist),4), rhodist) 
+
+            ! rhoabs_max dataset creation and writting
+            CALL create_1D_dset_unlimited(file_id, rhoabs_max_dset_name, REAL(rhoabs_max(1:rhodist),4), rhodist) 
+            ! the following normalisation code is commented out, because of unsolved variable linking
+            ! rhoabs_max(1:rhodist)=rhoc_cm3_phys/(4*3.1415**2*beam_waist**2/(wavelength*1.D-7)**2)*rhoabs_max(1:rhodist)
+            CALL create_1D_dset_unlimited(file_id, TRIM(rhoabs_max_dset_name)//"_normalised", REAL(rhoabs_max(1:rhodist),4), rhodist)
+           
+            ! peakmax creation of the dataset, writting to it and doing the same after the normalisation
             CALL create_1D_dset_unlimited(file_id, peakmax_dset_name, REAL(peakmax(1:rhodist),4), rhodist)
+            peakmax(1:rhodist) = critical_power/(1000*4*3.1415*beam_waist**2)*peakmax(1:rhodist)*peakmax(1:rhodist)
+            CALL create_1D_dset_unlimited(file_id, TRIM(peakmax_dset_name)//"_normalised", REAL(peakmax(1:rhodist),4), rhodist)
+            
+            ! rhomax dataset creation and writting to it
             CALL create_1D_dset_unlimited(file_id, rhomax_dset_name, REAL(rhomax(1:rhodist),4), rhodist)
+            
+            ! energy dataset creation and writting to it, following the same process with normalised data
             CALL create_1D_dset_unlimited(file_id, energy_dset_name, &
               REAL(6.2831853D0*energy(1:rhodist)*delta_t*delta_r**2,4), rhodist)
+            energy(1:rhodist)=critical_power*1.D9/(4*3.1415)*pulse_duration*1.D-15*1.D6*energy(1:rhodist)
+            CALL create_1D_dset_unlimited(file_id, TRIM(energy_dset_name)//"_normalised", &
+              REAL(6.2831853D0*energy(1:rhodist)*delta_t*delta_r**2,4), rhodist)
+            
+            ! energy_fil dataset creation and writting to it, following the same process with normalised data
             CALL create_1D_dset_unlimited(file_id, energy_fil_dset_name, &
               REAL(6.2831853D0*energy_fil(1:rhodist)*delta_t*delta_r**2,4), rhodist)
+            energy_fil(1:rhodist)=critical_power*1.D9/(4*3.1415)*pulse_duration*1.D-15*1.D6*energy_fil(1:rhodist)
+            CALL create_1D_dset_unlimited(file_id, TRIM(energy_fil_dset_name)//"_normalised", &
+              REAL(6.2831853D0*energy_fil(1:rhodist)*delta_t*delta_r**2,4), rhodist)
+           
+            ! rho_pavel writting
             IF (switch_rho.EQ.7) THEN
               CALL create_1D_dset_unlimited(file_id, rho_pavel_rhoO2max, REAL(rhoO2max(1:rhodist),4), rhodist)
               CALL create_1D_dset_unlimited(file_id, rho_pavel_rhoN2max, REAL(rhoN2max(1:rhodist),4), rhodist)
               CALL create_1D_dset_unlimited(file_id, rho_pavel_Tevmax, REAL(Tevmax(1:rhodist),4), rhodist)
             ENDIF
+
+            ! write max power with corresponding z to a variable and prepare for writting to a dataset
             powmax_data(1,1) = REAL(z,4)
             powmax_data(1,2) = REAL(6.2831853D0*MAXVAL(e_2KK)*delta_r**2,4)
+            ! write on axis in time tensor to a variable and prepare for writting to a dataset
             z_data(1) = REAL(z,4)
-            onax_t_data(1,:) = REAL(ABS(e(1:dim_t,1)),4) 
+            onax_t_data(1,:) = REAL(ABS(e(1:dim_t,1)),4)
+            ! create the datasets if they do not exist yet 
             IF ( dset_write_count .EQ. 0 ) THEN
               CALL create_2D_dset_unlimited(file_id, powmax_dset_name, powmax_data, 2)
               CALL create_2D_dset_unlimited(file_id, onax_t_dset_name, onax_t_data, dim_t)
               CALL create_1D_dset_unlimited(file_id, every_rhodist_z_dset_name, z_data, 1)
+            ! extend datasets if they do exist
             ELSE
               CALL extend_2D_dset_unlimited(file_id, powmax_dset_name, powmax_data, & 
                 new_dims = (/int(dset_write_count + 1, HSIZE_T), int(2, HSIZE_T)/), & 
@@ -576,44 +608,73 @@ CONTAINS
                 new_dims=(/int(dset_write_count + 1, HSIZE_T)/), memspace_dims=(/int(1,HSIZE_T)/), &
                 offset = (/int(dset_write_count, HSIZE_T)/), hyperslab_size = (/int(1,HSIZE_T)/))
             ENDIF
+
+            ! increase write counters
             dset_write_count = dset_write_count + 1
             longstep_write_count = longstep_write_count + 1
+            ! store the original rhodist size to prepare for the last iteration which forces the data storage by `rhodist = count`
             original_rhodist = rhodist
+          ! if the rhodist was already reached or z was lower of equal to delta_z
           ELSE
+            ! rhodist is used for the extensions of the unlimited datasets
             IF (rhodist.NE.original_rhodist) THEN
               new_dims = (/int(longstep_write_count*original_rhodist+rhodist, HSIZE_T)/)
             ELSE
               new_dims = (/int((longstep_write_count+1)*rhodist, HSIZE_T)/)
             ENDIF
+            ! dataspace size
             memspace_dims = (/int(rhodist,HSIZE_T)/)
+            ! offset (the size of data present in the datasets)
             offset = (/int(longstep_write_count*original_rhodist,HSIZE_T)/)
+            ! size of the current extension to the datasets
             hyperslab_size = (/int(rhodist,HSIZE_T)/)
+            ! prevent writting of datasets of size 0
             IF (count .EQ. 0) THEN
               print *,"Last write skipped (longstep_rk.f90)"
             ELSE
+              ! extend z_buff dataset
               CALL extend_1D_dset_unlimited(file_id, z_buff_dset_name, & 
                 REAL(z_buff(1:count),4), new_dims, &
                 memspace_dims, offset, hyperslab_size)
               
+              ! extend rhoabs_max dataset
               CALL extend_1D_dset_unlimited(file_id, rhoabs_max_dset_name, & 
                 REAL(rhoabs_max(1:count),4), new_dims, &
                 memspace_dims, offset, hyperslab_size)
               
+              ! extend peakmax dataset and the normalised peakmax dataset
               CALL extend_1D_dset_unlimited(file_id, peakmax_dset_name, & 
                 REAL(peakmax(1:count),4), new_dims, &
                 memspace_dims, offset, hyperslab_size)
+              peakmax(1:rhodist) = critical_power/(1000*4*3.1415*beam_waist**2)*peakmax(1:rhodist)*peakmax(1:rhodist)
+              CALL extend_1D_dset_unlimited(file_id, TRIM(peakmax_dset_name)//"_normalised", & 
+                REAL(peakmax(1:count),4), new_dims, &
+                memspace_dims, offset, hyperslab_size)
               
+              ! extend rhomax dataset
               CALL extend_1D_dset_unlimited(file_id, rhomax_dset_name, & 
                 REAL(rhomax(1:count),4), new_dims, &
                 memspace_dims, offset, hyperslab_size)
 
+              ! extend energy dataset and the normalised energy dataset
               CALL extend_1D_dset_unlimited(file_id, energy_dset_name, & 
                 REAL(6.2831853D0*energy(1:count)*delta_t*delta_r**2,4), new_dims, &
                 memspace_dims, offset, hyperslab_size)
+              energy(1:rhodist)=critical_power*1.D9/(4*3.1415)*pulse_duration*1.D-15*1.D6*energy(1:rhodist)
+              CALL extend_1D_dset_unlimited(file_id, TRIM(energy_dset_name)//"_normalised", & 
+                REAL(6.2831853D0*energy(1:count)*delta_t*delta_r**2,4), new_dims, &
+                memspace_dims, offset, hyperslab_size)
               
+              ! extend energy_fil dataset and the normalised energy_fil dataset
               CALL extend_1D_dset_unlimited(file_id, energy_fil_dset_name, &
                 REAL(6.2831853D0*energy_fil(1:count)*delta_t*delta_r**2,4), new_dims, &
                 memspace_dims, offset, hyperslab_size)
+              energy_fil(1:rhodist)=critical_power*1.D9/(4*3.1415)*pulse_duration*1.D-15*1.D6*energy(1:rhodist)
+              CALL extend_1D_dset_unlimited(file_id, TRIM(energy_fil_dset_name)//"_normalised", & 
+                REAL(6.2831853D0*energy_fil(1:count)*delta_t*delta_r**2,4), new_dims, &
+                memspace_dims, offset, hyperslab_size)
+
+              ! extend rho_pavel datasets
               IF (switch_rho.EQ.7) THEN
                 CALL extend_1D_dset_unlimited(file_id, rho_pavel_rhoO2max, &
                   REAL(rhoO2max(1:rhodist),4), new_dims, &
@@ -629,6 +690,7 @@ CONTAINS
               ENDIF
               
             ENDIF
+            ! extend powmax and on axis data dataset
             powmax_data(1,1) = REAL(z,4)
             powmax_data(1,2) = REAL(6.2831853D0*MAXVAL(e_2KK)*delta_r**2,4)
             z_data(1) = REAL(z,4)
@@ -654,23 +716,26 @@ CONTAINS
           CALL h5fclose_f(file_id, error)
           CALL h5close_f(error)
        ENDIF
-       ! Initialize data objects
+       ! Copy arrays to arrays with target flag
        fluence_data(:) = REAL(fluence*delta_t,4)
        plasma_channel_data(:) = REAL(rho,4)
        losses_plasma_data(:) = REAL(losses_plasma*delta_t,4)  
        losses_ionization_data(:) = REAL(losses_ionization*delta_t,4) 
 
-       ! Write to linked lists
+       ! Create pointers to the arrays with target flag
        ptr_f => fluence_data
        ptr_p => plasma_channel_data
        ptr_lp => losses_plasma_data
        ptr_li => losses_ionization_data
+       ! fluence_ll, plasma_channel_ll , etc store the pointers to the first link of the linked list of each variable
        IF (length_of_linked_list .EQ. 0) THEN
+         ! initialize the linked lists
          call list_init(fluence_ll, DATA=transfer(ptr_f, list_data))
          call list_init(plasma_channel_ll, DATA=transfer(ptr_p, list_data))
          call list_init(losses_plasma_ll, DATA=transfer(ptr_lp, list_data))
          call list_init(losses_ionization_ll, DATA=transfer(ptr_li, list_data))
        ELSE
+         ! append next link to the end of the linked lists
          call list_append(fluence_ll, DATA=transfer(ptr_f, list_data))
          call list_append(plasma_channel_ll, DATA=transfer(ptr_p, list_data))
          call list_append(losses_plasma_ll, DATA=transfer(ptr_lp, list_data))
@@ -681,23 +746,26 @@ CONTAINS
        ! Reset the counter
        count=0
     ELSE IF (z.LE.delta_z) THEN
-       ! Init-ialize data objects
+       ! Copy arrays to arrays with target flag
        fluence_data(:) = REAL(fluence*delta_t,4)
        plasma_channel_data(:) = REAL(rho,4)
        losses_plasma_data(:) = REAL(losses_plasma*delta_t,4)  
        losses_ionization_data(:) = REAL(losses_ionization*delta_t,4) 
 
-       ! Write to linked lists
+       ! Create pointers to the arrays with target flag
        ptr_f => fluence_data
        ptr_p => plasma_channel_data
        ptr_lp => losses_plasma_data
        ptr_li => losses_ionization_data
+       ! fluence_ll, plasma_channel_ll , etc store the pointers to the first link of the linked list of each variable
        IF (length_of_linked_list .EQ. 0) THEN
+         ! initialize the linked lists
          call list_init(fluence_ll, DATA=transfer(ptr_f, list_data))
          call list_init(plasma_channel_ll, DATA=transfer(ptr_p, list_data))
          call list_init(losses_plasma_ll, DATA=transfer(ptr_lp, list_data))
          call list_init(losses_ionization_ll, DATA=transfer(ptr_li, list_data))
        ELSE
+         ! append next link to the end of the linked lists
          call list_append(fluence_ll, DATA=transfer(ptr_f, list_data))
          call list_append(plasma_channel_ll, DATA=transfer(ptr_p, list_data))
          call list_append(losses_plasma_ll, DATA=transfer(ptr_lp, list_data))
@@ -719,14 +787,18 @@ CONTAINS
             CALL h5gcreate_f(file_id, groupname, group_id, error) 
             CALL h5gclose_f(group_id, error)
           ENDIF
+          ! store data of maximal power to a variable
           powmax_data(1,1) = REAL(z,4)
           powmax_data(1,2) = REAL(6.2831853D0*MAXVAL(e_2KK)*delta_r**2,4)
           z_data(1) = REAL(z,4)
+          ! calculate on axis data
           onax_t_data(1,:) = REAL(ABS(e(1:dim_t,1)),4) 
+          ! write to datasets, either create
           IF ( dset_write_count .EQ. 0 ) THEN
             CALL create_2D_dset_unlimited(file_id, powmax_dset_name, powmax_data, 2)
             CALL create_2D_dset_unlimited(file_id, onax_t_dset_name, onax_t_data, dim_t)
             CALL create_1D_dset_unlimited(file_id, every_rhodist_z_dset_name, z_data, 1)
+          ! or extend the existing ones
           ELSE
             CALL extend_2D_dset_unlimited(file_id, powmax_dset_name, powmax_data, & 
               new_dims = (/int(dset_write_count + 1, HSIZE_T), int(2, HSIZE_T)/), & 
@@ -742,8 +814,14 @@ CONTAINS
               new_dims=(/int(dset_write_count + 1,HSIZE_T)/), memspace_dims=(/int(1,HSIZE_T)/), &
               offset = (/int(dset_write_count, HSIZE_T)/), hyperslab_size = (/int(1,HSIZE_T)/))
           ENDIF
+          ! increase the counter
           dset_write_count = dset_write_count + 1
+          
+          ! Terminate HDF5 file access
+          CALL h5fclose_f(file_id, error)
+          CALL h5close_f(error)
        ENDIF
+       ! deallocate arrays used for writting to linked list
        DEALLOCATE(fluence_data, plasma_channel_data, losses_plasma_data, losses_ionization_data)
     ENDIF
     RETURN
