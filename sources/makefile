@@ -23,7 +23,7 @@
   H5LIBS = /gpfs/apps/tools/modulefiles/software/HDF5/1.8.13-OpenMPI-1.10.2-GCC-6.1.0-psm/lib
 #  FFT     = -lfftw3
   PROPAGATION       = cuprad_occigen.e
-  S_PROPAGATION       = hdf5_helper.f90 modules.f90 code_ionisation.f90 fft_rk.f90 finalize.f90 \
+  S_PROPAGATION       = linked_list_module.f90 hdf5_helper.f90 modules.f90 code_ionisation.f90 fft_rk.f90 finalize.f90 \
                         firststep.f90 longstep_rk.f90 output.f90 outputHDF5_occigen.f90 cuprad.f90
   MAKE_START	   = make_start_occigen.e
   S_MAKE_START       = hdf5_helper.f90 write_start.f90 calc_start.f90 normalisation.f90 \
@@ -39,6 +39,8 @@
 #
 #       Make definition
 #
+linked_list : linked_list_module.f90
+	$(F90) -c linked_list_module.f90
 $(PROPAGATION) : $(S_PROPAGATION)
 #	${MPIF90} -o $(PROPAGATION) $(S_PROPAGATION) ${FFTPATH} ${FFT} ${FFLAGS} ${LFLAGS}
 	${MPIF90} -I${H5INCLUDE} -L${H5LIBS} -o $(PROPAGATION) $(S_PROPAGATION) ${FFTPATH} ${FFT} ${FFLAGS} ${LFLAGS} ${LDLIBS}
@@ -74,7 +76,7 @@ binary :
 clean_preprocessor :
 	rm -f listing STOP *.DAT *.LOG
 #
-code : clean_preprocessor $(CALC_FT) $(MAKE_START) $(MAKE_START_4WM) $(PROPAGATION) $(PROPAGATION_DEFOK) $(PROPAGATION_MICKAEL) $(CLEAN) $(MERGE) # binary clean
+code : clean_preprocessor linked_list $(CALC_FT) $(MAKE_START) $(MAKE_START_4WM) $(PROPAGATION) $(PROPAGATION_DEFOK) $(PROPAGATION_MICKAEL) $(CLEAN) $(MERGE) # binary clean
 #
 preprocessor : clean clean_preprocessor $(MAKE_START)
 #
