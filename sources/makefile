@@ -76,7 +76,7 @@ binary :
 clean_preprocessor :
 	rm -f listing STOP *.DAT *.LOG
 #
-code : clean_preprocessor linked_list $(CALC_FT) $(MAKE_START) $(MAKE_START_4WM) $(PROPAGATION) $(PROPAGATION_DEFOK) $(PROPAGATION_MICKAEL) $(CLEAN) $(MERGE) # binary clean
+code : clean_preprocessor linked_list $(CALC_FT) $(MAKE_START) $(MAKE_START_4WM) $(PROPAGATION) $(PROPAGATION_DEFOK) $(PROPAGATION_MICKAEL) $(CLEAN) $(MERGE) binary # clean
 #
 preprocessor : clean clean_preprocessor $(MAKE_START)
 #
