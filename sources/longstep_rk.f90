@@ -741,6 +741,11 @@ CONTAINS
          call list_append(losses_plasma_ll, DATA=transfer(ptr_lp, list_data))
          call list_append(losses_ionization_ll, DATA=transfer(ptr_li, list_data))
        ENDIF
+
+       ! deallocate pointers to solve outlive warning
+       !PRINT*, 'nullify'
+       NULLIFY(ptr_f,ptr_p,ptr_lp,ptr_li)
+
        ! Increase the length counter
        length_of_linked_list = length_of_linked_list + 1
        ! Reset the counter
@@ -771,6 +776,11 @@ CONTAINS
          call list_append(losses_plasma_ll, DATA=transfer(ptr_lp, list_data))
          call list_append(losses_ionization_ll, DATA=transfer(ptr_li, list_data))
        ENDIF
+
+       ! deallocate pointers to solve outlive warning
+       !PRINT*, 'nullify'
+       NULLIFY(ptr_f,ptr_p,ptr_lp,ptr_li)
+
        ! Increase the length counter
        length_of_linked_list = length_of_linked_list + 1
        e_2=0.D0
@@ -821,6 +831,7 @@ CONTAINS
           CALL h5fclose_f(file_id, error)
           CALL h5close_f(error)
        ENDIF
+
        ! deallocate arrays used for writting to linked list
        DEALLOCATE(fluence_data, plasma_channel_data, losses_plasma_data, losses_ionization_data)
     ENDIF
