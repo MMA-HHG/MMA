@@ -16,7 +16,7 @@ PROGRAM make_start
   !_______________________________!
 
   CALL read_dset(file_id, 'inputs/number_of_processors', num_proc)
-  num_proc = 2
+  !num_proc = 2
   CALL read_dset(file_id, 'inputs/run_time_in_hours', time_limit)
   time_limit = 0.48d0
   CALL read_dset(file_id, 'inputs/length_of_window_for_t_normalized_to_pulse_duration', lt)
