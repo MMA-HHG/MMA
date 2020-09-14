@@ -361,7 +361,7 @@ end subroutine calck0
        PRINT*, 'p3 c2'
        CALL dfftw_execute(plan_forward)
        PRINT*, 'afft_sub'
-       !e=CSHIFT(e,dim_t/2,1)
+       e=CSHIFT(e,dim_t/2,1)
 PRINT*, 'p4'
        DO l=p*(dim_r/num_proc)+1,(p+1)*(dim_r/num_proc)
           r=REAL(l-1,8)*delta_r
