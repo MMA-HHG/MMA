@@ -178,13 +178,17 @@ PROGRAM make_start
     CLOSE(12)
   ENDIF
 
+  PRINT*, 'acdispersion'
+
   CALL compute_dispersion(switch_dispersion)
   CALL compute_parameters
   CALL write_listingfile
   CALL h5gcreate_f(file_id, output_groupname, group_id, error)  
   ALLOCATE(e_full(dim_t,dim_r))
   DO p=0,num_proc-1
+    PRINT*, 'calc1'
     CALL calc_startingfield(switch_start,p) 
+    PRINT*, 'write1'
     CALL write_startingfile(p)
   ENDDO
   CALL h5gclose_f(group_id, error)
