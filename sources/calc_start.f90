@@ -251,6 +251,7 @@ end subroutine calck0
     CHARACTER(LEN = 10):: id
 
     PRINT*, 'in calc_starting'
+    !CALL FLUSH()
 
     delta_t=lt/REAL(dim_t,8) !stepwidth for t
     delta_r=lr/REAL(dim_r,8) !stepwidth for r

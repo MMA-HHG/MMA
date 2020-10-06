@@ -185,8 +185,9 @@ PROGRAM make_start
   CALL write_listingfile
   CALL h5gcreate_f(file_id, output_groupname, group_id, error)  
   ALLOCATE(e_full(dim_t,dim_r))
+  PRINT*, 'numproc', num_proc
   DO p=0,num_proc-1
-    PRINT*, 'calc1'
+    PRINT*, 'calc1', p
     CALL calc_startingfield(switch_start,p) 
     PRINT*, 'write1'
     CALL write_startingfile(p)
