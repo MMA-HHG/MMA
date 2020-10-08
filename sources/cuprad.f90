@@ -9,7 +9,7 @@ PROGRAM cuprad
   USE run_status
   USE longstep_vars
 
-  IMPLICIT NONE
+  IMPLICIT NONE 
 
 !  INTEGER(4) time, starttime, deltatime, limit_s
   INTEGER(4) time, starttime, deltatime, limit_s
