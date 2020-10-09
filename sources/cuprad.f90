@@ -80,6 +80,7 @@ PROGRAM cuprad
      CALL field_out
      CALL linked_list_out
      CALL finalize
+     PRINT*, "program finished"
   ENDIF
 
 END PROGRAM cuprad
