@@ -26,11 +26,11 @@ PROGRAM make_start
   CALL read_dset(file_id, 'inputs/number_of_absorber_points_in_time', absorb)
   CALL read_dset(file_id, 'inputs/phase_threshold_for_decreasing_delta_z', decrease)
   CALL read_dset(file_id, 'inputs/physical_distance_of_propagation', proplength_m_phys)
-  proplength_m_phys = 5.d-3
+  !proplength_m_phys = 5.d-3
   CALL read_dset(file_id, 'inputs/physical_output_distance_for_matlab_files', outlength_m_phys)
-  outlength_m_phys = 1.d-3
+  !outlength_m_phys = 1.d-3
   CALL read_dset(file_id, 'inputs/output_distance_in_z-steps_for_fluence_and_power', rhodist)
-  rhodist = 2
+  !rhodist = 2
   CALL read_dset(file_id, 'inputs/radius_for_diagnostics', rfil_mm_phys)
   CALL read_dset(file_id, 'inputs/physical_first_stepwidth', delta_z_mm_phys)
   CALL read_dset(file_id, 'inputs/operators_t_t-1', switch_T)
