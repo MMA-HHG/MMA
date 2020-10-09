@@ -1,10 +1,17 @@
 clear all; close all;
 
-global Ip_HeV hbar alpha_fine c_light elcharge elmass;
-Ip_HeV = 27.21138602; hbar = 1.054571800e-34; alpha_fine=1/137.035999139; c_light=299792458; elcharge=1.602176565e-19; elmass = 9.10938356e-31;
+%% head
+addpath('D:\Dropbox\PhD\Analyses\shared_functions') 
+currfold = pwd;
 
-global EFS
+global Ip_HeV hbar alpha_fine c_light elcharge elmass rBohr mu0 eps0;
+Ip_HeV = 27.21138602; hbar = 1.054571800e-34; alpha_fine=1/137.035999139; c_light=299792458; elcharge=1.602176565e-19; elmass = 9.10938356e-31;
+mu0=4*pi*1e-7; eps0=1/(mu0*c_light^2);
+rBohr = 4*pi*eps0*hbar^2/(elmass*elcharge^2);
+
+global EFS INTENSITYau
 EFS = 5.1422e11; % 1*a.u. = EFS*V/m
+INTENSITYau = (1/(8*pi*alpha_fine))*hbar^3/(elmass^2*rBohr^6);
 
 
 % path = 'D:\data\CUPRAD';
