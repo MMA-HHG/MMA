@@ -19,7 +19,7 @@ INTENSITYau = (1/(8*pi*alpha_fine))*hbar^3/(elmass^2*rBohr^6);
 
 % path = 'D:\data\CUPRAD';
 HDF5_path = 'D:\TEMP\OCCIGEN_CUPRAD\compares\';
-HDF5_filename = "results_short.h5";
+HDF5_filename = "results.h5";
 
 
 Nx_plot = 2;
@@ -65,7 +65,7 @@ k2 = 1;
 for k1 = 1:Nz
     arr_fig.fig(k2).sf(1) = fig.sf(k1);
     if ((mod(k1,Nx_plot*Ny_plot)==0) || (k1 == Nz) )
-        arr_fig.filenamepng = strcat('test_',num2str(k_plot),'.png');
+        arr_fig.filenamepng = strcat('test2_',num2str(k_plot),'.png');
         arr_fig.resolutionpng = '-r450';
         Print_Array_Figs_A4(arr_fig,2,5);
         k_plot = k_plot + 1;
