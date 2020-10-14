@@ -15,6 +15,8 @@ EFS = 5.1422e11; % 1*a.u. = EFS*V/m
 INTENSITYau = (1/(8*pi*alpha_fine))*hbar^3/(elmass^2*rBohr^6);
 
 
+delete('*.png');
+
 %% parameters
 
 % path = 'D:\data\CUPRAD';
@@ -39,7 +41,9 @@ HDF5_filepath = strcat(HDF5_path,HDF5_filename);
 
 
 
-AllFields = h5read(HDF5_filepath,"/IRprop/Fields_rzt");
+Fields_rzt = h5read(HDF5_filepath,"/IRprop/Fields_rzt");
+output_field = h5read(HDF5_filepath,"/outputs/output_field");
+output_plasma = h5read(HDF5_filepath,"/outputs/output_plasma");
 StartFieldsR = h5read(HDF5_filepath,"/pre-processed/startfield_r");
 tgrid = h5read(HDF5_filepath,"/IRprop/tgrid");
 rgrid = h5read(HDF5_filepath,"/IRprop/rgrid");
@@ -50,22 +54,23 @@ Nz = length(zgrid); Nt = length(tgrid); Nr = length(rgrid);
 
 fig.sf(1).method = @plot;
 fig.sf(1).arg{1} = tgrid;
-fig.sf(1).arg{2} = squeeze(AllFields(1,:,1) );
+fig.sf(1).arg{2} = squeeze(output_field(1,:,1) );
 
 for k1 = 2:Nz
     fig.sf(k1) = fig.sf(1);
-    fig.sf(k1).arg{2} = squeeze(AllFields(k1,:,1) );
+    fig.sf(k1).arg{2} = squeeze(output_field(k1,:,1) );
 end
 
 
 
 plot_preset_figure(fig,'default');
+
 k_plot = 1;
 k2 = 1;
 for k1 = 1:Nz
     arr_fig.fig(k2).sf(1) = fig.sf(k1);
     if ((mod(k1,Nx_plot*Ny_plot)==0) || (k1 == Nz) )
-        arr_fig.filenamepng = strcat('test2_',num2str(k_plot),'.png');
+        arr_fig.filenamepng = strcat('Frzt_',num2str(k_plot),'.png');
         arr_fig.resolutionpng = '-r450';
         Print_Array_Figs_A4(arr_fig,2,5);
         k_plot = k_plot + 1;
@@ -76,6 +81,22 @@ for k1 = 1:Nz
 end
 
 
+%% print plasma
+k_plot = 1;
+k2 = 1;
+for k1 = 1:Nz
+    arr_fig.fig(k2).sf(1).method = @pcolor; arr_fig.fig(k2).sf(1).shading = 'interp'; arr_fig.fig(k2).sf(1).colorbar = 'eastoutside';
+    arr_fig.fig(k2).sf(1).arg{1} = tgrid; arr_fig.fig(k2).sf(1).arg{2} = rgrid; arr_fig.fig(k2).sf(1).arg{3} = squeeze(output_plasma(k1,:,:));
+    if ((mod(k1,Nx_plot*Ny_plot)==0) || (k1 == Nz) )
+        arr_fig.filenamepng = strcat('plasma_',num2str(k_plot),'.png');
+        arr_fig.resolutionpng = '-r450';
+        Print_Array_Figs_A4(arr_fig,2,5);
+        k_plot = k_plot + 1;
+        k2 = 0;
+        clear arr_fig;
+    end
+    k2 = k2+1;
+end
 
 
 
@@ -109,8 +130,8 @@ plot(rgrid,Erz1r);  hold on
 
 return
 
-Erz1 = squeeze( AllFields(kz,kr,:) );
-Erz2 = squeeze( AllFields(kz+1,kr,:) );
+Erz1 = squeeze( Fields_rzt(kz,kr,:) );
+Erz2 = squeeze( Fields_rzt(kz+1,kr,:) );
 
 figure
 plot(tgrid,Erz1);  hold on
@@ -131,9 +152,9 @@ zgrid(kz)
 kz = 1;
 kt = 1024;
 
-Ezt1 = squeeze( AllFields(kz,:,kt) );
-Ezt2 = squeeze( AllFields(kz+1,:,kt) );
-Ezt3= squeeze( AllFields(kz+2,:,kt) );
+Ezt1 = squeeze( Fields_rzt(kz,:,kt) );
+Ezt2 = squeeze( Fields_rzt(kz+1,:,kt) );
+Ezt3= squeeze( Fields_rzt(kz+2,:,kt) );
 
 figure
 plot(rgrid,Ezt1); hold on
