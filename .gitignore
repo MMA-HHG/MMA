@@ -25,3 +25,6 @@ sources/nomega.dat
 # generated modules #
 sources/**__genmod.f90
 
+# post pro
+matlab/figures
+benchmark/*.png

@@ -21,12 +21,20 @@ delete('*.png');
 
 % path = 'D:\data\CUPRAD';
 HDF5_path = 'D:\TEMP\OCCIGEN_CUPRAD\compares\';
-HDF5_filename = "results.h5";
+HDF5_filename = "results_short.h5";
 
+
+kr = 20;
 
 Nx_plot = 2;
 Ny_plot = 5;
 
+rhorange = [0 0.3e-3];
+
+rhoplot_range = 1:40:200;
+kz_plot = 2;
+
+print_A4 = true;
 
 resol='-r300';
 colors={'-g','-k','--r'};
@@ -52,23 +60,49 @@ zgrid = h5read(HDF5_filepath,"/IRprop/zgrid");
 Nz = length(zgrid); Nt = length(tgrid); Nr = length(rgrid);
 
 
+
+%% plot z_evol
 fig.sf(1).method = @plot;
 fig.sf(1).arg{1} = tgrid;
-fig.sf(1).arg{2} = squeeze(output_field(1,:,1) );
+fig.sf(1).arg{2} = squeeze(output_field(1,:,kr));
 
 for k1 = 2:Nz
     fig.sf(k1) = fig.sf(1);
-    fig.sf(k1).arg{2} = squeeze(output_field(k1,:,1) );
+    fig.sf(k1).arg{2} = squeeze(output_field(k1,:,kr));
 end
 
 
-
+fig.title = 'z-evol';
 plot_preset_figure(fig,'default');
+
+
+%% plot r_evol
+clear fig;
+fig.sf(1).method = @plot;
+fig.sf(1).arg{1} = tgrid;
+fig.sf(1).arg{2} = squeeze(output_field(kz_plot,:,rhoplot_range(1)));
+fig.sf(1).legendlabel = strcat('$\rho = ', num2str(1e6*rgrid(1)), '~\mathrm{\mu m}$');
+
+for k1 = rhoplot_range(2:end)
+    fig.sf(k1) = fig.sf(1);
+    fig.sf(k1).arg{2} = squeeze(output_field(kz_plot,:,k1));
+    fig.sf(k1).legendlabel = strcat('$\rho = ', num2str(1e6*rgrid(k1)), '~\mathrm{\mu m}$');
+end
+
+
+fig.title = 'r-evol';
+plot_preset_figure(fig,'default');
+
+
+if print_A4
+
+%% print t-fields
 
 k_plot = 1;
 k2 = 1;
 for k1 = 1:Nz
-    arr_fig.fig(k2).sf(1) = fig.sf(k1);
+    arr_fig.fig(k2).sf(1).method = @plot; 
+    arr_fig.fig(k2).sf(1).arg{1} = tgrid; arr_fig.fig(k2).sf(1).arg{2} = squeeze(output_field(1,:,kr));
     if ((mod(k1,Nx_plot*Ny_plot)==0) || (k1 == Nz) )
         arr_fig.filenamepng = strcat('Frzt_',num2str(k_plot),'.png');
         arr_fig.resolutionpng = '-r450';
@@ -80,13 +114,31 @@ for k1 = 1:Nz
     k2 = k2+1;
 end
 
+%% print r-fields
+k_plot = 1;
+k2 = 1;
+for k1 = 1:Nz
+    arr_fig.fig(k2).sf(1).method = @plot; arr_fig.fig(k2).xlim = rhorange;
+    arr_fig.fig(k2).sf(1).arg{1} = rgrid; arr_fig.fig(k2).sf(1).arg{2} = squeeze(output_field(k1,ceil(Nt/2),:));
+    if ((mod(k1,Nx_plot*Ny_plot)==0) || (k1 == Nz) )
+        arr_fig.filenamepng = strcat('rfield_',num2str(k_plot),'.png');
+        arr_fig.resolutionpng = '-r450';
+        Print_Array_Figs_A4(arr_fig,2,5);
+        k_plot = k_plot + 1;
+        k2 = 0;
+        clear arr_fig;
+    end
+    k2 = k2+1;
+end
 
 %% print plasma
 k_plot = 1;
 k2 = 1;
 for k1 = 1:Nz
     arr_fig.fig(k2).sf(1).method = @pcolor; arr_fig.fig(k2).sf(1).shading = 'interp'; arr_fig.fig(k2).sf(1).colorbar = 'eastoutside';
-    arr_fig.fig(k2).sf(1).arg{1} = tgrid; arr_fig.fig(k2).sf(1).arg{2} = rgrid; arr_fig.fig(k2).sf(1).arg{3} = squeeze(output_plasma(k1,:,:));
+    %arr_fig.fig(k2).ylim = [-rhorange(2), rhorange(2)];
+%     arr_fig.fig(k2).sf(1).arg{1} = tgrid; arr_fig.fig(k2).sf(1).arg{2} = rgrid; arr_fig.fig(k2).sf(1).arg{3} = squeeze(output_plasma(k1,:,:));
+    arr_fig.fig(k2).sf(1).arg{1} = squeeze(output_plasma(k1,:,:)); 
     if ((mod(k1,Nx_plot*Ny_plot)==0) || (k1 == Nz) )
         arr_fig.filenamepng = strcat('plasma_',num2str(k_plot),'.png');
         arr_fig.resolutionpng = '-r450';
@@ -99,6 +151,27 @@ for k1 = 1:Nz
 end
 
 
+%% print inst_intens
+k_plot = 1;
+k2 = 1;
+for k1 = 1:Nz
+    arr_fig.fig(k2).sf(1).method = @pcolor; arr_fig.fig(k2).sf(1).shading = 'interp'; arr_fig.fig(k2).sf(1).colorbar = 'eastoutside';
+    %arr_fig.fig(k2).ylim = [-rhorange(2), rhorange(2)];
+%     arr_fig.fig(k2).sf(1).arg{1} = tgrid; arr_fig.fig(k2).sf(1).arg{2} = rgrid; arr_fig.fig(k2).sf(1).arg{3} = abs(squeeze(output_field(k1,:,:))).^2;
+    arr_fig.fig(k2).sf(1).arg{1} = (abs(squeeze(output_field(k1,:,:))).^2)';
+    if ((mod(k1,Nx_plot*Ny_plot)==0) || (k1 == Nz) )
+        arr_fig.filenamepng = strcat('inst_intens_',num2str(k_plot),'.png');
+        arr_fig.resolutionpng = '-r450';
+        Print_Array_Figs_A4(arr_fig,2,5);
+        k_plot = k_plot + 1;
+        k2 = 0;
+        clear arr_fig;
+    end
+    k2 = k2+1;
+end
+
+
+end
 
 return
 %%
