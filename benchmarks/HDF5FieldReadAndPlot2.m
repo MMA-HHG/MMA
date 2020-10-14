@@ -20,11 +20,11 @@ delete('*.png');
 %% parameters
 
 % path = 'D:\data\CUPRAD';
-HDF5_path = 'D:\TEMP\OCCIGEN_CUPRAD\compares\';
+HDF5_path = 'D:\TEMP\OCCIGEN_CUPRAD\compares2\';
 HDF5_filename = "results_short.h5";
 
 
-kr = 20;
+kr = 1;
 
 Nx_plot = 2;
 Ny_plot = 5;
@@ -64,11 +64,11 @@ Nz = length(zgrid); Nt = length(tgrid); Nr = length(rgrid);
 %% plot z_evol
 fig.sf(1).method = @plot;
 fig.sf(1).arg{1} = tgrid;
-fig.sf(1).arg{2} = squeeze(output_field(1,:,kr));
+fig.sf(1).arg{2} = squeeze(output_field(1,kr,:));
 
 for k1 = 2:Nz
     fig.sf(k1) = fig.sf(1);
-    fig.sf(k1).arg{2} = squeeze(output_field(k1,:,kr));
+    fig.sf(k1).arg{2} = squeeze(output_field(k1,kr,:));
 end
 
 
@@ -80,12 +80,12 @@ plot_preset_figure(fig,'default');
 clear fig;
 fig.sf(1).method = @plot;
 fig.sf(1).arg{1} = tgrid;
-fig.sf(1).arg{2} = squeeze(output_field(kz_plot,:,rhoplot_range(1)));
+fig.sf(1).arg{2} = squeeze(output_field(kz_plot,rhoplot_range(1),:));
 fig.sf(1).legendlabel = strcat('$\rho = ', num2str(1e6*rgrid(1)), '~\mathrm{\mu m}$');
 
 for k1 = rhoplot_range(2:end)
     fig.sf(k1) = fig.sf(1);
-    fig.sf(k1).arg{2} = squeeze(output_field(kz_plot,:,k1));
+    fig.sf(k1).arg{2} = squeeze(output_field(kz_plot,k1,:));
     fig.sf(k1).legendlabel = strcat('$\rho = ', num2str(1e6*rgrid(k1)), '~\mathrm{\mu m}$');
 end
 
@@ -93,6 +93,16 @@ end
 fig.title = 'r-evol';
 plot_preset_figure(fig,'default');
 
+
+%% plot startfield
+clear fig;
+fig.sf(1).method = @pcolor; fig.sf(1).shading = 'interp';
+fig.sf(1).arg{1} = tgrid;
+fig.sf(1).arg{2} = rgrid;
+fig.sf(1).arg{3} = StartFieldsR';
+
+fig.title = 'startfield real';
+plot_preset_figure(fig,'default');
 
 if print_A4
 
@@ -102,7 +112,7 @@ k_plot = 1;
 k2 = 1;
 for k1 = 1:Nz
     arr_fig.fig(k2).sf(1).method = @plot; 
-    arr_fig.fig(k2).sf(1).arg{1} = tgrid; arr_fig.fig(k2).sf(1).arg{2} = squeeze(output_field(1,:,kr));
+    arr_fig.fig(k2).sf(1).arg{1} = tgrid; arr_fig.fig(k2).sf(1).arg{2} = squeeze(output_field(1,kr,:));
     if ((mod(k1,Nx_plot*Ny_plot)==0) || (k1 == Nz) )
         arr_fig.filenamepng = strcat('Frzt_',num2str(k_plot),'.png');
         arr_fig.resolutionpng = '-r450';
@@ -119,7 +129,7 @@ k_plot = 1;
 k2 = 1;
 for k1 = 1:Nz
     arr_fig.fig(k2).sf(1).method = @plot; arr_fig.fig(k2).xlim = rhorange;
-    arr_fig.fig(k2).sf(1).arg{1} = rgrid; arr_fig.fig(k2).sf(1).arg{2} = squeeze(output_field(k1,ceil(Nt/2),:));
+    arr_fig.fig(k2).sf(1).arg{1} = rgrid; arr_fig.fig(k2).sf(1).arg{2} = squeeze(output_field(k1,:,ceil(Nt/2)));
     if ((mod(k1,Nx_plot*Ny_plot)==0) || (k1 == Nz) )
         arr_fig.filenamepng = strcat('rfield_',num2str(k_plot),'.png');
         arr_fig.resolutionpng = '-r450';

@@ -3,7 +3,7 @@
 close all; clear all;
 
 path=pwd
-inpath= 'D:\TEMP\OCCIGEN_CUPRAD\original_short\';
+inpath= 'D:\TEMP\OCCIGEN_CUPRAD\originals2\original_short\';
 outpath=sprintf('%s%s',path,'/figures/')
 
 % cd ../octave
