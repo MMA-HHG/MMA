@@ -1,0 +1,67 @@
+#!/bin/bash
+
+# mkdir direct
+# cp file2 direct
+
+module load Matlab
+
+#for fold in sim*; do 
+
+#	echo $fold
+#	
+#	cp *.m $fold/	
+#	cp runmatlab.sh $fold/
+
+
+#	cd $fold/
+
+#	rm figures/*
+
+##	gnome-terminal -x ./runmatlab.sh
+
+#	matlab -nodisplay -nodesktop -nosplash -r "run post_process2.m; exit" > figures/matlab_output
+
+#	cd ..
+
+# 
+
+#done
+
+
+N=5
+(
+for fold in sim*; do 
+
+   	((i=i%N)); ((i++==0)) && wait
+
+	echo $fold
+	
+	cp *.m $fold/	
+	cp runmatlab.sh $fold/
+
+
+	cd $fold/
+
+	mkdir figures2
+	rm figures2/*
+
+#	gnome-terminal -x ./runmatlab.sh
+
+	matlab -nodisplay -nodesktop -nosplash -r "run post_process2.m; exit" > figures2/matlab_output &
+
+	cd ..
+
+done
+)
+
+echo "done" 
+
+
+
+#N=4
+#(
+#for thing in a b c d e f g; do 
+#   ((i=i%N)); ((i++==0)) && wait
+#   task "$thing" & 
+#done
+#)

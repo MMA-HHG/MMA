@@ -1,0 +1,20 @@
+#!/bin/bash
+
+#read list & copy
+
+while read LINE; do 
+	read fold <<< $LINE;
+#	echo "${run[*]}" >> "params_check.txt";
+	echo $fold;
+#	cd res;
+	mkdir $fold;
+#	cd ..;
+#	cp -r old/$fold/* res/$fold/
+#	scp -r jvabek@avakas.mcia.univ-bordeaux.fr:/scratch/jvabek/DEFOCUSING/$fold/* res/$fold/
+#	scp -3 -r jvabek@avakas.mcia.univ-bordeaux.fr:/scratch/jvabek/DEFOCUSING/$fold/* jvabek@10.41.7.43:/gpfs/home/jvabek/temp
+
+done < ListOfSimulations.txt
+
+mkdir driving_files
+
+echo "done" 

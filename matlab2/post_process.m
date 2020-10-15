@@ -3,7 +3,7 @@
 close all; clear all;
 
 path=pwd
-inpath= 'D:\TEMP\OCCIGEN_CUPRAD\originals2\original_short\';
+inpath=sprintf('%s%s',path,'/sim1/')
 outpath=sprintf('%s%s',path,'/figures/')
 
 % cd ../octave
@@ -11,7 +11,7 @@ outpath=sprintf('%s%s',path,'/figures/')
 format='-djpeg'
 resolution='-r300'
 zminm=0.
-zmaxm=.005
+zmaxm=.1
 rmaxmm=.3
 tminfs=-100
 tmaxfs=100
