@@ -362,7 +362,7 @@ end subroutine calck0
        PRINT*, 'p3 c2'
        CALL dfftw_execute(plan_forward)
        PRINT*, 'afft_sub'
-       e=CSHIFT(e,dim_t/2,1)
+       e=CSHIFT(e,dim_t/2,1) ! problem
 PRINT*, 'p4'
        DO l=p*(dim_r/num_proc)+1,(p+1)*(dim_r/num_proc)
           r=REAL(l-1,8)*delta_r
@@ -372,12 +372,12 @@ PRINT*, 'p4'
           ENDDO
        ENDDO
 PRINT*, 'p5'
-       e=CSHIFT(e,dim_t/2,1)
+       e=CSHIFT(e,dim_t/2,1) ! problem
        CALL dfftw_execute(plan_backward)
        e=e/REAL(dim_t,8)
     ENDIF
 
-    PRINT*, 'bfft'
+    PRINT*, 'bfft_destroy'
 
     CALL dfftw_destroy_plan(plan_forward)
     CALL dfftw_destroy_plan(plan_backward)
@@ -385,12 +385,15 @@ PRINT*, 'p5'
        DEALLOCATE(buffer)
     ENDIF
 
-    PRINT*, 'afft'
+    PRINT*, 'afft_destroy'
 
 930 FORMAT (I3)
+    PRINT*, 'limits', p, p*(dim_r/num_proc)+1 ,(p+1)*(dim_r/num_proc)
+    ! e_full = e
     DO j=p*(dim_r/num_proc)+1,(p+1)*(dim_r/num_proc)
       e_full(1:dim_t,j) = e(1:dim_t,j)
     ENDDO
+
     RETURN
   END SUBROUTINE calc_startingfield
 
