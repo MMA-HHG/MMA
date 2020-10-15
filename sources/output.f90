@@ -81,7 +81,7 @@ CONTAINS
             CALL calc_rho(rhotemp,mpa,e_2(j),e_2(j+1))
          ENDIF
       ENDDO
-      plasma_array(1,k1,:) = REAL(e_2KKm2,4)
+      plasma_array(1,k1,:) = REAL(plasma_normalisation_factor_m3*e_2KKm2,4)
       k1 = k1 + 1
     ENDDO
 
