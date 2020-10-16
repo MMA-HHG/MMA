@@ -388,18 +388,11 @@ PRINT*, 'p5'
     PRINT*, 'afft_destroy'
 
 930 FORMAT (I3)
-    PRINT*, 'limits', p, p*(dim_r/num_proc)+2 ,(p+1)*(dim_r/num_proc), dim_t, dim_r
-    PRINT*, 'shapes'
-    PRINT*, SHAPE(e)
-    PRINT*, SHAPE(e_full)
-    ! e_full = e
-    if (p == 0) then
-    !DO j=p*(dim_r/num_proc)+1,(p+1)*(dim_r/num_proc)
-    DO j=p*(dim_r/num_proc)+2,(p+1)*(dim_r/num_proc)
+    DO j=p*(dim_r/num_proc)+1,(p+1)*(dim_r/num_proc)
       !e_full(1:dim_t,j) = e(1:dim_t,j)
       e_full(:,j) = e(:,j)
     ENDDO
-    endif
+
     
 
 
