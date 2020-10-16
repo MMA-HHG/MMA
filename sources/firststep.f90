@@ -397,7 +397,7 @@ CONTAINS
     lambdanm = 6.634D-34*3.D17/photon_energy/4.359d-18 ! center wavelength in nm
 
     plasma_normalisation_factor_m3 = rhoc_cm3_phys/(4.0d0*PI**2 * (beam_waist**2) / ((lambdanm*1.0D-7)**2 )) ! in cm^(-3)
-    plasma_normalisation_factor_m3 = 10.0D6 * plasma_normalisation_factor_m3 ! in m^(-3)
+    plasma_normalisation_factor_m3 = 1.0D6 * plasma_normalisation_factor_m3 ! in m^(-3)
 
     tps = pulse_duration*1.D-15 ! pulse duration in s (tpfs*1.e-15 in octace files)
     w0m = beam_waist*1.D-2 ! beam width in m (w0cm*1e-2 in octave files)
