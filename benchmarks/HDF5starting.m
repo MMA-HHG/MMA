@@ -60,7 +60,7 @@ clear fig;
 fig.sf(1).method = @pcolor; fig.sf(1).shading = 'interp';
 % fig.sf(1).arg{1} = tgrid;
 % fig.sf(1).arg{2} = rgrid;
-fig.sf(1).arg{1} = StartFieldsR;
+fig.sf(1).arg{1} = StartFieldsR';
 
 fig.title = 'startfield real';
 plot_preset_figure(fig,'default');
@@ -71,7 +71,7 @@ clear fig;
 fig.sf(1).method = @plot;
 % fig.sf(1).arg{1} = tgrid;
 % fig.sf(1).arg{2} = rgrid;
-fig.sf(1).arg{1} = StartFieldsR(kr,:);
+fig.sf(1).arg{1} = StartFieldsR(:,kr);
 
 fig.title = 'startfield real cut';
 plot_preset_figure(fig,'default');
