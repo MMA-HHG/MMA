@@ -11,9 +11,7 @@ CONTAINS
 
     INTEGER(4)  :: j,k
     REAL(8) t
-    REAL(8) :: PI
 
-    PI = 4.d0 * Atan(1.d0) ! still local
     delta_zh=0.5D0*delta_z
 
     SELECT CASE (switch_T)
@@ -85,6 +83,9 @@ CONTAINS
     INTEGER(HID_T) :: file_id, group_id     ! File identifier 
     INTEGER        :: error
     REAL(8), ALLOCATABLE :: real_e(:,:),imag_e(:,:)
+    REAL(8) :: PI
+
+    PI = 4.d0 * Atan(1.d0) ! still local
 
     HDF5write_count = 1
     output_write_count = 1

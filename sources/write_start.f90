@@ -148,16 +148,30 @@ CONTAINS
       
       ALLOCATE(real_e(dim_r,dim_t),imag_e(dim_r,dim_t))
       PRINT*, 'brealimag'
+      PRINT*, KIND(e_full)
+      PRINT*, e_full(1,2)
+PRINT*, e_full(1,1026)
+PRINT*, e_full(1025,10)
+      PRINT*, e_full(1:3,1:3)
+      PRINT*, REAL( REAL( (efield_factor*e_full(1025,1)) ) , 8 )
       DO k1=1, dim_t
         DO k2=1, dim_r
-           real_e(k1,k2) = REAL( REAL( (efield_factor*efield_osc(k1)*e_full(k1,k2)) ) , 8 )
-           imag_e(k1,k2) = REAL( IMAG( (efield_factor*efield_osc(k1)*e_full(k1,k2)) ) , 8 )
+           !real_e(k2,k1) = REAL( REAL( (efield_factor*efield_osc(k1)*e_full(k1,k2)) ) , 8 )
+           !imag_e(k2,k1) = REAL( IMAG( (efield_factor*efield_osc(k1)*e_full(k1,k2)) ) , 8 )
+           real_e(k2,k1) = REAL( REAL( (e_full(k1,k2)) ) , 8 )
+           imag_e(k2,k1) = REAL( IMAG( (e_full(k1,k2)) ) , 8 )
         ENDDO
       ENDDO
+      !real_e(1025,1) = REAL( REAL( (efield_factor*e_full(1025,1)) ) , 8 )
       PRINT*, 'arealimag'
-      CALL create_dset(group_id, "startfield_r", real_e, dim_t, dim_r)
+      PRINT*, KIND(real_e)
+      PRINT*, real_e(2,1)
+      PRINT*, real_e(1026,1)
+      PRINT*, real_e(10,1025)
+      PRINT*, real_e(1:3,1:3)
+      CALL create_dset(group_id, "startfield_r", real_e, dim_r, dim_t)
       PRINT*, 'efieldwritten'
-      CALL create_dset(group_id, "startfield_i", imag_e, dim_t, dim_r)
+      CALL create_dset(group_id, "startfield_i", imag_e, dim_r, dim_t)
       ! CALL create_dset(group_id,"startfield",e_full,dim_t,dim_r)
       PRINT*, 'bindicesgroup'
       CALL h5gcreate_f(file_id, indexes_groupname, indexes_group_id, error)

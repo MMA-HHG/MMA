@@ -447,6 +447,7 @@ MODULE hdf5_helper
       INTEGER(HID_T) :: dset_id, dataspace_id ! necessary identifiers
       INTEGER(HSIZE_T), DIMENSION(3) :: data_dims ! data dimensions array
       REAL(8), DIMENSION(dims_y,dims_x,2) :: res ! temporary variable storing the real and imag part separately
+      PRINT*, 'writting 2D complex'
       rank = 3 ! initialize rank
       ! fill in the data_dims array
       data_dims = (/2, dims_x, dims_y/)
@@ -478,6 +479,7 @@ MODULE hdf5_helper
       INTEGER(HID_T) :: dset_id, dataspace_id ! necessary identifiers
       INTEGER(HSIZE_T), DIMENSION(2) :: data_dims ! data dimensions array
       data_dims = (/dims_x, dims_y/) ! initialize data dimensions array with size of the dataset
+      PRINT*, 'writting 2D real'
       ! create dataspace of rank 2 and size of the size of the dataset
       CALL h5screate_simple_f(rank, data_dims, dataspace_id, error)
       ! create a dataset of type double precision
