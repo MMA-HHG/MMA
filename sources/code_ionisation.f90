@@ -612,7 +612,7 @@ CONTAINS
     INTEGER(HID_T)              :: file_id, group_id
     REAL(8), ALLOCATABLE        :: rates_atomic(:,:)
     INTEGER(HSIZE_T), DIMENSION(2) :: dims_ext
-    INTEGER(HSIZE_T), DIMENSION(1) :: h5dim1
+    !INTEGER(HSIZE_T), DIMENSION(1) :: h5dim1
     
 
 
@@ -644,8 +644,11 @@ CONTAINS
         CALL h5open_f(error)
         CALL h5fopen_f(filename, H5F_ACC_RDONLY_F, file_id, error) ! all workers do
         CALL h5gopen_f(file_id, groupname, group_id, error)
-        CALL ask_for_size_1D(group_id, 'rates_atomic', h5dim1)
-        DIMENSION_EXT = h5dim1(1)
+        CALL ask_for_size_1D(group_id, 'Egrid', DIMENSION_EXT)
+
+        print*, 'dimension is', DIMENSION_EXT
+
+        !DIMENSION_EXT = h5dim1(1)
         ALLOCATE(EXT_TABLE(DIMENSION_EXT, 3))
         ALLOCATE(Egrid(DIMENSION_EXT),ionisation_rates(DIMENSION_EXT))
         
@@ -659,7 +662,7 @@ CONTAINS
 
         open(UNIT=4,FILE='reference_table.dat',FORM="FORMATTED",action='write');
         DO i = 2, DIMENSION_EXT
-          intensity = Efield(i)
+          intensity = Egrid(i)
           intensity = intensity * intensity * field_intensity_au !rescale intensity intensity from atomic units to W/cm^2 (not SI)
           ionisation_rate = ionisation_rates(i)
           
@@ -735,6 +738,9 @@ CONTAINS
       deallocate(dumvect)
     ENDIF
 
+      print*, 'aread', my_rank
+
+
 
    IF(my_rank.EQ.0) THEN
        OPEN (UNIT = 2, FILE = 'ionisation_table.dat', STATUS = 'unknown')
@@ -752,12 +758,15 @@ CONTAINS
        CLOSE(3)
     ENDIF
 
-    IF (my_rank.EQ.0) THEN ! savereference in the results
-      CALL h5open_f(error)
-      CALL h5fcreate_f(outfilename, H5F_ACC_RDWR_F, file_id, error)
-      CALL h5gcreate_f(file_id, outgroupname, group_id, error)
-      CALL create_dset(group_id, 'Egrid', Egrid, DIMENSION_EXT)
-      CALL create_dset(group_id, 'ionisation_rates', ionisation_rates, DIMENSION_EXT)
+  
+    ! the archive is open probably in the parent program... Let's save it after when the linked list is flushed etc.
+    !IF (my_rank.EQ.0) THEN ! savereference in the results
+      !print*, 'bh5write', my_rank
+      !CALL h5open_f(error)
+      !CALL h5fopen_f(outfilename, H5F_ACC_RDWR_F, file_id, error)
+      !CALL h5gcreate_f(file_id, outgroupname, group_id, error)
+      !CALL create_dset(group_id, 'Egrid', Egrid, DIMENSION_EXT)
+      !CALL create_dset(group_id, 'ionisation_rates', ionisation_rates, DIMENSION_EXT)
 
       ! CALL create_dset(group_id, 'atom_dens', atomic_density)
       ! CALL create_dset(group_id, 'crit_dens', critical_density)
@@ -769,11 +778,13 @@ CONTAINS
       ! CALL create_dset(group_id, "rates_atomic", rates_table, DIMENSION_PPT, 2)
       ! CALL create_dset(group_id, "reference_table", reference_table, DIMENSION_PPT, 3)
       ! CALL create_dset(group_id, "ppt_table", PPT_TABLE, DIMENSION_PPT, 3)
-      CALL h5gclose_f(group_id, error)
-      CALL h5fclose_f(file_id, error)
-    ENDIF
+      !CALL h5gclose_f(group_id, error)
+      !CALL h5fclose_f(file_id, error)
+    !ENDIF
 
 
+    print*, 'ionisation passed', my_rank
+    STOP
     EXT_TABLE(dimension_EXT, 1)=EXT_TABLE(dimension_EXT, 1)*1.d99 ! for diverging fields
 !    intensity_step_inv = 1.d0 /(intensity_step * intensity_factor)
 

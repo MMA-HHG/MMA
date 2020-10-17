@@ -8,7 +8,7 @@ MODULE hdf5_helper
   ! Create an interface for creating a dset. It includes most of the writing subroutines, the ones that are uniquely identifiable by their parameters.
   INTERFACE create_dset
     PROCEDURE create_scalar_boolean_dset, create_scalar_int_dset, create_scalar_real_dset, create_1D_array_real_dset, &
-      create_1D_array_complex_dset, create_2D_array_complex_dset, create_2D_array_real_dset
+      create_1D_array_real8_dset, create_1D_array_complex_dset, create_2D_array_complex_dset, create_2D_array_real_dset
   END INTERFACE
   CONTAINS
 
@@ -405,6 +405,27 @@ MODULE hdf5_helper
       CALL h5dclose_f(dset_id, error)
       CALL h5sclose_f(dataspace_id, error)
     END SUBROUTINE create_1D_array_real_dset
+
+    ! This subroutine creates one dimensional dataset of type real (double precision)
+    SUBROUTINE create_1D_array_real8_dset(file_id, name, var, dims)
+      REAL(8), DIMENSION(:)       :: var ! variable to be written into the dataset
+      INTEGER(4)               :: file_id ! file or group identifier to write the dataset to
+      CHARACTER(*)             :: name ! name of the dataset
+      INTEGER                  :: error, dims ! error stores error messages of the HDF5 interface, dims stores the size of the dataset
+      INTEGER                  :: rank = 1 ! rank of the dataset
+      INTEGER(HID_T) :: dset_id, dataspace_id ! necessary identifiers
+      INTEGER(HSIZE_T), DIMENSION(1) :: data_dims ! dimensions array
+      data_dims = (/dims/) ! assign value to dimensions array
+      ! create dataspace of rank 1 and size data_dims
+      CALL h5screate_simple_f(rank, data_dims, dataspace_id, error)
+      ! create dataset of type double precision
+      CALL h5dcreate_f(file_id, name, H5T_NATIVE_DOUBLE, dataspace_id, dset_id, error)
+      ! write to dataset
+      CALL h5dwrite_f(dset_id, H5T_NATIVE_REAL, var, data_dims, error)
+      ! close dataset and dataspace, terminate subroutine
+      CALL h5dclose_f(dset_id, error)
+      CALL h5sclose_f(dataspace_id, error)
+    END SUBROUTINE create_1D_array_real8_dset
   
     ! This subroutine creates one dimensional dataset of type complex (as HDF5 does not support complex numbers, the real value is
     ! double precision and the dataset is of size 2 by dims)
