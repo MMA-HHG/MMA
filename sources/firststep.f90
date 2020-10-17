@@ -356,6 +356,14 @@ CONTAINS
     
     CALL h5gclose_f(group_id, error) ! all pre-processed inputs read
 
+    CALL h5gopen_f(file_id, output_groupname, group_id, error) 
+    CALL read_dset(group_id,'critdens',rhoc_cm3_phys) 
+
+    ! CLOSE HDF5 interface
+    CALL h5gclose_f(group_id, error)
+    CALL h5fclose_f(file_id, error)
+    CALL h5close_f(error)
+
 
     i_x_old=2
     i_z_old=2
@@ -393,8 +401,7 @@ CONTAINS
     930 FORMAT (I3)
 
     ! compute normalization factors
-    CALL h5gopen_f(file_id, output_groupname, group_id, error) 
-    CALL read_dset(group_id,'critdens',rhoc_cm3_phys) 
+ 
     lambdanm = 6.634D-34*3.D17/photon_energy/4.359d-18 ! center wavelength in nm
 
     plasma_normalisation_factor_m3 = rhoc_cm3_phys/(4.0d0*PI**2 * (beam_waist**2) / ((lambdanm*1.0D-7)**2 )) ! in cm^(-3)
@@ -408,10 +415,7 @@ CONTAINS
     Nz_points = CEILING(proplength/outlength)+1 ! expected number of hdf5 output along z (with safety)
 
    
-    ! CLOSE HDF5 interface
-    CALL h5gclose_f(group_id, error)
-    CALL h5fclose_f(file_id, error)
-    CALL h5close_f(error)
+
     print *, "subroutine initialize for proc ", ip, " done"
     RETURN
   END SUBROUTINE initialize
