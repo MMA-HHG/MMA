@@ -784,7 +784,7 @@ CONTAINS
 
 
     print*, 'ionisation passed', my_rank
-    STOP
+    !STOP
     EXT_TABLE(dimension_EXT, 1)=EXT_TABLE(dimension_EXT, 1)*1.d99 ! for diverging fields
 !    intensity_step_inv = 1.d0 /(intensity_step * intensity_factor)
 
