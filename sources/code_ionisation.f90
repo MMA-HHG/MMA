@@ -779,6 +779,7 @@ CONTAINS
 
     JLOTI=1
     JLOTIP1=1
+    DEALLOCATE(Egrid,ionisation_rates); 
 
   END SUBROUTINE RESCALE_TABLE_EXT
 
