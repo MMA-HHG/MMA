@@ -27,4 +27,5 @@ sources/**__genmod.f90
 
 # post pro
 matlab/figures
+matlab2/figures
 benchmark/*.png

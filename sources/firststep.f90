@@ -67,7 +67,7 @@ CONTAINS
 
   SUBROUTINE initialize
     USE ppt
-    USE Complex_rotation 
+    USE External_ionisation_table 
     USE fft
     USE HDF5
     USE HDF5_helper
@@ -364,13 +364,13 @@ CONTAINS
     ALLOCATE(losses_ionization(dim_r_start(num_proc):dim_r_end(num_proc)),losses_plasma(dim_r_start(num_proc):dim_r_end(num_proc)))
     ALLOCATE(rhoabs(dim_r_start(num_proc):dim_r_end(num_proc)))
     ALLOCATE(e_2(dim_t),e_2KK(dim_t),e_2KKm2(dim_t))
+
+   ! select the ionisation model used in the code
     SELECT CASE (switch_rho)
     CASE(1,2,6)
        CONTINUE
     CASE(8)
-!       CALL INITIALISE_CPR
-!       CALL FIND_INTENSITY_AREA_CPR
-       CALL RESCALE_TABLE_CPR
+       CALL RESCALE_TABLE_EXT
     CASE(3)
        CALL INITIALISE_PPT('PPT')
        CALL FIND_INTENSITY_AREA('PPT')

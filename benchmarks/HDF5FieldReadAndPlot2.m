@@ -32,9 +32,9 @@ Ny_plot = 5;
 rhorange = [0 0.3e-3];
 
 rhoplot_range = 1:40:200;
-kz_plot = 2;
+kz_plot = 5;
 
-print_A4 = true;
+print_A4 = false;
 
 resol='-r300';
 colors={'-g','-k','--r'};
@@ -102,6 +102,16 @@ fig.sf(1).arg{2} = rgrid;
 fig.sf(1).arg{3} = StartFieldsR';
 
 fig.title = 'startfield real';
+plot_preset_figure(fig,'default');
+
+%% plot z-full-field
+clear fig;
+fig.sf(1).method = @pcolor; fig.sf(1).shading = 'interp';
+fig.sf(1).arg{1} = tgrid;
+fig.sf(1).arg{2} = rgrid;
+fig.sf(1).arg{3} = squeeze(output_field(kz_plot,:,:));
+
+fig.title = 'chosen field real';
 plot_preset_figure(fig,'default');
 
 if print_A4

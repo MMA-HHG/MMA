@@ -61,7 +61,7 @@ END MODULE LASER_PARAMETER
 MODULE PPT_PARAMETER
 
   ! All data are evaluated in Atomic Unit
-  ! Modified on the 19/04/04
+  ! Modified 19/04/04
 
   USE MEDIUM_PARAMETER
 
@@ -330,6 +330,10 @@ CONTAINS
      END FUNCTION
     END INTERFACE
 
+    IF (THEORY == "PPT") THEN
+    PRINT*, 'PPT-fill-table is acessed, proc', my_rank
+    ENDIF
+
 
     ALLOCATE(PPT_TABLE(DIMENSION_PPT, 3))
     ! Normalised factors
@@ -538,7 +542,7 @@ CONTAINS
 END MODULE PPT
 
 
-!=================================================================================================== Complex rotation
+!=================================================================================================== Load from external table
 
 module libraries
 IMPLICIT NONE;
@@ -560,11 +564,13 @@ CONTAINS
   end function filelength; 
 end module libraries
 
-MODULE Complex_rotation
+MODULE External_ionisation_table
 
-  ! This module is used for PPT. It does the following procedure
-  ! 1- It rescales the table from external file
-  ! $- A routine to do the interpolation
+  ! This module loads an external ionisation table from pre-calculated HDF5 archive (or from an ASCII file-testing case). It also provides the rate by interpolation lookup.
+   
+  ! routines
+  ! RESCALE_TABLE_EXT: it loads the table and transform it into C.U.
+  ! INTERPOLATE_EXT: table lookup
 
   USE MEDIUM_PARAMETER
   USE LASER_PARAMETER
@@ -572,17 +578,19 @@ MODULE Complex_rotation
 
   IMPLICIT NONE
   DOUBLE PRECISION, SAVE   :: INTENSITY_STEP,intensity_step_inv
-  INTEGER, SAVE            :: DIMENSION_CPR
+  INTEGER, SAVE            :: DIMENSION_EXT
   INTEGER, SAVE            :: JLOTI, JLOTIP1                          ! Integer for Intensity Index
-  DOUBLE PRECISION, DIMENSION(:,:), ALLOCATABLE :: CPR_TABLE 
+  DOUBLE PRECISION, DIMENSION(:,:), ALLOCATABLE :: EXT_TABLE 
 
 CONTAINS
-
-
-
-  !----------------------------------------
-  ! 3- Create the table
-  SUBROUTINE RESCALE_TABLE_CPR
+  SUBROUTINE RESCALE_TABLE_EXT
+  ! It takes the ionsation table from the pre-computed HDF5 archive (default option).
+  ! There is also possibility to load it from ASCII-formated 'rates_atomic.dat' file, this is mainly for testing. 
+  ! The ionization is stored as follows:
+  ! || electric field ||  ionisation rate  ||, both in atomic units, corresponding datasets are:
+  ! ||     Egrid      ||  ionisation_rates ||, stored in the 'ionisation_model' group. ASCII file contains thesw two columns
+  ! It is required to include 0 (the first row is omitted).
+    
     USE mpi_stuff
     USE libraries
     USE HDF5
@@ -596,21 +604,19 @@ CONTAINS
     DOUBLE PRECISION            :: intensity
     DOUBLE PRECISION            :: ionisation_rate
     INTEGER                     :: i
-    DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: dumvect
+    DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: dumvect, Egrid, ionisation_rates
     LOGICAL                     :: file_exists
-    CHARACTER(LEN=25)           :: filename = "calculated_tables.h5", groupname = "PPT"
+    CHARACTER(LEN=25)           :: filename = "calculated_tables.h5", groupname = "ionisation_model"
+    CHARACTER(LEN=25)           :: outfilename = "results.h5", outgroupname="ionisation_model"
     INTEGER                     :: error
     INTEGER(HID_T)              :: file_id, group_id
     REAL(8), ALLOCATABLE        :: rates_atomic(:,:)
-    INTEGER(HSIZE_T), DIMENSION(2) :: dims_cpr
+    INTEGER(HSIZE_T), DIMENSION(2) :: dims_ext
+    INTEGER(HSIZE_T), DIMENSION(1) :: h5dim1
     
 
 
     INTERFACE
-     FUNCTION IONISATION_RATE_CPR(intensity)
-         DOUBLE PRECISION, INTENT(IN) :: intensity
-         DOUBLE PRECISION             :: IONISATION_RATE_CPR
-     END FUNCTION IONISATION_RATE_CPR
      FUNCTION IONISATION_RATE_ADK(intensity)
          DOUBLE PRECISION, INTENT(IN) :: intensity
          DOUBLE PRECISION             :: IONISATION_RATE_ADK
@@ -622,131 +628,163 @@ CONTAINS
     END INTERFACE
 
 
-    ! Normalised factors
-    intensity_factor = 4.d0 * PI * beam_waist**2 * 1.d-9 / critical_power 
-   
+    PRINT*, 'External ionisation table is acessed, proc', my_rank
+
+    ! Factors to rescale in computational units
+    intensity_factor = 4.d0 * PI * beam_waist**2 * 1.d-9 / critical_power    
     rate_factor      =(4.d0 * PI**2 * 1.d16 / (45.5635**2 * 2.41889)) * &
          (atomic_density / critical_density) *&
          (photon_energy**2) * (beam_waist**2) * pulse_duration
     MPA_factor       = n0_indice * critical_density * ionisation_potential * 45.5635 * 4.359d-10 / &
          (photon_energy * pulse_duration * 2.d0 * PI)
-    INQUIRE(FILE="calculated_tables.h5", EXIST=file_exists)
+
+    ! default option if HDF5-archive exists
+    INQUIRE(FILE="calculated_tables.h5", EXIST=file_exists) 
     IF (file_exists) THEN
         CALL h5open_f(error)
-        CALL h5fopen_f(filename, H5F_ACC_RDONLY_F, file_id, error)
+        CALL h5fopen_f(filename, H5F_ACC_RDONLY_F, file_id, error) ! all workers do
         CALL h5gopen_f(file_id, groupname, group_id, error)
-        CALL ask_for_size_2D(group_id, 'rates_atomic', dims_cpr)
-        DIMENSION_CPR = dims_cpr(1)
-        ALLOCATE(CPR_TABLE(DIMENSION_CPR, 3))
-        ALLOCATE(rates_atomic(DIMENSION_CPR, 2))
-        CALL read_dset(group_id, 'rates_atomic', rates_atomic, DIMENSION_CPR, 2, DIMENSION_CPR, 2, 0, 0)
+        CALL ask_for_size_1D(group_id, 'rates_atomic', h5dim1)
+        DIMENSION_EXT = h5dim1(1)
+        ALLOCATE(EXT_TABLE(DIMENSION_EXT, 3))
+        ALLOCATE(Egrid(DIMENSION_EXT),ionisation_rates(DIMENSION_EXT))
+        
+        !CALL read_dset(group_id, 'rates_atomic', rates_atomic, DIMENSION_EXT, 2, DIMENSION_EXT, 2, 0, 0)
+        CALL read_dset(group_id, 'Egrid', Egrid, DIMENSION_EXT)
+        CALL read_dset(group_id, 'ionisation_rates', ionisation_rates, DIMENSION_EXT)
+
         CALL h5gclose_f(group_id, error)
         CALL h5fclose_f(file_id, error)
         CALL h5close_f(error)
+
         open(UNIT=4,FILE='reference_table.dat',FORM="FORMATTED",action='write');
-        DO i = 2, DIMENSION_CPR
-          intensity = rates_atomic(i, 1)
-          ionisation_rate = rates_atomic(i,2)
+        DO i = 2, DIMENSION_EXT
+          intensity = Efield(i)
           intensity = intensity * intensity * field_intensity_au !rescale intensity intensity from atomic units to W/cm^2 (not SI)
+          ionisation_rate = ionisation_rates(i)
+          
           WRITE(4, '(3(2x, e12.5))') sqrt(intensity/field_intensity_au), intensity, ionisation_rate
-!       intensity = (i-1) * intensity_step
-!       ionisation_rate = ionisation_rate_PPT(intensity)
-          CPR_TABLE(i, 1) = intensity * intensity_factor   ! Normalised Intensity
-          CPR_TABLE(i, 2) = ionisation_rate * rate_factor  ! Gamma
-          IF (ionisation_rate.EQ.0.D0) THEN
-             CPR_TABLE(i, 3) = 0.D0
+         ! intensity = (i-1) * intensity_step
+         ! ionisation_rate = ionisation_rate_PPT(intensity)
+          EXT_TABLE(i, 1) = intensity * intensity_factor   ! normalised intensity (C.U.)
+          EXT_TABLE(i, 2) = ionisation_rate * rate_factor  ! ionisation rate (C.U.)
+          IF (ionisation_rate.EQ.0.D0) THEN ! ionisation for small fields can be zero in stored precision
+             EXT_TABLE(i, 3) = 0.D0
           ELSE
-             CPR_TABLE(i, 3) = MPA_factor * ( ionisation_rate  * rate_factor/ intensity )  ! Normalised MPA
+             EXT_TABLE(i, 3) = MPA_factor * ( ionisation_rate  * rate_factor/ intensity )  ! Normalised MPA
           ENDIF
        ENDDO
 
-       CPR_TABLE(1, 1) = 0.d0   ! first row in input stores the result of CPR for zero field, not meaningful + divisio
-       CPR_TABLE(1, 2) = 0.d0
-       CPR_TABLE(1, 3) = 0.d0
+       EXT_TABLE(1, 1) = 0.d0; EXT_TABLE(1, 2) = 0.d0; EXT_TABLE(1, 3) = 0.d0 ! first line is imposed as 0-ionisation for 0-field
+       
        close(4)
+
     ELSE
-      IF(my_rank.EQ.0) DIMENSION_CPR = filelength('rates_atomic.dat')
-      CALL MPI_BCAST(DIMENSION_CPR,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
-      ALLOCATE(CPR_TABLE(DIMENSION_CPR, 3),dumvect(DIMENSION_CPR))
+      IF(my_rank.EQ.0) DIMENSION_EXT = filelength('rates_atomic.dat')
+      CALL MPI_BCAST(DIMENSION_EXT,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
+      ALLOCATE(EXT_TABLE(DIMENSION_EXT, 3),dumvect(DIMENSION_EXT))
+      ALLOCATE(Egrid(DIMENSION_EXT),ionisation_rates(DIMENSION_EXT))
       ! Rescale the Table (done only by one worker)
       IF(my_rank.EQ.0) THEN
         open(UNIT=3,FILE='rates_atomic.dat',FORM="FORMATTED",action='read');    
         open(UNIT=4,FILE='reference_table.dat',FORM="FORMATTED",action='write');
 
-        DO i = 2, DIMENSION_CPR
-          read(unit=3,fmt=*) intensity, ionisation_rate !the organisation:  ||field omplitude imag. part of eigenerg. || all in atomic units
+        DO i = 2, DIMENSION_EXT
+          read(unit=3,fmt=*) intensity, ionisation_rate !the organisation:  ||field amplitude imag. part of eigenerg. || all in atomic units
+          Egrid(i) = intensity; ionisation_rates(i) = ionisation_rate
           intensity = intensity * intensity * field_intensity_au !rescale intensity intensity from atomic units to W/cm^2 (not SI)
 
           WRITE(4, '(3(2x, e12.5))') sqrt(intensity/field_intensity_au), intensity, ionisation_rate
-  !       intensity = (i-1) * intensity_step
-!       ionisation_rate = ionisation_rate_PPT(intensity)
-          CPR_TABLE(i, 1) = intensity * intensity_factor     ! Normalised Intensity
-          CPR_TABLE(i, 2) = ionisation_rate * rate_factor    ! Gamma
+         !intensity = (i-1) * intensity_step
+         !ionisation_rate = ionisation_rate_PPT(intensity)
+          EXT_TABLE(i, 1) = intensity * intensity_factor     ! normalised intensity (C.U.)
+          EXT_TABLE(i, 2) = ionisation_rate * rate_factor    ! ionisation rate (C.U.)
           IF (ionisation_rate.EQ.0.D0) THEN
-            CPR_TABLE(i, 3) = 0.D0
+            EXT_TABLE(i, 3) = 0.D0
           ELSE
-            CPR_TABLE(i, 3) = MPA_factor * ( ionisation_rate  * rate_factor/ intensity )  ! Normalised MPA
+            EXT_TABLE(i, 3) = MPA_factor * ( ionisation_rate  * rate_factor/ intensity )  ! Normalised MPA
           ENDIF
         ENDDO
 
-        CPR_TABLE(1, 1) = 0.d0   ! first row in input stores the result of CPR for zero field, not meaningful + division                
-        CPR_TABLE(1, 2) = 0.d0
-        CPR_TABLE(1, 3) = 0.d0
+        EXT_TABLE(1, 1) = 0.d0   ! first row in input stores the result of EXT for zero field, not meaningful + division                
+        EXT_TABLE(1, 2) = 0.d0
+        EXT_TABLE(1, 3) = 0.d0
+        Egrid(1) = 0; ionisation_rates(1) = 0;
  
         close(3); close(4);
       ENDIF
     
-!    IF(my_rank.EQ.0) THEN
-!       OPEN(UNIT=2,FORM='unformatted',FILE='table_binary.dat')
-!       READ(2) CPR_TABLE
-!       CLOSE(2)
-!    ENDIF
+      !  IF(my_rank.EQ.0) THEN
+      !     OPEN(UNIT=2,FORM='unformatted',FILE='table_binary.dat')
+      !     READ(2) EXT_TABLE
+      !     CLOSE(2)
+      !  ENDIF
    
 
-      IF(my_rank.EQ.0) dumvect = CPR_TABLE(:, 1)
-      CALL MPI_BCAST(dumvect,DIMENSION_CPR,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
-      IF(my_rank.NE.0)  CPR_TABLE(:, 1) = dumvect
+      IF(my_rank.EQ.0) dumvect = EXT_TABLE(:, 1)
+      CALL MPI_BCAST(dumvect,DIMENSION_EXT,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
+      IF(my_rank.NE.0)  EXT_TABLE(:, 1) = dumvect
 
-      IF(my_rank.EQ.0) dumvect = CPR_TABLE(:, 2)
-      CALL MPI_BCAST(dumvect,DIMENSION_CPR,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
-      IF(my_rank.NE.0)  CPR_TABLE(:, 2) = dumvect
+      IF(my_rank.EQ.0) dumvect = EXT_TABLE(:, 2)
+      CALL MPI_BCAST(dumvect,DIMENSION_EXT,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
+      IF(my_rank.NE.0)  EXT_TABLE(:, 2) = dumvect
 
-      IF(my_rank.EQ.0) dumvect = CPR_TABLE(:, 3)
-      CALL MPI_BCAST(dumvect,DIMENSION_CPR,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
-      IF(my_rank.NE.0)  CPR_TABLE(:, 3) = dumvect
+      IF(my_rank.EQ.0) dumvect = EXT_TABLE(:, 3)
+      CALL MPI_BCAST(dumvect,DIMENSION_EXT,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
+      IF(my_rank.NE.0)  EXT_TABLE(:, 3) = dumvect
       deallocate(dumvect)
-   ENDIF
+    ENDIF
 
 
    IF(my_rank.EQ.0) THEN
        OPEN (UNIT = 2, FILE = 'ionisation_table.dat', STATUS = 'unknown')
-       DO i = 1, dimension_CPR
-          WRITE(2, '(3(2x, e12.5))') CPR_TABLE(i, 1),CPR_TABLE(i, 2),CPR_TABLE(i, 3)
+       DO i = 1, dimension_EXT
+          WRITE(2, '(3(2x, e12.5))') EXT_TABLE(i, 1),EXT_TABLE(i, 2),EXT_TABLE(i, 3)
        ENDDO
        CLOSE(2)
     ENDIF
 
    IF(my_rank.EQ.1) THEN
        OPEN (UNIT = 3, FILE = 'ionisation_table1.dat', STATUS = 'unknown')
-       DO i = 1, dimension_CPR
-          WRITE(3, '(3(2x, e12.5))') CPR_TABLE(i, 1),CPR_TABLE(i, 2),CPR_TABLE(i, 3)
+       DO i = 1, dimension_EXT
+          WRITE(3, '(3(2x, e12.5))') EXT_TABLE(i, 1),EXT_TABLE(i, 2),EXT_TABLE(i, 3)
        ENDDO
        CLOSE(3)
     ENDIF
 
+    IF (my_rank.EQ.0) THEN ! savereference in the results
+      CALL h5open_f(error)
+      CALL h5fcreate_f(outfilename, H5F_ACC_RDWR_F, file_id, error)
+      CALL h5gcreate_f(file_id, outgroupname, group_id, error)
+      CALL create_dset(group_id, 'Egrid', Egrid, DIMENSION_EXT)
+      CALL create_dset(group_id, 'ionisation_rates', ionisation_rates, DIMENSION_EXT)
 
-    CPR_TABLE(dimension_CPR, 1)=CPR_TABLE(dimension_CPR, 1)*1.d99
+      ! CALL create_dset(group_id, 'atom_dens', atomic_density)
+      ! CALL create_dset(group_id, 'crit_dens', critical_density)
+      ! CALL create_dset(group_id, 'beam_waist', beam_waist)
+      ! CALL create_dset(group_id, 'photenergy', photon_energy)
+      ! CALL create_dset(group_id, 'pulse_duration', pulse_duration)
+      ! CALL create_dset(group_id, 'n0', n0_indice)
+      ! CALL create_dset(group_id, 'ionisation_potential', ionisation_potential)
+      ! CALL create_dset(group_id, "rates_atomic", rates_table, DIMENSION_PPT, 2)
+      ! CALL create_dset(group_id, "reference_table", reference_table, DIMENSION_PPT, 3)
+      ! CALL create_dset(group_id, "ppt_table", PPT_TABLE, DIMENSION_PPT, 3)
+      CALL h5gclose_f(group_id, error)
+      CALL h5fclose_f(file_id, error)
+    ENDIF
+
+
+    EXT_TABLE(dimension_EXT, 1)=EXT_TABLE(dimension_EXT, 1)*1.d99 ! for diverging fields
 !    intensity_step_inv = 1.d0 /(intensity_step * intensity_factor)
 
     JLOTI=1
     JLOTIP1=1
 
-  END SUBROUTINE RESCALE_TABLE_CPR
+  END SUBROUTINE RESCALE_TABLE_EXT
 
-  !----------------------------------------
-  ! 4- Find the intensitty and Interpolate
+  !--------------------------------------------
 
-  SUBROUTINE INTERPOLATE_CPR(var1,mpa,intensity)
+  SUBROUTINE INTERPOLATE_EXT(var1,mpa,intensity)
 
     IMPLICIT NONE
 
@@ -766,28 +804,33 @@ CONTAINS
     END INTERFACE
 
 
-    CALL hunt(cpr_table,dimension_cpr,intensity,jlotip1)
-    IF (jlotip1.GE.DIMENSION_CPR-1) THEN 
+    CALL hunt(ext_table,dimension_ext,intensity,jlotip1)
+    IF (jlotip1.GE.DIMENSION_EXT-1) THEN 
 !       print *, "Ionisation table exceeded"
 !       print *, intensity
 !       READ(5,*)
-       jlotip1=DIMENSION_CPR-1
+       jlotip1=DIMENSION_EXT-1
     ENDIF
     IF (jlotip1.LT.1) jlotip1=1
-    intensity_step = cpr_table(jlotip1+1,1) - cpr_table(jlotip1,1)
-    mpa=        ((intensity-cpr_table(jlotip1,1))*cpr_table(jlotip1+1,3)+(cpr_table(jlotip1+1,1)-intensity)*cpr_table(jlotip1,3))/intensity_step
+    intensity_step = ext_table(jlotip1+1,1) - ext_table(jlotip1,1)
+    mpa=        ((intensity-ext_table(jlotip1,1))*ext_table(jlotip1+1,3)+(ext_table(jlotip1+1,1)-intensity)*ext_table(jlotip1,3))/intensity_step
 !    mpa=        ((intensity-ppt_table(jlotip1,1))*ppt_table(jlotip1+1,3)+(ppt_table(jlotip1+1,1)-intensity)*ppt_table(jlotip1,3))*intensity_step_inv
     jmin=MIN(jloti,jlotip1)
     jmax=MAX(jloti,jlotip1)
-    var1=SUM(cpr_table(jmin:jmax+1,2),DIM=1)/REAL(jmax-jmin+2,8)
+    var1=SUM(ext_table(jmin:jmax+1,2),DIM=1)/REAL(jmax-jmin+2,8)
     jloti=jlotip1
 
     RETURN
-  END SUBROUTINE INTERPOLATE_CPR
+  END SUBROUTINE INTERPOLATE_EXT
 
 
-END MODULE Complex_rotation
+END MODULE External_ionisation_table
 
+
+
+
+
+! The following models are not modified during the last development, will they be released?
 
 !========================================== PPT N2
 MODULE PPT_N2
@@ -1005,7 +1048,7 @@ END MODULE PPT_N2
 DOUBLE PRECISION FUNCTION IONISATION_RATE_PPT(intensity)
 
   ! Function which evaluates cthe ionisation rate in atomic unit in the case of gas
-  ! Modified on the 19/04/04
+  ! Modified 19/04/04
 
   USE MEDIUM_PARAMETER
   USE LASER_PARAMETER

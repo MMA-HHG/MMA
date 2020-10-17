@@ -155,7 +155,7 @@ CONTAINS
 
   SUBROUTINE calc_rho(rho,mpa,eti,etip1)
     USE PPT
-    USE Complex_rotation
+    USE External_ionisation_table
     IMPLICIT NONE
 
     REAL(8) :: rho,mpa,mpa_N2
@@ -165,7 +165,7 @@ CONTAINS
     rhosave=rho
     SELECT CASE (switch_rho)
     CASE(8)
-       CALL interpolate_cpr(var1,mpa,etip1)
+       CALL interpolate_ext(var1,mpa,etip1)
        intF=(nu*0.5d0*(etip1+eti)-rhoat_inv*var1-alpha)*delta_t
        rho=rho*exp(intF)+var1*delta_t
        mpa=mpa*(1.D0-rhosave*rhoat_inv)
