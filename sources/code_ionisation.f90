@@ -627,9 +627,6 @@ CONTAINS
      END FUNCTION
     END INTERFACE
 
-
-    PRINT*, 'External ionisation table is acessed, proc', my_rank
-
     ! Factors to rescale in computational units
     intensity_factor = 4.d0 * PI * beam_waist**2 * 1.d-9 / critical_power    
     rate_factor      =(4.d0 * PI**2 * 1.d16 / (45.5635**2 * 2.41889)) * &
@@ -646,13 +643,9 @@ CONTAINS
         CALL h5gopen_f(file_id, groupname, group_id, error)
         CALL ask_for_size_1D(group_id, 'Egrid', DIMENSION_EXT)
 
-        print*, 'dimension is', DIMENSION_EXT
-
-        !DIMENSION_EXT = h5dim1(1)
         ALLOCATE(EXT_TABLE(DIMENSION_EXT, 3))
         ALLOCATE(Egrid(DIMENSION_EXT),ionisation_rates(DIMENSION_EXT))
         
-        !CALL read_dset(group_id, 'rates_atomic', rates_atomic, DIMENSION_EXT, 2, DIMENSION_EXT, 2, 0, 0)
         CALL read_dset(group_id, 'Egrid', Egrid, DIMENSION_EXT)
         CALL read_dset(group_id, 'ionisation_rates', ionisation_rates, DIMENSION_EXT)
 
@@ -660,15 +653,13 @@ CONTAINS
         CALL h5fclose_f(file_id, error)
         CALL h5close_f(error)
 
-        open(UNIT=4,FILE='reference_table.dat',FORM="FORMATTED",action='write');
+        open(UNIT=4,FILE='reference_table.dat',FORM="FORMATTED",action='write'); ! still kept, remove before final release
         DO i = 2, DIMENSION_EXT
           intensity = Egrid(i)
           intensity = intensity * intensity * field_intensity_au !rescale intensity intensity from atomic units to W/cm^2 (not SI)
           ionisation_rate = ionisation_rates(i)
           
           WRITE(4, '(3(2x, e12.5))') sqrt(intensity/field_intensity_au), intensity, ionisation_rate
-         ! intensity = (i-1) * intensity_step
-         ! ionisation_rate = ionisation_rate_PPT(intensity)
           EXT_TABLE(i, 1) = intensity * intensity_factor   ! normalised intensity (C.U.)
           EXT_TABLE(i, 2) = ionisation_rate * rate_factor  ! ionisation rate (C.U.)
           IF (ionisation_rate.EQ.0.D0) THEN ! ionisation for small fields can be zero in stored precision
@@ -682,7 +673,7 @@ CONTAINS
        
        close(4)
 
-    ELSE
+    ELSE ! As supposed as a testing case, there are some non-hdf5 outputs
       IF(my_rank.EQ.0) DIMENSION_EXT = filelength('rates_atomic.dat')
       CALL MPI_BCAST(DIMENSION_EXT,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
       ALLOCATE(EXT_TABLE(DIMENSION_EXT, 3),dumvect(DIMENSION_EXT))
@@ -708,22 +699,15 @@ CONTAINS
             EXT_TABLE(i, 3) = MPA_factor * ( ionisation_rate  * rate_factor/ intensity )  ! Normalised MPA
           ENDIF
         ENDDO
-
         EXT_TABLE(1, 1) = 0.d0   ! first row in input stores the result of EXT for zero field, not meaningful + division                
         EXT_TABLE(1, 2) = 0.d0
         EXT_TABLE(1, 3) = 0.d0
         Egrid(1) = 0; ionisation_rates(1) = 0;
  
         close(3); close(4);
-      ENDIF
-    
-      !  IF(my_rank.EQ.0) THEN
-      !     OPEN(UNIT=2,FORM='unformatted',FILE='table_binary.dat')
-      !     READ(2) EXT_TABLE
-      !     CLOSE(2)
-      !  ENDIF
+      ENDIF   
    
-
+      ! Distribute the table among all workers
       IF(my_rank.EQ.0) dumvect = EXT_TABLE(:, 1)
       CALL MPI_BCAST(dumvect,DIMENSION_EXT,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
       IF(my_rank.NE.0)  EXT_TABLE(:, 1) = dumvect
@@ -738,53 +722,17 @@ CONTAINS
       deallocate(dumvect)
     ENDIF
 
-      print*, 'aread', my_rank
-
-
-
-   IF(my_rank.EQ.0) THEN
-       OPEN (UNIT = 2, FILE = 'ionisation_table.dat', STATUS = 'unknown')
-       DO i = 1, dimension_EXT
-          WRITE(2, '(3(2x, e12.5))') EXT_TABLE(i, 1),EXT_TABLE(i, 2),EXT_TABLE(i, 3)
-       ENDDO
-       CLOSE(2)
-    ENDIF
-
-   IF(my_rank.EQ.1) THEN
-       OPEN (UNIT = 3, FILE = 'ionisation_table1.dat', STATUS = 'unknown')
-       DO i = 1, dimension_EXT
-          WRITE(3, '(3(2x, e12.5))') EXT_TABLE(i, 1),EXT_TABLE(i, 2),EXT_TABLE(i, 3)
-       ENDDO
-       CLOSE(3)
-    ENDIF
-
-  
-    ! the archive is open probably in the parent program... Let's save it after when the linked list is flushed etc.
-    IF (my_rank.EQ.0) THEN ! savereference in the results
-      print*, 'bh5write', my_rank
+    ! The ionisation table is provided in the outputs
+    IF (my_rank.EQ.0) THEN 
       CALL h5open_f(error)
       CALL h5fopen_f(outfilename, H5F_ACC_RDWR_F, file_id, error)
       CALL h5gcreate_f(file_id, outgroupname, group_id, error)
       CALL create_dset(group_id, 'Egrid', Egrid, DIMENSION_EXT)
       CALL create_dset(group_id, 'ionisation_rates', ionisation_rates, DIMENSION_EXT)
-
-      ! CALL create_dset(group_id, 'atom_dens', atomic_density)
-      ! CALL create_dset(group_id, 'crit_dens', critical_density)
-      ! CALL create_dset(group_id, 'beam_waist', beam_waist)
-      ! CALL create_dset(group_id, 'photenergy', photon_energy)
-      ! CALL create_dset(group_id, 'pulse_duration', pulse_duration)
-      ! CALL create_dset(group_id, 'n0', n0_indice)
-      ! CALL create_dset(group_id, 'ionisation_potential', ionisation_potential)
-      ! CALL create_dset(group_id, "rates_atomic", rates_table, DIMENSION_PPT, 2)
-      ! CALL create_dset(group_id, "reference_table", reference_table, DIMENSION_PPT, 3)
-      ! CALL create_dset(group_id, "ppt_table", PPT_TABLE, DIMENSION_PPT, 3)
       CALL h5gclose_f(group_id, error)
       CALL h5fclose_f(file_id, error)
     ENDIF
 
-
-    print*, 'ionisation passed', my_rank
-    !STOP
     EXT_TABLE(dimension_EXT, 1)=EXT_TABLE(dimension_EXT, 1)*1.d99 ! for diverging fields
 !    intensity_step_inv = 1.d0 /(intensity_step * intensity_factor)
 
