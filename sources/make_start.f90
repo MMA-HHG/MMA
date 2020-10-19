@@ -107,7 +107,7 @@ PROGRAM make_start
     write(6,*) ' The code will be stopped'
     STOP
   ENDIF
-  switch_rho = 8 !!! testing complex rotation first
+  switch_rho = 3 !!! testing PPT
   CALL read_dset(file_id, 'inputs/mpi_cross_section_for_method_1-2', sigmak_phys)
   CALL read_dset(file_id, 'inputs/angular_momentum_for_method_3_7', angular_momentum)
   CALL read_dset(file_id, 'inputs/effective_residue_charge_for_method_3-4_7', residue_charge)

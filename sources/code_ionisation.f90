@@ -306,12 +306,12 @@ CONTAINS
     DOUBLE PRECISION            :: rate_factor
     DOUBLE PRECISION            :: MPA_factor
     DOUBLE PRECISION            :: intensity
-    DOUBLE PRECISION            :: root
+    DOUBLE PRECISION            :: efield
     DOUBLE PRECISION            :: ionisation_rate
     DOUBLE PRECISION            :: o_atom_dens, o_crit_dens, o_beam_waist, o_photenergy, o_pulse_duration, o_n0, o_ionpot
     INTEGER                     :: i,error
     INTEGER(HID_T)              :: file_id, group_id
-    CHARACTER(LEN=25)           :: filename = "calculated_tables.h5", groupname = "PPT"
+    CHARACTER(LEN=25)           :: filename = "PPT_tables.h5", groupname = "PPT"
     REAL(8), ALLOCATABLE        :: rates_table(:,:), reference_table(:,:)
     LOGICAL                     :: file_exists, just_read = .FALSE.
 
@@ -365,7 +365,8 @@ CONTAINS
     PPT_TABLE(1, 3) = 0.d0
 
     IF (THEORY == "PPT") THEN
-      INQUIRE(FILE=filename, EXIST=file_exists)
+      file_exists = .FALSE.
+      just_read = .FALSE.
       IF (file_exists.EQV..TRUE.) THEN
         ! print *, "File exists"
         just_read = .TRUE.
@@ -425,19 +426,19 @@ CONTAINS
         DO i = 2, dimension_PPT
          intensity = (i-1) * intensity_step
          ionisation_rate = ionisation_rate_PPT(intensity)
-         root = sqrt(intensity/field_intensity_au)
+         efield = sqrt(intensity/field_intensity_au)
          PPT_TABLE(i, 1) = intensity * intensity_factor                    ! Normalised Intensity
          PPT_TABLE(i, 2) = ionisation_rate * rate_factor                   ! Gamma
          PPT_TABLE(i, 3) = MPA_factor * ( ionisation_rate  * rate_factor/ intensity )    ! Normalised MPA
-         rates_table(i, 1) = root
+         rates_table(i, 1) = efield
          rates_table(i, 2) = ionisation_rate
-         reference_table(i, 1) = root
+         reference_table(i, 1) = efield
          reference_table(i, 2) = intensity
          reference_table(i, 3) = ionisation_rate
          IF(my_rank.EQ.0) THEN
-           WRITE(4, '(3(2x, e12.5))') root, intensity, ionisation_rate;
+           WRITE(4, '(3(2x, e12.5))') efield, intensity, ionisation_rate;
         !   WRITE(7, '(2(2x, e))') sqrt(intensity/field_intensity_au), ionisation_rate;
-           WRITE(7, '(2(2x, e12.5))') root, ionisation_rate;
+           WRITE(7, '(2(2x, e12.5))') efield, ionisation_rate;
          ENDIF
         ENDDO
         IF (my_rank.EQ.0) THEN
@@ -459,6 +460,8 @@ CONTAINS
         ENDIF
         DEALLOCATE(rates_table)
       ENDIF
+
+    ! these models don't print reference, should we keep them or take as obsolete non-canonical cases?
     ELSE IF (THEORY == "ADK") THEN
     DO i = 2, dimension_PPT
        intensity = (i-1) * intensity_step
