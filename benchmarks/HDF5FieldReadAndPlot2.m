@@ -34,7 +34,7 @@ rhorange = [0 0.3e-3];
 rhoplot_range = 1:40:200;
 kz_plot = 5;
 
-print_A4 = false;
+print_A4 = true;
 
 resol='-r300';
 colors={'-g','-k','--r'};

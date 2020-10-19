@@ -760,13 +760,13 @@ CONTAINS
 
   
     ! the archive is open probably in the parent program... Let's save it after when the linked list is flushed etc.
-    !IF (my_rank.EQ.0) THEN ! savereference in the results
-      !print*, 'bh5write', my_rank
-      !CALL h5open_f(error)
-      !CALL h5fopen_f(outfilename, H5F_ACC_RDWR_F, file_id, error)
-      !CALL h5gcreate_f(file_id, outgroupname, group_id, error)
-      !CALL create_dset(group_id, 'Egrid', Egrid, DIMENSION_EXT)
-      !CALL create_dset(group_id, 'ionisation_rates', ionisation_rates, DIMENSION_EXT)
+    IF (my_rank.EQ.0) THEN ! savereference in the results
+      print*, 'bh5write', my_rank
+      CALL h5open_f(error)
+      CALL h5fopen_f(outfilename, H5F_ACC_RDWR_F, file_id, error)
+      CALL h5gcreate_f(file_id, outgroupname, group_id, error)
+      CALL create_dset(group_id, 'Egrid', Egrid, DIMENSION_EXT)
+      CALL create_dset(group_id, 'ionisation_rates', ionisation_rates, DIMENSION_EXT)
 
       ! CALL create_dset(group_id, 'atom_dens', atomic_density)
       ! CALL create_dset(group_id, 'crit_dens', critical_density)
@@ -778,9 +778,9 @@ CONTAINS
       ! CALL create_dset(group_id, "rates_atomic", rates_table, DIMENSION_PPT, 2)
       ! CALL create_dset(group_id, "reference_table", reference_table, DIMENSION_PPT, 3)
       ! CALL create_dset(group_id, "ppt_table", PPT_TABLE, DIMENSION_PPT, 3)
-      !CALL h5gclose_f(group_id, error)
-      !CALL h5fclose_f(file_id, error)
-    !ENDIF
+      CALL h5gclose_f(group_id, error)
+      CALL h5fclose_f(file_id, error)
+    ENDIF
 
 
     print*, 'ionisation passed', my_rank
