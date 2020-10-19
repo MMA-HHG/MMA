@@ -421,7 +421,7 @@ MODULE hdf5_helper
       ! create dataset of type double precision
       CALL h5dcreate_f(file_id, name, H5T_NATIVE_DOUBLE, dataspace_id, dset_id, error)
       ! write to dataset
-      CALL h5dwrite_f(dset_id, H5T_NATIVE_REAL, var, data_dims, error)
+      CALL h5dwrite_f(dset_id, H5T_NATIVE_DOUBLE, var, data_dims, error)
       ! close dataset and dataspace, terminate subroutine
       CALL h5dclose_f(dset_id, error)
       CALL h5sclose_f(dataspace_id, error)
