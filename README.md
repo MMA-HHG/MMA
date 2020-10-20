@@ -2,6 +2,11 @@
 
 This is a nutshell guide of the propagation code, it explains the basics of its operation and main ideas implemented in the code.
 
+## Development
+I commented most of the code. I found that the less readeble are firstep and longstep_rk. It would be nice to rewiritte using helping modules or at least organise.
+
+`SUBROUTINE mult_phase`: it's not so clear to me what effects are included in the propagator and which are applied in time domain afterwards.
+
 ## INPUT/OUTPUT
 
 The I/O are realised through a single HDF5-archive, currently called `results.h5`. One archive with all the inputs (except pre-computed tables) is used and all the ouputs of the code are also stored in this archive.

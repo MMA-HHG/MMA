@@ -214,7 +214,10 @@ CONTAINS
     CALL read_dset(group_id, 'rescharge_N2',residue_charge_N2)
     CALL read_dset(group_id, 'atomdens_N2',atomic_density_N2)
     CALL read_dset(group_id,'angmom_N2',angular_momentum_N2)
+
+    ! Prepare the fourier transforms
     CALL fft_init
+
     delta_t=lt/REAL(dim_t,8)
     delta_r=lr/REAL(dim_r,8)
     delta_t_inv=1.D0/delta_t

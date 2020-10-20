@@ -1,3 +1,6 @@
+! This is the essential module to compute FFT for a matrix distributed among the workers.
+! The send-receive scheme used here was designed by Stefan Skupin
+
 MODULE fft
   USE fields
   USE parameters

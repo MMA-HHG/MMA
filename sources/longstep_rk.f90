@@ -436,7 +436,9 @@ CONTAINS
     !==================================
 
     ! This is the core of the propagation. As the code works in the omega-domain:
-    !  1) it performs FFT
+    !  1) it performs FFT initialised in fft.f90:fft_init
+    !  2) it applies the operator in the omega-domain
+    !  3) it goes back to time domain
 
     SELECT CASE (switch_T) ! decision over various propagators
     CASE(1)
@@ -475,6 +477,13 @@ CONTAINS
        CALL dfftw_execute(plan_backward_erk)
        etemp=diminv*etemp
     END SELECT
+
+
+    !=======================
+    ! PHYSICS IN TIME DOMAIN
+    !=======================
+
+    ! Physical effects in time domain and on-the-fly analyses are computed here:
 
     DO l=dim_r_start(num_proc),dim_r_end(num_proc)
        r=REAL(l-1)*delta_r
@@ -536,6 +545,15 @@ CONTAINS
        ENDDO
     ENDDO
 
+    !=============
+    ! SAVE OUTPUTS
+    !=============
+
+    ! The aggregated data are distributed to the writer (proc 0).
+    ! Some data are dtored directly in HDF5-archive and some are 
+    ! buffered in the linked list.
+
+
     CALL MPI_REDUCE (maxphase_part,maxphase,1,MPI_DOUBLE_PRECISION,MPI_MAX,0,MPI_COMM_WORLD,ierr)
     CALL MPI_BCAST(maxphase,1,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
     count=count+1
@@ -558,6 +576,7 @@ CONTAINS
       ALLOCATE(losses_plasma_data(1:dim_r/num_proc))
       ALLOCATE(losses_ionization_data(1:dim_r/num_proc))
     ENDIF
+
     IF(count.GE.rhodist) THEN
        e_2=0.D0
        DO l=dim_r_start(num_proc),dim_r_end(num_proc)
@@ -757,6 +776,7 @@ CONTAINS
           CALL h5fclose_f(file_id, error)
           CALL h5close_f(error)
        ENDIF
+
        ! Copy arrays to arrays with target flag
        fluence_data(:) = REAL(fluence*delta_t,4)
        plasma_channel_data(:) = REAL(rho,4)
