@@ -1,3 +1,14 @@
+!=============================================================!
+! Here is the main cuprad program, using the propagation loop.
+! It prepares the calculation and then loop until finshed or 
+! estimated time limit is reached.
+!
+! 
+! The main developer of the code is Stefan Skupin. The code uses
+! many modules co-developed by others contributors, some of
+! them are mentioned in the respective modules.
+!=============================================================!
+
 PROGRAM cuprad
   USE fields
   USE parameters
@@ -11,72 +22,96 @@ PROGRAM cuprad
 
   IMPLICIT NONE 
 
-!  INTEGER(4) time, starttime, deltatime, limit_s
   INTEGER(4) time, starttime, deltatime, limit_s
 !  external time
   INTEGER(4) :: tcount, count_rate, count_max
   !  REAL(8)  TREM
+
+!=====================
+! INITIALISATION PHASE
+!=====================
 
 !  starttime = time()
   call system_clock(tcount, count_rate, count_max)
   write(*,*) tcount, count_rate, count_max
   CALL initialize
   limit_s=timelimit*3600
-  IF (.NOT.finished) THEN
-     DO WHILE (z.LT.proplength)
 
-        IF(z_out.LE.z) THEN ! HDF5 printing
-           CALL HDF5_out! that's the printing
-!           z_outHD5=z_outHD5+outlengthHD5 !!!! WILL BE USED WHEN GRIDS DISATTACHED
-        ENDIF
 
-        IF(z_out.LE.z) THEN
-           !CALL matlab_out ! that's the printing
+!==========================
+! MAIN COMPUTATIONAL PHASE
+!==========================
+
+  IF (.NOT.finished) THEN ! it's here in the case one runs cuprads consquitively (e.g.) changing medium. TO BE REINTRODUCED
+ 
+     ! it loops until the end of the medium is reached or timelimit is reached (exit statement in the body)
+     DO WHILE (z.LT.proplength) 
+
+         ! there are two independent writes (see manual) 
+         IF(z_out.LE.z) THEN ! only-field print ! ADD an extra logic to disable this option at all
+           CALL HDF5_out
+           !z_outHD5=z_outHD5+outlengthHD5 !!!! RENAME AND IMPLEMENT
+         ENDIF
+
+         IF(z_out.LE.z) THEN
            CALL write_output
            z_out=z_out+outlength
-        ENDIF
+         ENDIF
 
-
+        ! Standard operation of the code: call propagation until end of medium reached
         CALL propagation
 
-        IF (maxphase.GT.decrease) THEN
+
+        ! Adaptive step-size controlling + the duration of the calculation
+        ! Step size is changed, propagation operator recalculated and step-size stored in outputs.
+
+        IF (maxphase.GT.decrease) THEN ! derease step size
            delta_z=0.5D0*(decrease+increase)/maxphase*delta_z
-           IF(my_rank.EQ.0) THEN
+           IF(my_rank.EQ.0) THEN                                        !!!!!!!! ENCAPSULATE IN HDF5
               OPEN(unit_rho,FILE='ZSTEP.DAT',STATUS='UNKNOWN',POSITION='APPEND')
               WRITE(unit_rho,*) 'z=',REAL(z,4),' delta_z=',REAL(delta_z,4),REAL(maxphase,4)
               CLOSE(unit_rho)
            ENDIF
            call calc_propagator
         ENDIF
-        IF ((maxphase.LT.increase).AND.(delta_z.LT.delta_z_max)) THEN
+        IF ((maxphase.LT.increase).AND.(delta_z.LT.delta_z_max)) THEN ! increase step size (not above maximally allowed)
            delta_z=MIN(delta_z_max,0.5D0*(decrease+increase)/maxphase*delta_z)
-           IF(my_rank.EQ.0) THEN
+           IF(my_rank.EQ.0) THEN                                        !!!!!!!! ENCAPSULATE IN HDF5
               OPEN(unit_rho,FILE='ZSTEP.DAT',STATUS='UNKNOWN',POSITION='APPEND')
               WRITE(unit_rho,*) 'z=',REAL(z,4),' delta_z=',REAL(delta_z,4),REAL(maxphase,4)
               CLOSE(unit_rho)
            ENDIF
            call calc_propagator
         ENDIF
-!        deltatime = time() - starttime
+
+        ! Check if time limit for the calculation reached
+        !deltatime = time() - starttime
         CALL MPI_BCAST(deltatime,1,MPI_REAL,0,MPI_COMM_WORLD,ierr)
         IF (deltatime.GE.limit_s) EXIT
         !     IF (my_rank.EQ.0) CALL TREMAIN(TREM)
         !     CALL MPI_BCAST(TREM,1,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
         !     IF (TREM.LE.3600) EXIT     
      ENDDO
-     IF (z.GE.proplength) THEN
-        CALL HDF5_out
-        finished = .TRUE.
-     ELSE
+
+
+    !====================
+    ! FINALISATION PHASE
+    !====================
+
+     IF (z.GE.proplength) THEN ! The end of the medium is reached
+        CALL HDF5_out 
+        finished = .TRUE. ! prevents possible consequitive slurm job to be executed
         IF (my_rank.EQ.0) THEN
            OPEN(unit_rho,FILE='STOP',STATUS='OLD')
            CLOSE(unit_rho,STATUS='DELETE')
         ENDIF
      ENDIF
+     
+     ! end-plane outputs are written in all cases at the end of the code
      CALL write_output 
      !CALL matlab_out 
      rhodist=count
-     CALL propagation
+     CALL propagation ! ??? WHY DO WE PROPAGATE EVEN ONCE MORE?
      CALL field_out
      CALL linked_list_out
      CALL finalize

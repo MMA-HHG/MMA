@@ -1,3 +1,5 @@
+! This module is used for buffering data during the computation
+!
 ! This module was taken directly from http://fortranwiki.org/fortran/show/gen_list
 
 MODULE linked_list

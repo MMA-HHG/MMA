@@ -1,3 +1,15 @@
+! There are preparatory subroutines called before the main propagation
+!
+! "calc_propagator" computes the matrix representation of propagation 
+! operators according to various models (and is accessed if step-size changed)
+! 
+! "initialise" does all preparation calculation, mainly:
+! Reads and calculate code parameters.
+! Calls ionisation models.
+!
+! It provides an interface with other modules, so it was touched by
+! the authors of most of them.
+
 MODULE first_step
   USE fields
   USE parameters
@@ -64,6 +76,9 @@ CONTAINS
 
     RETURN
   END SUBROUTINE calc_propagator
+
+
+
 
   SUBROUTINE initialize
     USE ppt

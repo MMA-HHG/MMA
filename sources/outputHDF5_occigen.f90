@@ -1,8 +1,10 @@
-!!!!!!!!!!!!!!!!!! THE MODULE ITSELF !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! This is the original module for storing the electric fields in HDF5 archive
+!  
+! It is still used for printig fields only, it is still used because the main
+! printing procedure prints more outputs. It should be merged with the option 
+! to print only the fields.
 !
-! version created by Jan Vabek, 22/01/2020
-!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! It was developed mainly by Jan Vabek
 
 MODULE outputHDF5
   USE fields

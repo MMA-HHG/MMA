@@ -1,3 +1,21 @@
+! This is the main computational module stating exlicite operations withi every step
+! 
+! TABLE OF CONTENTS:
+! "index_interpolation": inrepolate the refractive index if it varies in the medium
+!
+! "absorbation": absorb exiting radion to prevent reflections
+!
+! supplementary procedures of the evolution
+!
+! "mult_phase": the core of the propagation
+!
+! "propagation" drives the single-step calculation
+!
+!
+! It provides an interface with other modules, so it was touched by
+! the authors of most of them.
+
+
 MODULE long_step
   USE parameters
   REAL(8) rhompi,rho1,rho2,rhoth,rhotr,rhofh,rhoslg2,rhoav,rhoO2,rhoN2,Tev
@@ -50,6 +68,7 @@ CONTAINS
 
     RETURN
   END SUBROUTINE index_interpolation
+
   
   SUBROUTINE absorbation
     USE fields
@@ -66,6 +85,7 @@ CONTAINS
 
     RETURN
   END SUBROUTINE absorbation
+
 
   SUBROUTINE tridag(dim,DLn,D,DL,DU,B)
     IMPLICIT NONE
@@ -258,6 +278,10 @@ CONTAINS
     RETURN
   END SUBROUTINE calc_delkerr
 
+  !================================== 
+  ! The main computational subroutine
+  !==================================
+
   SUBROUTINE mult_phase
     USE fields
     USE fft
@@ -309,6 +333,12 @@ CONTAINS
     REAL, ALLOCATABLE, TARGET  :: plasma_channel_data(:)
     REAL, ALLOCATABLE, TARGET  :: losses_plasma_data(:)
     REAL, ALLOCATABLE, TARGET  :: losses_ionization_data(:)
+   
+    !=====================
+    ! INITIALISATION PHASE
+    !=====================
+    
+    ! Prepare the physical effects (ionisation, diffraction, ...)
 
     rho=0.D0
     rhoabs = 0.D0 
@@ -350,10 +380,13 @@ CONTAINS
        Tev=T_init_eV_phys
        rhoabstemp=0.D0
        mediumabs=0.D0
-       CALL index_interpolation(phase_index,r)
+
+       ! Physical effects
+       CALL index_interpolation(phase_index,r) ! refractive index
        phase_index=phase_index*delta_zh
-       CALL calc_rho(rhotemp,mpa,0.D0,e_2(1))
-       CALL calc_absorption(rhoabstemp, mediumabs, 0.D0,e_2(1))
+       CALL calc_rho(rhotemp,mpa,0.D0,e_2(1)) ! ionisation
+       CALL calc_absorption(rhoabstemp, mediumabs, 0.D0,e_2(1)) ! absorption
+
        DO j=1,dim_t
           IF (switch_rho.EQ.7) THEN
              phase_p=(c3i*e_2(j)+c3d*delkerr)*((1.D0-rhoO2*rhoat_inv)/3.D0+2.D0*(1.D0-rhoN2*rhoat_N2_inv)/3.D0)*delta_zh
@@ -371,7 +404,7 @@ CONTAINS
           rhoO2max_part=MAX(rhoO2max_part,rhoO2)
           rhoN2max_part=MAX(rhoN2max_part,rhoN2)
           Tevmax_part=MAX(Tevmax_part,Tev)
-          SELECT CASE (switch_T)
+          SELECT CASE (switch_T) ! decision over various propagators
           CASE(1)
              etemp(j,l)=e(j,l)*exp(CMPLX(losses_j-delta_zh*(mpa+mediumabs),phase,8))
           CASE(2)
@@ -397,7 +430,15 @@ CONTAINS
        ENDDO
     ENDDO
 
-    SELECT CASE (switch_T)
+
+    !==================================
+    ! THE APPLICATION OF THE PROPAGATOR
+    !==================================
+
+    ! This is the core of the propagation. As the code works in the omega-domain:
+    !  1) it performs FFT
+
+    SELECT CASE (switch_T) ! decision over various propagators
     CASE(1)
        continue
     CASE(2)

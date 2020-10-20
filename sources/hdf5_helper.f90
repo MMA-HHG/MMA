@@ -1,3 +1,6 @@
+! This is the collection of HDF5 operations on the files used in the code
+! This module was originally developed by Jakub Jelinek
+
 MODULE hdf5_helper
   USE HDF5
   ! Create an interface for reading a dset. It includes most of the reading subroutines, the ones that are uniquely identifiable by their parameters.

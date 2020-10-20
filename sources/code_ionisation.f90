@@ -1,4 +1,9 @@
+! There are various models of ionisation implemented, these modules are accessed
+! from the main code for both computing and then evaluating the ionisation rates.
 
+! It is contributed by more authors using ionisation of their needs.
+! Some of them are: Rachel Nuter (original PPT-procedure)
+!                   Jan Vabek (loading from an external table)
 
 !=========================================================================
 
@@ -568,7 +573,7 @@ CONTAINS
          (photon_energy * pulse_duration * 2.d0 * PI)
 
     ! default option if HDF5-archive exists
-    INQUIRE(FILE="calculated_tables.h5", EXIST=file_exists) 
+    INQUIRE(FILE="calculated_tables.h5", EXIST=file_exists) ! there are only these tables within now, if extended, use h5lexists
     IF (file_exists) THEN
         CALL h5open_f(error)
         CALL h5fopen_f(filename, H5F_ACC_RDONLY_F, file_id, error) ! all workers do
