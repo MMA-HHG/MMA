@@ -354,13 +354,6 @@ CONTAINS
          n0_indice * beam_waist**2 * photon_energy * ionisation_potential 
     ENDIF
 
-    IF(my_rank.EQ.0) THEN
-    open(UNIT=4,FILE='reference_table.dat',FORM="FORMATTED",action='write');
-    open(UNIT=7,FILE='rates_atomic.dat',FORM="FORMATTED",action='write');
-       WRITE(4, '(3(2x, e12.5))') 0.0d0, 0.0d0, 0.0d0;
-    !   WRITE(7, '(2(2x, e))') 0.0d0, 0.0d0;
-       WRITE(7, '(2(2x, e12.5))') 0.0d0, 0.0d0;
-    ENDIF
 
     ! Fill the Table
     PPT_TABLE(1, 1) = 0.d0                   
@@ -369,32 +362,20 @@ CONTAINS
 
     IF (THEORY == "PPT") THEN
 
-        ! print *, "Did not find file with matching variables"
-        ALLOCATE(rates_table(DIMENSION_PPT, 2), reference_table(DIMENSION_PPT, 3))
         ALLOCATE(Egrid(DIMENSION_PPT),ionisation_rates(DIMENSION_PPT))
+        Egrid(1) = 0.0d0; ionisation_rates(1) = 0.0d0 ! 0 imposed for 0-field
 
         DO i = 2, dimension_PPT
          intensity = (i-1) * intensity_step
          ionisation_rate = ionisation_rate_PPT(intensity)
-         efield = sqrt(intensity/field_intensity_au)
          Egrid(i) = sqrt(intensity/field_intensity_au)
          ionisation_rates(i) = ionisation_rate
-         PPT_TABLE(i, 1) = intensity * intensity_factor                    ! Normalised Intensity
-         PPT_TABLE(i, 2) = ionisation_rate * rate_factor                   ! Gamma
+         PPT_TABLE(i, 1) = intensity * intensity_factor                    ! normalised intensity (C.U.)
+         PPT_TABLE(i, 2) = ionisation_rate * rate_factor                   ! ionisation rate (C.U.)
          PPT_TABLE(i, 3) = MPA_factor * ( ionisation_rate  * rate_factor/ intensity )    ! Normalised MPA
-         rates_table(i, 1) = efield
-         rates_table(i, 2) = ionisation_rate
-         reference_table(i, 1) = efield
-         reference_table(i, 2) = intensity
-         reference_table(i, 3) = ionisation_rate
-         IF(my_rank.EQ.0) THEN
-           WRITE(4, '(3(2x, e12.5))') efield, intensity, ionisation_rate;
-        !   WRITE(7, '(2(2x, e))') sqrt(intensity/field_intensity_au), ionisation_rate;
-           WRITE(7, '(2(2x, e12.5))') efield, ionisation_rate;
-         ENDIF
         ENDDO
 
-        Egrid(1) = 0.0d0; ionisation_rates(1) = 0.0d0
+        
         ! The ionisation table is provided in the outputs
         IF (my_rank.EQ.0) THEN 
           CALL h5open_f(error)
@@ -405,7 +386,7 @@ CONTAINS
           CALL h5gclose_f(group_id, error)
           CALL h5fclose_f(file_id, error)
         ENDIF
-        DEALLOCATE(rates_table)
+
 	DEALLOCATE(Egrid,ionisation_rates)
 
 
