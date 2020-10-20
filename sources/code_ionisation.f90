@@ -301,7 +301,7 @@ CONTAINS
     IMPLICIT NONE
     CHARACTER(len = 3),INTENT(IN):: THEORY
     DOUBLE PRECISION, PARAMETER :: PI = 3.14159265d0
-    DOUBLE PRECISION, PARAMETER :: field_intensity_au = 3.50944758d16 !field intensity in atomic units
+    DOUBLE PRECISION, PARAMETER :: field_intensity_au = 3.50944758d16 !unit of the field intensity in atomic units
     DOUBLE PRECISION            :: intensity_factor
     DOUBLE PRECISION            :: rate_factor
     DOUBLE PRECISION            :: MPA_factor
@@ -315,6 +315,7 @@ CONTAINS
     REAL(8), ALLOCATABLE        :: rates_table(:,:), reference_table(:,:)
     LOGICAL                     :: file_exists, just_read = .FALSE.
     DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: Egrid, ionisation_rates
+    CHARACTER(LEN=25)           :: outfilename = "results.h5", outgroupname="ionisation_model"
 
     INTERFACE
      FUNCTION IONISATION_RATE_PPT(intensity)
@@ -370,14 +371,14 @@ CONTAINS
 
         ! print *, "Did not find file with matching variables"
         ALLOCATE(rates_table(DIMENSION_PPT, 2), reference_table(DIMENSION_PPT, 3))
-        ALLOCATE(Egrid(DIMENSION_EXT),ionisation_rates(DIMENSION_EXT))
+        ALLOCATE(Egrid(DIMENSION_PPT),ionisation_rates(DIMENSION_PPT))
 
         DO i = 2, dimension_PPT
          intensity = (i-1) * intensity_step
          ionisation_rate = ionisation_rate_PPT(intensity)
          efield = sqrt(intensity/field_intensity_au)
-         Egrid(i) = = sqrt(intensity/field_intensity_au)
-         ionisation_rate(i) = ionisation_rate
+         Egrid(i) = sqrt(intensity/field_intensity_au)
+         ionisation_rates(i) = ionisation_rate
          PPT_TABLE(i, 1) = intensity * intensity_factor                    ! Normalised Intensity
          PPT_TABLE(i, 2) = ionisation_rate * rate_factor                   ! Gamma
          PPT_TABLE(i, 3) = MPA_factor * ( ionisation_rate  * rate_factor/ intensity )    ! Normalised MPA
@@ -393,14 +394,14 @@ CONTAINS
          ENDIF
         ENDDO
 
-        Egrid(i) = 0.0d0; ionisation_rates(i) = 0.0d0
+        Egrid(1) = 0.0d0; ionisation_rates(1) = 0.0d0
         ! The ionisation table is provided in the outputs
         IF (my_rank.EQ.0) THEN 
           CALL h5open_f(error)
           CALL h5fopen_f(outfilename, H5F_ACC_RDWR_F, file_id, error)
           CALL h5gcreate_f(file_id, outgroupname, group_id, error)
-          CALL create_dset(group_id, 'Egrid', Egrid, DIMENSION_EXT)
-          CALL create_dset(group_id, 'ionisation_rates', ionisation_rates, DIMENSION_EXT)
+          CALL create_dset(group_id, 'Egrid', Egrid, DIMENSION_PPT)
+          CALL create_dset(group_id, 'ionisation_rates', ionisation_rates, DIMENSION_PPT)
           CALL h5gclose_f(group_id, error)
           CALL h5fclose_f(file_id, error)
         ENDIF
