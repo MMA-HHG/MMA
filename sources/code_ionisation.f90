@@ -314,6 +314,7 @@ CONTAINS
     CHARACTER(LEN=25)           :: filename = "PPT_tables.h5", groupname = "PPT"
     REAL(8), ALLOCATABLE        :: rates_table(:,:), reference_table(:,:)
     LOGICAL                     :: file_exists, just_read = .FALSE.
+    DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: Egrid, ionisation_rates
 
     INTERFACE
      FUNCTION IONISATION_RATE_PPT(intensity)
@@ -337,7 +338,8 @@ CONTAINS
 
     ALLOCATE(PPT_TABLE(DIMENSION_PPT, 3))
     ! Normalised factors
-    intensity_factor = 4.d0 * PI * beam_waist**2 * 1.d-9 / critical_power 
+    intensity_factor = 4.d0 * PI * beam_waist**2 * 1.d-9 / critical_power
+ 
     IF ( (THEORY == "PPT") .OR. (THEORY == "ADK") ) THEN
     rate_factor      =(4.d0 * PI**2 * 1.d16 / (45.5635**2 * 2.41889)) * &
          (atomic_density / critical_density) *&
@@ -365,68 +367,17 @@ CONTAINS
     PPT_TABLE(1, 3) = 0.d0
 
     IF (THEORY == "PPT") THEN
-      file_exists = .FALSE.
-      just_read = .FALSE.
-      IF (file_exists.EQV..TRUE.) THEN
-        ! print *, "File exists"
-        just_read = .TRUE.
-        CALL h5open_f(error)
-        CALL h5fopen_f(filename, H5F_ACC_RDONLY_F, file_id, error)
-        CALL h5gopen_f(file_id, groupname, group_id, error)
-        CALL read_dset(group_id, 'atom_dens', o_atom_dens)
-        IF (atomic_density.NE.o_atom_dens) THEN
-          just_read = .FALSE.
-          ! print *,"atomic density did not match"
-        ENDIF
-        CALL read_dset(group_id, 'crit_dens', o_crit_dens)
-        IF (critical_density.NE.o_crit_dens) THEN
-          just_read = .FALSE.        
-          ! print *,"critical density did not match"
-        ENDIF
-        CALL read_dset(group_id, 'beam_waist', o_beam_waist)
-        IF (beam_waist.NE.o_beam_waist) THEN
-          just_read = .FALSE.
-          ! print *,"beam waist did not match"
-        ENDIF
-        CALL read_dset(group_id, 'photenergy', o_photenergy)
-        IF (photon_energy.NE.o_photenergy) THEN
-          just_read = .FALSE.
-          ! print *,"photon energy did not match"
-        ENDIF
-        CALL read_dset(group_id, 'pulse_duration', o_pulse_duration)
-        IF (pulse_duration.NE.o_pulse_duration) THEN
-          just_read = .FALSE.
-          ! print *,"pulse duration did not match"
-        ENDIF
-        CALL read_dset(group_id, 'n0', o_n0)
-        IF (n0_indice.NE.o_n0) THEN
-          just_read = .FALSE.
-          ! print *,"n0 indice did not match"
-        ENDIF
-        CALL read_dset(group_id, 'ionisation_potential', o_ionpot)
-        IF (ionisation_potential.NE.o_ionpot) THEN
-          just_read = .FALSE.
-          ! print *,"photon energy did not match"
-        ENDIF
-        CALL h5gclose_f(group_id, error)
-        CALL h5fclose_f(file_id, error)
-        CALL h5close_f(error)
-      ENDIF
-      IF (just_read) THEN
-        CALL h5open_f(error)
-        CALL h5fopen_f(filename, H5F_ACC_RDONLY_F, file_id, error)
-        CALL h5gopen_f(file_id, groupname, group_id, error)
-        CALL read_dset(group_id, 'ppt_table', PPT_TABLE, DIMENSION_PPT, 3, DIMENSION_PPT, 3, 0, 0)
-        CALL h5gclose_f(group_id, error)
-        CALL h5fclose_f(file_id, error)
-        CALL h5close_f(error)
-      ELSE
+
         ! print *, "Did not find file with matching variables"
         ALLOCATE(rates_table(DIMENSION_PPT, 2), reference_table(DIMENSION_PPT, 3))
+        ALLOCATE(Egrid(DIMENSION_EXT),ionisation_rates(DIMENSION_EXT))
+
         DO i = 2, dimension_PPT
          intensity = (i-1) * intensity_step
          ionisation_rate = ionisation_rate_PPT(intensity)
          efield = sqrt(intensity/field_intensity_au)
+         Egrid(i) = = sqrt(intensity/field_intensity_au)
+         ionisation_rate(i) = ionisation_rate
          PPT_TABLE(i, 1) = intensity * intensity_factor                    ! Normalised Intensity
          PPT_TABLE(i, 2) = ionisation_rate * rate_factor                   ! Gamma
          PPT_TABLE(i, 3) = MPA_factor * ( ionisation_rate  * rate_factor/ intensity )    ! Normalised MPA
@@ -441,25 +392,21 @@ CONTAINS
            WRITE(7, '(2(2x, e12.5))') efield, ionisation_rate;
          ENDIF
         ENDDO
-        IF (my_rank.EQ.0) THEN
+
+        Egrid(i) = 0.0d0; ionisation_rates(i) = 0.0d0
+        ! The ionisation table is provided in the outputs
+        IF (my_rank.EQ.0) THEN 
           CALL h5open_f(error)
-          CALL h5fcreate_f(filename, H5F_ACC_TRUNC_F, file_id, error)
-          CALL h5gcreate_f(file_id, groupname, group_id, error)
-          CALL create_dset(group_id, 'atom_dens', atomic_density)
-          CALL create_dset(group_id, 'crit_dens', critical_density)
-          CALL create_dset(group_id, 'beam_waist', beam_waist)
-          CALL create_dset(group_id, 'photenergy', photon_energy)
-          CALL create_dset(group_id, 'pulse_duration', pulse_duration)
-          CALL create_dset(group_id, 'n0', n0_indice)
-          CALL create_dset(group_id, 'ionisation_potential', ionisation_potential)
-          CALL create_dset(group_id, "rates_atomic", rates_table, DIMENSION_PPT, 2)
-          CALL create_dset(group_id, "reference_table", reference_table, DIMENSION_PPT, 3)
-          CALL create_dset(group_id, "ppt_table", PPT_TABLE, DIMENSION_PPT, 3)
+          CALL h5fopen_f(outfilename, H5F_ACC_RDWR_F, file_id, error)
+          CALL h5gcreate_f(file_id, outgroupname, group_id, error)
+          CALL create_dset(group_id, 'Egrid', Egrid, DIMENSION_EXT)
+          CALL create_dset(group_id, 'ionisation_rates', ionisation_rates, DIMENSION_EXT)
           CALL h5gclose_f(group_id, error)
           CALL h5fclose_f(file_id, error)
         ENDIF
         DEALLOCATE(rates_table)
-      ENDIF
+	DEALLOCATE(Egrid,ionisation_rates)
+
 
     ! these models don't print reference, should we keep them or take as obsolete non-canonical cases?
     ELSE IF (THEORY == "ADK") THEN
