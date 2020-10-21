@@ -1,4 +1,14 @@
-! There are modules used
+! There are modules used for saving the ouputs
+!
+! - "write_output": it saves fields and plasma-density during the propagation 
+!
+! - "field_out": it stores the end-plane solution in the form of the code input for possible continuation
+!
+! - "linked_list_out": it saves the data buffered in the linked list at the end of the code
+!
+! The original procedures were developed by Stefan Skupin
+! The change to HDF5 was designed by Jan Vabek and 
+! co-implemented by Jakub Jelinek
 
 MODULE output
   USE fields
