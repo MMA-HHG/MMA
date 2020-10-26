@@ -48,7 +48,7 @@ PROGRAM make_start
   CALL read_dset(file_id, 'inputs/pulse_duration_in_1_e', tp_fs_phys)
   CALL read_dset(file_id, 'inputs/degree_of_supergaussian_in_time', super_t)
   CALL read_dset(file_id, 'inputs/ratio_pin_pcr', numcrit)
-  numcrit = 1.d0
+  !numcrit = 1.d0
   CALL read_dset(file_id, 'inputs/input', switch_start)
 
   if(switch_start.GT.4) then
