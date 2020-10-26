@@ -93,8 +93,8 @@ CONTAINS
             CALL calc_rho(rhotemp,mpa,e_2(j),e_2(j+1))
          ENDIF
       ENDDO
-      !plasma_array(1,k1,:) = REAL(plasma_normalisation_factor_m3*e_2KKm2,4)
-      plasma_array(1,k1,:) = REAL(e_2KKm2,4)
+      plasma_array(1,k1,:) = REAL(plasma_normalisation_factor_m3*e_2KKm2,4) ! SI units
+      !plasma_array(1,k1,:) = REAL(e_2KKm2,4) ! computational units
       k1 = k1 + 1
     ENDDO
 
@@ -131,6 +131,7 @@ CONTAINS
       IF (my_rank.EQ.0) THEN ! single-write start
         CALL h5fopen_f (h5_filename, H5F_ACC_RDWR_F, file_id, error) ! Open an existing file.
         CALL h5_add_units_1D(file_id, field_dset_name, '[V/m]') ! add units
+	CALL h5_add_units_1D(file_id, plasma_dset_name, '[m^(-3)]') ! add units
         CALL h5fclose_f(file_id, error) ! close the file
       ENDIF ! single-write end
     ELSE !!!! APPENDING THE DATA IN NEXT ITERATIONS
