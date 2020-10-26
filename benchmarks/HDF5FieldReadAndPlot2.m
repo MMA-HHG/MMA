@@ -1,4 +1,4 @@
-clear all; close all;
+clear all; %close all;
 % clearvars
 
 %% head
@@ -60,6 +60,16 @@ zgrid = h5read(HDF5_filepath,"/IRprop/zgrid");
 Nz = length(zgrid); Nt = length(tgrid); Nr = length(rgrid);
 
 
+%% tests
+firstplasma = squeeze(output_plasma(1,:,:));
+firstplasma(1,end)
+
+figure
+pcolor(firstplasma)
+shading interp
+colorbar
+
+return
 
 %% plot z_evol
 fig.sf(1).method = @plot;
@@ -158,7 +168,7 @@ for k1 = 1:Nz
     arr_fig.fig(k2).sf(1).method = @pcolor; arr_fig.fig(k2).sf(1).shading = 'interp'; arr_fig.fig(k2).sf(1).colorbar = 'eastoutside';
     %arr_fig.fig(k2).ylim = [-rhorange(2), rhorange(2)];
 %     arr_fig.fig(k2).sf(1).arg{1} = tgrid; arr_fig.fig(k2).sf(1).arg{2} = rgrid; arr_fig.fig(k2).sf(1).arg{3} = squeeze(output_plasma(k1,:,:));
-    arr_fig.fig(k2).sf(1).arg{1} = squeeze(output_plasma(k1,:,:)); 
+    arr_fig.fig(k2).sf(1).arg{1} = 1e6*squeeze(output_plasma(k1,:,:)); 
     if ((mod(k1,Nx_plot*Ny_plot)==0) || (k1 == Nz) )
         arr_fig.filenamepng = strcat('plasma_',num2str(k_plot),'.png');
         arr_fig.resolutionpng = '-r450';
