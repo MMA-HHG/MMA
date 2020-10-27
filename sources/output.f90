@@ -32,7 +32,7 @@ CONTAINS
     
     INTEGER :: field_dimensions ! Dataset rank & # of points in z
     ! the kind of this variable has to correspond with the precision stored in HDF5-file
-    REAL(4), ALLOCATABLE :: fields_array(:,:,:), plasma_array(:,:,:) 
+    REAL(4), ALLOCATABLE :: fields_array(:,:,:), plasma_array(:,:,:), rgrid(:), tgrid(:)  
     REAL(4), ALLOCATABLE :: spect_array_1(:),  spect_array_2(:,:), spect_array_3(:,:), spect_array_4(:,:), spect_array_5(:,:) 
     INTEGER(HSIZE_T)               :: r_offset
 
@@ -52,11 +52,14 @@ CONTAINS
     CHARACTER(LEN=15) :: groupname="outputs"
     CHARACTER(LEN=25) :: field_dset_name="outputs/output_field"
     CHARACTER(LEN=25) :: plasma_dset_name="outputs/output_plasma"
-    CHARACTER(LEN=25) :: spect_1d_dset_name_1="outputs/spect_1d_column_1"
-    CHARACTER(LEN=25) :: spect_1d_dset_name_2="outputs/spect_1d_column_2"
-    CHARACTER(LEN=25) :: spect_1d_dset_name_3="outputs/spect_1d_column_3"
-    CHARACTER(LEN=25) :: spect_1d_dset_name_4="outputs/spect_1d_column_4"
-    CHARACTER(LEN=25) :: spect_1d_dset_name_5="outputs/spect_1d_column_5"
+    CHARACTER(LEN=25) :: spect_1d_dset_name_1="outputs/omegagrid"
+    CHARACTER(LEN=60) :: spect_1d_dset_name_2="outputs/spectral_intensity_integrated_over_the_numerical_box"
+    CHARACTER(LEN=69) :: spect_1d_dset_name_3="outputs/spectral_intensity_integrated_over_cylinder_with_radius_rfill"
+    CHARACTER(LEN=26) :: spect_1d_dset_name_4="outputs/spectral_intensity"
+    CHARACTER(LEN=22) :: spect_1d_dset_name_5="outputs/spectral_phase"
+    CHARACTER(LEN=13) :: zgrid_dset_name = "outputs/zgrid"
+    CHARACTER(LEN=13) :: tgrid_dset_name = "outputs/tgrid"
+    CHARACTER(LEN=13) :: rgrid_dset_name = "outputs/rgrid"
 
       
     field_dimensions = 3
@@ -113,6 +116,8 @@ CONTAINS
     CALL h5pset_fapl_mpio_f(h5parameters, MPI_COMM_WORLD, MPI_INFO_NULL, error) ! set parameters for MPI access
     CALL h5fopen_f(h5_filename, H5F_ACC_RDWR_F, file_id, error, access_prp = h5parameters ) ! Open collectivelly the file
     CALL h5pclose_f(h5parameters,error) ! close the parameters
+
+
     IF ( first ) THEN
       !Create group for the output if it does not already exist
       CALL h5lexists_f(file_id, groupname, group_status, error)
@@ -130,14 +135,50 @@ CONTAINS
 
       IF (my_rank.EQ.0) THEN ! single-write start
         CALL h5fopen_f (h5_filename, H5F_ACC_RDWR_F, file_id, error) ! Open an existing file.
-        CALL h5_add_units_1D(file_id, field_dset_name, '[V/m]') ! add units
-	CALL h5_add_units_1D(file_id, plasma_dset_name, '[m^(-3)]') ! add units
+        CALL h5_add_units_1D(file_id, field_dset_name, '[V/m]') 
+	CALL h5_add_units_1D(file_id, plasma_dset_name, '[m^(-3)]') 
+
+        ! r and t grids saved in the first run
+	allocate(tgrid(dim_t),rgrid(dim_r)) ! space for grids: first itration, proc # 0
+        DO k1=1, dim_t
+          tgrid(k1) = REAL( tps*(tlo+REAL(k1,8)*delta_t) , 4)
+        ENDDO
+        DO k1=1, dim_r
+          rgrid(k1) = REAL( w0m*(REAL(k1-1,8)*delta_r) , 4)
+        ENDDO
+        CALL create_dset(file_id, rgrid_dset_name, rgrid, dim_r)
+        CALL h5_add_units_1D(file_id, rgrid_dset_name, '[m]')
+        CALL create_dset(file_id, tgrid_dset_name, tgrid, dim_t)
+        CALL h5_add_units_1D(file_id, tgrid_dset_name, '[m]')
+        deallocate(tgrid,rgrid)
+
+        !dumr4(1) =  ! the actual z-coordinate in SI units 
+        CALL create_1D_dset_unlimited(file_id, zgrid_dset_name, (/REAL(four_z_Rayleigh*z,4)/), 1)
+        CALL h5_add_units_1D(file_id, zgrid_dset_name, '[m]')
+
+
+
+
         CALL h5fclose_f(file_id, error) ! close the file
       ENDIF ! single-write end
+
+
     ELSE !!!! APPENDING THE DATA IN NEXT ITERATIONS
       CALL write_hyperslab_to_dset_p(file_id, field_dset_name, fields_array, offset, ccount)
       CALL write_hyperslab_to_dset_p(file_id, plasma_dset_name, plasma_array, offset, ccount)
       CALL h5fclose_f(file_id,error)
+
+      IF (my_rank.EQ.0) THEN ! only one worker is extending the zgrid
+        CALL h5open_f(error)  !Initialize HDF5
+        CALL h5fopen_f(h5_filename, H5F_ACC_RDWR_F, file_id, error)
+        ! only z-grid in 1D
+        !dumh51D = (/int(HDF5write_count-1,HSIZE_T)/) ! offset
+        !dumh51D2 = (/int(1,HSIZE_T)/) ! count
+        !dumr4(1) = REAL(four_z_Rayleigh*z,4) ! the actual z-coordinate in SI units 
+        CALL extend_1D_dset_unlimited(file_id, zgrid_dset_name, (/REAL(four_z_Rayleigh*z,4)/), new_dims=(/int(output_write_count,HSIZE_T)/), & 
+          memspace_dims=(/int(1,HSIZE_T)/), offset=(/int(output_write_count-1,HSIZE_T)/), hyperslab_size=(/int(1,HSIZE_T)/))
+        CALL h5fclose_f(file_id,error)
+      ENDIF ! single-write end
     ENDIF
 
     ! Deallocate no longer needed arrays
@@ -187,10 +228,15 @@ CONTAINS
           spect_array_5(1,j) = REAL(ATAN2(AIMAG(etemp(j,1)),REAL(etemp(j,1))+1.D-20),4)
         ENDDO
         CALL create_1D_array_real_dset(file_id, spect_1d_dset_name_1, spect_array_1, dim_t)
+	CALL h5_add_units_1D(file_id, spect_1d_dset_name_1, '[?]')
         CALL create_and_preallocate_2D_array_real_dset(file_id, spect_1d_dset_name_2, spect_array_2, dims_2d, offset_2d, ccount_2d)
+	CALL h5_add_units_1D(file_id, spect_1d_dset_name_2, '[arb.u.]')
         CALL create_and_preallocate_2D_array_real_dset(file_id, spect_1d_dset_name_3, spect_array_3, dims_2d, offset_2d, ccount_2d)
+        CALL h5_add_units_1D(file_id, spect_1d_dset_name_3, '[arb.u.]')
         CALL create_and_preallocate_2D_array_real_dset(file_id, spect_1d_dset_name_4, spect_array_4, dims_2d, offset_2d, ccount_2d)
+        CALL h5_add_units_1D(file_id, spect_1d_dset_name_4, '[arb.u.]')
         CALL create_and_preallocate_2D_array_real_dset(file_id, spect_1d_dset_name_5, spect_array_5, dims_2d, offset_2d, ccount_2d)
+        CALL h5_add_units_1D(file_id, spect_1d_dset_name_5, '[arb.u.]')
         deallocate(spect_array_1, spect_array_2, spect_array_3, spect_array_4, spect_array_5)
       ELSE
         DO j=1,dim_t
