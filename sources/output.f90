@@ -450,9 +450,9 @@ CONTAINS
     INTEGER                        :: error
     CHARACTER(LEN=15) :: h5_filename="results.h5"
     CHARACTER(LEN=25) :: fluence_dset_name="longstep/fluence"
-    CHARACTER(LEN=25) :: plasma_channel_dset_name="longstep/plasma_channel"
-    CHARACTER(LEN=25) :: losses_plasma_dset_name="longstep/losses_plasma"
-    CHARACTER(LEN=30) :: losses_ionization_dset_name="longstep/losses_ionization"
+    CHARACTER(LEN=25) :: plasma_channel_dset_name="longstep/pc"
+    CHARACTER(LEN=25) :: losses_plasma_dset_name="longstep/lp"
+    CHARACTER(LEN=30) :: losses_ionization_dset_name="longstep/li"
     REAL(4), ALLOCATABLE :: fluence_part(:,:)
     REAL(4), ALLOCATABLE :: plasma_channel_part(:,:)
     REAL(4), ALLOCATABLE :: losses_plasma_part(:,:)
