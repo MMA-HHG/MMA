@@ -68,7 +68,7 @@ CONTAINS
     r_offset = dim_r_start(num_proc)-1
     DO k1=1, dim_r_local
     DO k2=1, dim_t
-      fields_array(1,k1,k2) = REAL( REAL( (efield_factor*efield_osc(k2)*e(k2,r_offset+k1)) ) , 4 ) ! SINGLE PRECISION, corresponding H5T_NATIVE_REAL (REAL(.,8) corresponds to H5T_NATIVE_DOUBLE)
+      fields_array(1,k1,k2) = REAL( efield_factor*REAL( (efield_osc(k2)*e(k2,r_offset+k1)) ) , 4 ) ! SINGLE PRECISION, corresponding H5T_NATIVE_REAL (REAL(.,8) corresponds to H5T_NATIVE_DOUBLE)
       ! e(t,r)
     ENDDO
     ENDDO
@@ -450,9 +450,9 @@ CONTAINS
     INTEGER                        :: error
     CHARACTER(LEN=15) :: h5_filename="results.h5"
     CHARACTER(LEN=25) :: fluence_dset_name="longstep/fluence"
-    CHARACTER(LEN=25) :: plasma_channel_dset_name="longstep/pc"
-    CHARACTER(LEN=25) :: losses_plasma_dset_name="longstep/lp"
-    CHARACTER(LEN=30) :: losses_ionization_dset_name="longstep/li"
+    CHARACTER(LEN=23) :: plasma_channel_dset_name="longstep/plasma_channel"
+    CHARACTER(LEN=22) :: losses_plasma_dset_name="longstep/losses_plasma"
+    CHARACTER(LEN=26) :: losses_ionization_dset_name="longstep/losses_ionization"
     REAL(4), ALLOCATABLE :: fluence_part(:,:)
     REAL(4), ALLOCATABLE :: plasma_channel_part(:,:)
     REAL(4), ALLOCATABLE :: losses_plasma_part(:,:)
