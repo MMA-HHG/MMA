@@ -7,6 +7,9 @@ I commented most of the code. I found that the less readeble are firstep and lon
 
 `SUBROUTINE mult_phase`: it's not so clear to me what effects are included in the propagator and which are applied in time domain afterwards.
 
+### printing procedure
+There are two procedures now,it should be rewritten and driven by an if-construct to select prints on demand. Solve naming problem by passing struct containing strings.
+
 ## INPUT/OUTPUT
 
 The I/O are realised through a single HDF5-archive, currently called `results.h5`. One archive with all the inputs (except pre-computed tables) is used and all the ouputs of the code are also stored in this archive.
