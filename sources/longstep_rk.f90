@@ -650,16 +650,14 @@ CONTAINS
             onax_t_data(1,:) = REAL(ABS(e(1:dim_t,1)),4)
             ! create the datasets if they do not exist yet 
             IF ( dset_write_count .EQ. 0 ) THEN
-              CALL create_2D_dset_unlimited(file_id, powmax_dset_name, powmax_data, 2)
+              CALL create_1D_dset_unlimited(file_id, powmax_dset_name, (/REAL(6.2831853D0*MAXVAL(e_2KK)*delta_r**2,4)/), 1)
               CALL create_2D_dset_unlimited(file_id, onax_t_dset_name, onax_t_data, dim_t)
               CALL create_1D_dset_unlimited(file_id, every_rhodist_z_dset_name, (/REAL(four_z_Rayleigh*z,4)/), 1)
             ! extend datasets if they do exist
             ELSE
-              CALL extend_2D_dset_unlimited(file_id, powmax_dset_name, powmax_data, & 
-                new_dims = (/int(dset_write_count + 1, HSIZE_T), int(2, HSIZE_T)/), & 
-                memspace_dims = (/int(1,HSIZE_T), int(2, HSIZE_T)/), & 
-                offset = (/int(dset_write_count,HSIZE_T),int(0,HSIZE_T)/), & 
-                hyperslab_size = (/int(1,HSIZE_T), int(2, HSIZE_T)/))
+              CALL extend_1D_dset_unlimited(file_id, powmax_dset_name, (/REAL(6.2831853D0*MAXVAL(e_2KK)*delta_r**2,4)/), &
+              new_dims=(/int(dset_write_count + 1,HSIZE_T)/), memspace_dims=(/int(1,HSIZE_T)/), &
+              offset = (/int(dset_write_count, HSIZE_T)/), hyperslab_size = (/int(1,HSIZE_T)/))
               CALL extend_2D_dset_unlimited(file_id, onax_t_dset_name, onax_t_data, & 
                 new_dims = (/int(dset_write_count + 1, HSIZE_T), int(dim_t, HSIZE_T)/), & 
                 memspace_dims = (/int(1,HSIZE_T), int(dim_t, HSIZE_T)/), & 
@@ -752,15 +750,13 @@ CONTAINS
               
             ENDIF
             ! extend powmax and on axis data dataset
-            powmax_data(1,1) = REAL(z,4)
-            powmax_data(1,2) = REAL(6.2831853D0*MAXVAL(e_2KK)*delta_r**2,4)
+            !powmax_data(1,1) = REAL(z,4)
+            !powmax_data(1,2) = REAL(6.2831853D0*MAXVAL(e_2KK)*delta_r**2,4)
             !z_data(1) = REAL(z,4)
             onax_t_data(1,:) = REAL(ABS(e(1:dim_t,1)),4) 
-            CALL extend_2D_dset_unlimited(file_id, powmax_dset_name, powmax_data, & 
-              new_dims = (/int(dset_write_count + 1, HSIZE_T), int(2, HSIZE_T)/), & 
-              memspace_dims = (/int(1,HSIZE_T), int(2, HSIZE_T)/), & 
-              offset = (/int(dset_write_count,HSIZE_T),int(0,HSIZE_T)/), & 
-              hyperslab_size = (/int(1,HSIZE_T), int(2, HSIZE_T)/))
+            CALL extend_1D_dset_unlimited(file_id, powmax_dset_name, (/REAL(6.2831853D0*MAXVAL(e_2KK)*delta_r**2,4)/), &
+              new_dims=(/int(dset_write_count + 1,HSIZE_T)/), memspace_dims=(/int(1,HSIZE_T)/), &
+              offset = (/int(dset_write_count, HSIZE_T)/), hyperslab_size = (/int(1,HSIZE_T)/))
             CALL extend_2D_dset_unlimited(file_id, onax_t_dset_name, onax_t_data, & 
               new_dims = (/int(dset_write_count + 1, HSIZE_T), int(dim_t, HSIZE_T)/), & 
               memspace_dims = (/int(1,HSIZE_T), int(dim_t, HSIZE_T)/), & 
@@ -867,16 +863,14 @@ CONTAINS
           onax_t_data(1,:) = REAL(ABS(e(1:dim_t,1)),4) 
           ! write to datasets, either create
           IF ( dset_write_count .EQ. 0 ) THEN
-            CALL create_2D_dset_unlimited(file_id, powmax_dset_name, powmax_data, 2)
+            CALL create_1D_dset_unlimited(file_id, powmax_dset_name, (/REAL(6.2831853D0*MAXVAL(e_2KK)*delta_r**2,4)/), 1)
             CALL create_2D_dset_unlimited(file_id, onax_t_dset_name, onax_t_data, dim_t)
             CALL create_1D_dset_unlimited(file_id, every_rhodist_z_dset_name, (/REAL(four_z_Rayleigh*z,4)/), 1)
           ! or extend the existing ones
           ELSE
-            CALL extend_2D_dset_unlimited(file_id, powmax_dset_name, powmax_data, & 
-              new_dims = (/int(dset_write_count + 1, HSIZE_T), int(2, HSIZE_T)/), & 
-              memspace_dims = (/int(1,HSIZE_T), int(2, HSIZE_T)/), & 
-              offset = (/int(dset_write_count,HSIZE_T),int(0,HSIZE_T)/), & 
-              hyperslab_size = (/int(1,HSIZE_T), int(2, HSIZE_T)/))
+            CALL extend_1D_dset_unlimited(file_id, powmax_dset_name, (/REAL(6.2831853D0*MAXVAL(e_2KK)*delta_r**2,4)/), &
+              new_dims=(/int(dset_write_count + 1,HSIZE_T)/), memspace_dims=(/int(1,HSIZE_T)/), &
+              offset = (/int(dset_write_count, HSIZE_T)/), hyperslab_size = (/int(1,HSIZE_T)/))
             CALL extend_2D_dset_unlimited(file_id, onax_t_dset_name, onax_t_data, & 
               new_dims = (/int(dset_write_count + 1, HSIZE_T), int(dim_t, HSIZE_T)/), & 
               memspace_dims = (/int(1,HSIZE_T), int(dim_t, HSIZE_T)/), & 
