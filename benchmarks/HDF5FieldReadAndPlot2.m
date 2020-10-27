@@ -69,7 +69,7 @@ pcolor(firstplasma)
 shading interp
 colorbar
 
-return
+
 
 %% plot z_evol
 fig.sf(1).method = @plot;
@@ -135,6 +135,22 @@ for k1 = 1:Nz
     arr_fig.fig(k2).sf(1).arg{1} = tgrid; arr_fig.fig(k2).sf(1).arg{2} = squeeze(output_field(1,kr,:));
     if ((mod(k1,Nx_plot*Ny_plot)==0) || (k1 == Nz) )
         arr_fig.filenamepng = strcat('Frzt_',num2str(k_plot),'.png');
+        arr_fig.resolutionpng = '-r450';
+        Print_Array_Figs_A4(arr_fig,2,5);
+        k_plot = k_plot + 1;
+        k2 = 0;
+        clear arr_fig;
+    end
+    k2 = k2+1;
+end
+
+k_plot = 1;
+k2 = 1;
+for k1 = 1:Nz
+    arr_fig.fig(k2).sf(1).method = @plot; 
+    arr_fig.fig(k2).sf(1).arg{1} = tgrid; arr_fig.fig(k2).sf(1).arg{2} = squeeze(Fields_rzt(1,kr,:));
+    if ((mod(k1,Nx_plot*Ny_plot)==0) || (k1 == Nz) )
+        arr_fig.filenamepng = strcat('Frzt_',num2str(k_plot),'_check.png');
         arr_fig.resolutionpng = '-r450';
         Print_Array_Figs_A4(arr_fig,2,5);
         k_plot = k_plot + 1;
