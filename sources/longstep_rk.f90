@@ -605,7 +605,7 @@ CONTAINS
           IF (longstep_write_count.EQ.0) THEN
             ! z_buff dataset creation and writting, originally the z_buff was paired with each of the values from following
             ! datasets, here it has it's own dataset, the dimensions are equivalent
-            CALL create_1D_dset_unlimited(file_id, z_buff_dset_name, REAL(z_buff(1:rhodist),4), rhodist) 
+            CALL create_1D_dset_unlimited(file_id, z_buff_dset_name, REAL(z_buff(1:rhodist),4), rhodist)
 
             ! rhoabs_max dataset creation and writting
             CALL create_1D_dset_unlimited(file_id, rhoabs_max_dset_name, REAL(rhoabs_max(1:rhodist),4), rhodist) 

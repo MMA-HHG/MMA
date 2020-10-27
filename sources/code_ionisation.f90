@@ -388,6 +388,8 @@ CONTAINS
           CALL h5gcreate_f(file_id, outgroupname, group_id, error)
           CALL create_dset(group_id, 'Egrid', Egrid, DIMENSION_PPT)
           CALL create_dset(group_id, 'ionisation_rates', ionisation_rates, DIMENSION_PPT)
+          CALL h5_add_units_1D(group_id, 'Egrid', '[a.u.]')
+          CALL h5_add_units_1D(group_id, 'ionisation_rates', '[a.u.]')
           CALL h5gclose_f(group_id, error)
           CALL h5fclose_f(file_id, error)
         ENDIF
@@ -666,6 +668,8 @@ CONTAINS
       CALL h5gcreate_f(file_id, outgroupname, group_id, error)
       CALL create_dset(group_id, 'Egrid', Egrid, DIMENSION_EXT)
       CALL create_dset(group_id, 'ionisation_rates', ionisation_rates, DIMENSION_EXT)
+      CALL h5_add_units_1D(group_id, 'Egrid', '[a.u.]')
+      CALL h5_add_units_1D(group_id, 'ionisation_rates', '[a.u.]')
       CALL h5gclose_f(group_id, error)
       CALL h5fclose_f(file_id, error)
     ENDIF

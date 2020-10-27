@@ -146,18 +146,15 @@ CONTAINS
         DO k1=1, dim_r
           rgrid(k1) = REAL( w0m*(REAL(k1-1,8)*delta_r) , 4)
         ENDDO
+
         CALL create_dset(file_id, rgrid_dset_name, rgrid, dim_r)
         CALL h5_add_units_1D(file_id, rgrid_dset_name, '[m]')
         CALL create_dset(file_id, tgrid_dset_name, tgrid, dim_t)
         CALL h5_add_units_1D(file_id, tgrid_dset_name, '[m]')
         deallocate(tgrid,rgrid)
 
-        !dumr4(1) =  ! the actual z-coordinate in SI units 
-        CALL create_1D_dset_unlimited(file_id, zgrid_dset_name, (/REAL(four_z_Rayleigh*z,4)/), 1)
+        CALL create_1D_dset_unlimited(file_id, zgrid_dset_name, (/REAL(four_z_Rayleigh*z,4)/), 1) ! the actual z-coordinate in SI units 
         CALL h5_add_units_1D(file_id, zgrid_dset_name, '[m]')
-
-
-
 
         CALL h5fclose_f(file_id, error) ! close the file
       ENDIF ! single-write end
@@ -519,9 +516,22 @@ CONTAINS
     CALL list_free(losses_plasma_ll)
     CALL list_free(losses_ionization_ll)
     
-    ! Terminate
+    ! Terminate collective access
     CALL h5fclose_f(file_id, error)
     CALL h5close_f(error)
+
+    ! Add units (not implemented for collective access)
+      IF (my_rank.EQ.0) THEN ! single-write start
+        CALL h5open_f(error)
+        CALL h5fopen_f (h5_filename, H5F_ACC_RDWR_F, file_id, error) ! Open an existing file.
+        CALL h5_add_units_1D(file_id, fluence_dset_name, '[C.U.]') 
+	CALL h5_add_units_1D(file_id, plasma_channel_dset_name, '[C.U.]') 
+        CALL h5_add_units_1D(file_id, losses_plasma_dset_name, '[C.U.]') 
+	CALL h5_add_units_1D(file_id, losses_ionization_dset_name, '[C.U.]')
+        CALL h5fclose_f(file_id, error) ! close the file
+        CALL h5close_f(error)
+      ENDIF 
+
   END SUBROUTINE linked_list_out
 
 END MODULE output
