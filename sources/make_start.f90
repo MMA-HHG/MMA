@@ -156,16 +156,16 @@ PROGRAM make_start
     zz_mum(i_z_max)=0.D0
     Indice(i_x_max,i_z_max)=1.D0
   ELSE IF (indexfile.EQ.'1') THEN
-    CALL h5open_f(error)
-    CALL h5fopen_f ("calculated_tables.h5", H5F_ACC_RDWR_F, file_id, error)
+    !CALL h5open_f(error)
+    !CALL h5fopen_f ("calculated_tables.h5", H5F_ACC_RDWR_F, file_id, error)
     CALL ask_for_size_1D(file_id, "/indexes/r_vector", i_x_max)
     CALL ask_for_size_1D(file_id, "/indexes/z_vector", i_z_max)
     ALLOCATE(xx_mum(i_x_max),zz_mum(i_z_max),Indice(i_x_max,i_z_max))
     CALL read_dset(file_id, "/indexes/indexes", Indice, i_x_max, i_z_max)
     CALL read_dset(file_id, "/indexes/r_vector", xx_mum, i_x_max)
     CALL read_dset(file_id, "/indexes/z_vector", zz_mum, i_z_max)
-    CALL h5fclose_f(file_id, error)
-    CALL h5close_f(error)
+    !CALL h5fclose_f(file_id, error)
+    !CALL h5close_f(error)
   ELSE
     OPEN(12,FILE=indexfile,STATUS='UNKNOWN',FORM='UNFORMATTED')
     READ(12) i_x_max, i_z_max
