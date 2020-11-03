@@ -5,6 +5,7 @@ PROGRAM make_start
 
   IMPLICIT NONE
   integer :: st
+  logical :: exists_h5_refractive_index
 
 
   PRINT *,"Pre-processor started"
@@ -147,18 +148,10 @@ PROGRAM make_start
   !------------------------------------!
   ! Close the file.
   ! CALL h5fclose_f(file_id, error)
-  
-  PRINT*, 'Specify name of indexfile, or 1 to load from given HDF5 file, or 0 to ignore'
-  READ(5,*) indexfile
 
-  IF (indexfile.EQ.'0') THEN
-    i_x_max=1
-    i_z_max=1
-    ALLOCATE(xx_mum(i_x_max),zz_mum(i_z_max),Indice(i_x_max,i_z_max))
-    xx_mum(i_x_max)=0.D0
-    zz_mum(i_z_max)=0.D0
-    Indice(i_x_max,i_z_max)=1.D0
-  ELSE IF (indexfile.EQ.'1') THEN
+  CALL h5lexists_f(file_id,'indexes',exists_h5_refractive_index,error)
+
+  IF (exists_h5_refractive_index) THEN
     !CALL h5open_f(error)
     !CALL h5fopen_f ("calculated_tables.h5", H5F_ACC_RDWR_F, file_id, error)
     CALL ask_for_size_1D(file_id, "/indexes/r_vector", i_x_max)
@@ -169,18 +162,30 @@ PROGRAM make_start
     CALL read_dset(file_id, "/indexes/z_vector", zz_mum, i_z_max)
     !CALL h5fclose_f(file_id, error)
     !CALL h5close_f(error)
+    PRINT*, 'refractive index loaded from the input hdf5 archive'
   ELSE
-    OPEN(12,FILE=indexfile,STATUS='UNKNOWN',FORM='FORMATTED')
-    PRINT*, indexfile
-    READ(unit=12,fmt=*,iostat=st) i_x_max, i_z_max
-    PRINT*, i_x_max, i_z_max
-    ALLOCATE(xx_mum(i_x_max),zz_mum(i_z_max),Indice(i_x_max,i_z_max))
-    READ(unit=12,fmt=*,iostat=st) (xx_mum(i_x),i_x=1,i_x_max)
-    DO i_z = 1, i_z_max
-      READ(unit=12,fmt=*,iostat=st) zz_mum(i_z)
-      READ(unit=12,fmt=*,iostat=st) (Indice(i_x,i_z),i_x=1,i_x_max)
-    ENDDO
-    CLOSE(12)
+    PRINT*, 'Specify name of indexfile, or 0 to ignore'
+    READ(5,*) indexfile
+    IF (indexfile.EQ.'0') THEN
+      i_x_max=1
+      i_z_max=1
+      ALLOCATE(xx_mum(i_x_max),zz_mum(i_z_max),Indice(i_x_max,i_z_max))
+      xx_mum(i_x_max)=0.D0
+      zz_mum(i_z_max)=0.D0
+      Indice(i_x_max,i_z_max)=1.D0
+    ELSE
+      OPEN(12,FILE=indexfile,STATUS='UNKNOWN',FORM='FORMATTED')
+      PRINT*, indexfile
+      READ(unit=12,fmt=*,iostat=st) i_x_max, i_z_max
+      PRINT*, i_x_max, i_z_max
+      ALLOCATE(xx_mum(i_x_max),zz_mum(i_z_max),Indice(i_x_max,i_z_max))
+      READ(unit=12,fmt=*,iostat=st) (xx_mum(i_x),i_x=1,i_x_max)
+      DO i_z = 1, i_z_max
+        READ(unit=12,fmt=*,iostat=st) zz_mum(i_z)
+        READ(unit=12,fmt=*,iostat=st) (Indice(i_x,i_z),i_x=1,i_x_max)
+      ENDDO
+      CLOSE(12)
+    ENDIF
   ENDIF
 
   PRINT*, 'indexes:'
