@@ -149,17 +149,19 @@ PROGRAM make_start
   ! Close the file.
   ! CALL h5fclose_f(file_id, error)
 
-  CALL h5lexists_f(file_id,'indexes',exists_h5_refractive_index,error)
+  CALL h5lexists_f(file_id,'refractive_index_table',exists_h5_refractive_index,error)
 
   IF (exists_h5_refractive_index) THEN
     !CALL h5open_f(error)
     !CALL h5fopen_f ("calculated_tables.h5", H5F_ACC_RDWR_F, file_id, error)
-    CALL ask_for_size_1D(file_id, "/indexes/r_vector", i_x_max)
-    CALL ask_for_size_1D(file_id, "/indexes/z_vector", i_z_max)
+    CALL ask_for_size_1D(file_id, "/refractive_index_table/rgrid", i_x_max)
+    CALL ask_for_size_1D(file_id, "/refractive_index_table/zgrid", i_z_max)
     ALLOCATE(xx_mum(i_x_max),zz_mum(i_z_max),Indice(i_x_max,i_z_max))
-    CALL read_dset(file_id, "/indexes/indexes", Indice, i_x_max, i_z_max)
-    CALL read_dset(file_id, "/indexes/r_vector", xx_mum, i_x_max)
-    CALL read_dset(file_id, "/indexes/z_vector", zz_mum, i_z_max)
+    CALL read_dset(file_id, "/refractive_index_table/refractive_index_shift", Indice, i_x_max, i_z_max)
+    CALL read_dset(file_id, "/refractive_index_table/rgrid", xx_mum, i_x_max)
+    CALL read_dset(file_id, "/refractive_index_table/zgrid", zz_mum, i_z_max)
+    ! convert to microns
+    xx_mum = 1.D6*xx_mum; zz_mum = 1.D6*zz_mum
     !CALL h5fclose_f(file_id, error)
     !CALL h5close_f(error)
     PRINT*, 'refractive index loaded from the input hdf5 archive'
@@ -187,6 +189,11 @@ PROGRAM make_start
       CLOSE(12)
     ENDIF
   ENDIF
+	 
+  PRINT*, 'index_rgrid'
+  PRINT*, xx_mum
+  PRINT*, 'index_zgrid'
+  PRINT*, zz_mum
 
   PRINT*, 'indexes:'
   PRINT*, Indice(:,1)
