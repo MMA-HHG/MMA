@@ -4,6 +4,9 @@ PROGRAM make_start
   USE HDF5_helper
 
   IMPLICIT NONE
+  integer :: st
+
+
   PRINT *,"Pre-processor started"
   PRINT*, 'Specify name of parameterfile (HDF5 format)' 
   READ(5,*) filename
@@ -167,16 +170,22 @@ PROGRAM make_start
     !CALL h5fclose_f(file_id, error)
     !CALL h5close_f(error)
   ELSE
-    OPEN(12,FILE=indexfile,STATUS='UNKNOWN',FORM='UNFORMATTED')
-    READ(12) i_x_max, i_z_max
+    OPEN(12,FILE=indexfile,STATUS='UNKNOWN',FORM='FORMATTED')
+    PRINT*, indexfile
+    READ(unit=12,fmt=*,iostat=st) i_x_max, i_z_max
+    PRINT*, i_x_max, i_z_max
     ALLOCATE(xx_mum(i_x_max),zz_mum(i_z_max),Indice(i_x_max,i_z_max))
-    READ(12) (xx_mum(i_x),i_x=1,i_x_max)
+    READ(unit=12,fmt=*,iostat=st) (xx_mum(i_x),i_x=1,i_x_max)
     DO i_z = 1, i_z_max
-      READ(12) zz_mum(i_z)
-      READ(12) (Indice(i_x,i_z),i_x=1,i_x_max)
+      READ(unit=12,fmt=*,iostat=st) zz_mum(i_z)
+      READ(unit=12,fmt=*,iostat=st) (Indice(i_x,i_z),i_x=1,i_x_max)
     ENDDO
     CLOSE(12)
   ENDIF
+
+  PRINT*, 'indexes:'
+  PRINT*, Indice(:,1)
+  PRINT*, Indice(:,2)
 
   PRINT*, 'acdispersion'
 
