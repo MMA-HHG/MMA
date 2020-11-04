@@ -813,7 +813,7 @@ CONTAINS
     eta1 = 2.d0 * z_rayleigh_cm_phys * sigman_phys * NN * ( h * 2.d0 *3.1415 *c/ lambda0_cm_phys)  * rhoabs_cm3_phys * & 
           (Pcr_phys/(4.d0*3.1415))**(NN-1)* w0_cm_phys**(2*(1-NN))                               ! adimensionned coefficient for absorption  
     eta2 = sigman_phys * 1.d-15*tp_fs_phys * ( Pcr_phys /(4.d0*3.1415 *w0_cm_phys**2))**NN       ! adimensionned coefficient for excited molecules 
-     rho0=(rho0_phys)/(rhoc_cm3_phys*n0/(2.D0*z_rayleigh_cm_phys*k0_phys))  !adimensionned initial electron density
+    rho0=(rho0_phys)/(rhoc_cm3_phys*n0/(2.D0*z_rayleigh_cm_phys*k0_phys))  !adimensionned initial electron density
     nu=(sigma_cm2_phys*tp_fs_phys*1.d-15/(w0_cm_phys**2*Ui_eV_phys*1.6d-19))*(Pcr_phys/(4.d0*3.1415))  !adimensionned avalanche coefficient    
     alpha=alpha_fs_phys*tp_fs_phys !adimensionned linear recombination coefficient
     alphaquad=alphaquad_fscm3_phys*tp_fs_phys*(rhoc_cm3_phys*n0/(2*z_rayleigh_cm_phys*k0_phys)) !adimensionned quadratic recombination coefficient
@@ -850,6 +850,8 @@ CONTAINS
     nucO2=2.D-7*rhont_cm3_phys*1.d-15*tp_fs_phys   !factor for adimensionned collision frequency neutrals for O2
     nucN2=2.D-7*rhont_n2_cm3_phys*1.d-15*tp_fs_phys   !factor for adimensionned collision frequency neutrals for N2
     rhoat_N2_inv=rhoc_cm3_phys*n0/(rhont_n2_cm3_phys*2.d0*z_rayleigh_cm_phys*k0_phys) !adimensioned inverse density of neutral N2 molekules
+
+    density_normalisation_factor = (2.D0*z_rayleigh_cm_phys*k0_phys)/(rhoc_cm3_phys*n0)
 
     ALLOCATE(xx(i_x_max),zz(i_z_max),Indice_norm(i_x_max,i_z_max))
     xx = xx_mum*1.D-4/w0_cm_phys

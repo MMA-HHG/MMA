@@ -11,6 +11,7 @@ MODULE write_start
   REAL(8) photon_energy_au_phys,tp_fs_phys,Pcr_phys,w0_cm_phys
   REAL(8) Ui_au_phys,residue_charge,n0,rhoc_cm3_phys,rhont_cm3_phys,reduced_mass
   REAL(8) Ui_au_phys_N2,residue_charge_N2,rhont_N2_cm3_phys
+  REAL(8) density_normalisation_factor
   REAL(8) delta_t, tlo 
   REAL(8), ALLOCATABLE :: xx(:),zz(:),Indice_norm(:,:),real_e(:,:),imag_e(:,:)
   COMPLEX(8), ALLOCATABLE :: e(:,:),e_full(:,:),komega(:)
@@ -137,6 +138,9 @@ CONTAINS
       CALL create_dset(group_id,'rescharge_N2',residue_charge_N2)
       CALL create_dset(group_id,'atomdens_N2',rhont_N2_cm3_phys)
       CALL create_dset(group_id,'angmom_N2',angular_momentum_N2)
+
+      CALL create_dset(group_id,'density_normalisation_factor',density_normalisation_factor)
+
       !r_offset = dim_r_start(num_proc)-1
       efield_factor = SQRT(Pcr_phys*1.D-9*1.D9*3.D8*4.D0*3.1415D-7/(4.D0*3.1415D0*w0_cm_phys**2*1.D-4*2.D0*n0))*2.D0 ! normalization factor electric field V/m
       ALLOCATE(efield_osc(dim_t))

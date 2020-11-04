@@ -86,6 +86,7 @@ CONTAINS
     USE fft
     USE HDF5
     USE HDF5_helper
+    USE pre_ionised
     IMPLICIT NONE
 
     INTEGER(4)  j,k,help,i_x,i_z,k1
@@ -374,15 +375,37 @@ CONTAINS
     CALL read_dset(group_id, "indexes_group/z_vector", zz, i_z_max)
     
     CALL h5gclose_f(group_id, error) ! all pre-processed inputs read
-
+   
+   
+    ! DIRECT INPUTS (it bypasses the pre-processor) 
+    ! normalisation factors
     CALL h5gopen_f(file_id, output_groupname, group_id, error) 
-    CALL read_dset(group_id,'critdens',rhoc_cm3_phys) 
-
-    ! CLOSE HDF5 interface
+    CALL read_dset(group_id,'critdens',rhoc_cm3_phys)     
     CALL h5gclose_f(group_id, error)
+
+
+    ! PREPARATION OF INPUTS
+    ! compute normalization factors
+ 
+    lambdanm = 6.634D-34*3.D17/photon_energy/4.359d-18 ! center wavelength in nm
+    plasma_normalisation_factor_m3 = rhoc_cm3_phys/(4.0d0*PI**2 * (beam_waist**2) / ((lambdanm*1.0D-7)**2 )) ! in cm^(-3)
+    plasma_normalisation_factor_m3 = 1.0D6 * plasma_normalisation_factor_m3 ! in m^(-3)
+    tps = pulse_duration*1.D-15 ! pulse duration in s (tpfs*1.e-15 in octace files)
+    w0m = beam_waist*1.D-2 ! beam width in m (w0cm*1e-2 in octave files)
+    ! n0_indice : refractive index at center frequency (n0 in octave files)
+    ! electric field: REAL(efield_factor*e(:,k)*efield_osc,4) : one temporal profile in GV/m    
+    four_z_Rayleigh = 4.D0*3.1415D0*n0_indice/(lambdanm*1.D-9)*(beam_waist/100.D0)**2 ! 4 times the rayleigh length in m (normalization factor for z)
+    Nz_points = CEILING(proplength/outlength)+1 ! expected number of hdf5 output along z (with safety)
+
+
+    ! pre-ionisation
+    CALL h5lexists_f(file_id,'pre_ionisation',apply_pre_ionisation,error) ! it finds only if it's applied, the rest is fully encapsulated in the module        
+    IF (apply_pre_ionisation) CALL init_pre_ionisation(file_id, pre_ionisation_driver)
+
+    
+    ! CLOSE HDF5 interface (ionisation models will re-open again)
     CALL h5fclose_f(file_id, error)
     CALL h5close_f(error)
-
 
     i_x_old=2
     i_z_old=2
@@ -418,22 +441,6 @@ CONTAINS
     END SELECT
 
     930 FORMAT (I3)
-
-    ! compute normalization factors
- 
-    lambdanm = 6.634D-34*3.D17/photon_energy/4.359d-18 ! center wavelength in nm
-
-    plasma_normalisation_factor_m3 = rhoc_cm3_phys/(4.0d0*PI**2 * (beam_waist**2) / ((lambdanm*1.0D-7)**2 )) ! in cm^(-3)
-    plasma_normalisation_factor_m3 = 1.0D6 * plasma_normalisation_factor_m3 ! in m^(-3)
-
-    tps = pulse_duration*1.D-15 ! pulse duration in s (tpfs*1.e-15 in octace files)
-    w0m = beam_waist*1.D-2 ! beam width in m (w0cm*1e-2 in octave files)
-    ! n0_indice : refractive index at center frequency (n0 in octave files)
-    ! electric field: REAL(efield_factor*e(:,k)*efield_osc,4) : one temporal profile in GV/m    
-    four_z_Rayleigh = 4.D0*3.1415D0*n0_indice/(lambdanm*1.D-9)*(beam_waist/100.D0)**2 ! 4 times the rayleigh length in m (normalization factor for z)
-    Nz_points = CEILING(proplength/outlength)+1 ! expected number of hdf5 output along z (with safety)
-
-   
 
     print *, "subroutine initialize for proc ", ip, " done"
     RETURN

@@ -367,7 +367,11 @@ CONTAINS
        IF (rfil.GT.r) energy_fil_part=energy_fil_part+fluence(l)*REAL(l-1,8)
        delkerr=0.D0
        delkerrp=0.d0
-       rhotemp=rho0
+       IF (apply_pre_ionisation) THEN
+         rhotemp = initial_electron_density(r,z)
+       ELSE
+         rhotemp = 0.D0
+       ENDIF
        rhompi=0.D0
        rho1=0.D0
        rho2=0.D0
@@ -492,7 +496,11 @@ CONTAINS
        e_2=e_2**2
        delkerr=0.D0
        delkerrp=0.d0
-       rhotemp=rho0
+       IF (apply_pre_ionisation) THEN
+         rhotemp = initial_electron_density(r,z)
+       ELSE
+         rhotemp = 0.D0
+       ENDIF
        rhompi=0.D0
        rho1=0.D0
        rho2=0.D0

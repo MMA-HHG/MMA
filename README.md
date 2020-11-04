@@ -2,6 +2,12 @@
 
 This is a nutshell guide of the propagation code, it explains the basics of its operation and main ideas implemented in the code.
 
+
+## NEWS
+`module pre_ionised`: it allows to compute the pre-ionisation. It also encapsulates most of the work in the module and minimal changes are in the main code. Only firs-step changed slightly and on-the-fly calculations.
+
+It introduced structures in the code -O2 compilation claims to ensure alignments in memory.
+
 ## Development
 I commented most of the code. I found that the less readeble are firstep and longstep_rk. It would be nice to rewiritte using helping modules or at least organise.
 
