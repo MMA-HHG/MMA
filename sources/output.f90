@@ -79,7 +79,11 @@ CONTAINS
       e_2=ABS(e(1:dim_t,l))**2
       e_2KK=e_2**KK
       IF (apply_pre_ionisation) THEN
-         rhotemp = initial_electron_density(r,z)
+        IF ( l== dim_r_start(num_proc)) THEN
+          rhotemp = initial_electron_density(r,z,reset_rtip=.TRUE.)
+        ELSE
+          rhotemp = initial_electron_density(r,z)
+        ENDIF
       ELSE
          rhotemp = 0.D0
       ENDIF

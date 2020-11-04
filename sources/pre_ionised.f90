@@ -9,6 +9,7 @@
 
 module pre_ionised
 use HDF5, HDF5_helper
+use array_helper
 use parameters, normalization
 
 implicit none
@@ -55,6 +56,22 @@ subroutine init_pre_ionisation(file_id)
             call read_dset(group_id, 'pre_ionised/zgrid', zgrid, Nz)
             zgrid = zgrid/four_z_Rayleigh ! m -> C.U.
             call read_dset(group_id, 'pre_ionised/table', table_2D, Nr, Nz)
+        case (3)
+            call ask_for_size_1D(group_id, 'pre_ionised/rgrid', Nr)
+            call read_dset(group_id, 'pre_ionised/rgrid', rgrid, Nr)
+            rgrid = rgrid/w0m ! m -> C.U.
+            call ask_for_size_1D(group_id, 'pre_ionised/zgrid', Nz)
+            call read_dset(group_id, 'pre_ionised/zgrid', zgrid, Nz)
+            zgrid = zgrid/four_z_Rayleigh ! m -> C.U.
+            call read_dset(group_id, 'pre_ionised/table', table_2D, Nr, Nz)
+        case (4)
+            call ask_for_size_1D(group_id, 'pre_ionised/rgrid', Nr)
+            call read_dset(group_id, 'pre_ionised/rgrid', rgrid, Nr)
+            rgrid = rgrid/w0m ! m -> C.U.
+            call ask_for_size_1D(group_id, 'pre_ionised/zgrid', Nz)
+            call read_dset(group_id, 'pre_ionised/zgrid', zgrid, Nz)
+            zgrid = zgrid/four_z_Rayleigh ! m -> C.U.
+            call read_dset(group_id, 'pre_ionised/table', table_2D, Nr, Nz)
     end select
 
     if (method_units == 1)  then ! any( table_geometries == method_geometry) eventual condition for extended prescriptions
@@ -65,16 +82,51 @@ subroutine init_pre_ionisation(file_id)
     endif
 end subroutine init_pre_ionisation
 
+
 !
-function initial_electron_density(r,z) ! already rescaled to C.U.
+function initial_electron_density(r,z,reset_rtip) ! already rescaled to C.U.
     real(8)                    :: initial_electron_density
     real(8)                    :: r,z 
-    ! each worker should know its first interpolation guess
+    logical, optional          :: reset_rtip
+    integer                    :: kr,kz    
+
+    logical, save              :: first_run = .true.
+    integer, save              :: my_first_kr_tip
+    integer, save              :: kr_tip, kz_tip
+
+
+    if (first_run) then
+        if ( (method_geometry = 2) .or. (method_geometry = 3) ) then
+            call findinterval(my_first_kr_tip,r,rgrid,Nr) ! obtain tip, assume it's first called at right place
+            kr_tip = my_first_kr_tip
+        endif
+        if ( (method_geometry = 2) .or. (method_geometry = 4) ) kz_tip = 1
+        first_run = .false.
+    endif
+
+    if (present(reset_rtip)) then
+        if ( ( (method_geometry = 2) .or. (method_geometry = 3) ) .and. (reset_rtip) ) kr_tip = my_first_kr_tip
+    else
 
     select case (method_geometry)
         case (1)
             initial_electron_density = rho0;
             return
+        case (2)
+            call findinterval(kr,kz,r,z,rgrid,zgrid,Nr,Nz,kx_tip=kr_tip,ky_tip=kz_tip)
+            kr_tip = kr; kz_tip = kz
+            call interpolate2D_decomposed_eq(kr,kz,r,z,initial_electron_density,rgrid,zgrid,table_2D,Nr,Nz)
+            return
+        case (3)  
+            call findinterval(kr,r,rgrid,Nr,k_tip=kr_tip)
+            kr_tip = kr;
+            call interpolate1D_decomposed_eq(kr,r,initial_electron_density,rgrid,table_1D,Nr)
+            return
+        case (4)   
+            call findinterval(kz,z,zgrid,Nz,k_tip=kz_tip)
+            kz_tip = kz;
+            call interpolate1D_decomposed_eq(kz,z,initial_electron_density,zgrid,table_1D,Nz)
+            return   
     end select
 end function
 
