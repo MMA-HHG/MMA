@@ -12,7 +12,7 @@ INTERFACE findinterval
 END INTERFACE
 
 INTERFACE interpolate_lin
-    procedure interpolate_lin1D, interpolate_lin2D
+    procedure interpolate1D_lin, interpolate2D_lin
 END INTERFACE
 
 

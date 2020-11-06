@@ -15,7 +15,7 @@
   TEST_ARRAY	   = test_array.e
   S_TEST_ARRAY       = ../sources/array_helper.f90 test_arrays.f90
 
-  TEST_ARRAY2	   = test_array.e
+  TEST_ARRAY2	   = test_interp.e
   S_TEST_ARRAY2       = ../sources/array_helper.f90 test_interps.f90
 
 
@@ -27,6 +27,9 @@ linked_list : linked_list_module.f90
 
 $(TEST_ARRAY) : $(S_TEST_ARRAY)
 	${F90} -o $(TEST_ARRAY) $(S_TEST_ARRAY) ${FMFLAGS} ${LFLAGS}
+
+$(TEST_ARRAY2) : $(S_TEST_ARRAY2)
+	${F90} -o $(TEST_ARRAY2) $(S_TEST_ARRAY2) ${FMFLAGS} ${LFLAGS}
 
 
 #      Utilities
