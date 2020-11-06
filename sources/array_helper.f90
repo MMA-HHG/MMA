@@ -3,7 +3,7 @@ module array_helper
 
 implicit none
 private
-public  :: findinterval
+public  :: findinterval, interpolate_lin
 public  :: interpolate1D_decomposed_eq
 public  :: interpolate2D_decomposed_eq
 
@@ -11,8 +11,12 @@ INTERFACE findinterval
     procedure findinterval_1D, findinterval_2D
 END INTERFACE
 
+INTERFACE interpolate_lin
+    procedure interpolate_lin1D, interpolate_lin2D
+END INTERFACE
 
-contains
+
+CONTAINS
 
 subroutine findinterval_1D(k1,x0,x,n,k_tip) ! returns interval where is placed x value, if it is out of the range, 0 is used
 !intervals are ordered: <..)<..)<..)...<..>
@@ -21,11 +25,11 @@ subroutine findinterval_1D(k1,x0,x,n,k_tip) ! returns interval where is placed x
 	real(8), intent(in)                 :: x0, x(n)
  	integer,optional       :: k_tip
 
-	integer :: k2, length;
-
+    integer :: k2, length;
    
+    ! check boundary cases
     if (x0 >= x(n)) then
-	if (x0 == x(n)) then
+	    if (x0 == x(n)) then
             k1 = n-1
         else
             k1 = n
@@ -35,12 +39,11 @@ subroutine findinterval_1D(k1,x0,x,n,k_tip) ! returns interval where is placed x
         k1 = 0
         return
     endif
-	
-	!k2 = n
-	if (present(k_tip)) then
+
+    ! procedure with doubling the interval using initial tip
+    if (present(k_tip)) then
         k1 = k_tip
         length = 1
-!print *, 'test'
         if ( x0 >= x(k_tip) ) then
             k2 = k_tip + length
             do while ( x(k2) <= x0 )
@@ -72,25 +75,7 @@ subroutine findinterval_1D(k1,x0,x,n,k_tip) ! returns interval where is placed x
         endif
         length = k2 - k1
     enddo
-    
 
-    !     if ( x < x_grid(1) ) then
-    !             k1 = 0;
-    !             k2= 1;
-    !             return;
-    !     endif
-
-    !     do i = 1 , (n-1)
-    !         if ( x <= x_grid(i+1) ) then
-    !             k1 = i;
-    !             k2= i+1;
-    !             return;
-    !         endif
-    !     enddo
-
- 	! k1=n; k2=0;
-
-	! !write(*,*) "error in the interval subroutine"
 end subroutine findinterval_1D
 
 
@@ -100,7 +85,6 @@ subroutine findinterval_2D(kx,ky,x0,y0,x,y,Nx,Ny,kx_tip,ky_tip) ! returns interv
     integer, intent(in)                 :: Nx,Ny
 	real(8), intent(in)                 :: x0, y0, x(Nx), y(Ny)
  	integer, intent(in), optional       :: kx_tip, ky_tip
-
 	
 	if (present(kx_tip)) then
         call findinterval_1D(kx,x0,x,Nx, k_tip=kx_tip)
@@ -174,6 +158,28 @@ subroutine interpolate1D_decomposed_eq(k,x,fx,xgrid,fxgrid,n,tol) !inputs: # of 
 
 end subroutine interpolate1D_decomposed_eq
 
+subroutine interpolate1D_lin(x,fx,xgrid,fxgrid,n,tol,k_tip) !inputs: # of points, x(n), y(x(n)), x, returns y(x) (linearinterpolation), extrapolation by the boundary values
+	real(8), intent(out)    :: fx
+    integer, intent(in)     :: n
+	real(8), intent(in)     :: x, xgrid(n), fxgrid(n)	
+    real(8), optional       :: tol
+    integer, optional       :: k_tip
+
+    integer                 :: k1
+    
+    if (present(k_tip)) then
+        call findinterval_1D(k1,x,xgrid,n,k_tip=k_tip)
+    else
+        call findinterval_1D(k1,x,xgrid,n)
+    endif
+
+    if (present(tol)) then
+        call interpolate1D_decomposed_eq(k1,x,fx,xgrid,fxgrid,n,tol=tol)
+    else
+        call interpolate1D_decomposed_eq(k1,x,fx,xgrid,fxgrid,n)
+    endif
+
+end subroutine interpolate1D_lin
 
 subroutine interpolate2D_decomposed_eq(kx,ky,x,y,fxy,xgrid,ygrid,fxygrid,Nx,Ny) !inputs: # of points, x(n), y(x(n)), x, returns y(x) (linearinterpolation), extrapolation by the boundary values
 	real(8), intent(out)    :: fxy
@@ -184,7 +190,7 @@ subroutine interpolate2D_decomposed_eq(kx,ky,x,y,fxy,xgrid,ygrid,fxygrid,Nx,Ny) 
     real(8)                     :: fx1,fx2
 
 
-    ! first interpolate in 
+    ! first interpolate in y, then interpolate in x
 
     ! the same decision logic in x, encapsulates y
     if ( (kx>1) .and. ( kx< Nx ) ) then
@@ -220,6 +226,26 @@ subroutine interpolate2D_decomposed_eq(kx,ky,x,y,fxy,xgrid,ygrid,fxygrid,Nx,Ny) 
 
 end subroutine interpolate2D_decomposed_eq
 
+subroutine interpolate2D_lin(x,y,fxy,xgrid,ygrid,fxygrid,Nx,Ny,kx_tip,ky_tip) !inputs: # of points, x(n), y(x(n)), x, returns y(x) (linearinterpolation), extrapolation by the boundary values
+	real(8), intent(out)                :: fxy
+    integer, intent(in)                 :: Nx,Ny
+	real(8), intent(in)                 :: x,y,xgrid(Nx),ygrid(Ny),fxygrid(Nx,Ny)
+    integer, intent(in), optional       :: kx_tip, ky_tip
 
+    integer                 :: k1, k2
+    
+    if (present(kx_tip) .and. present(ky_tip)) then
+        call findinterval_2D(k1,k2,x,y,xgrid,ygrid,Nx,Ny,kx_tip=kx_tip,ky_tip=ky_tip)
+    elseif (present(kx_tip) .and. not(present(ky_tip))) then
+        call findinterval_2D(k1,k2,x,y,xgrid,ygrid,Nx,Ny,kx_tip=kx_tip)
+    elseif (present(ky_tip)) then
+        call findinterval_2D(k1,k2,x,y,xgrid,ygrid,Nx,Ny,ky_tip=ky_tip)
+    else
+        call findinterval_2D(k1,k2,x,y,xgrid,ygrid,Nx,Ny)
+    endif
+
+    call interpolate2D_decomposed_eq(k1,k2,x,y,fxy,xgrid,ygrid,fxygrid,Nx,Ny)
+
+end subroutine interpolate2D_lin
 
 end module array_helper

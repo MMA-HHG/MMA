@@ -15,6 +15,9 @@
   TEST_ARRAY	   = test_array.e
   S_TEST_ARRAY       = ../sources/array_helper.f90 test_arrays.f90
 
+  TEST_ARRAY2	   = test_array.e
+  S_TEST_ARRAY2       = ../sources/array_helper.f90 test_interps.f90
+
 
 #       Make definition
 #
@@ -39,4 +42,6 @@ binary :
 clean_preprocessor :
 	rm -f listing STOP *.DAT *.LOG
 #
-test : $(TEST_ARRAY) # binary # clean
+test_find : $(TEST_ARRAY) # binary # clean
+
+test_interp : $(TEST_ARRAY2) # binary # clean
