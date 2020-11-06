@@ -16,28 +16,32 @@ contains
 
 subroutine findinterval_1D(k1,x0,x,n,k_tip) ! returns interval where is placed x value, if it is out of the range, 0 is used
 !intervals are ordered: <..)<..)<..)...<..>
-    integer, intent(out)                :: k1
-    integer, intent(in)                 :: n
-	real(8), intent(in)                 :: x0, x(n)
- 	integer, intent(in), optional       :: k_tip
+    integer               :: k1
+    integer                :: n
+	real(8)                :: x0, x(n)
+ 	integer,optional       :: k_tip
 
-	integer :: k2, len;
+	integer :: k2, length;
 	
+	!k2 = n
 	if (present(k_tip)) then
-        len = 1
-        if ( x0 >= x(k_tip) )
-            k2 = k_tip + len
+        k1 = k_tip
+        length = 1
+!print *, 'test'
+        if ( x0 >= x(k_tip) ) then
+            k2 = k_tip + length
             do while ( x(k2) <= x0 )
                 k1 = k2
-                len = 2*len
-                k2 = min(k_tip+len,n)
+                length = 2*length
+                k2 = min(k_tip+length,n)
             enddo
         else
-            k1 = k_tip - len
+            k2 = k1
+            k1 = k_tip - length
             do while ( x(k1) > x0)
                 k2 = k1
-                len = 2*len
-                k1 = max(k_tip-len,1)
+                length = 2*length
+                k1 = max(k_tip-length,1)
             enddo
         endif
     else
@@ -46,14 +50,14 @@ subroutine findinterval_1D(k1,x0,x,n,k_tip) ! returns interval where is placed x
     endif
 
     ! bisection
-    len = k2-k1
-    do while (len > 1)
-        if ( x0 < x(k1 + (len/2)) ) then
-            k2 = k1 + (len/2)
+    length = k2-k1
+    do while (length > 1)
+        if ( x0 < x(k1 + (length/2)) ) then
+            k2 = k1 + (length/2)
         else
-            k1 = k1 + (len/2)
+            k1 = k1 + (length/2)
         endif
-        len = k2 - k1
+        length = k2 - k1
     enddo
     
 
@@ -88,13 +92,13 @@ subroutine findinterval_2D(kx,ky,x0,y0,x,y,Nx,Ny,kx_tip,ky_tip) ! returns interv
 	if (present(kx_tip)) then
         call findinterval_1D(kx,x0,x,Nx, k_tip=kx_tip)
     else
-        call findinterval_1D(kx,x0,x,Nx)
+        !call findinterval_1D(kx,x0,x,Nx)
     endif
 
     if (present(ky_tip)) then
         call findinterval_1D(ky,y0,y,Ny, k_tip=ky_tip)
     else
-        call findinterval_1D(ky,y0,y,Ny)
+        !call findinterval_1D(ky,y0,y,Ny)
     endif
 
 end subroutine findinterval_2D
@@ -155,13 +159,16 @@ end subroutine interpolate1D_decomposed_eq
 subroutine interpolate2D_decomposed_eq(kx,ky,x,y,fxy,xgrid,ygrid,fxygrid,Nx,Ny) !inputs: # of points, x(n), y(x(n)), x, returns y(x) (linearinterpolation), extrapolation by the boundary values
 	real(8), intent(out)    :: fxy
     integer, intent(in)     :: kx,ky,Nx,Ny
-	real(8), intent(in)     :: x,y,xgrid(Nx),ygrid(Ny),fxygrid(Nx,Ny)	
+	real(8), intent(in)     :: x,y,xgrid(Nx),ygrid(Ny),fxygrid(Nx,Ny)
+
+    real(8), parameter          :: eps = EPSILON(1.D0)
+    real(8)                     :: fx1,fx2
 
 
     ! first interpolate in 
 
     ! the same decision logic in x, encapsulates y
-    if ( (kx>1) .and. ( kx<n ) ) then
+    if ( (kx>1) .and. ( kx< Nx ) ) then
         if ( abs(xgrid(kx)-xgrid(kx-1)) < eps  ) then
             call interpolate1D_decomposed_eq(ky,y,fxy,ygrid,fxygrid(kx-1,:),  Ny)
             return
@@ -170,11 +177,11 @@ subroutine interpolate2D_decomposed_eq(kx,ky,x,y,fxy,xgrid,ygrid,fxygrid,Nx,Ny) 
             return
         else
             call interpolate1D_decomposed_eq(ky,y,fx1,ygrid,fxygrid(kx,:),  Ny)
-            call interpolate1D_decomposed_eq(ky,y,fx1,ygrid,fxygrid(kx+1,:),Ny)
-            fxy = fx1+(x-xgrid(k))*(fx2-fx1)/(xgrid(kx+1)-xgrid(kx))
+            call interpolate1D_decomposed_eq(ky,y,fx2,ygrid,fxygrid(kx+1,:),Ny)
+            fxy = fx1+(x-xgrid(kx))*(fx2-fx1)/(xgrid(kx+1)-xgrid(kx))
             return
         endif
-    elseif (kx==n) then
+    elseif (kx==Nx) then
         call interpolate1D_decomposed_eq(ky,y,fxy,ygrid,fxygrid(Nx,:),  Ny)
         return
     elseif (kx==0) then
@@ -186,8 +193,8 @@ subroutine interpolate2D_decomposed_eq(kx,ky,x,y,fxy,xgrid,ygrid,fxygrid,Nx,Ny) 
             return
         else
             call interpolate1D_decomposed_eq(ky,y,fx1,ygrid,fxygrid(1,:),Ny)
-            call interpolate1D_decomposed_eq(ky,y,fx1,ygrid,fxygrid(2,:),Ny)
-            fxy = fx1+(x-xgrid(k))*(fx2-fx1)/(xgrid(kx+1)-xgrid(kx))
+            call interpolate1D_decomposed_eq(ky,y,fx2,ygrid,fxygrid(2,:),Ny)
+            fxy = fx1+(x-xgrid(kx))*(fx2-fx1)/(xgrid(kx+1)-xgrid(kx))
             return
         endif
     endif

@@ -23,7 +23,7 @@ linked_list : linked_list_module.f90
 
 
 $(TEST_ARRAY) : $(S_TEST_ARRAY)
-	${F90} -o $(MAKE_START) $(S_MAKE_START) ${FFTPATH} ${FMFLAGS} ${LFLAGS}
+	${F90} -o $(TEST_ARRAY) $(S_TEST_ARRAY) ${FMFLAGS} ${LFLAGS}
 
 
 #      Utilities
