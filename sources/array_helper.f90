@@ -16,12 +16,25 @@ contains
 
 subroutine findinterval_1D(k1,x0,x,n,k_tip) ! returns interval where is placed x value, if it is out of the range, 0 is used
 !intervals are ordered: <..)<..)<..)...<..>
-    integer               :: k1
-    integer                :: n
-	real(8)                :: x0, x(n)
+    integer, intent(out)                :: k1
+    integer, intent(in)                 :: n
+	real(8), intent(in)                 :: x0, x(n)
  	integer,optional       :: k_tip
 
 	integer :: k2, length;
+
+   
+    if (x0 >= x(n)) then
+	if (x0 == x(n)) then
+            k1 = n-1
+        else
+            k1 = n
+        endif
+        return
+    elseif (x0 < x(1)) then
+        k1 = 0
+        return
+    endif
 	
 	!k2 = n
 	if (present(k_tip)) then
@@ -92,13 +105,13 @@ subroutine findinterval_2D(kx,ky,x0,y0,x,y,Nx,Ny,kx_tip,ky_tip) ! returns interv
 	if (present(kx_tip)) then
         call findinterval_1D(kx,x0,x,Nx, k_tip=kx_tip)
     else
-        !call findinterval_1D(kx,x0,x,Nx)
+        call findinterval_1D(kx,x0,x,Nx)
     endif
 
     if (present(ky_tip)) then
         call findinterval_1D(ky,y0,y,Ny, k_tip=ky_tip)
     else
-        !call findinterval_1D(ky,y0,y,Ny)
+        call findinterval_1D(ky,y0,y,Ny)
     endif
 
 end subroutine findinterval_2D
@@ -110,9 +123,15 @@ subroutine interpolate1D_decomposed_eq(k,x,fx,xgrid,fxgrid,n,tol) !inputs: # of 
     integer, intent(in)     :: k,n
 	real(8), intent(in)     :: x, xgrid(n), fxgrid(n)	
     real(8), optional       :: tol
-    real(8)                 :: eps = EPSILON(1.D0)
+    real(8), parameter      :: eps_def = EPSILON(1.D0) ! definition here invokes save attribute
+    real(8)                 :: eps
+    
 
-    if (present(tol)) eps = tol
+    if (present(tol)) then
+        eps = tol
+    else
+        eps = eps_def
+    endif
 
 
     if ( (k>1) .and. ( k<n ) ) then

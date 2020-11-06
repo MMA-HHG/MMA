@@ -12,9 +12,65 @@ PROGRAM test_modules
 
   print *,"Series of tests of the array procedures"
 
-  k1 = 0
+  
   print *, default_array
-  call findinterval(k1,56.5D0,default_array,Np,57)
+  print *,"notip"
+  call findinterval(k1,-1.0D0,default_array,Np)
   print *, k1
+  call findinterval(k1,1.0D0,default_array,Np)
+  print *, k1
+  call findinterval(k1,1.5D0,default_array,Np)
+  print *, k1
+  call findinterval(k1,2.0D0,default_array,Np)
+  print *, k1
+  call findinterval(k1,2.5D0,default_array,Np)
+  print *, k1
+  call findinterval(k1,2.999D0,default_array,Np)
+  print *, k1
+  call findinterval(k1,3.5D0,default_array,Np)
+  print *, k1
+  call findinterval(k1,57.5D0,default_array,Np)
+  print *, k1
+  call findinterval(k1,99.1D0,default_array,Np)
+  print *, k1
+  call findinterval(k1,100.0D0,default_array,Np)
+  print *, k1
+  call findinterval(k1,101.0D0,default_array,Np)
+  print *, k1
+
+  print *,"tip"
+  call findinterval(k1,-1.0D0,default_array,Np, k_tip = 50)
+  print *, k1
+  call findinterval(k1,1.0D0,default_array,Np, k_tip = 50)
+  print *, k1
+  call findinterval(k1,1.5D0,default_array,Np, k_tip = 50)
+  print *, k1
+  call findinterval(k1,2.0D0,default_array,Np, k_tip = 50)
+  print *, k1
+  call findinterval(k1,2.5D0,default_array,Np, k_tip = 50)
+  print *, k1
+  call findinterval(k1,2.999D0,default_array,Np, k_tip = 50)
+  print *, k1
+  call findinterval(k1,3.5D0,default_array,Np, k_tip = 50)
+  print *, k1
+  call findinterval(k1,57.5D0,default_array,Np, k_tip = 50)
+  print *, k1
+  call findinterval(k1,99.1D0,default_array,Np, k_tip = 50)
+  print *, k1
+  call findinterval(k1,100.0D0,default_array,Np, k_tip = 50)
+  print *, k1
+  call findinterval(k1,101.0D0,default_array,Np, k_tip = 50)
+  print *, k1
+
+  print *,"2D"
+  call findinterval(k1,k2,1.5D0,3.5D0,default_array,default_array,Np,Np)
+  print *, k1, k2
+  call findinterval(k1,k2,1.5D0,3.5D0,default_array,default_array,Np,Np,kx_tip=25)
+  print *, k1, k2
+  call findinterval(k1,k2,1.5D0,3.5D0,default_array,default_array,Np,Np,ky_tip=25)
+  print *, k1, k2
+  call findinterval(k1,k2,1.5D0,3.5D0,default_array,default_array,Np,Np,kx_tip=25,ky_tip=75)
+  print *, k1, k2
+
 
 END PROGRAM test_modules
