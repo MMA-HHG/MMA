@@ -12,9 +12,11 @@ use HDF5, HDF5_helper
 use array_helper
 use parameters, normalization
 
+use mpi_stuff ! only for testing ot print procnumber etc., remove after
+
 implicit none
 private
-public  :: init_pre_ionisation, initial_electron_density
+public  :: init_pre_ionisation, initial_electron_density, initial_electron_density_tip
 
 
 logical, public                         :: apply_pre_ionisation
@@ -34,6 +36,8 @@ subroutine init_pre_ionisation(file_id)
     integer(hid_t)              :: file_id
     real(8)                     :: dumr
 
+    print *, 'pre-inoisation accessed, proc', my_rank
+
     call read_dset(file_id, 'pre_ionised/method_geometry',method_geometry)
     select case (method_geometry)
         case (1)
@@ -41,6 +45,7 @@ subroutine init_pre_ionisation(file_id)
                 call read_dset(file_id, 'pre-processed/rhoat_inv',dumr) ! inverse of the neutrals density, C.U.
                 call read_dset(file_id, 'pre_ionised/initial_electrons_ratio',rho0)
                 rho0 = rho0/dumr ! C.U.
+                print *, 'the initial density is',rho0, 'proc' my_rank
                 return
             elseif (method_units == 2) then
                 call read_dset(file_id, 'pre-processed/density_normalisation_factor',dumr) ! conversion factor (cm-3 -> C.U.)
@@ -60,18 +65,12 @@ subroutine init_pre_ionisation(file_id)
             call ask_for_size_1D(group_id, 'pre_ionised/rgrid', Nr)
             call read_dset(group_id, 'pre_ionised/rgrid', rgrid, Nr)
             rgrid = rgrid/w0m ! m -> C.U.
-            call ask_for_size_1D(group_id, 'pre_ionised/zgrid', Nz)
-            call read_dset(group_id, 'pre_ionised/zgrid', zgrid, Nz)
-            zgrid = zgrid/four_z_Rayleigh ! m -> C.U.
-            call read_dset(group_id, 'pre_ionised/table', table_2D, Nr, Nz)
+            call read_dset(group_id, 'pre_ionised/table', table_1D, Nr)
         case (4)
-            call ask_for_size_1D(group_id, 'pre_ionised/rgrid', Nr)
-            call read_dset(group_id, 'pre_ionised/rgrid', rgrid, Nr)
-            rgrid = rgrid/w0m ! m -> C.U.
             call ask_for_size_1D(group_id, 'pre_ionised/zgrid', Nz)
             call read_dset(group_id, 'pre_ionised/zgrid', zgrid, Nz)
             zgrid = zgrid/four_z_Rayleigh ! m -> C.U.
-            call read_dset(group_id, 'pre_ionised/table', table_2D, Nr, Nz)
+            call read_dset(group_id, 'pre_ionised/table', table_1D, Nz)
     end select
 
     if (method_units == 1)  then ! any( table_geometries == method_geometry) eventual condition for extended prescriptions
@@ -94,6 +93,10 @@ function initial_electron_density(r,z,reset_rtip) ! already rescaled to C.U.
     integer, save              :: my_first_kr_tip
     integer, save              :: kr_tip, kz_tip
 
+    if (method_geometry == 1) then
+        initial_electron_density = rho0;
+        return
+    endif
 
     if (first_run) then
         if ( (method_geometry = 2) .or. (method_geometry = 3) ) then
@@ -109,9 +112,6 @@ function initial_electron_density(r,z,reset_rtip) ! already rescaled to C.U.
     else
 
     select case (method_geometry)
-        case (1)
-            initial_electron_density = rho0;
-            return
         case (2)
             call findinterval(kr,kz,r,z,rgrid,zgrid,Nr,Nz,kx_tip=kr_tip,ky_tip=kz_tip)
             kr_tip = kr; kz_tip = kz
@@ -128,6 +128,19 @@ function initial_electron_density(r,z,reset_rtip) ! already rescaled to C.U.
             call interpolate1D_decomposed_eq(kz,z,initial_electron_density,zgrid,table_1D,Nz)
             return   
     end select
+end function
+
+function initial_electron_density_tip(r,z,k_actual,k_first) 
+    real(8)                    :: initial_electron_density_tip
+    real(8)                    :: r,z 
+    integer                    :: k_actual,k_first
+
+    if ( k_actual == k_first) then
+        initial_electron_density_tip = initial_electron_density(r,z,reset_rtip=.TRUE.)
+    else
+        initial_electron_density_tip = initial_electron_density(r,z)
+    endif
+
 end function
 
 

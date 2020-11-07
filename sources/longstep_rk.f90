@@ -368,11 +368,7 @@ CONTAINS
        delkerr=0.D0
        delkerrp=0.d0
       IF (apply_pre_ionisation) THEN
-        IF ( l== dim_r_start(num_proc)) THEN
-          rhotemp = initial_electron_density(r,z,reset_rtip=.TRUE.)
-        ELSE
-          rhotemp = initial_electron_density(r,z)
-        ENDIF
+         rhotemp = initial_electron_density_tip(r,z,l,dim_r_start(num_proc))
       ELSE
          rhotemp = 0.D0
       ENDIF
@@ -501,11 +497,7 @@ CONTAINS
        delkerr=0.D0
        delkerrp=0.d0
       IF (apply_pre_ionisation) THEN
-        IF ( l== dim_r_start(num_proc)) THEN
-          rhotemp = initial_electron_density(r,z,reset_rtip=.TRUE.)
-        ELSE
-          rhotemp = initial_electron_density(r,z)
-        ENDIF
+         rhotemp = initial_electron_density_tip(r,z,l,dim_r_start(num_proc))
       ELSE
          rhotemp = 0.D0
       ENDIF
