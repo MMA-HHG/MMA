@@ -396,7 +396,7 @@ CONTAINS
           IF (switch_rho.EQ.7) THEN
              phase_p=(c3i*e_2(j)+c3d*delkerr)*((1.D0-rhoO2*rhoat_inv)/3.D0+2.D0*(1.D0-rhoN2*rhoat_N2_inv)/3.D0)*delta_zh
           ELSE
-             phase_p=(c3i*e_2(j)+c3d*delkerr-c5*e_2(j)**2)*((1.D0-rhotemp*rhoat_inv)+rhotemp*rhoat_inv/3.0d0)*delta_zh
+             phase_p=(c3i*e_2(j)+c3d*delkerr-c5*e_2(j)**2)*((1.D0-rhotemp*rhoat_inv)+ions_Kerr_ratio*rhotemp*rhoat_inv)*delta_zh
           ENDIF
           phase_j=-gamma2*rhotemp*delta_zh
           losses_j=-gamma1*rhotemp*delta_zh
@@ -522,7 +522,7 @@ CONTAINS
           IF (switch_rho.EQ.7) THEN
              phase_p=(c3i*e_2(j)+c3d*delkerr)*((1.D0-rhoO2*rhoat_inv)/3.D0+2.D0*(1.D0-rhoN2*rhoat_N2_inv)/3.D0)*delta_z
           ELSE
-             phase_p=(c3i*e_2(j)+c3d*delkerr-c5*e_2(j)**2)*((1.D0-rhotemp*rhoat_inv)+rhotemp*rhoat_inv/3.0d0)*delta_z
+             phase_p=(c3i*e_2(j)+c3d*delkerr-c5*e_2(j)**2)*((1.D0-rhotemp*rhoat_inv)+ions_Kerr_ratio*rhotemp*rhoat_inv)*delta_z
           ENDIF
 !          phase_p=(c3i*e_2(j)+c3d*delkerr-c5*e_2(j)**2)*delta_z
           phase_j=-gamma2*rhotemp*delta_z

@@ -132,6 +132,14 @@ CONTAINS
 ! OPEN HDF5 interface
     CALL h5open_f(error) 
     CALL h5fopen_f (hdf5_input, H5F_ACC_RDONLY_F, file_id, error)
+
+    ! direct code inputs
+    CALL h5gopen_f(file_id, input_groupname, group_id, error) 
+   ! CALL read_dset(group_id, 'ionised_atoms_relative_Kerr_response', ions_Kerr_ratio) 
+    CALL h5gclose_f(group_id, error) ! all pre-processed inputs read
+    ions_Kerr_ratio = 1.D0/3.D0
+
+    ! inputs from the pre-processor
     CALL h5gopen_f(file_id, output_groupname, group_id, error) 
     CALL read_dset(group_id, 'num_proc', num_proc)
     CALL read_dset(group_id, 'dim_t', dim_t)

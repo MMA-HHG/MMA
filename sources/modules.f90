@@ -39,6 +39,7 @@ MODULE parameters
   REAL(8) :: alpha1,alpha2,alphah,rhosat
   REAL(8)    :: xdk,tdk,raman, expt1,expt2,expt3,expt4,expt1p,expt2p,expt3p,expt4p,c3i,c3d
   INTEGER(4) :: switch_dKerr
+  REAL(8)    :: ions_Kerr_ratio
   REAL(8) timelimit
   INTEGER(4) :: dim_th,count,i_x_old,i_z_old
   REAL(8)    :: tlo,lt,lr

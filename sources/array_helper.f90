@@ -54,19 +54,18 @@ subroutine findinterval_1D(k1,x0,x,n,k_tip) ! returns interval where is placed x
         else
             k2 = k1
             k1 = k_tip - length
-            do while ( x(k1) > x0)
+            do while ( x(k1) > x0 )
                 k2 = k1
                 length = 2*length
                 k1 = max(k_tip-length,1)
             enddo
         endif
+        length = k2-k1
     else
-        k1 = 0
-        k2 = n
+        length = n
     endif
 
-    ! bisection
-    length = k2-k1
+    ! bisection    
     do while (length > 1)
         if ( x0 < x(k1 + (length/2)) ) then
             k2 = k1 + (length/2)

@@ -1,4 +1,4 @@
 
-method_geometry	I	-	1
-method_units	I	-	1
-initial_electrons_ratio	R	-	0.04
+method_geometry	1	I	-
+method_units	1	I	-
+initial_electrons_ratio	0.04	R	-
