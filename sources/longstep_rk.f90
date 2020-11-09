@@ -293,6 +293,7 @@ CONTAINS
     USE ll_data
     USE ppt
     USE normalization
+    USE pre_ionised
     IMPLICIT NONE
 
     INTEGER(4) j,l,k,k1

@@ -19,6 +19,7 @@ MODULE output
   USE normalization
   USE HDF5
   USE HDF5_helper
+  USE pre_ionised
 CONTAINS
   
   SUBROUTINE write_output

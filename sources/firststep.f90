@@ -408,7 +408,7 @@ CONTAINS
 
     ! pre-ionisation
     CALL h5lexists_f(file_id,'pre_ionisation',apply_pre_ionisation,error) ! it finds only if it's applied, the rest is fully encapsulated in the module        
-    IF (apply_pre_ionisation) CALL init_pre_ionisation(file_id, pre_ionisation_driver)
+    IF (apply_pre_ionisation) CALL init_pre_ionisation(file_id)
 
     
     ! CLOSE HDF5 interface (ionisation models will re-open again)

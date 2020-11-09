@@ -8,9 +8,11 @@
 ! It replaces the original rho0 in the code
 
 module pre_ionised
-use HDF5, HDF5_helper
+use HDF5
+use HDF5_helper
 use array_helper
-use parameters, normalization
+use parameters
+use normalization
 
 use mpi_stuff ! only for testing ot print procnumber etc., remove after
 
@@ -26,9 +28,9 @@ real(8), dimension(:), allocatable      :: rgrid
 real(8), dimension(:), allocatable      :: zgrid
 real(8), dimension(:,:), allocatable    :: table_2D
 real(8), dimension(:), allocatable      :: table_1D
-real(8)                                 :: rho0
-integer, parameter, dimension(3)        :: table_geometries = (\2,3,4\)
-integer, parameter, dimension(2)        :: table_1D_geometries = (\3,4\)
+real(8)                                 :: rho0_loc ! there is rho0 in the global scope (parameters)
+integer, parameter, dimension(3)        :: table_geometries = (/2,3,4/)
+integer, parameter, dimension(2)        :: table_1D_geometries = (/3,4/)
 
 CONTAINS
 ! preparation
@@ -43,34 +45,34 @@ subroutine init_pre_ionisation(file_id)
         case (1)
             if (method_units == 1) then
                 call read_dset(file_id, 'pre-processed/rhoat_inv',dumr) ! inverse of the neutrals density, C.U.
-                call read_dset(file_id, 'pre_ionised/initial_electrons_ratio',rho0)
-                rho0 = rho0/dumr ! C.U.
-                print *, 'the initial density is',rho0, 'proc' my_rank
+                call read_dset(file_id, 'pre_ionised/initial_electrons_ratio',rho0_loc)
+                rho0_loc = rho0_loc/dumr ! C.U.
+                print *, 'the initial density is',rho0_loc, 'proc', my_rank
                 return
             elseif (method_units == 2) then
                 call read_dset(file_id, 'pre-processed/density_normalisation_factor',dumr) ! conversion factor (cm-3 -> C.U.)
-                call read_dset(file_id, 'pre_ionised/initial_electron_density',rho0) ! in cm-3
-                rho0 = dumr*rho0 ! C.U.
+                call read_dset(file_id, 'pre_ionised/initial_electron_density',rho0_loc) ! in cm-3
+                rho0_loc = dumr*rho0_loc ! C.U.
                 return
             endif
         case (2)
-            call ask_for_size_1D(group_id, 'pre_ionised/rgrid', Nr)
-            call read_dset(group_id, 'pre_ionised/rgrid', rgrid, Nr)
+            call ask_for_size_1D(file_id, 'pre_ionised/rgrid', Nr)
+            call read_dset(file_id, 'pre_ionised/rgrid', rgrid, Nr)
             rgrid = rgrid/w0m ! m -> C.U.
-            call ask_for_size_1D(group_id, 'pre_ionised/zgrid', Nz)
-            call read_dset(group_id, 'pre_ionised/zgrid', zgrid, Nz)
+            call ask_for_size_1D(file_id, 'pre_ionised/zgrid', Nz)
+            call read_dset(file_id, 'pre_ionised/zgrid', zgrid, Nz)
             zgrid = zgrid/four_z_Rayleigh ! m -> C.U.
-            call read_dset(group_id, 'pre_ionised/table', table_2D, Nr, Nz)
+            call read_dset(file_id, 'pre_ionised/table', table_2D, Nr, Nz)
         case (3)
-            call ask_for_size_1D(group_id, 'pre_ionised/rgrid', Nr)
-            call read_dset(group_id, 'pre_ionised/rgrid', rgrid, Nr)
+            call ask_for_size_1D(file_id, 'pre_ionised/rgrid', Nr)
+            call read_dset(file_id, 'pre_ionised/rgrid', rgrid, Nr)
             rgrid = rgrid/w0m ! m -> C.U.
-            call read_dset(group_id, 'pre_ionised/table', table_1D, Nr)
+            call read_dset(file_id, 'pre_ionised/table', table_1D, Nr)
         case (4)
-            call ask_for_size_1D(group_id, 'pre_ionised/zgrid', Nz)
-            call read_dset(group_id, 'pre_ionised/zgrid', zgrid, Nz)
+            call ask_for_size_1D(file_id, 'pre_ionised/zgrid', Nz)
+            call read_dset(file_id, 'pre_ionised/zgrid', zgrid, Nz)
             zgrid = zgrid/four_z_Rayleigh ! m -> C.U.
-            call read_dset(group_id, 'pre_ionised/table', table_1D, Nz)
+            call read_dset(file_id, 'pre_ionised/table', table_1D, Nz)
     end select
 
     if (method_units == 1)  then ! any( table_geometries == method_geometry) eventual condition for extended prescriptions
@@ -94,22 +96,22 @@ function initial_electron_density(r,z,reset_rtip) ! already rescaled to C.U.
     integer, save              :: kr_tip, kz_tip
 
     if (method_geometry == 1) then
-        initial_electron_density = rho0;
+        initial_electron_density = rho0_loc;
         return
     endif
 
     if (first_run) then
-        if ( (method_geometry = 2) .or. (method_geometry = 3) ) then
+        if ( (method_geometry == 2) .or. (method_geometry == 3) ) then
             call findinterval(my_first_kr_tip,r,rgrid,Nr) ! obtain tip, assume it's first called at right place
             kr_tip = my_first_kr_tip
         endif
-        if ( (method_geometry = 2) .or. (method_geometry = 4) ) kz_tip = 1
+        if ( (method_geometry == 2) .or. (method_geometry == 4) ) kz_tip = 1
         first_run = .false.
     endif
 
     if (present(reset_rtip)) then
-        if ( ( (method_geometry = 2) .or. (method_geometry = 3) ) .and. (reset_rtip) ) kr_tip = my_first_kr_tip
-    else
+        if ( ( (method_geometry == 2) .or. (method_geometry == 3) ) .and. (reset_rtip) ) kr_tip = my_first_kr_tip
+    endif
 
     select case (method_geometry)
         case (2)
