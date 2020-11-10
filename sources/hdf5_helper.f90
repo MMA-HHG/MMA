@@ -13,6 +13,10 @@ MODULE hdf5_helper
     PROCEDURE create_scalar_boolean_dset, create_scalar_int_dset, create_scalar_real_dset, create_1D_array_real_dset, &
       create_1D_array_real8_dset, create_1D_array_complex_dset, create_2D_array_complex_dset, create_2D_array_real_dset
   END INTERFACE
+  ! Check if a given dataset exists. It reads the value in such a case, it cretes this dataset and savs the input value otherwise.
+  INTERFACE save_or_replace_real
+    PROCEDURE save_or_replace_real8, save_or_replace_int, save_or_replace_bool
+  END INTERFACE
   CONTAINS
 
     !******!
@@ -814,4 +818,59 @@ MODULE hdf5_helper
       CALL h5sclose_f(memspace,error)
       CALL h5pclose_f(h5_parameters, error)
     END SUBROUTINE write_hyperslab_to_dset_p
+
+
+    !*************!
+    ! READ & WRITE!
+    !*************!
+    SUBROUTINE save_or_replace_real8(file_id, name, var, error)
+      REAL(8)         :: var
+      INTEGER(4)      :: file_id ! file or group identifier
+      CHARACTER(*)    :: name
+      INTEGER         :: error
+
+      LOGICAL         :: exists_dataset
+
+      CALL  h5lexists_f(file_id,name,exists_dataset,error)
+
+      IF (exists_dataset) THEN
+        CALL read_dset(file_id, name, var)
+      ELSE
+        CALL create_dset(file_id, name, var)
+      END
+    END SUBROUTINE save_or_replace_real8
+
+    SUBROUTINE save_or_replace_int(file_id, name, var, error)
+      INTEGER         :: var
+      INTEGER(4)      :: file_id ! file or group identifier
+      CHARACTER(*)    :: name
+      INTEGER         :: error
+
+      LOGICAL         :: exists_dataset
+
+      CALL  h5lexists_f(file_id,name,exists_dataset,error)
+
+      IF (exists_dataset) THEN
+        CALL read_dset(file_id, name, var)
+      ELSE
+        CALL create_dset(file_id, name, var)
+      END
+    END SUBROUTINE save_or_replace_int
+
+    SUBROUTINE save_or_replace_bool(file_id, name, var, error)
+      LOGICAL         :: var
+      INTEGER(4)      :: file_id ! file or group identifier
+      CHARACTER(*)    :: name
+      INTEGER         :: error
+
+      LOGICAL         :: exists_dataset
+
+      CALL  h5lexists_f(file_id,name,exists_dataset,error)
+
+      IF (exists_dataset) THEN
+        CALL read_dset(file_id, name, var)
+      ELSE
+        CALL create_dset(file_id, name, var)
+      END
+    END SUBROUTINE save_or_replace_bool
 END MODULE hdf5_helper
