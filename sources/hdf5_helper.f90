@@ -14,7 +14,7 @@ MODULE hdf5_helper
       create_1D_array_real8_dset, create_1D_array_complex_dset, create_2D_array_complex_dset, create_2D_array_real_dset
   END INTERFACE
   ! Check if a given dataset exists. It reads the value in such a case, it cretes this dataset and savs the input value otherwise.
-  INTERFACE save_or_replace_real
+  INTERFACE save_or_replace
     PROCEDURE save_or_replace_real8, save_or_replace_int, save_or_replace_bool
   END INTERFACE
   CONTAINS
@@ -837,7 +837,7 @@ MODULE hdf5_helper
         CALL read_dset(file_id, name, var)
       ELSE
         CALL create_dset(file_id, name, var)
-      END
+      ENDIF
     END SUBROUTINE save_or_replace_real8
 
     SUBROUTINE save_or_replace_int(file_id, name, var, error)
@@ -854,7 +854,7 @@ MODULE hdf5_helper
         CALL read_dset(file_id, name, var)
       ELSE
         CALL create_dset(file_id, name, var)
-      END
+      ENDIF
     END SUBROUTINE save_or_replace_int
 
     SUBROUTINE save_or_replace_bool(file_id, name, var, error)
@@ -871,6 +871,6 @@ MODULE hdf5_helper
         CALL read_dset(file_id, name, var)
       ELSE
         CALL create_dset(file_id, name, var)
-      END
+      ENDIF
     END SUBROUTINE save_or_replace_bool
 END MODULE hdf5_helper
