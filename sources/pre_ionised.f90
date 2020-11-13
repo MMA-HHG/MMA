@@ -41,12 +41,14 @@ subroutine init_pre_ionisation(file_id)
     print *, 'pre-inoisation accessed, proc', my_rank
 
     call read_dset(file_id, 'pre_ionised/method_geometry',method_geometry)
+    call read_dset(file_id, 'pre_ionised/method_units',method_units)
     select case (method_geometry)
         case (1)
             if (method_units == 1) then
                 call read_dset(file_id, 'pre-processed/rhoat_inv',dumr) ! inverse of the neutrals density, C.U.
                 call read_dset(file_id, 'pre_ionised/initial_electrons_ratio',rho0_loc)
                 rho0_loc = rho0_loc/dumr ! C.U.
+                print *, 'the initial atom density is',1.0D0/dumr, 'proc', my_rank
                 print *, 'the initial density is',rho0_loc, 'proc', my_rank
                 return
             elseif (method_units == 2) then
