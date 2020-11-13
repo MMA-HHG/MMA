@@ -71,6 +71,7 @@ PROGRAM make_start
   CALL read_dset(file_id, 'inputs/focal_length_in_the_medium_cm', f_cm_phys) ! this dataset in HDF5 has wrong unit [0 for no lense]
   CALL read_dset(file_id, 'inputs/initial_chirp_phase', chirp_factor)
   CALL read_dset(file_id, 'inputs/pressure_in_bar', pressure)
+  pressure = 0.5d0
   CALL read_dset(file_id, 'inputs/type_of_dispersion_law', switch_dispersion)
   
   if(switch_dispersion.GT.9) then
@@ -102,7 +103,7 @@ PROGRAM make_start
   CALL read_dset(file_id, 'inputs/frequency_in_delayed_kerr_wr', raman_phys)
   CALL read_dset(file_id, 'inputs/chi5_coefficient', n4_phys)
   CALL read_dset(file_id, 'inputs/effective_density_of_neutral_molecules', rhont_cm3_phys)
-  rhont_cm3_phys = 0.5
+  !rhont_cm3_phys = 0.5
   CALL read_dset(file_id, 'inputs/ionization_poential_of_neutral_molecules', Ui_eV_phys)
   CALL read_dset(file_id, 'inputs/initial_electron_density', rho0_phys)
   CALL read_dset(file_id, 'inputs/type_of_ionization_method', switch_rho)
