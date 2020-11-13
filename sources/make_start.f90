@@ -102,6 +102,7 @@ PROGRAM make_start
   CALL read_dset(file_id, 'inputs/frequency_in_delayed_kerr_wr', raman_phys)
   CALL read_dset(file_id, 'inputs/chi5_coefficient', n4_phys)
   CALL read_dset(file_id, 'inputs/effective_density_of_neutral_molecules', rhont_cm3_phys)
+  rhont_cm3_phys = 0.5
   CALL read_dset(file_id, 'inputs/ionization_poential_of_neutral_molecules', Ui_eV_phys)
   CALL read_dset(file_id, 'inputs/initial_electron_density', rho0_phys)
   CALL read_dset(file_id, 'inputs/type_of_ionization_method', switch_rho)
