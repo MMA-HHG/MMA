@@ -838,7 +838,7 @@ MODULE hdf5_helper
         CALL read_dset(file_id, name, var)
       ELSE
         CALL create_dset(file_id, name, var)
-        IF PRESENT(units) CALL h5_add_units_1D(file_id, name, units)
+        IF (PRESENT(units)) CALL h5_add_units_1D(file_id, name, units)
       ENDIF
     END SUBROUTINE save_or_replace_real8
 
@@ -857,7 +857,7 @@ MODULE hdf5_helper
         CALL read_dset(file_id, name, var)
       ELSE
         CALL create_dset(file_id, name, var)
-        IF PRESENT(units) CALL h5_add_units_1D(file_id, name, units)
+        IF (PRESENT(units)) CALL h5_add_units_1D(file_id, name, units)
       ENDIF
     END SUBROUTINE save_or_replace_int
 
@@ -876,7 +876,7 @@ MODULE hdf5_helper
         CALL read_dset(file_id, name, var)
       ELSE
         CALL create_dset(file_id, name, var)
-        IF PRESENT(units) CALL h5_add_units_1D(file_id, name, units)
+        IF (PRESENT(units)) CALL h5_add_units_1D(file_id, name, units)
       ENDIF
     END SUBROUTINE save_or_replace_bool
 END MODULE hdf5_helper
