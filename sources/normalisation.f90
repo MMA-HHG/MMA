@@ -502,6 +502,65 @@ CONTAINS
           CALL artifabs(startcut,endcut,10.D0*REAL(komega(1)-rek0-rekp*(8.D0*DATAN(1.D0)*REAL(dim_t/2)/lt+omega_uppe-omega)))
        ENDIF
        DEALLOCATE(chi,omegachi)
+    CASE(9) ! Krypton
+       dim_chi=dim_t
+       ALLOCATE(chi(dim_chi),omegachi(dim_chi))
+       DO j=dim_chi/2,dim_chi/2+2
+          k_t=8.D0*DATAN(1.D0)*REAL(j-dim_t/2-1)/lt
+          omegachi(j) = c*2.D0*3.1415D0/lambda0_cm_phys+k_t/(tp_fs_phys*1.d-15)
+          omegachi(j) = omegachi(j)/(c*2.D0*3.1415D0*1.d8)
+          chi(j) = 8.377d-4*(1.D0+6.70d5*omegachi(j)**2+8.84d11*omegachi(j)**4+1.49d18*omegachi(j)**6+2.74d24*omegachi(j)**8+5.10d30*omegachi(j)**10) !krypton, dalgarno and kingston
+          chi(j) = 1.D0+chi(j)*pressure
+          chi(j) = sqrt(chi(j))
+       ENDDO
+       n0 = REAL(chi(dim_t/2+1)) !refractive index at lambda0
+       z_rayleigh_cm_phys  = 3.1415D0*w0_cm_phys**2*n0/lambda0_cm_phys  !Rayleigh lenght      cm
+       DO j=dim_t/2,dim_t/2+2
+          k_t=8.D0*DATAN(1.D0)*REAL(j-dim_t/2-1)/lt
+          komega(j) = (c*2.D0*3.1415D0/lambda0_cm_phys*tp_fs_phys*1.d-15+k_t)/(c*tp_fs_phys*1.d-15/(4*z_rayleigh_cm_phys))*chi(j)
+       ENDDO
+       rek0 = REAL(komega(dim_t/2+1)) !adimensioned central wavenumber in the medium
+       rekp = REAL(komega(dim_t/2+2)-komega(dim_t/2))*lt/(16.D0*DATAN(1.D0))!adimensioned group velocity
+
+       DO j=1,2
+          k_t=REAL(j,8)*2.D0*omega   ! k_t = w_adim - w0_adim
+          omegachi(j) = c*2.D0*3.1415D0/lambda0_cm_phys+k_t/(tp_fs_phys*1.d-15)
+          omegachi(j) = omegachi(j)/(c*2.D0*3.1415D0*1.d8)
+          chi(j) = 8.377d-4*(1.D0+6.70d5*omegachi(j)**2+8.84d11*omegachi(j)**4+1.49d18*omegachi(j)**6+2.74d24*omegachi(j)**8+5.10d30*omegachi(j)**10) !krypton, dalgarno and kingston
+          chi(j) = 1.D0+chi(j)*pressure
+          chi(j) = sqrt(chi(j))                ! chi = E(w) =  sqrt(1+X(w))
+          komega(j) = (c*2.D0*3.1415D0/lambda0_cm_phys*tp_fs_phys*1.d-15+k_t)/(c*tp_fs_phys*1.d-15/(4*z_rayleigh_cm_phys))*chi(j)
+       ENDDO
+       deltak3omega(1)=3.D0*rek0 - REAL(komega(1)) 
+       deltak5omega(1)=5.D0*rek0 - REAL(komega(2))
+
+       DO j=1,dim_chi
+          k_t=8.D0*DATAN(1.D0)*REAL(j-dim_t/2-1)/lt+omega_uppe-omega
+          omegachi(j) = c*2.D0*3.1415D0/lambda0_cm_phys+k_t/(tp_fs_phys*1.d-15)
+          omegachi(j) = omegachi(j)/(c*2.D0*3.1415D0*1.d8)
+          chi(j) = 8.377d-4*(1.D0+6.70d5*omegachi(j)**2+8.84d11*omegachi(j)**4+1.49d18*omegachi(j)**6+2.74d24*omegachi(j)**8+5.10d30*omegachi(j)**10) !krypton, dalgarno and kingston
+          chi(j) = 1.D0+chi(j)*pressure
+          chi(j) = sqrt(chi(j))
+       ENDDO
+       DO j=1,dim_t
+          k_t=8.D0*DATAN(1.D0)*REAL(j-dim_t/2-1)/lt+omega_uppe-omega
+          komega(j) = (c*2.D0*3.1415D0/lambda0_cm_phys*tp_fs_phys*1.d-15+k_t)/(c*tp_fs_phys*1.d-15/(4*z_rayleigh_cm_phys))*chi(j)
+       ENDDO
+       startcut=dim_t
+       endcut=dim_t
+       DO j=1,dim_t
+          k_t=8.D0*DATAN(1.D0)*REAL(j-dim_t/2-1)/lt+omega_uppe-omega
+          komega(j) = (c*2.D0*3.1415D0/lambda0_cm_phys*tp_fs_phys*1.d-15+k_t)/(c*tp_fs_phys*1.d-15/(4*z_rayleigh_cm_phys))*chi(j)
+          omegachi(j) = c*2.D0*3.1415D0/lambda0_cm_phys+k_t/(tp_fs_phys*1.d-15)
+          omegachi(j) = omegachi(j)/(c*2.D0*3.1415D0*1.d8)
+          IF ((omegachi(j).GT.7.D-4).AND.(startcut.EQ.dim_t)) startcut=j  
+       ENDDO
+       IF (startcut.LT.endcut) THEN
+          CALL artifdisp(startcut,endcut,REAL(komega(startcut)-rek0-rekp*(8.D0*DATAN(1.D0)* &
+            REAL(startcut-dim_t/2-1)/lt+omega_uppe-omega)))
+          CALL artifabs(startcut,endcut,10.D0*REAL(komega(1)-rek0-rekp*(8.D0*DATAN(1.D0)*REAL(dim_t/2)/lt+omega_uppe-omega)))
+       ENDIF
+       DEALLOCATE(chi,omegachi)
 
     END SELECT
 

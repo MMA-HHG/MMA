@@ -38,7 +38,7 @@ pressure in bar                                        : 1.D0
 SPECIFY ALL OTHER PARAMETERS AT 1 BAR, THE CODE WILL EVALUATE THE VALUES AT THE GIVEN PRESSURE
 
 Type of dispersion law                                 : 3
-[ 1- Taylor expansion / 2- Silica Agrawal / 3- Argon Dalgarno / 4- Miro data / 5- air / 6- xenon / 7- neon / 8- KDPo]
+[ 1- Taylor expansion / 2- Silica Agrawal / 3- Argon Dalgarno / 4- Miro data / 5- air / 6- xenon / 7- neon / 8- KDPo / 9 - Krypton]
 filename for method 4                                  : waterchi.tab
 For method 1 only:
 Linear refractive index                                : 1.45d0

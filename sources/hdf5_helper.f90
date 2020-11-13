@@ -823,11 +823,12 @@ MODULE hdf5_helper
     !*************!
     ! READ & WRITE!
     !*************!
-    SUBROUTINE save_or_replace_real8(file_id, name, var, error)
-      REAL(8)         :: var
-      INTEGER(4)      :: file_id ! file or group identifier
-      CHARACTER(*)    :: name
-      INTEGER         :: error
+    SUBROUTINE save_or_replace_real8(file_id, name, var, error, units) ! allow to add units, reading currently unsupported (h5aexists_f)
+      REAL(8)                 :: var
+      INTEGER(4)              :: file_id ! file or group identifier
+      CHARACTER(*)            :: name
+      INTEGER                 :: error
+      CHARACTER(*), OPTIONAL  :: units
 
       LOGICAL         :: exists_dataset
 
@@ -837,14 +838,16 @@ MODULE hdf5_helper
         CALL read_dset(file_id, name, var)
       ELSE
         CALL create_dset(file_id, name, var)
+        IF PRESENT(units) CALL h5_add_units_1D(file_id, name, units)
       ENDIF
     END SUBROUTINE save_or_replace_real8
 
-    SUBROUTINE save_or_replace_int(file_id, name, var, error)
-      INTEGER         :: var
-      INTEGER(4)      :: file_id ! file or group identifier
-      CHARACTER(*)    :: name
-      INTEGER         :: error
+    SUBROUTINE save_or_replace_int(file_id, name, var, error,units)
+      INTEGER                 :: var
+      INTEGER(4)              :: file_id ! file or group identifier
+      CHARACTER(*)            :: name
+      INTEGER                 :: error
+      CHARACTER(*), OPTIONAL  :: units
 
       LOGICAL         :: exists_dataset
 
@@ -854,14 +857,16 @@ MODULE hdf5_helper
         CALL read_dset(file_id, name, var)
       ELSE
         CALL create_dset(file_id, name, var)
+        IF PRESENT(units) CALL h5_add_units_1D(file_id, name, units)
       ENDIF
     END SUBROUTINE save_or_replace_int
 
-    SUBROUTINE save_or_replace_bool(file_id, name, var, error)
-      LOGICAL         :: var
-      INTEGER(4)      :: file_id ! file or group identifier
-      CHARACTER(*)    :: name
-      INTEGER         :: error
+    SUBROUTINE save_or_replace_bool(file_id, name, var, error, units)
+      LOGICAL                 :: var
+      INTEGER(4)              :: file_id ! file or group identifier
+      CHARACTER(*)            :: name
+      INTEGER                 :: error
+      CHARACTER(*), OPTIONAL  :: units
 
       LOGICAL         :: exists_dataset
 
@@ -871,6 +876,7 @@ MODULE hdf5_helper
         CALL read_dset(file_id, name, var)
       ELSE
         CALL create_dset(file_id, name, var)
+        IF PRESENT(units) CALL h5_add_units_1D(file_id, name, units)
       ENDIF
     END SUBROUTINE save_or_replace_bool
 END MODULE hdf5_helper

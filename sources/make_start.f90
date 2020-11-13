@@ -73,7 +73,7 @@ PROGRAM make_start
   CALL read_dset(file_id, 'inputs/pressure_in_bar', pressure)
   CALL read_dset(file_id, 'inputs/type_of_dispersion_law', switch_dispersion)
   
-  if(switch_dispersion.GT.8) then
+  if(switch_dispersion.GT.9) then
     write(6,*) 'You have selected a bad value for the dispersion law'
     write(6,*) ' You have to choose in integer between 1 or 7'
     write(6,*) ' The code will be stopped'
