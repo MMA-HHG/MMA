@@ -579,7 +579,7 @@ MODULE hdf5_helper
       INTEGER(HID_T) :: attr_id       ! Attribute identifier
       INTEGER(HID_T) :: aspace_id     ! Attribute Dataspace identifier
       INTEGER(HID_T) :: atype_id      ! Attribute Dataspace identifier
-      CHARACTER(LEN=10), DIMENSION(1) ::  attr_data  ! Attribute data
+      CHARACTER(LEN=20), DIMENSION(1) ::  attr_data  ! Attribute data (solve the length by a correct allocation)
       ! add attributes ( https://support.hdfgroup.org/ftp/HDF5/current/src/unpacked/fortran/examples/h5_crtatt.f90 )
       CALL h5dopen_f(file_id, name, dset_id, error)
       dumh51D = (/int(1,HSIZE_T)/) ! attribute dimension
@@ -823,12 +823,12 @@ MODULE hdf5_helper
     !*************!
     ! READ & WRITE!
     !*************!
-    SUBROUTINE save_or_replace_real8(file_id, name, var, error, units) ! allow to add units, reading currently unsupported (h5aexists_f)
+    SUBROUTINE save_or_replace_real8(file_id, name, var, error, units_in) ! allow to add units, reading currently unsupported (h5aexists_f)
       REAL(8)                 :: var
       INTEGER(4)              :: file_id ! file or group identifier
       CHARACTER(*)            :: name
       INTEGER                 :: error
-      CHARACTER(*), OPTIONAL  :: units
+      CHARACTER(*), OPTIONAL  :: units_in
 
       LOGICAL         :: exists_dataset
 
@@ -838,16 +838,16 @@ MODULE hdf5_helper
         CALL read_dset(file_id, name, var)
       ELSE
         CALL create_dset(file_id, name, var)
-        IF (PRESENT(units)) CALL h5_add_units_1D(file_id, name, units)
+        IF (PRESENT(units_in)) CALL h5_add_units_1D(file_id, name, units_in)
       ENDIF
     END SUBROUTINE save_or_replace_real8
 
-    SUBROUTINE save_or_replace_int(file_id, name, var, error,units)
+    SUBROUTINE save_or_replace_int(file_id, name, var, error,units_in)
       INTEGER                 :: var
       INTEGER(4)              :: file_id ! file or group identifier
       CHARACTER(*)            :: name
       INTEGER                 :: error
-      CHARACTER(*), OPTIONAL  :: units
+      CHARACTER(*), OPTIONAL  :: units_in
 
       LOGICAL         :: exists_dataset
 
@@ -857,16 +857,16 @@ MODULE hdf5_helper
         CALL read_dset(file_id, name, var)
       ELSE
         CALL create_dset(file_id, name, var)
-        IF (PRESENT(units)) CALL h5_add_units_1D(file_id, name, units)
+        IF (PRESENT(units_in)) CALL h5_add_units_1D(file_id, name, units_in)
       ENDIF
     END SUBROUTINE save_or_replace_int
 
-    SUBROUTINE save_or_replace_bool(file_id, name, var, error, units)
+    SUBROUTINE save_or_replace_bool(file_id, name, var, error, units_in)
       LOGICAL                 :: var
       INTEGER(4)              :: file_id ! file or group identifier
       CHARACTER(*)            :: name
       INTEGER                 :: error
-      CHARACTER(*), OPTIONAL  :: units
+      CHARACTER(*), OPTIONAL  :: units_in
 
       LOGICAL         :: exists_dataset
 
@@ -876,7 +876,7 @@ MODULE hdf5_helper
         CALL read_dset(file_id, name, var)
       ELSE
         CALL create_dset(file_id, name, var)
-        IF (PRESENT(units)) CALL h5_add_units_1D(file_id, name, units)
+        IF (PRESENT(units_in)) CALL h5_add_units_1D(file_id, name, units_in)
       ENDIF
     END SUBROUTINE save_or_replace_bool
 END MODULE hdf5_helper

@@ -1,6 +1,7 @@
 PROGRAM make_start
   USE HDF5
   USE write_listing
+  USE deafult_inputs
   USE HDF5_helper
 
   IMPLICIT NONE
@@ -70,8 +71,10 @@ PROGRAM make_start
   CALL read_dset(file_id, 'inputs/noise_on_the_input_shape', noise)
   CALL read_dset(file_id, 'inputs/focal_length_in_the_medium_cm', f_cm_phys) ! this dataset in HDF5 has wrong unit [0 for no lense]
   CALL read_dset(file_id, 'inputs/initial_chirp_phase', chirp_factor)
+  
+  
   CALL read_dset(file_id, 'inputs/pressure_in_bar', pressure)
-  pressure = 0.5d0
+  !pressure = 0.5d0
   CALL read_dset(file_id, 'inputs/type_of_dispersion_law', switch_dispersion)
   
   if(switch_dispersion.GT.9) then
@@ -88,6 +91,8 @@ PROGRAM make_start
   CALL read_dset(file_id, 'inputs/third_order_dispersion_coefficient', k_ppp_fs3_per_cm_phys)
   CALL read_dset(file_id, 'inputs/fourth_order_dispersion_coefficient', k_pppp_fs4_per_cm_phys)
   CALL read_dset(file_id, 'inputs/fifth_order_dispersion_coefficient', k_ppppp_fs5_per_cm_phys)
+
+
   CALL read_dset(file_id, 'inputs/nonlinear_refractive_index_kerr_coefficient', n2_phys)
   CALL read_dset(file_id, 'inputs/type_of_delayed_kerr_response', switch_dKerr)
 
@@ -102,7 +107,10 @@ PROGRAM make_start
   CALL read_dset(file_id, 'inputs/time_of_delayed_kerr_tdk', tdk_fs_phys)
   CALL read_dset(file_id, 'inputs/frequency_in_delayed_kerr_wr', raman_phys)
   CALL read_dset(file_id, 'inputs/chi5_coefficient', n4_phys)
-  CALL read_dset(file_id, 'inputs/effective_density_of_neutral_molecules', rhont_cm3_phys)
+
+
+  CALL save_or_replace(file_id, 'inputs/effective_density_of_neutral_molecules', rhont_cm3_phys, error, units_in = '[1/cm3]')
+  !CALL read_dset(file_id, 'inputs/effective_density_of_neutral_molecules', rhont_cm3_phys)
   !rhont_cm3_phys = 0.5
   CALL read_dset(file_id, 'inputs/ionization_poential_of_neutral_molecules', Ui_eV_phys)
   CALL read_dset(file_id, 'inputs/initial_electron_density', rho0_phys)
@@ -114,33 +122,36 @@ PROGRAM make_start
     STOP
   ENDIF
   switch_rho = 3 !!! testing PPT
-  CALL read_dset(file_id, 'inputs/mpi_cross_section_for_method_1-2', sigmak_phys)
-  CALL read_dset(file_id, 'inputs/angular_momentum_for_method_3_7', angular_momentum)
-  CALL read_dset(file_id, 'inputs/effective_residue_charge_for_method_3-4_7', residue_charge)
-  CALL read_dset(file_id, 'inputs/reduced_mass_of_hole-electron_for_method_5', reduced_mass)
-  CALL read_dset(file_id, 'inputs/number_of_photons_to_ionize_from_slg1', KKp)
-  CALL read_dset(file_id, 'inputs/cross_section_to_ionize_from_slg1', sigmakp_phys)
-  CALL read_dset(file_id, 'inputs/density_of_defects_slg1', rhoslg1_phys)
-  CALL read_dset(file_id, 'inputs/cross_section_to_ionize_from_slg2', sigma_phys)
-  CALL read_dset(file_id, 'inputs/sigmacvref_for_i_ref', sigmacv_ref_phys)
-  CALL read_dset(file_id, 'inputs/reference_intensity_i_ref', I_ref_phys)
-  CALL read_dset(file_id, 'inputs/reference_exponent_exp_ref', exp_ref)
-  CALL read_dset(file_id, 'inputs/number_of_photons_to_populate_slg2', KKpp)
-  CALL read_dset(file_id, 'inputs/cross_section_to_populate_slg2', sigmakpp_phys)
-  CALL read_dset(file_id, 'inputs/saturation_density_for_slg2', rhosat_phys)
-  CALL read_dset(file_id, 'inputs/effective_density_of_neutral_n2_molecules', rhont_N2_cm3_phys)
-  CALL read_dset(file_id, 'inputs/ionization_poential_of_neutral_n2_molecules', Ui_N2_eV_phys)
-  CALL read_dset(file_id, 'inputs/angular_momentum_n2_for_method_7', angular_momentum_N2)
-  CALL read_dset(file_id, 'inputs/effective_residue_charge_n2_for_method_7', residue_charge_N2)
-  CALL read_dset(file_id, 'inputs/initial_free_electron_temperature', T_init_eV_phys)
-  CALL read_dset(file_id, 'inputs/electron_colision_time', tauc_fs_phys)
-  CALL read_dset(file_id, 'inputs/linear_recombination_coefficient', alpha_fs_phys)
-  CALL read_dset(file_id, 'inputs/linear_recombination_coefficient_(6:_slg1_elec.)', alpha1_fs_phys)
-  CALL read_dset(file_id, 'inputs/linear_recombination_coefficient_(6:_holes)', alphah_fs_phys)
-  CALL read_dset(file_id, 'inputs/quadratic_recombination_(gasses)', alphaquad_fscm3_phys)
-  CALL read_dset(file_id, 'inputs/number_of_photons_involved_in_the_n-absorption', NN)
-  CALL read_dset(file_id, 'inputs/the_n-photon_absoption_cross_section', sigman_phys)
-  CALL read_dset(file_id, 'inputs/density_of_absorbing_molecules', rhoabs_cm3_phys)
+
+  CALL save_or_replace(file_id, 'inputs/mpi_cross_section_for_method_1-2', sigmak_phys, error, units_in = '[s-1cm2K/WK]')
+  CALL save_or_replace(file_id, 'inputs/angular_momentum_for_method_3_7', angular_momentum, error, units_in = '[-]')
+  CALL save_or_replace(file_id, 'inputs/effective_residue_charge_for_method_3-4_7', residue_charge, error, units_in = '[-]')
+  CALL save_or_replace(file_id, 'inputs/reduced_mass_of_hole-electron_for_method_5', reduced_mass, error, units_in = '[-]')
+  CALL save_or_replace(file_id, 'inputs/number_of_photons_to_ionize_from_slg1', KKp, error, units_in = '[-]')
+  CALL save_or_replace(file_id, 'inputs/cross_section_to_ionize_from_slg1', sigmakp_phys, error, units_in = '[s-1cm2Kp/WKp]')
+  CALL save_or_replace(file_id, 'inputs/density_of_defects_slg1', rhoslg1_phys, error, units_in = '[cm-3]')
+  CALL save_or_replace(file_id, 'inputs/cross_section_to_ionize_from_slg2', sigma_phys, error, units_in = '[s-1cm2/W]')
+  CALL save_or_replace(file_id, 'inputs/sigmacvref_for_i_ref', sigmacv_ref_phys, error, units_in = '[cm2/s]')
+  CALL save_or_replace(file_id, 'inputs/reference_intensity_i_ref', I_ref_phys, error, units_in = '[W/cm^2]')
+  CALL save_or_replace(file_id, 'inputs/reference_exponent_exp_ref', exp_ref, error, units_in = '[-]')
+  CALL save_or_replace(file_id, 'inputs/number_of_photons_to_populate_slg2', KKpp, error, units_in = '[-]')
+  CALL save_or_replace(file_id, 'inputs/cross_section_to_populate_slg2', sigmakpp_phys, error, units_in = '[s-1cm2Kpp/WKpp]')
+  CALL save_or_replace(file_id, 'inputs/saturation_density_for_slg2', rhosat_phys, error, units_in = '[cm-3]')
+  CALL save_or_replace(file_id, 'inputs/effective_density_of_neutral_n2_molecules', rhont_N2_cm3_phys, error, units_in = '[cm-3]')
+  CALL save_or_replace(file_id, 'inputs/ionization_poential_of_neutral_n2_molecules', Ui_N2_eV_phys, error, units_in = '[eV]')
+  CALL save_or_replace(file_id, 'inputs/angular_momentum_n2_for_method_7', angular_momentum_N2, error, units_in = '[-]')
+  CALL save_or_replace(file_id, 'inputs/effective_residue_charge_n2_for_method_7', residue_charge_N2, error, units_in = '[-]')
+  CALL save_or_replace(file_id, 'inputs/initial_free_electron_temperature', T_init_eV_phys, error, units_in = '[eV]')
+
+  CALL save_or_replace(file_id, 'inputs/electron_colision_time', tauc_fs_phys, error, units_in = '[fs]')
+  CALL save_or_replace(file_id, 'inputs/linear_recombination_coefficient', alpha_fs_phys, error, units_in = '[fs-1]')
+  CALL save_or_replace(file_id, 'inputs/linear_recombination_coefficient_(6:_slg1_elec.)', alpha1_fs_phys, error, units_in = '[fs-1]')
+  CALL save_or_replace(file_id, 'inputs/linear_recombination_coefficient_(6:_holes)', alphah_fs_phys, error, units_in = '[fs-1]')
+  CALL save_or_replace(file_id, 'inputs/quadratic_recombination_(gasses)', alphaquad_fscm3_phys, error, units_in = '[fs-1cm3]')
+
+  CALL save_or_replace(file_id, 'inputs/number_of_photons_involved_in_the_n-absorption', NN, error, units_in = '[-]')
+  CALL save_or_replace(file_id, 'inputs/the_n-photon_absoption_cross_section', sigman_phys, error, units_in = '[s-1cm2N/Wn]')
+  CALL save_or_replace(file_id, 'inputs/density_of_absorbing_molecules', rhoabs_cm3_phys, error, units_in = '[1/cm3]?')
 
   !------------------------------------!
   ! CALL read_dset(file_id, 'inputs/', )!
