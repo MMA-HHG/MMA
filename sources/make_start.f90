@@ -6,7 +6,7 @@ PROGRAM make_start
 
   IMPLICIT NONE
   integer :: st
-  logical :: exists_h5_refractive_index
+  logical :: exists_h5_refractive_index, dumlog
 
 
   PRINT *,"Pre-processor started"
@@ -18,27 +18,36 @@ PROGRAM make_start
   
   ! Open the file
   CALL h5fopen_f (filename, H5F_ACC_RDWR_F, file_id, error)
-  !_______________________________!
 
-  CALL read_dset(file_id, 'inputs/number_of_processors', num_proc)
+  !_______________________________!
+  CALL preset_numerics
+  CALL preset_laser
+  CALL  h5lexists_f(file_id, 'inputs/gas_preset', dumlog, error)
+  IF (dumlog) THEN
+    CALL read_dset(file_id, 'inputs/gas_preset', gas_preset)
+    CALL preset_parameters_gas
+  ENDIF
+
+
+  CALL save_or_replace(file_id, 'inputs/number_of_processors', num_proc, error, units_in = '[-]')
   !num_proc = 2
-  CALL read_dset(file_id, 'inputs/run_time_in_hours', time_limit)
-  time_limit = 0.48d0
-  CALL read_dset(file_id, 'inputs/length_of_window_for_t_normalized_to_pulse_duration', lt)
-  CALL read_dset(file_id, 'inputs/number_of_points_in_t', dim_t)
-  CALL read_dset(file_id, 'inputs/length_of_window_for_r_normalized_to_beamwaist', lr)
-  CALL read_dset(file_id, 'inputs/number_of_points_in_r', dim_r)
-  CALL read_dset(file_id, 'inputs/number_of_absorber_points_in_time', absorb)
-  CALL read_dset(file_id, 'inputs/phase_threshold_for_decreasing_delta_z', decrease)
-  CALL read_dset(file_id, 'inputs/physical_distance_of_propagation', proplength_m_phys)
+  CALL save_or_replace(file_id, 'inputs/run_time_in_hours', time_limit, error, units_in = '[h]')
+  !time_limit = 0.48d0
+  CALL save_or_replace(file_id, 'inputs/length_of_window_for_t_normalized_to_pulse_duration', lt, error)
+  CALL save_or_replace(file_id, 'inputs/number_of_points_in_t', dim_t, error)
+  CALL save_or_replace(file_id, 'inputs/length_of_window_for_r_normalized_to_beamwaist', lr, error)
+  CALL save_or_replace(file_id, 'inputs/number_of_points_in_r', dim_r, error)
+  CALL save_or_replace(file_id, 'inputs/number_of_absorber_points_in_time', absorb, error)
+  CALL save_or_replace(file_id, 'inputs/phase_threshold_for_decreasing_delta_z', decrease, error)
+  CALL save_or_replace(file_id, 'inputs/physical_distance_of_propagation', proplength_m_phys, error)
   !proplength_m_phys = 5.d-3
-  CALL read_dset(file_id, 'inputs/physical_output_distance_for_matlab_files', outlength_m_phys)
+  CALL save_or_replace(file_id, 'inputs/physical_output_distance_for_matlab_files', outlength_m_phys, error)
   !outlength_m_phys = 1.d-3
-  CALL read_dset(file_id, 'inputs/output_distance_in_z-steps_for_fluence_and_power', rhodist)
+  CALL save_or_replace(file_id, 'inputs/output_distance_in_z-steps_for_fluence_and_power', rhodist, error)
   !rhodist = 2
-  CALL read_dset(file_id, 'inputs/radius_for_diagnostics', rfil_mm_phys)
-  CALL read_dset(file_id, 'inputs/physical_first_stepwidth', delta_z_mm_phys)
-  CALL read_dset(file_id, 'inputs/operators_t_t-1', switch_T)
+  CALL save_or_replace(file_id, 'inputs/radius_for_diagnostics', rfil_mm_phys, error)
+  CALL save_or_replace(file_id, 'inputs/physical_first_stepwidth', delta_z_mm_phys, error)
+  CALL save_or_replace(file_id, 'inputs/operators_t_t-1', switch_T, error)
   
   if(switch_T.GT.4) then
       write(6,*) 'You have selected a bad value for the type of equation'
@@ -47,14 +56,23 @@ PROGRAM make_start
       STOP
   ENDIF                                     
   
-  CALL read_dset(file_id, 'inputs/laser_wavelength', lambda0_cm_phys)
-  CALL read_dset(file_id, 'inputs/beamwaist', w0_cm_phys)
-  CALL read_dset(file_id, 'inputs/degree_of_supergaussian', super_N)
-  CALL read_dset(file_id, 'inputs/pulse_duration_in_1_e', tp_fs_phys)
-  CALL read_dset(file_id, 'inputs/degree_of_supergaussian_in_time', super_t)
-  CALL read_dset(file_id, 'inputs/ratio_pin_pcr', numcrit)
+  CALL save_or_replace(file_id, 'inputs/laser_wavelength', lambda0_cm_phys, error)
+  CALL save_or_replace(file_id, 'inputs/beamwaist', w0_cm_phys, error)
+  CALL save_or_replace(file_id, 'inputs/degree_of_supergaussian', super_N, error)
+  CALL h5lexists_f(file_id, 'inputs/pulse_duration_in_1_e', dumlog, error)
+  IF (dumlog) THEN
+    CALL read_dset(file_id, 'inputs/pulse_duration_in_1_e', tp_fs_phys, error)
+    CALL create_dset(file_id, 'inputs/pulse_duration_in_FWHM', e_inv2FWHM(tp_fs_phys), error, units_in = '[fs]')
+  ELSE
+    CALL read_dset(file_id, 'inputs/pulse_duration_in_FWHM', tp_fs_phys, error)
+    tp_fs_phys = FWHM2e_inv(tp_fs_phys)
+    CALL create_dset(file_id, 'inputs/pulse_duration_in_1_e', tp_fs_phys, error, units_in = '[fs]')
+  ENDIF
+  CALL save_or_replace(file_id, 'inputs/degree_of_supergaussian_in_time', super_t, error)
+  ! CALL save_or_replace(file_id, 'inputs/ratio_pin_pcr', numcrit, error)
+  ! This will be recomputed once n2 is known
   !numcrit = 1.d0
-  CALL read_dset(file_id, 'inputs/input', switch_start)
+  CALL save_or_replace(file_id, 'inputs/input', switch_start, error)
 
   if(switch_start.GT.4) then
     write(6,*) 'You have selected a bad value for the type of input beamshape'
@@ -63,19 +81,19 @@ PROGRAM make_start
     STOP
   ENDIF
 
-  CALL read_dset(file_id, 'inputs/filename_for_method_2', inputfilename_t) 
-  CALL read_dset(file_id, 'inputs/filename_for_method_3', inputfilename_c)
-  CALL read_dset(file_id, 'inputs/amplituderatio_for_method_3', restartamp)
-  CALL read_dset(file_id, 'inputs/spatial_noise_on_the_input_shape', noise_s)
-  CALL read_dset(file_id, 'inputs/temporal_noise_on_the_input_shape', noise_t)
-  CALL read_dset(file_id, 'inputs/noise_on_the_input_shape', noise)
-  CALL read_dset(file_id, 'inputs/focal_length_in_the_medium_cm', f_cm_phys) ! this dataset in HDF5 has wrong unit [0 for no lense]
-  CALL read_dset(file_id, 'inputs/initial_chirp_phase', chirp_factor)
+  CALL save_or_replace(file_id, 'inputs/filename_for_method_2', inputfilename_t, error) 
+  CALL save_or_replace(file_id, 'inputs/filename_for_method_3', inputfilename_c, error)
+  CALL save_or_replace(file_id, 'inputs/amplituderatio_for_method_3', restartamp, error)
+  CALL save_or_replace(file_id, 'inputs/spatial_noise_on_the_input_shape', noise_s, error)
+  CALL save_or_replace(file_id, 'inputs/temporal_noise_on_the_input_shape', noise_t, error)
+  CALL save_or_replace(file_id, 'inputs/noise_on_the_input_shape', noise, error)
+  CALL save_or_replace(file_id, 'inputs/focal_length_in_the_medium_cm', f_cm_phys, error) ! this dataset in HDF5 has wrong unit [0 for no lense]
+  CALL save_or_replace(file_id, 'inputs/initial_chirp_phase', chirp_factor, error)
   
   
-  CALL read_dset(file_id, 'inputs/pressure_in_bar', pressure)
+  CALL save_or_replace(file_id, 'inputs/pressure_in_bar', pressure, error)
   !pressure = 0.5d0
-  CALL read_dset(file_id, 'inputs/type_of_dispersion_law', switch_dispersion)
+  CALL save_or_replace(file_id, 'inputs/type_of_dispersion_law', switch_dispersion, error)
   
   if(switch_dispersion.GT.9) then
     write(6,*) 'You have selected a bad value for the dispersion law'
@@ -84,17 +102,17 @@ PROGRAM make_start
     STOP
   ENDIF
 
-  CALL read_dset(file_id, 'inputs/filename_for_method_4', dispfilename)
-  CALL read_dset(file_id, 'inputs/linear_refractive_index', n0)
-  CALL read_dset(file_id, 'inputs/inverse_gv_coefficient-n0_c', delta_k_p_fs_per_cm_phys)
-  CALL read_dset(file_id, 'inputs/gvd_coefficient', k_pp_fs2_per_cm_phys)
-  CALL read_dset(file_id, 'inputs/third_order_dispersion_coefficient', k_ppp_fs3_per_cm_phys)
-  CALL read_dset(file_id, 'inputs/fourth_order_dispersion_coefficient', k_pppp_fs4_per_cm_phys)
-  CALL read_dset(file_id, 'inputs/fifth_order_dispersion_coefficient', k_ppppp_fs5_per_cm_phys)
+  CALL save_or_replace(file_id, 'inputs/filename_for_method_4', dispfilename, error)
+  CALL save_or_replace(file_id, 'inputs/linear_refractive_index', n0, error)
+  CALL save_or_replace(file_id, 'inputs/inverse_gv_coefficient-n0_c', delta_k_p_fs_per_cm_phys, error)
+  CALL save_or_replace(file_id, 'inputs/gvd_coefficient', k_pp_fs2_per_cm_phys, error)
+  CALL save_or_replace(file_id, 'inputs/third_order_dispersion_coefficient', k_ppp_fs3_per_cm_phys, error)
+  CALL save_or_replace(file_id, 'inputs/fourth_order_dispersion_coefficient', k_pppp_fs4_per_cm_phys, error)
+  CALL save_or_replace(file_id, 'inputs/fifth_order_dispersion_coefficient', k_ppppp_fs5_per_cm_phys, error)
 
 
-  CALL read_dset(file_id, 'inputs/nonlinear_refractive_index_kerr_coefficient', n2_phys)
-  CALL read_dset(file_id, 'inputs/type_of_delayed_kerr_response', switch_dKerr)
+  CALL save_or_replace(file_id, 'inputs/nonlinear_refractive_index_kerr_coefficient', n2_phys, error)
+  CALL save_or_replace(file_id, 'inputs/type_of_delayed_kerr_response', switch_dKerr, error)
 
   if(switch_dKerr.GT.3) then
     write(6,*) 'You have selected a bad value for the type of Delayed Kerr response'
@@ -103,18 +121,21 @@ PROGRAM make_start
     STOP
   ENDIF
 
-  CALL read_dset(file_id, 'inputs/ratio_of_delayed_kerr_xdk', xdk)
-  CALL read_dset(file_id, 'inputs/time_of_delayed_kerr_tdk', tdk_fs_phys)
-  CALL read_dset(file_id, 'inputs/frequency_in_delayed_kerr_wr', raman_phys)
-  CALL read_dset(file_id, 'inputs/chi5_coefficient', n4_phys)
+  CALL save_or_replace(file_id, 'inputs/ratio_of_delayed_kerr_xdk', xdk, error)
+  CALL save_or_replace(file_id, 'inputs/time_of_delayed_kerr_tdk', tdk_fs_phys, error)
+  CALL save_or_replace(file_id, 'inputs/frequency_in_delayed_kerr_wr', raman_phys, error)
+  CALL save_or_replace(file_id, 'inputs/chi5_coefficient', n4_phys, error)
+
+  ! here we know n2 needed for the Pin/Pcr
+  CALL save_or_replace(file_id, 'inputs/ratio_pin_pcr', numcrit, error)
 
 
   CALL save_or_replace(file_id, 'inputs/effective_density_of_neutral_molecules', rhont_cm3_phys, error, units_in = '[1/cm3]')
   !CALL read_dset(file_id, 'inputs/effective_density_of_neutral_molecules', rhont_cm3_phys)
   !rhont_cm3_phys = 0.5
-  CALL read_dset(file_id, 'inputs/ionization_poential_of_neutral_molecules', Ui_eV_phys)
-  CALL read_dset(file_id, 'inputs/initial_electron_density', rho0_phys)
-  CALL read_dset(file_id, 'inputs/type_of_ionization_method', switch_rho)
+  CALL save_or_replace(file_id, 'inputs/ionization_poential_of_neutral_molecules', Ui_eV_phys, units_in = '[eV]')
+  CALL save_or_replace(file_id, 'inputs/initial_electron_density', rho0_phys, units_in = '[1/cm3]')
+  CALL save_or_replace(file_id, 'inputs/type_of_ionization_method', switch_rho, units_in = '[-]')
   if(switch_rho.GT.8) then 
     write(6,*) 'You have selected a bad value for the type ionization method'
     write(6,*) ' You have to choose in integer between 1 and 8'

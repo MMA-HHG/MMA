@@ -9,6 +9,8 @@ This is a nutshell guide of the propagation code, it explains the basics of its 
 It introduced structures in the code -O2 compilation claims to ensure alignments in memory.
 
 ## Development
+Transformation of $1/e$ to FWHM has to checked. 
+
 I commented most of the code. I found that the less readeble are firstep and longstep_rk. It would be nice to rewiritte using helping modules or at least organise.
 
 `SUBROUTINE mult_phase`: it's not so clear to me what effects are included in the propagator and which are applied in time domain afterwards.

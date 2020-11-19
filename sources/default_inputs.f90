@@ -18,6 +18,8 @@ module default_inputs
 use write_listing
 
 implicit none
+character(15)   ::  gas_preset
+
 ! private
 ! public  :: a
 
@@ -31,14 +33,44 @@ CONTAINS
 
 
 
-subroutine preset_parameters
+subroutine preset_parameters_gas
 integer         :: switch_ionisation, switch_atom
 
+    ! switch_ionisation
+    ! 1 - PPT, 2 - external
 
-    switch_ionisation = 1; ! PPT
+    select case (gas_preset)
+    case ('Ar_PPT')
+        switch_ionisation = 1
+        switch_atom = 1
+    case ('Ar_ext')
+        switch_ionisation = 2
+        switch_atom = 1
+    case ('Ne_PPT')
+        switch_ionisation = 1
+        switch_atom = 2
+    case ('Ne_ext')
+        switch_ionisation = 2
+        switch_atom = 2
+    case ('Xe_PPT')
+        switch_ionisation = 1
+        switch_atom = 3
+    case ('Xe_ext')
+        switch_ionisation = 2
+        switch_atom = 3
+    case ('Kr_PPT')
+        switch_ionisation = 1
+        switch_atom = 4
+    case ('Kr_ext')
+        switch_ionisation = 2
+        switch_atom = 4
+    case default
+        print *, 'wrong preset gas model entry'
+    end select
+    
     !switch_ionisation = 2; ! External
 
-    switch_atom = 1;
+    ! switch_atom = 1
 
 
     ! shared default values
@@ -151,6 +183,44 @@ integer         :: switch_ionisation, switch_atom
     sigman_phys = 0.d0
     rhoabs_cm3_phys = 0.d0
 
-end subroutine preset_parameters
+end subroutine preset_parameters_gas
+
+
+subroutine preset_numerics
+    num_proc = 128
+    time_limit = 0.48d0
+    dim_t = 2048 ! asymmetric
+    absorb = 16
+    dim_r = 1024
+    switch_T = 2
+
+    rhodist = 100
+end subroutine preset_numerics
+
+
+subroutine preset_laser
+    super_N = 1
+    switch_start = 1
+end subroutine preset_laser
+
+real(8) function e_inv2FWHM(e_inv)
+    real(8) :: e_inv
+    e_inv2FWHM = 2.d0*sqrt(2.d0)*e_inv
+end function e_inv2FWHM
+
+real(8) function FWHM2e_inv(FWHM)
+    real(8) :: FWHM
+    FWHM2e_inv = FWHM/2.d0*sqrt(2.d0)
+end function e_inv2FWHM
+
+real(8) function FWHM2e_inv(FWHM)
+    real(8) :: FWHM
+    FWHM2e_inv = FWHM/2.d0*sqrt(2.d0)
+end function e_inv2FWHM
+
+real(8) function FWHM2e_inv(FWHM)
+    real(8) :: FWHM
+    FWHM2e_inv = FWHM/2.d0*sqrt(2.d0)
+end function e_inv2FWHM
 
 end module default_inputs
