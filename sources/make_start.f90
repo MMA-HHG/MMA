@@ -57,7 +57,8 @@ PROGRAM make_start
   ENDIF                                     
   
   CALL save_or_replace(file_id, 'inputs/laser_wavelength', lambda0_cm_phys, error)
-  CALL save_or_replace(file_id, 'inputs/beamwaist', w0_cm_phys, error)
+  ! CALL save_or_replace(file_id, 'inputs/beamwaist', w0_cm_phys, error)
+  ! This will be recomputed once n2 is known
   CALL save_or_replace(file_id, 'inputs/degree_of_supergaussian', super_N, error)
   CALL h5lexists_f(file_id, 'inputs/pulse_duration_in_1_e', dumlog, error)
   IF (dumlog) THEN
@@ -87,7 +88,7 @@ PROGRAM make_start
   CALL save_or_replace(file_id, 'inputs/spatial_noise_on_the_input_shape', noise_s, error)
   CALL save_or_replace(file_id, 'inputs/temporal_noise_on_the_input_shape', noise_t, error)
   CALL save_or_replace(file_id, 'inputs/noise_on_the_input_shape', noise, error)
-  CALL save_or_replace(file_id, 'inputs/focal_length_in_the_medium_cm', f_cm_phys, error) ! this dataset in HDF5 has wrong unit [0 for no lense]
+  !CALL save_or_replace(file_id, 'inputs/focal_length_in_the_medium_cm', f_cm_phys, error) ! this dataset in HDF5 has wrong unit [0 for no lense]
   CALL save_or_replace(file_id, 'inputs/initial_chirp_phase', chirp_factor, error)
   
   
@@ -127,7 +128,49 @@ PROGRAM make_start
   CALL save_or_replace(file_id, 'inputs/chi5_coefficient', n4_phys, error)
 
   ! here we know n2 needed for the Pin/Pcr
-  CALL save_or_replace(file_id, 'inputs/ratio_pin_pcr', numcrit, error)
+  CALL h5lexists_f(file_id, 'inputs/beamwaist', dumlog, error)
+  IF (dumlog) THEN
+    CALL save_or_replace(file_id, 'inputs/focal_length_in_the_medium_cm', f_cm_phys, error) !! input given at the entrance plane, it's equal to the radius of the curvature
+    
+    Curvature_radius_entry = f_cm_phys * 1.D-2                              !!!!!!!!!!!!!!! CHECK SIGN
+    
+    CALL save_or_replace(file_id, 'inputs/beamwaist', w0_cm_phys, error)
+    CALL h5lexists_f(file_id, 'inputs/ratio_pin_pcr', dumlog, error)
+    IF (dumlog) THEN ! input given in the P_in/P_cr
+      CALL save_or_replace(file_id, 'inputs/ratio_pin_pcr', numcrit, error)
+      Intensity_entry = ratio_Pin_Pcr_entry2I_entry(numcrit,w0_cm_phys*1.D-2,pressure*n2_phys,lambda0_cm_phys*1.D-2)
+      CALL save_or_replace(file_id, 'inputs/intensity_entry', Intensity_entry, error, units_in = '[SI]')
+    ELSE ! input given in the entrance intensity
+      CALL save_or_replace(file_id, 'inputs/intensity_entry', Intensity_entry, error)
+      ! convert
+      numcrit = I_entry2ratio_Pin_Pcr_entry(Intensity_entry,w0_cm_phys*1.D-2,pressure*n2_phys,lambda0_cm_phys*1.D-2)
+      CALL save_or_replace(file_id, 'inputs/ratio_pin_pcr', numcrit, error, units_in = '[-]')
+    ENDIF
+    REAL(8) :: Intensity_entry, Intensity_focus, waist_focus, Curvature_radius_entry, focus_position
+
+    ! convert to focus values    
+    CALL Gaussian_entry2Gaussian_focus(Intensity_entry,w0_cm_phys*1.D-2,Curvature_radius_entry,Intensity_focus, waist_focus, focus_position, lambda0_cm_phys*1.D-2)
+  ELSE
+
+    ! Input given by the reference Gaussian beam
+    CALL save_or_replace(file_id, 'inputs/focus_beamwaist_Gaussian', waist_focus, error)
+    CALL save_or_replace(file_id, 'inputs/focus_intensity_Gaussian', Intensity_focus, error)
+    CALL save_or_replace(file_id, 'inputs/focus_position_Gaussian', focus_position, error) !!!!!!!!!!!!!!! CHECK SIGN
+
+    ! Convert
+    CALL Gaussian_focus2Gaussian_entry(Intensity_focus,waist_focus,focus_position,Intensity_entry,w0_cm_phys,Curvature_radius_entry,lambda0_cm_phys*1.D-2)
+    w0_cm_phys = w0_cm_phys*1.D2
+    f_cm_phys = Curvature_radius_entry*1.D2
+
+    numcrit = I_entry2ratio_Pin_Pcr_entry(Intensity_entry,w0_cm_phys*1.D-2,pressure*n2_phys,lambda0_cm_phys*1.D-2) ! intensity -> ratio
+
+    CALL save_or_replace(file_id, 'inputs/intensity_entry', Intensity_entry, error, units_in = '[SI]')
+    CALL save_or_replace(file_id, 'inputs/ratio_pin_pcr', numcrit, error, units_in = '[-]')
+    CALL save_or_replace(file_id, 'inputs/beamwaist', w0_cm_phys, error, units_in = '[cm]')
+    CALL save_or_replace(file_id, 'inputs/focal_length_in_the_medium_cm', f_cm_phys, error, units_in = '[cm]') !! input given at the entrance plane, it's equal to the radius of the curvature    
+    
+    !CALL save_or_replace(file_id, 'inputs/ratio_pin_pcr', numcrit, error)
+  ENDIF
 
 
   CALL save_or_replace(file_id, 'inputs/effective_density_of_neutral_molecules', rhont_cm3_phys, error, units_in = '[1/cm3]')

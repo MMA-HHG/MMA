@@ -213,14 +213,31 @@ real(8) function FWHM2e_inv(FWHM)
     FWHM2e_inv = FWHM/2.d0*sqrt(2.d0)
 end function e_inv2FWHM
 
-real(8) function FWHM2e_inv(FWHM)
-    real(8) :: FWHM
-    FWHM2e_inv = FWHM/2.d0*sqrt(2.d0)
-end function e_inv2FWHM
+real(8) function ratio_Pin_Pcr_entry2I_entry(Pin_Pcr,wz,n2p,lambda)
+    real(8) :: Pin_Pcr,wz,n2p,lambda
+    ratio_Pin_Pcr_entry2I_entry = (Pin_Pcr*(lambda/(PI*wz))**2) / n2p
+end function ratio_Pin_Pcr_entry2I_entry
 
-real(8) function FWHM2e_inv(FWHM)
-    real(8) :: FWHM
-    FWHM2e_inv = FWHM/2.d0*sqrt(2.d0)
-end function e_inv2FWHM
+real(8) I_entry2ratio_Pin_Pcr_entry(I_entry,wz,n2p,lambda)
+    real(8) :: I_entry,wz,n2p,lambda
+    I_entry2ratio_Pin_Pcr_entry = n2p*I_entry*(PI*wz/lambda)**2
+end function I_entry2ratio_Pin_Pcr_entry
+
+subroutine Gaussian_focus2Gaussian_entry(I0,w0,z,Iz,wz,Rz,lambda)
+    real(8) :: I0,w0,z,Iz,wz,Rz,lambda,zR
+    zR = (PI*w0**2)/lambda
+    wz = w0 * SQRT(1.D0+(z/zR)**2)
+    Iz = I0 * (w0/wz)**2
+    Rz = z + (zR**2) / z
+end subroutine Gaussian_focus2Gaussian_entry
+
+subroutine Gaussian_entry2Gaussian_focus(Iz,wz,Rz,I0,w0,focus,lambda)
+    ! for small z's (large R(z)), this could be critical
+    real(8)     :: Iz,wz,Rz,I0,w0,focus,lambda
+    w0 = wz**2 / (1.D0+((PI*wz**2)/(lambda*Rz))**2)
+    !zR = (PI * lambda * Rz**2 * wz**2) / (lambda**2 * Rz**2 + PI**2 * wz**4)
+    focus = -Rz/(1.D0+(lambda*Rz/(PI*wz**2))**2)
+    I0 = Iz * (wz/w0)**2
+end subroutine Gaussian_entry2Gaussian_focus
 
 end module default_inputs

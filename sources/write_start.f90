@@ -2,6 +2,8 @@ MODULE write_start
   USE hdf5_helper
   USE HDF5
 
+  REAL(8), PARAMETER  :: Pi = acos(-1.0d0)
+
   INTEGER(4) num_proc,dim_t,dim_r,KK,NN,switch_rho,switch_dKerr,absorb,rhodist,angular_momentum,switch_T,KKp,KKpp
   INTEGER(4) i_x_max, i_z_max, i_x, i_z, angular_momentum_N2
   REAL(8) rek0,rekp,c3,c5,gamma1,gamma2,muk,beta_inv_2KK,rho0,nu,alpha,alphaquad,rhoat_inv,xdk,tdk,raman,omega,eta1,eta2
