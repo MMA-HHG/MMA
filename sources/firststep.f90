@@ -425,7 +425,7 @@ CONTAINS
 
    ! select the ionisation model used in the code
     SELECT CASE (switch_rho)
-    CASE(1,2,6)
+    CASE(1,2)
        CONTINUE
     CASE(8)
        CALL RESCALE_TABLE_EXT
@@ -433,19 +433,19 @@ CONTAINS
        CALL INITIALISE_PPT('PPT')
        CALL FIND_INTENSITY_AREA('PPT')
        CALL FILL_TABLE('PPT')
-    CASE(4)
-       CALL INITIALISE_PPT('ADK')
-       CALL FIND_INTENSITY_AREA('ADK')
-       CALL FILL_TABLE('ADK')
-    CASE(5)
-       CALL INITIALISE_PPT('IRC')
-       CALL FIND_INTENSITY_AREA('IRC')
-       CALL FILL_TABLE('IRC')
-    CASE(7)
-       CALL INITIALISE_PPT('PPT')
-       CALL FIND_INTENSITY_AREA('PPT')
-       CALL FILL_TABLE('PPT')
-       CALL INITIALIZE_PPT_N2(ionisation_potential_N2,residue_charge_N2,n0_indice,critical_density,atomic_density_N2,0.D0,angular_momentum_N2)
+!    CASE(4)
+!       CALL INITIALISE_PPT('ADK')
+!       CALL FIND_INTENSITY_AREA('ADK')
+!       CALL FILL_TABLE('ADK')
+!    CASE(5)
+!       CALL INITIALISE_PPT('IRC')
+!       CALL FIND_INTENSITY_AREA('IRC')
+!       CALL FILL_TABLE('IRC')
+!    CASE(7)
+!       CALL INITIALISE_PPT('PPT')
+!       CALL FIND_INTENSITY_AREA('PPT')
+!       CALL FILL_TABLE('PPT')
+!       CALL INITIALIZE_PPT_N2(ionisation_potential_N2,residue_charge_N2,n0_indice,critical_density,atomic_density_N2,0.D0,angular_momentum_N2)
     END SELECT
 
     930 FORMAT (I3)
