@@ -176,7 +176,7 @@ CONTAINS
     CALL read_dset(group_id, 'z_out',z_out)
     CALL read_dset(group_id, 'rfil',rfil)
     CALL read_dset(group_id,'switch_rho', switch_rho)
-    switch_rho = 8
+    ! switch_rho = 8
     CALL read_dset(group_id,'switchKerr', switch_dKerr)
     CALL read_dset(group_id,'switch_T',switch_T)
     CALL read_dset(group_id,'absorb',absorb)

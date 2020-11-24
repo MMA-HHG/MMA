@@ -6,6 +6,8 @@ This is a nutshell guide of the propagation code, it explains the basics of its 
 ## NEWS
 `module pre_ionised`: it allows to compute the pre-ionisation. It also encapsulates most of the work in the module and minimal changes are in the main code. Only firs-step changed slightly and on-the-fly calculations.
 
+switch dispersion is applied only in the pre-processor to crrate the table
+
 It introduced structures in the code -O2 compilation claims to ensure alignments in memory.
 
 ## Development

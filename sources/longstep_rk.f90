@@ -197,46 +197,49 @@ CONTAINS
        intF=(nu*0.5d0*(etip1+eti)-rhoat_inv*var1-alpha)*delta_t
        rho=rho*exp(intF)+var1*delta_t
        mpa=muk*etip1**(KK-1)*(1.D0-rhosave*rhoat_inv)
-    CASE(3,4)
+   !  CASE(3,4)
+    CASE(3)
        CALL interpolate_ppt(var1,mpa,etip1)
        intF=(nu*0.5d0*(etip1+eti)-rhoat_inv*var1-alpha)*delta_t
        rho=rho*exp(intF)+var1*delta_t
        mpa=mpa*(1.D0-rhosave*rhoat_inv)
-    CASE(5)
-       CALL interpolate_ppt(var1,mpa,etip1)
-       intF=(nu*0.5d0*(etip1+eti)-rhoat_inv*var1-alpha)*delta_t
-       rho=rho*exp(intF)+var1*delta_t
-       mpa=mpa*(1.D0-rhosave*rhoat_inv)
-    CASE(6)
-       rhompi=rhompi+(beta_inv_2KK*eti**KK*(1.D0-rho*rhoat_inv)-alpha*rhompi)*delta_t
-       rho1=rho1+(beta_inv_2KKp*eti**KKp-alpha1*rho1)*delta_t
-       trapped=MIN(rhoth-rhotr,alpha2*(eti/eti_ref+1.D-6)**exp_ref*rho2*(rhoth-rhotr)*delta_t)
-       rho2=rho2+beta_inv_2*eti*rhoslg2*delta_t-trapped
-       rhotr=rhotr+trapped
-       rhoth=rhoth+alphah*rhofh*delta_t
-       rhofh=rhofh+(beta_inv_2*eti*rhoslg2-alphah*rhofh)*delta_t
-       mpa=muk*etip1**(KK-1)*(1.D0-rho*rhoat_inv)+mukp*etip1**(KKp-1)+mu*rhoslg2+mukpp*etip1**(KKpp-1)
-       rhoslg2=MIN(rhoslg2+(beta_inv_2KKpp*eti**KKpp-beta_inv_2*eti*rhoslg2)*delta_t,rhosat)
-       rhoav=rhoav+(nu*rho*eti-alpha*rhoav)*delta_t
-       rho=rhompi+rhoav+rho1+rho2
-    CASE(7)
-       CALL interpolate_ppt(var1,mpa,etip1)
-       CALL interpolate_ppt_N2(var1_N2,mpa_N2,etip1)
-       colfreqO2p=nucp*rhoO2*Tev**(-1.5D0)
-       colfreqN2p=nucp*rhoN2*Tev**(-1.5D0)
-       colfreqO2=nucO2*(1.D0-rhoO2*rhoat_inv)*SQRT(Tev)
-       colfreqN2=nucN2*(1.D0-rhoN2*rhoat_N2_inv)*SQRT(Tev)
-       mpa=mpa*(1.D0-rhoO2*rhoat_inv)+mpa_N2*(1.D0-rhoN2*rhoat_N2_inv)
-       intF=(-rhoat_inv*var1-alpha)*delta_t
-       rhoO2=rhoO2*exp(intF)+var1*delta_t+nuO2*colfreqO2*rho*0.5d0*(etip1+eti)*delta_t
-       intF=(-rhoat_N2_inv*var1_N2-alpha)*delta_t
-       rhoN2=rhoN2*exp(intF)+var1_N2*delta_t+nuN2*colfreqN2*rho*0.5d0*(etip1+eti)*delta_t
-       gamma1=gamma1e*(colfreqO2p+colfreqN2p+colfreqO2+colfreqN2)
-       intF=(-(nuO2*colfreqO2+nuN2*colfreqN2)*0.5d0*(etip1+eti))*delta_t
-       Tev=Tev*exp(intF)+nukB*(colfreqO2p+colfreqN2p)*0.5d0*(etip1+eti)*delta_t
-       IF (rhoO2*rhoat_inv.GT.1.D0) rhoO2=1.D0/rhoat_inv
-       IF (rhoN2*rhoat_N2_inv.GT.1.D0) rhoN2=1.D0/rhoat_N2_inv
-       rho=rhoO2+rhoN2
+   !  CASE(5)
+   !     CALL interpolate_ppt(var1,mpa,etip1)
+   !     intF=(nu*0.5d0*(etip1+eti)-rhoat_inv*var1-alpha)*delta_t
+   !     rho=rho*exp(intF)+var1*delta_t
+   !     mpa=mpa*(1.D0-rhosave*rhoat_inv)
+
+   !  CASE(6)
+   !     rhompi=rhompi+(beta_inv_2KK*eti**KK*(1.D0-rho*rhoat_inv)-alpha*rhompi)*delta_t
+   !     rho1=rho1+(beta_inv_2KKp*eti**KKp-alpha1*rho1)*delta_t
+   !     trapped=MIN(rhoth-rhotr,alpha2*(eti/eti_ref+1.D-6)**exp_ref*rho2*(rhoth-rhotr)*delta_t)
+   !     rho2=rho2+beta_inv_2*eti*rhoslg2*delta_t-trapped
+   !     rhotr=rhotr+trapped
+   !     rhoth=rhoth+alphah*rhofh*delta_t
+   !     rhofh=rhofh+(beta_inv_2*eti*rhoslg2-alphah*rhofh)*delta_t
+   !     mpa=muk*etip1**(KK-1)*(1.D0-rho*rhoat_inv)+mukp*etip1**(KKp-1)+mu*rhoslg2+mukpp*etip1**(KKpp-1)
+   !     rhoslg2=MIN(rhoslg2+(beta_inv_2KKpp*eti**KKpp-beta_inv_2*eti*rhoslg2)*delta_t,rhosat)
+   !     rhoav=rhoav+(nu*rho*eti-alpha*rhoav)*delta_t
+   !     rho=rhompi+rhoav+rho1+rho2
+
+   !  CASE(7)
+   !     CALL interpolate_ppt(var1,mpa,etip1)
+   !     CALL interpolate_ppt_N2(var1_N2,mpa_N2,etip1)
+   !     colfreqO2p=nucp*rhoO2*Tev**(-1.5D0)
+   !     colfreqN2p=nucp*rhoN2*Tev**(-1.5D0)
+   !     colfreqO2=nucO2*(1.D0-rhoO2*rhoat_inv)*SQRT(Tev)
+   !     colfreqN2=nucN2*(1.D0-rhoN2*rhoat_N2_inv)*SQRT(Tev)
+   !     mpa=mpa*(1.D0-rhoO2*rhoat_inv)+mpa_N2*(1.D0-rhoN2*rhoat_N2_inv)
+   !     intF=(-rhoat_inv*var1-alpha)*delta_t
+   !     rhoO2=rhoO2*exp(intF)+var1*delta_t+nuO2*colfreqO2*rho*0.5d0*(etip1+eti)*delta_t
+   !     intF=(-rhoat_N2_inv*var1_N2-alpha)*delta_t
+   !     rhoN2=rhoN2*exp(intF)+var1_N2*delta_t+nuN2*colfreqN2*rho*0.5d0*(etip1+eti)*delta_t
+   !     gamma1=gamma1e*(colfreqO2p+colfreqN2p+colfreqO2+colfreqN2)
+   !     intF=(-(nuO2*colfreqO2+nuN2*colfreqN2)*0.5d0*(etip1+eti))*delta_t
+   !     Tev=Tev*exp(intF)+nukB*(colfreqO2p+colfreqN2p)*0.5d0*(etip1+eti)*delta_t
+   !     IF (rhoO2*rhoat_inv.GT.1.D0) rhoO2=1.D0/rhoat_inv
+   !     IF (rhoN2*rhoat_N2_inv.GT.1.D0) rhoN2=1.D0/rhoat_N2_inv
+   !     rho=rhoO2+rhoN2
     END SELECT
     rho=rho-alphaquad*rhosave**2*delta_t
     IF (rho.LT.0.D0) rho=0.D0
