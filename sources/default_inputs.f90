@@ -211,14 +211,14 @@ end function e_inv2FWHM
 real(8) function FWHM2e_inv(FWHM)
     real(8) :: FWHM
     FWHM2e_inv = FWHM/2.d0*sqrt(2.d0)
-end function e_inv2FWHM
+end function FWHM2e_inv
 
 real(8) function ratio_Pin_Pcr_entry2I_entry(Pin_Pcr,wz,n2p,lambda)
     real(8) :: Pin_Pcr,wz,n2p,lambda
     ratio_Pin_Pcr_entry2I_entry = (Pin_Pcr*(lambda/(PI*wz))**2) / n2p
 end function ratio_Pin_Pcr_entry2I_entry
 
-real(8) I_entry2ratio_Pin_Pcr_entry(I_entry,wz,n2p,lambda)
+real(8) function I_entry2ratio_Pin_Pcr_entry(I_entry,wz,n2p,lambda)
     real(8) :: I_entry,wz,n2p,lambda
     I_entry2ratio_Pin_Pcr_entry = n2p*I_entry*(PI*wz/lambda)**2
 end function I_entry2ratio_Pin_Pcr_entry

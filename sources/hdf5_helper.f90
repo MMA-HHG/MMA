@@ -15,7 +15,7 @@ MODULE hdf5_helper
   END INTERFACE
   ! Check if a given dataset exists. It reads the value in such a case, it cretes this dataset and savs the input value otherwise.
   INTERFACE save_or_replace
-    PROCEDURE save_or_replace_real8, save_or_replace_int, save_or_replace_bool
+    PROCEDURE save_or_replace_real8, save_or_replace_int, save_or_replace_bool, save_or_replace_string
   END INTERFACE
   CONTAINS
 
@@ -879,4 +879,24 @@ MODULE hdf5_helper
         IF (PRESENT(units_in)) CALL h5_add_units_1D(file_id, name, units_in)
       ENDIF
     END SUBROUTINE save_or_replace_bool
+
+    SUBROUTINE save_or_replace_string(file_id, name, var, error, units_in)
+      CHARACTER(*)            :: var
+      INTEGER(4)              :: file_id ! file or group identifier
+      CHARACTER(*)            :: name
+      INTEGER                 :: error
+      CHARACTER(*), OPTIONAL  :: units_in
+
+      LOGICAL         :: exists_dataset
+
+      CALL  h5lexists_f(file_id,name,exists_dataset,error)
+
+      IF (exists_dataset) THEN
+        CALL read_dset(file_id, name, var)
+      ELSE
+        print *, 'not writing strings not implemented yet'
+        !CALL create_dset(file_id, name, var)
+        !IF (PRESENT(units_in)) CALL h5_add_units_1D(file_id, name, units_in)
+      ENDIF
+    END SUBROUTINE save_or_replace_string
 END MODULE hdf5_helper

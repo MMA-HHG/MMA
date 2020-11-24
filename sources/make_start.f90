@@ -1,12 +1,13 @@
 PROGRAM make_start
   USE HDF5
   USE write_listing
-  USE deafult_inputs
+  USE default_inputs
   USE HDF5_helper
 
   IMPLICIT NONE
   integer :: st
   logical :: exists_h5_refractive_index, dumlog
+  real(8) :: Intensity_entry, Intensity_focus, waist_focus, Curvature_radius_entry, focus_position
 
 
   PRINT *,"Pre-processor started"
@@ -62,12 +63,12 @@ PROGRAM make_start
   CALL save_or_replace(file_id, 'inputs/degree_of_supergaussian', super_N, error)
   CALL h5lexists_f(file_id, 'inputs/pulse_duration_in_1_e', dumlog, error)
   IF (dumlog) THEN
-    CALL read_dset(file_id, 'inputs/pulse_duration_in_1_e', tp_fs_phys, error)
-    CALL create_dset(file_id, 'inputs/pulse_duration_in_FWHM', e_inv2FWHM(tp_fs_phys), error, units_in = '[fs]')
+    CALL read_dset(file_id, 'inputs/pulse_duration_in_1_e', tp_fs_phys)
+    CALL save_or_replace(file_id, 'inputs/pulse_duration_in_FWHM', e_inv2FWHM(tp_fs_phys), error, units_in = '[fs]')
   ELSE
-    CALL read_dset(file_id, 'inputs/pulse_duration_in_FWHM', tp_fs_phys, error)
+    CALL read_dset(file_id, 'inputs/pulse_duration_in_FWHM', tp_fs_phys)
     tp_fs_phys = FWHM2e_inv(tp_fs_phys)
-    CALL create_dset(file_id, 'inputs/pulse_duration_in_1_e', tp_fs_phys, error, units_in = '[fs]')
+    CALL save_or_replace(file_id, 'inputs/pulse_duration_in_1_e', tp_fs_phys, error, units_in = '[fs]')
   ENDIF
   CALL save_or_replace(file_id, 'inputs/degree_of_supergaussian_in_time', super_t, error)
   ! CALL save_or_replace(file_id, 'inputs/ratio_pin_pcr', numcrit, error)
@@ -146,7 +147,6 @@ PROGRAM make_start
       numcrit = I_entry2ratio_Pin_Pcr_entry(Intensity_entry,w0_cm_phys*1.D-2,pressure*n2_phys,lambda0_cm_phys*1.D-2)
       CALL save_or_replace(file_id, 'inputs/ratio_pin_pcr', numcrit, error, units_in = '[-]')
     ENDIF
-    REAL(8) :: Intensity_entry, Intensity_focus, waist_focus, Curvature_radius_entry, focus_position
 
     ! convert to focus values    
     CALL Gaussian_entry2Gaussian_focus(Intensity_entry,w0_cm_phys*1.D-2,Curvature_radius_entry,Intensity_focus, waist_focus, focus_position, lambda0_cm_phys*1.D-2)
@@ -176,9 +176,9 @@ PROGRAM make_start
   CALL save_or_replace(file_id, 'inputs/effective_density_of_neutral_molecules', rhont_cm3_phys, error, units_in = '[1/cm3]')
   !CALL read_dset(file_id, 'inputs/effective_density_of_neutral_molecules', rhont_cm3_phys)
   !rhont_cm3_phys = 0.5
-  CALL save_or_replace(file_id, 'inputs/ionization_poential_of_neutral_molecules', Ui_eV_phys, units_in = '[eV]')
-  CALL save_or_replace(file_id, 'inputs/initial_electron_density', rho0_phys, units_in = '[1/cm3]')
-  CALL save_or_replace(file_id, 'inputs/type_of_ionization_method', switch_rho, units_in = '[-]')
+  CALL save_or_replace(file_id, 'inputs/ionization_poential_of_neutral_molecules', Ui_eV_phys, error, units_in = '[eV]')
+  CALL save_or_replace(file_id, 'inputs/initial_electron_density', rho0_phys, error, units_in = '[1/cm3]')
+  CALL save_or_replace(file_id, 'inputs/type_of_ionization_method', switch_rho, error, units_in = '[-]')
   if(switch_rho.GT.8) then 
     write(6,*) 'You have selected a bad value for the type ionization method'
     write(6,*) ' You have to choose in integer between 1 and 8'

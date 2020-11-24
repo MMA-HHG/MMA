@@ -28,7 +28,7 @@
                         outputHDF5_occigen.f90 cuprad.f90
   MAKE_START	   = make_start_occigen.e
   S_MAKE_START       = hdf5_helper.f90 write_start.f90 calc_start.f90 normalisation.f90 \
-                       write_listing.f90 make_start.f90
+                       write_listing.f90 default_inputs.f90 make_start.f90
   CLEAN       = clean_occigen.e
   S_CLEAN	= clean.f90
   MERGE       = merge_occigen.e
