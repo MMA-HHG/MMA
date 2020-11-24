@@ -253,14 +253,14 @@ CONTAINS
          DOUBLE PRECISION, INTENT(IN) :: intensity
          DOUBLE PRECISION             :: IONISATION_RATE_PPT
      END FUNCTION IONISATION_RATE_PPT
-     FUNCTION IONISATION_RATE_ADK(intensity)
-       DOUBLE PRECISION, INTENT(IN) :: intensity
-       DOUBLE PRECISION             :: IONISATION_RATE_ADK
-     END FUNCTION IONISATION_RATE_ADK
-     FUNCTION IONISATION_RATE_CRISTAL(intensity)
-       DOUBLE PRECISION, INTENT(IN) :: intensity
-       DOUBLE PRECISION             :: IONISATION_RATE_CRISTAL
-     END FUNCTION
+    !  FUNCTION IONISATION_RATE_ADK(intensity)
+    !    DOUBLE PRECISION, INTENT(IN) :: intensity
+    !    DOUBLE PRECISION             :: IONISATION_RATE_ADK
+    !  END FUNCTION IONISATION_RATE_ADK
+    !  FUNCTION IONISATION_RATE_CRISTAL(intensity)
+    !    DOUBLE PRECISION, INTENT(IN) :: intensity
+    !    DOUBLE PRECISION             :: IONISATION_RATE_CRISTAL
+    !  END FUNCTION
     END INTERFACE
 
 
@@ -278,10 +278,10 @@ CONTAINS
        intensity = intensity + 10.d0**(Int(log10(intensity))) /50.0
      IF ( THEORY == "PPT") THEN
         ionisation_rate = IONISATION_RATE_PPT(intensity)
-     ELSE IF( THEORY == "ADK" ) THEN
-        ionisation_rate = IONISATION_RATE_ADK(intensity)
-     ELSE IF( THEORY == "IRC") THEN
-        ionisation_rate = IONISATION_RATE_CRISTAL(intensity)
+    !  ELSE IF( THEORY == "ADK" ) THEN
+    !     ionisation_rate = IONISATION_RATE_ADK(intensity)
+    !  ELSE IF( THEORY == "IRC") THEN
+    !     ionisation_rate = IONISATION_RATE_CRISTAL(intensity)
      ELSE
         print *, 'The THEORY FLAG is wrong, choose ADK, PPT or IRC'
         print *, 'The code is stopped'
@@ -327,13 +327,13 @@ CONTAINS
          DOUBLE PRECISION, INTENT(IN) :: intensity
          DOUBLE PRECISION             :: IONISATION_RATE_PPT
      END FUNCTION IONISATION_RATE_PPT
-     FUNCTION IONISATION_RATE_ADK(intensity)
-         DOUBLE PRECISION, INTENT(IN) :: intensity
-         DOUBLE PRECISION             :: IONISATION_RATE_ADK
-     END FUNCTION IONISATION_RATE_ADK
-     FUNCTION IONISATION_RATE_CRISTAL(intensity)
-       DOUBLE PRECISION, INTENT(IN) :: intensity
-       DOUBLE PRECISION             :: IONISATION_RATE_CRISTAL
+    !  FUNCTION IONISATION_RATE_ADK(intensity)
+    !      DOUBLE PRECISION, INTENT(IN) :: intensity
+    !      DOUBLE PRECISION             :: IONISATION_RATE_ADK
+    !  END FUNCTION IONISATION_RATE_ADK
+    !  FUNCTION IONISATION_RATE_CRISTAL(intensity)
+    !    DOUBLE PRECISION, INTENT(IN) :: intensity
+    !    DOUBLE PRECISION             :: IONISATION_RATE_CRISTAL
      END FUNCTION
     END INTERFACE
 
@@ -398,22 +398,22 @@ CONTAINS
 
 
     ! these models don't print reference, should we keep them or take as obsolete non-canonical cases?
-    ELSE IF (THEORY == "ADK") THEN
-    DO i = 2, dimension_PPT
-       intensity = (i-1) * intensity_step
-       ionisation_rate = ionisation_rate_ADK(intensity)
-       PPT_TABLE(i, 1) = intensity * intensity_factor                    ! Normalised Intensity
-       PPT_TABLE(i, 2) = ionisation_rate * rate_factor                   ! Gamma
-       PPT_TABLE(i, 3) = MPA_factor * ( ionisation_rate  * rate_factor/ intensity )    ! Normalised MPA
-    ENDDO
-    ELSE IF (THEORY == "IRC") THEN
-    DO i = 2, dimension_PPT
-       intensity = (i-1) * intensity_step
-       ionisation_rate = ionisation_rate_cristal(intensity)
-       PPT_TABLE(i, 1) = intensity * intensity_factor                    ! Normalised Intensity
-       PPT_TABLE(i, 2) = ionisation_rate * rate_factor                   ! Normalised Gamma
-       PPT_TABLE(i, 3) = MPA_factor * ionisation_rate  / intensity       ! Normalised MPA
-    ENDDO    
+    ! ELSE IF (THEORY == "ADK") THEN
+    ! DO i = 2, dimension_PPT
+    !    intensity = (i-1) * intensity_step
+    !    ionisation_rate = ionisation_rate_ADK(intensity)
+    !    PPT_TABLE(i, 1) = intensity * intensity_factor                    ! Normalised Intensity
+    !    PPT_TABLE(i, 2) = ionisation_rate * rate_factor                   ! Gamma
+    !    PPT_TABLE(i, 3) = MPA_factor * ( ionisation_rate  * rate_factor/ intensity )    ! Normalised MPA
+    ! ENDDO
+    ! ELSE IF (THEORY == "IRC") THEN
+    ! DO i = 2, dimension_PPT
+    !    intensity = (i-1) * intensity_step
+    !    ionisation_rate = ionisation_rate_cristal(intensity)
+    !    PPT_TABLE(i, 1) = intensity * intensity_factor                    ! Normalised Intensity
+    !    PPT_TABLE(i, 2) = ionisation_rate * rate_factor                   ! Normalised Gamma
+    !    PPT_TABLE(i, 3) = MPA_factor * ionisation_rate  / intensity       ! Normalised MPA
+    ! ENDDO    
     ENDIF
 
     IF(my_rank.EQ.0) THEN
@@ -555,16 +555,16 @@ CONTAINS
     
 
 
-    INTERFACE
-     FUNCTION IONISATION_RATE_ADK(intensity)
-         DOUBLE PRECISION, INTENT(IN) :: intensity
-         DOUBLE PRECISION             :: IONISATION_RATE_ADK
-     END FUNCTION IONISATION_RATE_ADK
-     FUNCTION IONISATION_RATE_CRISTAL(intensity)
-       DOUBLE PRECISION, INTENT(IN) :: intensity
-       DOUBLE PRECISION             :: IONISATION_RATE_CRISTAL
-     END FUNCTION
-    END INTERFACE
+    ! INTERFACE
+    !  FUNCTION IONISATION_RATE_ADK(intensity)
+    !      DOUBLE PRECISION, INTENT(IN) :: intensity
+    !      DOUBLE PRECISION             :: IONISATION_RATE_ADK
+    !  END FUNCTION IONISATION_RATE_ADK
+    !  FUNCTION IONISATION_RATE_CRISTAL(intensity)
+    !    DOUBLE PRECISION, INTENT(IN) :: intensity
+    !    DOUBLE PRECISION             :: IONISATION_RATE_CRISTAL
+    !  END FUNCTION
+    ! END INTERFACE
 
     ! Factors to rescale in computational units
     intensity_factor = 4.d0 * PI * beam_waist**2 * 1.d-9 / critical_power    
@@ -1259,66 +1259,66 @@ END FUNCTION A_FACTOR
 
 !====================================================================================
 
-DOUBLE PRECISION FUNCTION Q_FACTOR(x,y)
+! DOUBLE PRECISION FUNCTION Q_FACTOR(x,y)
 
-! Function which evaluates the Q function
+! ! Function which evaluates the Q function
 
-  IMPLICIT NONE
-  INTEGER, PARAMETER          :: Nmax = 500
-  INTEGER                     :: n
-  DOUBLE PRECISION, intent(in):: x,y
-  DOUBLE PRECISION            :: PI
-  DOUBLE PRECISION, PARAMETER :: TINY = 1.d-30
-  DOUBLE PRECISION            :: ARG_DAWSON, ARG_EXP, ALPHA
-  DOUBLE PRECISION            :: last_value, delta
+!   IMPLICIT NONE
+!   INTEGER, PARAMETER          :: Nmax = 500
+!   INTEGER                     :: n
+!   DOUBLE PRECISION, intent(in):: x,y
+!   DOUBLE PRECISION            :: PI
+!   DOUBLE PRECISION, PARAMETER :: TINY = 1.d-30
+!   DOUBLE PRECISION            :: ARG_DAWSON, ARG_EXP, ALPHA
+!   DOUBLE PRECISION            :: last_value, delta
 
-INTERFACE
-   FUNCTION DELK(x)
-     DOUBLE PRECISION, intent(in) :: x
-     DOUBLE PRECISION             :: delk
-   END FUNCTION DELK
+! INTERFACE
+!    FUNCTION DELK(x)
+!      DOUBLE PRECISION, intent(in) :: x
+!      DOUBLE PRECISION             :: delk
+!    END FUNCTION DELK
 
-   FUNCTION DELE(x)
-     DOUBLE PRECISION, intent(in) :: x
-     DOUBLE PRECISION             :: dele 
-   END FUNCTION DELE
+!    FUNCTION DELE(x)
+!      DOUBLE PRECISION, intent(in) :: x
+!      DOUBLE PRECISION             :: dele 
+!    END FUNCTION DELE
 
-   FUNCTION DAWSON(x)
-     DOUBLE PRECISION, intent(in) :: x
-     DOUBLE PRECISION             :: DAWSON
-   END FUNCTION
+!    FUNCTION DAWSON(x)
+!      DOUBLE PRECISION, intent(in) :: x
+!      DOUBLE PRECISION             :: DAWSON
+!    END FUNCTION
 
-END INTERFACE
+! END INTERFACE
 
-PI = 4.d0 * Atan(1.d0)
+! PI = 4.d0 * Atan(1.d0)
 
-ARG_DAWSON = PI**2 / (4.d0 * DELK(1.d0-x) * DELE(1.d0-x))
-ARG_EXP = -1.d0 * PI * ( DELK(x)-DELE(x) ) / DELE(1.d0-x)
-ALPHA = 2.d0 * ( Int(y+1.d0)-y ) 
+! ARG_DAWSON = PI**2 / (4.d0 * DELK(1.d0-x) * DELE(1.d0-x))
+! ARG_EXP = -1.d0 * PI * ( DELK(x)-DELE(x) ) / DELE(1.d0-x)
+! ALPHA = 2.d0 * ( Int(y+1.d0)-y ) 
 
-delta = 1.d0
-n = 0
-Q_FACTOR = 0.d0
-LAST_VALUE = Q_FACTOR
-
-
+! delta = 1.d0
+! n = 0
+! Q_FACTOR = 0.d0
+! LAST_VALUE = Q_FACTOR
 
 
-DO WHILE( (delta>TINY).AND.(n<Nmax) )
-   Q_FACTOR = Q_FACTOR + EXP(ARG_EXP * n) * DAWSON( sqrt(ARG_DAWSON * ( ALPHA+n ) ) )
-   delta = Q_FACTOR - LAST_VALUE
-   LAST_VALUE = Q_FACTOR
-   n = n+1
-ENDDO
 
-IF (n>Nmax) THEN
-   PRINT *, ' The iteration in Q_factor function was stopped before convergence'
-   PRINT *, ' The precision of result is', delta 
-ENDIF
 
-Q_FACTOR = Q_FACTOR / sqrt(2.d0 * DELK(1.d0-x) / PI)
+! DO WHILE( (delta>TINY).AND.(n<Nmax) )
+!    Q_FACTOR = Q_FACTOR + EXP(ARG_EXP * n) * DAWSON( sqrt(ARG_DAWSON * ( ALPHA+n ) ) )
+!    delta = Q_FACTOR - LAST_VALUE
+!    LAST_VALUE = Q_FACTOR
+!    n = n+1
+! ENDDO
 
-END FUNCTION Q_FACTOR
+! IF (n>Nmax) THEN
+!    PRINT *, ' The iteration in Q_factor function was stopped before convergence'
+!    PRINT *, ' The precision of result is', delta 
+! ENDIF
+
+! Q_FACTOR = Q_FACTOR / sqrt(2.d0 * DELK(1.d0-x) / PI)
+
+! END FUNCTION Q_FACTOR
 
 !=====================================================================================================
 
