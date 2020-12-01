@@ -263,7 +263,7 @@ subroutine preset_physics
 
     gas_preset = 'Ar_PPT'
 
-    call save_or_replace(file_id, 'inputs/gas_preset', gas_preset, units_in = '[-]')
+    call save_or_replace(file_id, 'inputs/gas_preset', gas_preset, error, units_in = '[-]')
     proplength_m_phys = 0.005d0
 
 

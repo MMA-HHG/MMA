@@ -924,7 +924,7 @@ MODULE hdf5_helper
       CALL h5screate_simple_f(1, (/ INT(1,HSIZE_T) /), dataspace_id, error)
 
       CALL h5dcreate_f(file_id, name, type_id, dataspace_id, dset_id, error)
-      CALL h5dwrite_f(dset_id, type_id, (/ var /), error)
+      CALL h5dwrite_f(dset_id, type_id, (/ var /), (/ INT(1,HSIZE_T) /), error)
 
       CALL h5dclose_f(dset_id , error)
       CALL h5sclose_f(dataspace_id, error)
@@ -990,7 +990,7 @@ MODULE hdf5_helper
         ! print *, 'not writing strings not implemented yet'
 
 
-        CALL create_dset(file_id, name, var)
+        CALL create_scalar_string_dset(file_id, name, var)
         IF (PRESENT(units_in)) CALL h5_add_units_1D(file_id, name, units_in)
       ENDIF
     END SUBROUTINE save_or_replace_string
