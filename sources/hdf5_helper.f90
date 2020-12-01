@@ -5,6 +5,9 @@ MODULE hdf5_helper
   USE HDF5
   ! USE H5LT ! lite
   ! Create an interface for reading a dset. It includes most of the reading subroutines, the ones that are uniquely identifiable by their parameters.
+
+  IMPLICIT NONE
+  
   INTERFACE read_dset
     PROCEDURE readint, readreal, readbool, readstring, read_array_complex_dset, read_2D_array_complex_dset, &
      read_array_real_dset, read_2D_array_real_dset, read_2D_array_complex_dset_slice, read_2D_array_real_dset_slice
