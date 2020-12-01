@@ -14,14 +14,30 @@ PROGRAM make_start
   PRINT*, 'Specify name of parameterfile (HDF5 format)' 
   READ(5,*) filename
 
-  IF (filename == "test") THEN ! this is an option for developers to run the code with all pre-defaults and no real inputs
+
+  ! Open FORTRAN HDF5 interface
+  CALL h5open_f(error)
+
+  IF (filename == "test") THEN ! this is an option for developers to run the code with pre-defaults inputs; if driving file exists, it's superior
     filename = "results.h5"
+    INQUIRE(FILE=filename, EXIST=dumlog)
+    IF (NOT(dumlog)) THEN
+      CALL h5fcreate_f(filename, H5F_ACC_TRUNC_F, file_id, error)   
+    ELSE
+      CALL h5fopen_f (filename, H5F_ACC_RDWR_F, file_id, error)
+    ENDIF
+
+    CALL h5lexists_f(file_id, 'inputs', dumlog, error)
+    IF (NOT(dumlog)) THEN
+      CALL h5gcreate_f(file_id, 'inputs', group_id, error)
+      CALL h5gclose_f(group_id, error)   
+    ENDIF
+
+    CALL h5fclose_f(file_id, error)
     testingmode = .TRUE.
   ENDIF
 
 
-  ! Open FORTRAN HDF5 interface
-  CALL h5open_f(error)
   
   ! Open the file
   CALL h5fopen_f (filename, H5F_ACC_RDWR_F, file_id, error)

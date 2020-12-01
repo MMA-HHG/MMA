@@ -273,8 +273,8 @@ subroutine testing_values ! set values for testing
     use HDF5
     use HDF5_helper
 
-    call h5gcreate_f(file_id, 'inputs', group_id, error)
-    call h5gclose_f(group_id, error)
+    ! call h5gcreate_f(file_id, 'inputs', group_id, error)
+    ! call h5gclose_f(group_id, error)
 
     call preset_numerics
     call preset_physics
