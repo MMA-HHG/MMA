@@ -186,18 +186,6 @@ integer         :: switch_ionisation, switch_atom
 end subroutine preset_parameters_gas
 
 
-subroutine preset_numerics
-    num_proc = 128
-    time_limit = 0.48d0
-    dim_t = 2048 ! asymmetric
-    absorb = 16
-    dim_r = 1024
-    switch_T = 2
-
-    rhodist = 100
-end subroutine preset_numerics
-
-
 subroutine preset_laser
     super_N = 1
     switch_start = 1
@@ -239,5 +227,57 @@ subroutine Gaussian_entry2Gaussian_focus(Iz,wz,Rz,I0,w0,focus,lambda)
     focus = -Rz/(1.D0+(lambda*Rz/(PI*wz**2))**2)
     I0 = Iz * (wz/w0)**2
 end subroutine Gaussian_entry2Gaussian_focus
+
+
+
+
+
+subroutine preset_numerics
+
+    num_proc = 128
+    time_limit = 0.48d0
+
+    ! time
+    lt = 8.d0
+    dim_t = 2048 ! asymmetric
+    absorb = 16
+
+    ! space
+    lr = 4.d0
+    dim_r = 1024
+    
+
+    ! propagation & adaptive steps
+    delta_z_mm_phys = 1.d-2
+    decrease = 2.d-3
+    switch_T = 2 ! operator
+
+    ! writing
+    rfil_mm_phys = 0.1d0
+    rhodist = 100
+    outlength_m_phys = 1.d-1
+    
+end subroutine preset_numerics
+
+subroutine preset_physics
+
+    gas_preset = 'Ar_PPT'
+
+    call save_or_replace(file_id, 'inputs/gas_preset', gas_preset, units_in = '[-]')
+    proplength_m_phys = 0.005d0
+
+
+end subroutine preset_physics
+
+subroutine testing_values ! set values for testing
+    use HDF5
+    use HDF5_helper
+
+    call h5gcreate_f(file_id, 'inputs', group_id, error)
+    call h5gclose_f(group_id, error)
+
+    call preset_numerics
+    call preset_physics
+end subroutine testing_values
 
 end module default_inputs

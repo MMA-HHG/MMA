@@ -6,13 +6,19 @@ PROGRAM make_start
 
   IMPLICIT NONE
   integer :: st
-  logical :: exists_h5_refractive_index, dumlog
+  logical :: testingmode=.FALSE., exists_h5_refractive_index, dumlog
   real(8) :: Intensity_entry, Intensity_focus, waist_focus, Curvature_radius_entry, focus_position
 
 
   PRINT *,"Pre-processor started"
   PRINT*, 'Specify name of parameterfile (HDF5 format)' 
   READ(5,*) filename
+
+  IF (filename == "test") THEN ! this is an option for developers to run the code with all pre-defaults and no real inputs
+    filename = "results.h5"
+    testingmode = .TRUE.
+  ENDIF
+
 
   ! Open FORTRAN HDF5 interface
   CALL h5open_f(error)
@@ -21,7 +27,11 @@ PROGRAM make_start
   CALL h5fopen_f (filename, H5F_ACC_RDWR_F, file_id, error)
 
   !_______________________________!
-  CALL preset_numerics
+  ! CALL preset_numerics
+  IF (testingmode) THEN
+    CALL testing_values
+  ENDIF
+
   CALL preset_laser
   CALL  h5lexists_f(file_id, 'inputs/gas_preset', dumlog, error)
   IF (dumlog) THEN

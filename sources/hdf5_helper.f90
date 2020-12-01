@@ -1,8 +1,9 @@
 ! This is the collection of HDF5 operations on the files used in the code
-! This module was originally developed by Jakub Jelinek
+! This module was designed by Jakub Jelinek & Jan Vabek
 
 MODULE hdf5_helper
   USE HDF5
+  ! USE H5LT ! lite
   ! Create an interface for reading a dset. It includes most of the reading subroutines, the ones that are uniquely identifiable by their parameters.
   INTERFACE read_dset
     PROCEDURE readint, readreal, readbool, readstring, read_array_complex_dset, read_2D_array_complex_dset, &
@@ -11,7 +12,8 @@ MODULE hdf5_helper
   ! Create an interface for creating a dset. It includes most of the writing subroutines, the ones that are uniquely identifiable by their parameters.
   INTERFACE create_dset
     PROCEDURE create_scalar_boolean_dset, create_scalar_int_dset, create_scalar_real_dset, create_1D_array_real_dset, &
-      create_1D_array_real8_dset, create_1D_array_complex_dset, create_2D_array_complex_dset, create_2D_array_real_dset
+      create_1D_array_real8_dset, create_1D_array_complex_dset, create_2D_array_complex_dset, create_2D_array_real_dset, &
+      create_scalar_string_dset
   END INTERFACE
   ! Check if a given dataset exists. It reads the value in such a case, it cretes this dataset and savs the input value otherwise.
   INTERFACE save_or_replace
@@ -880,6 +882,63 @@ MODULE hdf5_helper
       ENDIF
     END SUBROUTINE save_or_replace_bool
 
+
+    ! This subroutine creates a scalar dataset of type character
+    SUBROUTINE create_scalar_string_dset(file_id, name, var)
+      USE ISO_C_BINDING ! saving string using c-pointer
+      INTEGER(4)     :: file_id ! identifier of the file or group in which the dataset is supposed to be created 
+      CHARACTER(*)   :: name ! name of the dataset to be created
+      CHARACTER(*)   :: var ! variable to be written into the dataset
+      INTEGER(HID_T) :: dset_id, dataspace_id, type_id ! necessary identifiers
+      INTEGER        :: error ! error stores error messages of HDF5 interface
+
+      TYPE(C_PTR) :: f_ptr
+      TYPE(C_PTR), DIMENSION(1), TARGET :: wdata 
+      CHARACTER(len = 50, kind=c_char), DIMENSION(1), TARGET  :: c_var ! adjust length...
+
+      INTEGER(HSIZE_T), DIMENSION(1:1) :: data_dims ! dimensions of the dataset
+
+      c_var(1) = TRIM(var)//C_NULL_CHAR
+
+        ! Create file and memory datatypes.  For this example we will save
+      ! the strings as C variable length strings, H5T_STRING is defined
+      ! as a variable length string.
+      !
+      CALL H5Tcopy_f(H5T_STRING, type_id, error)
+      !
+      ! Create dataspace.
+      !
+      ! CALL h5screate_simple_f(1, dims, dataspace_id, error)
+      CALL h5screate_simple_f(1, (/ INT(1,HSIZE_T) /), dataspace_id, error)
+      !
+      ! Create the dataset and write the variable-length string data to
+      ! it.
+      !
+      CALL h5dcreate_f(file_id, name, type_id, dataspace_id, dset_id, error)
+
+      f_ptr = C_LOC(c_var(1))
+      CALL h5dwrite_f(dset_id, type_id, f_ptr, error)
+      !
+      ! Close and release resources.
+      !
+      CALL h5dclose_f(dset_id , error)
+      CALL h5sclose_f(dataspace_id, error)
+      CALL H5Tclose_f(type_id, error)
+      ! CALL h5fclose_f(file , hdferr)
+
+      ! ! create scalar dataspace
+      ! CALL h5screate_f(H5S_SCALAR_F, dataspace_id, error)
+      ! ! create integer dataset
+      ! CALL h5dcreate_f(file_id, name, H5T_NATIVE_INTEGER, dataspace_id, dset_id, error)
+      ! ! write var to dset
+      ! CALL h5dwrite_f(dset_id, H5T_NATIVE_INTEGER, var, data_dims, error)
+      ! ! close dataset and dataspace, terminate subroutine
+      ! CALL h5dclose_f(dset_id, error)
+      ! CALL h5sclose_f(dataspace_id, error)
+    END SUBROUTINE create_scalar_string_dset
+
+
+
     SUBROUTINE save_or_replace_string(file_id, name, var, error, units_in)
       CHARACTER(*)            :: var
       INTEGER(4)              :: file_id ! file or group identifier
@@ -894,9 +953,12 @@ MODULE hdf5_helper
       IF (exists_dataset) THEN
         CALL read_dset(file_id, name, var)
       ELSE
-        print *, 'not writing strings not implemented yet'
-        !CALL create_dset(file_id, name, var)
-        !IF (PRESENT(units_in)) CALL h5_add_units_1D(file_id, name, units_in)
+        ! https://bitbucket.hdfgroup.org/projects/HDFFV/repos/hdf5-examples/browse/1_10/FORTRAN/H5T/h5ex_t_stringC_F03.f90
+        ! print *, 'not writing strings not implemented yet'
+
+
+        CALL create_dset(file_id, name, var)
+        IF (PRESENT(units_in)) CALL h5_add_units_1D(file_id, name, units_in)
       ENDIF
     END SUBROUTINE save_or_replace_string
 END MODULE hdf5_helper
