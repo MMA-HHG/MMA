@@ -145,6 +145,7 @@ CONTAINS
 
       !r_offset = dim_r_start(num_proc)-1
       efield_factor = SQRT(Pcr_phys*1.D-9*1.D9*3.D8*4.D0*3.1415D-7/(4.D0*3.1415D0*w0_cm_phys**2*1.D-4*2.D0*n0))*2.D0 ! normalization factor electric field V/m
+      print *, 'efield_factor', efield_factor, 'w0', w0_cm_phys, 'Pcr', Pcr_phys
       ALLOCATE(efield_osc(dim_t))
       PRINT*, 'beosc'
       DO j=1,dim_t

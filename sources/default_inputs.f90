@@ -235,7 +235,7 @@ end subroutine Gaussian_entry2Gaussian_focus
 
 subroutine preset_numerics
 
-    num_proc = 128
+    num_proc = 32
     time_limit = 0.48d0
 
     ! time
@@ -256,7 +256,7 @@ subroutine preset_numerics
     ! writing
     rfil_mm_phys = 0.1d0
     rhodist = 100
-    outlength_m_phys = 1.d-1
+    outlength_m_phys = 0.001d0
     
 end subroutine preset_numerics
 
@@ -277,6 +277,8 @@ subroutine preset_physics
 
     tp_fs_phys = 50.d0
     CALL save_or_replace(file_id, 'inputs/pulse_duration_in_1_e', tp_fs_phys, error, units_in = '[fs]')
+
+    pressure = 1.d0
 
 end subroutine preset_physics
 

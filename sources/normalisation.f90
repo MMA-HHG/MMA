@@ -855,6 +855,7 @@ CONTAINS
     ENDIF
     
     Pcr_phys = ((lambda0_cm_phys)**2)/(2*3.1415*n0*n2_phys)  !critical power          W
+    print *, 'aPcr ', 'n0', n0, 'n2', n2_phys
     k0_phys = 2.D0*3.1415D0/lambda0_cm_phys  !central wave number in vacuum     cm-1
     proplength = proplength_m_phys*100.D0/(4.D0*z_rayleigh_cm_phys)  !adimensionned distance of propagation
     outlength = outlength_m_phys*100.D0/(4.D0*z_rayleigh_cm_phys)  !adimmensionned output distance for whole field
