@@ -49,6 +49,8 @@ PROGRAM make_start
   ENDIF
 
   CALL preset_laser
+
+
   CALL  h5lexists_f(file_id, 'inputs/gas_preset', dumlog, error)
   IF (dumlog) THEN
     CALL read_dset(file_id, 'inputs/gas_preset', gas_preset)

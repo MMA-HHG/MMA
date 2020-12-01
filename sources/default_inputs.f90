@@ -188,6 +188,7 @@ end subroutine preset_parameters_gas
 
 subroutine preset_laser
     super_N = 1
+    super_t = 1
     switch_start = 1
 end subroutine preset_laser
 
@@ -260,6 +261,8 @@ subroutine preset_numerics
 end subroutine preset_numerics
 
 subroutine preset_physics
+    
+    lambda0_cm_phys = 8.d-5
 
     gas_preset = 'Ar_PPT'
     call save_or_replace(file_id, 'inputs/gas_preset', gas_preset, error, units_in = '[-]')
