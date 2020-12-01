@@ -896,35 +896,68 @@ MODULE hdf5_helper
       TYPE(C_PTR), DIMENSION(1), TARGET :: wdata 
       CHARACTER(len = 50, kind=c_char), DIMENSION(1), TARGET  :: c_var ! adjust length...
 
-      INTEGER(HSIZE_T), DIMENSION(1:1) :: data_dims ! dimensions of the dataset
 
-      c_var(1) = TRIM(var)//C_NULL_CHAR
+      ! INTEGER(HSIZE_T), DIMENSION(1):: dumh51D ! temporary variable
+      ! ! ATTRIBUTES OF HDF5 DATASETS
+      ! CHARACTER(LEN=5), PARAMETER :: aname = "units"   ! Attribute name
+      ! INTEGER(HID_T) :: attr_id       ! Attribute identifier
+      ! INTEGER(HID_T) :: aspace_id     ! Attribute Dataspace identifier
+      ! INTEGER(HID_T) :: atype_id      ! Attribute Dataspace identifier
+      ! CHARACTER(LEN=20), DIMENSION(1) ::  attr_data  ! Attribute data (solve the length by a correct allocation)
+      ! ! add attributes ( https://support.hdfgroup.org/ftp/HDF5/current/src/unpacked/fortran/examples/h5_crtatt.f90 )
+      ! CALL h5dopen_f(file_id, name, dset_id, error)
+      ! dumh51D = (/int(1,HSIZE_T)/) ! attribute dimension
+      ! CALL h5screate_simple_f(1, dumh51D, aspace_id, error) ! Create scalar data space for the attribute. 1 stands for the rank
+      ! CALL h5tcopy_f(H5T_NATIVE_CHARACTER, atype_id, error) ! Create datatype for the attribute.
+      ! CALL h5tset_size_f(atype_id, int(10,HSIZE_T), error) ! 10 is attribute length	
+      ! CALL h5acreate_f(dset_id, aname, atype_id, aspace_id, attr_id, error) ! Create dataset attribute.
+      ! dumh51D = (/int(1,HSIZE_T)/) ! dimension of attributes
+      ! attr_data(1) = units_value 
+      ! CALL h5awrite_f(attr_id, atype_id, attr_data, dumh51D, error)
+      ! CALL h5aclose_f(attr_id, error)  ! Close the attribute.
+      ! CALL h5tclose_f(atype_id, error)  ! Close the attribute datatype.
+      ! CALL h5sclose_f(aspace_id, error) ! Terminate access to the attributes data space.
 
-        ! Create file and memory datatypes.  For this example we will save
-      ! the strings as C variable length strings, H5T_STRING is defined
-      ! as a variable length string.
-      !
-      CALL H5Tcopy_f(H5T_STRING, type_id, error)
-      !
-      ! Create dataspace.
-      !
-      ! CALL h5screate_simple_f(1, dims, dataspace_id, error)
+
+      CALL h5tcopy_f(H5T_NATIVE_CHARACTER, type_id, error)
+      CALL h5tset_size_f(type_id, int(len(var),HSIZE_T), error)
       CALL h5screate_simple_f(1, (/ INT(1,HSIZE_T) /), dataspace_id, error)
-      !
-      ! Create the dataset and write the variable-length string data to
-      ! it.
-      !
-      CALL h5dcreate_f(file_id, name, type_id, dataspace_id, dset_id, error)
 
-      f_ptr = C_LOC(c_var(1))
-      CALL h5dwrite_f(dset_id, type_id, f_ptr, error)
-      !
-      ! Close and release resources.
-      !
+      CALL h5dcreate_f(file_id, name, type_id, dataspace_id, dset_id, error)
+      CALL h5dwrite_f(dset_id, type_id, (/ var /), error)
+
       CALL h5dclose_f(dset_id , error)
       CALL h5sclose_f(dataspace_id, error)
       CALL H5Tclose_f(type_id, error)
-      ! CALL h5fclose_f(file , hdferr)
+      
+
+      ! c_var(1) = TRIM(var)//C_NULL_CHAR
+
+      !   ! Create file and memory datatypes.  For this example we will save
+      ! ! the strings as C variable length strings, H5T_STRING is defined
+      ! ! as a variable length string.
+      ! !
+      ! CALL H5Tcopy_f(H5T_STRING, type_id, error)
+      ! !
+      ! ! Create dataspace.
+      ! !
+      ! ! CALL h5screate_simple_f(1, dims, dataspace_id, error)
+      ! CALL h5screate_simple_f(1, (/ INT(1,HSIZE_T) /), dataspace_id, error)
+      ! !
+      ! ! Create the dataset and write the variable-length string data to
+      ! ! it.
+      ! !
+      ! CALL h5dcreate_f(file_id, name, type_id, dataspace_id, dset_id, error)
+
+      ! f_ptr = C_LOC(c_var(1))
+      ! CALL h5dwrite_f(dset_id, type_id, f_ptr, error)
+      ! !
+      ! ! Close and release resources.
+      ! !
+      ! CALL h5dclose_f(dset_id , error)
+      ! CALL h5sclose_f(dataspace_id, error)
+      ! CALL H5Tclose_f(type_id, error)
+      ! ! CALL h5fclose_f(file , hdferr)
 
       ! ! create scalar dataspace
       ! CALL h5screate_f(H5S_SCALAR_F, dataspace_id, error)
