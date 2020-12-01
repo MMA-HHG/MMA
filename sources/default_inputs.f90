@@ -262,10 +262,18 @@ end subroutine preset_numerics
 subroutine preset_physics
 
     gas_preset = 'Ar_PPT'
-
     call save_or_replace(file_id, 'inputs/gas_preset', gas_preset, error, units_in = '[-]')
+
     proplength_m_phys = 0.005d0
 
+    w0_cm_phys = 0.1d0
+    call save_or_replace(file_id, 'inputs/beamwaist', w0_cm_phys, error, units_in = '[cm]')
+
+    numcrit = 2.0d0
+    CALL save_or_replace(file_id, 'inputs/ratio_pin_pcr', numcrit, error, units_in = '[-]')
+
+    tp_fs_phys = 50.d0
+    CALL save_or_replace(file_id, 'inputs/pulse_duration_in_1_e', tp_fs_phys, error, units_in = '[fs]')
 
 end subroutine preset_physics
 
