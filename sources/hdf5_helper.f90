@@ -27,7 +27,7 @@ MODULE hdf5_helper
 
     ! This subroutine reads an integer from scalar dataset.
     SUBROUTINE readint(file_id, name, var)
-      INTEGER(4)     :: file_id ! the id of the already opened h5 file or a group in a file
+      INTEGER(HID_T) :: file_id ! the id of the already opened h5 file or a group in a file
       CHARACTER(*)   :: name ! name of the dataset to be read
       INTEGER(4)     :: var ! variable for that stores the value read from the dataset
       INTEGER(HID_T) :: dset_id ! id of the dataset to be opened
@@ -43,7 +43,7 @@ MODULE hdf5_helper
 
     ! This subroutine reads an integer from scalar dataset
     SUBROUTINE readreal(file_id, name, var)
-      INTEGER(4)     :: file_id ! the id of the already opened h5 file or a group in a file
+      INTEGER(HID_T) :: file_id ! the id of the already opened h5 file or a group in a file
       CHARACTER(*)   :: name ! name of the dataset to be read
       REAL(8)        :: var ! variable for that stores the value read from the dataset
       INTEGER(HID_T) :: dset_id ! id of the dataset to be opened
@@ -59,7 +59,7 @@ MODULE hdf5_helper
 
     ! This subroutine reads an integer (either 0 or 1) and evaluates it as a boolean
     SUBROUTINE readbool(file_id, name, var)
-      INTEGER(4)     :: file_id ! the id of the already opened h5 file or a group in a file
+      INTEGER(HID_T) :: file_id ! the id of the already opened h5 file or a group in a file
       CHARACTER(*)   :: name ! name of the dataset to be read
       LOGICAL        :: var ! variable for that stores the value read from the dataset
       INTEGER(HID_T) :: dset_id ! id of the dataset to be opened
@@ -82,7 +82,7 @@ MODULE hdf5_helper
   
     ! This subroutine reads a string from scalar dataset
     SUBROUTINE readstring(file_id, name, var)
-      INTEGER(4)                       :: file_id ! the id of the already opened h5 file or a group in a file
+      INTEGER(HID_T)                   :: file_id ! the id of the already opened h5 file or a group in a file
       CHARACTER(*)                     :: name ! name of the dataset to be read
       INTEGER(SIZE_T), PARAMETER       :: length = 15 ! length of the string, it can be enlarged if needed
       CHARACTER(LEN=length)            :: var ! variable for that stores the value read from the dataset
@@ -118,7 +118,7 @@ MODULE hdf5_helper
     ! This subroutine reads a 1D real dataset
     SUBROUTINE read_array_real_dset(file_id, name, var, dims_y)
       REAL(8), DIMENSION(:) :: var ! variable for that stores the value read from the dataset
-      INTEGER(4)               :: file_id ! the id of the already opened h5 file or a group in a file
+      INTEGER(HID_T)           :: file_id ! the id of the already opened h5 file or a group in a file
       CHARACTER(*)             :: name ! name of the dataset to be read
       INTEGER                  :: dims_y, error ! dims_y stores the size of the dataset to be read, error stores error messages
       INTEGER(HID_T)           :: dset_id ! dataset id
@@ -136,7 +136,7 @@ MODULE hdf5_helper
     ! This subroutine reads a 2D real dataset
     SUBROUTINE read_2D_array_real_dset(file_id, name, var, dims_x, dims_y)
       REAL(8), DIMENSION(:,:) :: var ! variable for that stores the value read from the dataset
-      INTEGER(4)               :: file_id ! the id of the already opened h5 file or a group in a file
+      INTEGER(HID_T)           :: file_id ! the id of the already opened h5 file or a group in a file
       CHARACTER(*)             :: name ! name of the dataset to be read
       INTEGER                  :: dims_x, dims_y, error ! dims_x and dims_y store the size of the dataset to be read, error stores error messages
       INTEGER(HID_T)           :: dset_id ! dataset id
@@ -155,7 +155,7 @@ MODULE hdf5_helper
     ! This subroutine reads a 1D complex dataset
     SUBROUTINE read_array_complex_dset(file_id, name, var, dims_y)
       COMPLEX(8), DIMENSION(:) :: var ! variable for that stores the value read from the dataset
-      INTEGER(4)               :: file_id ! the id of the already opened h5 file or a group in a file
+      INTEGER(HID_T)           :: file_id ! the id of the already opened h5 file or a group in a file
       CHARACTER(*)             :: name ! name of the dataset to be read
       INTEGER                  :: dims_y, error ! dims_y stores the size of the dataset to be read, error stores error messages
       INTEGER(HID_T)           :: dset_id ! dataset id
@@ -180,7 +180,7 @@ MODULE hdf5_helper
     ! This subroutine reads a 2D complex dataset
     SUBROUTINE read_2D_array_complex_dset(file_id, name, var, dims_x, dims_y)
       COMPLEX(8), DIMENSION(:,:) :: var ! variable for that stores the value read from the dataset
-      INTEGER(4)               :: file_id ! the id of the already opened h5 file or a group in a file
+      INTEGER(HID_T)           :: file_id ! the id of the already opened h5 file or a group in a file
       CHARACTER(*)             :: name ! name of the dataset to be read
       INTEGER                  :: dims_x, dims_y, error ! dims_x and dims_y store the size of the dataset to be read, error stores error messages
       INTEGER(HID_T)           :: dset_id ! dataset id
@@ -208,7 +208,7 @@ MODULE hdf5_helper
     ! This subroutine reads a part of the 2D complex dataset
     SUBROUTINE read_2D_array_complex_dset_slice(file_id, name, var, dims_x, dims_y, slice_x, slice_y, offset_x, offset_y)
       COMPLEX(8), DIMENSION(:,:) :: var ! variable for that stores the value read from the dataset
-      INTEGER(4)                 :: file_id ! the id of the already opened h5 file or a group in a file
+      INTEGER(HID_T)             :: file_id ! the id of the already opened h5 file or a group in a file
       CHARACTER(*)               :: name ! name of the dataset to be read
       ! dims_x and dims_y store the size of the dataset to be read
       ! offset_x and offset_y store the offset from the left top corner of the dataset
@@ -253,7 +253,7 @@ MODULE hdf5_helper
     ! This subroutine reads a part of the 2D complex dataset
     SUBROUTINE read_2D_array_real_dset_slice(file_id, name, var, dims_x, dims_y, slice_x, slice_y, offset_x, offset_y)
       REAL(8), DIMENSION(:,:) :: var ! variable for that stores the value read from the dataset
-      INTEGER(4)               :: file_id ! identifier of the file
+      INTEGER(HID_T)           :: file_id ! identifier of the file
       CHARACTER(*)             :: name ! dataset name
       ! dims_x and dims_y store the size of the dataset to be read
       ! offset_x and offset_y store the offset from the left top corner of the dataset
@@ -292,7 +292,7 @@ MODULE hdf5_helper
     
     ! This subroutine returns a size of a 1D dataset with given name
     SUBROUTINE ask_for_size_1D(file_id, name, var)
-      INTEGER(4)               :: file_id, dset_id, dataspace ! necessary identifiers
+      INTEGER(HID_T)           :: file_id, dset_id, dataspace ! necessary identifiers
       CHARACTER(*)             :: name ! name of the dataset
       INTEGER(HSIZE_T), DIMENSION(1) :: tmp_var, maxdims ! necessary arrays
       INTEGER(4)               :: var ! variable to be written to
@@ -312,7 +312,7 @@ MODULE hdf5_helper
 
     ! This subroutine returns a size of a 2D dataset with given name
     SUBROUTINE ask_for_size_2D(file_id, name, var)
-      INTEGER(4)               :: file_id, dset_id, dataspace ! necessary identifiers
+      INTEGER(HID_T)           :: file_id, dset_id, dataspace ! necessary identifiers
       CHARACTER(*)             :: name ! name of the dataset
       INTEGER(HSIZE_T), DIMENSION(2) :: var, maxdims ! necessary arrays
       INTEGER                  :: error ! error message
@@ -334,10 +334,10 @@ MODULE hdf5_helper
     
     ! This subroutine creates a scalar dataset of type boolean (as HDF5 does not support booleans, the real part is an integer)
     SUBROUTINE create_scalar_boolean_dset(file_id, name, var)
-      INTEGER(4)    :: file_id ! identifier of the file or group in which the dataset is supposed to be created
-      CHARACTER(*)  :: name ! name of the dataset to be created
-      LOGICAL       :: var ! variable to be written into the dataset
-      INTEGER       :: value = 0 ! temporary value, which stores the integer equivalent of the boolean variable
+      INTEGER(HID_T) :: file_id ! identifier of the file or group in which the dataset is supposed to be created
+      CHARACTER(*)   :: name ! name of the dataset to be created
+      LOGICAL        :: var ! variable to be written into the dataset
+      INTEGER        :: value = 0 ! temporary value, which stores the integer equivalent of the boolean variable
       INTEGER(HID_T) :: dset_id, dataspace_id ! necessary identifiers
       INTEGER        :: error ! error stores error messages of HDF5 interface
       INTEGER(HSIZE_T), DIMENSION(1:1) :: data_dims ! dimensions of the dataset
@@ -358,7 +358,7 @@ MODULE hdf5_helper
 
     ! This subroutine creates a scalar dataset of type integer
     SUBROUTINE create_scalar_int_dset(file_id, name, var)
-      INTEGER(4)     :: file_id ! identifier of the file or group in which the dataset is supposed to be created 
+      INTEGER(HID_T) :: file_id ! identifier of the file or group in which the dataset is supposed to be created 
       CHARACTER(*)   :: name ! name of the dataset to be created
       INTEGER(4)     :: var ! variable to be written into the dataset
       INTEGER(HID_T) :: dset_id, dataspace_id ! necessary identifiers
@@ -377,7 +377,7 @@ MODULE hdf5_helper
 
     ! This subroutine creates a scalar dataset of type real (double precision)
     SUBROUTINE create_scalar_real_dset(file_id, name, var)
-      INTEGER(4)     :: file_id ! identifier of the file or group in which the dataset is supposed to be created 
+      INTEGER(HID_T) :: file_id ! identifier of the file or group in which the dataset is supposed to be created 
       CHARACTER(*)   :: name ! name of the dataset to be created
       REAL(8)        :: var ! variable to be written into the dataset
       INTEGER(HID_T) :: dset_id, dataspace_id ! necessary identifiers
@@ -397,7 +397,7 @@ MODULE hdf5_helper
     ! This subroutine creates one dimensional dataset of type real (double precision)
     SUBROUTINE create_1D_array_real_dset(file_id, name, var, dims)
       REAL, DIMENSION(:)       :: var ! variable to be written into the dataset
-      INTEGER(4)               :: file_id ! file or group identifier to write the dataset to
+      INTEGER(HID_T)           :: file_id ! file or group identifier to write the dataset to
       CHARACTER(*)             :: name ! name of the dataset
       INTEGER                  :: error, dims ! error stores error messages of the HDF5 interface, dims stores the size of the dataset
       INTEGER                  :: rank = 1 ! rank of the dataset
@@ -418,7 +418,7 @@ MODULE hdf5_helper
     ! This subroutine creates one dimensional dataset of type real (double precision)
     SUBROUTINE create_1D_array_real8_dset(file_id, name, var, dims)
       REAL(8), DIMENSION(:)       :: var ! variable to be written into the dataset
-      INTEGER(4)               :: file_id ! file or group identifier to write the dataset to
+      INTEGER(HID_T)           :: file_id ! file or group identifier to write the dataset to
       CHARACTER(*)             :: name ! name of the dataset
       INTEGER                  :: error, dims ! error stores error messages of the HDF5 interface, dims stores the size of the dataset
       INTEGER                  :: rank = 1 ! rank of the dataset
@@ -440,7 +440,7 @@ MODULE hdf5_helper
     ! double precision and the dataset is of size 2 by dims)
     SUBROUTINE create_1D_array_complex_dset(file_id, name, var, dims_y)
       COMPLEX(8), DIMENSION(:) :: var ! complex variable to be written to the dataset
-      INTEGER(4)               :: file_id ! file or group identifier
+      INTEGER(HID_T)           :: file_id ! file or group identifier
       CHARACTER(*)             :: name ! name of the dataset
       INTEGER                  :: dims_y, error ! dims_y stores the size of the dataset, error stores the error messages from HDF5 interface
       INTEGER                  :: rank = 2 ! rank of the dataset - it is rank of the complex array + 1 as the real and imaginary part have to be seprated
@@ -470,7 +470,7 @@ MODULE hdf5_helper
     ! double precision and the dataset is of size 2 by dims_x by dims_y)
     SUBROUTINE create_2D_array_complex_dset(file_id, name, var, dims_x, dims_y)
       COMPLEX(8), DIMENSION(:,:) :: var ! complex variable to be written to the dataset
-      INTEGER(4)               :: file_id ! file or group id to create the dataset in
+      INTEGER(HID_T)           :: file_id ! file or group id to create the dataset in
       CHARACTER(*)             :: name ! name of the dataset
       INTEGER                  :: dims_x, dims_y, error ! dims_x and dims_y are passed to initialize the dimensions, error stores error messages of the HDF5 interface
       INTEGER                  :: rank ! rank of the dataspace
@@ -501,7 +501,7 @@ MODULE hdf5_helper
     ! this subroutine creates two dimensional real dataset
     SUBROUTINE create_2D_array_real_dset(file_id, name, var, dims_x, dims_y)
       REAL(8), DIMENSION(:,:)  :: var ! variable to be written into the dataset
-      INTEGER(4)               :: file_id ! file or group identifier
+      INTEGER(HID_T)           :: file_id ! file or group identifier
       CHARACTER(*)             :: name ! name of the dataset
       INTEGER                  :: dims_x, dims_y, error ! dims_x and dims_y store the size of the dataset, error stores error messages of the HDF5 interface
       INTEGER                  :: rank = 2 ! rank of the dataset
@@ -522,7 +522,7 @@ MODULE hdf5_helper
     ! this subroutine creates a two dimensional dataset and writes to part of it
     SUBROUTINE create_and_preallocate_2D_array_real_dset(file_id, name, var, data_dims, offset, hyperslab_size)
       REAL, DIMENSION(:,:)     :: var ! variable to be written to the first part of the dataset  
-      INTEGER(4)               :: file_id ! file or group identifier
+      INTEGER(HID_T)           :: file_id ! file or group identifier
       CHARACTER(*)             :: name ! name of the dataset
       INTEGER(HID_T)           :: dset_id, filespace, memspace ! necessary identifiers
       INTEGER(HSIZE_T), DIMENSION(2) :: data_dims, offset, hyperslab_size ! dimensions of data, data offset and the hyperslab size
@@ -548,7 +548,7 @@ MODULE hdf5_helper
     ! This subroutine creates a three dimensional dataset and writes to part of it
     SUBROUTINE create_and_preallocate_3D_array_real_dset(file_id, name, var, data_dims, offset, hyperslab_size)
       REAL, DIMENSION(:,:,:)   :: var ! variable to be written to the first part of the dataset 
-      INTEGER(4)               :: file_id ! file or group identifier
+      INTEGER(HID_T)           :: file_id ! file or group identifier
       CHARACTER(*)             :: name ! name of the dataset
       INTEGER(HID_T)           :: dset_id, filespace, memspace ! necessary identifiers
       INTEGER(HSIZE_T), DIMENSION(3) :: data_dims, offset, hyperslab_size ! dimensions of data, data offset and the hyperslab size
@@ -602,7 +602,7 @@ MODULE hdf5_helper
     ! This subroutine creates two dimensional real dataset for parallel writting
     SUBROUTINE create_2D_array_real_dset_p(file_id, name, var, data_dims, offset, hyperslab_size)
       REAL(4), DIMENSION(:,:)   :: var ! variable to be written to the dataset
-      INTEGER(4)                :: file_id ! file or group identifier 
+      INTEGER(HID_T)            :: file_id ! file or group identifier 
       CHARACTER(*)              :: name ! name of the dataset
       INTEGER(HID_T)            :: dset_id, filespace, memspace, h5_parameters ! necessary identifiers
       INTEGER(HSIZE_T), DIMENSION(2) :: data_dims, offset, hyperslab_size ! dimensions of data, offset of the data and the hyperslab size
@@ -628,7 +628,7 @@ MODULE hdf5_helper
     ! File has to be opened collectively
     SUBROUTINE create_3D_array_real_dset_p(file_id, name, var, data_dims, offset, hyperslab_size)
       REAL, DIMENSION(:,:,:)   :: var ! variable to be written to the dataset
-      INTEGER(4)               :: file_id ! file or group identifier
+      INTEGER(HID_T)           :: file_id ! file or group identifier
       CHARACTER(*)             :: name ! name of the dataset
       INTEGER(HID_T)           :: dset_id, filespace, memspace, h5_parameters ! necessary identifiers
       INTEGER(HSIZE_T), DIMENSION(3) :: data_dims, offset, hyperslab_size ! dimensions of data, offset of the data and the hyperslab size
@@ -654,7 +654,7 @@ MODULE hdf5_helper
     ! This subroutine creates a one dimensional unlimited dataset
     SUBROUTINE create_1D_dset_unlimited(file_id, name, var, dim)
       REAL,DIMENSION(:)        :: var ! variable which is supposed to be initialized with the dataset
-      INTEGER(4)               :: file_id ! file or group identifier
+      INTEGER(HID_T)           :: file_id ! file or group identifier
       CHARACTER(*)             :: name ! name of the dataset to be created
       INTEGER(HID_T)           :: dset_id, dataspace, h5_parameters ! necessary identifiers
       INTEGER                  :: error, dim ! error stores error messages of the HDF5 interface, dim is the size of the var array
@@ -677,7 +677,7 @@ MODULE hdf5_helper
     SUBROUTINE create_2D_dset_unlimited(file_id, name, var, size)
       REAL,DIMENSION(:,:)      :: var ! variable to be written to the dataset
       REAL,ALLOCATABLE         :: data(:,:) ! 
-      INTEGER(4)               :: file_id
+      INTEGER(HID_T)           :: file_id
       CHARACTER(*)             :: name
       INTEGER(HID_T)           :: dset_id, dataspace, h5_parameters
       INTEGER                  :: rank, error, size
@@ -711,7 +711,7 @@ MODULE hdf5_helper
     ! this subroutine extends the unlimited dataset with given name
     SUBROUTINE extend_1D_dset_unlimited(file_id, name, var, new_dims, memspace_dims, offset, hyperslab_size)
       REAL,DIMENSION(:)        :: var ! value which is supposed to be appended to the dataset
-      INTEGER(4)               :: file_id ! file or group identifier containing the dataset
+      INTEGER(HID_T)           :: file_id ! file or group identifier containing the dataset
       CHARACTER(*)             :: name ! name of the dataset to be extended
       INTEGER(HID_T)           :: dset_id, dataspace ! necessary identifiers
       INTEGER                  :: error ! error stores error messages of the HDF5 interface
@@ -731,7 +731,7 @@ MODULE hdf5_helper
     ! this subroutine extends a two dimensional unlimited dataset
     SUBROUTINE extend_2D_dset_unlimited(file_id, name, var, new_dims, memspace_dims, offset, hyperslab_size)
       REAL,DIMENSION(:,:)      :: var ! variable which is supposed to be appended to the dataset
-      INTEGER(4)               :: file_id ! file or group identifier containing the dataset
+      INTEGER(HID_T)           :: file_id ! file or group identifier containing the dataset
       CHARACTER(*)             :: name ! name of the dataset
       INTEGER(HID_T)           :: dset_id, dataspace ! necessary identifiers
       INTEGER                  :: error, rank ! error stores error messages of the HDF5 interface, rank stores dataset rank
@@ -753,7 +753,7 @@ MODULE hdf5_helper
     ! this subroutine writes a hyperslab to a preallocated one dimensional dataset
     SUBROUTINE write_hyperslab_to_dset(file_id, name, var, offset, hyperslab_size)
       REAL, DIMENSION(:,:,:)   :: var ! variable to written
-      INTEGER(4)               :: file_id ! file or group identifier
+      INTEGER(HID_T)           :: file_id ! file or group identifier
       CHARACTER(*)             :: name ! name of the dataset
       INTEGER(HID_T)           :: dset_id, filespace, memspace ! necessary identifiers
       INTEGER(HSIZE_T), DIMENSION(3) :: data_dims, offset, hyperslab_size ! dimensions of data, offset and hyperslab to be written
@@ -776,7 +776,7 @@ MODULE hdf5_helper
     ! this subroutine writes a hyperslab to a preallocated two dimensional dataset
     SUBROUTINE write_hyperslab_to_2D_dset(file_id, name, var, offset, hyperslab_size)
       REAL, DIMENSION(:,:)     :: var ! variable to be written to the hyperslab
-      INTEGER(4)               :: file_id ! file or group identifier
+      INTEGER(HID_T)           :: file_id ! file or group identifier
       CHARACTER(*)             :: name ! name of the dataset
       INTEGER(HID_T)           :: dset_id, filespace, memspace ! necessary identifiers
       INTEGER(HSIZE_T), DIMENSION(2) :: data_dims, offset, hyperslab_size ! dimensions of the data, the data offset and the size of the hyperslab
@@ -799,7 +799,7 @@ MODULE hdf5_helper
     ! this subroutine writes a hyperslab to a three dimensional dataset parallelly
     SUBROUTINE write_hyperslab_to_dset_p(file_id, name, var, offset, hyperslab_size)
       REAL, DIMENSION(:,:,:)   :: var ! variable to be written to the hyperslab
-      INTEGER(4)               :: file_id ! file or group identifier
+      INTEGER(HID_T)           :: file_id ! file or group identifier
       CHARACTER(*)             :: name ! name of the dataset
       INTEGER(HID_T)           :: dset_id, filespace, memspace, h5_parameters ! necessary identifiers
       INTEGER(HSIZE_T), DIMENSION(3) :: data_dims, offset, hyperslab_size ! dimensions of the data, the data offset and the size of the hyperslab
@@ -827,7 +827,7 @@ MODULE hdf5_helper
     !*************!
     SUBROUTINE save_or_replace_real8(file_id, name, var, error, units_in) ! allow to add units, reading currently unsupported (h5aexists_f)
       REAL(8)                 :: var
-      INTEGER(4)              :: file_id ! file or group identifier
+      INTEGER(HID_T)          :: file_id ! file or group identifier
       CHARACTER(*)            :: name
       INTEGER                 :: error
       CHARACTER(*), OPTIONAL  :: units_in
@@ -846,7 +846,7 @@ MODULE hdf5_helper
 
     SUBROUTINE save_or_replace_int(file_id, name, var, error,units_in)
       INTEGER                 :: var
-      INTEGER(4)              :: file_id ! file or group identifier
+      INTEGER(HID_T)          :: file_id ! file or group identifier
       CHARACTER(*)            :: name
       INTEGER                 :: error
       CHARACTER(*), OPTIONAL  :: units_in
@@ -865,7 +865,7 @@ MODULE hdf5_helper
 
     SUBROUTINE save_or_replace_bool(file_id, name, var, error, units_in)
       LOGICAL                 :: var
-      INTEGER(4)              :: file_id ! file or group identifier
+      INTEGER(HID_T)          :: file_id ! file or group identifier
       CHARACTER(*)            :: name
       INTEGER                 :: error
       CHARACTER(*), OPTIONAL  :: units_in
@@ -886,7 +886,7 @@ MODULE hdf5_helper
     ! This subroutine creates a scalar dataset of type character
     SUBROUTINE create_scalar_string_dset(file_id, name, var)
       USE ISO_C_BINDING ! saving string using c-pointer
-      INTEGER(4)     :: file_id ! identifier of the file or group in which the dataset is supposed to be created 
+      INTEGER(HID_T) :: file_id ! identifier of the file or group in which the dataset is supposed to be created 
       CHARACTER(*)   :: name ! name of the dataset to be created
       CHARACTER(*)   :: var ! variable to be written into the dataset
       INTEGER(HID_T) :: dset_id, dataspace_id, type_id ! necessary identifiers
@@ -974,7 +974,7 @@ MODULE hdf5_helper
 
     SUBROUTINE save_or_replace_string(file_id, name, var, error, units_in)
       CHARACTER(*)            :: var
-      INTEGER(4)              :: file_id ! file or group identifier
+      INTEGER(HID_T)          :: file_id ! file or group identifier
       CHARACTER(*)            :: name
       INTEGER                 :: error
       CHARACTER(*), OPTIONAL  :: units_in
