@@ -20,8 +20,8 @@ delete('*.png');
 %% parameters
 
 % path = 'D:\data\CUPRAD';
-HDF5_path = 'D:\TEMP\OCCIGEN_CUPRAD\compares3\';
-HDF5_filename = "results_short.h5";
+HDF5_path = 'D:\TEMP\OCCIGEN_CUPRAD\compares4\';
+HDF5_filename = "results.h5";
 
 
 kr = 1;
