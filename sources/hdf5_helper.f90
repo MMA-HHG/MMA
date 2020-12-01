@@ -160,7 +160,7 @@ MODULE hdf5_helper
       COMPLEX(8), DIMENSION(:) :: var ! variable for that stores the value read from the dataset
       INTEGER(HID_T)           :: file_id ! the id of the already opened h5 file or a group in a file
       CHARACTER(*)             :: name ! name of the dataset to be read
-      INTEGER                  :: dims_y, error ! dims_y stores the size of the dataset to be read, error stores error messages
+      INTEGER                  :: i, dims_y, error ! dims_y stores the size of the dataset to be read, error stores error messages
       INTEGER(HID_T)           :: dset_id ! dataset id
       ! As HDF5 does not support complex numbers, the dataset is a 2 by dims_y dataset of reals
       INTEGER(HSIZE_T), DIMENSION(2) :: data_dims ! data dimensions array has two values because of that
@@ -185,7 +185,7 @@ MODULE hdf5_helper
       COMPLEX(8), DIMENSION(:,:) :: var ! variable for that stores the value read from the dataset
       INTEGER(HID_T)           :: file_id ! the id of the already opened h5 file or a group in a file
       CHARACTER(*)             :: name ! name of the dataset to be read
-      INTEGER                  :: dims_x, dims_y, error ! dims_x and dims_y store the size of the dataset to be read, error stores error messages
+      INTEGER                  :: i, j, dims_x, dims_y, error ! dims_x and dims_y store the size of the dataset to be read, error stores error messages
       INTEGER(HID_T)           :: dset_id ! dataset id
       ! As HDF5 does not support complex numbers, the dataset is a 2 by dims_x by dims_y dataset of reals
       INTEGER(HSIZE_T), DIMENSION(3) :: data_dims ! data dimensions array has three values because of that
@@ -216,7 +216,7 @@ MODULE hdf5_helper
       ! dims_x and dims_y store the size of the dataset to be read
       ! offset_x and offset_y store the offset from the left top corner of the dataset
       ! rank of the dataset, error stores error messages
-      INTEGER                    :: dims_x, dims_y, offset_x, offset_y, slice_x, slice_y, rank, error
+      INTEGER                    :: i, j, dims_x, dims_y, offset_x, offset_y, slice_x, slice_y, rank, error
       INTEGER(HID_T)             :: dset_id,dataspace,memspace ! necessary identifiers
       INTEGER(HSIZE_T), DIMENSION(3) :: data_dims, slice_dims ! dimensions variables
       REAL(8), DIMENSION(dims_y,dims_x,2) :: res ! temporary variable for storing read data
@@ -445,7 +445,7 @@ MODULE hdf5_helper
       COMPLEX(8), DIMENSION(:) :: var ! complex variable to be written to the dataset
       INTEGER(HID_T)           :: file_id ! file or group identifier
       CHARACTER(*)             :: name ! name of the dataset
-      INTEGER                  :: dims_y, error ! dims_y stores the size of the dataset, error stores the error messages from HDF5 interface
+      INTEGER                  :: i, dims_y, error ! dims_y stores the size of the dataset, error stores the error messages from HDF5 interface
       INTEGER                  :: rank = 2 ! rank of the dataset - it is rank of the complex array + 1 as the real and imaginary part have to be seprated
       INTEGER(HID_T) :: dset_id, dataspace_id ! necessary identifiers
       INTEGER(HSIZE_T), DIMENSION(2) :: data_dims ! dimensions of the dataset
@@ -475,7 +475,7 @@ MODULE hdf5_helper
       COMPLEX(8), DIMENSION(:,:) :: var ! complex variable to be written to the dataset
       INTEGER(HID_T)           :: file_id ! file or group id to create the dataset in
       CHARACTER(*)             :: name ! name of the dataset
-      INTEGER                  :: dims_x, dims_y, error ! dims_x and dims_y are passed to initialize the dimensions, error stores error messages of the HDF5 interface
+      INTEGER                  :: i, j, dims_x, dims_y, error ! dims_x and dims_y are passed to initialize the dimensions, error stores error messages of the HDF5 interface
       INTEGER                  :: rank ! rank of the dataspace
       INTEGER(HID_T) :: dset_id, dataspace_id ! necessary identifiers
       INTEGER(HSIZE_T), DIMENSION(3) :: data_dims ! data dimensions array
@@ -716,7 +716,7 @@ MODULE hdf5_helper
       REAL,DIMENSION(:)        :: var ! value which is supposed to be appended to the dataset
       INTEGER(HID_T)           :: file_id ! file or group identifier containing the dataset
       CHARACTER(*)             :: name ! name of the dataset to be extended
-      INTEGER(HID_T)           :: dset_id, dataspace ! necessary identifiers
+      INTEGER(HID_T)           :: dset_id, dataspace, memspace ! necessary identifiers
       INTEGER                  :: error ! error stores error messages of the HDF5 interface
       INTEGER(HSIZE_T), DIMENSION(1):: new_dims, memspace_dims, offset, hyperslab_size ! new dimensions of the dataset, of the dataspace, the offset and the hyperslab size
       CALL h5dopen_f(file_id, name, dset_id, error)   !Open the  dataset
@@ -736,7 +736,7 @@ MODULE hdf5_helper
       REAL,DIMENSION(:,:)      :: var ! variable which is supposed to be appended to the dataset
       INTEGER(HID_T)           :: file_id ! file or group identifier containing the dataset
       CHARACTER(*)             :: name ! name of the dataset
-      INTEGER(HID_T)           :: dset_id, dataspace ! necessary identifiers
+      INTEGER(HID_T)           :: dset_id, dataspace, memspace ! necessary identifiers
       INTEGER                  :: error, rank ! error stores error messages of the HDF5 interface, rank stores dataset rank
       INTEGER(HSIZE_T), DIMENSION(2):: new_dims, memspace_dims, offset, hyperslab_size ! new dimensions of the dataset, of the dataspace, the offset and the hyperslab size
 
@@ -888,16 +888,16 @@ MODULE hdf5_helper
 
     ! This subroutine creates a scalar dataset of type character
     SUBROUTINE create_scalar_string_dset(file_id, name, var)
-      USE ISO_C_BINDING ! saving string using c-pointer
+      ! USE ISO_C_BINDING ! saving string using c-pointer
       INTEGER(HID_T) :: file_id ! identifier of the file or group in which the dataset is supposed to be created 
       CHARACTER(*)   :: name ! name of the dataset to be created
       CHARACTER(*)   :: var ! variable to be written into the dataset
       INTEGER(HID_T) :: dset_id, dataspace_id, type_id ! necessary identifiers
       INTEGER        :: error ! error stores error messages of HDF5 interface
 
-      TYPE(C_PTR) :: f_ptr
-      TYPE(C_PTR), DIMENSION(1), TARGET :: wdata 
-      CHARACTER(len = 50, kind=c_char), DIMENSION(1), TARGET  :: c_var ! adjust length...
+      ! TYPE(C_PTR) :: f_ptr
+      ! TYPE(C_PTR), DIMENSION(1), TARGET :: wdata 
+      ! CHARACTER(len = 50, kind=c_char), DIMENSION(1), TARGET  :: c_var ! adjust length...
 
 
       ! INTEGER(HSIZE_T), DIMENSION(1):: dumh51D ! temporary variable
