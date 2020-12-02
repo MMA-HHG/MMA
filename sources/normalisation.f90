@@ -2,7 +2,7 @@ MODULE normalisation
   USE calc_start
 
   REAL(8) n2_phys,n4_phys,lambda0_cm_phys,Ui_eV_phys,proplength_m_phys,outlength_m_phys,delta_z_mm_phys,sigmak_phys,sigman_phys
-  REAL(8) sigmakp_phys,rhoslg1_phys,sigma_phys,sigmacv_ref_phys,I_ref_phys,sigmakpp_phys,betakp_phys,beta_phys,betakpp_phys
+  REAL(8) sigmakp_phys,rhoslg1_phys,sigma_phys,sigmacv_ref_phys,I_ref_phys,sigmakpp_phys,beta_phys
   REAL(8) sigma_cm2_phys,alpha_fs_phys,alphaquad_fscm3_phys,tdk_fs_phys,raman_phys,rfil_mm_phys,pressure,tauc_fs_phys
   REAL(8) alpha1_fs_phys,alphah_fs_phys,rhosat_phys,Ui_N2_eV_phys,rho0_phys
   REAL(8) delta_k_p_fs_per_cm_phys,k_p_fs_per_cm_phys,k_pp_fs2_per_cm_phys,k_ppp_fs3_per_cm_phys,k_pppp_fs4_per_cm_phys
@@ -886,18 +886,16 @@ CONTAINS
        lense_factor=3.1415D0*w0_cm_phys**2*n0/(f_cm_phys*lambda0_cm_phys)
     endif
     increase=decrease/2.5D0               !phase threshold for increasing delta_z, should be <= increase/2.5
-    beta_inv_2KKp=k0_phys**2*(sigmakp_phys)*1.d-15*tp_fs_phys*(rhoslg1_phys/rhoc_cm3_phys)* &
-      (Pcr_phys/(4.d0*3.1415))**KKp*w0_cm_phys**(2*(1-KKp))  !adimensionned SLG1 coefficient
+
     eti_ref=I_ref_phys*(4*3.1415*w0_cm_phys**2)/Pcr_phys  !adimensionned reference intensity
     beta_inv_2=k0_phys**2*(sigma_phys)*1.d-15*tp_fs_phys*n0/(2*z_rayleigh_cm_phys*k0_phys)*(Pcr_phys/(4.d0*3.1415))  !adimensionned SLG2 coefficient
-    betakp_phys =((KKp+2)*h*2*3.1415D0*c/(lambda0_cm_phys))*rhoslg1_phys*sigmakp_phys !coefficient of multiphoton SLG1 absorption   cm2Kp-3/WKp-1
-    mukp=2.D0*z_rayleigh_cm_phys*betakp_phys*(Pcr_phys/(4.d0*3.1415))**(KKp-1)*w0_cm_phys**(2*(1-KKp))  !adimensionned coefficient for SLG1 absorption
+    
+
     beta_phys = (h*2*3.1415D0*c/(lambda0_cm_phys))*n0*rhoc_cm3_phys/(2*z_rayleigh_cm_phys*k0_phys)*sigma_phys !coefficient of SLG2 absorption   cm-1
     mu=2.D0*z_rayleigh_cm_phys*beta_phys  !adimensionned coefficient for MPA effect SLG2 absorption
-    betakpp_phys =((KKpp+2)*h*2*3.1415D0*c/(lambda0_cm_phys))*rhoslg1_phys*sigmakpp_phys !coefficient of absorption due to SLG2 population  cm2Kpp-3/WKpp-1
-    mukpp = 2.D0*z_rayleigh_cm_phys*betakpp_phys*(Pcr_phys/(4.d0*3.1415))**(KKpp-1)*w0_cm_phys**(2*(1-KKpp))  !adimensionned coefficient for absorption due to SLG2 population
-    beta_inv_2KKpp =k0_phys**2*(sigmakpp_phys)*1.d-15*tp_fs_phys*(rhoslg1_phys/rhoc_cm3_phys)* &
-      (Pcr_phys/(4.d0*3.1415))**KKpp*w0_cm_phys**(2*(1-KKpp))  !adimensionned popSLG2 coefficient
+    
+
+
     alpha1=alpha1_fs_phys*tp_fs_phys !adimensionned linear recombination for SLG1 electrons coefficient
     alpha2=sigmacv_ref_phys*n0*rhoc_cm3_phys/(2*z_rayleigh_cm_phys*k0_phys)*tp_fs_phys !adimensionned recombinsation coefficient for SLG2 electrons
     alphah=alphah_fs_phys*tp_fs_phys !adimensionned linear recombination for holes coefficient
@@ -905,8 +903,6 @@ CONTAINS
     gamma1e=3.535d-12/(k0_phys*n0*omega)*n0*rhoc_cm3_phys/k0_phys  !factor for adimensionned coefficient for losses due to normalized conductivity
 
 
-    nukB=(3.535d-12/(k0_phys*n0*omega)*tp_fs_phys*1.d-15*2.D0/(w0_cm_phys**2*3.D0*1.6d-19))*(Pcr_phys/(4.d0*3.1415))  !factor for adimensionned electron heating coefficient
-    nucp=7.D-6*(rhoc_cm3_phys*n0/(2.D0*z_rayleigh_cm_phys*k0_phys))*1.d-15*tp_fs_phys  !factor for adimensionned collision frequency ions
 
 
     density_normalisation_factor = (2.D0*z_rayleigh_cm_phys*k0_phys)/(rhoc_cm3_phys*n0)

@@ -20,7 +20,6 @@ MODULE MEDIUM_PARAMETER
   DOUBLE PRECISION, SAVE  :: n0_indice
   DOUBLE PRECISION, SAVE  :: critical_density
   DOUBLE PRECISION, SAVE  :: atomic_density
-  DOUBLE PRECISION, SAVE  :: reduced_mass
   INTEGER, SAVE  :: angular_momentum
 
 END MODULE MEDIUM_PARAMETER

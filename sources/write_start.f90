@@ -4,14 +4,14 @@ MODULE write_start
 
   REAL(8), PARAMETER  :: Pi = acos(-1.0d0)
 
-  INTEGER(4) num_proc,dim_t,dim_r,KK,NN,switch_rho,switch_dKerr,absorb,rhodist,angular_momentum,switch_T,KKp,KKpp
-  INTEGER(4) i_x_max, i_z_max, i_x, i_z, angular_momentum_N2
+  INTEGER(4) num_proc,dim_t,dim_r,KK,NN,switch_rho,switch_dKerr,absorb,rhodist,angular_momentum,switch_T
+  INTEGER(4) i_x_max, i_z_max, i_x, i_z
   REAL(8) rek0,rekp,c3,c5,gamma1,gamma2,muk,beta_inv_2KK,rho0,nu,alpha,alphaquad,rhoat_inv,xdk,tdk,raman,omega,eta1,eta2
-  REAL(8) beta_inv_2KKp,eti_ref,exp_ref,beta_inv_2,mukp,mu,mukpp,beta_inv_2KKpp,alpha1,alpha2,alphah,rhosat,gamma1e,nuO2,nuN2
-  REAL(8) omega_uppe,nucp,nukB
+  REAL(8) eti_ref,exp_ref,beta_inv_2,mu,alpha1,alpha2,alphah,rhosat,gamma1e
+  REAL(8) omega_uppe
   REAL(8) lt,lr,proplength,outlength,delta_z,z,z_out,rfil,increase,decrease,time_limit
   REAL(8) photon_energy_au_phys,tp_fs_phys,Pcr_phys,w0_cm_phys
-  REAL(8) Ui_au_phys,residue_charge,n0,rhoc_cm3_phys,rhont_cm3_phys,reduced_mass
+  REAL(8) Ui_au_phys,residue_charge,n0,rhoc_cm3_phys,rhont_cm3_phys
 
   REAL(8) density_normalisation_factor
   REAL(8) delta_t, tlo 
@@ -109,16 +109,16 @@ CONTAINS
       CALL create_dset(group_id,'n0_indice',n0)
       CALL create_dset(group_id,'critdens',rhoc_cm3_phys)
       CALL create_dset(group_id,'atomdens',rhont_cm3_phys)
-      CALL create_dset(group_id,'reducmass',reduced_mass)
+
       CALL create_dset(group_id,'angmom',angular_momentum)
-      CALL create_dset(group_id,'KKp', KKp)
-      CALL create_dset(group_id,'beta_inv_2KKp', beta_inv_2KKp)
-      CALL create_dset(group_id,'mukp', mukp)
+
+
+
       CALL create_dset(group_id,'beta_inv_2', beta_inv_2)
       CALL create_dset(group_id,'mu', mu)
-      CALL create_dset(group_id,'KKpp', KKpp)
-      CALL create_dset(group_id,'beta_inv_2KKpp', beta_inv_2KKpp)
-      CALL create_dset(group_id,'mukpp', mukpp)
+
+
+
       CALL create_dset(group_id,'eti_ref', eti_ref)
       CALL create_dset(group_id,'exp_ref', exp_ref)
       CALL create_dset(group_id,'alpha1',alpha1)
@@ -131,8 +131,6 @@ CONTAINS
 
 
 
-      CALL create_dset(group_id,'nukB', nukB)
-      CALL create_dset(group_id,'nucp', nucp)
 
 
 

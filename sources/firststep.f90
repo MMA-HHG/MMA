@@ -192,16 +192,12 @@ CONTAINS
     CALL read_dset(group_id, 'n0_indice',n0_indice)
     CALL read_dset(group_id, 'critdens',critical_density)
     CALL read_dset(group_id, 'atomdens',atomic_density)
-    CALL read_dset(group_id, 'reducmass',reduced_mass)
+
     CALL read_dset(group_id,'angmom',angular_momentum)
-    CALL read_dset(group_id,'KKp',KKp)
-    CALL read_dset(group_id, 'beta_inv_2KKp',beta_inv_2KKp)
-    CALL read_dset(group_id, 'mukp',mukp)
+
     CALL read_dset(group_id, 'beta_inv_2',beta_inv_2)
     CALL read_dset(group_id, 'mu',mu)
-    CALL read_dset(group_id,'KKpp',KKpp)
-    CALL read_dset(group_id, 'beta_inv_2KKpp',beta_inv_2KKpp)
-    CALL read_dset(group_id, 'mukpp',mukpp)
+
     CALL read_dset(group_id, 'eti_ref',eti_ref)
     CALL read_dset(group_id, 'exp_ref',exp_ref)
     CALL read_dset(group_id, 'alpha1',alpha1)
@@ -213,9 +209,7 @@ CONTAINS
     CALL read_dset(group_id, 'gamma1e',gamma1e)
 
 
-    CALL read_dset(group_id, 'T_init_eV_phys',T_init_eV_phys)
-    CALL read_dset(group_id, 'nukB',nukB)
-    CALL read_dset(group_id, 'nucp',nucp)
+
 
 
     ! Prepare the fourier transforms

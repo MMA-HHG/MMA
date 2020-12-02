@@ -156,15 +156,15 @@ integer         :: switch_ionisation, switch_atom
     ! variables for only some ionisation models
     sigmak_phys = 1.9d-120
 
-    reduced_mass = 0.5d0
-    KKp = 3
+
+
     sigmakp_phys = 8.6d-27
     rhoslg1_phys = 2.d17
     sigma_phys = 2.d0
     sigmacv_ref_phys = 4.35d-7
     I_ref_phys = 42.32d12
     exp_ref = -3.3d0
-    KKpp = 2
+
     sigmakpp_phys = 1.3d-12
     rhosat_phys = 2.d17
 

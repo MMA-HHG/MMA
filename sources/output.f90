@@ -89,9 +89,8 @@ CONTAINS
       rhofh=0.D0
       rhoslg2=0.D0
       rhoav=0.D0
-      rhoO2=rho0
-      rhoN2=0.D0
-      Tev=T_init_eV_phys
+
+
       DO j=1,dim_t
          e_2KKm2(j)=rhotemp
          IF (j.NE.dim_t) THEN
@@ -371,16 +370,13 @@ CONTAINS
        CALL create_dset(field_group_id,'n0_indice',n0_indice)
        CALL create_dset(field_group_id,'critdens',critical_density)
        CALL create_dset(field_group_id,'atomdens',atomic_density)
-       CALL create_dset(field_group_id,'reducmass',reduced_mass)
+
        CALL create_dset(field_group_id,'angmom',angular_momentum)
-       CALL create_dset(field_group_id,'KKp',KKp)
-       CALL create_dset(field_group_id,'beta_inv_2KKp',beta_inv_2KKp)
-       CALL create_dset(field_group_id,'mukp',mukp)
+
        CALL create_dset(field_group_id,'beta_inv_2',beta_inv_2)
        CALL create_dset(field_group_id,'mu',mu)
-       CALL create_dset(field_group_id,'KKpp',KKpp)
-       CALL create_dset(field_group_id,'beta_inv_2KKpp',beta_inv_2KKpp)
-       CALL create_dset(field_group_id,'mukpp',mukpp)
+
+
        CALL create_dset(field_group_id,'eti_ref',eti_ref)
        CALL create_dset(field_group_id,'exp_ref',exp_ref)
        CALL create_dset(field_group_id,'alpha1',alpha1)
@@ -392,9 +388,6 @@ CONTAINS
        CALL create_dset(field_group_id,'gamma1e',gamma1e)
 
 
-
-       CALL create_dset(field_group_id,'nukB',nukB)
-       CALL create_dset(field_group_id,'nucp',nucp)
 
 
 

@@ -18,7 +18,7 @@
 
 MODULE long_step
   USE parameters
-  REAL(8) rhompi,rho1,rho2,rhoth,rhotr,rhofh,rhoslg2,rhoav,rhoO2,rhoN2,Tev
+  REAL(8) rhompi,rho1,rho2,rhoth,rhotr,rhofh,rhoslg2,rhoav
 CONTAINS
 
   SUBROUTINE index_interpolation(phase_index,r)
@@ -206,9 +206,7 @@ CONTAINS
     END SELECT
     rho=rho-alphaquad*rhosave**2*delta_t
     IF (rho.LT.0.D0) rho=0.D0
-    IF (rhoO2.LT.0.D0) rhoO2=0.D0
-    IF (rhoN2.LT.0.D0) rhoN2=0.D0
-    IF (Tev.LT.0.D0) Tev=0.D0
+
     IF (rho*rhoat_inv.GT.1.D0) rho=1.D0/rhoat_inv
     IF (rhompi.LT.0.D0) rhompi=0.D0
     IF (rho1.LT.0.D0) rho1=0.D0
@@ -262,7 +260,7 @@ CONTAINS
 
     INTEGER(4) j,l,k,k1
     REAL(8)  phase,maxphase_part,peakmax_part,energy_part,energy_fil_part,rhomax_part,delkerr,delkerrp,rhotemp,mpa,r,phase_p,phase_j,losses_j,phase_index
-    REAL(8) mediumabs , rhoabs_max_part, rhoabstemp, rhoO2max_part, rhoN2max_part, Tevmax_part
+    REAL(8) mediumabs , rhoabs_max_part, rhoabstemp
 
     ! For storing in HDF5
     INTEGER(HID_T)    :: file_id       ! File identifier 
@@ -312,9 +310,6 @@ CONTAINS
     maxphase_part=0.D0
     phaserelation(1)=exp(CMPLX(0.D0,2.D0*(rek0-rekp*omega)*z,8))
     phaserelation(2)=exp(CMPLX(0.D0,4.D0*(rek0-rekp*omega)*z,8))
-    rhoO2max_part=0.D0
-    rhoN2max_part=0.D0
-    Tevmax_part=0.D0
 
     DO l=dim_r_start(num_proc),dim_r_end(num_proc)
        r=REAL(l-1)*delta_r
@@ -339,9 +334,8 @@ CONTAINS
        rhofh=0.D0
        rhoslg2=0.D0
        rhoav=0.D0
-       rhoO2=rho0
-       rhoN2=0.D0
-       Tev=T_init_eV_phys
+
+
        rhoabstemp=0.D0
        mediumabs=0.D0
 
@@ -361,9 +355,7 @@ CONTAINS
           losses_ionization(l)=losses_ionization(l)+2.D0*e_2(j)*mpa
           phase=phase_p+phase_j+phase_index
           maxphase_part=MAX(maxphase_part,ABS(phase))
-          rhoO2max_part=MAX(rhoO2max_part,rhoO2)
-          rhoN2max_part=MAX(rhoN2max_part,rhoN2)
-          Tevmax_part=MAX(Tevmax_part,Tev)
+
           SELECT CASE (switch_T) ! decision over various propagators
           CASE(1)
              etemp(j,l)=e(j,l)*exp(CMPLX(losses_j-delta_zh*(mpa+mediumabs),phase,8))
@@ -464,9 +456,7 @@ CONTAINS
        rhofh=0.D0
        rhoslg2=0.D0
        rhoav=0.D0
-       rhoO2=rho0
-       rhoN2=0.D0
-       Tev=T_init_eV_phys
+
        rhoabstemp=0.D0
        mediumabs=0.D0
        CALL index_interpolation(phase_index,r)
