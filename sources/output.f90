@@ -28,8 +28,6 @@ CONTAINS
     
     ! General purpose variables: looping, dummy variables
     INTEGER(4) k1,k2
-    REAL(4) dumr4
-    INTEGER(HSIZE_T), DIMENSION(1):: dumh51D, dumh51D2
     
     INTEGER :: field_dimensions ! Dataset rank & # of points in z
     ! the kind of this variable has to correspond with the precision stored in HDF5-file
