@@ -182,6 +182,12 @@ PROGRAM make_start
 
     ! convert to focus values    
     CALL Gaussian_entry2Gaussian_focus(Intensity_entry,w0_cm_phys*1.D-2,Curvature_radius_entry,Intensity_focus, waist_focus, focus_position, lambda0_cm_phys*1.D-2)
+  
+    ! Store the reference Gaussian beam
+    CALL save_or_replace(file_id, 'inputs/focus_beamwaist_Gaussian', waist_focus, error, units_in = '[SI]')
+    CALL save_or_replace(file_id, 'inputs/focus_intensity_Gaussian', Intensity_focus, error, units_in = '[SI]')
+    CALL save_or_replace(file_id, 'inputs/focus_position_Gaussian', focus_position, error, units_in = '[SI]')
+  
   ELSE
 
     ! Input given by the reference Gaussian beam
