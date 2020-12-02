@@ -22,7 +22,7 @@ PROGRAM cuprad
 
   IMPLICIT NONE 
 
-  INTEGER(4) time, starttime, deltatime, limit_s
+  INTEGER(4) deltatime, limit_s
 !  external time
   INTEGER(4) :: tcount, count_rate, count_max
   !  REAL(8)  TREM

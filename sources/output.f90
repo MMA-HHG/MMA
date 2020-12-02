@@ -37,10 +37,9 @@ CONTAINS
     REAL(4), ALLOCATABLE :: spect_array_1(:),  spect_array_2(:,:), spect_array_3(:,:), spect_array_4(:,:), spect_array_5(:,:) 
     INTEGER(HSIZE_T)               :: r_offset
 
-    INTEGER(4) j,k,l
+    INTEGER(4) j,l
     REAL(8) rhotemp,r,mpa
     COMPLEX(8) help
-    CHARACTER*10 iz
     LOGICAL :: first = .FALSE.
     INTEGER(HID_T) :: file_id       ! File identifier 
     INTEGER(HID_T) :: group_id      ! Group identifier 
@@ -267,9 +266,8 @@ CONTAINS
     USE HDF5_helper
     IMPLICIT  NONE
 
-    INTEGER(4) j,k,k1,k2,i_x,i_z
+    INTEGER(4) k,k1,k2
     CHARACTER*10  iz,filename
-    CHARACTER*15  id
     INTEGER(HSIZE_T)               :: r_offset
     INTEGER(HID_T) :: file_id       ! File identifier 
     INTEGER(HID_T) :: group_id      ! Group identifier 
@@ -446,7 +444,6 @@ CONTAINS
     
     INTEGER        :: i
     INTEGER(HID_T) :: file_id       ! File identifier 
-    INTEGER(HID_T) :: group_id      ! Group identifier 
     INTEGER(HID_T) :: h5parameters  ! Property list identifier 
     INTEGER(HSIZE_T), DIMENSION(2) :: dims, offset, ccount
     INTEGER                        :: error
