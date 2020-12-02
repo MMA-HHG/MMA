@@ -632,7 +632,6 @@ MODULE hdf5_helper_serial
       CHARACTER(*)             :: name
       INTEGER(HID_T)           :: dset_id, dataspace, h5_parameters
       INTEGER                  :: rank, error, size
-      INTEGER, DIMENSION(1)    :: dim
       INTEGER(HSIZE_T), DIMENSION(2):: data_dims, max_dims
       INTEGER(HSIZE_T), DIMENSION(1:2) :: dimsc = (/2,5/)
       ALLOCATE(data(1,size))

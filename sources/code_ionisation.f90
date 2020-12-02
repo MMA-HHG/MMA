@@ -236,14 +236,9 @@ CONTAINS
     DOUBLE PRECISION            :: rate_factor
     DOUBLE PRECISION            :: MPA_factor
     DOUBLE PRECISION            :: intensity
-    DOUBLE PRECISION            :: efield
     DOUBLE PRECISION            :: ionisation_rate
-    DOUBLE PRECISION            :: o_atom_dens, o_crit_dens, o_beam_waist, o_photenergy, o_pulse_duration, o_n0, o_ionpot
     INTEGER                     :: i,error
     INTEGER(HID_T)              :: file_id, group_id
-    CHARACTER(LEN=25)           :: filename = "PPT_tables.h5", groupname = "PPT"
-    REAL(8), ALLOCATABLE        :: rates_table(:,:), reference_table(:,:)
-    LOGICAL                     :: file_exists, just_read = .FALSE.
     DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: Egrid, ionisation_rates
     CHARACTER(LEN=25)           :: outfilename = "results.h5", outgroupname="ionisation_model"
 
@@ -448,9 +443,6 @@ CONTAINS
     CHARACTER(LEN=25)           :: outfilename = "results.h5", outgroupname="ionisation_model"
     INTEGER                     :: error
     INTEGER(HID_T)              :: file_id, group_id
-    REAL(8), ALLOCATABLE        :: rates_atomic(:,:)
-    INTEGER(HSIZE_T), DIMENSION(2) :: dims_ext
-
 
     print *, 'external ionisation table accessed'
 
