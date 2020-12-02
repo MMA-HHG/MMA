@@ -10,7 +10,7 @@
 #  F90    = gfortran  
 #  H5 = h5pfc
 #  FFT     = -lfftw3_mpi -lfftw3
-  FFLAGS =  -check all -warn all -traceback -fpe0 -stand f08
+  FFLAGS =  -check all -warn all -traceback -fpe0
 #  FFLAGS =  -Wall -O2 -ffree-line-length-none -fbacktrace -fcheck=all -v -g3 # -g[0-3] is for debuging
 #  FFLAGS =  -Wall -O0 -ffree-line-length-none -fbacktrace -fcheck=all -Wuninitialized -v -g -fbounds-check
 #  FFLAGS =  -O3 -ansi_alias 
