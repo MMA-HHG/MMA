@@ -239,10 +239,8 @@ PROGRAM make_start
   CALL save_or_replace(file_id, 'inputs/number_of_photons_to_populate_slg2', KKpp, error, units_in = '[-]')
   CALL save_or_replace(file_id, 'inputs/cross_section_to_populate_slg2', sigmakpp_phys, error, units_in = '[s-1cm2Kpp/WKpp]')
   CALL save_or_replace(file_id, 'inputs/saturation_density_for_slg2', rhosat_phys, error, units_in = '[cm-3]')
-  CALL save_or_replace(file_id, 'inputs/effective_density_of_neutral_n2_molecules', rhont_N2_cm3_phys, error, units_in = '[cm-3]')
-  CALL save_or_replace(file_id, 'inputs/ionization_poential_of_neutral_n2_molecules', Ui_N2_eV_phys, error, units_in = '[eV]')
-  CALL save_or_replace(file_id, 'inputs/angular_momentum_n2_for_method_7', angular_momentum_N2, error, units_in = '[-]')
-  CALL save_or_replace(file_id, 'inputs/effective_residue_charge_n2_for_method_7', residue_charge_N2, error, units_in = '[-]')
+
+
   CALL save_or_replace(file_id, 'inputs/initial_free_electron_temperature', T_init_eV_phys, error, units_in = '[eV]')
 
   CALL save_or_replace(file_id, 'inputs/electron_colision_time', tauc_fs_phys, error, units_in = '[fs]')

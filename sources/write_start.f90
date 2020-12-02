@@ -129,17 +129,12 @@ CONTAINS
       CALL create_dset(group_id,'omega_uppe', omega_uppe)
       CALL create_dset(group_id,'gamma1e', gamma1e)
       CALL create_dset(group_id,'nuO2', nuO2)
-      CALL create_dset(group_id,'nuN2', nuN2)
+
       CALL create_dset(group_id,'T_init_eV_phys', T_init_ev_phys)
       CALL create_dset(group_id,'nukB', nukB)
       CALL create_dset(group_id,'nucp', nucp)
       CALL create_dset(group_id,'nucO2', nucO2)
-      CALL create_dset(group_id,'nucN2', nucN2)
-      CALL create_dset(group_id,'rhoat_N2_inv', rhoat_N2_inv)
-      CALL create_dset(group_id,'ionpotN2',Ui_au_phys_N2)
-      CALL create_dset(group_id,'rescharge_N2',residue_charge_N2)
-      CALL create_dset(group_id,'atomdens_N2',rhont_N2_cm3_phys)
-      CALL create_dset(group_id,'angmom_N2',angular_momentum_N2)
+
 
       CALL create_dset(group_id,'density_normalisation_factor',density_normalisation_factor)
 

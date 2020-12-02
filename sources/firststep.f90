@@ -212,17 +212,11 @@ CONTAINS
     CALL read_dset(group_id, 'omega_uppe',omega_uppe)
     CALL read_dset(group_id, 'gamma1e',gamma1e)
     CALL read_dset(group_id, 'nuO2',nuO2)
-    CALL read_dset(group_id, 'nuN2',nuN2)
+
     CALL read_dset(group_id, 'T_init_eV_phys',T_init_eV_phys)
     CALL read_dset(group_id, 'nukB',nukB)
     CALL read_dset(group_id, 'nucp',nucp)
     CALL read_dset(group_id, 'nucO2',nucO2)
-    CALL read_dset(group_id, 'nucN2',nucN2)
-    CALL read_dset(group_id, 'rhoat_N2_inv',rhoat_N2_inv)
-    CALL read_dset(group_id, 'ionpotN2',ionisation_potential_N2)
-    CALL read_dset(group_id, 'rescharge_N2',residue_charge_N2)
-    CALL read_dset(group_id, 'atomdens_N2',atomic_density_N2)
-    CALL read_dset(group_id,'angmom_N2',angular_momentum_N2)
 
     ! Prepare the fourier transforms
     CALL fft_init

@@ -391,17 +391,13 @@ CONTAINS
        CALL create_dset(field_group_id,'omega_uppe',omega_uppe)
        CALL create_dset(field_group_id,'gamma1e',gamma1e)
        CALL create_dset(field_group_id,'nuO2',nuO2)
-       CALL create_dset(field_group_id,'nuN2',nuN2)
+
        CALL create_dset(field_group_id,'T_init_eV_phys',T_init_eV_phys)
        CALL create_dset(field_group_id,'nukB',nukB)
        CALL create_dset(field_group_id,'nucp',nucp)
        CALL create_dset(field_group_id,'nucO2',nucO2)
-       CALL create_dset(field_group_id,'nucN2',nucN2)
-       CALL create_dset(field_group_id,'rhoat_N2_inv',rhoat_N2_inv)
-       CALL create_dset(field_group_id,'ionpotN2',ionisation_potential_N2)
-       CALL create_dset(field_group_id,'rescharge_N2',residue_charge_N2)
-       CALL create_dset(field_group_id,'atomdens_N2',atomic_density_N2)
-       CALL create_dset(field_group_id,'angmom_N2',angular_momentum_N2)
+
+
        efield_factor = SQRT(critical_power*1.D9*3.D8*4.D0*3.1415D-7/(4.D0*3.1415D0*beam_waist**2*1.D-4*2.D0*n0_indice))*2.D0 ! normalization factor electric field V/m
        ALLOCATE(real_e(dim_t,dim_r/num_proc),imag_e(dim_t,dim_r/num_proc))
        r_offset = dim_r/num_proc*my_rank

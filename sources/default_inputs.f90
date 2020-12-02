@@ -167,10 +167,7 @@ integer         :: switch_ionisation, switch_atom
     KKpp = 2
     sigmakpp_phys = 1.3d-12
     rhosat_phys = 2.d17
-    rhont_N2_cm3_phys = 2.2d19
-    Ui_N2_eV_phys = 15.6d0
-    angular_momentum_N2 = 0
-    residue_charge_N2 = 0.9d0
+
     T_init_eV_phys = 0.025d0
 
     tauc_fs_phys = 190.d0 ! THIS IS APPLIED
