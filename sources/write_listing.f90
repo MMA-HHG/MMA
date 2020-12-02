@@ -125,35 +125,6 @@ CONTAINS
        WRITE(100,'(a,t50,i3)') 'PPT',switch_rho
        WRITE(100,'(a,t50,es12.4)') 'residue charge', residue_charge
        WRITE(100,'(a,t50,i3)') 'angular momentum',angular_momentum
-    CASE(4)
-       WRITE(100,'(a,t50,i3)') 'ADK',switch_rho
-       WRITE(100,'(a,t50,es12.4)') 'residue charge', residue_charge
-    CASE(5) 
-       WRITE(100,'(a,t50,i3)') 'Keldysh', switch_rho
-       WRITE(100,'(a,t50,es12.4)') 'reduced mass',reduced_mass
-    CASE(6) 
-       WRITE(100,'(a,t50,i3)') 'KDP Guillaume', switch_rho
-       WRITE(100,'(a,t50,i3)') 'number of photon needed to extract e from vb',KK
-       WRITE(100,'(a,t50,es12.4,x,a)') 'coefficient for e extraction from vb',sigmak_phys,'s-1cm2K/WK'
-       WRITE(100,'(a,t50,es12.4,x,a)') 'coeff. abs. due to e extraction from vb',betak_phys,'cm2K-3/WK-1' 
-       WRITE(100,'(a,t50,es12.4,x,a)') 'density of SLG1 defect states',rhoslg1_phys,'cm-3' 
-       WRITE(100,'(a,t50,i3)') 'number of photon needed to extract e from SLG1',KKp
-       WRITE(100,'(a,t50,es12.4,x,a)') 'coefficient for e extraction from SLG1',sigmakp_phys,'s-1cm2Kp/WKp'
-       WRITE(100,'(a,t50,es12.4,x,a)') 'coeff. abs. due to e extraction from SLG1',betakp_phys,'cm2Kp-3/WKp-1'
-       WRITE(100,'(a,t50,i3)') 'number of photon needed to extract e from SLG2',1
-       WRITE(100,'(a,t50,es12.4,x,a)') 'coefficient for e extraction from SLG2',sigma_phys,'s-1cm2/W'
-       WRITE(100,'(a,t50,es12.4,x,a)') 'coeff. abs. due to e extraction from SLG2',beta_phys,'cm-1' 
-       WRITE(100,'(a,t50,i3)') 'number of photon needed to populate SLG2',KKpp
-       WRITE(100,'(a,t50,es12.4,x,a)') 'coefficient for populating SLG2',sigmakpp_phys,'s-1cm2Kpp/WKpp'
-       WRITE(100,'(a,t50,es12.4,x,a)') 'coeff. abs. due to populating SLG2',betakpp_phys,'cm2Kpp-3/WKpp-1'
-       WRITE(100,'(a,t50,es12.4,x,a)') 'saturation density for SLG2 population',rhosat_phys,'cm-3'
-    CASE(7) 
-       WRITE(100,'(a,t50,i3)') 'Air Pavel (PPT), implies reducing n_2 when ionized', switch_rho
-       WRITE(100,'(a,t50,es12.4)') 'residue charge', residue_charge
-       WRITE(100,'(a,t50,i3)') 'angular momentum',angular_momentum
-       WRITE(100,'(a,t50,es12.4,x,a)') 'effective density of neutral N2 molecules',rhont_N2_cm3_phys,'cm-3'
-       WRITE(100,'(a,t50,es12.4,x,a)') 'Ionization poential of neutral N2 molecules',Ui_N2_eV_phys,'eV'
-       WRITE(100,'(a,t50,es12.4,x,a)') 'Initial free electron temperature',T_init_eV_phys,'eV'
     END SELECT
     SELECT CASE (switch_T)
     CASE(1)
@@ -208,36 +179,10 @@ CONTAINS
        WRITE(100,'(a,t50,es12.4)') 'adimmensionned coefficient for MPA effect',muk
        WRITE(100,'(a,t50,es12.4)') 'adimmensionned MPI coefficient',beta_inv_2KK
     ENDIF
-    IF ((switch_rho.EQ.6)) THEN
-       WRITE(100,'(a,t50,es12.4)') 'adimmensionned coefficient for MPA',muk
-       WRITE(100,'(a,t50,es12.4)') 'adimmensionned MPI coefficient',beta_inv_2KK
-       WRITE(100,'(a,t50,es12.4)') 'adimmensionned coefficient for SLG1 abs',mukp
-       WRITE(100,'(a,t50,es12.4)') 'adimmensionned SLG1 coefficient',beta_inv_2KKp
-       WRITE(100,'(a,t50,es12.4)') 'adimmensionned coefficient for SLG2 abs',mu
-       WRITE(100,'(a,t50,es12.4)') 'adimmensionned SLG2 coefficient',beta_inv_2
-       WRITE(100,'(a,t50,es12.4)') 'adimmensionned coefficient for SLG2 pop abs',mukpp
-       WRITE(100,'(a,t50,es12.4)') 'adimmensionned SLG2 population coefficient',beta_inv_2kkpp
-       WRITE(100,'(a,t50,es12.4)') 'adim. sat. dens. for SLG2 population',rhosat
-    ENDIF
-    IF ((switch_rho.EQ.7)) THEN
-       WRITE(100,'(a,t50,es12.4)') 'factor for coeff for losses due to conduct',gamma1e
-       WRITE(100,'(a,t50,es12.4)') 'factor for avalanche coefficient for O2',nuO2
-       WRITE(100,'(a,t50,es12.4)') 'factor for avalanche coefficient for N2',nuN2
-       WRITE(100,'(a,t50,es12.4)') 'factor for electron heating coeff',nukB
-       WRITE(100,'(a,t50,es12.4)') 'factor for collision frequency ions',nucp
-       WRITE(100,'(a,t50,es12.4)') 'factor for collision frequency neutrals O2',nucO2
-       WRITE(100,'(a,t50,es12.4)') 'factor for collision frequency neutrals N2',nucN2
-       WRITE(100,'(a,t50,es12.4)') 'adimmensionned inverse density of neutral N2 molecules',rhoat_N2_inv
-    ENDIF
     WRITE(100,'(a,t50,es12.4)') 'adimmensionned initial electron density',rho0
     WRITE(100,'(a,t50,es12.4)') 'adimmensionned avalanche coefficient',nu
     WRITE(100,'(a,t50,es12.4)') 'adimmensionned recombination coefficient',alpha
-    IF ((switch_rho.EQ.6)) THEN
-       WRITE(100,'(a,t50,es12.4)') 'adimmensionned recombination coefficient SLG1',alpha1
-       WRITE(100,'(a,t50,es12.4)') 'adimmensionned recombination coefficient SLG2',alpha2
-       WRITE(100,'(a,t50,es12.4)') 'adimmensionned reference intensity',eti_ref
-       WRITE(100,'(a,t50,es12.4)') 'adimmensionned recombination coefficient holes',alphah
-    ENDIF
+
     WRITE(100,'(a,t50,es12.4)') 'adimensionned recombination coefficient (quadratic)',alphaquad
     WRITE(100,'(a,t50,es12.4)') 'adimmensionned inverse density of neutral molecules',rhoat_inv
     IF ((switch_dkerr.EQ.2).OR.(switch_dkerr.EQ.3)) WRITE(100,'(a,t50,es12.4)') 'adimmensionned coefficient for delay time',tdk

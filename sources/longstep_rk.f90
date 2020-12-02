@@ -203,52 +203,13 @@ CONTAINS
        intF=(nu*0.5d0*(etip1+eti)-rhoat_inv*var1-alpha)*delta_t
        rho=rho*exp(intF)+var1*delta_t
        mpa=mpa*(1.D0-rhosave*rhoat_inv)
-   !  CASE(5)
-   !     CALL interpolate_ppt(var1,mpa,etip1)
-   !     intF=(nu*0.5d0*(etip1+eti)-rhoat_inv*var1-alpha)*delta_t
-   !     rho=rho*exp(intF)+var1*delta_t
-   !     mpa=mpa*(1.D0-rhosave*rhoat_inv)
-
-   !  CASE(6)
-   !     rhompi=rhompi+(beta_inv_2KK*eti**KK*(1.D0-rho*rhoat_inv)-alpha*rhompi)*delta_t
-   !     rho1=rho1+(beta_inv_2KKp*eti**KKp-alpha1*rho1)*delta_t
-   !     trapped=MIN(rhoth-rhotr,alpha2*(eti/eti_ref+1.D-6)**exp_ref*rho2*(rhoth-rhotr)*delta_t)
-   !     rho2=rho2+beta_inv_2*eti*rhoslg2*delta_t-trapped
-   !     rhotr=rhotr+trapped
-   !     rhoth=rhoth+alphah*rhofh*delta_t
-   !     rhofh=rhofh+(beta_inv_2*eti*rhoslg2-alphah*rhofh)*delta_t
-   !     mpa=muk*etip1**(KK-1)*(1.D0-rho*rhoat_inv)+mukp*etip1**(KKp-1)+mu*rhoslg2+mukpp*etip1**(KKpp-1)
-   !     rhoslg2=MIN(rhoslg2+(beta_inv_2KKpp*eti**KKpp-beta_inv_2*eti*rhoslg2)*delta_t,rhosat)
-   !     rhoav=rhoav+(nu*rho*eti-alpha*rhoav)*delta_t
-   !     rho=rhompi+rhoav+rho1+rho2
-
-   !  CASE(7)
-   !     CALL interpolate_ppt(var1,mpa,etip1)
-   !     CALL interpolate_ppt_N2(var1_N2,mpa_N2,etip1)
-   !     colfreqO2p=nucp*rhoO2*Tev**(-1.5D0)
-   !     colfreqN2p=nucp*rhoN2*Tev**(-1.5D0)
-   !     colfreqO2=nucO2*(1.D0-rhoO2*rhoat_inv)*SQRT(Tev)
-   !     colfreqN2=nucN2*(1.D0-rhoN2*rhoat_N2_inv)*SQRT(Tev)
-   !     mpa=mpa*(1.D0-rhoO2*rhoat_inv)+mpa_N2*(1.D0-rhoN2*rhoat_N2_inv)
-   !     intF=(-rhoat_inv*var1-alpha)*delta_t
-   !     rhoO2=rhoO2*exp(intF)+var1*delta_t+nuO2*colfreqO2*rho*0.5d0*(etip1+eti)*delta_t
-   !     intF=(-rhoat_N2_inv*var1_N2-alpha)*delta_t
-   !     rhoN2=rhoN2*exp(intF)+var1_N2*delta_t+nuN2*colfreqN2*rho*0.5d0*(etip1+eti)*delta_t
-   !     gamma1=gamma1e*(colfreqO2p+colfreqN2p+colfreqO2+colfreqN2)
-   !     intF=(-(nuO2*colfreqO2+nuN2*colfreqN2)*0.5d0*(etip1+eti))*delta_t
-   !     Tev=Tev*exp(intF)+nukB*(colfreqO2p+colfreqN2p)*0.5d0*(etip1+eti)*delta_t
-   !     IF (rhoO2*rhoat_inv.GT.1.D0) rhoO2=1.D0/rhoat_inv
-   !     IF (rhoN2*rhoat_N2_inv.GT.1.D0) rhoN2=1.D0/rhoat_N2_inv
-   !     rho=rhoO2+rhoN2
     END SELECT
     rho=rho-alphaquad*rhosave**2*delta_t
     IF (rho.LT.0.D0) rho=0.D0
     IF (rhoO2.LT.0.D0) rhoO2=0.D0
     IF (rhoN2.LT.0.D0) rhoN2=0.D0
     IF (Tev.LT.0.D0) Tev=0.D0
-    IF (switch_rho.NE.7) THEN
-       IF (rho*rhoat_inv.GT.1.D0) rho=1.D0/rhoat_inv
-    ENDIF
+    IF (rho*rhoat_inv.GT.1.D0) rho=1.D0/rhoat_inv
     IF (rhompi.LT.0.D0) rhompi=0.D0
     IF (rho1.LT.0.D0) rho1=0.D0
     IF (rho2.LT.0.D0) rho2=0.D0
@@ -397,11 +358,7 @@ CONTAINS
        CALL calc_absorption(rhoabstemp, mediumabs, 0.D0,e_2(1)) ! absorption
 
        DO j=1,dim_t
-          IF (switch_rho.EQ.7) THEN
-             phase_p=(c3i*e_2(j)+c3d*delkerr)*((1.D0-rhoO2*rhoat_inv)/3.D0+2.D0*(1.D0-rhoN2*rhoat_N2_inv)/3.D0)*delta_zh
-          ELSE
-             phase_p=(c3i*e_2(j)+c3d*delkerr-c5*e_2(j)**2)*((1.D0-rhotemp*rhoat_inv)+ions_Kerr_ratio*rhotemp*rhoat_inv)*delta_zh
-          ENDIF
+          phase_p=(c3i*e_2(j)+c3d*delkerr-c5*e_2(j)**2)*((1.D0-rhotemp*rhoat_inv)+ions_Kerr_ratio*rhotemp*rhoat_inv)*delta_zh
           phase_j=-gamma2*rhotemp*delta_zh
           losses_j=-gamma1*rhotemp*delta_zh
           rho(l)=MAX(rho(l),rhotemp)
@@ -523,12 +480,8 @@ CONTAINS
        CALL calc_rho(rhotemp,mpa,0.D0,e_2(1))
        CALL calc_absorption(rhoabstemp, mediumabs, 0.D0,e_2(1))
        DO j=1,dim_t
-          IF (switch_rho.EQ.7) THEN
-             phase_p=(c3i*e_2(j)+c3d*delkerr)*((1.D0-rhoO2*rhoat_inv)/3.D0+2.D0*(1.D0-rhoN2*rhoat_N2_inv)/3.D0)*delta_z
-          ELSE
-             phase_p=(c3i*e_2(j)+c3d*delkerr-c5*e_2(j)**2)*((1.D0-rhotemp*rhoat_inv)+ions_Kerr_ratio*rhotemp*rhoat_inv)*delta_z
-          ENDIF
-!          phase_p=(c3i*e_2(j)+c3d*delkerr-c5*e_2(j)**2)*delta_z
+          phase_p=(c3i*e_2(j)+c3d*delkerr-c5*e_2(j)**2)*((1.D0-rhotemp*rhoat_inv)+ions_Kerr_ratio*rhotemp*rhoat_inv)*delta_z
+          !phase_p=(c3i*e_2(j)+c3d*delkerr-c5*e_2(j)**2)*delta_z
           phase_j=-gamma2*rhotemp*delta_z
           losses_j=-gamma1*rhotemp*delta_z
           phase=phase_p+phase_j+phase_index
@@ -605,14 +558,7 @@ CONTAINS
             CALL h5gcreate_f(file_id, groupname, group_id, error) 
             CALL h5gclose_f(group_id, error)
           ENDIF
-          IF (switch_rho.EQ.7) THEN
-            ! Create rho_pavel group if it does not exist yet
-            CALL h5lexists_f(file_id, pavel_groupname, rho_pavel_group_status, error)
-            IF ( group_status .EQV. .FALSE. ) THEN
-              CALL h5gcreate_f(file_id, groupname, group_id, error) 
-              CALL h5gclose_f(group_id, error)
-            ENDIF
-          ENDIF
+
           ! if z was not lower or equal than delta_z and rhodist was reached for the first time
           IF (longstep_write_count.EQ.0) THEN
             ! z_buff dataset creation and writting, originally the z_buff was paired with each of the values from following
@@ -647,12 +593,6 @@ CONTAINS
             CALL create_1D_dset_unlimited(file_id, TRIM(energy_fil_dset_name)//"_normalised", &
               REAL(6.2831853D0*energy_fil(1:rhodist)*delta_t*delta_r**2,4), rhodist)
            
-            ! rho_pavel writting
-            IF (switch_rho.EQ.7) THEN
-              CALL create_1D_dset_unlimited(file_id, rho_pavel_rhoO2max, REAL(rhoO2max(1:rhodist),4), rhodist)
-              CALL create_1D_dset_unlimited(file_id, rho_pavel_rhoN2max, REAL(rhoN2max(1:rhodist),4), rhodist)
-              CALL create_1D_dset_unlimited(file_id, rho_pavel_Tevmax, REAL(Tevmax(1:rhodist),4), rhodist)
-            ENDIF
 
             ! write max power with corresponding z to a variable and prepare for writting to a dataset
             !powmax_data(1,1) = REAL(z,4)
@@ -753,20 +693,6 @@ CONTAINS
                 REAL(6.2831853D0*energy_fil(1:count)*delta_t*delta_r**2,4), new_dims, &
                 memspace_dims, offset, hyperslab_size)
 
-              ! extend rho_pavel datasets
-              IF (switch_rho.EQ.7) THEN
-                CALL extend_1D_dset_unlimited(file_id, rho_pavel_rhoO2max, &
-                  REAL(rhoO2max(1:rhodist),4), new_dims, &
-                memspace_dims, offset, hyperslab_size)
-
-                CALL extend_1D_dset_unlimited(file_id, rho_pavel_rhoN2max, &
-                  REAL(rhoN2max(1:rhodist),4), new_dims, &
-                memspace_dims, offset, hyperslab_size)
-
-                CALL extend_1D_dset_unlimited(file_id, rho_pavel_Tevmax, &
-                  REAL(Tevmax(1:rhodist),4), new_dims, &
-                memspace_dims, offset, hyperslab_size)
-              ENDIF
               
             ENDIF
             ! extend powmax and on axis data dataset
