@@ -566,6 +566,8 @@ CONTAINS
     !  END FUNCTION
     ! END INTERFACE
 
+    print *, 'external ionisation table accessed'
+
     ! Factors to rescale in computational units
     intensity_factor = 4.d0 * PI * beam_waist**2 * 1.d-9 / critical_power    
     rate_factor      =(4.d0 * PI**2 * 1.d16 / (45.5635**2 * 2.41889)) * &

@@ -260,11 +260,18 @@ subroutine preset_numerics
     
 end subroutine preset_numerics
 
-subroutine preset_physics
+subroutine preset_physics(test_number)
+    integer :: test_number
     
     lambda0_cm_phys = 8.d-5
 
-    gas_preset = 'Ar_PPT'
+    select case(test_number)
+    case(1)
+        gas_preset = 'Ar_PPT'
+    case(2)
+        gas_preset = 'Ar_ext'
+    end select
+
     call save_or_replace(file_id, 'inputs/gas_preset', gas_preset, error, units_in = '[-]')
 
     proplength_m_phys = 0.005d0
@@ -282,15 +289,16 @@ subroutine preset_physics
 
 end subroutine preset_physics
 
-subroutine testing_values ! set values for testing
+subroutine testing_values(test_number) ! set values for testing
     use HDF5
     use HDF5_helper
+    integer :: test_number
 
     ! call h5gcreate_f(file_id, 'inputs', group_id, error)
     ! call h5gclose_f(group_id, error)
 
     call preset_numerics
-    call preset_physics
+    call preset_physics(test_number)
 end subroutine testing_values
 
 end module default_inputs

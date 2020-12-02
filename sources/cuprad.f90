@@ -114,6 +114,11 @@ PROGRAM cuprad
      CALL propagation ! ??? WHY DO WE PROPAGATE EVEN ONCE MORE?
      CALL field_out
      CALL linked_list_out
+     IF (my_rank.EQ.0) THEN ! write output to check if the code is not completely wrong
+         print *, 'test:'
+         print *, '(4.05444499579252,2.107331137558244E-002)'
+         print *, e(dim_t/2,2)
+     ENDIF
      CALL finalize
      PRINT*, "program finished"
   ENDIF

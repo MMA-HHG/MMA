@@ -7,6 +7,7 @@ PROGRAM make_start
   IMPLICIT NONE
   integer :: st
   logical :: testingmode=.FALSE., exists_h5_refractive_index, dumlog
+  integer :: test_number = 1
   real(8) :: Intensity_entry, Intensity_focus, waist_focus, Curvature_radius_entry, focus_position
 
 
@@ -18,7 +19,10 @@ PROGRAM make_start
   ! Open FORTRAN HDF5 interface
   CALL h5open_f(error)
 
-  IF (filename == "test") THEN ! this is an option for developers to run the code with pre-defaults inputs; if driving file exists, it's superior
+  IF ( (filename == "test") .or. (filename == "test2")) THEN ! this is an option for developers to run the code with pre-defaults inputs; if driving file exists, it's superior
+    IF (filename == "test2") THEN
+      test_number = 2
+    ENDIF
     filename = "results.h5"
     INQUIRE(FILE=filename, EXIST=dumlog)
     IF (NOT(dumlog)) THEN
@@ -45,7 +49,7 @@ PROGRAM make_start
   !_______________________________!
   ! CALL preset_numerics
   IF (testingmode) THEN
-    CALL testing_values
+    CALL testing_values(test_number)
   ENDIF
 
   CALL preset_laser
@@ -213,7 +217,7 @@ PROGRAM make_start
     write(6,*) ' The code will be stopped'
     STOP
   ENDIF
-  switch_rho = 3 !!! testing PPT
+  ! switch_rho = 3 !!! testing PPT
 
   CALL save_or_replace(file_id, 'inputs/mpi_cross_section_for_method_1-2', sigmak_phys, error, units_in = '[s-1cm2K/WK]')
   CALL save_or_replace(file_id, 'inputs/angular_momentum_for_method_3_7', angular_momentum, error, units_in = '[-]')
