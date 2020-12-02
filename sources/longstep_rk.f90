@@ -178,9 +178,9 @@ CONTAINS
     USE External_ionisation_table
     IMPLICIT NONE
 
-    REAL(8) :: rho,mpa,mpa_N2
+    REAL(8) :: rho,mpa
     REAL(8) :: eti,etip1
-    REAL(8) intF,var1,var1_N2,rhosave,trapped,colfreqO2p,colfreqN2p,colfreqO2,colfreqN2
+    REAL(8) intF,var1,rhosave
 
     rhosave=rho
     SELECT CASE (switch_rho)
@@ -267,9 +267,8 @@ CONTAINS
     ! For storing in HDF5
     INTEGER(HID_T)    :: file_id       ! File identifier 
     INTEGER(HID_T)    :: group_id      ! Group identifier 
-    INTEGER(HID_T)    :: h5parameters  ! Property list identifier 
     INTEGER           :: error         ! hdferr
-    LOGICAL           :: group_status, rho_pavel_group_status  ! boolean - does the group exists?
+    LOGICAL           :: group_status  ! boolean - does the group exists?
     CHARACTER(LEN=15) :: h5_filename="results.h5" ! hdf5 file name
     
     ! Names of dsets and groups
@@ -283,16 +282,11 @@ CONTAINS
     CHARACTER(LEN=25) :: z_buff_dset_name="longstep/z_buff"
     CHARACTER(LEN=25) :: every_rhodist_z_dset_name="longstep/zgrid_analyses2"
     CHARACTER(LEN=25) :: onax_t_dset_name="longstep/Efied_onaxis"
-    CHARACTER(LEN=25) :: pavel_groupname="longstep/rho_pavel"
-    CHARACTER(LEN=35) :: rho_pavel_rhoO2max="longstep/rho_pavel/rhoO2max"
-    CHARACTER(LEN=35) :: rho_pavel_rhoN2max="longstep/rho_pavel/rhoN2max"
-    CHARACTER(LEN=35) :: rho_pavel_Tevmax="longstep/rho_pavel/Tevmax"
     
     ! Arrays needed for temporary storing of dataset content and their writing
     INTEGER(HSIZE_T), DIMENSION(1) :: new_dims, memspace_dims, offset, hyperslab_size
     REAL,DIMENSION(1,2) :: powmax_data
     REAL,ALLOCATABLE  :: onax_t_data(:,:)
-    REAL,DIMENSION(1) :: z_data
 
     ! Variables needed for linked list buffering
     REAL, ALLOCATABLE, TARGET  :: fluence_data(:)
