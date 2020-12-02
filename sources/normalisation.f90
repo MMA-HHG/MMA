@@ -834,13 +834,13 @@ CONTAINS
     n2_phys = n2_phys*pressure
     n4_phys = n4_phys*pressure
     rhont_cm3_phys = rhont_cm3_phys*pressure
-    rhont_N2_cm3_phys = rhont_N2_cm3_phys*pressure
+
     tauc_fs_phys = tauc_fs_phys/pressure
     rhoc_cm3_phys = 1.11d13/lambda0_cm_phys**2 ! critical plasma censity  cm-3
     sigma_cm2_phys =  3.535d-12*(omega*tauc_fs_phys/tp_fs_phys)/(k0_phys*n0*(1.D0+(omega*tauc_fs_phys/tp_fs_phys)**2)) !cross section for inverse bremsstrahlung  cm2
     photon_energy_au_phys = h*c*2*3.1415D0/lambda0_cm_phys/4.359d-18 ! photon energy  au
     Ui_au_phys = Ui_eV_phys/27.2116d0 ! gap potential for ionization of oxygen molecules  au
-    Ui_au_phys_N2 = Ui_N2_eV_phys/27.2116d0 ! gap potential for ionization of oxygen nitrogen molecules  au
+
     z_rayleigh_cm_phys  = 3.1415D0*w0_cm_phys**2*n0/lambda0_cm_phys  !Rayleigh lenght      cm
     KK = int(Ui_au_phys/photon_energy_au_phys)+1
     betak_phys =(KK*h*2*3.1415D0*c/(lambda0_cm_phys))*rhont_cm3_phys*sigmak_phys !coefficient of multiphoton absorption   cm2K-3/WK-1
@@ -903,13 +903,11 @@ CONTAINS
     alphah=alphah_fs_phys*tp_fs_phys !adimensionned linear recombination for holes coefficient
     rhosat=rhosat_phys*2.d0*z_rayleigh_cm_phys*k0_phys/(rhoc_cm3_phys*n0) !adimensionned saturation density for SLG2
     gamma1e=3.535d-12/(k0_phys*n0*omega)*n0*rhoc_cm3_phys/k0_phys  !factor for adimensionned coefficient for losses due to normalized conductivity
-    nuO2=(3.535d-12/(k0_phys*n0*omega)*tp_fs_phys*1.d-15/(w0_cm_phys**2*Ui_eV_phys*1.6d-19))*(Pcr_phys/(4.d0*3.1415))  !factor for adimensionned avalanche coefficient for O2
-    nuN2=(3.535d-12/(k0_phys*n0*omega)*tp_fs_phys*1.d-15/(w0_cm_phys**2*Ui_N2_eV_phys*1.6d-19))*(Pcr_phys/(4.d0*3.1415))  !factor for adimensionned avalanche coefficient for N2
+
+
     nukB=(3.535d-12/(k0_phys*n0*omega)*tp_fs_phys*1.d-15*2.D0/(w0_cm_phys**2*3.D0*1.6d-19))*(Pcr_phys/(4.d0*3.1415))  !factor for adimensionned electron heating coefficient
     nucp=7.D-6*(rhoc_cm3_phys*n0/(2.D0*z_rayleigh_cm_phys*k0_phys))*1.d-15*tp_fs_phys  !factor for adimensionned collision frequency ions
-    nucO2=2.D-7*rhont_cm3_phys*1.d-15*tp_fs_phys   !factor for adimensionned collision frequency neutrals for O2
-    nucN2=2.D-7*rhont_n2_cm3_phys*1.d-15*tp_fs_phys   !factor for adimensionned collision frequency neutrals for N2
-    rhoat_N2_inv=rhoc_cm3_phys*n0/(rhont_n2_cm3_phys*2.d0*z_rayleigh_cm_phys*k0_phys) !adimensioned inverse density of neutral N2 molekules
+
 
     density_normalisation_factor = (2.D0*z_rayleigh_cm_phys*k0_phys)/(rhoc_cm3_phys*n0)
 

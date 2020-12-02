@@ -241,7 +241,7 @@ PROGRAM make_start
   CALL save_or_replace(file_id, 'inputs/saturation_density_for_slg2', rhosat_phys, error, units_in = '[cm-3]')
 
 
-  CALL save_or_replace(file_id, 'inputs/initial_free_electron_temperature', T_init_eV_phys, error, units_in = '[eV]')
+
 
   CALL save_or_replace(file_id, 'inputs/electron_colision_time', tauc_fs_phys, error, units_in = '[fs]')
   CALL save_or_replace(file_id, 'inputs/linear_recombination_coefficient', alpha_fs_phys, error, units_in = '[fs-1]')

@@ -8,11 +8,11 @@ MODULE write_start
   INTEGER(4) i_x_max, i_z_max, i_x, i_z, angular_momentum_N2
   REAL(8) rek0,rekp,c3,c5,gamma1,gamma2,muk,beta_inv_2KK,rho0,nu,alpha,alphaquad,rhoat_inv,xdk,tdk,raman,omega,eta1,eta2
   REAL(8) beta_inv_2KKp,eti_ref,exp_ref,beta_inv_2,mukp,mu,mukpp,beta_inv_2KKpp,alpha1,alpha2,alphah,rhosat,gamma1e,nuO2,nuN2
-  REAL(8) omega_uppe,nucp,nucO2,nucN2,rhoat_N2_inv,T_init_eV_phys,nukB
+  REAL(8) omega_uppe,nucp,nukB
   REAL(8) lt,lr,proplength,outlength,delta_z,z,z_out,rfil,increase,decrease,time_limit
   REAL(8) photon_energy_au_phys,tp_fs_phys,Pcr_phys,w0_cm_phys
   REAL(8) Ui_au_phys,residue_charge,n0,rhoc_cm3_phys,rhont_cm3_phys,reduced_mass
-  REAL(8) Ui_au_phys_N2,residue_charge_N2,rhont_N2_cm3_phys
+
   REAL(8) density_normalisation_factor
   REAL(8) delta_t, tlo 
   REAL(8), ALLOCATABLE :: xx(:),zz(:),Indice_norm(:,:),real_e(:,:),imag_e(:,:)
@@ -128,12 +128,12 @@ CONTAINS
       CALL create_dset(group_id,'finished',.FALSE.)
       CALL create_dset(group_id,'omega_uppe', omega_uppe)
       CALL create_dset(group_id,'gamma1e', gamma1e)
-      CALL create_dset(group_id,'nuO2', nuO2)
 
-      CALL create_dset(group_id,'T_init_eV_phys', T_init_ev_phys)
+
+
       CALL create_dset(group_id,'nukB', nukB)
       CALL create_dset(group_id,'nucp', nucp)
-      CALL create_dset(group_id,'nucO2', nucO2)
+
 
 
       CALL create_dset(group_id,'density_normalisation_factor',density_normalisation_factor)
