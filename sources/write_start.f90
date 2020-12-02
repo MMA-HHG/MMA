@@ -7,7 +7,7 @@ MODULE write_start
   INTEGER(4) num_proc,dim_t,dim_r,KK,NN,switch_rho,switch_dKerr,absorb,rhodist,angular_momentum,switch_T
   INTEGER(4) i_x_max, i_z_max, i_x, i_z
   REAL(8) rek0,rekp,c3,c5,gamma1,gamma2,muk,beta_inv_2KK,rho0,nu,alpha,alphaquad,rhoat_inv,xdk,tdk,raman,omega,eta1,eta2
-  REAL(8) eti_ref,exp_ref,beta_inv_2,mu,alpha1,alpha2,alphah,rhosat,gamma1e
+  REAL(8) alpha1,alphah,rhosat,gamma1e
   REAL(8) omega_uppe
   REAL(8) lt,lr,proplength,outlength,delta_z,z,z_out,rfil,increase,decrease,time_limit
   REAL(8) photon_energy_au_phys,tp_fs_phys,Pcr_phys,w0_cm_phys
@@ -114,15 +114,14 @@ CONTAINS
 
 
 
-      CALL create_dset(group_id,'beta_inv_2', beta_inv_2)
-      CALL create_dset(group_id,'mu', mu)
 
 
 
-      CALL create_dset(group_id,'eti_ref', eti_ref)
-      CALL create_dset(group_id,'exp_ref', exp_ref)
+
+
+
       CALL create_dset(group_id,'alpha1',alpha1)
-      CALL create_dset(group_id,'alpha2',alpha2)
+
       CALL create_dset(group_id,'alphah',alphah)
       CALL create_dset(group_id,'rhosat',rhosat)
       CALL create_dset(group_id,'finished',.FALSE.)

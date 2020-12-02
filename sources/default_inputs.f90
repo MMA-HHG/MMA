@@ -158,18 +158,20 @@ integer         :: switch_ionisation, switch_atom
 
 
 
-    sigmakp_phys = 8.6d-27
-    rhoslg1_phys = 2.d17
-    sigma_phys = 2.d0
-    sigmacv_ref_phys = 4.35d-7
-    I_ref_phys = 42.32d12
-    exp_ref = -3.3d0
+
+
+
+
+
+
 
     sigmakpp_phys = 1.3d-12
     rhosat_phys = 2.d17
 
 
     tauc_fs_phys = 190.d0 ! THIS IS APPLIED
+
+
     alpha_fs_phys = 0.d0
     alpha1_fs_phys = 3.3d-3
     alphah_fs_phys = 1.d-3

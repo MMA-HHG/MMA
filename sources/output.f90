@@ -373,14 +373,12 @@ CONTAINS
 
        CALL create_dset(field_group_id,'angmom',angular_momentum)
 
-       CALL create_dset(field_group_id,'beta_inv_2',beta_inv_2)
-       CALL create_dset(field_group_id,'mu',mu)
 
 
-       CALL create_dset(field_group_id,'eti_ref',eti_ref)
-       CALL create_dset(field_group_id,'exp_ref',exp_ref)
+
+
        CALL create_dset(field_group_id,'alpha1',alpha1)
-       CALL create_dset(field_group_id,'alpha2',alpha2)
+
        CALL create_dset(field_group_id,'alphah',alphah)
        CALL create_dset(field_group_id,'rhosat',rhosat)
        CALL create_dset(field_group_id,'finished',finished)

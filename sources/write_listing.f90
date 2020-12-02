@@ -141,9 +141,9 @@ CONTAINS
     WRITE(100,'(a,t50,es12.4,x,a)') 'rec. coefficient (linear) for MPI e',alpha_fs_phys,'fs-1'
     IF (switch_rho.EQ.6) THEN 
         WRITE(100,'(a,t50,es12.4,x,a)') 'rec. coefficient (linear) for SLG1 e',alpha1_fs_phys,'fs-1'
-        WRITE(100,'(a,t50,es12.4,x,a)') 'rec. coefficient for SLG2 e',sigmacv_ref_phys,'cm3fs-1'
-        WRITE(100,'(a,t50,es12.4,x,a)') 'reference intensity',I_ref_phys,'Wcm-2'
-        WRITE(100,'(a,t50,es12.4)') 'reference exponent',exp_ref
+
+
+
         WRITE(100,'(a,t50,es12.4,x,a)') 'rec. coefficient (linear) for holes',alphah_fs_phys,'fs-1'
     ENDIF
     WRITE(100,'(a,t50,es12.4,x,a)') 'recombination coefficent (quadratic)',alphaquad_fscm3_phys,'fs-1cm3'

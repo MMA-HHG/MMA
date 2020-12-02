@@ -2,7 +2,7 @@ MODULE normalisation
   USE calc_start
 
   REAL(8) n2_phys,n4_phys,lambda0_cm_phys,Ui_eV_phys,proplength_m_phys,outlength_m_phys,delta_z_mm_phys,sigmak_phys,sigman_phys
-  REAL(8) sigmakp_phys,rhoslg1_phys,sigma_phys,sigmacv_ref_phys,I_ref_phys,sigmakpp_phys,beta_phys
+  REAL(8) sigmakpp_phys
   REAL(8) sigma_cm2_phys,alpha_fs_phys,alphaquad_fscm3_phys,tdk_fs_phys,raman_phys,rfil_mm_phys,pressure,tauc_fs_phys
   REAL(8) alpha1_fs_phys,alphah_fs_phys,rhosat_phys,Ui_N2_eV_phys,rho0_phys
   REAL(8) delta_k_p_fs_per_cm_phys,k_p_fs_per_cm_phys,k_pp_fs2_per_cm_phys,k_ppp_fs3_per_cm_phys,k_pppp_fs4_per_cm_phys
@@ -887,17 +887,15 @@ CONTAINS
     endif
     increase=decrease/2.5D0               !phase threshold for increasing delta_z, should be <= increase/2.5
 
-    eti_ref=I_ref_phys*(4*3.1415*w0_cm_phys**2)/Pcr_phys  !adimensionned reference intensity
-    beta_inv_2=k0_phys**2*(sigma_phys)*1.d-15*tp_fs_phys*n0/(2*z_rayleigh_cm_phys*k0_phys)*(Pcr_phys/(4.d0*3.1415))  !adimensionned SLG2 coefficient
+
     
 
-    beta_phys = (h*2*3.1415D0*c/(lambda0_cm_phys))*n0*rhoc_cm3_phys/(2*z_rayleigh_cm_phys*k0_phys)*sigma_phys !coefficient of SLG2 absorption   cm-1
-    mu=2.D0*z_rayleigh_cm_phys*beta_phys  !adimensionned coefficient for MPA effect SLG2 absorption
+
     
 
 
     alpha1=alpha1_fs_phys*tp_fs_phys !adimensionned linear recombination for SLG1 electrons coefficient
-    alpha2=sigmacv_ref_phys*n0*rhoc_cm3_phys/(2*z_rayleigh_cm_phys*k0_phys)*tp_fs_phys !adimensionned recombinsation coefficient for SLG2 electrons
+    
     alphah=alphah_fs_phys*tp_fs_phys !adimensionned linear recombination for holes coefficient
     rhosat=rhosat_phys*2.d0*z_rayleigh_cm_phys*k0_phys/(rhoc_cm3_phys*n0) !adimensionned saturation density for SLG2
     gamma1e=3.535d-12/(k0_phys*n0*omega)*n0*rhoc_cm3_phys/k0_phys  !factor for adimensionned coefficient for losses due to normalized conductivity

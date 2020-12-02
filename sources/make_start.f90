@@ -230,12 +230,12 @@ PROGRAM make_start
   CALL save_or_replace(file_id, 'inputs/effective_residue_charge_for_method_3-4_7', residue_charge, error, units_in = '[-]')
 
 
-  CALL save_or_replace(file_id, 'inputs/cross_section_to_ionize_from_slg1', sigmakp_phys, error, units_in = '[s-1cm2Kp/WKp]')
-  CALL save_or_replace(file_id, 'inputs/density_of_defects_slg1', rhoslg1_phys, error, units_in = '[cm-3]')
-  CALL save_or_replace(file_id, 'inputs/cross_section_to_ionize_from_slg2', sigma_phys, error, units_in = '[s-1cm2/W]')
-  CALL save_or_replace(file_id, 'inputs/sigmacvref_for_i_ref', sigmacv_ref_phys, error, units_in = '[cm2/s]')
-  CALL save_or_replace(file_id, 'inputs/reference_intensity_i_ref', I_ref_phys, error, units_in = '[W/cm^2]')
-  CALL save_or_replace(file_id, 'inputs/reference_exponent_exp_ref', exp_ref, error, units_in = '[-]')
+
+
+
+
+
+
 
   CALL save_or_replace(file_id, 'inputs/cross_section_to_populate_slg2', sigmakpp_phys, error, units_in = '[s-1cm2Kpp/WKpp]')
   CALL save_or_replace(file_id, 'inputs/saturation_density_for_slg2', rhosat_phys, error, units_in = '[cm-3]')

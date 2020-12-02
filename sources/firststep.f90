@@ -195,13 +195,11 @@ CONTAINS
 
     CALL read_dset(group_id,'angmom',angular_momentum)
 
-    CALL read_dset(group_id, 'beta_inv_2',beta_inv_2)
-    CALL read_dset(group_id, 'mu',mu)
 
-    CALL read_dset(group_id, 'eti_ref',eti_ref)
-    CALL read_dset(group_id, 'exp_ref',exp_ref)
+
+
     CALL read_dset(group_id, 'alpha1',alpha1)
-    CALL read_dset(group_id, 'alpha2',alpha2)
+
     CALL read_dset(group_id, 'alphah',alphah)
     CALL read_dset(group_id, 'rhosat',rhosat)
     CALL read_dset(group_id, 'finished',finished)
