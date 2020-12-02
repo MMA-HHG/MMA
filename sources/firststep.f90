@@ -211,12 +211,12 @@ CONTAINS
     CALL read_dset(group_id, 'finished',finished)
     CALL read_dset(group_id, 'omega_uppe',omega_uppe)
     CALL read_dset(group_id, 'gamma1e',gamma1e)
-    CALL read_dset(group_id, 'nuO2',nuO2)
+
 
     CALL read_dset(group_id, 'T_init_eV_phys',T_init_eV_phys)
     CALL read_dset(group_id, 'nukB',nukB)
     CALL read_dset(group_id, 'nucp',nucp)
-    CALL read_dset(group_id, 'nucO2',nucO2)
+
 
     ! Prepare the fourier transforms
     CALL fft_init
@@ -410,7 +410,7 @@ CONTAINS
 
     i_x_old=2
     i_z_old=2
-    ALLOCATE(peakmax(rhodist),rhomax(rhodist),rhoabs_max(rhodist),energy(rhodist),z_buff(rhodist),energy_fil(rhodist),rhoO2max(rhodist),rhoN2max(rhodist),Tevmax(rhodist))
+    ALLOCATE(peakmax(rhodist),rhomax(rhodist),rhoabs_max(rhodist),energy(rhodist),z_buff(rhodist),energy_fil(rhodist))
     ALLOCATE(rho(dim_r_start(num_proc):dim_r_end(num_proc)),fluence(dim_r_start(num_proc):dim_r_end(num_proc)))
     ALLOCATE(losses_ionization(dim_r_start(num_proc):dim_r_end(num_proc)),losses_plasma(dim_r_start(num_proc):dim_r_end(num_proc)))
     ALLOCATE(rhoabs(dim_r_start(num_proc):dim_r_end(num_proc)))

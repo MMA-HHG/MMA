@@ -390,12 +390,12 @@ CONTAINS
        CALL create_dset(field_group_id,'finished',finished)
        CALL create_dset(field_group_id,'omega_uppe',omega_uppe)
        CALL create_dset(field_group_id,'gamma1e',gamma1e)
-       CALL create_dset(field_group_id,'nuO2',nuO2)
 
-       CALL create_dset(field_group_id,'T_init_eV_phys',T_init_eV_phys)
+
+
        CALL create_dset(field_group_id,'nukB',nukB)
        CALL create_dset(field_group_id,'nucp',nucp)
-       CALL create_dset(field_group_id,'nucO2',nucO2)
+
 
 
        efield_factor = SQRT(critical_power*1.D9*3.D8*4.D0*3.1415D-7/(4.D0*3.1415D0*beam_waist**2*1.D-4*2.D0*n0_indice))*2.D0 ! normalization factor electric field V/m

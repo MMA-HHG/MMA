@@ -524,9 +524,7 @@ CONTAINS
     CALL MPI_REDUCE(rhoabs_max_part, rhoabs_max(count),1,MPI_DOUBLE_PRECISION,MPI_MAX,0,MPI_COMM_WORLD,ierr) 
     CALL MPI_REDUCE(energy_part,energy(count),1,MPI_DOUBLE_PRECISION,MPI_SUM,0,MPI_COMM_WORLD,ierr)
     CALL MPI_REDUCE(energy_fil_part,energy_fil(count),1,MPI_DOUBLE_PRECISION,MPI_SUM,0,MPI_COMM_WORLD,ierr)
-    CALL MPI_REDUCE(rhoO2max_part,rhoO2max(count),1,MPI_DOUBLE_PRECISION,MPI_MAX,0,MPI_COMM_WORLD,ierr)
-    CALL MPI_REDUCE(rhoN2max_part,rhoN2max(count),1,MPI_DOUBLE_PRECISION,MPI_MAX,0,MPI_COMM_WORLD,ierr)
-    CALL MPI_REDUCE(Tevmax_part,Tevmax(count),1,MPI_DOUBLE_PRECISION,MPI_MAX,0,MPI_COMM_WORLD,ierr)
+
     IF(my_rank.EQ.0) z_buff(count)=z
     ! If any writting is going to happen, allocate arrays with flag target for addition to linked list buffers
     IF (count.GE.rhodist .OR. z.LE.delta_z) THEN
