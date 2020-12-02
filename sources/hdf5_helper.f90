@@ -7,6 +7,7 @@ MODULE hdf5_helper_parallel
   ! Create an interface for reading a dset. It includes most of the reading subroutines, the ones that are uniquely identifiable by their parameters.
 
   IMPLICIT NONE
+  CONTAINS
 
       ! This subroutine creates two dimensional real dataset for parallel writting
     SUBROUTINE create_2D_array_real_dset_p(file_id, name, var, data_dims, offset, hyperslab_size)
