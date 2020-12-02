@@ -89,10 +89,9 @@ CONTAINS
     USE pre_ionised
     IMPLICIT NONE
 
-    INTEGER(4)  j,k,help,i_x,i_z,k1
+    INTEGER(4)  j,k,help,k1
     REAL(8) absorb_factor
-    LOGICAL ext
-    CHARACTER*10 filename,id
+    CHARACTER*10 filename
     CHARACTER(LEN=10), PARAMETER :: hdf5_input = "results.h5"  ! File name for the HDF5 input file
     CHARACTER(LEN = *), PARAMETER :: output_groupname = "pre-processed" 
     CHARACTER(LEN = *), PARAMETER :: input_groupname = "inputs" 
