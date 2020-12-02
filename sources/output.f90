@@ -408,7 +408,7 @@ CONTAINS
        DO k1=1, dim_t
          DO k2=1, dim_r/num_proc
             real_e(k1,k2) = REAL(REAL((efield_factor*efield_osc(k2)*e(k1,k2+r_offset))),4)
-            imag_e(k1,k2) = REAL(IMAG((efield_factor*efield_osc(k2)*e(k1,k2+r_offset))),4)
+            imag_e(k1,k2) = REAL(AIMAG((efield_factor*efield_osc(k2)*e(k1,k2+r_offset))),4)
          ENDDO
        ENDDO
        dims = (/int(dim_t,HSIZE_T), int(dim_r,HSIZE_T)/)

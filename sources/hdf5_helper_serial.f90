@@ -456,7 +456,7 @@ MODULE hdf5_helper_serial
       ! separate the real and imaginary part of each complex number and store them into temporary variable
       DO i = 1, dims_y
         res(1,i) = real(var(i))
-        res(2,i) = imag(var(i))
+        res(2,i) = aimag(var(i))
       END DO
       ! create dataspace of rank 2 and size dims
       CALL h5screate_simple_f(rank, data_dims, dataspace_id, error)
@@ -487,7 +487,7 @@ MODULE hdf5_helper_serial
       DO i = 1, dims_y
         DO j = 1, dims_x
           res(i,j,1) = real(var(i,j))
-          res(i,j,2) = imag(var(i,j))
+          res(i,j,2) = aimag(var(i,j))
         END DO
       END DO
       ! create dataspace of rank 3 and size data_dims
