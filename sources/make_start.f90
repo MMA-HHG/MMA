@@ -129,20 +129,26 @@ PROGRAM make_start
   !pressure = 0.5d0
   CALL save_or_replace(file_id, 'inputs/type_of_dispersion_law', switch_dispersion, error)
   
-  if(switch_dispersion.GT.9) then
+  IF(switch_dispersion.GT.9) then
     write(6,*) 'You have selected a bad value for the dispersion law'
     write(6,*) ' You have to choose in integer between 1 or 7'
     write(6,*) ' The code will be stopped'
     STOP
   ENDIF
 
-  CALL save_or_replace(file_id, 'inputs/filename_for_method_4', dispfilename, error)
-  CALL save_or_replace(file_id, 'inputs/linear_refractive_index', n0, error)
-  CALL save_or_replace(file_id, 'inputs/inverse_gv_coefficient-n0_c', delta_k_p_fs_per_cm_phys, error)
-  CALL save_or_replace(file_id, 'inputs/gvd_coefficient', k_pp_fs2_per_cm_phys, error)
-  CALL save_or_replace(file_id, 'inputs/third_order_dispersion_coefficient', k_ppp_fs3_per_cm_phys, error)
-  CALL save_or_replace(file_id, 'inputs/fourth_order_dispersion_coefficient', k_pppp_fs4_per_cm_phys, error)
-  CALL save_or_replace(file_id, 'inputs/fifth_order_dispersion_coefficient', k_ppppp_fs5_per_cm_phys, error)
+  SELECT CASE(switch_dispersion)
+  CASE(1) ! Taylor
+    CALL save_or_replace(file_id, 'inputs/linear_refractive_index', n0, error)
+    CALL save_or_replace(file_id, 'inputs/inverse_gv_coefficient-n0_c', delta_k_p_fs_per_cm_phys, error)
+    CALL save_or_replace(file_id, 'inputs/gvd_coefficient', k_pp_fs2_per_cm_phys, error)
+    CALL save_or_replace(file_id, 'inputs/third_order_dispersion_coefficient', k_ppp_fs3_per_cm_phys, error)
+    CALL save_or_replace(file_id, 'inputs/fourth_order_dispersion_coefficient', k_pppp_fs4_per_cm_phys, error)
+    CALL save_or_replace(file_id, 'inputs/fifth_order_dispersion_coefficient', k_ppppp_fs5_per_cm_phys, error)
+  CASE(4) ! from file
+    CALL save_or_replace(file_id, 'inputs/filename_for_method_4', dispfilename, error)
+  END SELECT
+  
+
 
 
   CALL save_or_replace(file_id, 'inputs/nonlinear_refractive_index_kerr_coefficient', n2_phys, error)

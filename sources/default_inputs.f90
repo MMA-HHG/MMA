@@ -139,18 +139,19 @@ integer         :: switch_ionisation, switch_atom
     dispfilename = 'waterchi.tab'
 
     ! The following values are applied only for Taylorised dispersion law
-    n0 = 1.45d0
-    delta_k_p_fs_per_cm_phys = 0.d0
-    k_pp_fs2_per_cm_phys = -279.d0
-    k_ppp_fs3_per_cm_phys = 1510.d0
-    k_pppp_fs4_per_cm_phys = -4930.d0
-    k_ppppp_fs5_per_cm_phys = 23245.d0
+    !n0 = 1.45d0
+    !delta_k_p_fs_per_cm_phys = 0.d0
+    !k_pp_fs2_per_cm_phys = -279.d0
+    !k_ppp_fs3_per_cm_phys = 1510.d0
+    !k_pppp_fs4_per_cm_phys = -4930.d0
+    !k_ppppp_fs5_per_cm_phys = 23245.d0
 
     ! Dealyed Kerr + chi5
     switch_dKerr = 1
     xdk = 0.5d0
     tdk_fs_phys = 77.d0
     raman_phys = 1.6d-2
+
     n4_phys = 0.d0
 
     ! variables for only some ionisation models
