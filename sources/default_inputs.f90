@@ -166,8 +166,8 @@ integer         :: switch_ionisation, switch_atom
 
 
 
-    sigmakpp_phys = 1.3d-12
-    rhosat_phys = 2.d17
+ 
+
 
 
     tauc_fs_phys = 190.d0 ! THIS IS APPLIED

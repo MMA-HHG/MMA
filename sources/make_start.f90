@@ -239,6 +239,7 @@ PROGRAM make_start
   CALL save_or_replace(file_id, 'inputs/ionization_poential_of_neutral_molecules', Ui_eV_phys, error, units_in = '[eV]')
   CALL save_or_replace(file_id, 'inputs/initial_electron_density', rho0_phys, error, units_in = '[1/cm3]')
   CALL save_or_replace(file_id, 'inputs/type_of_ionization_method', switch_rho, error, units_in = '[-]')
+
   if(switch_rho.GT.8) then 
     write(6,*) 'You have selected a bad value for the type ionization method'
     write(6,*) ' You have to choose in integer between 1 and 8'
@@ -259,8 +260,7 @@ PROGRAM make_start
 
 
 
-  CALL save_or_replace(file_id, 'inputs/cross_section_to_populate_slg2', sigmakpp_phys, error, units_in = '[s-1cm2Kpp/WKpp]')
-  CALL save_or_replace(file_id, 'inputs/saturation_density_for_slg2', rhosat_phys, error, units_in = '[cm-3]')
+
 
 
 

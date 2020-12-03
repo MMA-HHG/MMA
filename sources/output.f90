@@ -380,7 +380,7 @@ CONTAINS
        CALL create_dset(field_group_id,'alpha1',alpha1)
 
        CALL create_dset(field_group_id,'alphah',alphah)
-       CALL create_dset(field_group_id,'rhosat',rhosat)
+
        CALL create_dset(field_group_id,'finished',finished)
        CALL create_dset(field_group_id,'omega_uppe',omega_uppe)
        CALL create_dset(field_group_id,'gamma1e',gamma1e)

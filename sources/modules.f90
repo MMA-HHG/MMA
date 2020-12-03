@@ -35,7 +35,7 @@ MODULE parameters
   INTEGER(4) :: NN
   REAL(8) :: rho0
   REAL(8) :: nu,alpha,alphaquad,rhoat_inv
-  REAL(8) :: alpha1,alphah,rhosat
+  REAL(8) :: alpha1,alphah
   REAL(8)    :: xdk,tdk,raman, expt1,expt2,expt3,expt4,expt1p,expt2p,expt3p,expt4p,c3i,c3d
   INTEGER(4) :: switch_dKerr
   REAL(8)    :: ions_Kerr_ratio

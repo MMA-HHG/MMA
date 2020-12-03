@@ -201,7 +201,7 @@ CONTAINS
     CALL read_dset(group_id, 'alpha1',alpha1)
 
     CALL read_dset(group_id, 'alphah',alphah)
-    CALL read_dset(group_id, 'rhosat',rhosat)
+ 
     CALL read_dset(group_id, 'finished',finished)
     CALL read_dset(group_id, 'omega_uppe',omega_uppe)
     CALL read_dset(group_id, 'gamma1e',gamma1e)

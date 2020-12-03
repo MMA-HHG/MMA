@@ -2,9 +2,8 @@ MODULE normalisation
   USE calc_start
 
   REAL(8) n2_phys,n4_phys,lambda0_cm_phys,Ui_eV_phys,proplength_m_phys,outlength_m_phys,delta_z_mm_phys,sigmak_phys,sigman_phys
-  REAL(8) sigmakpp_phys
   REAL(8) sigma_cm2_phys,alpha_fs_phys,alphaquad_fscm3_phys,tdk_fs_phys,raman_phys,rfil_mm_phys,pressure,tauc_fs_phys
-  REAL(8) alpha1_fs_phys,alphah_fs_phys,rhosat_phys,Ui_N2_eV_phys,rho0_phys
+  REAL(8) alpha1_fs_phys,alphah_fs_phys,rho0_phys
   REAL(8) delta_k_p_fs_per_cm_phys,k_p_fs_per_cm_phys,k_pp_fs2_per_cm_phys,k_ppp_fs3_per_cm_phys,k_pppp_fs4_per_cm_phys
   REAL(8) k_ppppp_fs5_per_cm_phys,rhoabs_cm3_phys,f_cm_phys,betak_phys
   REAL(8) z_rayleigh_cm_phys,k0_phys
@@ -897,7 +896,7 @@ CONTAINS
     alpha1=alpha1_fs_phys*tp_fs_phys !adimensionned linear recombination for SLG1 electrons coefficient
     
     alphah=alphah_fs_phys*tp_fs_phys !adimensionned linear recombination for holes coefficient
-    rhosat=rhosat_phys*2.d0*z_rayleigh_cm_phys*k0_phys/(rhoc_cm3_phys*n0) !adimensionned saturation density for SLG2
+
     gamma1e=3.535d-12/(k0_phys*n0*omega)*n0*rhoc_cm3_phys/k0_phys  !factor for adimensionned coefficient for losses due to normalized conductivity
 
 
