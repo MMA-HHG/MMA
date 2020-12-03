@@ -13,7 +13,9 @@ switch dispersion is applied only in the pre-processor to create the table
 
 
 ## Development
-Transformation of $1/e$ to FWHM has to checked. 
+Transformation of $1/e$ to FWHM has to be checked. 
+
+Should we keep all inputs in one hdf5-group, or use further hierarchisation?
 
 I commented most of the code. I found that the less readable are firstep and longstep_rk. It would be nice to rewiritte using helping modules or at least organise.
 
