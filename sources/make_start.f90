@@ -233,24 +233,40 @@ PROGRAM make_start
   ENDIF
 
 
+
   CALL save_or_replace(file_id, 'inputs/effective_density_of_neutral_molecules', rhont_cm3_phys, error, units_in = '[1/cm3]')
   !CALL read_dset(file_id, 'inputs/effective_density_of_neutral_molecules', rhont_cm3_phys)
   !rhont_cm3_phys = 0.5
-  CALL save_or_replace(file_id, 'inputs/ionization_poential_of_neutral_molecules', Ui_eV_phys, error, units_in = '[eV]')
-  CALL save_or_replace(file_id, 'inputs/initial_electron_density', rho0_phys, error, units_in = '[1/cm3]')
+
+
   CALL save_or_replace(file_id, 'inputs/type_of_ionization_method', switch_rho, error, units_in = '[-]')
 
-  if(switch_rho.GT.8) then 
+  IF (NOT(ANY(available_ionisations == switch_rho))) THEN
     write(6,*) 'You have selected a bad value for the type ionization method'
     write(6,*) ' You have to choose in integer between 1 and 8'
     write(6,*) ' The code will be stopped'
     STOP
   ENDIF
+
+  IF (ANY( (/1, 2/) ==  switch_rho)) THEN
+    CALL save_or_replace(file_id, 'inputs/mpi_cross_section_for_method_1-2', sigmak_phys, error, units_in = '[s-1cm2K/WK]')
+  ELSEIF (3 == switch_rho) THEN
+    CALL save_or_replace(file_id, 'inputs/ionization_poential_of_neutral_molecules', Ui_eV_phys, error, units_in = '[eV]')
+    CALL save_or_replace(file_id, 'inputs/angular_momentum_for_method_3_7', angular_momentum, error, units_in = '[-]')
+    CALL save_or_replace(file_id, 'inputs/effective_residue_charge_for_method_3-4_7', residue_charge, error, units_in = '[-]')
+  ENDIF
+
+
+  
+  CALL save_or_replace(file_id, 'inputs/initial_electron_density', rho0_phys, error, units_in = '[1/cm3]')
+  
+
+
   ! switch_rho = 3 !!! testing PPT
 
-  CALL save_or_replace(file_id, 'inputs/mpi_cross_section_for_method_1-2', sigmak_phys, error, units_in = '[s-1cm2K/WK]')
-  CALL save_or_replace(file_id, 'inputs/angular_momentum_for_method_3_7', angular_momentum, error, units_in = '[-]')
-  CALL save_or_replace(file_id, 'inputs/effective_residue_charge_for_method_3-4_7', residue_charge, error, units_in = '[-]')
+  
+  
+  
 
 
 
