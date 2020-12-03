@@ -29,13 +29,12 @@ END MODULE longstep_vars
 
 MODULE parameters
   REAL(8) :: rek0,rekp,c3,c5,gamma1,gamma2,muk,beta_inv_2KK,omega, eta1, eta2, omega_uppe
-  REAL(8) :: gamma1e
   COMPLEX(8), ALLOCATABLE :: komega(:),komega_red(:)
   INTEGER(4) :: KK
   INTEGER(4) :: NN
   REAL(8) :: rho0
   REAL(8) :: nu,alpha,alphaquad,rhoat_inv
-  REAL(8) :: alpha1,alphah
+
   REAL(8)    :: xdk,tdk,raman, expt1,expt2,expt3,expt4,expt1p,expt2p,expt3p,expt4p,c3i,c3d
   INTEGER(4) :: switch_dKerr
   REAL(8)    :: ions_Kerr_ratio

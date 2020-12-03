@@ -10,7 +10,8 @@ PROGRAM make_start
   integer :: test_number = 1
   real(8) :: Intensity_entry, Intensity_focus, waist_focus, Curvature_radius_entry, focus_position
 
-  integer, parameter :: available_dispersions(6) = (/1, 3, 4, 6, 7, 9/), available_ionisations(4) = (/1, 2, 3, 8/)
+  integer, parameter :: available_dispersions(6) = (/1, 3, 4, 6, 7, 9/), available_ionisations(4) = (/1, 2, 3, 8/), &
+                        available_beams(2) = (/1, 2/)
 
 
   PRINT *,"Pre-processor started"
@@ -91,7 +92,8 @@ PROGRAM make_start
       write(6,*) ' You have to choose between 1, 2 or 3'
       write(6,*) ' The code will be stopped'
       STOP
-  ENDIF                                     
+  ENDIF
+                                  
   
   CALL save_or_replace(file_id, 'inputs/laser_wavelength', lambda0_cm_phys, error)
   ! CALL save_or_replace(file_id, 'inputs/beamwaist', w0_cm_phys, error)
@@ -110,18 +112,26 @@ PROGRAM make_start
   ! CALL save_or_replace(file_id, 'inputs/ratio_pin_pcr', numcrit, error)
   ! This will be recomputed once n2 is known
   !numcrit = 1.d0
+
+
+  ! BEAMS
   CALL save_or_replace(file_id, 'inputs/input', switch_start, error)
 
-  if(switch_start.GT.4) then
+  IF (NOT(ANY(available_beams == switch_start))) THEN
     write(6,*) 'You have selected a bad value for the type of input beamshape'
-    write(6,*) ' You have to choose between 1 or 4'
+    write(6,*) ' You have to choose between 1 and 2'
+    write(6,*) ' Continuation not implemented yet'
     write(6,*) ' The code will be stopped'
     STOP
-  ENDIF
+  ENDIF   
 
-  CALL save_or_replace(file_id, 'inputs/filename_for_method_2', inputfilename_t, error) 
-  CALL save_or_replace(file_id, 'inputs/filename_for_method_3', inputfilename_c, error)
-  CALL save_or_replace(file_id, 'inputs/amplituderatio_for_method_3', restartamp, error)
+  IF (2 == switch_start) THEN
+    CALL save_or_replace(file_id, 'inputs/filename_for_method_2', inputfilename_t, error) 
+  ELSEIF (3 == switch_start) THEN
+    ! CALL save_or_replace(file_id, 'inputs/filename_for_method_3', inputfilename_c, error)
+    CALL save_or_replace(file_id, 'inputs/amplituderatio_for_method_3', restartamp, error)
+  ENDIF  
+
   CALL save_or_replace(file_id, 'inputs/spatial_noise_on_the_input_shape', noise_s, error)
   CALL save_or_replace(file_id, 'inputs/temporal_noise_on_the_input_shape', noise_t, error)
   CALL save_or_replace(file_id, 'inputs/noise_on_the_input_shape', noise, error)
@@ -131,6 +141,8 @@ PROGRAM make_start
   
   CALL save_or_replace(file_id, 'inputs/pressure_in_bar', pressure, error)
   !pressure = 0.5d0
+
+  ! DISPERSION
   CALL save_or_replace(file_id, 'inputs/type_of_dispersion_law', switch_dispersion, error)
   
   IF (NOT(ANY(available_dispersions == switch_dispersion))) THEN
@@ -154,10 +166,12 @@ PROGRAM make_start
   
 
 
-
+  ! Kerr
   CALL save_or_replace(file_id, 'inputs/nonlinear_refractive_index_kerr_coefficient', n2_phys, error)
+  CALL save_or_replace(file_id, 'inputs/chi5_coefficient', n4_phys, error)
 
 
+  ! delayed Kerr
   CALL save_or_replace(file_id, 'inputs/type_of_delayed_kerr_response', switch_dKerr, error)
 
   IF (switch_dKerr.GT.3) THEN
@@ -177,7 +191,7 @@ PROGRAM make_start
 
 
   
-  CALL save_or_replace(file_id, 'inputs/chi5_coefficient', n4_phys, error)
+  
 
 
 
@@ -239,6 +253,7 @@ PROGRAM make_start
   !rhont_cm3_phys = 0.5
 
 
+  ! IONISATION
   CALL save_or_replace(file_id, 'inputs/type_of_ionization_method', switch_rho, error, units_in = '[-]')
 
   IF (NOT(ANY(available_ionisations == switch_rho))) THEN
@@ -283,8 +298,9 @@ PROGRAM make_start
 
   CALL save_or_replace(file_id, 'inputs/electron_colision_time', tauc_fs_phys, error, units_in = '[fs]')
   CALL save_or_replace(file_id, 'inputs/linear_recombination_coefficient', alpha_fs_phys, error, units_in = '[fs-1]')
-  CALL save_or_replace(file_id, 'inputs/linear_recombination_coefficient_(6:_slg1_elec.)', alpha1_fs_phys, error, units_in = '[fs-1]')
-  CALL save_or_replace(file_id, 'inputs/linear_recombination_coefficient_(6:_holes)', alphah_fs_phys, error, units_in = '[fs-1]')
+
+
+
   CALL save_or_replace(file_id, 'inputs/quadratic_recombination_(gasses)', alphaquad_fscm3_phys, error, units_in = '[fs-1cm3]')
 
   CALL save_or_replace(file_id, 'inputs/number_of_photons_involved_in_the_n-absorption', NN, error, units_in = '[-]')

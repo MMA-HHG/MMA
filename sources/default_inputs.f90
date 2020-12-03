@@ -174,8 +174,8 @@ integer         :: switch_ionisation, switch_atom
 
 
     alpha_fs_phys = 0.d0
-    alpha1_fs_phys = 3.3d-3
-    alphah_fs_phys = 1.d-3
+
+
     alphaquad_fscm3_phys = 1.d-3
 
     NN = 2
