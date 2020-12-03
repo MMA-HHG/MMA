@@ -148,9 +148,9 @@ integer         :: switch_ionisation, switch_atom
 
     ! Dealyed Kerr + chi5
     switch_dKerr = 1
-    xdk = 0.5d0
-    tdk_fs_phys = 77.d0
-    raman_phys = 1.6d-2
+    !xdk = 0.5d0
+    !tdk_fs_phys = 77.d0
+    !raman_phys = 1.6d-2
 
     n4_phys = 0.d0
 

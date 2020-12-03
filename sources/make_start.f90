@@ -10,6 +10,8 @@ PROGRAM make_start
   integer :: test_number = 1
   real(8) :: Intensity_entry, Intensity_focus, waist_focus, Curvature_radius_entry, focus_position
 
+  integer, parameter :: available_dispersions(6) = (/1, 3, 4, 6, 7, 9/), available_ionisations(4) = (/1, 2, 3, 8/)
+
 
   PRINT *,"Pre-processor started"
   PRINT*, 'Specify name of parameterfile (HDF5 format)' 
@@ -129,9 +131,9 @@ PROGRAM make_start
   !pressure = 0.5d0
   CALL save_or_replace(file_id, 'inputs/type_of_dispersion_law', switch_dispersion, error)
   
-  IF(switch_dispersion.GT.9) then
+  IF (NOT(ANY(available_dispersions == switch_dispersion))) THEN
     write(6,*) 'You have selected a bad value for the dispersion law'
-    write(6,*) ' You have to choose in integer between 1 or 7'
+    !write(6,*) ' You have to choose in integer between 1 or 7'
     write(6,*) ' The code will be stopped'
     STOP
   ENDIF
@@ -152,19 +154,30 @@ PROGRAM make_start
 
 
   CALL save_or_replace(file_id, 'inputs/nonlinear_refractive_index_kerr_coefficient', n2_phys, error)
+
+
   CALL save_or_replace(file_id, 'inputs/type_of_delayed_kerr_response', switch_dKerr, error)
 
-  if(switch_dKerr.GT.3) then
+  IF (switch_dKerr.GT.3) THEN
     write(6,*) 'You have selected a bad value for the type of Delayed Kerr response'
     write(6,*) ' You have to choose between 1, 2 or 3'
     write(6,*) ' The code will be stopped'
     STOP
   ENDIF
 
-  CALL save_or_replace(file_id, 'inputs/ratio_of_delayed_kerr_xdk', xdk, error)
-  CALL save_or_replace(file_id, 'inputs/time_of_delayed_kerr_tdk', tdk_fs_phys, error)
-  CALL save_or_replace(file_id, 'inputs/frequency_in_delayed_kerr_wr', raman_phys, error)
+  IF (ANY( (/2, 3/) ==  switch_dKerr )) THEN
+    CALL save_or_replace(file_id, 'inputs/ratio_of_delayed_kerr_xdk', xdk, error)
+    CALL save_or_replace(file_id, 'inputs/time_of_delayed_kerr_tdk', tdk_fs_phys, error)
+    IF (3==switch_dKerr) THEN
+      CALL save_or_replace(file_id, 'inputs/frequency_in_delayed_kerr_wr', raman_phys, error)
+    ENDIF
+  ENDIF
+
+
+  
   CALL save_or_replace(file_id, 'inputs/chi5_coefficient', n4_phys, error)
+
+
 
   ! here we know n2 needed for the Pin/Pcr
   CALL h5lexists_f(file_id, 'inputs/beamwaist', dumlog, error)
