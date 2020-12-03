@@ -115,7 +115,7 @@ PROGRAM make_start
 
 
   ! BEAMS
-  CALL save_or_replace(file_id, 'inputs/input', switch_start, error)
+  CALL save_or_replace(file_id, 'inputs/type_of_input_beam', switch_start, error)
 
   IF (NOT(ANY(available_beams == switch_start))) THEN
     write(6,*) 'You have selected a bad value for the type of input beamshape'
