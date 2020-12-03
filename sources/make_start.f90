@@ -48,6 +48,8 @@ PROGRAM make_start
   ! Open the file
   CALL h5fopen_f (filename, H5F_ACC_RDWR_F, file_id, error)
 
+  CALL h5gcreate_f(file_id, 'inputs/calculated', group_id, error)
+
   !_______________________________!
   ! CALL preset_numerics
   IF (testingmode) THEN
@@ -98,11 +100,11 @@ PROGRAM make_start
   CALL h5lexists_f(file_id, 'inputs/pulse_duration_in_1_e', dumlog, error)
   IF (dumlog) THEN
     CALL read_dset(file_id, 'inputs/pulse_duration_in_1_e', tp_fs_phys)
-    CALL save_or_replace(file_id, 'inputs/pulse_duration_in_FWHM', e_inv2FWHM(tp_fs_phys), error, units_in = '[fs]')
+    CALL save_or_replace(group_id, 'pulse_duration_in_FWHM', e_inv2FWHM(tp_fs_phys), error, units_in = '[fs]')
   ELSE
     CALL read_dset(file_id, 'inputs/pulse_duration_in_FWHM', tp_fs_phys)
     tp_fs_phys = FWHM2e_inv(tp_fs_phys)
-    CALL save_or_replace(file_id, 'inputs/pulse_duration_in_1_e', tp_fs_phys, error, units_in = '[fs]')
+    CALL save_or_replace(group_id, 'pulse_duration_in_1_e', tp_fs_phys, error, units_in = '[fs]')
   ENDIF
   CALL save_or_replace(file_id, 'inputs/degree_of_supergaussian_in_time', super_t, error)
   ! CALL save_or_replace(file_id, 'inputs/ratio_pin_pcr', numcrit, error)
@@ -190,22 +192,23 @@ PROGRAM make_start
     CALL h5lexists_f(file_id, 'inputs/ratio_pin_pcr', dumlog, error)
     IF (dumlog) THEN ! input given in the P_in/P_cr
       CALL save_or_replace(file_id, 'inputs/ratio_pin_pcr', numcrit, error)
+      ! convert
       Intensity_entry = ratio_Pin_Pcr_entry2I_entry(numcrit,w0_cm_phys*1.D-2,pressure*n2_phys,lambda0_cm_phys*1.D-2)
-      CALL save_or_replace(file_id, 'inputs/intensity_entry', Intensity_entry, error, units_in = '[SI]')
+      CALL save_or_replace(group_id, 'intensity_entry', Intensity_entry, error, units_in = '[SI]')
     ELSE ! input given in the entrance intensity
       CALL save_or_replace(file_id, 'inputs/intensity_entry', Intensity_entry, error)
       ! convert
       numcrit = I_entry2ratio_Pin_Pcr_entry(Intensity_entry,w0_cm_phys*1.D-2,pressure*n2_phys,lambda0_cm_phys*1.D-2)
-      CALL save_or_replace(file_id, 'inputs/ratio_pin_pcr', numcrit, error, units_in = '[-]')
+      CALL save_or_replace(group_id, 'ratio_pin_pcr', numcrit, error, units_in = '[-]')
     ENDIF
 
     ! convert to focus values    
     CALL Gaussian_entry2Gaussian_focus(Intensity_entry,w0_cm_phys*1.D-2,Curvature_radius_entry,Intensity_focus, waist_focus, focus_position, lambda0_cm_phys*1.D-2)
   
     ! Store the reference Gaussian beam
-    CALL save_or_replace(file_id, 'inputs/focus_beamwaist_Gaussian', waist_focus, error, units_in = '[SI]')
-    CALL save_or_replace(file_id, 'inputs/focus_intensity_Gaussian', Intensity_focus, error, units_in = '[SI]')
-    CALL save_or_replace(file_id, 'inputs/focus_position_Gaussian', focus_position, error, units_in = '[SI]')
+    CALL save_or_replace(group_id, 'focus_beamwaist_Gaussian', waist_focus, error, units_in = '[SI]')
+    CALL save_or_replace(group_id, 'focus_intensity_Gaussian', Intensity_focus, error, units_in = '[SI]')
+    CALL save_or_replace(group_id, 'focus_position_Gaussian', focus_position, error, units_in = '[SI]')
   
   ELSE
 
@@ -221,10 +224,10 @@ PROGRAM make_start
 
     numcrit = I_entry2ratio_Pin_Pcr_entry(Intensity_entry,w0_cm_phys*1.D-2,pressure*n2_phys,lambda0_cm_phys*1.D-2) ! intensity -> ratio
 
-    CALL save_or_replace(file_id, 'inputs/intensity_entry', Intensity_entry, error, units_in = '[SI]')
-    CALL save_or_replace(file_id, 'inputs/ratio_pin_pcr', numcrit, error, units_in = '[-]')
-    CALL save_or_replace(file_id, 'inputs/beamwaist', w0_cm_phys, error, units_in = '[cm]')
-    CALL save_or_replace(file_id, 'inputs/focal_length_in_the_medium_cm', f_cm_phys, error, units_in = '[cm]') !! input given at the entrance plane, it's equal to the radius of the curvature    
+    CALL save_or_replace(group_id, 'intensity_entry', Intensity_entry, error, units_in = '[SI]')
+    CALL save_or_replace(group_id, 'ratio_pin_pcr', numcrit, error, units_in = '[-]')
+    CALL save_or_replace(group_id, 'beamwaist', w0_cm_phys, error, units_in = '[cm]')
+    CALL save_or_replace(group_id, 'focal_length_in_the_medium_cm', f_cm_phys, error, units_in = '[cm]') !! input given at the entrance plane, it's equal to the radius of the curvature    
     
     !CALL save_or_replace(file_id, 'inputs/ratio_pin_pcr', numcrit, error)
   ENDIF
@@ -271,6 +274,10 @@ PROGRAM make_start
   CALL save_or_replace(file_id, 'inputs/number_of_photons_involved_in_the_n-absorption', NN, error, units_in = '[-]')
   CALL save_or_replace(file_id, 'inputs/the_n-photon_absoption_cross_section', sigman_phys, error, units_in = '[s-1cm2N/Wn]')
   CALL save_or_replace(file_id, 'inputs/density_of_absorbing_molecules', rhoabs_cm3_phys, error, units_in = '[1/cm3]?')
+
+
+
+  CALL h5gclose_f(group_id, error)  
 
   !------------------------------------!
   ! CALL read_dset(file_id, 'inputs/', )!
