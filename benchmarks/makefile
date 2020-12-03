@@ -18,6 +18,9 @@
   TEST_ARRAY2	   = test_interp.e
   S_TEST_ARRAY2       = ../sources/array_helper.f90 test_interps.f90
 
+  TEST_LOGIC	   = test_logic.e
+  S_TEST_LOGIC       = test_logic.f90
+
 
 #       Make definition
 #
@@ -30,6 +33,9 @@ $(TEST_ARRAY) : $(S_TEST_ARRAY)
 
 $(TEST_ARRAY2) : $(S_TEST_ARRAY2)
 	${F90} -o $(TEST_ARRAY2) $(S_TEST_ARRAY2) ${FMFLAGS} ${LFLAGS}
+
+$(TEST_LOGIC) : $(S_TEST_LOGIC)
+	${F90} -o $(TEST_LOGIC) $(S_TEST_LOGIC) ${FMFLAGS} ${LFLAGS}
 
 
 #      Utilities
@@ -48,3 +54,5 @@ clean_preprocessor :
 test_find : $(TEST_ARRAY) # binary # clean
 
 test_interp : $(TEST_ARRAY2) # binary # clean
+
+test_logic : $(TEST_LOGIC) # binary # clean
