@@ -4,7 +4,7 @@ MODULE calc_start
 
   INTEGER(4) super_N,super_t
   REAL(8) numcrit,noise,noise_s,noise_t,lense_factor,chirp_factor,restartamp
-  CHARACTER(15) inputfilename_t,inputfilename_c
+  CHARACTER(15) inputfilename_t
 
   COMPLEX(8), ALLOCATABLE :: buffer(:)
 
