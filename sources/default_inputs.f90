@@ -9,7 +9,7 @@ character(15)   ::  gas_preset
 
 integer                 :: k1
 integer, parameter      :: N_tests = 4
-character(*), parameter :: available_tests(N_tests) = (/"test", "test2", "Gfp", "GfI"/)
+character(*), parameter :: available_tests(N_tests) = (/"test", "test2", "GfP", "GfI"/)
 ! integer, parameter      :: test_numbers(N_tests) =  (k1, k1=1,N_tests)
 
 CONTAINS
