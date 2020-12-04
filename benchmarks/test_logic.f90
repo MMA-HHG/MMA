@@ -7,7 +7,7 @@ PROGRAM test_modules
   integer :: iarray4(4) = (/1, 2, 3, 4/)
   logical :: dumlog
 
-
+  character(*), parameter :: sarray6(6) = (/"a", "ab", "abc", "abcd", "abcde", "abcdf"/)
 
 
   print *,"Test any mask on integers"
@@ -36,6 +36,14 @@ PROGRAM test_modules
   print *,"test array ", dumlog  
 
   dumlog = ANY( "aaa" == (/"a", "ab", "abcd", "abcde", "abcdef"/) )
+
+  print *,"test array ", dumlog  
+
+  dumlog = ANY( "abc" == sarray6 )
+
+  print *,"test array ", dumlog  
+
+  dumlog = ANY( "aaa" == sarray6 )
 
   print *,"test array ", dumlog  
 
