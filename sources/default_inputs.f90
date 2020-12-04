@@ -3,9 +3,14 @@
 module default_inputs
 use write_listing
 
-implicit none
+IMPLICIT NONE
+real(8) :: Intensity_entry, Intensity_focus, waist_focus, Curvature_radius_entry, focus_position
 character(15)   ::  gas_preset
 
+integer                 :: k1
+integer, parameter      :: N_tests = 4
+character(*), parameter :: available_tests(N_tests) = (/"test", "test2", "Gfp", "GfI"/)
+! integer, parameter      :: test_numbers(N_tests) =  (k1, k1=1,N_tests)
 
 CONTAINS
 
@@ -101,7 +106,7 @@ integer         :: switch_ionisation, switch_atom
     rhont_cm3_phys = 2.7d19! effective density of neutral molecules, it is the density of an ideal gas for 1 bar 0 °C in cm-3 (https://en.wikipedia.org/wiki/Number_density#Units)
 
 
-    ! generally target specific values, but kept as these estimates for our results:
+    ! generally target-specific values, but kept as these estimates for our results:
 
     n4_phys = 0.d0 ! Kerr
     switch_dKerr = 1
@@ -195,6 +200,19 @@ end subroutine Gaussian_entry2Gaussian_focus
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+integer function get_test_number(testname)
+    character(*)    :: testname
+
+    do k1 = 1, N_tests
+        if (testname == available_tests(k1)) then
+            get_test_number = k1
+            return
+        endif
+    enddo
+    stop "wrong test name"
+
+end function get_test_number
+
 subroutine preset_dispersion_tests(test_number)
     integer :: test_number
     ! Dispersion law
@@ -251,31 +269,51 @@ end subroutine preset_numerics_tests
 
 subroutine preset_physics(test_number)
     integer :: test_number
-    
+
+!---------------------------------------------------------------------------------------------------------------------!    
     lambda0_cm_phys = 8.d-5
 
+!---------------------------------------------------------------------------------------------------------------------!
     select case(test_number)
     case(1)
         gas_preset = 'Ar_PPT'
-    case(2)
+    case(2, 3, 4)
         gas_preset = 'Ar_ext'
     end select
-
     call save_or_replace(file_id, 'inputs/gas_preset', gas_preset, error, units_in = '[-]')
 
+!---------------------------------------------------------------------------------------------------------------------!
     proplength_m_phys = 0.005d0
 
+!---------------------------------------------------------------------------------------------------------------------!
     w0_cm_phys = 0.1d0
     call save_or_replace(file_id, 'inputs/laser_beamwaist', w0_cm_phys, error, units_in = '[cm]')
 
-    numcrit = 2.0d0
-    CALL save_or_replace(file_id, 'inputs/laser_ratio_pin_pcr', numcrit, error, units_in = '[-]')
+!---------------------------------------------------------------------------------------------------------------------!
+    select case(test_number)
+    case(1, 2, 3)
+        numcrit = 2.0d0
+        call save_or_replace(file_id, 'inputs/laser_ratio_pin_pcr', numcrit, error, units_in = '[-]')
+    case(4)
+        Intensity_entry = 1.d18
+        call save_or_replace(file_id, 'inputs/laser_intensity_entry', Intensity_entry, error, units_in = '[SI]')
+    end select
+    
 
+!---------------------------------------------------------------------------------------------------------------------!
     tp_fs_phys = 50.d0
-    CALL save_or_replace(file_id, 'inputs/laser_pulse_duration_in_1_e', tp_fs_phys, error, units_in = '[fs]')
+    call save_or_replace(file_id, 'inputs/laser_pulse_duration_in_1_e', tp_fs_phys, error, units_in = '[fs]')
 
-    f_cm_phys = 50.d0 ! THIS IS SOMETHING TO COMPUTE
 
+!---------------------------------------------------------------------------------------------------------------------!
+    select case(test_number)
+    case(1, 2)
+        f_cm_phys = 50.d0 ! THIS IS SOMETHING TO COMPUTE
+    case(3, 4)
+        f_cm_phys = 0.d0
+    end select
+
+!---------------------------------------------------------------------------------------------------------------------!
     pressure = 1.d0
 
 end subroutine preset_physics
@@ -284,9 +322,6 @@ subroutine testing_values(test_number) ! set values for testing
     use HDF5
     use HDF5_helper
     integer :: test_number
-
-    ! call h5gcreate_f(file_id, 'inputs', group_id, error)
-    ! call h5gclose_f(group_id, error)
 
     call preset_numerics_tests(test_number)
     call preset_physics(test_number)

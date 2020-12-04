@@ -8,7 +8,6 @@ PROGRAM make_start
   integer :: st
   logical :: testingmode=.FALSE., exists_h5_refractive_index, dumlog
   integer :: test_number = 1
-  real(8) :: Intensity_entry, Intensity_focus, waist_focus, Curvature_radius_entry, focus_position
 
   integer, parameter :: available_dispersions(6) = (/1, 3, 4, 6, 7, 9/), available_ionisations(4) = (/1, 2, 3, 8/), &
                         available_beams(2) = (/1, 2/)
@@ -22,10 +21,9 @@ PROGRAM make_start
   ! Open FORTRAN HDF5 interface
   CALL h5open_f(error)
 
-  IF ( (filename == "test") .or. (filename == "test2")) THEN ! this is an option for developers to run the code with pre-defaults inputs; if driving file exists, it's superior
-    IF (filename == "test2") THEN
-      test_number = 2
-    ENDIF
+  ! IF ( (filename == "test") .or. (filename == "test2")) THEN ! this is an option for developers to run the code with pre-defaults inputs; if driving file exists, it's superior
+  IF ( ANY( filename == available_tests ) ) THEN ! this is an option for developers to run the code with pre-defaults inputs; if driving file exists, it's superior
+    test_number = get_test_number(filename)
     filename = "results.h5"
     INQUIRE(FILE=filename, EXIST=dumlog)
     IF (NOT(dumlog)) THEN
@@ -58,6 +56,7 @@ PROGRAM make_start
   ! Testing mode presets all parameters and the code may run with an empty input.
   ! If some inputs are preent in the input file, they are superior.
   IF (testingmode) THEN
+    CALL create_dset(file_id, 'inputs/calculated/test_test_number', test_number)
     CALL testing_values(test_number)
   ENDIF
 
