@@ -323,15 +323,20 @@ end subroutine calck0
        DO l=1,3
           IF (ip(l:l).EQ.' ') ip(l:l)='0'
        ENDDO
-       OPEN(10,FILE=inputfilename_c(1:LEN_TRIM(inputfilename_c))//'_'//ip//'.DAT',STATUS='OLD',FORM='UNFORMATTED')
-       DO
-          READ(10) id
-          IF (id.EQ.'startfield') EXIT
-       ENDDO
-       DO j=p*(dim_r/num_proc)+1,(p+1)*(dim_r/num_proc)
-          READ(10) e(1:dim_t,j)
-       ENDDO
-       CLOSE(10)
+
+       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+       ! HDF5-continuation should be here
+       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      
+      !  OPEN(10,FILE=inputfilename_c(1:LEN_TRIM(inputfilename_c))//'_'//ip//'.DAT',STATUS='OLD',FORM='UNFORMATTED')
+      !  DO
+      !     READ(10) id
+      !     IF (id.EQ.'startfield') EXIT
+      !  ENDDO
+      !  DO j=p*(dim_r/num_proc)+1,(p+1)*(dim_r/num_proc)
+      !     READ(10) e(1:dim_t,j)
+      !  ENDDO
+      !  CLOSE(10)
 
        IF (switch_start.EQ.4) THEN
           DO l=p*(dim_r/num_proc)+1,(p+1)*(dim_r/num_proc)
