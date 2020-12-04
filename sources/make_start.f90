@@ -251,12 +251,12 @@ PROGRAM make_start
     IF (dumlog) THEN ! input given in the P_in/P_cr
       CALL save_or_replace(file_id, 'inputs/laser_ratio_pin_pcr', numcrit, error)
       ! convert
-      Intensity_entry = ratio_Pin_Pcr_entry2I_entry(numcrit,w0_cm_phys*1.D-2,pressure*n2_phys,lambda0_cm_phys*1.D-2)
+      Intensity_entry = ratio_Pin_Pcr_entry2I_entry(numcrit,w0_cm_phys*1.D-2,pressure*n2_phys*1.D-4,lambda0_cm_phys*1.D-2)
       CALL save_or_replace(group_id, 'laser_intensity_entry', Intensity_entry, error, units_in = '[SI]')
     ELSE ! input given in the entrance intensity
       CALL save_or_replace(file_id, 'inputs/laser_intensity_entry', Intensity_entry, error)
       ! convert
-      numcrit = I_entry2ratio_Pin_Pcr_entry(Intensity_entry,w0_cm_phys*1.D-2,pressure*n2_phys,lambda0_cm_phys*1.D-2)
+      numcrit = I_entry2ratio_Pin_Pcr_entry(Intensity_entry,w0_cm_phys*1.D-2,pressure*n2_phys*1.D-4,lambda0_cm_phys*1.D-2)
       CALL save_or_replace(group_id, 'laser_ratio_pin_pcr', numcrit, error, units_in = '[-]')
     ENDIF
 
