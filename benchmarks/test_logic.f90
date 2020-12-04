@@ -31,7 +31,7 @@ PROGRAM test_modules
 
   print *,"5 in arr", dumlog  
 
-  dumlog = ANY( "abc" == (/"a", "ab", "abcd", "abcde", "abcdef"/) )
+  dumlog = ANY( "abc" == (/"a", "ab", "abc", "abcd", "abcde", "abcdf"/) )
 
   print *,"test array ", dumlog  
 
