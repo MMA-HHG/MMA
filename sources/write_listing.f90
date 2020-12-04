@@ -54,11 +54,11 @@ CONTAINS
        WRITE(100,'(a,t50,i4,x,a)') 'field noise (amplitude)',int( noise * 100.d0),'%'
     CASE(3)
        WRITE(100, '(a,t50)') 'CONTINUATION!!!!!!!!!!!!'
-       WRITE(100, '(a,t50)') 'initial condition from files '//inputfilename_c
+       ! WRITE(100, '(a,t50)') 'initial condition from files '//inputfilename_c
        WRITE(100,'(a,t50,es12.4)') 'amplitude factor for medium change',restartamp
     CASE(4)
        WRITE(100, '(a,t50)') 'CONTINUATION WITH FLAT PHASE!!!!!!!!!!!!'
-       WRITE(100, '(a,t50)') 'initial condition from files '//inputfilename_c
+       ! WRITE(100, '(a,t50)') 'initial condition from files '//inputfilename_c
        WRITE(100,'(a,t50,es12.4)') 'amplitude factor for medium change',restartamp
     END SELECT
     WRITE(100,'(a,t50,es12.4,x,a)') 'pressure',pressure,'bar'
