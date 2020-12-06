@@ -6,6 +6,7 @@ PROGRAM make_start
 
   IMPLICIT NONE
   integer :: st
+  character(60) :: dumstring
   logical :: testingmode=.FALSE., exists_h5_refractive_index, dumlog
   integer :: test_number = 1
 
@@ -227,15 +228,43 @@ PROGRAM make_start
     write(6,*) 'The Gaussian reference may not be representative.'
   ENDIF
 
+  CALL h5lexists_f(file_id, 'inputs/laser_pulse_duration_in_FWHM', dumlog, error)
+  IF (dumlog) dumstring = 'FWHM'
+  CALL h5lexists_f(file_id, 'inputs/laser_pulse_duration_in_rms', dumlog, error)
+  IF (dumlog) dumstring = 'rms'
   CALL h5lexists_f(file_id, 'inputs/laser_pulse_duration_in_1_e', dumlog, error)
-  IF (dumlog) THEN
-    CALL read_dset(file_id, 'inputs/laser_pulse_duration_in_1_e', tp_fs_phys)
-    CALL save_or_replace(group_id, 'laser_pulse_duration_in_FWHM', e_inv2FWHM(tp_fs_phys), error, units_in = '[fs]')
-  ELSE
+  IF (dumlog) dumstring = '1/e'
+
+  SELECT CASE(dumstring)
+  CASE('FWHM')
     CALL read_dset(file_id, 'inputs/laser_pulse_duration_in_FWHM', tp_fs_phys)
-    tp_fs_phys = FWHM2e_inv(tp_fs_phys)
+    !tp_fs_phys = FWHM2e_inv(tp_fs_phys)
+    tp_fs_phys = Convert_pulse_duration(tp_fs_phys, dumstring, '1/e')
     CALL save_or_replace(group_id, 'laser_pulse_duration_in_1_e', tp_fs_phys, error, units_in = '[fs]')
-  ENDIF
+    CALL save_or_replace(group_id, 'laser_pulse_duration_in_rms', Convert_pulse_duration(tp_fs_phys, '1/e', 'rms'), error, units_in = '[fs]')
+  CASE('rms')
+    CALL read_dset(file_id, 'inputs/laser_pulse_duration_in_rms', tp_fs_phys)
+    !tp_fs_phys = FWHM2e_inv(tp_fs_phys)
+    tp_fs_phys = Convert_pulse_duration(tp_fs_phys, dumstring, '1/e')
+    CALL save_or_replace(group_id, 'laser_pulse_duration_in_1_e', tp_fs_phys, error, units_in = '[fs]')
+    CALL save_or_replace(group_id, 'laser_pulse_duration_in_FWHM', Convert_pulse_duration(tp_fs_phys, '1/e', 'FWHM'), error, units_in = '[fs]')
+  CASE('1/e')
+    CALL read_dset(file_id, 'inputs/laser_pulse_duration_in_1_e', tp_fs_phys)
+    CALL save_or_replace(group_id, 'laser_pulse_duration_in_FWHM', Convert_pulse_duration(tp_fs_phys, dumstring, 'FWHM'), error, units_in = '[fs]')
+    CALL save_or_replace(group_id, 'laser_pulse_duration_in_rms', Convert_pulse_duration(tp_fs_phys, dumstring, 'rms'), error, units_in = '[fs]')
+  CASE DEFAULT
+    STOP "wrong pulse duration specification"
+  END SELECT
+
+  ! IF (dumlog) THEN
+  !   CALL read_dset(file_id, 'inputs/laser_pulse_duration_in_1_e', tp_fs_phys)
+  !   CALL save_or_replace(group_id, 'laser_pulse_duration_in_FWHM', Convert_pulse_duration(tp_fs_phys, '1/e', 'FWHM'), error, units_in = '[fs]')
+  ! ELSE
+  !   CALL read_dset(file_id, 'inputs/laser_pulse_duration_in_FWHM', tp_fs_phys)
+  !   !tp_fs_phys = FWHM2e_inv(tp_fs_phys)
+  !   tp_fs_phys = Convert_pulse_duration(tp_fs_phys, 'FWHM', '1/e')
+  !   CALL save_or_replace(group_id, 'laser_pulse_duration_in_1_e', tp_fs_phys, error, units_in = '[fs]')
+  ! ENDIF
   
   CALL save_or_replace(file_id, 'inputs/laser_initial_chirp_phase', chirp_factor, error)
   

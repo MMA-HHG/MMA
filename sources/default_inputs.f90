@@ -156,18 +156,49 @@ end subroutine preset_numerics
 
 real(8) function e_inv2FWHM(e_inv)
     real(8) :: e_inv
-    e_inv2FWHM = 2.d0*sqrt(2.d0)*e_inv
+    e_inv2FWHM = 2.d0*sqrt(log(2.d0))*e_inv
 end function e_inv2FWHM
 
 real(8) function FWHM2e_inv(FWHM)
     real(8) :: FWHM
-    FWHM2e_inv = FWHM/2.d0*sqrt(2.d0)
+    FWHM2e_inv = FWHM/2.d0*sqrt(log(2.d0))
 end function FWHM2e_inv
 
 real(8) function ratio_Pin_Pcr_entry2I_entry(Pin_Pcr,wz,n2p,lambda)
     real(8) :: Pin_Pcr,wz,n2p,lambda
     ratio_Pin_Pcr_entry2I_entry = (Pin_Pcr*(lambda/(PI*wz))**2) / n2p
 end function ratio_Pin_Pcr_entry2I_entry
+
+real(8) function Convert_pulse_duration(t_in, type_in, type_out)
+    real(8)       :: t_in, dum
+    character(*)  :: type_in, type_out
+
+    select case(type_in)
+    case('1/e')
+        dum = t_in/sqrt(2.d0)
+    case('FWHM')
+        dum = t_in/(2.d0*sqrt(2.d0*log(2.d0)))
+    case('rms')
+        dum = t_in
+    case default
+        print *, 'wrong input of pulse duration, nothing done'
+        Convert_pulse_duration = t_in
+        return
+    end select
+
+    select case(type_out)
+    case('1/e')
+        Convert_pulse_duration = sqrt(2.d0)*dum
+    case('FWHM')
+        Convert_pulse_duration = 2.d0*sqrt(2.d0*log(2.d0))*dum
+    case('rms')
+        Convert_pulse_duration = dum
+    case default
+        print *, 'wrong output of pulse duration, nothing done'
+        Convert_pulse_duration = t_in
+    end select
+
+end function Convert_pulse_duration
 
 real(8) function I_entry2ratio_Pin_Pcr_entry(I_entry,wz,n2p,lambda)
     real(8) :: I_entry,wz,n2p,lambda
