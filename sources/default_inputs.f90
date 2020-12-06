@@ -169,9 +169,10 @@ real(8) function ratio_Pin_Pcr_entry2I_entry(Pin_Pcr,wz,n2p,lambda)
     ratio_Pin_Pcr_entry2I_entry = (Pin_Pcr*(lambda/(PI*wz))**2) / n2p
 end function ratio_Pin_Pcr_entry2I_entry
 
-real(8) function Convert_pulse_duration(t_in, type_in, type_out)
-    real(8)       :: t_in, dum
-    character(*)  :: type_in, type_out
+real(8) function Convert_pulse_duration(t_in, type_in, type_out, type2_in, type2_out)
+    real(8)                 :: t_in, dum
+    character(*)            :: type_in, type_out
+    character(*), optional  :: type2_in, type2_out
 
     select case(type_in)
     case('1/e')
@@ -186,6 +187,19 @@ real(8) function Convert_pulse_duration(t_in, type_in, type_out)
         return
     end select
 
+    if (present(type2_in)) then
+        select case(type2_in)
+        case('Efield')
+            dum = dum/sqrt(2.d0)
+        case('Intensity')
+            ! nothing
+        case default
+            print *, 'wrong input2 of pulse duration, nothing done'
+            Convert_pulse_duration = t_in
+            return
+        end select
+    endif
+
     select case(type_out)
     case('1/e')
         Convert_pulse_duration = sqrt(2.d0)*dum
@@ -197,6 +211,19 @@ real(8) function Convert_pulse_duration(t_in, type_in, type_out)
         print *, 'wrong output of pulse duration, nothing done'
         Convert_pulse_duration = t_in
     end select
+
+    if (present(type2_out)) then
+        select case(type2_in)
+        case('Efield')
+            Convert_pulse_duration = sqrt(2.d0)*Convert_pulse_duration
+        case('Intensity')
+            ! nothing
+        case default
+            print *, 'wrong output2 of pulse duration, nothing done'
+            Convert_pulse_duration = t_in
+            return
+        end select
+    endif
 
 end function Convert_pulse_duration
 

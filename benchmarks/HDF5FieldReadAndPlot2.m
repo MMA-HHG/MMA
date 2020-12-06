@@ -1,4 +1,4 @@
-clear all; %close all;
+clear all; close all;
 % clearvars
 
 %% head
@@ -21,7 +21,7 @@ delete('*.png');
 
 % path = 'D:\data\CUPRAD';
 HDF5_path = 'D:\TEMP\OCCIGEN_CUPRAD\compares4\';
-HDF5_filename = "results.h5";
+HDF5_filename = "results_GfP.h5";
 
 
 kr = 1;
@@ -70,6 +70,21 @@ shading interp
 colorbar
 
 
+%% plot first_intens
+fig.sf(1).method = @plot;
+fig.sf(1).arg{1} = tgrid;
+fig.sf(1).arg{2} = squeeze(abs(output_field(1,kr,:)));
+I_tmp = fig.sf(1).arg{2};
+
+fig.sf(2) = fig.sf(1);
+t_1e = 1e-15*h5read(HDF5_filepath,"/inputs/laser_pulse_duration_in_1_e");
+fig.sf(2).arg{2} = max(I_tmp)*exp(-(tgrid/t_1e).^2);
+
+fig.title = 'First intensity';
+plot_preset_figure(fig,'default');
+
+
+return
 
 %% plot z_evol
 fig.sf(1).method = @plot;

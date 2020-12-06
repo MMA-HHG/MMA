@@ -6,7 +6,7 @@ PROGRAM make_start
 
   IMPLICIT NONE
   integer :: st
-  character(60) :: dumstring
+  character(100) :: dumstring, dumstring2, dumstring3
   logical :: testingmode=.FALSE., exists_h5_refractive_index, dumlog
   integer :: test_number = 1
 
@@ -228,33 +228,78 @@ PROGRAM make_start
     write(6,*) 'The Gaussian reference may not be representative.'
   ENDIF
 
-  CALL h5lexists_f(file_id, 'inputs/laser_pulse_duration_in_FWHM', dumlog, error)
-  IF (dumlog) dumstring = 'FWHM'
-  CALL h5lexists_f(file_id, 'inputs/laser_pulse_duration_in_rms', dumlog, error)
-  IF (dumlog) dumstring = 'rms'
-  CALL h5lexists_f(file_id, 'inputs/laser_pulse_duration_in_1_e', dumlog, error)
-  IF (dumlog) dumstring = '1/e'
+  CALL h5lexists_f(file_id, 'inputs/laser_pulse_duration_in_FWHM_Efield', dumlog, error)
+  IF (dumlog) THEN
+    dumstring = 'FWHM'; dumstring2 = 'Efield'; dumstring3 = 'inputs/laser_pulse_duration_in_FWHM_Efield'
+  ENDIF
+  CALL h5lexists_f(file_id, 'inputs/laser_pulse_duration_in_FWHM_Intensity', dumlog, error)
+  IF (dumlog) THEN
+    dumstring = 'FWHM'; dumstring2 = 'Intensity'; dumstring3 = 'inputs/laser_pulse_duration_in_FWHM_Intensity'
+  ENDIF
+  CALL h5lexists_f(file_id, 'inputs/laser_pulse_duration_in_rms_Efield', dumlog, error)
+  IF (dumlog) THEN
+    dumstring = 'rms'; dumstring2 = 'Efield'; dumstring3 = 'inputs/laser_pulse_duration_in_rms_Efield'
+  ENDIF
+  CALL h5lexists_f(file_id, 'inputs/laser_pulse_duration_in_rms_Intensity', dumlog, error)
+  IF (dumlog) THEN
+    dumstring = 'rms'; dumstring2 = 'Intensity'; dumstring3 = 'inputs/laser_pulse_duration_in_rms_Intensity'
+  ENDIF
+  CALL h5lexists_f(file_id, 'inputs/laser_pulse_duration_in_1_e_Intensity', dumlog, error)
+  IF (dumlog) THEN
+    dumstring = '1/e'; dumstring2 = 'Intensity'; dumstring3 = 'inputs/laser_pulse_duration_in_1_e_Intensity'
+  ENDIF
+  CALL h5lexists_f(file_id, 'inputs/laser_pulse_duration_in_1_e_Efield', dumlog, error)
+  IF (dumlog) THEN
+    dumstring = '1/e'; dumstring2 = 'Efield'; dumstring3 = 'inputs/laser_pulse_duration_in_1_e_Efield'
+  ENDIF
 
+  ! CALL h5lexists_f(file_id, 'inputs/laser_pulse_duration_in_rms', dumlog, error)
+  ! IF (dumlog) dumstring = 'rms'
+  ! CALL h5lexists_f(file_id, 'inputs/laser_pulse_duration_in_1_e', dumlog, error)
+  ! IF (dumlog) dumstring = '1/e'
+
+  CALL read_dset(file_id, dumstring3, tp_fs_phys)
   SELECT CASE(dumstring)
-  CASE('FWHM')
-    CALL read_dset(file_id, 'inputs/laser_pulse_duration_in_FWHM', tp_fs_phys)
+  CASE('FWHM')    
     !tp_fs_phys = FWHM2e_inv(tp_fs_phys)
-    tp_fs_phys = Convert_pulse_duration(tp_fs_phys, dumstring, '1/e')
-    CALL save_or_replace(group_id, 'laser_pulse_duration_in_1_e', tp_fs_phys, error, units_in = '[fs]')
-    CALL save_or_replace(group_id, 'laser_pulse_duration_in_rms', Convert_pulse_duration(tp_fs_phys, '1/e', 'rms'), error, units_in = '[fs]')
+    tp_fs_phys = Convert_pulse_duration(tp_fs_phys, dumstring, '1/e', dumstring2, 'Efield')
+    CALL save_or_replace(group_id, 'laser_pulse_duration_in_1_e_Efield', tp_fs_phys, error, units_in = '[fs]')
   CASE('rms')
     CALL read_dset(file_id, 'inputs/laser_pulse_duration_in_rms', tp_fs_phys)
     !tp_fs_phys = FWHM2e_inv(tp_fs_phys)
-    tp_fs_phys = Convert_pulse_duration(tp_fs_phys, dumstring, '1/e')
-    CALL save_or_replace(group_id, 'laser_pulse_duration_in_1_e', tp_fs_phys, error, units_in = '[fs]')
-    CALL save_or_replace(group_id, 'laser_pulse_duration_in_FWHM', Convert_pulse_duration(tp_fs_phys, '1/e', 'FWHM'), error, units_in = '[fs]')
+    tp_fs_phys = Convert_pulse_duration(tp_fs_phys, dumstring, '1/e', dumstring2, 'Efield')
+    CALL save_or_replace(group_id, 'laser_pulse_duration_in_1_e_Efield', tp_fs_phys, error, units_in = '[fs]')
   CASE('1/e')
-    CALL read_dset(file_id, 'inputs/laser_pulse_duration_in_1_e', tp_fs_phys)
-    CALL save_or_replace(group_id, 'laser_pulse_duration_in_FWHM', Convert_pulse_duration(tp_fs_phys, dumstring, 'FWHM'), error, units_in = '[fs]')
-    CALL save_or_replace(group_id, 'laser_pulse_duration_in_rms', Convert_pulse_duration(tp_fs_phys, dumstring, 'rms'), error, units_in = '[fs]')
+    IF (dumstring2 = 'Intensity') THEN
+      tp_fs_phys = Convert_pulse_duration(tp_fs_phys, dumstring, '1/e', dumstring2, 'Efield')
+      CALL save_or_replace(group_id, 'laser_pulse_duration_in_1_e_Efield', tp_fs_phys, error, units_in = '[fs]')
+    ENDIF
   CASE DEFAULT
     STOP "wrong pulse duration specification"
   END SELECT
+  CALL save_or_replace(group_id, 'laser_pulse_duration_in_rms_Intensity', Convert_pulse_duration(tp_fs_phys, '1/e', 'rms', 'Efield', 'Intensity'), error, units_in = '[fs]')
+  CALL save_or_replace(group_id, 'laser_pulse_duration_in_FWHM_Intensity', Convert_pulse_duration(tp_fs_phys, '1/e', 'FWHM', 'Efield', 'Intensity'), error, units_in = '[fs]')
+
+  ! SELECT CASE(dumstring)
+  ! CASE('FWHM')
+  !   CALL read_dset(file_id, 'inputs/laser_pulse_duration_in_FWHM', tp_fs_phys)
+  !   !tp_fs_phys = FWHM2e_inv(tp_fs_phys)
+  !   tp_fs_phys = Convert_pulse_duration(tp_fs_phys, dumstring, '1/e')
+  !   CALL save_or_replace(group_id, 'laser_pulse_duration_in_1_e', tp_fs_phys, error, units_in = '[fs]')
+  !   CALL save_or_replace(group_id, 'laser_pulse_duration_in_rms', Convert_pulse_duration(tp_fs_phys, '1/e', 'rms'), error, units_in = '[fs]')
+  ! CASE('rms')
+  !   CALL read_dset(file_id, 'inputs/laser_pulse_duration_in_rms', tp_fs_phys)
+  !   !tp_fs_phys = FWHM2e_inv(tp_fs_phys)
+  !   tp_fs_phys = Convert_pulse_duration(tp_fs_phys, dumstring, '1/e')
+  !   CALL save_or_replace(group_id, 'laser_pulse_duration_in_1_e', tp_fs_phys, error, units_in = '[fs]')
+  !   CALL save_or_replace(group_id, 'laser_pulse_duration_in_FWHM', Convert_pulse_duration(tp_fs_phys, '1/e', 'FWHM'), error, units_in = '[fs]')
+  ! CASE('1/e')
+  !   CALL read_dset(file_id, 'inputs/laser_pulse_duration_in_1_e', tp_fs_phys)
+  !   CALL save_or_replace(group_id, 'laser_pulse_duration_in_FWHM', Convert_pulse_duration(tp_fs_phys, dumstring, 'FWHM'), error, units_in = '[fs]')
+  !   CALL save_or_replace(group_id, 'laser_pulse_duration_in_rms', Convert_pulse_duration(tp_fs_phys, dumstring, 'rms'), error, units_in = '[fs]')
+  ! CASE DEFAULT
+  !   STOP "wrong pulse duration specification"
+  ! END SELECT
 
   ! IF (dumlog) THEN
   !   CALL read_dset(file_id, 'inputs/laser_pulse_duration_in_1_e', tp_fs_phys)
