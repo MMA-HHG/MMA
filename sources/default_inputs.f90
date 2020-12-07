@@ -8,8 +8,8 @@ real(8) :: Intensity_entry, Intensity_focus, waist_focus, Curvature_radius_entry
 character(15)   ::  gas_preset
 
 integer                 :: k1
-integer, parameter      :: N_tests = 4
-character(*), parameter :: available_tests(N_tests) = (/"test", "test2", "GfP", "GfI"/)
+integer, parameter      :: N_tests = 6
+character(*), parameter :: available_tests(N_tests) = (/"test", "test2", "GfP", "GfI", "GfFWHME", "GfFWHMI"/)
 ! integer, parameter      :: test_numbers(N_tests) =  (k1, k1=1,N_tests)
 
 CONTAINS
@@ -170,17 +170,18 @@ real(8) function ratio_Pin_Pcr_entry2I_entry(Pin_Pcr,wz,n2p,lambda)
 end function ratio_Pin_Pcr_entry2I_entry
 
 real(8) function Convert_pulse_duration(t_in, type_in, type_out, type2_in, type2_out)
+    ! 1/e is the reference
     real(8)                 :: t_in, dum
     character(*)            :: type_in, type_out
     character(*), optional  :: type2_in, type2_out
 
     select case(type_in)
     case('1/e')
-        dum = t_in/sqrt(2.d0)
-    case('FWHM')
-        dum = t_in/(2.d0*sqrt(2.d0*log(2.d0)))
-    case('rms')
         dum = t_in
+    case('FWHM')
+        dum = t_in/(2.d0*sqrt(log(2.d0)))
+    case('rms')
+        dum = sqrt(2.d0)*t_in
     case default
         print *, 'wrong input of pulse duration, nothing done'
         Convert_pulse_duration = t_in
@@ -188,6 +189,7 @@ real(8) function Convert_pulse_duration(t_in, type_in, type_out, type2_in, type2
     end select
 
     if (present(type2_in)) then
+        print *, type2_in
         select case(type2_in)
         case('Efield')
             dum = dum/sqrt(2.d0)
@@ -202,18 +204,19 @@ real(8) function Convert_pulse_duration(t_in, type_in, type_out, type2_in, type2
 
     select case(type_out)
     case('1/e')
-        Convert_pulse_duration = sqrt(2.d0)*dum
-    case('FWHM')
-        Convert_pulse_duration = 2.d0*sqrt(2.d0*log(2.d0))*dum
-    case('rms')
         Convert_pulse_duration = dum
+    case('FWHM')
+        Convert_pulse_duration = 2.d0*sqrt(log(2.d0))*dum
+    case('rms')
+        Convert_pulse_duration = dum/sqrt(2.d0)
     case default
         print *, 'wrong output of pulse duration, nothing done'
         Convert_pulse_duration = t_in
     end select
 
     if (present(type2_out)) then
-        select case(type2_in)
+        print *, type2_out, Convert_pulse_duration 
+        select case(type2_out)
         case('Efield')
             Convert_pulse_duration = sqrt(2.d0)*Convert_pulse_duration
         case('Intensity')
@@ -223,6 +226,7 @@ real(8) function Convert_pulse_duration(t_in, type_in, type_out, type2_in, type2
             Convert_pulse_duration = t_in
             return
         end select
+        print *, type2_out, Convert_pulse_duration 
     endif
 
 end function Convert_pulse_duration
@@ -335,7 +339,7 @@ subroutine preset_physics(test_number)
     select case(test_number)
     case(1)
         gas_preset = 'Ar_PPT'
-    case(2, 3, 4)
+    case(2:6)
         gas_preset = 'Ar_ext'
     end select
     call save_or_replace(file_id, 'inputs/gas_preset', gas_preset, error, units_in = '[-]')
@@ -349,7 +353,7 @@ subroutine preset_physics(test_number)
 
 !---------------------------------------------------------------------------------------------------------------------!
     select case(test_number)
-    case(1, 2, 3)
+    case(1:3,5,6)
         numcrit = 2.0d0
         call save_or_replace(file_id, 'inputs/laser_ratio_pin_pcr', numcrit, error, units_in = '[-]')
     case(4)
@@ -359,15 +363,26 @@ subroutine preset_physics(test_number)
     
 
 !---------------------------------------------------------------------------------------------------------------------!
-    tp_fs_phys = 50.d0
-    call save_or_replace(file_id, 'inputs/laser_pulse_duration_in_1_e_Efield', tp_fs_phys, error, units_in = '[fs]')
+    select case(test_number)
+    case(1:4)
+        tp_fs_phys = 50.d0
+        call save_or_replace(file_id, 'inputs/laser_pulse_duration_in_1_e_Efield', tp_fs_phys, error, units_in = '[fs]')
+    case(5)
+        tp_fs_phys = 50.d0
+        call save_or_replace(file_id, 'inputs/laser_pulse_duration_in_FWHM_Efield', tp_fs_phys, error, units_in = '[fs]')
+    case(6)
+        tp_fs_phys = 50.d0
+        call save_or_replace(file_id, 'inputs/laser_pulse_duration_in_FWHM_Intensity', tp_fs_phys, error, units_in = '[fs]')
+    end select   
+    
+    !call save_or_replace(file_id, 'inputs/laser_pulse_duration_in_1_e_Efield', tp_fs_phys, error, units_in = '[fs]')
 
 
 !---------------------------------------------------------------------------------------------------------------------!
     select case(test_number)
     case(1, 2)
         f_cm_phys = 50.d0 ! THIS IS SOMETHING TO COMPUTE
-    case(3, 4)
+    case(3:6)
         f_cm_phys = 0.d0
     end select
 
