@@ -21,7 +21,8 @@ delete('*.png');
 
 % path = 'D:\data\CUPRAD';
 HDF5_path = 'D:\TEMP\OCCIGEN_CUPRAD\compares4\';
-HDF5_filename = "results_GfP.h5";
+% HDF5_filename = "results_GfP.h5";
+HDF5_filename = "results_GfFWHMI.h5";
 
 
 kr = 1;
@@ -70,19 +71,55 @@ shading interp
 colorbar
 
 
-%% plot first_intens
+%% plot abs_Efield
 fig.sf(1).method = @plot;
 fig.sf(1).arg{1} = tgrid;
 fig.sf(1).arg{2} = squeeze(abs(output_field(1,kr,:)));
 I_tmp = fig.sf(1).arg{2};
 
 fig.sf(2) = fig.sf(1);
-t_1e = 1e-15*h5read(HDF5_filepath,"/inputs/laser_pulse_duration_in_1_e");
-fig.sf(2).arg{2} = max(I_tmp)*exp(-(tgrid/t_1e).^2);
+t_1eE = 1e-15*h5read(HDF5_filepath,"/inputs/calculated/laser_pulse_duration_in_1_e_Efield");
+duration_efield = t_1eE;
+fig.sf(2).arg{2} = max(I_tmp)*exp(-(tgrid/t_1eE).^2);
+
+fig.sf(3) = fig.sf(1);
+t_FWHME = 1e-15*h5read(HDF5_filepath,"/inputs/calculated/laser_pulse_duration_in_FWHM_Efield");
+dum = t_FWHME/(2.0*sqrt(log(2.)));
+fig.sf(3).arg{2} = max(I_tmp)*exp(-(tgrid/dum).^2);
+
+fig.sf(4) = fig.sf(1);
+t_rmsE = 1e-15*h5read(HDF5_filepath,"/inputs/calculated/laser_pulse_duration_in_rms_Efield");
+dum = sqrt(2.0)*t_rmsE;
+fig.sf(4).arg{2} = max(I_tmp)*exp(-(tgrid/dum).^2);
+
+fig.title = 'First field';
+plot_preset_figure(fig,'default');
+
+
+%% plot first_intens
+fig.sf(1).method = @plot;
+fig.sf(1).arg{1} = tgrid;
+fig.sf(1).arg{2} = squeeze(output_field(1,kr,:).^2);
+I_tmp = fig.sf(1).arg{2};
+
+fig.sf(2) = fig.sf(1);
+t_1eI = 1e-15*h5read(HDF5_filepath,"/inputs/calculated/laser_pulse_duration_in_1_e_Intensity");
+% dum = duration_efield / sqrt(2.0);
+dum = t_1eI;
+fig.sf(2).arg{2} = max(I_tmp)*exp(-(tgrid/dum).^2);
+
+fig.sf(3) = fig.sf(1);
+t_FWHMI = 1e-15*h5read(HDF5_filepath,"/inputs/calculated/laser_pulse_duration_in_FWHM_Intensity");
+dum = t_FWHMI/(2*sqrt(log(2.)));
+fig.sf(3).arg{2} = max(I_tmp)*exp(-(tgrid/dum).^2);
+
+fig.sf(4) = fig.sf(1);
+t_rms = 1e-15*h5read(HDF5_filepath,"/inputs/calculated/laser_pulse_duration_in_rms_Intensity");
+dum = sqrt(2.0)*t_rms;
+fig.sf(4).arg{2} = max(I_tmp)*exp(-(tgrid/dum).^2);
 
 fig.title = 'First intensity';
 plot_preset_figure(fig,'default');
-
 
 return
 
