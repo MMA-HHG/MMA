@@ -262,29 +262,43 @@ PROGRAM make_start
   SELECT CASE(dumstring)
   CASE('FWHM')    
     !tp_fs_phys = FWHM2e_inv(tp_fs_phys)
-    tp_fs_phys = Convert_pulse_duration(tp_fs_phys, dumstring, '1/e', dumstring2, 'Efield')
+    tp_fs_phys = Convert_pulse_duration(tp_fs_phys, dumstring, '1/e', type2_in = dumstring2, type2_out = 'Efield')
     CALL save_or_replace(group_id, 'laser_pulse_duration_in_1_e_Efield', tp_fs_phys, error, units_in = '[fs]')
   CASE('rms')
     ! CALL read_dset(file_id, 'inputs/laser_pulse_duration_in_rms', tp_fs_phys)
     !tp_fs_phys = FWHM2e_inv(tp_fs_phys)
-    tp_fs_phys = Convert_pulse_duration(tp_fs_phys, dumstring, '1/e', dumstring2, 'Efield')
+    tp_fs_phys = Convert_pulse_duration(tp_fs_phys, dumstring, '1/e', type2_in = dumstring2, type2_out = 'Efield')
     CALL save_or_replace(group_id, 'laser_pulse_duration_in_1_e_Efield', tp_fs_phys, error, units_in = '[fs]')
   CASE('1/e')
     IF (dumstring2 == 'Intensity') THEN
-      tp_fs_phys = Convert_pulse_duration(tp_fs_phys, dumstring, '1/e', dumstring2, 'Efield')
+      tp_fs_phys = Convert_pulse_duration(tp_fs_phys, dumstring, '1/e', type2_in = dumstring2, type2_out = 'Efield')
       CALL save_or_replace(group_id, 'laser_pulse_duration_in_1_e_Efield', tp_fs_phys, error, units_in = '[fs]')
     ENDIF
   CASE DEFAULT
     STOP "wrong pulse duration specification"
   END SELECT
 
-CALL save_or_replace(group_id, 'laser_pulse_duration_in_1_e_Efield', Convert_pulse_duration(tp_fs_phys, '1/e', '1/e', 'Efield', 'Efield'), error, units_in = '[fs]')
-CALL save_or_replace(group_id, 'laser_pulse_duration_in_rms_Efield', Convert_pulse_duration(tp_fs_phys, '1/e', 'rms', 'Efield', 'Efield'), error, units_in = '[fs]')
-CALL save_or_replace(group_id, 'laser_pulse_duration_in_FWHM_Efield', Convert_pulse_duration(tp_fs_phys, '1/e', 'FWHM', 'Efield', 'Efield'), error, units_in = '[fs]')
-CALL save_or_replace(group_id, 'laser_pulse_duration_in_1_e_Intensity', Convert_pulse_duration(tp_fs_phys, '1/e', '1/e', 'Efield', 'Intensity'), error, units_in = '[fs]')
+print *, 'Efield'
+print *, Convert_pulse_duration(tp_fs_phys, '1/e', '1/e', type2_in = 'Efield', type2_out = 'Efield')
+print *, Convert_pulse_duration(tp_fs_phys, '1/e', 'FWHM', type2_in = 'Efield', type2_out = 'Efield')
+print *, Convert_pulse_duration(tp_fs_phys, '1/e', 'rms', type2_in = 'Efield', type2_out = 'Efield')
 
-  CALL save_or_replace(group_id, 'laser_pulse_duration_in_rms_Intensity', Convert_pulse_duration(tp_fs_phys, '1/e', 'rms', 'Efield', 'Intensity'), error, units_in = '[fs]')
-  CALL save_or_replace(group_id, 'laser_pulse_duration_in_FWHM_Intensity', Convert_pulse_duration(tp_fs_phys, '1/e', 'FWHM', 'Efield', 'Intensity'), error, units_in = '[fs]')
+print *, 'Intensity'
+print *, Convert_pulse_duration(tp_fs_phys, '1/e', '1/e', type2_in = 'Efield', type2_out = 'Intensity')
+print *, Convert_pulse_duration(tp_fs_phys, '1/e', 'FWHM', type2_in = 'Efield', type2_out = 'Intensity')
+print *, Convert_pulse_duration(tp_fs_phys, '1/e', 'rms', type2_in = 'Efield', type2_out = 'Intensity')
+
+!stop
+
+
+CALL save_or_replace(group_id, 'laser_pulse_duration_in_1_e_Efield', Convert_pulse_duration(tp_fs_phys, '1/e', '1/e', type2_in = 'Efield', type2_out = 'Efield'), error, units_in = '[fs]')
+CALL save_or_replace(group_id, 'laser_pulse_duration_in_rms_Efield', Convert_pulse_duration(tp_fs_phys, '1/e', 'rms', type2_in = 'Efield', type2_out = 'Efield'), error, units_in = '[fs]')
+CALL save_or_replace(group_id, 'laser_pulse_duration_in_FWHM_Efield', Convert_pulse_duration(tp_fs_phys, '1/e', 'FWHM', type2_in = 'Efield', type2_out = 'Efield'), error, units_in = '[fs]')
+
+CALL save_or_replace(group_id, 'laser_pulse_duration_in_1_e_Intensity', Convert_pulse_duration(tp_fs_phys, '1/e', '1/e', type2_in = 'Efield', type2_out = 'Intensity'), error, units_in = '[fs]')
+
+  CALL save_or_replace(group_id, 'laser_pulse_duration_in_rms_Intensity', Convert_pulse_duration(tp_fs_phys, '1/e', 'rms', type2_in = 'Efield', type2_out = 'Intensity'), error, units_in = '[fs]')
+  CALL save_or_replace(group_id, 'laser_pulse_duration_in_FWHM_Intensity', Convert_pulse_duration(tp_fs_phys, '1/e', 'FWHM', type2_in = 'Efield', type2_out = 'Intensity'), error, units_in = '[fs]')
 
   ! SELECT CASE(dumstring)
   ! CASE('FWHM')
