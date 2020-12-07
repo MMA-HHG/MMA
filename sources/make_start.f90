@@ -265,12 +265,12 @@ PROGRAM make_start
     tp_fs_phys = Convert_pulse_duration(tp_fs_phys, dumstring, '1/e', dumstring2, 'Efield')
     CALL save_or_replace(group_id, 'laser_pulse_duration_in_1_e_Efield', tp_fs_phys, error, units_in = '[fs]')
   CASE('rms')
-    CALL read_dset(file_id, 'inputs/laser_pulse_duration_in_rms', tp_fs_phys)
+    ! CALL read_dset(file_id, 'inputs/laser_pulse_duration_in_rms', tp_fs_phys)
     !tp_fs_phys = FWHM2e_inv(tp_fs_phys)
     tp_fs_phys = Convert_pulse_duration(tp_fs_phys, dumstring, '1/e', dumstring2, 'Efield')
     CALL save_or_replace(group_id, 'laser_pulse_duration_in_1_e_Efield', tp_fs_phys, error, units_in = '[fs]')
   CASE('1/e')
-    IF (dumstring2 = 'Intensity') THEN
+    IF (dumstring2 == 'Intensity') THEN
       tp_fs_phys = Convert_pulse_duration(tp_fs_phys, dumstring, '1/e', dumstring2, 'Efield')
       CALL save_or_replace(group_id, 'laser_pulse_duration_in_1_e_Efield', tp_fs_phys, error, units_in = '[fs]')
     ENDIF

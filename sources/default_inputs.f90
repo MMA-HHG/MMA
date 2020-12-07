@@ -360,7 +360,7 @@ subroutine preset_physics(test_number)
 
 !---------------------------------------------------------------------------------------------------------------------!
     tp_fs_phys = 50.d0
-    call save_or_replace(file_id, 'inputs/laser_pulse_duration_in_1_e', tp_fs_phys, error, units_in = '[fs]')
+    call save_or_replace(file_id, 'inputs/laser_pulse_duration_in_1_e_Efield', tp_fs_phys, error, units_in = '[fs]')
 
 
 !---------------------------------------------------------------------------------------------------------------------!
