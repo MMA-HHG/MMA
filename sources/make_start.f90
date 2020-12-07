@@ -277,6 +277,12 @@ PROGRAM make_start
   CASE DEFAULT
     STOP "wrong pulse duration specification"
   END SELECT
+
+CALL save_or_replace(group_id, 'laser_pulse_duration_in_1_e_Efield', Convert_pulse_duration(tp_fs_phys, '1/e', '1/e', 'Efield', 'Efield'), error, units_in = '[fs]')
+CALL save_or_replace(group_id, 'laser_pulse_duration_in_rms_Efield', Convert_pulse_duration(tp_fs_phys, '1/e', 'rms', 'Efield', 'Efield'), error, units_in = '[fs]')
+CALL save_or_replace(group_id, 'laser_pulse_duration_in_FWHM_Efield', Convert_pulse_duration(tp_fs_phys, '1/e', 'FWHM', 'Efield', 'Efield'), error, units_in = '[fs]')
+CALL save_or_replace(group_id, 'laser_pulse_duration_in_1_e_Intensity', Convert_pulse_duration(tp_fs_phys, '1/e', '1/e', 'Efield', 'Intensity'), error, units_in = '[fs]')
+
   CALL save_or_replace(group_id, 'laser_pulse_duration_in_rms_Intensity', Convert_pulse_duration(tp_fs_phys, '1/e', 'rms', 'Efield', 'Intensity'), error, units_in = '[fs]')
   CALL save_or_replace(group_id, 'laser_pulse_duration_in_FWHM_Intensity', Convert_pulse_duration(tp_fs_phys, '1/e', 'FWHM', 'Efield', 'Intensity'), error, units_in = '[fs]')
 

@@ -178,7 +178,7 @@ real(8) function Convert_pulse_duration(t_in, type_in, type_out, type2_in, type2
     case('1/e')
         dum = t_in/sqrt(2.d0)
     case('FWHM')
-        dum = t_in/(2.d0*sqrt(2.d0*log(2.d0)))
+        dum = t_in/(2.d0*sqrt(log(2.d0)))
     case('rms')
         dum = t_in
     case default
@@ -204,7 +204,7 @@ real(8) function Convert_pulse_duration(t_in, type_in, type_out, type2_in, type2
     case('1/e')
         Convert_pulse_duration = sqrt(2.d0)*dum
     case('FWHM')
-        Convert_pulse_duration = 2.d0*sqrt(2.d0*log(2.d0))*dum
+        Convert_pulse_duration = 2.d0*sqrt(log(2.d0))*dum
     case('rms')
         Convert_pulse_duration = dum
     case default
