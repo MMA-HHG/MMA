@@ -19,17 +19,7 @@ PROGRAM cuprad
   USE mpi_stuff
   USE run_status
   USE longstep_vars
-  USE HDF5
-  USE HDF5_helper
-  
   IMPLICIT NONE 
-
-  ! For storing in HDF5
-  INTEGER(HID_T)    :: file_id       ! File identifier 
-  INTEGER(HID_T)    :: group_id      ! Group identifier 
-  INTEGER           :: error         ! hdferr
-  CHARACTER(LEN=15) :: hdf5_input = "results.h5" ! hdf5 file name
-
   
 
   INTEGER(4) deltatime, limit_s
@@ -79,35 +69,7 @@ PROGRAM cuprad
            delta_z=0.5D0*(decrease+increase)/maxphase*delta_z
            IF(my_rank.EQ.0) THEN                                        !!!!!!!! ENCAPSULATE IN HDF5
 
-              CALL h5open_f(error) 
-              CALL h5fopen_f (hdf5_input, H5F_ACC_RDWR_F, file_id, error)
-              CALL h5gopen_f(file_id, 'logs', group_id, error)
-            !   CALL create_1D_dset_unlimited(group_id, 'zgrid_dz_CU', (/REAL(z,4)/), 1) ! the actual z-coordinate in SI units
-
-              CALL extend_1D_dset_unlimited(group_id, 'zgrid_dz_CU', (/REAL(z,4)/), new_dims=(/int(dz_write_count,HSIZE_T)/), & 
-                                   memspace_dims=(/int(1,HSIZE_T)/), offset=(/int(dz_write_count-1,HSIZE_T)/), hyperslab_size=(/int(1,HSIZE_T)/))
-
-            !   CALL create_1D_dset_unlimited(group_id, 'zgrid_dz_SI', (/REAL(four_z_Rayleigh*z,4)/), 1) ! the actual z-coordinate in SI units
-
-              CALL extend_1D_dset_unlimited(group_id, 'zgrid_dz_SI', (/REAL(four_z_Rayleigh*z,4)/), new_dims=(/int(dz_write_count,HSIZE_T)/), & 
-                                   memspace_dims=(/int(1,HSIZE_T)/), offset=(/int(dz_write_count-1,HSIZE_T)/), hyperslab_size=(/int(1,HSIZE_T)/))
-
-            !   CALL create_1D_dset_unlimited(group_id, 'dz', (/REAL(delta_z,4)/), 1) ! the acual delta_z
-
-              CALL extend_1D_dset_unlimited(group_id, 'dz', (/REAL(delta_z,4)/), new_dims=(/int(dz_write_count,HSIZE_T)/), & 
-                                   memspace_dims=(/int(1,HSIZE_T)/), offset=(/int(dz_write_count-1,HSIZE_T)/), hyperslab_size=(/int(1,HSIZE_T)/))
-
-            !   CALL create_1D_dset_unlimited(group_id, 'maxphase', (/-1.0/), 1) ! the acual delta_z
-
-              CALL extend_1D_dset_unlimited(group_id, 'maxphase', (/REAL(maxphase,4)/), new_dims=(/int(dz_write_count,HSIZE_T)/), & 
-                                   memspace_dims=(/int(1,HSIZE_T)/), offset=(/int(dz_write_count-1,HSIZE_T)/), hyperslab_size=(/int(1,HSIZE_T)/))
-
-
-
-              CALL h5gclose_f(group_id, error) 
-              CALL h5fclose_f(file_id, error)
-              CALL h5close_f(error)
-              dz_write_count = dz_write_count + 1
+              CALL write_extended_z
 
               OPEN(unit_rho,FILE='ZSTEP.DAT',STATUS='UNKNOWN',POSITION='APPEND')
               WRITE(unit_rho,*) 'z=',REAL(z,4),' delta_z=',REAL(delta_z,4),REAL(maxphase,4)
@@ -119,35 +81,7 @@ PROGRAM cuprad
            delta_z=MIN(delta_z_max,0.5D0*(decrease+increase)/maxphase*delta_z)
            IF(my_rank.EQ.0) THEN                                        !!!!!!!! ENCAPSULATE IN HDF5
 
-              CALL h5open_f(error) 
-              CALL h5fopen_f (hdf5_input, H5F_ACC_RDWR_F, file_id, error)
-              CALL h5gopen_f(file_id, 'logs', group_id, error)
-            !   CALL create_1D_dset_unlimited(group_id, 'zgrid_dz_CU', (/REAL(z,4)/), 1) ! the actual z-coordinate in SI units
-
-              CALL extend_1D_dset_unlimited(group_id, 'zgrid_dz_CU', (/REAL(z,4)/), new_dims=(/int(dz_write_count,HSIZE_T)/), & 
-                                   memspace_dims=(/int(1,HSIZE_T)/), offset=(/int(dz_write_count-1,HSIZE_T)/), hyperslab_size=(/int(1,HSIZE_T)/))
-
-            !   CALL create_1D_dset_unlimited(group_id, 'zgrid_dz_SI', (/REAL(four_z_Rayleigh*z,4)/), 1) ! the actual z-coordinate in SI units
-
-              CALL extend_1D_dset_unlimited(group_id, 'zgrid_dz_SI', (/REAL(four_z_Rayleigh*z,4)/), new_dims=(/int(dz_write_count,HSIZE_T)/), & 
-                                   memspace_dims=(/int(1,HSIZE_T)/), offset=(/int(dz_write_count-1,HSIZE_T)/), hyperslab_size=(/int(1,HSIZE_T)/))
-
-            !   CALL create_1D_dset_unlimited(group_id, 'dz', (/REAL(delta_z,4)/), 1) ! the acual delta_z
-
-              CALL extend_1D_dset_unlimited(group_id, 'dz', (/REAL(delta_z,4)/), new_dims=(/int(dz_write_count,HSIZE_T)/), & 
-                                   memspace_dims=(/int(1,HSIZE_T)/), offset=(/int(dz_write_count-1,HSIZE_T)/), hyperslab_size=(/int(1,HSIZE_T)/))
-
-            !   CALL create_1D_dset_unlimited(group_id, 'maxphase', (/-1.0/), 1) ! the acual delta_z
-
-              CALL extend_1D_dset_unlimited(group_id, 'maxphase', (/REAL(maxphase,4)/), new_dims=(/int(dz_write_count,HSIZE_T)/), & 
-                                   memspace_dims=(/int(1,HSIZE_T)/), offset=(/int(dz_write_count-1,HSIZE_T)/), hyperslab_size=(/int(1,HSIZE_T)/))
-
-
-
-              CALL h5gclose_f(group_id, error) 
-              CALL h5fclose_f(file_id, error)
-              CALL h5close_f(error)
-              dz_write_count = dz_write_count + 1
+              CALL write_extended_z
 
               OPEN(unit_rho,FILE='ZSTEP.DAT',STATUS='UNKNOWN',POSITION='APPEND')
               WRITE(unit_rho,*) 'z=',REAL(z,4),' delta_z=',REAL(delta_z,4),REAL(maxphase,4)
