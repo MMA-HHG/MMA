@@ -67,25 +67,15 @@ PROGRAM cuprad
 
         IF (maxphase.GT.decrease) THEN ! derease step size
            delta_z=0.5D0*(decrease+increase)/maxphase*delta_z
-           IF(my_rank.EQ.0) THEN                                        !!!!!!!! ENCAPSULATE IN HDF5
-
-              CALL write_extended_z
-
-              OPEN(unit_rho,FILE='ZSTEP.DAT',STATUS='UNKNOWN',POSITION='APPEND')
-              WRITE(unit_rho,*) 'z=',REAL(z,4),' delta_z=',REAL(delta_z,4),REAL(maxphase,4)
-              CLOSE(unit_rho)
+           IF(my_rank.EQ.0) THEN
+              CALL write_extended_z    ! save the length of the steps
            ENDIF
            call calc_propagator
         ENDIF
         IF ((maxphase.LT.increase).AND.(delta_z.LT.delta_z_max)) THEN ! increase step size (not above maximally allowed)
            delta_z=MIN(delta_z_max,0.5D0*(decrease+increase)/maxphase*delta_z)
-           IF(my_rank.EQ.0) THEN                                        !!!!!!!! ENCAPSULATE IN HDF5
-
+           IF(my_rank.EQ.0) THEN
               CALL write_extended_z
-
-              OPEN(unit_rho,FILE='ZSTEP.DAT',STATUS='UNKNOWN',POSITION='APPEND')
-              WRITE(unit_rho,*) 'z=',REAL(z,4),' delta_z=',REAL(delta_z,4),REAL(maxphase,4)
-              CLOSE(unit_rho)
            ENDIF
            call calc_propagator
         ENDIF
