@@ -417,6 +417,7 @@ CONTAINS
 
     ! allocate loggroup in the outfile
     IF(my_rank.EQ.0) THEN
+       ! adaptiv steps
        dz_write_count = 1
        CALL h5fopen_f (hdf5_input, H5F_ACC_RDWR_F, file_id, error)
        CALL h5gcreate_f(file_id, 'logs', group_id, error)
@@ -430,9 +431,19 @@ CONTAINS
        CALL h5_add_units_1D(group_id, 'maxphase', '[-]')
        CALL create_dset(group_id, 'z-length_conversion', four_z_Rayleigh)
        CALL h5_add_units_1D(group_id, 'z-length_conversion', '[SI]/[C.U.]')
+       dz_write_count = dz_write_count + 1
+
+
+       ! op_t
+       CALL create_dset(group_id, 'op_t', op_t, dim_t)
+       CALL h5_add_units_1D(group_id, 'op_t', '[C.U.]')
+       CALL create_dset(group_id, 'op_t_inv', op_t_inv, dim_t)
+       CALL h5_add_units_1D(group_id, 'op_t_inv', '[C.U.]')
+
        CALL h5gclose_f(group_id, error) 
        CALL h5fclose_f(file_id, error)
-       dz_write_count = dz_write_count + 1
+       
+
     ENDIF
     CALL h5close_f(error)
 
