@@ -95,7 +95,7 @@ CONTAINS
     CHARACTER(LEN=10), PARAMETER :: hdf5_input = "results.h5"  ! File name for the HDF5 input file
     CHARACTER(LEN = *), PARAMETER :: output_groupname = "pre-processed" 
     CHARACTER(LEN = *), PARAMETER :: input_groupname = "inputs" 
-    INTEGER(HID_T) :: file_id, group_id     ! File identifier 
+    INTEGER(HID_T) :: file_id, group_id, ! File identifier 
     INTEGER        :: error
     REAL(8), ALLOCATABLE :: real_e(:,:),imag_e(:,:)
     REAL(8) :: PI
@@ -253,11 +253,26 @@ CONTAINS
        ENDIF
     ENDIF
     delta_z=MIN(delta_z,2.D0*delta_z_max)
+
+    ! prepare log records
     IF(my_rank.EQ.0) THEN
+      !  CALL h5gcreate_f(file_id, 'logs', group_id, error)
+      !  CALL create_1D_dset_unlimited(group_id, 'zgrid_dz_CU', (/REAL(z,4)/), 1) ! the actual z-coordinate in SI units
+      !  CALL h5_add_units_1D(group_id, zgrid_dset_name, '[C.U.]')
+      !  CALL create_1D_dset_unlimited(group_id, 'zgrid_dz_SI', (/REAL(four_z_Rayleigh*z,4)/), 1) ! the actual z-coordinate in SI units
+      !  CALL h5_add_units_1D(group_id, zgrid_dset_name, '[SI]')
+      !  CALL create_1D_dset_unlimited(group_id, 'dz', (/REAL(delta_z,4)/), 1) ! the acual delta_z
+      !  CALL h5_add_units_1D(group_id, 'dz', '[C.U.]')
+      !  CALL create_1D_dset_unlimited(group_id, 'maxphase', (/-1.0/), 1) ! the acual delta_z
+      !  CALL h5_add_units_1D(group_id, 'dz', '[C.U.]')
+      !  CALL create_dset(group_id, 'z-length_conversion', four_z_Rayleigh)
+      !  CALL h5_add_units_1D(group_id, 'z-length_conversion', '[SI]/[C.U.]')
+      !  CALL h5gclose_f(group_id, error) 
        OPEN(unit_rho,FILE='ZSTEP.DAT',STATUS='UNKNOWN',POSITION='APPEND')
        WRITE(unit_rho,*) 'z=',REAL(z,4),' delta_z=',REAL(delta_z,4)
        CLOSE(unit_rho)
     ENDIF
+
     ALLOCATE(bound_t(dim_t))
     bound_t=1.D0
     IF (absorb.GT.0) THEN
@@ -396,8 +411,27 @@ CONTAINS
     IF (apply_pre_ionisation) CALL init_pre_ionisation(file_id)
 
     
-    ! CLOSE HDF5 interface (ionisation models will re-open again)
+    ! CLOSE HDF5 interface (ionisation models will re-open again, but use also write, there are many readers above)
     CALL h5fclose_f(file_id, error)
+
+    ! allocate loggroup in the outfile
+    IF(my_rank.EQ.0) THEN
+       CALL h5fopen_f (hdf5_input, H5F_ACC_RDWR_F, file_id, error)
+       CALL h5gcreate_f(file_id, 'logs', group_id, error)
+       CALL create_1D_dset_unlimited(group_id, 'zgrid_dz_CU', (/REAL(z,4)/), 1) ! the actual z-coordinate in SI units
+       CALL h5_add_units_1D(group_id, zgrid_dset_name, '[C.U.]')
+       CALL create_1D_dset_unlimited(group_id, 'zgrid_dz_SI', (/REAL(four_z_Rayleigh*z,4)/), 1) ! the actual z-coordinate in SI units
+       CALL h5_add_units_1D(group_id, zgrid_dset_name, '[SI]')
+       CALL create_1D_dset_unlimited(group_id, 'dz', (/REAL(delta_z,4)/), 1) ! the acual delta_z
+       CALL h5_add_units_1D(group_id, 'dz', '[C.U.]')
+       CALL create_1D_dset_unlimited(group_id, 'maxphase', (/-1.0/), 1) ! the acual delta_z
+       CALL h5_add_units_1D(group_id, 'dz', '[C.U.]')
+       CALL create_dset(group_id, 'z-length_conversion', four_z_Rayleigh)
+       CALL h5_add_units_1D(group_id, 'z-length_conversion', '[SI]/[C.U.]')
+       CALL h5gclose_f(group_id, error) 
+       CALL h5fclose_f(file_id, error)
+       dz_write_count = dz_write_count + 1
+    ENDIF
     CALL h5close_f(error)
 
     i_x_old=2

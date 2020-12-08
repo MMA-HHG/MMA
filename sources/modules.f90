@@ -25,6 +25,9 @@ MODULE longstep_vars
   TYPE(list_t), POINTER :: losses_plasma_ll => NULL()
   TYPE(list_t), POINTER :: losses_ionization_ll => NULL()
   INTEGER :: length_of_linked_list = 0
+
+  ! CHARACTER(*), PARAMETER ::  zsteps_name = 'zsteps'
+  INTEGER :: dz_write_count = 0
 END MODULE longstep_vars
 
 MODULE parameters
