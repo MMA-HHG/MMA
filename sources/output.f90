@@ -522,6 +522,7 @@ CONTAINS
   END SUBROUTINE linked_list_out
 
   SUBROUTINE write_extended_z
+    USE longstep_vars
     ! For storing in HDF5
     INTEGER(HID_T)    :: file_id       ! File identifier 
     INTEGER(HID_T)    :: group_id      ! Group identifier 
