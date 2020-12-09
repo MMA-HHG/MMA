@@ -19,6 +19,7 @@ MODULE output
   USE normalization
   USE HDF5
   USE HDF5_helper
+  USE h5namelist
   USE pre_ionised
 CONTAINS
   
@@ -46,18 +47,18 @@ CONTAINS
     INTEGER(HSIZE_T), DIMENSION(2) :: dims_2d, offset_2d, ccount_2d
     INTEGER                        :: error
     LOGICAL                        :: group_status
-    CHARACTER(LEN=15) :: h5_filename="results.h5"
-    CHARACTER(LEN=15) :: groupname="outputs"
-    CHARACTER(LEN=25) :: field_dset_name="outputs/output_field"
-    CHARACTER(LEN=25) :: plasma_dset_name="outputs/output_plasma"
-    CHARACTER(LEN=25) :: spect_1d_dset_name_1="outputs/omegagrid"
-    CHARACTER(LEN=60) :: spect_1d_dset_name_2="outputs/spectral_intensity_integrated_over_the_numerical_box"
-    CHARACTER(LEN=69) :: spect_1d_dset_name_3="outputs/spectral_intensity_integrated_over_cylinder_with_radius_rfill"
-    CHARACTER(LEN=26) :: spect_1d_dset_name_4="outputs/spectral_intensity"
-    CHARACTER(LEN=22) :: spect_1d_dset_name_5="outputs/spectral_phase"
-    CHARACTER(LEN=13) :: zgrid_dset_name = "outputs/zgrid"
-    CHARACTER(LEN=13) :: tgrid_dset_name = "outputs/tgrid"
-    CHARACTER(LEN=13) :: rgrid_dset_name = "outputs/rgrid"
+    ! CHARACTER(LEN=15) :: h5_filename="results.h5"
+    ! CHARACTER(LEN=15) :: groupname="outputs"
+    CHARACTER(*), PARAMETER :: field_dset_name=       out_grpname//"/output_field"
+    CHARACTER(*), PARAMETER :: plasma_dset_name=      out_grpname//"/output_plasma"
+    CHARACTER(*), PARAMETER :: spect_1d_dset_name_1=  out_grpname//"/omegagrid"
+    CHARACTER(*), PARAMETER :: spect_1d_dset_name_2=  out_grpname//"/spectral_intensity_integrated_over_the_numerical_box"
+    CHARACTER(*), PARAMETER :: spect_1d_dset_name_3=  out_grpname//"/spectral_intensity_integrated_over_cylinder_with_radius_rfill"
+    CHARACTER(*), PARAMETER :: spect_1d_dset_name_4=  out_grpname//"/spectral_intensity"
+    CHARACTER(*), PARAMETER :: spect_1d_dset_name_5=  out_grpname//"/spectral_phase"
+    CHARACTER(*), PARAMETER :: zgrid_dset_name =      out_grpname//"/zgrid"
+    CHARACTER(*), PARAMETER :: tgrid_dset_name =      out_grpname//"/tgrid"
+    CHARACTER(*), PARAMETER :: rgrid_dset_name =      out_grpname//"/rgrid"
 
       
     field_dimensions = 3
@@ -115,15 +116,15 @@ CONTAINS
     CALL h5open_f(error) 
     CALL h5pcreate_f(H5P_FILE_ACCESS_F, h5parameters, error) ! create HDF5 access parameters
     CALL h5pset_fapl_mpio_f(h5parameters, MPI_COMM_WORLD, MPI_INFO_NULL, error) ! set parameters for MPI access
-    CALL h5fopen_f(h5_filename, H5F_ACC_RDWR_F, file_id, error, access_prp = h5parameters ) ! Open collectivelly the file
+    CALL h5fopen_f(main_h5_fname, H5F_ACC_RDWR_F, file_id, error, access_prp = h5parameters ) ! Open collectivelly the file
     CALL h5pclose_f(h5parameters,error) ! close the parameters
 
 
     IF ( first ) THEN
       !Create group for the output if it does not already exist
-      CALL h5lexists_f(file_id, groupname, group_status, error)
+      CALL h5lexists_f(file_id, out_grpname, group_status, error)
       IF ( group_status .EQV. .FALSE. ) THEN
-        CALL h5gcreate_f(file_id, groupname, group_id, error) 
+        CALL h5gcreate_f(file_id, out_grpname, group_id, error) 
         CALL h5gclose_f(group_id, error)
       ENDIF
           
@@ -135,7 +136,7 @@ CONTAINS
       CALL h5fclose_f(file_id,error)
 
       IF (my_rank.EQ.0) THEN ! single-write start
-        CALL h5fopen_f (h5_filename, H5F_ACC_RDWR_F, file_id, error) ! Open an existing file.
+        CALL h5fopen_f (main_h5_fname, H5F_ACC_RDWR_F, file_id, error) ! Open an existing file.
         CALL h5_add_units_1D(file_id, field_dset_name, '[V/m]') 
 	CALL h5_add_units_1D(file_id, plasma_dset_name, '[m^(-3)]') 
 
@@ -168,7 +169,7 @@ CONTAINS
 
       IF (my_rank.EQ.0) THEN ! only one worker is extending the zgrid
         CALL h5open_f(error)  !Initialize HDF5
-        CALL h5fopen_f(h5_filename, H5F_ACC_RDWR_F, file_id, error)
+        CALL h5fopen_f(main_h5_fname, H5F_ACC_RDWR_F, file_id, error)
         ! only z-grid in 1D
         !dumh51D = (/int(HDF5write_count-1,HSIZE_T)/) ! offset
         !dumh51D2 = (/int(1,HSIZE_T)/) ! count
@@ -216,7 +217,7 @@ CONTAINS
         allocate(spect_array_2(1,1:dim_t),spect_array_3(1,1:dim_t), spect_array_4(1,1:dim_t),spect_array_5(1,1:dim_t))
       ENDIF
       CALL h5open_f(error)
-      CALL h5fopen_f(h5_filename, H5F_ACC_RDWR_F, file_id, error)
+      CALL h5fopen_f(main_h5_fname, H5F_ACC_RDWR_F, file_id, error)
       IF ( first ) THEN
         DO j=1,dim_t
           spect_array_1(j) = REAL(k_t*REAL(j-1-dim_th,8)+omega_uppe,4) 
