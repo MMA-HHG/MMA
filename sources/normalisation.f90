@@ -2,7 +2,6 @@ MODULE normalisation
   USE calc_start
 
   REAL(8) n2_phys,n4_phys,lambda0_cm_phys,Ui_eV_phys,proplength_m_phys,outlength_m_phys,delta_z_mm_phys,sigmak_phys,sigman_phys
-  LOGICAL out_Efield
   REAL(8) outlength_Efield_m_phys
   REAL(8) sigma_cm2_phys,alpha_fs_phys,alphaquad_fscm3_phys,tdk_fs_phys,raman_phys,rfil_mm_phys,pressure,tauc_fs_phys
   REAL(8) rho0_phys

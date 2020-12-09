@@ -615,7 +615,7 @@ CONTAINS
     !!!!!!!!!!
  
    ! Initialize dims arrays
-    dims = (/int(Nz_points,HSIZE_T),int(dim_r,HSIZE_T), int(dim_t,HSIZE_T)/)
+    dims = (/int(Nz_points_Efield,HSIZE_T),int(dim_r,HSIZE_T), int(dim_t,HSIZE_T)/)
     offset = (/int(HDF5write_count-1,HSIZE_T),int(dim_r_start(num_proc)-1,HSIZE_T),int(0,HSIZE_T)/)
     ccount = (/int(1,HSIZE_T), int(dim_r_local,HSIZE_T) , int(dim_t,HSIZE_T)/)
       

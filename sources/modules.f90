@@ -80,6 +80,7 @@ END MODULE mpi_Stuff
 
 MODULE normalization
   INTEGER(4) :: Nz_points ! expected number of hdf5 output along z
+  INTEGER(4) :: Nz_points_Efield ! dtto
   REAL(8) :: tps ! pulse duration in s (normalization factor for time)
   REAL(8) :: w0m ! beam width in m (normalization factor for transverse length)
   REAL(8) :: lambdanm ! center wavelength in nm

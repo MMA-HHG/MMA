@@ -10,6 +10,7 @@ MODULE write_start
 
   REAL(8) omega_uppe
   REAL(8) lt,lr,proplength,outlength,outlength_Efield,delta_z,z,z_out,z_out_Efield,rfil,increase,decrease,time_limit
+  LOGICAL out_Efield
   REAL(8) photon_energy_au_phys,tp_fs_phys,Pcr_phys,w0_cm_phys
   REAL(8) Ui_au_phys,residue_charge,n0,rhoc_cm3_phys,rhont_cm3_phys
 
@@ -118,8 +119,8 @@ CONTAINS
 
       CALL create_dset(group_id,'out_Efield', out_Efield)
       IF (out_Efield) THEN
-        CALL create_dset(group_id,'out_Efield', out_Efield)
         CALL create_dset(group_id,'z_out_Efield', z_out_Efield)
+        CALL create_dset(group_id,'outlength_Efield', outlength_Efield)
       ENDIF
 
       
