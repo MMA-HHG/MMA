@@ -21,7 +21,7 @@ MODULE write_start
   INTEGER(HID_T) :: file_id, group_id, group_id2
   INTEGER :: error
   CHARACTER(LEN = *), PARAMETER :: output_groupname = "pre-processed"
-  CHARACTER(15) :: filename  ! File name variable, which is assigned a value by user eg.: results.h5
+  CHARACTER(100) :: filename  ! File name variable, which is assigned a value by user eg.: results.h5
   INTEGER(HSIZE_T), DIMENSION(1:1) :: data_dims       
   
 CONTAINS
