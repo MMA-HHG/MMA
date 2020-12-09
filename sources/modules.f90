@@ -9,6 +9,20 @@ MODULE fields
   LOGICAL, ALLOCATABLE     :: send_first(:)
 END MODULE fields
 
+MODULE h5namelist
+  ! USE HDF5
+  CHARACTER(*), PARAMETER   ::  main_h5_fname =       "results.h5"
+  CHARACTER(*), PARAMETER   ::  in_grpname =          "inputs"
+  CHARACTER(*), PARAMETER   ::  pre_proc_grpname =    "pre-processed"
+  CHARACTER(*), PARAMETER   ::  out_grpname =         "outputs"
+  CHARACTER(*), PARAMETER   ::  outEfield_grpname =   "IRprop"
+  CHARACTER(*), PARAMETER   ::  log_grpname =         "logs"
+  CHARACTER(*), PARAMETER   ::  ionref_grpname =      "ionisation_model"
+  CHARACTER(*), PARAMETER   ::  longstep_grpname =    "longstep"
+  CHARACTER(*), PARAMETER   ::  outcont_grpname =     out_grpname//"/"//"code_continuation"
+  CHARACTER(*), PARAMETER   ::  refrindex_grpname =   pre_proc_grpname//"/"//"pre-processed"
+END MODULE h5namelist
+
 MODULE longstep_vars
   USE linked_list
   INTEGER :: longstep_write_count = 0

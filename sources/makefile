@@ -25,7 +25,7 @@
   PROPAGATION       = cuprad_occigen.e
   S_PROPAGATION       = linked_list_module.f90 hdf5_helper_serial.f90 hdf5_helper.f90 array_helper.f90 \
                         modules.f90 pre_ionised.f90 code_ionisation.f90 fft_rk.f90 finalize.f90 \
-                        firststep.f90 longstep_rk.f90 output.f90 outputHDF5_occigen.f90 cuprad.f90
+                        firststep.f90 longstep_rk.f90 output.f90 cuprad.f90
   MAKE_START	   = make_start_occigen.e
   S_MAKE_START       = hdf5_helper_serial.f90 hdf5_helper.f90 write_start.f90 calc_start.f90 normalisation.f90 \
                        write_listing.f90 default_inputs.f90 make_start.f90
