@@ -330,7 +330,7 @@ subroutine preset_numerics_tests(test_number)
     select case(test_number)
     case(1:6)
         outlength_Efield_m_phys = outlength_m_phys
-    case(7:8)
+    case(7:N_tests)
         outlength_Efield_m_phys = 0.0005d0        
     end select
     call save_or_replace(file_id, 'inputs/numerics_physical_output_distance_for_Efield_only', outlength_Efield_m_phys, error, units_in = '[m]')
