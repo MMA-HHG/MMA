@@ -143,7 +143,7 @@ function initial_electron_density_tip(r,z,k_actual,k_first)
     real(8)                    :: r,z 
     integer                    :: k_actual,k_first
 
-    if ( k_actual == k_first) then
+    if (k_actual == k_first) then
         initial_electron_density_tip = initial_electron_density(r,z,reset_rtip=.TRUE.)
     else
         initial_electron_density_tip = initial_electron_density(r,z)

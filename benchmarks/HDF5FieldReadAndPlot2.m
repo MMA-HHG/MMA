@@ -20,9 +20,11 @@ delete('*.png');
 %% parameters
 
 % path = 'D:\data\CUPRAD';
-HDF5_path = 'D:\TEMP\OCCIGEN_CUPRAD\compares4\';
+HDF5_path = 'D:\TEMP\OCCIGEN_CUPRAD\compares3\';
 % HDF5_filename = "results_GfP.h5";
-HDF5_filename = "results_GfFWHMI.h5";
+% HDF5_filename = "results_GfFWHMI.h5";
+HDF5_filename = "results_short.h5";
+
 
 
 kr = 1;
@@ -36,6 +38,8 @@ rhoplot_range = 1:40:200;
 kz_plot = 5;
 
 print_A4 = true;
+
+plot_EfI1 = false;
 
 resol='-r300';
 colors={'-g','-k','--r'};
@@ -62,7 +66,10 @@ Nz = length(zgrid); Nt = length(tgrid); Nr = length(rgrid);
 
 
 %% tests
-firstplasma = squeeze(output_plasma(1,:,:));
+
+rho0 = h5read(HDF5_filepath,"/inputs/effective_density_of_neutral_molecules");
+
+firstplasma = squeeze(1e-6*output_plasma(1,:,:)/rho0);
 firstplasma(1,end)
 
 figure
@@ -70,7 +77,10 @@ pcolor(firstplasma)
 shading interp
 colorbar
 
+return
 
+
+if(plot_EfI1)
 %% plot abs_Efield
 fig.sf(1).method = @plot;
 fig.sf(1).arg{1} = tgrid;
@@ -121,7 +131,9 @@ fig.sf(4).arg{2} = max(I_tmp)*exp(-(tgrid/dum).^2);
 fig.title = 'First intensity';
 plot_preset_figure(fig,'default');
 
-return
+
+end
+% return
 
 %% plot z_evol
 fig.sf(1).method = @plot;
