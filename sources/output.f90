@@ -47,8 +47,7 @@ CONTAINS
     INTEGER(HSIZE_T), DIMENSION(2) :: dims_2d, offset_2d, ccount_2d
     INTEGER                        :: error
     LOGICAL                        :: group_status
-    ! CHARACTER(LEN=15) :: h5_filename="results.h5"
-    ! CHARACTER(LEN=15) :: groupname="outputs"
+
     CHARACTER(*), PARAMETER :: field_dset_name=       out_grpname//"/output_field"
     CHARACTER(*), PARAMETER :: plasma_dset_name=      out_grpname//"/output_plasma"
     CHARACTER(*), PARAMETER :: spect_1d_dset_name_1=  out_grpname//"/omegagrid"
@@ -171,11 +170,9 @@ CONTAINS
         CALL h5open_f(error)  !Initialize HDF5
         CALL h5fopen_f(main_h5_fname, H5F_ACC_RDWR_F, file_id, error)
         ! only z-grid in 1D
-        !dumh51D = (/int(HDF5write_count-1,HSIZE_T)/) ! offset
-        !dumh51D2 = (/int(1,HSIZE_T)/) ! count
-        !dumr4(1) = REAL(four_z_Rayleigh*z,4) ! the actual z-coordinate in SI units 
-        CALL extend_1D_dset_unlimited(file_id, zgrid_dset_name, (/REAL(four_z_Rayleigh*z,4)/), new_dims=(/int(output_write_count,HSIZE_T)/), & 
-          memspace_dims=(/int(1,HSIZE_T)/), offset=(/int(output_write_count-1,HSIZE_T)/), hyperslab_size=(/int(1,HSIZE_T)/))
+        CALL extend_1D_dset_unlimited(file_id, zgrid_dset_name, (/REAL(four_z_Rayleigh*z,4)/),& ! the actual z-coordinate in SI units 
+              new_dims=(/int(output_write_count,HSIZE_T)/),  memspace_dims=(/int(1,HSIZE_T)/),&
+              offset=(/int(output_write_count-1,HSIZE_T)/), hyperslab_size=(/int(1,HSIZE_T)/))
         CALL h5fclose_f(file_id,error)
       ENDIF ! single-write end
     ENDIF
@@ -274,9 +271,7 @@ CONTAINS
     INTEGER(HSIZE_T), DIMENSION(2) :: dims, offset, ccount
     INTEGER :: error
     LOGICAL :: group_status
-    ! CHARACTER(LEN=15) :: h5_filename="results.h5"
-    ! CHARACTER(LEN=15) :: groupname="/outputs"
-    ! CHARACTER(LEN=25) :: field_out_groupname="/outputs/field_out_group"
+
     INTEGER(HID_T) :: indexes_group_id
     CHARACTER(*), PARAMETER :: indexes_groupname = outcont_grpname//"/indexes_group"    
     REAL(4), ALLOCATABLE :: real_e(:,:),imag_e(:,:)
@@ -371,24 +366,9 @@ CONTAINS
        CALL create_dset(field_group_id,'n0_indice',n0_indice)
        CALL create_dset(field_group_id,'critdens',critical_density)
        CALL create_dset(field_group_id,'atomdens',atomic_density)
-
        CALL create_dset(field_group_id,'angmom',angular_momentum)
-
-
-
-
-
-
-
-
-
        CALL create_dset(field_group_id,'finished',finished)
        CALL create_dset(field_group_id,'omega_uppe',omega_uppe)
-
-
-
-
-
 
        efield_factor = SQRT(critical_power*1.D9*3.D8*4.D0*3.1415D-7/(4.D0*3.1415D0*beam_waist**2*1.D-4*2.D0*n0_indice))*2.D0 ! normalization factor electric field V/m
        ALLOCATE(real_e(dim_t,dim_r/num_proc),imag_e(dim_t,dim_r/num_proc))
@@ -433,7 +413,7 @@ CONTAINS
     INTEGER(HID_T) :: h5parameters  ! Property list identifier 
     INTEGER(HSIZE_T), DIMENSION(2) :: dims, offset, ccount
     INTEGER                        :: error
-    ! CHARACTER(LEN=15) :: h5_filename="results.h5"
+
     CHARACTER(LEN=25) :: fluence_dset_name=longstep_grpname//"/fluence"
     CHARACTER(LEN=23) :: plasma_channel_dset_name=longstep_grpname//"/plasma_channel"
     CHARACTER(LEN=22) :: losses_plasma_dset_name=longstep_grpname//"/losses_plasma"
@@ -528,33 +508,18 @@ CONTAINS
     INTEGER(HID_T)    :: file_id       ! File identifier 
     INTEGER(HID_T)    :: group_id      ! Group identifier 
     INTEGER           :: error         ! hdferr
-   !  CHARACTER(LEN=15) :: hdf5_input = "results.h5" ! hdf5 file name
 
     CALL h5open_f(error) 
     CALL h5fopen_f (main_h5_fname, H5F_ACC_RDWR_F, file_id, error)
     CALL h5gopen_f(file_id, log_grpname, group_id, error)
-  !   CALL create_1D_dset_unlimited(group_id, 'zgrid_dz_CU', (/REAL(z,4)/), 1) ! the actual z-coordinate in SI units
-
     CALL extend_1D_dset_unlimited(group_id, 'zgrid_dz_CU', (/REAL(z,4)/), new_dims=(/int(dz_write_count,HSIZE_T)/), & 
                           memspace_dims=(/int(1,HSIZE_T)/), offset=(/int(dz_write_count-1,HSIZE_T)/), hyperslab_size=(/int(1,HSIZE_T)/))
-
-  !   CALL create_1D_dset_unlimited(group_id, 'zgrid_dz_SI', (/REAL(four_z_Rayleigh*z,4)/), 1) ! the actual z-coordinate in SI units
-
     CALL extend_1D_dset_unlimited(group_id, 'zgrid_dz_SI', (/REAL(four_z_Rayleigh*z,4)/), new_dims=(/int(dz_write_count,HSIZE_T)/), & 
                           memspace_dims=(/int(1,HSIZE_T)/), offset=(/int(dz_write_count-1,HSIZE_T)/), hyperslab_size=(/int(1,HSIZE_T)/))
-
-  !   CALL create_1D_dset_unlimited(group_id, 'dz', (/REAL(delta_z,4)/), 1) ! the acual delta_z
-
     CALL extend_1D_dset_unlimited(group_id, 'dz', (/REAL(delta_z,4)/), new_dims=(/int(dz_write_count,HSIZE_T)/), & 
                           memspace_dims=(/int(1,HSIZE_T)/), offset=(/int(dz_write_count-1,HSIZE_T)/), hyperslab_size=(/int(1,HSIZE_T)/))
-
-  !   CALL create_1D_dset_unlimited(group_id, 'maxphase', (/-1.0/), 1) ! the acual delta_z
-
     CALL extend_1D_dset_unlimited(group_id, 'maxphase', (/REAL(maxphase,4)/), new_dims=(/int(dz_write_count,HSIZE_T)/), & 
                           memspace_dims=(/int(1,HSIZE_T)/), offset=(/int(dz_write_count-1,HSIZE_T)/), hyperslab_size=(/int(1,HSIZE_T)/))
-
-
-
     CALL h5gclose_f(group_id, error) 
     CALL h5fclose_f(file_id, error)
     CALL h5close_f(error)
@@ -604,12 +569,11 @@ CONTAINS
     REAL(4), ALLOCATABLE :: fields_array(:,:,:), rgrid(:), tgrid(:) 
 
     ! file & dataset names
-     ! CHARACTER(LEN=10), PARAMETER :: filename = "results.h5"  ! File name
-     CHARACTER(*), PARAMETER :: Fields_dset_name = outEfield_grpname//"/Fields_rzt" ! Dataset name
-     CHARACTER(*), PARAMETER :: zgrid_dset_name = outEfield_grpname//"/zgrid" ! Dataset name
-     CHARACTER(*), PARAMETER :: tgrid_dset_name = outEfield_grpname//"/tgrid" ! Dataset name
-     CHARACTER(*), PARAMETER :: rgrid_dset_name = outEfield_grpname//"/rgrid" ! Dataset name
-     ! CHARACTER(*), PARAMETER :: groupname = "IRprop"
+    CHARACTER(*), PARAMETER :: Fields_dset_name = outEfield_grpname//"/Fields_rzt" ! Dataset name
+    CHARACTER(*), PARAMETER :: zgrid_dset_name = outEfield_grpname//"/zgrid" ! Dataset name
+    CHARACTER(*), PARAMETER :: tgrid_dset_name = outEfield_grpname//"/tgrid" ! Dataset name
+    CHARACTER(*), PARAMETER :: rgrid_dset_name = outEfield_grpname//"/rgrid" ! Dataset name
+
     ! THE CODE
 
     
