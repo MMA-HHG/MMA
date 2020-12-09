@@ -11,7 +11,7 @@ END MODULE fields
 
 MODULE h5namelist
   ! USE HDF5
-  CHARACTER(*), PARAMETER   ::  main_h5_fname =       "results.h5"
+  CHARACTER(100), SAVE      ::  main_h5_fname =       "results.h5"
   CHARACTER(*), PARAMETER   ::  in_grpname =          "inputs"
   CHARACTER(*), PARAMETER   ::  pre_proc_grpname =    "pre-processed"
   CHARACTER(*), PARAMETER   ::  out_grpname =         "outputs"

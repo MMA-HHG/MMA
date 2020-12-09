@@ -16,6 +16,7 @@ MODULE first_step
   USE mpi_stuff
   USE run_status
   USE normalization
+  USE h5namelist
 CONTAINS
 
   SUBROUTINE calc_propagator
@@ -132,10 +133,10 @@ CONTAINS
     ! get the filename from the message
     OPEN(UNIT=11,FILE="msg.tmp",FORM="FORMATTED", ACCESS="SEQUENTIAL", status='old', action='read') ! (11,FILE='msg.tmp')
     !read(UNIT=1,fmt=*, IOSTAT=st)
-    READ(UNIT=11,fmt=*, IOSTAT=pos) filename
-    print *, filename
+    READ(UNIT=11,fmt=*, IOSTAT=pos) main_h5_fname
+    print *, main_h5_fname
     CLOSE(11)
-    stop
+    ! stop
 
     ! OPEN HDF5 interface
     CALL h5open_f(error) 
