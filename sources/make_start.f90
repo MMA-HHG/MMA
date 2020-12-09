@@ -44,7 +44,7 @@ PROGRAM make_start
   ENDIF
 
   OPEN(11,FILE='msg.tmp')
-  WRITE(11,*) TRIM(filename)
+  WRITE(11,'(a)') TRIM(filename)
   CLOSE(11)
   
   ! Open the file
