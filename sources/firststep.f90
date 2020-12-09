@@ -90,7 +90,7 @@ CONTAINS
     USE longstep_vars
     IMPLICIT NONE
 
-    INTEGER(4)  j,k,help,k1
+    INTEGER(4)  j,k,help,k1, pos
     REAL(8) absorb_factor
     CHARACTER*10 filename
     CHARACTER(LEN=10), PARAMETER :: hdf5_input = "results.h5"  ! File name for the HDF5 input file
@@ -128,14 +128,22 @@ CONTAINS
     DO k=1,3
        IF (ip(k:k).EQ.' ') ip(k:k)='0'
     ENDDO
-   
-! OPEN HDF5 interface
+
+    ! get the filename from the message
+    OPEN(UNIT=11,FILE="msg.tmp",FORM="FORMATTED", ACCESS="SEQUENTIAL", status='old', action='read') ! (11,FILE='msg.tmp')
+    !read(UNIT=1,fmt=*, IOSTAT=st)
+    READ(UNIT=11,fmt=*, IOSTAT=pos) filename
+    print *, filename
+    CLOSE(11)
+    stop
+
+    ! OPEN HDF5 interface
     CALL h5open_f(error) 
     CALL h5fopen_f (hdf5_input, H5F_ACC_RDONLY_F, file_id, error)
 
     ! direct code inputs
     CALL h5gopen_f(file_id, input_groupname, group_id, error) 
-   ! CALL read_dset(group_id, 'ionised_atoms_relative_Kerr_response', ions_Kerr_ratio) 
+    ! CALL read_dset(group_id, 'ionised_atoms_relative_Kerr_response', ions_Kerr_ratio) 
     CALL h5gclose_f(group_id, error) ! all pre-processed inputs read
     ions_Kerr_ratio = 1.D0/3.D0
 
