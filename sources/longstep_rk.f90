@@ -204,6 +204,7 @@ CONTAINS
        rho=rho*exp(intF)+var1*delta_t
        mpa=mpa*(1.D0-rhosave*rhoat_inv)
     END SELECT
+    !print *, 'alpha4', alphaquad
     rho=rho-alphaquad*rhosave**2*delta_t
     IF (rho.LT.0.D0) rho=0.D0
 
@@ -326,6 +327,9 @@ CONTAINS
       ELSE
          rhotemp = 0.D0
       ENDIF
+      !print *, 'rhotmp', rhotemp, 'myrank', my_rank
+      !print *, 'rhoatm', 1.d0/rhoat_inv, 'myrank', my_rank
+      stop
        rhompi=0.D0
        rho1=0.D0
        rho2=0.D0

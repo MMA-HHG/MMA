@@ -9,7 +9,7 @@ character(15)   ::  gas_preset
 
 integer                 :: k1
 integer, parameter      :: N_tests = 9
-character(*), parameter :: available_tests(N_tests) = (/"test", "test2", "GfP", "GfI", "GfFWHME", "GfFWHMI", "GfH5w", "GfH5w_pre_ionised", "GfH5w_pre_ionised_PPT"/)
+character(*), parameter :: available_tests(N_tests) = (/"test", "test2", "GfP", "GfI", "GfFWHME", "GfFWHMI", "GfH5w", "PI", "PIPPT"/) ! "GfH5w_pre_ionised_PPT"
 ! integer, parameter      :: test_numbers(N_tests) =  (k1, k1=1,N_tests)
 
 CONTAINS
@@ -116,7 +116,7 @@ integer         :: switch_ionisation, switch_atom
     tauc_fs_phys = 190.d0 ! THIS IS APPLIED
 
     alpha_fs_phys = 0.d0
-    alphaquad_fscm3_phys = 1.d-3
+    alphaquad_fscm3_phys = 0.d0 !1.d-3
 
     NN = 2
     sigman_phys = 0.d0

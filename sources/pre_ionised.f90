@@ -81,12 +81,12 @@ subroutine init_pre_ionisation(file_id)
             call read_dset(file_id, 'pre_ionised/table', table_1D, Nz)
     end select
 
-    if (method_units == 1)  then ! any( table_geometries == method_geometry) eventual condition for extended prescriptions
-        call read_dset(file_id, 'pre-processed/rhoat_inv',dumr) ! inverse of the neutrals density, C.U.
-        dumr = 1.D0/dumr ! conversion factor (- -> C.U.)
-    elseif (method_units == 2) then
-        call read_dset(file_id, 'pre-processed/density_normalisation_factor',dumr) ! conversion factor (cm-3 -> C.U.)
-    endif
+    !if (method_units == 1)  then ! any( table_geometries == method_geometry) eventual condition for extended prescriptions
+    !    call read_dset(file_id, 'pre-processed/rhoat_inv',dumr) ! inverse of the neutrals density, C.U.
+    !    dumr = 1.D0/dumr ! conversion factor (- -> C.U.)
+    !elseif (method_units == 2) then
+    !    call read_dset(file_id, 'pre-processed/density_normalisation_factor',dumr) ! conversion factor (cm-3 -> C.U.)
+    !endif
 end subroutine init_pre_ionisation
 
 

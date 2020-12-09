@@ -81,6 +81,10 @@ CONTAINS
       ELSE
          rhotemp = 0.D0
       ENDIF
+
+      !print *, 'rhotmp', rhotemp, 'myrank', my_rank
+      !print *, 'rhoatm', 1.d0/rhoat_inv, 'myrank', my_rank
+
       rhompi=0.D0
       rho1=0.D0
       rho2=0.D0
@@ -98,6 +102,7 @@ CONTAINS
          ENDIF
       ENDDO
       plasma_array(1,k1,:) = REAL(plasma_normalisation_factor_m3*e_2KKm2,4) ! SI units
+      !plasma_array(1,k1,:) = REAL(e_2KKm2,4) ! SI units
       !plasma_array(1,k1,:) = REAL(e_2KKm2,4) ! computational units
       k1 = k1 + 1
     ENDDO
