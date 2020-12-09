@@ -527,7 +527,7 @@ CONTAINS
   END SUBROUTINE write_extended_z
 
 
-  SUBROUTINE HDF5_out  
+  SUBROUTINE Efield_out
   ! It is still used for printig fields only, it is still used because the main
   ! printing procedure prints more outputs. It should be merged with the option 
   ! to print only the fields.
@@ -682,7 +682,7 @@ CONTAINS
     ENDIF
 
     RETURN
-  END SUBROUTINE  HDF5_out
+  END SUBROUTINE  Efield_out
 
 END MODULE output
 

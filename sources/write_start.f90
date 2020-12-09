@@ -9,7 +9,7 @@ MODULE write_start
   REAL(8) rek0,rekp,c3,c5,gamma1,gamma2,muk,beta_inv_2KK,rho0,nu,alpha,alphaquad,rhoat_inv,xdk,tdk,raman,omega,eta1,eta2
 
   REAL(8) omega_uppe
-  REAL(8) lt,lr,proplength,outlength,delta_z,z,z_out,rfil,increase,decrease,time_limit
+  REAL(8) lt,lr,proplength,outlength,outlength_Efield,delta_z,z,z_out,z_out_Efield,rfil,increase,decrease,time_limit
   REAL(8) photon_energy_au_phys,tp_fs_phys,Pcr_phys,w0_cm_phys
   REAL(8) Ui_au_phys,residue_charge,n0,rhoc_cm3_phys,rhont_cm3_phys
 
@@ -112,26 +112,17 @@ CONTAINS
 
       CALL create_dset(group_id,'angmom',angular_momentum)
 
-
-
-
-
-
-
-
-
-
-
-
-
       CALL create_dset(group_id,'finished',.FALSE.)
       CALL create_dset(group_id,'omega_uppe', omega_uppe)
 
 
+      CALL create_dset(group_id,'out_Efield', out_Efield)
+      IF (out_Efield) THEN
+        CALL create_dset(group_id,'out_Efield', out_Efield)
+        CALL create_dset(group_id,'z_out_Efield', z_out_Efield)
+      ENDIF
 
-
-
-
+      
 
       CALL create_dset(group_id,'density_normalisation_factor',density_normalisation_factor)
 

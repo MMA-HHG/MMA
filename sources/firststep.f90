@@ -176,7 +176,6 @@ CONTAINS
     CALL read_dset(group_id, 'z_out',z_out)
     CALL read_dset(group_id, 'rfil',rfil)
     CALL read_dset(group_id,'switch_rho', switch_rho)
-    ! switch_rho = 8
     CALL read_dset(group_id,'switchKerr', switch_dKerr)
     CALL read_dset(group_id,'switch_T',switch_T)
     CALL read_dset(group_id,'absorb',absorb)
@@ -195,17 +194,15 @@ CONTAINS
     CALL read_dset(group_id, 'atomdens',atomic_density)
 
     CALL read_dset(group_id,'angmom',angular_momentum)
-
-
-
-
-
-
-
  
     CALL read_dset(group_id, 'finished',finished)
     CALL read_dset(group_id, 'omega_uppe',omega_uppe)
 
+    CALL read_dset(group_id, 'out_Efield', out_Efield)
+    IF (out_Efield) THEN
+      CALL read_dset(group_id, 'z_out_Efield', z_out_Efield)
+      CALL read_dset(group_id, 'outlength_Efield', outlength_Efield)
+    ENDIF  
 
 
 

@@ -8,8 +8,8 @@ real(8) :: Intensity_entry, Intensity_focus, waist_focus, Curvature_radius_entry
 character(15)   ::  gas_preset
 
 integer                 :: k1
-integer, parameter      :: N_tests = 6
-character(*), parameter :: available_tests(N_tests) = (/"test", "test2", "GfP", "GfI", "GfFWHME", "GfFWHMI"/)
+integer, parameter      :: N_tests = 7
+character(*), parameter :: available_tests(N_tests) = (/"test", "test2", "GfP", "GfI", "GfFWHME", "GfFWHMI", "GfH5w"/)
 ! integer, parameter      :: test_numbers(N_tests) =  (k1, k1=1,N_tests)
 
 CONTAINS
@@ -326,6 +326,14 @@ subroutine preset_numerics_tests(test_number)
     rfil_mm_phys = 0.1d0
     rhodist = 100
     outlength_m_phys = 0.001d0
+
+    select case(test_number)
+    case(1:6)
+        outlength_Efield_m_phys = outlength_m_phys
+    case(7)
+        outlength_Efield_m_phys = 0.0005d0        
+    end select
+    call save_or_replace(file_id, 'inputs/numerics_physical_output_distance_for_Efield_only', outlength_Efield_m_phys, error, units_in = '[m]')
     
 end subroutine preset_numerics_tests
 
@@ -339,7 +347,7 @@ subroutine preset_physics(test_number)
     select case(test_number)
     case(1)
         gas_preset = 'Ar_PPT'
-    case(2:6)
+    case(2:N_tests)
         gas_preset = 'Ar_ext'
     end select
     call save_or_replace(file_id, 'inputs/gas_preset', gas_preset, error, units_in = '[-]')
@@ -353,7 +361,7 @@ subroutine preset_physics(test_number)
 
 !---------------------------------------------------------------------------------------------------------------------!
     select case(test_number)
-    case(1:3,5,6)
+    case(1:3,5:N_tests)
         numcrit = 2.0d0
         call save_or_replace(file_id, 'inputs/laser_ratio_pin_pcr', numcrit, error, units_in = '[-]')
     case(4)
@@ -364,7 +372,7 @@ subroutine preset_physics(test_number)
 
 !---------------------------------------------------------------------------------------------------------------------!
     select case(test_number)
-    case(1:4)
+    case(1:4,7)
         tp_fs_phys = 50.d0
         call save_or_replace(file_id, 'inputs/laser_pulse_duration_in_1_e_Efield', tp_fs_phys, error, units_in = '[fs]')
     case(5)
@@ -382,7 +390,7 @@ subroutine preset_physics(test_number)
     select case(test_number)
     case(1, 2)
         f_cm_phys = 50.d0 ! THIS IS SOMETHING TO COMPUTE
-    case(3:6)
+    case(3:N_tests)
         f_cm_phys = 0.d0
     end select
 

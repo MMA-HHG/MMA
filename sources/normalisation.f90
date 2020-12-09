@@ -2,6 +2,8 @@ MODULE normalisation
   USE calc_start
 
   REAL(8) n2_phys,n4_phys,lambda0_cm_phys,Ui_eV_phys,proplength_m_phys,outlength_m_phys,delta_z_mm_phys,sigmak_phys,sigman_phys
+  LOGICAL out_Efield
+  REAL(8) outlength_Efield_m_phys
   REAL(8) sigma_cm2_phys,alpha_fs_phys,alphaquad_fscm3_phys,tdk_fs_phys,raman_phys,rfil_mm_phys,pressure,tauc_fs_phys
   REAL(8) rho0_phys
   REAL(8) delta_k_p_fs_per_cm_phys,k_p_fs_per_cm_phys,k_pp_fs2_per_cm_phys,k_ppp_fs3_per_cm_phys,k_pppp_fs4_per_cm_phys
@@ -858,9 +860,11 @@ CONTAINS
     k0_phys = 2.D0*3.1415D0/lambda0_cm_phys  !central wave number in vacuum     cm-1
     proplength = proplength_m_phys*100.D0/(4.D0*z_rayleigh_cm_phys)  !adimensionned distance of propagation
     outlength = outlength_m_phys*100.D0/(4.D0*z_rayleigh_cm_phys)  !adimmensionned output distance for whole field
+    IF (out_Efield) outlength_Efield = outlength_Efield_m_phys*100.D0/(4.D0*z_rayleigh_cm_phys) ! dtto
     delta_z = delta_z_mm_phys/(40.D0*z_rayleigh_cm_phys)  !adimmensionned (first) stepwidth for whole field
     z=0.D0
     z_out=z
+    z_out_Efield=z
     rfil=0.1D0*rfil_mm_phys/w0_cm_phys ! adimensioned radius for diagnostics
     c3=1.d0  !adimensionned coefficient for kerr effect
     c5=(n4_phys)/(n2_phys)*(Pcr_phys)/(4*3.1415*w0_cm_phys**2)  !adimensionned coefficient for chi5 effect

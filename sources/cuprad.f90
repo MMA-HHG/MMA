@@ -47,14 +47,14 @@ PROGRAM cuprad
      DO WHILE (z.LT.proplength) 
 
          ! there are two independent writes (see manual) 
-         IF(z_out.LE.z) THEN ! only-field print ! ADD an extra logic to disable this option at all
-           CALL HDF5_out
-           !z_outHD5=z_outHD5+outlengthHD5 !!!! RENAME AND IMPLEMENT
+         IF( out_Efield .AND. (z_out_Efield .LE. z)) THEN ! only-field print ! ADD an extra logic to disable this option at all
+           CALL Efield_out
+           z_out_Efield = z_out_Efield + outlength_Efield
          ENDIF
 
          IF(z_out.LE.z) THEN
            CALL write_output
-           z_out=z_out+outlength
+           z_out = z_out + outlength
          ENDIF
 
         ! Standard operation of the code: call propagation until end of medium reached
@@ -94,7 +94,7 @@ PROGRAM cuprad
     !====================
 
      IF (z.GE.proplength) THEN ! The end of the medium is reached
-        CALL HDF5_out 
+        IF (out_Efield) CALL Efield_out         
         finished = .TRUE. ! prevents possible consequitive slurm job to be executed
         IF (my_rank.EQ.0) THEN
            OPEN(unit_rho,FILE='STOP',STATUS='OLD')

@@ -89,7 +89,7 @@ PROGRAM make_start
   CALL save_or_replace(file_id, 'inputs/numerics_number_of_points_in_r', dim_r, error)
   CALL save_or_replace(file_id, 'inputs/numerics_number_of_absorber_points_in_time', absorb, error)
   CALL save_or_replace(file_id, 'inputs/numerics_phase_threshold_for_decreasing_delta_z', decrease, error)
-  CALL save_or_replace(file_id, 'inputs/numerics_physical_output_distance_for_matlab_files', outlength_m_phys, error)
+  
   CALL save_or_replace(file_id, 'inputs/numerics_output_distance_in_z-steps_for_fluence_and_power', rhodist, error)
   CALL save_or_replace(file_id, 'inputs/numerics_radius_for_diagnostics', rfil_mm_phys, error)
   CALL save_or_replace(file_id, 'inputs/numerics_physical_first_stepwidth', delta_z_mm_phys, error)
@@ -122,6 +122,12 @@ PROGRAM make_start
   CALL save_or_replace(file_id, 'inputs/numerics_spatial_noise_on_the_input_shape', noise_s, error)
   CALL save_or_replace(file_id, 'inputs/numerics_temporal_noise_on_the_input_shape', noise_t, error)
   CALL save_or_replace(file_id, 'inputs/numerics_noise_on_the_input_shape', noise, error)
+
+
+  CALL save_or_replace(file_id, 'inputs/numerics_physical_output_distance_for_plasma_and_Efield', outlength_m_phys, error)
+
+  CALL h5lexists_f(file_id, 'inputs/numerics_physical_output_distance_for_Efield_only', out_Efield, error)
+  IF (out_Efield)  CALL save_or_replace(file_id, 'inputs/numerics_physical_output_distance_for_Efield_only', outlength_Efield_m_phys, error)
 
 
   !--------!
@@ -300,36 +306,7 @@ CALL save_or_replace(group_id, 'laser_pulse_duration_in_1_e_Intensity', Convert_
   CALL save_or_replace(group_id, 'laser_pulse_duration_in_rms_Intensity', Convert_pulse_duration(tp_fs_phys, '1/e', 'rms', type2_in = 'Efield', type2_out = 'Intensity'), error, units_in = '[fs]')
   CALL save_or_replace(group_id, 'laser_pulse_duration_in_FWHM_Intensity', Convert_pulse_duration(tp_fs_phys, '1/e', 'FWHM', type2_in = 'Efield', type2_out = 'Intensity'), error, units_in = '[fs]')
 
-  ! SELECT CASE(dumstring)
-  ! CASE('FWHM')
-  !   CALL read_dset(file_id, 'inputs/laser_pulse_duration_in_FWHM', tp_fs_phys)
-  !   !tp_fs_phys = FWHM2e_inv(tp_fs_phys)
-  !   tp_fs_phys = Convert_pulse_duration(tp_fs_phys, dumstring, '1/e')
-  !   CALL save_or_replace(group_id, 'laser_pulse_duration_in_1_e', tp_fs_phys, error, units_in = '[fs]')
-  !   CALL save_or_replace(group_id, 'laser_pulse_duration_in_rms', Convert_pulse_duration(tp_fs_phys, '1/e', 'rms'), error, units_in = '[fs]')
-  ! CASE('rms')
-  !   CALL read_dset(file_id, 'inputs/laser_pulse_duration_in_rms', tp_fs_phys)
-  !   !tp_fs_phys = FWHM2e_inv(tp_fs_phys)
-  !   tp_fs_phys = Convert_pulse_duration(tp_fs_phys, dumstring, '1/e')
-  !   CALL save_or_replace(group_id, 'laser_pulse_duration_in_1_e', tp_fs_phys, error, units_in = '[fs]')
-  !   CALL save_or_replace(group_id, 'laser_pulse_duration_in_FWHM', Convert_pulse_duration(tp_fs_phys, '1/e', 'FWHM'), error, units_in = '[fs]')
-  ! CASE('1/e')
-  !   CALL read_dset(file_id, 'inputs/laser_pulse_duration_in_1_e', tp_fs_phys)
-  !   CALL save_or_replace(group_id, 'laser_pulse_duration_in_FWHM', Convert_pulse_duration(tp_fs_phys, dumstring, 'FWHM'), error, units_in = '[fs]')
-  !   CALL save_or_replace(group_id, 'laser_pulse_duration_in_rms', Convert_pulse_duration(tp_fs_phys, dumstring, 'rms'), error, units_in = '[fs]')
-  ! CASE DEFAULT
-  !   STOP "wrong pulse duration specification"
-  ! END SELECT
 
-  ! IF (dumlog) THEN
-  !   CALL read_dset(file_id, 'inputs/laser_pulse_duration_in_1_e', tp_fs_phys)
-  !   CALL save_or_replace(group_id, 'laser_pulse_duration_in_FWHM', Convert_pulse_duration(tp_fs_phys, '1/e', 'FWHM'), error, units_in = '[fs]')
-  ! ELSE
-  !   CALL read_dset(file_id, 'inputs/laser_pulse_duration_in_FWHM', tp_fs_phys)
-  !   !tp_fs_phys = FWHM2e_inv(tp_fs_phys)
-  !   tp_fs_phys = Convert_pulse_duration(tp_fs_phys, 'FWHM', '1/e')
-  !   CALL save_or_replace(group_id, 'laser_pulse_duration_in_1_e', tp_fs_phys, error, units_in = '[fs]')
-  ! ENDIF
   
   CALL save_or_replace(file_id, 'inputs/laser_initial_chirp_phase', chirp_factor, error)
   

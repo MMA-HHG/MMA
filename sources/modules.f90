@@ -58,7 +58,9 @@ MODULE parameters
   REAL(8) timelimit
   INTEGER(4) :: dim_th,count,i_x_old,i_z_old
   REAL(8)    :: tlo,lt,lr
-  REAL(8)    :: proplength,outlength,z,delta_z,z_out,increase,decrease,delta_zh,delta_t,delta_r,delta_t_inv,delta_z_max,rfil
+  REAL(8)    :: proplength,z,delta_z,increase,decrease,delta_zh,delta_t,delta_r,delta_t_inv,delta_z_max,rfil
+  REAL(8)    :: outlength, z_out, outlength_Efield, z_out_Efield
+  LOGICAL    :: out_Efield
   REAL(8)    :: k_t
   COMPLEX(8), ALLOCATABLE :: delta_rel(:)
   INTEGER(4) :: switch_rho,absorb,rhodist,switch_T
