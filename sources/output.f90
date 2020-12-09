@@ -300,7 +300,7 @@ CONTAINS
        CALL h5open_f(error)
        CALL h5pcreate_f(H5P_FILE_ACCESS_F, h5parameters, error) ! create HDF5 access parameters
        CALL h5pset_fapl_mpio_f(h5parameters, MPI_COMM_WORLD, MPI_INFO_NULL, error) ! set parameters for MPI access
-       CALL h5fopen_f(h5_filename, H5F_ACC_RDWR_F, file_id, error, access_prp = h5parameters ) ! Open collectivelly the file
+       CALL h5fopen_f(main_h5_fname, H5F_ACC_RDWR_F, file_id, error, access_prp = h5parameters ) ! Open collectivelly the file
        CALL h5pclose_f(h5parameters,error) ! close the parameters
 
        !Create group for the output if it does not already exist
