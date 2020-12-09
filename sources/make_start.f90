@@ -43,7 +43,9 @@ PROGRAM make_start
     testingmode = .TRUE.
   ENDIF
 
-
+  OPEN(11,FILE='msg.tmp')
+  WRITE(11,*) TRIM(filename)
+  CLOSE(11)
   
   ! Open the file
   CALL h5fopen_f (filename, H5F_ACC_RDWR_F, file_id, error)
