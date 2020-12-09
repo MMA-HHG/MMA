@@ -329,7 +329,7 @@ CONTAINS
       ENDIF
       !print *, 'rhotmp', rhotemp, 'myrank', my_rank
       !print *, 'rhoatm', 1.d0/rhoat_inv, 'myrank', my_rank
-      stop
+      !stop
        rhompi=0.D0
        rho1=0.D0
        rho2=0.D0
