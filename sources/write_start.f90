@@ -18,7 +18,7 @@ MODULE write_start
   REAL(8) delta_t, tlo 
   REAL(8), ALLOCATABLE :: xx(:),zz(:),Indice_norm(:,:),real_e(:,:),imag_e(:,:)
   COMPLEX(8), ALLOCATABLE :: e(:,:),e_full(:,:),komega(:)
-  INTEGER(HID_T) :: file_id, group_id
+  INTEGER(HID_T) :: file_id, group_id, group_id2
   INTEGER :: error
   CHARACTER(LEN = *), PARAMETER :: output_groupname = "pre-processed"
   CHARACTER(15) :: filename  ! File name variable, which is assigned a value by user eg.: results.h5
