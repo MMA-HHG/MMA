@@ -7,6 +7,10 @@
 ! 4 - z-table
 ! It replaces the original rho0 in the code
 
+! units
+! 1 - relative
+! 2 - cm-3
+
 module pre_ionised
 use HDF5
 use HDF5_helper

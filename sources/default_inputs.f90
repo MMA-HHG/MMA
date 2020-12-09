@@ -8,8 +8,8 @@ real(8) :: Intensity_entry, Intensity_focus, waist_focus, Curvature_radius_entry
 character(15)   ::  gas_preset
 
 integer                 :: k1
-integer, parameter      :: N_tests = 7
-character(*), parameter :: available_tests(N_tests) = (/"test", "test2", "GfP", "GfI", "GfFWHME", "GfFWHMI", "GfH5w"/)
+integer, parameter      :: N_tests = 8
+character(*), parameter :: available_tests(N_tests) = (/"test", "test2", "GfP", "GfI", "GfFWHME", "GfFWHMI", "GfH5w", "GfH5w_pre_ionised"/)
 ! integer, parameter      :: test_numbers(N_tests) =  (k1, k1=1,N_tests)
 
 CONTAINS
@@ -330,7 +330,7 @@ subroutine preset_numerics_tests(test_number)
     select case(test_number)
     case(1:6)
         outlength_Efield_m_phys = outlength_m_phys
-    case(7)
+    case(7:8)
         outlength_Efield_m_phys = 0.0005d0        
     end select
     call save_or_replace(file_id, 'inputs/numerics_physical_output_distance_for_Efield_only', outlength_Efield_m_phys, error, units_in = '[m]')
@@ -372,7 +372,7 @@ subroutine preset_physics(test_number)
 
 !---------------------------------------------------------------------------------------------------------------------!
     select case(test_number)
-    case(1:4,7)
+    case(1:4,7:N_tests)
         tp_fs_phys = 50.d0
         call save_or_replace(file_id, 'inputs/laser_pulse_duration_in_1_e_Efield', tp_fs_phys, error, units_in = '[fs]')
     case(5)
@@ -396,6 +396,17 @@ subroutine preset_physics(test_number)
 
 !---------------------------------------------------------------------------------------------------------------------!
     pressure = 1.d0
+
+
+!---------------------------------------------------------------------------------------------------------------------!
+! pre-ionized
+    if (test_number == 8) then
+        call h5gcreate_f(file_id, 'pre_ionised', group_id, error)
+        call save_or_replace(file_id, 'method_geometry', 1, error, units_in = '[-]')
+        call save_or_replace(file_id, 'method_units', 1, error, units_in = '[-]')
+        call save_or_replace(file_id, 'initial_electrons_ratio', 0.04d0, error, units_in = '[-]')
+        call h5gclose_f(group_id, error)   
+    endif    
 
 end subroutine preset_physics
 
