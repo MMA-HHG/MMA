@@ -402,9 +402,9 @@ subroutine preset_physics(test_number)
 ! pre-ionized
     if (test_number == 8) then
         call h5gcreate_f(file_id, 'pre_ionised', group_id, error)
-        call save_or_replace(file_id, 'method_geometry', 1, error, units_in = '[-]')
-        call save_or_replace(file_id, 'method_units', 1, error, units_in = '[-]')
-        call save_or_replace(file_id, 'initial_electrons_ratio', 0.04d0, error, units_in = '[-]')
+        call save_or_replace(group_id, 'method_geometry', 1, error, units_in = '[-]')
+        call save_or_replace(group_id, 'method_units', 1, error, units_in = '[-]')
+        call save_or_replace(group_id, 'initial_electrons_ratio', 0.04d0, error, units_in = '[-]')
         call h5gclose_f(group_id, error)   
     endif    
 
