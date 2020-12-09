@@ -94,9 +94,9 @@ CONTAINS
     INTEGER(4)  j,k,help,k1, pos
     REAL(8) absorb_factor
     CHARACTER*10 filename
-    CHARACTER(LEN=10), PARAMETER :: hdf5_input = "results.h5"  ! File name for the HDF5 input file
-    CHARACTER(LEN = *), PARAMETER :: output_groupname = "pre-processed" 
-    CHARACTER(LEN = *), PARAMETER :: input_groupname = "inputs" 
+    ! CHARACTER(LEN=10), PARAMETER :: hdf5_input = "results.h5"  ! File name for the HDF5 input file
+    ! CHARACTER(LEN = *), PARAMETER :: output_groupname = "pre-processed" 
+    ! CHARACTER(LEN = *), PARAMETER :: input_groupname = "inputs" 
     INTEGER(HID_T) :: file_id, group_id ! File identifier 
     INTEGER        :: error
     REAL(8), ALLOCATABLE :: real_e(:,:),imag_e(:,:)
@@ -140,16 +140,16 @@ CONTAINS
 
     ! OPEN HDF5 interface
     CALL h5open_f(error) 
-    CALL h5fopen_f (hdf5_input, H5F_ACC_RDONLY_F, file_id, error)
+    CALL h5fopen_f (main_h5_fname, H5F_ACC_RDONLY_F, file_id, error)
 
     ! direct code inputs
-    CALL h5gopen_f(file_id, input_groupname, group_id, error) 
+    CALL h5gopen_f(file_id, in_grpname, group_id, error) 
     ! CALL read_dset(group_id, 'ionised_atoms_relative_Kerr_response', ions_Kerr_ratio) 
     CALL h5gclose_f(group_id, error) ! all pre-processed inputs read
     ions_Kerr_ratio = 1.D0/3.D0
 
     ! inputs from the pre-processor
-    CALL h5gopen_f(file_id, output_groupname, group_id, error) 
+    CALL h5gopen_f(file_id, pre_proc_grpname, group_id, error) 
     CALL read_dset(group_id, 'num_proc', num_proc)
     CALL read_dset(group_id, 'dim_t', dim_t)
     CALL read_dset(group_id, 'dim_r', dim_r)
@@ -369,7 +369,7 @@ CONTAINS
    
     ! DIRECT INPUTS (it bypasses the pre-processor) 
     ! normalisation factors
-    CALL h5gopen_f(file_id, output_groupname, group_id, error) 
+    CALL h5gopen_f(file_id, pre_proc_grpname, group_id, error) 
     CALL read_dset(group_id,'critdens',rhoc_cm3_phys)     
     CALL h5gclose_f(group_id, error)
 
@@ -403,7 +403,7 @@ CONTAINS
 
        ! adaptive steps
        dz_write_count = 1
-       CALL h5fopen_f (hdf5_input, H5F_ACC_RDWR_F, file_id, error)
+       CALL h5fopen_f (main_h5_fname, H5F_ACC_RDWR_F, file_id, error)
        CALL h5gcreate_f(file_id, 'logs', group_id, error)
        CALL create_1D_dset_unlimited(group_id, 'zgrid_dz_CU', (/REAL(z,4)/), 1) ! the actual z-coordinate in SI units
        CALL h5_add_units_1D(group_id, 'zgrid_dz_CU', '[C.U.]')
