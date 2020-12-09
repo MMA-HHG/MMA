@@ -274,13 +274,13 @@ CONTAINS
     INTEGER(HSIZE_T), DIMENSION(2) :: dims, offset, ccount
     INTEGER :: error
     LOGICAL :: group_status
-    CHARACTER(LEN=15) :: h5_filename="results.h5"
-    CHARACTER(LEN=15) :: groupname="/outputs"
-    CHARACTER(LEN=25) :: field_out_groupname="/outputs/field_out_group"
+    ! CHARACTER(LEN=15) :: h5_filename="results.h5"
+    ! CHARACTER(LEN=15) :: groupname="/outputs"
+    ! CHARACTER(LEN=25) :: field_out_groupname="/outputs/field_out_group"
     INTEGER(HID_T) :: indexes_group_id
-    CHARACTER(LEN=50) :: indexes_groupname="/outputs/field_out_group/indexes_group"    
+    CHARACTER(*), PARAMETER :: indexes_groupname = outcont_grpname//"/indexes_group"    
     REAL(4), ALLOCATABLE :: real_e(:,:),imag_e(:,:)
-    
+
     WRITE(iz,920) z
     DO  k=1,10
        IF (iz(k:k).EQ.' ') iz(k:k)='0'
@@ -304,17 +304,17 @@ CONTAINS
        CALL h5pclose_f(h5parameters,error) ! close the parameters
 
        !Create group for the output if it does not already exist
-       CALL h5lexists_f(file_id, groupname, group_status, error)
+       CALL h5lexists_f(file_id, out_grpname, group_status, error)
        IF ( group_status .EQV. .FALSE. ) THEN
-         CALL h5gcreate_f(file_id, groupname, group_id, error) 
+         CALL h5gcreate_f(file_id, out_grpname, group_id, error) 
        ELSE
-         CALL h5gopen_f(file_id, groupname, group_id, error)
+         CALL h5gopen_f(file_id, out_grpname, group_id, error)
        ENDIF
-       CALL h5lexists_f(file_id, field_out_groupname, group_status, error)
+       CALL h5lexists_f(file_id, outcont_grpname, group_status, error)
        IF ( group_status.EQV..FALSE.) THEN
-         CALL h5gcreate_f(file_id, field_out_groupname, field_group_id, error) 
+         CALL h5gcreate_f(file_id, outcont_grpname, field_group_id, error) 
        ELSE
-         CALL h5gopen_f(file_id, field_out_groupname, field_group_id, error)
+         CALL h5gopen_f(file_id, outcont_grpname, field_group_id, error)
        ENDIF
        IF(my_rank.EQ.0) THEN
           OPEN(unit_logfile,FILE='PROP_RAD.LOG',STATUS='UNKNOWN',POSITION='APPEND')
@@ -433,11 +433,11 @@ CONTAINS
     INTEGER(HID_T) :: h5parameters  ! Property list identifier 
     INTEGER(HSIZE_T), DIMENSION(2) :: dims, offset, ccount
     INTEGER                        :: error
-    CHARACTER(LEN=15) :: h5_filename="results.h5"
-    CHARACTER(LEN=25) :: fluence_dset_name="longstep/fluence"
-    CHARACTER(LEN=23) :: plasma_channel_dset_name="longstep/plasma_channel"
-    CHARACTER(LEN=22) :: losses_plasma_dset_name="longstep/losses_plasma"
-    CHARACTER(LEN=26) :: losses_ionization_dset_name="longstep/losses_ionization"
+    ! CHARACTER(LEN=15) :: h5_filename="results.h5"
+    CHARACTER(LEN=25) :: fluence_dset_name=longstep_grpname//"/fluence"
+    CHARACTER(LEN=23) :: plasma_channel_dset_name=longstep_grpname//"/plasma_channel"
+    CHARACTER(LEN=22) :: losses_plasma_dset_name=longstep_grpname//"/losses_plasma"
+    CHARACTER(LEN=26) :: losses_ionization_dset_name=longstep_grpname//"/losses_ionization"
     REAL(4), ALLOCATABLE :: fluence_part(:,:)
     REAL(4), ALLOCATABLE :: plasma_channel_part(:,:)
     REAL(4), ALLOCATABLE :: losses_plasma_part(:,:)
@@ -451,7 +451,7 @@ CONTAINS
     CALL h5open_f(error)
     CALL h5pcreate_f(H5P_FILE_ACCESS_F, h5parameters, error) ! create HDF5 access parameters
     CALL h5pset_fapl_mpio_f(h5parameters, MPI_COMM_WORLD, MPI_INFO_NULL, error) ! set parameters for MPI access
-    CALL h5fopen_f(h5_filename, H5F_ACC_RDWR_F, file_id, error, access_prp = h5parameters ) ! Open collectivelly the file
+    CALL h5fopen_f(main_h5_fname, H5F_ACC_RDWR_F, file_id, error, access_prp = h5parameters ) ! Open collectivelly the file
     CALL h5pclose_f(h5parameters,error) ! close the parameters
     
     ! Calculate the size of the dataset
@@ -511,7 +511,7 @@ CONTAINS
     ! Add units (not implemented for collective access)
       IF (my_rank.EQ.0) THEN ! single-write start
         CALL h5open_f(error)
-        CALL h5fopen_f (h5_filename, H5F_ACC_RDWR_F, file_id, error) ! Open an existing file.
+        CALL h5fopen_f (main_h5_fname, H5F_ACC_RDWR_F, file_id, error) ! Open an existing file.
         CALL h5_add_units_1D(file_id, fluence_dset_name, '[C.U.]') 
 	CALL h5_add_units_1D(file_id, plasma_channel_dset_name, '[C.U.]') 
         CALL h5_add_units_1D(file_id, losses_plasma_dset_name, '[C.U.]') 
@@ -528,11 +528,11 @@ CONTAINS
     INTEGER(HID_T)    :: file_id       ! File identifier 
     INTEGER(HID_T)    :: group_id      ! Group identifier 
     INTEGER           :: error         ! hdferr
-    CHARACTER(LEN=15) :: hdf5_input = "results.h5" ! hdf5 file name
+   !  CHARACTER(LEN=15) :: hdf5_input = "results.h5" ! hdf5 file name
 
     CALL h5open_f(error) 
-    CALL h5fopen_f (hdf5_input, H5F_ACC_RDWR_F, file_id, error)
-    CALL h5gopen_f(file_id, 'logs', group_id, error)
+    CALL h5fopen_f (main_h5_fname, H5F_ACC_RDWR_F, file_id, error)
+    CALL h5gopen_f(file_id, log_grpname, group_id, error)
   !   CALL create_1D_dset_unlimited(group_id, 'zgrid_dz_CU', (/REAL(z,4)/), 1) ! the actual z-coordinate in SI units
 
     CALL extend_1D_dset_unlimited(group_id, 'zgrid_dz_CU', (/REAL(z,4)/), new_dims=(/int(dz_write_count,HSIZE_T)/), & 
@@ -604,12 +604,12 @@ CONTAINS
     REAL(4), ALLOCATABLE :: fields_array(:,:,:), rgrid(:), tgrid(:) 
 
     ! file & dataset names
-     CHARACTER(LEN=10), PARAMETER :: filename = "results.h5"  ! File name
-     CHARACTER(LEN=17), PARAMETER :: Fields_dset_name = "IRprop/Fields_rzt" ! Dataset name
-     CHARACTER(LEN=12), PARAMETER :: zgrid_dset_name = "IRprop/zgrid" ! Dataset name
-     CHARACTER(LEN=12), PARAMETER :: tgrid_dset_name = "IRprop/tgrid" ! Dataset name
-     CHARACTER(LEN=12), PARAMETER :: rgrid_dset_name = "IRprop/rgrid" ! Dataset name
-     CHARACTER(LEN=12), PARAMETER :: groupname = "IRprop"
+     ! CHARACTER(LEN=10), PARAMETER :: filename = "results.h5"  ! File name
+     CHARACTER(*), PARAMETER :: Fields_dset_name = outEfield_grpname//"/Fields_rzt" ! Dataset name
+     CHARACTER(*), PARAMETER :: zgrid_dset_name = outEfield_grpname//"/zgrid" ! Dataset name
+     CHARACTER(*), PARAMETER :: tgrid_dset_name = outEfield_grpname//"/tgrid" ! Dataset name
+     CHARACTER(*), PARAMETER :: rgrid_dset_name = outEfield_grpname//"/rgrid" ! Dataset name
+     ! CHARACTER(*), PARAMETER :: groupname = "IRprop"
     ! THE CODE
 
     
@@ -658,12 +658,12 @@ CONTAINS
     CALL h5open_f(error) 
     CALL h5pcreate_f(H5P_FILE_ACCESS_F, h5parameters, error) ! create HDF5 access parameters
     CALL h5pset_fapl_mpio_f(h5parameters, MPI_COMM_WORLD, MPI_INFO_NULL, error) ! set parameters for MPI access
-    CALL h5fopen_f(filename, H5F_ACC_RDWR_F, file_id, error, access_prp = h5parameters ) ! Open collectivelly the file
+    CALL h5fopen_f(main_h5_fname, H5F_ACC_RDWR_F, file_id, error, access_prp = h5parameters ) ! Open collectivelly the file
     CALL h5pclose_f(h5parameters,error) ! close the parameters
 
     IF ( HDF5write_count == 1) THEN 
       !Create group for the output
-      CALL h5gcreate_f(file_id, groupname, group_id, error) 
+      CALL h5gcreate_f(file_id, outEfield_grpname, group_id, error) 
       CALL h5gclose_f(group_id, error)
           
       ! Call writing routine
@@ -674,7 +674,7 @@ CONTAINS
 
       !!! attributes are probably not well handled by MPI... ( https://forum.hdfgroup.org/t/write-attributes-collectively-in-mpi-run/4902/2 ), just add them once by one worker
       IF (my_rank.EQ.0) THEN
-        CALL h5fopen_f (filename, H5F_ACC_RDWR_F, file_id, error) ! Open an existing file.
+        CALL h5fopen_f (main_h5_fname, H5F_ACC_RDWR_F, file_id, error) ! Open an existing file.
         CALL h5_add_units_1D(file_id, Fields_dset_name, '[V/m]') ! add units
 
         !!!! HERE WE WRITE z-grid, appended in each iteration
@@ -697,7 +697,7 @@ CONTAINS
       CALL h5fclose_f(file_id,error)
       IF (my_rank.EQ.0) THEN ! only one worker is extending the zgrid
         CALL h5open_f(error)  !Initialize HDF5
-        CALL h5fopen_f(filename, H5F_ACC_RDWR_F, file_id, error)
+        CALL h5fopen_f(main_h5_fname, H5F_ACC_RDWR_F, file_id, error)
         ! only z-grid in 1D
         dumh51D = (/int(HDF5write_count-1,HSIZE_T)/) ! offset
         dumh51D2 = (/int(1,HSIZE_T)/) ! count

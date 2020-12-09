@@ -20,7 +20,7 @@ MODULE h5namelist
   CHARACTER(*), PARAMETER   ::  ionref_grpname =      "ionisation_model"
   CHARACTER(*), PARAMETER   ::  longstep_grpname =    "longstep"
   CHARACTER(*), PARAMETER   ::  outcont_grpname =     out_grpname//"/code_continuation"
-  CHARACTER(*), PARAMETER   ::  refrindex_grpname =   pre_proc_grpname//"/pre-processed"
+  CHARACTER(*), PARAMETER   ::  refrindex_grpname =   pre_proc_grpname//"/indexes_group"
 END MODULE h5namelist
 
 MODULE longstep_vars
