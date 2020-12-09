@@ -8,8 +8,8 @@ real(8) :: Intensity_entry, Intensity_focus, waist_focus, Curvature_radius_entry
 character(15)   ::  gas_preset
 
 integer                 :: k1
-integer, parameter      :: N_tests = 8
-character(*), parameter :: available_tests(N_tests) = (/"test", "test2", "GfP", "GfI", "GfFWHME", "GfFWHMI", "GfH5w", "GfH5w_pre_ionised"/)
+integer, parameter      :: N_tests = 9
+character(*), parameter :: available_tests(N_tests) = (/"test", "test2", "GfP", "GfI", "GfFWHME", "GfFWHMI", "GfH5w", "GfH5w_pre_ionised", "GfH5w_pre_ionised_PPT"/)
 ! integer, parameter      :: test_numbers(N_tests) =  (k1, k1=1,N_tests)
 
 CONTAINS
@@ -345,9 +345,9 @@ subroutine preset_physics(test_number)
 
 !---------------------------------------------------------------------------------------------------------------------!
     select case(test_number)
-    case(1)
+    case(1,9)
         gas_preset = 'Ar_PPT'
-    case(2:N_tests)
+    case(2:8)
         gas_preset = 'Ar_ext'
     end select
     call save_or_replace(file_id, 'inputs/gas_preset', gas_preset, error, units_in = '[-]')
@@ -400,7 +400,7 @@ subroutine preset_physics(test_number)
 
 !---------------------------------------------------------------------------------------------------------------------!
 ! pre-ionized
-    if (test_number == 8) then
+    if ( any(test_number == (/8, 9/)) ) then
         call h5gcreate_f(file_id, 'pre_ionised', group_id2, error)
         call save_or_replace(group_id2, 'method_geometry', 1, error, units_in = '[-]')
         call save_or_replace(group_id2, 'method_units', 1, error, units_in = '[-]')
