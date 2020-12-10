@@ -108,6 +108,7 @@ integer         :: switch_ionisation, switch_atom
 
     ! generally target-specific values, but kept as these estimates for our results:
 
+    ions_Kerr_ratio = 1.D0/3.D0
     n4_phys = 0.d0 ! Kerr
     switch_dKerr = 1
     

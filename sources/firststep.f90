@@ -144,9 +144,9 @@ CONTAINS
 
     ! direct code inputs
     CALL h5gopen_f(file_id, in_grpname, group_id, error) 
-    ! CALL read_dset(group_id, 'ionised_atoms_relative_Kerr_response', ions_Kerr_ratio) 
+    CALL read_dset(group_id, 'Kerr_ionised_atoms_relative_Kerr_response', ions_Kerr_ratio) 
     CALL h5gclose_f(group_id, error) ! all pre-processed inputs read
-    ions_Kerr_ratio = 1.D0/3.D0
+   !  ions_Kerr_ratio = 1.D0/3.D0
 
     ! inputs from the pre-processor
     CALL h5gopen_f(file_id, pre_proc_grpname, group_id, error) 

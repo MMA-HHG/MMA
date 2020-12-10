@@ -14,6 +14,8 @@ MODULE write_start
   REAL(8) photon_energy_au_phys,tp_fs_phys,Pcr_phys,w0_cm_phys
   REAL(8) Ui_au_phys,residue_charge,n0,rhoc_cm3_phys,rhont_cm3_phys
 
+  REAL(8) ions_Kerr_ratio
+
   REAL(8) density_normalisation_factor
   REAL(8) delta_t, tlo 
   REAL(8), ALLOCATABLE :: xx(:),zz(:),Indice_norm(:,:),real_e(:,:),imag_e(:,:)

@@ -169,6 +169,8 @@ PROGRAM make_start
   END SELECT
 
   ! Kerr
+  CALL save_or_replace(group_id, 'Kerr_ionised_atoms_relative_Kerr_response', ions_Kerr_ratio) 
+
   CALL save_or_replace(file_id, 'inputs/Kerr_nonlinear_refractive_index_kerr_coefficient', n2_phys, error)
   CALL save_or_replace(file_id, 'inputs/Kerr_chi5_coefficient', n4_phys, error)
 
