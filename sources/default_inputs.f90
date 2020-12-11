@@ -165,11 +165,6 @@ real(8) function FWHM2e_inv(FWHM)
     FWHM2e_inv = FWHM/2.d0*sqrt(log(2.d0))
 end function FWHM2e_inv
 
-real(8) function ratio_Pin_Pcr_entry2I_entry(Pin_Pcr,wz,n2p,lambda)
-    real(8) :: Pin_Pcr,wz,n2p,lambda
-    ratio_Pin_Pcr_entry2I_entry = (Pin_Pcr*(lambda/(PI*wz))**2) / n2p
-end function ratio_Pin_Pcr_entry2I_entry
-
 real(8) function Convert_pulse_duration(t_in, type_in, type_out, type2_in, type2_out)
     ! 1/e is the reference
     real(8)                 :: t_in, dum
@@ -232,10 +227,25 @@ real(8) function Convert_pulse_duration(t_in, type_in, type_out, type2_in, type2
 
 end function Convert_pulse_duration
 
+real(8) function ratio_Pin_Pcr_entry2I_entry(Pin_Pcr,wz,n2p,lambda)
+    real(8) :: Pin_Pcr,wz,n2p,lambda
+    ratio_Pin_Pcr_entry2I_entry = (Pin_Pcr*(lambda/(PI*wz))**2) / n2p
+end function ratio_Pin_Pcr_entry2I_entry
+
 real(8) function I_entry2ratio_Pin_Pcr_entry(I_entry,wz,n2p,lambda)
     real(8) :: I_entry,wz,n2p,lambda
     I_entry2ratio_Pin_Pcr_entry = n2p*I_entry*(PI*wz/lambda)**2
 end function I_entry2ratio_Pin_Pcr_entry
+
+real(8) function Energy2ratio_Pin_Pcr_entry(Energy,n2p,lambda,t0)
+    real(8) :: Energy,n2p,lambda,t0
+    Energy2ratio_Pin_Pcr_entry = 2.d0*sqrt(2.d0*PI)*n2p*Energy/(t0*lambda**2)
+end function Energy2ratio_Pin_Pcr_entry
+
+real(8) function ratio_Pin_Pcr_entry2Energy(Pin_Pcr,n2p,lambda,t0)
+    real(8) :: Pin_Pcr,n2p,lambda,t0
+    ratio_Pin_Pcr_entry2Energy = (t0*lambda**2)*Pin_Pcr/(2.d0*sqrt(2.d0*PI)*n2p)
+end function ratio_Pin_Pcr_entry2Energy
 
 subroutine Gaussian_focus2Gaussian_entry(I0,w0,z,Iz,wz,Rz,lambda)
     real(8) :: I0,w0,z,Iz,wz,Rz,lambda,zR

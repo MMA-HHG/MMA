@@ -9,6 +9,7 @@ PROGRAM make_start
   character(100) :: dumstring, dumstring2, dumstring3
   logical :: testingmode=.FALSE., exists_h5_refractive_index, dumlog
   integer :: test_number = 1
+  real(8) :: Energy
 
   integer, parameter :: available_dispersions(6) = (/1, 3, 4, 6, 7, 9/), available_ionisations(4) = (/1, 2, 3, 8/), &
                         available_beams(2) = (/1, 2/)
@@ -363,6 +364,12 @@ CALL save_or_replace(group_id, 'laser_pulse_duration_in_1_e_Intensity', Convert_
     CALL save_or_replace(group_id, 'laser_focal_length_in_the_medium_cm', f_cm_phys, error, units_in = '[cm]') !! input given at the entrance plane, it's equal to the radius of the curvature    
 
   ENDIF
+
+  ! test Energy
+  Energy = ratio_Pin_Pcr_entry2Energy(numcrit,pressure*n2_phys,lambda0_cm_phys*1.D-2,tp_fs_phys*1.D-15)
+  ! Energy = ratio_Pin_Pcr_entry2Energy(Pin_Pcr,n2p,lambda,t0)
+  print *, 'Energy=', Energy
+  CALL save_or_replace(group_id, 'laser_Energy', Energy, error, units_in = '[J]')
 
   CALL h5gclose_f(group_id, error)  
 
