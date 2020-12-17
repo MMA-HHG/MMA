@@ -8,8 +8,9 @@ real(8) :: Intensity_entry, Intensity_focus, waist_focus, Curvature_radius_entry
 character(15)   ::  gas_preset
 
 integer                 :: k1
-integer, parameter      :: N_tests = 9
-character(*), parameter :: available_tests(N_tests) = (/"test", "test2", "GfP", "GfI", "GfFWHME", "GfFWHMI", "GfH5w", "PI", "PIPPT"/) ! "GfH5w_pre_ionised_PPT"
+integer, parameter      :: N_tests = 11
+character(*), parameter :: available_tests(N_tests) = (/"test", "test2", "GfP", "GfI", "GfFWHME", "GfFWHMI", "GfH5w", "PI", "PIPPT", &
+                                                        "pressure", "ELI1"/) ! "GfH5w_pre_ionised_PPT"
 ! integer, parameter      :: test_numbers(N_tests) =  (k1, k1=1,N_tests)
 
 CONTAINS
@@ -356,9 +357,9 @@ subroutine preset_physics(test_number)
 
 !---------------------------------------------------------------------------------------------------------------------!
     select case(test_number)
-    case(1,9)
+    case(1,9,11)
         gas_preset = 'Ar_PPT'
-    case(2:8)
+    case(2:8,10)
         gas_preset = 'Ar_ext'
     end select
     call save_or_replace(file_id, 'inputs/gas_preset', gas_preset, error, units_in = '[-]')
@@ -367,23 +368,32 @@ subroutine preset_physics(test_number)
     proplength_m_phys = 0.005d0
 
 !---------------------------------------------------------------------------------------------------------------------!
-    w0_cm_phys = 0.1d0
+    select case(test_number)
+    case(1:10)
+        w0_cm_phys = 0.1d0
+    case(11)
+        w0_cm_phys = 0.011d0
+    end select
+    
     call save_or_replace(file_id, 'inputs/laser_beamwaist', w0_cm_phys, error, units_in = '[cm]')
 
 !---------------------------------------------------------------------------------------------------------------------!
     select case(test_number)
-    case(1:3,5:N_tests)
+    case(1:3,5:10)
         numcrit = 2.0d0
         call save_or_replace(file_id, 'inputs/laser_ratio_pin_pcr', numcrit, error, units_in = '[-]')
     case(4)
         Intensity_entry = 1.d18
+        call save_or_replace(file_id, 'inputs/laser_intensity_entry', Intensity_entry, error, units_in = '[SI]')
+    case(11)
+        Intensity_entry = 1.129755554227896d19
         call save_or_replace(file_id, 'inputs/laser_intensity_entry', Intensity_entry, error, units_in = '[SI]')
     end select
     
 
 !---------------------------------------------------------------------------------------------------------------------!
     select case(test_number)
-    case(1:4,7:N_tests)
+    case(1:4,7:10)
         tp_fs_phys = 50.d0
         call save_or_replace(file_id, 'inputs/laser_pulse_duration_in_1_e_Efield', tp_fs_phys, error, units_in = '[fs]')
     case(5)
@@ -391,6 +401,9 @@ subroutine preset_physics(test_number)
         call save_or_replace(file_id, 'inputs/laser_pulse_duration_in_FWHM_Efield', tp_fs_phys, error, units_in = '[fs]')
     case(6)
         tp_fs_phys = 50.d0
+        call save_or_replace(file_id, 'inputs/laser_pulse_duration_in_FWHM_Intensity', tp_fs_phys, error, units_in = '[fs]')
+    case(11)
+        tp_fs_phys = 35.d0
         call save_or_replace(file_id, 'inputs/laser_pulse_duration_in_FWHM_Intensity', tp_fs_phys, error, units_in = '[fs]')
     end select   
     
@@ -406,7 +419,15 @@ subroutine preset_physics(test_number)
     end select
 
 !---------------------------------------------------------------------------------------------------------------------!
-    pressure = 1.d0
+    select case(test_number)
+    case(1:8)
+        pressure = 1.d0
+    case(9)
+        pressure = 0.5d0
+    case(10)
+        pressure = 0.035d0
+    end select
+    
 
 
 !---------------------------------------------------------------------------------------------------------------------!
