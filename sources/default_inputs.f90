@@ -235,6 +235,13 @@ end function ratio_Pin_Pcr_entry2I_entry
 
 real(8) function I_entry2ratio_Pin_Pcr_entry(I_entry,wz,n2p,lambda)
     real(8) :: I_entry,wz,n2p,lambda
+
+print *, 'conversion to pin/pcr'
+print *, 'n2p', n2p
+print *, 'I_entry', I_entry
+print *, 'wz', wz
+print *, 'lambda', lambda
+
     I_entry2ratio_Pin_Pcr_entry = n2p*I_entry*(PI*wz/lambda)**2
 end function I_entry2ratio_Pin_Pcr_entry
 
@@ -357,9 +364,9 @@ subroutine preset_physics(test_number)
 
 !---------------------------------------------------------------------------------------------------------------------!
     select case(test_number)
-    case(1,9,11)
+    case(1,9)
         gas_preset = 'Ar_PPT'
-    case(2:8,10)
+    case(2:8,10,11)
         gas_preset = 'Ar_ext'
     end select
     call save_or_replace(file_id, 'inputs/gas_preset', gas_preset, error, units_in = '[-]')
@@ -420,11 +427,11 @@ subroutine preset_physics(test_number)
 
 !---------------------------------------------------------------------------------------------------------------------!
     select case(test_number)
-    case(1:8)
+    case(1:9)
         pressure = 1.d0
-    case(9)
-        pressure = 0.5d0
     case(10)
+        pressure = 0.5d0
+    case(11)
         pressure = 0.035d0
     end select
     
