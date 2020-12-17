@@ -332,6 +332,12 @@ CALL save_or_replace(group_id, 'laser_pulse_duration_in_1_e_Intensity', Convert_
     ELSE ! input given in the entrance intensity
       CALL save_or_replace(file_id, 'inputs/laser_intensity_entry', Intensity_entry, error)
       ! convert
+
+	print *, 'in make_start'
+	print *, 'n2_phys', n2_phys
+	print *, 'pressure', pressure
+	print *, 'all', pressure*n2_phys*1.D-4
+
       numcrit = I_entry2ratio_Pin_Pcr_entry(Intensity_entry,w0_cm_phys*1.D-2,pressure*n2_phys*1.D-4,lambda0_cm_phys*1.D-2)
       CALL save_or_replace(group_id, 'laser_ratio_pin_pcr', numcrit, error, units_in = '[-]')
     ENDIF
@@ -366,7 +372,7 @@ CALL save_or_replace(group_id, 'laser_pulse_duration_in_1_e_Intensity', Convert_
   ENDIF
 
   ! test Energy
-  Energy = ratio_Pin_Pcr_entry2Energy(numcrit,pressure*n2_phys,lambda0_cm_phys*1.D-2,tp_fs_phys*1.D-15)
+  Energy = ratio_Pin_Pcr_entry2Energy(numcrit,pressure*n2_phys*1.D-4,lambda0_cm_phys*1.D-2,tp_fs_phys*1.D-15)
   ! Energy = ratio_Pin_Pcr_entry2Energy(Pin_Pcr,n2p,lambda,t0)
   print *, 'Energy=', Energy
   CALL save_or_replace(group_id, 'laser_Energy', Energy, error, units_in = '[J]')
