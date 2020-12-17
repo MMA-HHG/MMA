@@ -24,7 +24,7 @@ HDF5_path = 'D:\TEMP\OCCIGEN_CUPRAD\compares4\';
 % HDF5_filename = "results_GfP.h5";
 % HDF5_filename = "results_GfFWHMI.h5";
 % HDF5_filename = "results_short.h5";
-HDF5_filename = "results_PI.h5";
+HDF5_filename = "results_ELI.h5";
 
 
 
@@ -58,10 +58,11 @@ HDF5_filepath = strcat(HDF5_path,HDF5_filename);
 Fields_rzt = h5read(HDF5_filepath,"/IRprop/Fields_rzt");
 output_field = h5read(HDF5_filepath,"/outputs/output_field");
 output_plasma = h5read(HDF5_filepath,"/outputs/output_plasma");
+zgrid = h5read(HDF5_filepath,"/outputs/zgrid");
 StartFieldsR = h5read(HDF5_filepath,"/pre-processed/startfield_r");
 tgrid = h5read(HDF5_filepath,"/IRprop/tgrid");
 rgrid = h5read(HDF5_filepath,"/IRprop/rgrid");
-zgrid = h5read(HDF5_filepath,"/IRprop/zgrid");
+zgrid2 = h5read(HDF5_filepath,"/IRprop/zgrid");
 
 Nz = length(zgrid); Nt = length(tgrid); Nr = length(rgrid);
 
@@ -78,7 +79,7 @@ pcolor(firstplasma)
 shading interp
 colorbar
 
-return
+% return
 
 
 if(plot_EfI1)
