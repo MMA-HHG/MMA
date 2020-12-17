@@ -360,7 +360,12 @@ subroutine preset_physics(test_number)
     integer :: test_number
 
 !---------------------------------------------------------------------------------------------------------------------!    
-    lambda0_cm_phys = 8.d-5
+    select case(test_number)
+    case(1:10)
+        lambda0_cm_phys = 8.d-5
+    case(11)
+        lambda0_cm_phys = 7.92d-5
+    end select
 
 !---------------------------------------------------------------------------------------------------------------------!
     select case(test_number)
