@@ -443,6 +443,13 @@ CALL save_or_replace(group_id, 'laser_pulse_duration_in_1_e_Intensity', Convert_
   CALL compute_dispersion(switch_dispersion)
   CALL compute_parameters
   CALL write_listingfile
+
+  ! save reference values
+  ! CALL h5gcreate_f(file_id, 'logs', group_id, error)
+  ! CALL save_or_replace(group_id, 'pulse_duration_1_e_Efield', tp_fs_phys*1.d-15, error, units_in = '[s]')
+  ! CALL save_or_replace(group_id, 'Critical_power',Pcr_phys, error, units_in = '[W]')
+  ! CALL h5gclose_f(group_id, error)
+
   CALL h5gcreate_f(file_id, output_groupname, group_id, error)  
   ALLOCATE(e_full(dim_t,dim_r))
   PRINT*, 'numproc', num_proc

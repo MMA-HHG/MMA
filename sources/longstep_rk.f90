@@ -271,16 +271,16 @@ CONTAINS
     CHARACTER(LEN=15) :: h5_filename="results.h5" ! hdf5 file name
     
     ! Names of dsets and groups
-    CHARACTER(LEN=15) :: groupname="longstep"     
-    CHARACTER(LEN=25) :: rhoabs_max_dset_name="longstep/rhoexcmax_max"
-    CHARACTER(LEN=25) :: peakmax_dset_name="longstep/peakmax"
-    CHARACTER(LEN=25) :: energy_dset_name="longstep/energy"
-    CHARACTER(LEN=25) :: energy_fil_dset_name="longstep/energy_fil"
-    CHARACTER(LEN=25) :: rhomax_dset_name="longstep/rhomax"
-    CHARACTER(LEN=25) :: powmax_dset_name="longstep/powmax"
-    CHARACTER(LEN=25) :: z_buff_dset_name="longstep/z_buff"
-    CHARACTER(LEN=25) :: every_rhodist_z_dset_name="longstep/zgrid_analyses2"
-    CHARACTER(LEN=25) :: onax_t_dset_name="longstep/Efied_onaxis"
+    CHARACTER(*), PARAMETER :: groupname = longstep_grpname     
+    CHARACTER(*), PARAMETER :: rhoabs_max_dset_name=longstep_grpname//"/rhoexcmax_max"
+    CHARACTER(*), PARAMETER :: peakmax_dset_name=longstep_grpname//"/peakmax"
+    CHARACTER(*), PARAMETER :: energy_dset_name=longstep_grpname//"/energy"
+    CHARACTER(*), PARAMETER :: energy_fil_dset_name=longstep_grpname//"/energy_fil"
+    CHARACTER(*), PARAMETER :: rhomax_dset_name=longstep_grpname//"/rhomax"
+    CHARACTER(*), PARAMETER :: powmax_dset_name=longstep_grpname//"/powmax"
+    CHARACTER(*), PARAMETER :: z_buff_dset_name=longstep_grpname//"/z_buff"
+    CHARACTER(*), PARAMETER :: every_rhodist_z_dset_name=longstep_grpname//"/zgrid_analyses2"
+    CHARACTER(*), PARAMETER :: onax_t_dset_name=longstep_grpname//"/Efied_onaxis"
     
     ! Arrays needed for temporary storing of dataset content and their writing
     INTEGER(HSIZE_T), DIMENSION(1) :: new_dims, memspace_dims, offset, hyperslab_size
@@ -539,9 +539,9 @@ CONTAINS
           CALL h5open_f(error) ! Prepare the HDF5 writing
           CALL h5fopen_f(h5_filename, H5F_ACC_RDWR_F, file_id, error ) ! Open the HDF5 file
           ! Create long_step group if it does not exist yet
-          CALL h5lexists_f(file_id, groupname, group_status, error)
+          CALL h5lexists_f(file_id, longstep_grpname, group_status, error)
           IF ( group_status .EQV. .FALSE. ) THEN
-            CALL h5gcreate_f(file_id, groupname, group_id, error) 
+            CALL h5gcreate_f(file_id, longstep_grpname, group_id, error) 
             CALL h5gclose_f(group_id, error)
           ENDIF
 
@@ -566,18 +566,24 @@ CONTAINS
             CALL create_1D_dset_unlimited(file_id, rhomax_dset_name, REAL(rhomax(1:rhodist),4), rhodist)
             
             ! energy dataset creation and writting to it, following the same process with normalised data
+            ! CALL create_1D_dset_unlimited(file_id, energy_dset_name, &
+            !   REAL(6.2831853D0*energy(1:rhodist)*delta_t*delta_r**2,4), rhodist)
+
+            energy(1:rhodist)=1.D-6*critical_power*1.D9/(4*3.1415)*pulse_duration*1.D-15*1.D6*energy(1:rhodist)
             CALL create_1D_dset_unlimited(file_id, energy_dset_name, &
               REAL(6.2831853D0*energy(1:rhodist)*delta_t*delta_r**2,4), rhodist)
-            energy(1:rhodist)=critical_power*1.D9/(4*3.1415)*pulse_duration*1.D-15*1.D6*energy(1:rhodist)
-            CALL create_1D_dset_unlimited(file_id, TRIM(energy_dset_name)//"_normalised", &
-              REAL(6.2831853D0*energy(1:rhodist)*delta_t*delta_r**2,4), rhodist)
+
+            CALL h5_add_units_1D(file_id, energy_dset_name, '[J]')
             
             ! energy_fil dataset creation and writting to it, following the same process with normalised data
+            ! CALL create_1D_dset_unlimited(file_id, energy_fil_dset_name, &
+            !   REAL(6.2831853D0*energy_fil(1:rhodist)*delta_t*delta_r**2,4), rhodist)
+
+            energy_fil(1:rhodist)=1.D-6*critical_power*1.D9/(4*3.1415)*pulse_duration*1.D-15*1.D6*energy_fil(1:rhodist)
             CALL create_1D_dset_unlimited(file_id, energy_fil_dset_name, &
               REAL(6.2831853D0*energy_fil(1:rhodist)*delta_t*delta_r**2,4), rhodist)
-            energy_fil(1:rhodist)=critical_power*1.D9/(4*3.1415)*pulse_duration*1.D-15*1.D6*energy_fil(1:rhodist)
-            CALL create_1D_dset_unlimited(file_id, TRIM(energy_fil_dset_name)//"_normalised", &
-              REAL(6.2831853D0*energy_fil(1:rhodist)*delta_t*delta_r**2,4), rhodist)
+         
+            CALL h5_add_units_1D(file_id, energy_fil_dset_name, '[J]')
            
 
             ! write max power with corresponding z to a variable and prepare for writting to a dataset
@@ -662,20 +668,22 @@ CONTAINS
                 memspace_dims, offset, hyperslab_size)
 
               ! extend energy dataset and the normalised energy dataset
+            !   CALL extend_1D_dset_unlimited(file_id, energy_dset_name, & 
+            !     REAL(6.2831853D0*energy(1:count)*delta_t*delta_r**2,4), new_dims, &
+            !     memspace_dims, offset, hyperslab_size)
+
+              energy(1:rhodist)=1.D-6*critical_power*1.D9/(4*3.1415)*pulse_duration*1.D-15*1.D6*energy(1:rhodist)
               CALL extend_1D_dset_unlimited(file_id, energy_dset_name, & 
-                REAL(6.2831853D0*energy(1:count)*delta_t*delta_r**2,4), new_dims, &
-                memspace_dims, offset, hyperslab_size)
-              energy(1:rhodist)=critical_power*1.D9/(4*3.1415)*pulse_duration*1.D-15*1.D6*energy(1:rhodist)
-              CALL extend_1D_dset_unlimited(file_id, TRIM(energy_dset_name)//"_normalised", & 
                 REAL(6.2831853D0*energy(1:count)*delta_t*delta_r**2,4), new_dims, &
                 memspace_dims, offset, hyperslab_size)
               
               ! extend energy_fil dataset and the normalised energy_fil dataset
-              CALL extend_1D_dset_unlimited(file_id, energy_fil_dset_name, &
-                REAL(6.2831853D0*energy_fil(1:count)*delta_t*delta_r**2,4), new_dims, &
-                memspace_dims, offset, hyperslab_size)
-              energy_fil(1:rhodist)=critical_power*1.D9/(4*3.1415)*pulse_duration*1.D-15*1.D6*energy(1:rhodist)
-              CALL extend_1D_dset_unlimited(file_id, TRIM(energy_fil_dset_name)//"_normalised", & 
+            !   CALL extend_1D_dset_unlimited(file_id, energy_fil_dset_name, &
+            !     REAL(6.2831853D0*energy_fil(1:count)*delta_t*delta_r**2,4), new_dims, &
+            !     memspace_dims, offset, hyperslab_size)
+
+              energy_fil(1:rhodist)=1.D-6*critical_power*1.D9/(4*3.1415)*pulse_duration*1.D-15*1.D6*energy_fil(1:rhodist)
+              CALL extend_1D_dset_unlimited(file_id, energy_fil_dset_name, & 
                 REAL(6.2831853D0*energy_fil(1:count)*delta_t*delta_r**2,4), new_dims, &
                 memspace_dims, offset, hyperslab_size)
 
@@ -787,9 +795,9 @@ CONTAINS
           CALL h5open_f(error) ! Prepare the HDF5 writing
           CALL h5fopen_f(h5_filename, H5F_ACC_RDWR_F, file_id, error ) ! Open the HDF5 file
           ! Create long_step group if it does not exist yet
-          CALL h5lexists_f(file_id, groupname, group_status, error)
+          CALL h5lexists_f(file_id, longstep_grpname, group_status, error)
           IF ( group_status .EQV. .FALSE. ) THEN
-            CALL h5gcreate_f(file_id, groupname, group_id, error) 
+            CALL h5gcreate_f(file_id, longstep_grpname, group_id, error) 
             CALL h5gclose_f(group_id, error)
           ENDIF
           ! store data of maximal power to a variable

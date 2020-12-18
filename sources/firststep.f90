@@ -404,7 +404,8 @@ CONTAINS
        ! adaptive steps
        dz_write_count = 1
        CALL h5fopen_f (main_h5_fname, H5F_ACC_RDWR_F, file_id, error)
-       CALL h5gcreate_f(file_id, 'logs', group_id, error)
+       CALL h5gcreate_f(file_id, log_grpname, group_id, error)
+      !  CALL h5gopen_f(file_id, log_grpname, group_id, error)
        CALL create_1D_dset_unlimited(group_id, 'zgrid_dz_CU', (/REAL(z,4)/), 1) ! the actual z-coordinate in SI units
        CALL h5_add_units_1D(group_id, 'zgrid_dz_CU', '[C.U.]')
        CALL create_1D_dset_unlimited(group_id, 'zgrid_dz_SI', (/REAL(four_z_Rayleigh*z,4)/), 1) ! the actual z-coordinate in SI units
