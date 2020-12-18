@@ -142,7 +142,7 @@ CONTAINS
       IF (my_rank.EQ.0) THEN ! single-write start
         CALL h5fopen_f (main_h5_fname, H5F_ACC_RDWR_F, file_id, error) ! Open an existing file.
         CALL h5_add_units_1D(file_id, field_dset_name, '[V/m]') 
-	CALL h5_add_units_1D(file_id, plasma_dset_name, '[m^(-3)]') 
+	      CALL h5_add_units_1D(file_id, plasma_dset_name, '[m^(-3)]') 
 
         ! r and t grids saved in the first run
 	allocate(tgrid(dim_t),rgrid(dim_r)) ! space for grids: first itration, proc # 0
@@ -460,7 +460,8 @@ CONTAINS
         
         losses_plasma_part(1,:) = transfer(list_get(losses_plasma_ll), losses_plasma_part(1,:))   
         next_losses_plasma_ll => list_next(losses_plasma_ll)
-        CALL create_2D_array_real_dset_p(file_id, losses_plasma_dset_name, losses_plasma_part, dims, offset, ccount)
+        CALL create_2D_array_real_dset_p(file_id, losses_plasma_dset_name, plasma_normalisation_factor_m3*losses_plasma_part,&
+                                                                                                         dims, offset, ccount)
         
         losses_ionization_part(1,:) = transfer(list_get(losses_ionization_ll), losses_ionization_part(1,:))   
         next_losses_ionization_ll => list_next(losses_ionization_ll)
@@ -471,7 +472,8 @@ CONTAINS
         next_fluence_ll => list_next(next_fluence_ll)
         
         plasma_channel_part(1,:) = transfer(list_get(next_plasma_channel_ll), plasma_channel_part(1,:))   
-        CALL write_hyperslab_to_2D_dset(file_id, plasma_channel_dset_name, plasma_channel_part, offset, ccount)
+        CALL write_hyperslab_to_2D_dset(file_id, plasma_channel_dset_name, plasma_normalisation_factor_m3*plasma_channel_part,&
+                                                                                                                 offset, ccount)
         next_plasma_channel_ll => list_next(next_plasma_channel_ll)
         
         losses_plasma_part(1,:) = transfer(list_get(next_losses_plasma_ll), losses_plasma_part(1,:))   
@@ -507,7 +509,7 @@ CONTAINS
 
   END SUBROUTINE linked_list_out
 
-  SUBROUTINE write_extended_z
+  SUBROUTINE write_extended_dz
     USE longstep_vars
     ! For storing in HDF5
     INTEGER(HID_T)    :: file_id       ! File identifier 
@@ -529,7 +531,7 @@ CONTAINS
     CALL h5fclose_f(file_id, error)
     CALL h5close_f(error)
     dz_write_count = dz_write_count + 1
-  END SUBROUTINE write_extended_z
+  END SUBROUTINE write_extended_dz
 
 
   SUBROUTINE Efield_out

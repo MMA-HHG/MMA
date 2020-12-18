@@ -67,14 +67,14 @@ PROGRAM cuprad
         IF (maxphase.GT.decrease) THEN ! derease step size
            delta_z=0.5D0*(decrease+increase)/maxphase*delta_z
            IF(my_rank.EQ.0) THEN
-              CALL write_extended_z    ! save the length of the steps
+              CALL write_extended_dz    ! save the length of the steps
            ENDIF
            call calc_propagator
         ENDIF
         IF ((maxphase.LT.increase).AND.(delta_z.LT.delta_z_max)) THEN ! increase step size (not above maximally allowed)
            delta_z=MIN(delta_z_max,0.5D0*(decrease+increase)/maxphase*delta_z)
            IF(my_rank.EQ.0) THEN
-              CALL write_extended_z
+              CALL write_extended_dz
            ENDIF
            call calc_propagator
         ENDIF
