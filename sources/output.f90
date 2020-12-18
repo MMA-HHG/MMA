@@ -500,7 +500,7 @@ CONTAINS
         CALL h5open_f(error)
         CALL h5fopen_f (main_h5_fname, H5F_ACC_RDWR_F, file_id, error) ! Open an existing file.
         CALL h5_add_units_1D(file_id, fluence_dset_name, '[C.U.]') 
-	CALL h5_add_units_1D(file_id, plasma_channel_dset_name, '[C.U.]') 
+	      CALL h5_add_units_1D(file_id, plasma_channel_dset_name, '[m^(-3)]') 
         CALL h5_add_units_1D(file_id, losses_plasma_dset_name, '[C.U.]') 
 	CALL h5_add_units_1D(file_id, losses_ionization_dset_name, '[C.U.]')
         CALL h5fclose_f(file_id, error) ! close the file
