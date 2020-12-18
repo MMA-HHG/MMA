@@ -456,12 +456,12 @@ CONTAINS
 
         plasma_channel_part(1,:) = transfer(list_get(plasma_channel_ll), plasma_channel_part(1,:))   
         next_plasma_channel_ll => list_next(plasma_channel_ll)
-        CALL create_2D_array_real_dset_p(file_id, plasma_channel_dset_name, plasma_channel_part, dims, offset, ccount)
+        CALL create_2D_array_real_dset_p(file_id, plasma_channel_dset_name,&
+                                        REAL(plasma_normalisation_factor_m3,4)*plasma_channel_part, dims, offset, ccount)
         
         losses_plasma_part(1,:) = transfer(list_get(losses_plasma_ll), losses_plasma_part(1,:))   
         next_losses_plasma_ll => list_next(losses_plasma_ll)
-        CALL create_2D_array_real_dset_p(file_id, losses_plasma_dset_name,&
-                                         REAL(plasma_normalisation_factor_m3,4)*losses_plasma_part, dims, offset, ccount)
+        CALL create_2D_array_real_dset_p(file_id, losses_plasma_dset_name, losses_plasma_part, dims, offset, ccount)
         
         losses_ionization_part(1,:) = transfer(list_get(losses_ionization_ll), losses_ionization_part(1,:))   
         next_losses_ionization_ll => list_next(losses_ionization_ll)
