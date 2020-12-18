@@ -257,6 +257,7 @@ CONTAINS
     USE ppt
     USE normalization
     USE pre_ionised
+    USE h5namelist
     IMPLICIT NONE
 
     INTEGER(4) j,l,k,k1
@@ -268,7 +269,7 @@ CONTAINS
     INTEGER(HID_T)    :: group_id      ! Group identifier 
     INTEGER           :: error         ! hdferr
     LOGICAL           :: group_status  ! boolean - does the group exists?
-    CHARACTER(LEN=15) :: h5_filename="results.h5" ! hdf5 file name
+   !  CHARACTER(LEN=15) :: h5_filename="results.h5" ! hdf5 file name
     
     ! Names of dsets and groups
     CHARACTER(*), PARAMETER :: groupname = longstep_grpname     
@@ -537,7 +538,7 @@ CONTAINS
        CALL MPI_REDUCE(e_2(1:dim_t),e_2KK(1:dim_t),dim_t,MPI_DOUBLE_PRECISION,MPI_SUM,0,MPI_COMM_WORLD,ierr)
        IF(my_rank.EQ.0) THEN
           CALL h5open_f(error) ! Prepare the HDF5 writing
-          CALL h5fopen_f(h5_filename, H5F_ACC_RDWR_F, file_id, error ) ! Open the HDF5 file
+          CALL h5fopen_f(main_h5_fname, H5F_ACC_RDWR_F, file_id, error ) ! Open the HDF5 file
           ! Create long_step group if it does not exist yet
           CALL h5lexists_f(file_id, longstep_grpname, group_status, error)
           IF ( group_status .EQV. .FALSE. ) THEN
@@ -793,7 +794,7 @@ CONTAINS
        CALL MPI_REDUCE(e_2(1:dim_t),e_2KK(1:dim_t),dim_t,MPI_DOUBLE_PRECISION,MPI_SUM,0,MPI_COMM_WORLD,ierr)
        IF(my_rank.EQ.0) THEN
           CALL h5open_f(error) ! Prepare the HDF5 writing
-          CALL h5fopen_f(h5_filename, H5F_ACC_RDWR_F, file_id, error ) ! Open the HDF5 file
+          CALL h5fopen_f(main_h5_fname, H5F_ACC_RDWR_F, file_id, error ) ! Open the HDF5 file
           ! Create long_step group if it does not exist yet
           CALL h5lexists_f(file_id, longstep_grpname, group_status, error)
           IF ( group_status .EQV. .FALSE. ) THEN
