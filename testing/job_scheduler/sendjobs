@@ -1,0 +1,23 @@
+#!/bin/bash
+
+# Prepare starting files
+
+JOBPREPARE=$(qsub -N preparejobs submit_prepare)
+
+for fold in sim*; do 
+
+cd $fold/
+
+export fold JOBPREPARE;
+./run_code
+# qsub -N ArPropagationIR_$fold submit_avakas
+
+echo $fold
+
+cd ..
+
+done;
+
+
+
+echo "done" 

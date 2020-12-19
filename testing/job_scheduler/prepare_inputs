@@ -1,0 +1,30 @@
+#!/bin/bash
+
+# Prepare starting files
+
+
+for fold in sim*; do 
+
+cd $fold/
+
+dum1="input.inp"
+#echo $dum1
+
+./make_start_avakas.e << INPUTS
+$dum1
+0
+0
+0
+0
+INPUTS
+
+
+echo $fold
+
+cd ..
+
+done;
+
+
+
+echo "done" 

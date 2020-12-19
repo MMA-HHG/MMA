@@ -1,0 +1,18 @@
+#!/bin/bash
+
+# mkdir direct
+# cp file2 direct
+
+
+
+for fold in sim*; do 
+
+	
+   echod $fold 
+
+   cp $fold/figures/propagation.jpg figures/propagation_$fold.jpg
+   cp $fold/figures/propagation.pdf figures/propagation_$fold.pdf
+
+done
+
+echo "done" 

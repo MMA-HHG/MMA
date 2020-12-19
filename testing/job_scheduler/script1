@@ -1,0 +1,61 @@
+#!/bin/bash
+
+#remove old programs
+rm *.out
+
+# Compile the programs
+gfortran -c dum_writer.f90
+gfortran -o writer.out *.o
+
+rm *.o
+
+gfortran -c recalcul_params.f90
+gfortran -o calculator.out *.o
+
+rm *.o
+
+gfortran -c convert_inps.f90
+gfortran -o convert.out *.o
+
+rm *.o
+
+echo "compiled"
+
+#mkdir intensity_study
+
+# clearing folder
+rm -r sim*
+rm input*
+rm params_check.txt
+rm ListOfSimulations.txt
+
+# inputs (I0 [W/cm2], press [bar], w0 [SI], focus [SI], tau [fs], n2atm [cm2/W], lambda [SI], THEORY, medium_length [SI]), put a negative number for no lense
+# [1-Euler method / 2- Semi-analytical / 3- PPT / 4-ADK-molecular / 5- Keldysh for crystal only / 6- KDP Guillaume / 7- air Pavel]
+
+#run=(1 2 3 4 5 6 7);
+#run=(1 2 3 4 5 6); I0=${run[0]}; press=${run[1]}; w0=${run[2]}; tau=${run[3]}; n2atm=${run[4]}; lambda=${run[5]}; export I0 press w0 tau n2atm lambda j; ./script2.sh; let j++;
+
+j=1
+while read LINE; do 
+	read -a run <<< $LINE;
+	echo "${run[*]}" >> "params_check.txt";
+	I0=${run[0]}; press=${run[1]}; w0=${run[2]}; focus=${run[3]}; tau=${run[4]}; n2atm=${run[5]}; lambda=${run[6]}; THEORY=${run[7]}; medium_length=${run[8]};
+	export I0 press w0 focus tau n2atm lambda j THEORY medium_length; ./script2.sh; let j++; 
+done < params.txt
+
+
+#run=(3 4); let j++; n2atm=${run[0]}; n2atm=n2atm/2.0 | bc; export n2atm j; ./script2.sh;
+
+echo "test4"
+
+
+for fold in sim*; do echo $fold; echo $fold >> "ListOfSimulations.txt"; done;
+
+
+#if (( $(echo "$focus < 0" | bc -l) )); then
+#  echo "no lense"
+#fi
+
+
+
+echo "done" 

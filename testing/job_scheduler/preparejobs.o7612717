@@ -1,0 +1,595 @@
+#############################
+User: jvabek
+Date: Wed Sep 5 10:39:41 CEST 2018
+Host: node251
+Directory: /scratch/jvabek/DEFOCUSING/PRESSURE_SCAN5
+PBS_JOBID: 7612717.master.cm.cluster
+PBS_O_WORKDIR: /scratch/jvabek/DEFOCUSING/PRESSURE_SCAN5
+PBS_NODEFILE:  node251.cm.cluster
+#############################
+ Specify name of parameterfile
+ Specify name of indexfile, or 0 to ignore
+ Warning: maximal absolute reduced real part of k is    4.89265611767769     
+ Check komega_original.dat and komega_original_reduced.dat
+ For artifical absorption type level of k, or 0 to ignore
+ For cutting the reduced real part of k type level, or 0 to ignore
+ write starting file for proc            0
+ write starting file for proc            1
+ write starting file for proc            2
+ write starting file for proc            3
+ write starting file for proc            4
+ write starting file for proc            5
+ write starting file for proc            6
+ write starting file for proc            7
+ write starting file for proc            8
+ write starting file for proc            9
+ write starting file for proc           10
+ write starting file for proc           11
+ write starting file for proc           12
+ write starting file for proc           13
+ write starting file for proc           14
+ write starting file for proc           15
+ write starting file for proc           16
+ write starting file for proc           17
+ write starting file for proc           18
+ write starting file for proc           19
+ write starting file for proc           20
+ write starting file for proc           21
+ write starting file for proc           22
+ write starting file for proc           23
+ write starting file for proc           24
+ write starting file for proc           25
+ write starting file for proc           26
+ write starting file for proc           27
+ write starting file for proc           28
+ write starting file for proc           29
+ write starting file for proc           30
+ write starting file for proc           31
+sim1
+ Specify name of parameterfile
+ Specify name of indexfile, or 0 to ignore
+ Warning: maximal absolute reduced real part of k is    88.0677428022027     
+ Check komega_original.dat and komega_original_reduced.dat
+ For artifical absorption type level of k, or 0 to ignore
+ For cutting the reduced real part of k type level, or 0 to ignore
+ write starting file for proc            0
+ write starting file for proc            1
+ write starting file for proc            2
+ write starting file for proc            3
+ write starting file for proc            4
+ write starting file for proc            5
+ write starting file for proc            6
+ write starting file for proc            7
+ write starting file for proc            8
+ write starting file for proc            9
+ write starting file for proc           10
+ write starting file for proc           11
+ write starting file for proc           12
+ write starting file for proc           13
+ write starting file for proc           14
+ write starting file for proc           15
+ write starting file for proc           16
+ write starting file for proc           17
+ write starting file for proc           18
+ write starting file for proc           19
+ write starting file for proc           20
+ write starting file for proc           21
+ write starting file for proc           22
+ write starting file for proc           23
+ write starting file for proc           24
+ write starting file for proc           25
+ write starting file for proc           26
+ write starting file for proc           27
+ write starting file for proc           28
+ write starting file for proc           29
+ write starting file for proc           30
+ write starting file for proc           31
+sim10
+ Specify name of parameterfile
+ Specify name of indexfile, or 0 to ignore
+ Warning: maximal absolute reduced real part of k is    97.8530378341675     
+ Check komega_original.dat and komega_original_reduced.dat
+ For artifical absorption type level of k, or 0 to ignore
+ For cutting the reduced real part of k type level, or 0 to ignore
+ write starting file for proc            0
+ write starting file for proc            1
+ write starting file for proc            2
+ write starting file for proc            3
+ write starting file for proc            4
+ write starting file for proc            5
+ write starting file for proc            6
+ write starting file for proc            7
+ write starting file for proc            8
+ write starting file for proc            9
+ write starting file for proc           10
+ write starting file for proc           11
+ write starting file for proc           12
+ write starting file for proc           13
+ write starting file for proc           14
+ write starting file for proc           15
+ write starting file for proc           16
+ write starting file for proc           17
+ write starting file for proc           18
+ write starting file for proc           19
+ write starting file for proc           20
+ write starting file for proc           21
+ write starting file for proc           22
+ write starting file for proc           23
+ write starting file for proc           24
+ write starting file for proc           25
+ write starting file for proc           26
+ write starting file for proc           27
+ write starting file for proc           28
+ write starting file for proc           29
+ write starting file for proc           30
+ write starting file for proc           31
+sim11
+ Specify name of parameterfile
+ Specify name of indexfile, or 0 to ignore
+ Warning: maximal absolute reduced real part of k is    195.705914564431     
+ Check komega_original.dat and komega_original_reduced.dat
+ For artifical absorption type level of k, or 0 to ignore
+ For cutting the reduced real part of k type level, or 0 to ignore
+ write starting file for proc            0
+ write starting file for proc            1
+ write starting file for proc            2
+ write starting file for proc            3
+ write starting file for proc            4
+ write starting file for proc            5
+ write starting file for proc            6
+ write starting file for proc            7
+ write starting file for proc            8
+ write starting file for proc            9
+ write starting file for proc           10
+ write starting file for proc           11
+ write starting file for proc           12
+ write starting file for proc           13
+ write starting file for proc           14
+ write starting file for proc           15
+ write starting file for proc           16
+ write starting file for proc           17
+ write starting file for proc           18
+ write starting file for proc           19
+ write starting file for proc           20
+ write starting file for proc           21
+ write starting file for proc           22
+ write starting file for proc           23
+ write starting file for proc           24
+ write starting file for proc           25
+ write starting file for proc           26
+ write starting file for proc           27
+ write starting file for proc           28
+ write starting file for proc           29
+ write starting file for proc           30
+ write starting file for proc           31
+sim12
+ Specify name of parameterfile
+ Specify name of indexfile, or 0 to ignore
+ Warning: maximal absolute reduced real part of k is    293.558630391955     
+ Check komega_original.dat and komega_original_reduced.dat
+ For artifical absorption type level of k, or 0 to ignore
+ For cutting the reduced real part of k type level, or 0 to ignore
+ write starting file for proc            0
+ write starting file for proc            1
+ write starting file for proc            2
+ write starting file for proc            3
+ write starting file for proc            4
+ write starting file for proc            5
+ write starting file for proc            6
+ write starting file for proc            7
+ write starting file for proc            8
+ write starting file for proc            9
+ write starting file for proc           10
+ write starting file for proc           11
+ write starting file for proc           12
+ write starting file for proc           13
+ write starting file for proc           14
+ write starting file for proc           15
+ write starting file for proc           16
+ write starting file for proc           17
+ write starting file for proc           18
+ write starting file for proc           19
+ write starting file for proc           20
+ write starting file for proc           21
+ write starting file for proc           22
+ write starting file for proc           23
+ write starting file for proc           24
+ write starting file for proc           25
+ write starting file for proc           26
+ write starting file for proc           27
+ write starting file for proc           28
+ write starting file for proc           29
+ write starting file for proc           30
+ write starting file for proc           31
+sim13
+ Specify name of parameterfile
+ Specify name of indexfile, or 0 to ignore
+ Warning: maximal absolute reduced real part of k is    391.411184169352     
+ Check komega_original.dat and komega_original_reduced.dat
+ For artifical absorption type level of k, or 0 to ignore
+ For cutting the reduced real part of k type level, or 0 to ignore
+ write starting file for proc            0
+ write starting file for proc            1
+ write starting file for proc            2
+ write starting file for proc            3
+ write starting file for proc            4
+ write starting file for proc            5
+ write starting file for proc            6
+ write starting file for proc            7
+ write starting file for proc            8
+ write starting file for proc            9
+ write starting file for proc           10
+ write starting file for proc           11
+ write starting file for proc           12
+ write starting file for proc           13
+ write starting file for proc           14
+ write starting file for proc           15
+ write starting file for proc           16
+ write starting file for proc           17
+ write starting file for proc           18
+ write starting file for proc           19
+ write starting file for proc           20
+ write starting file for proc           21
+ write starting file for proc           22
+ write starting file for proc           23
+ write starting file for proc           24
+ write starting file for proc           25
+ write starting file for proc           26
+ write starting file for proc           27
+ write starting file for proc           28
+ write starting file for proc           29
+ write starting file for proc           30
+ write starting file for proc           31
+sim14
+ Specify name of parameterfile
+ Specify name of indexfile, or 0 to ignore
+ Warning: maximal absolute reduced real part of k is    489.263567857444     
+ Check komega_original.dat and komega_original_reduced.dat
+ For artifical absorption type level of k, or 0 to ignore
+ For cutting the reduced real part of k type level, or 0 to ignore
+ write starting file for proc            0
+ write starting file for proc            1
+ write starting file for proc            2
+ write starting file for proc            3
+ write starting file for proc            4
+ write starting file for proc            5
+ write starting file for proc            6
+ write starting file for proc            7
+ write starting file for proc            8
+ write starting file for proc            9
+ write starting file for proc           10
+ write starting file for proc           11
+ write starting file for proc           12
+ write starting file for proc           13
+ write starting file for proc           14
+ write starting file for proc           15
+ write starting file for proc           16
+ write starting file for proc           17
+ write starting file for proc           18
+ write starting file for proc           19
+ write starting file for proc           20
+ write starting file for proc           21
+ write starting file for proc           22
+ write starting file for proc           23
+ write starting file for proc           24
+ write starting file for proc           25
+ write starting file for proc           26
+ write starting file for proc           27
+ write starting file for proc           28
+ write starting file for proc           29
+ write starting file for proc           30
+ write starting file for proc           31
+sim15
+ Specify name of parameterfile
+ Specify name of indexfile, or 0 to ignore
+ Warning: maximal absolute reduced real part of k is    9.78531103581190     
+ Check komega_original.dat and komega_original_reduced.dat
+ For artifical absorption type level of k, or 0 to ignore
+ For cutting the reduced real part of k type level, or 0 to ignore
+ write starting file for proc            0
+ write starting file for proc            1
+ write starting file for proc            2
+ write starting file for proc            3
+ write starting file for proc            4
+ write starting file for proc            5
+ write starting file for proc            6
+ write starting file for proc            7
+ write starting file for proc            8
+ write starting file for proc            9
+ write starting file for proc           10
+ write starting file for proc           11
+ write starting file for proc           12
+ write starting file for proc           13
+ write starting file for proc           14
+ write starting file for proc           15
+ write starting file for proc           16
+ write starting file for proc           17
+ write starting file for proc           18
+ write starting file for proc           19
+ write starting file for proc           20
+ write starting file for proc           21
+ write starting file for proc           22
+ write starting file for proc           23
+ write starting file for proc           24
+ write starting file for proc           25
+ write starting file for proc           26
+ write starting file for proc           27
+ write starting file for proc           28
+ write starting file for proc           29
+ write starting file for proc           30
+ write starting file for proc           31
+sim2
+ Specify name of parameterfile
+ Specify name of indexfile, or 0 to ignore
+ Warning: maximal absolute reduced real part of k is    19.5706230178475     
+ Check komega_original.dat and komega_original_reduced.dat
+ For artifical absorption type level of k, or 0 to ignore
+ For cutting the reduced real part of k type level, or 0 to ignore
+ write starting file for proc            0
+ write starting file for proc            1
+ write starting file for proc            2
+ write starting file for proc            3
+ write starting file for proc            4
+ write starting file for proc            5
+ write starting file for proc            6
+ write starting file for proc            7
+ write starting file for proc            8
+ write starting file for proc            9
+ write starting file for proc           10
+ write starting file for proc           11
+ write starting file for proc           12
+ write starting file for proc           13
+ write starting file for proc           14
+ write starting file for proc           15
+ write starting file for proc           16
+ write starting file for proc           17
+ write starting file for proc           18
+ write starting file for proc           19
+ write starting file for proc           20
+ write starting file for proc           21
+ write starting file for proc           22
+ write starting file for proc           23
+ write starting file for proc           24
+ write starting file for proc           25
+ write starting file for proc           26
+ write starting file for proc           27
+ write starting file for proc           28
+ write starting file for proc           29
+ write starting file for proc           30
+ write starting file for proc           31
+sim3
+ Specify name of parameterfile
+ Specify name of indexfile, or 0 to ignore
+ Warning: maximal absolute reduced real part of k is    29.3559283763170     
+ Check komega_original.dat and komega_original_reduced.dat
+ For artifical absorption type level of k, or 0 to ignore
+ For cutting the reduced real part of k type level, or 0 to ignore
+ write starting file for proc            0
+ write starting file for proc            1
+ write starting file for proc            2
+ write starting file for proc            3
+ write starting file for proc            4
+ write starting file for proc            5
+ write starting file for proc            6
+ write starting file for proc            7
+ write starting file for proc            8
+ write starting file for proc            9
+ write starting file for proc           10
+ write starting file for proc           11
+ write starting file for proc           12
+ write starting file for proc           13
+ write starting file for proc           14
+ write starting file for proc           15
+ write starting file for proc           16
+ write starting file for proc           17
+ write starting file for proc           18
+ write starting file for proc           19
+ write starting file for proc           20
+ write starting file for proc           21
+ write starting file for proc           22
+ write starting file for proc           23
+ write starting file for proc           24
+ write starting file for proc           25
+ write starting file for proc           26
+ write starting file for proc           27
+ write starting file for proc           28
+ write starting file for proc           29
+ write starting file for proc           30
+ write starting file for proc           31
+sim4
+ Specify name of parameterfile
+ Specify name of indexfile, or 0 to ignore
+ Warning: maximal absolute reduced real part of k is    39.1412376910448     
+ Check komega_original.dat and komega_original_reduced.dat
+ For artifical absorption type level of k, or 0 to ignore
+ For cutting the reduced real part of k type level, or 0 to ignore
+ write starting file for proc            0
+ write starting file for proc            1
+ write starting file for proc            2
+ write starting file for proc            3
+ write starting file for proc            4
+ write starting file for proc            5
+ write starting file for proc            6
+ write starting file for proc            7
+ write starting file for proc            8
+ write starting file for proc            9
+ write starting file for proc           10
+ write starting file for proc           11
+ write starting file for proc           12
+ write starting file for proc           13
+ write starting file for proc           14
+ write starting file for proc           15
+ write starting file for proc           16
+ write starting file for proc           17
+ write starting file for proc           18
+ write starting file for proc           19
+ write starting file for proc           20
+ write starting file for proc           21
+ write starting file for proc           22
+ write starting file for proc           23
+ write starting file for proc           24
+ write starting file for proc           25
+ write starting file for proc           26
+ write starting file for proc           27
+ write starting file for proc           28
+ write starting file for proc           29
+ write starting file for proc           30
+ write starting file for proc           31
+sim5
+ Specify name of parameterfile
+ Specify name of indexfile, or 0 to ignore
+ Warning: maximal absolute reduced real part of k is    48.9265364781022     
+ Check komega_original.dat and komega_original_reduced.dat
+ For artifical absorption type level of k, or 0 to ignore
+ For cutting the reduced real part of k type level, or 0 to ignore
+ write starting file for proc            0
+ write starting file for proc            1
+ write starting file for proc            2
+ write starting file for proc            3
+ write starting file for proc            4
+ write starting file for proc            5
+ write starting file for proc            6
+ write starting file for proc            7
+ write starting file for proc            8
+ write starting file for proc            9
+ write starting file for proc           10
+ write starting file for proc           11
+ write starting file for proc           12
+ write starting file for proc           13
+ write starting file for proc           14
+ write starting file for proc           15
+ write starting file for proc           16
+ write starting file for proc           17
+ write starting file for proc           18
+ write starting file for proc           19
+ write starting file for proc           20
+ write starting file for proc           21
+ write starting file for proc           22
+ write starting file for proc           23
+ write starting file for proc           24
+ write starting file for proc           25
+ write starting file for proc           26
+ write starting file for proc           27
+ write starting file for proc           28
+ write starting file for proc           29
+ write starting file for proc           30
+ write starting file for proc           31
+sim6
+ Specify name of parameterfile
+ Specify name of indexfile, or 0 to ignore
+ Warning: maximal absolute reduced real part of k is    58.7118409872055     
+ Check komega_original.dat and komega_original_reduced.dat
+ For artifical absorption type level of k, or 0 to ignore
+ For cutting the reduced real part of k type level, or 0 to ignore
+ write starting file for proc            0
+ write starting file for proc            1
+ write starting file for proc            2
+ write starting file for proc            3
+ write starting file for proc            4
+ write starting file for proc            5
+ write starting file for proc            6
+ write starting file for proc            7
+ write starting file for proc            8
+ write starting file for proc            9
+ write starting file for proc           10
+ write starting file for proc           11
+ write starting file for proc           12
+ write starting file for proc           13
+ write starting file for proc           14
+ write starting file for proc           15
+ write starting file for proc           16
+ write starting file for proc           17
+ write starting file for proc           18
+ write starting file for proc           19
+ write starting file for proc           20
+ write starting file for proc           21
+ write starting file for proc           22
+ write starting file for proc           23
+ write starting file for proc           24
+ write starting file for proc           25
+ write starting file for proc           26
+ write starting file for proc           27
+ write starting file for proc           28
+ write starting file for proc           29
+ write starting file for proc           30
+ write starting file for proc           31
+sim7
+ Specify name of parameterfile
+ Specify name of indexfile, or 0 to ignore
+ Warning: maximal absolute reduced real part of k is    68.4971443340182     
+ Check komega_original.dat and komega_original_reduced.dat
+ For artifical absorption type level of k, or 0 to ignore
+ For cutting the reduced real part of k type level, or 0 to ignore
+ write starting file for proc            0
+ write starting file for proc            1
+ write starting file for proc            2
+ write starting file for proc            3
+ write starting file for proc            4
+ write starting file for proc            5
+ write starting file for proc            6
+ write starting file for proc            7
+ write starting file for proc            8
+ write starting file for proc            9
+ write starting file for proc           10
+ write starting file for proc           11
+ write starting file for proc           12
+ write starting file for proc           13
+ write starting file for proc           14
+ write starting file for proc           15
+ write starting file for proc           16
+ write starting file for proc           17
+ write starting file for proc           18
+ write starting file for proc           19
+ write starting file for proc           20
+ write starting file for proc           21
+ write starting file for proc           22
+ write starting file for proc           23
+ write starting file for proc           24
+ write starting file for proc           25
+ write starting file for proc           26
+ write starting file for proc           27
+ write starting file for proc           28
+ write starting file for proc           29
+ write starting file for proc           30
+ write starting file for proc           31
+sim8
+ Specify name of parameterfile
+ Specify name of indexfile, or 0 to ignore
+ Warning: maximal absolute reduced real part of k is    78.2824461907148     
+ Check komega_original.dat and komega_original_reduced.dat
+ For artifical absorption type level of k, or 0 to ignore
+ For cutting the reduced real part of k type level, or 0 to ignore
+ write starting file for proc            0
+ write starting file for proc            1
+ write starting file for proc            2
+ write starting file for proc            3
+ write starting file for proc            4
+ write starting file for proc            5
+ write starting file for proc            6
+ write starting file for proc            7
+ write starting file for proc            8
+ write starting file for proc            9
+ write starting file for proc           10
+ write starting file for proc           11
+ write starting file for proc           12
+ write starting file for proc           13
+ write starting file for proc           14
+ write starting file for proc           15
+ write starting file for proc           16
+ write starting file for proc           17
+ write starting file for proc           18
+ write starting file for proc           19
+ write starting file for proc           20
+ write starting file for proc           21
+ write starting file for proc           22
+ write starting file for proc           23
+ write starting file for proc           24
+ write starting file for proc           25
+ write starting file for proc           26
+ write starting file for proc           27
+ write starting file for proc           28
+ write starting file for proc           29
+ write starting file for proc           30
+ write starting file for proc           31
+sim9
+done
