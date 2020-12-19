@@ -143,7 +143,7 @@ PROGRAM make_start
   !CALL read_dset(file_id, 'inputs/effective_density_of_neutral_molecules', rhont_cm3_phys)
   !rhont_cm3_phys = 0.5
 
-  CALL save_or_replace(group_id, 'medium_effective_atmospheric_density_of_neutral_molecules', pressure*rhont_cm3_phys, error, units_in = '[1/cm3]')
+  CALL save_or_replace(group_id, 'medium_effective_density_of_neutral_molecules', pressure*rhont_cm3_phys, error, units_in = '[1/cm3]')
 
 
   !--------------------------------!
