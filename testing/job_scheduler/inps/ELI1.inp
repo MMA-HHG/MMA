@@ -1,0 +1,31 @@
+# Laser
+laser_wavelength    7.92e-5 R cm
+laser_beamwaist     0.011   R   cm
+laser_pulse_duration_in_FWHM_Intensity  35  R   fs
+laser_focal_length_in_the_medium_cm 0.0 R   cm
+
+
+# Atom + medium
+gas_preset  Ar_PPT  S  -
+
+
+medium_pressure_in_bar  0.35    R    bar
+medium_physical_distance_of_propagation 0.015   R   m
+
+
+# Numerics
+numerics_number_of_points_in_r  1024    I   -
+numerics_number_of_points_in_t  1024    I   -
+
+numerics_length_of_window_for_r_normalized_to_beamwaist 4   R   -
+numerics_length_of_window_for_t_normalized_to_pulse_duration    8   R   -
+
+numerics_number_of_absorber_points_in_time  16  I   -
+
+numerics_physical_output_distance_for_plasma_and_Efield 0.001   R   m
+numerics_radius_for_diagnostics 0.1 R   cm???
+
+
+numerics_number_of_processors  64    I   -
+numerics_run_time_in_hours  5.0 R   h
+
