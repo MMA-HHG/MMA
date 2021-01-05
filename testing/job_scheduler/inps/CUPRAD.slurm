@@ -1,8 +1,8 @@
 #!/bin/bash
 #SBATCH -J CUPRAD
-#SBATCH --nodes=4
+#SBATCH --nodes=2
 #SBATCH --constraint=[HSW24|BDW28]
-#SBATCH --ntasks=64
+#SBATCH --ntasks=32
 #SBATCH --ntasks-per-node=16
 #SBATCH --time=06:00:00
 #SBATCH --output CUPRAD-%J.output
@@ -15,6 +15,8 @@ module load intel intelmpi hdf5
 #module load intel/18.1
 #module load intelmpi/2018.1.163
 
-# srun --mpi=pmi2 -K1 -n $SLURM_NTASKS /home/vabekjan/git/CUPRAD_DEVELOP/binary/cuprad_occigen.
+echo 'CUPRAD code executing'
 
-echo 'CUPRAD code'
+srun --mpi=pmi2 -K1 -n $SLURM_NTASKS /home/vabekjan/git/CUPRAD_DEVELOP/binary/cuprad_occigen.e
+
+echo 'CUPRAD code done'
