@@ -3,6 +3,10 @@
 # Prepare starting files
 
 # JOBPREPARE=$(qsub -N preparejobs submit_prepare)
+rm -r *
+
+cp $TESTPATH/*.inp .
+
 
 rm -r sim_*
 rm *.h5
@@ -13,9 +17,9 @@ echo $var
 module purge
 module load intel/17.2 python/3.6.3
 
-python3 $UNIV_INPUT/process_multiparametric.py -i-reg ELI1.inp -i-mp ELI1_MP.inp -univ-inps -ohdf5 reults.h5 -g inputs
+python3 $UNIV_INPUT/process_multiparametric.py -i-reg ELI1.inp -i-mp ELI1_MP.inp -univ-inps -ohdf5 results.h5 -g inputs
 
-cp multiparametric/*.h5 .
+cp multiparameters/*.h5 .
 
 
 for fold in results_*.h5; do 
@@ -28,9 +32,9 @@ echo $var
 mkdir sim_$var
 cp $fold sim_$var/
 # cp pre_processor.sh sim_$var/
-cp pre_processor.slurm sim_$var/
-cp CUPRAD.slurm sim_$var/
-cp run_CUPRAD.sh sim_$var/
+cp $TESTPATH/pre_processor.slurm sim_$var/
+cp $TESTPATH/CUPRAD.slurm sim_$var/
+cp $TESTPATH/run_CUPRAD.sh sim_$var/
 
 cd sim_$var
 echo "runscript"

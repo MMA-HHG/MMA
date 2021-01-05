@@ -14,6 +14,6 @@
 #module load intel/18.1
 #module load intelmpi/2018.1.163
 
-./../pre_processor.sh
+$TESTPATH/pre_processor.sh
 
 # srun --mpi=pmi2 -K1 -n $SLURM_NTASKS /home/vabekjan/git/CUPRAD_DEVELOP/binary/cuprad_occigen.e
