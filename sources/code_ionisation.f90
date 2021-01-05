@@ -227,6 +227,7 @@ CONTAINS
     USE mpi_stuff
     USE HDF5
     USE HDF5_helper
+    USE h5namelist
     IMPLICIT NONE
     CHARACTER(len = 3),INTENT(IN):: THEORY
     DOUBLE PRECISION, PARAMETER :: PI = 3.14159265d0
@@ -239,7 +240,7 @@ CONTAINS
     INTEGER                     :: i,error
     INTEGER(HID_T)              :: file_id, group_id
     DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: Egrid, ionisation_rates
-    CHARACTER(LEN=25)           :: outfilename = "results.h5", outgroupname="ionisation_model"
+    CHARACTER(*), PARAMETER     :: outgroupname="ionisation_model"
 
     INTERFACE
      FUNCTION IONISATION_RATE_PPT(intensity)
@@ -295,7 +296,7 @@ CONTAINS
         ! The ionisation table is provided in the outputs
         IF (my_rank.EQ.0) THEN 
           CALL h5open_f(error)
-          CALL h5fopen_f(outfilename, H5F_ACC_RDWR_F, file_id, error)
+          CALL h5fopen_f(main_h5_fname, H5F_ACC_RDWR_F, file_id, error)
           CALL h5gcreate_f(file_id, outgroupname, group_id, error)
           CALL create_dset(group_id, 'Egrid', Egrid, DIMENSION_PPT)
           CALL create_dset(group_id, 'ionisation_rates', ionisation_rates, DIMENSION_PPT)
@@ -427,6 +428,7 @@ CONTAINS
     USE libraries
     USE HDF5
     USE HDF5_helper
+    USE h5namelist
     IMPLICIT NONE
     DOUBLE PRECISION, PARAMETER :: PI = 3.14159265d0
     DOUBLE PRECISION, PARAMETER :: field_intensity_au = 3.50944758d16 !field intensity in atomic units
@@ -439,7 +441,7 @@ CONTAINS
     DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: dumvect, Egrid, ionisation_rates
     LOGICAL                     :: file_exists
     CHARACTER(LEN=25)           :: filename = "calculated_tables.h5", groupname = "ionisation_model"
-    CHARACTER(LEN=25)           :: outfilename = "results.h5", outgroupname="ionisation_model"
+    CHARACTER(*), PARAMETER     :: outgroupname="ionisation_model"
     INTEGER                     :: error
     INTEGER(HID_T)              :: file_id, group_id
 
@@ -543,7 +545,7 @@ CONTAINS
     ! The ionisation table is provided in the outputs
     IF (my_rank.EQ.0) THEN 
       CALL h5open_f(error)
-      CALL h5fopen_f(outfilename, H5F_ACC_RDWR_F, file_id, error)
+      CALL h5fopen_f(main_h5_fname, H5F_ACC_RDWR_F, file_id, error)
       CALL h5gcreate_f(file_id, outgroupname, group_id, error)
       CALL create_dset(group_id, 'Egrid', Egrid, DIMENSION_EXT)
       CALL create_dset(group_id, 'ionisation_rates', ionisation_rates, DIMENSION_EXT)
