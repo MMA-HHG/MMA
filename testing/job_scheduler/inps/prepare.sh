@@ -39,7 +39,8 @@ cp $TESTPATH/run_CUPRAD.sh sim_$var/
 cd sim_$var
 echo "runscript"
 # ./../pre_processor.sh
-./pre_processor.slurm
+# ./pre_processor.slurm
+./run_CUPRAD.sh
 cd ..
 
 
