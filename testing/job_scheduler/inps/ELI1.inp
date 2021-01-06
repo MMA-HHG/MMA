@@ -18,6 +18,9 @@ numerics_number_of_points_in_r  1024    I   -
 numerics_number_of_points_in_t  1024    I   -
 
 numerics_operators_t_t-1	2	I	-
+numerics_physical_first_stepwidth	0.01	R	mm
+numerics_phase_threshold_for_decreasing_delta_z	0.002	R	-
+
 
 numerics_length_of_window_for_r_normalized_to_beamwaist 4   R   -
 numerics_length_of_window_for_t_normalized_to_pulse_duration    8   R   -
@@ -26,6 +29,9 @@ numerics_number_of_absorber_points_in_time  16  I   -
 
 numerics_physical_output_distance_for_plasma_and_Efield 0.001   R   m
 numerics_physical_output_distance_for_Efield_only 0.002   R   m
+
+numerics_output_distance_in_z-steps_for_fluence_and_power	100	I	-
+
 numerics_radius_for_diagnostics 0.1 R   cm???
 
 
