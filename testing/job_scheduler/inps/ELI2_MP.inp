@@ -1,0 +1,2 @@
+laser_intensity_entry   inputs	R	W/m^2	1.0e18	1.5e18	0
+initial_electrons_ratio pre_ionised	R	-	0.0	0.04	0
