@@ -9,7 +9,7 @@ laser_focal_length_in_the_medium_cm 0.0 R   cm
 gas_preset  Ar_PPT  S  -
 
 
-medium_pressure_in_bar  0.35    R    bar
+medium_pressure_in_bar  0.035    R    bar
 medium_physical_distance_of_propagation 0.015   R   m
 
 
