@@ -9,7 +9,7 @@ rm *.h5
 
 module purge
 module load intel/17.2 python/3.6.3
-python3 $UNIV_INPUT_PATH/process_multiparametric.py -i-reg ELI2.inp -i-mp ELI2_MP.inp -multiparam-groups -keep-intermediate -univ-inps -ohdf5 results.h5 -g inputs
+python3 $UNIV_INPUT_PATH/process_multiparametric.py -i-reg ELI3.inp -i-mp ELI3_MP.inp -multiparam-groups -keep-intermediate -univ-inps -ohdf5 results.h5 -g inputs
 
 cp multiparameters/*.h5 .
 
@@ -18,7 +18,7 @@ for simulation in results_*.h5; do
 
     ksimulation=$(echo $simulation | grep -Po '(?<=_)\d+')
     mkdir sim_$ksimulation
-    cp $simulation sim_$ksimulation/
+    mv $simulation sim_$ksimulation/
     cd sim_$ksimulation
         echo "executing simulation $ksimulation"
         $TESTPATH/run_CUPRAD.sh
