@@ -229,9 +229,9 @@ CONTAINS
           spect_array_5(1,j) = REAL(ATAN2(AIMAG(etemp(j,1)),REAL(etemp(j,1))+1.D-20),4)
         ENDDO
         CALL create_1D_array_real_dset(file_id, spect_1d_dset_name_1, spect_array_1, dim_t)
-	CALL h5_add_units_1D(file_id, spect_1d_dset_name_1, '[?]')
+	      CALL h5_add_units_1D(file_id, spect_1d_dset_name_1, '[?]')
         CALL create_and_preallocate_2D_array_real_dset(file_id, spect_1d_dset_name_2, spect_array_2, dims_2d, offset_2d, ccount_2d)
-	CALL h5_add_units_1D(file_id, spect_1d_dset_name_2, '[arb.u.]')
+	      CALL h5_add_units_1D(file_id, spect_1d_dset_name_2, '[arb.u.]')
         CALL create_and_preallocate_2D_array_real_dset(file_id, spect_1d_dset_name_3, spect_array_3, dims_2d, offset_2d, ccount_2d)
         CALL h5_add_units_1D(file_id, spect_1d_dset_name_3, '[arb.u.]')
         CALL create_and_preallocate_2D_array_real_dset(file_id, spect_1d_dset_name_4, spect_array_4, dims_2d, offset_2d, ccount_2d)
