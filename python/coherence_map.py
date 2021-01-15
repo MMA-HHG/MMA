@@ -5,18 +5,27 @@ import time
 import shutil
 import h5py
 import sys
+sys.path.append('D:\git\python_modules')
 import units
 # import mynumerics as mn
 import matplotlib.pyplot as plt
 
-a = False
+# results_path = os.path.join("/mnt", "d", "data", "Discharges") # 'D:\data\Discharges'
+results_path = os.path.join("D:\data", "Discharges")
 
-if a: import mynumerics as mn
+filename = "results_1.h5"
 
-print(mn.IsPowerOf2(4))
+file_path = os.path.join(results_path,filename)
+
+with h5py.File(file_path, 'r') as InputArchive:
+
+    print(InputArchive['/inputs/laser_wavelength'][()])
+
+    electron_density_map = 5
+    plasma_frequency_map = np.sqrt((units.elcharge**2)/(units.eps0*units.elmass)) * np.sqrt(electron_density_map)
 
 
-
+## refractive index contribs
 
 
 #### THE MAIN PROGRAM #####
