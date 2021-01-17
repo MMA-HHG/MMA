@@ -34,6 +34,14 @@ def imyfft(xi,Fx):
     x = np.linspace(0,2.0*np.pi/dxi,len(fx))
     return x, fx
 
+def complexify_fft(fx):
+    N = len(fx)
+    fx = np.fft.fft(fx)
+    for k1 in range((N//2)+1,N):
+        fx[k1] = 0.0
+    fx = np.fft.ifft(fx)
+    return fx
+
 with h5py.File(file_path, 'r') as InputArchive:
 
     print(1e-2*InputArchive['/inputs/laser_wavelength'][()])
@@ -63,8 +71,16 @@ with h5py.File(file_path, 'r') as InputArchive:
     plt.savefig('FFEfield.png', dpi = 600)
     plt.show()
 
+    print('test1')
 
-print('test1')
+    Ecmplx = complexify_fft(Etest)
+
+    plt.plot(tgrid, Ecmplx.real, linewidth=0.2)
+    plt.savefig('EcmplxR.png', dpi = 600)
+    plt.show()
+
+
+print('test2')
 
 
 ## refractive index contribs
