@@ -75,8 +75,18 @@ with h5py.File(file_path, 'r') as InputArchive:
 
     Ecmplx = complexify_fft(Etest)
 
+    Eenvelope = np.exp(-1j*omega0*tgrid)*Ecmplx
+
     plt.plot(tgrid, Ecmplx.real, linewidth=0.2)
     plt.savefig('EcmplxR.png', dpi = 600)
+    plt.show()
+
+    plt.plot(tgrid, Eenvelope.real, linewidth=0.2)
+    plt.savefig('EenvelR.png', dpi = 600)
+    plt.show()
+
+    plt.plot(tgrid, np.angle(Eenvelope), linewidth=0.2)
+    plt.savefig('EenvelAngle.png', dpi = 600)
     plt.show()
 
     plt.plot(tgrid, abs(Ecmplx.real-Etest), linewidth=0.2)
