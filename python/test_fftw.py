@@ -39,7 +39,7 @@ def complexify_fft(fx):
     fx = np.fft.fft(fx)
     for k1 in range((N//2)+1,N):
         fx[k1] = 0.0
-    fx = np.fft.ifft(fx)
+    fx = 2.0*np.fft.ifft(fx)
     return fx
 
 with h5py.File(file_path, 'r') as InputArchive:
@@ -77,6 +77,10 @@ with h5py.File(file_path, 'r') as InputArchive:
 
     plt.plot(tgrid, Ecmplx.real, linewidth=0.2)
     plt.savefig('EcmplxR.png', dpi = 600)
+    plt.show()
+
+    plt.plot(tgrid, abs(Ecmplx.real-Etest), linewidth=0.2)
+    plt.savefig('Error.png', dpi = 600)
     plt.show()
 
 
