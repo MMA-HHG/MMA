@@ -11,8 +11,8 @@ import mynumerics as mn
 # import mynumerics as mn
 import matplotlib.pyplot as plt
 
-results_path = os.path.join("/mnt", "d", "data", "Discharges") # 'D:\data\Discharges'
-# results_path = os.path.join("D:\data", "Discharges")
+# results_path = os.path.join("/mnt", "d", "data", "Discharges") # 'D:\data\Discharges'
+results_path = os.path.join("D:\data", "Discharges")
 
 filename = "results_5.h5"
 
@@ -39,6 +39,82 @@ with h5py.File(file_path, 'r') as InputArchive:
     zgridzR = np.linspace(0,zR,100)
 
     plasma_frequency_map = np.sqrt((units.elcharge ** 2) / (units.eps0 * units.elmass)) * np.sqrt(electron_density_map)
+
+    ## Retrieve phase
+    Efield_cmplx_envel = np.zeros((Nt,Nr,Nz),dtype=complex)
+    rem_fast_oscillations = np.exp(-1j*omega0*tgrid)
+    for k1 in range(Nz):
+        for k2 in range(Nr):
+            Efield_cmplx_envel[:,k2,k1] = rem_fast_oscillations*mn.complexify_fft(Efield[:,k2,k1])
+
+    # phase_map = np.zeros((Nr,Nz))
+    phase_map = np.angle(Efield_cmplx_envel[k_t,:,:])
+
+    Lcoh_map = np.zeros((Nr//2,Nz-1))
+    for k1 in range(Nr//2):
+        phase_r = np.unwrap(phase_map[k1,:])
+        Lcoh_map[k1, 0] = (phase_r[1] - phase_r[0]) / (zgrid[1] - zgrid[0])
+        Lcoh_map[k1, -1] = (phase_r[-1] - phase_r[-2]) / (zgrid[-1] - zgrid[-2])
+        for k2 in range(0, Nz - 1):
+            Lcoh_map[k1, k2] = (phase_r[k2+1] - phase_r[k2]) / (zgrid[k2+1] - zgrid[k2])
+    # Lcoh_map = np.abs(np.pi / Lcoh_map)
+
+        # Lcoh_map[k1, 0] = (phase_r[1]-phase_r[0])/(zgrid[1]-zgrid[0])
+        # Lcoh_map[k1, -1] = (phase_r[-1]-phase_r[-2])/(zgrid[-1]-zgrid[-2])
+        # for k2 in range(1,Nz-1):
+        #     Lcoh_map[k1,k2] = mn.ddx_arb(k2,zgrid,phase_r)
+
+    Lcoh_map2 = np.abs(np.pi/Lcoh_map)
+
+    # compute also local curvature
+    Curvature_Gaussian_map = np.zeros((Nr//2,Nz))
+    Curvature_map = np.zeros((Nr // 2, Nz))
+    for k1 in range(Nz):
+        if (k1 == 0): Curv_coeff = 0
+        else:
+            Rz = zgrid[k1] + zR ** 2 / zgrid[k1]
+            Curv_coeff = np.pi / (Rz * mn.ConvertPhoton(omega0, 'omegaSI', 'lambdaSI'))
+        Curvature_Gaussian_map[:(Nr//2), k1] = -Curv_coeff*(rgrid[:(Nr//2)])**2
+        Curvature_map[:(Nr//2), k1] = np.unwrap(phase_map[:(Nr//2), k1])
+        Curvature_map[:(Nr // 2), k1] = Curvature_map[:(Nr//2), k1] - Curvature_map[0, k1] # start always at 0
+
+    Curvature_map = Curvature_map - np.max(Curvature_map)
+
+    # plt.pcolor(zgrid,rgrid,Lcoh_map,vmax=0.1)
+    plt.pcolor(zgrid, rgrid[:(Nr//2)], Lcoh_map)
+    plt.colorbar()
+    plt.savefig('Lcoh_mapinv.png', dpi = 600)
+    plt.show()
+
+    plt.pcolor(zgrid, rgrid[:(Nr//2)], Lcoh_map2, vmax=0.25)
+    plt.colorbar()
+    plt.savefig('Lcoh_map2.png', dpi = 600)
+    plt.show()
+
+    plt.pcolor(zgrid,rgrid,phase_map)
+    plt.colorbar()
+    plt.savefig('Phase_map.png', dpi = 600)
+    plt.show()
+
+    plt.pcolor(zgrid, rgrid[:(Nr//2)], Curvature_map, vmax=0.25)
+    plt.colorbar()
+    plt.savefig('Curvature_map.png', dpi = 600)
+    plt.show()
+
+    plt.pcolor(zgrid, rgrid[:(Nr//2)], Curvature_Gaussian_map, vmax=0.25)
+    plt.colorbar()
+    plt.savefig('Curvature_map_Gauss.png', dpi = 600)
+    plt.show()
+
+    # plt.plot(zgrid, phase_map[0,:],linewidth=0.2)
+    # plt.plot(zgrid, phase_map[1, :], linewidth=0.2)
+    # plt.plot(zgrid, phase_map[2, :], linewidth=0.2)
+    # plt.plot(zgrid, phase_map[3, :], linewidth=0.2)
+    # plt.plot(zgrid, phase_map[4, :], linewidth=0.2)
+    # plt.savefig('Phases.png', dpi = 600)
+    # plt.show()
+
+
 
     ## Get plasma contribution
 
@@ -70,93 +146,93 @@ with h5py.File(file_path, 'r') as InputArchive:
 
 
 
-    E_cmplx_onax = np.zeros((Nz,Nt),dtype=complex)
-    for k1 in range(Nz):
-        E_cmplx_onax[k1,:] = mn.complexify_fft(Efield[:,0,k1])
-
-    E_cmplx_zfirst = np.zeros((Nr, Nt), dtype=complex)
-    E_cmplx_zlast = np.zeros((Nr, Nt), dtype=complex)
-
-    for k1 in range(Nr):
-        E_cmplx_zfirst[k1,:] = mn.complexify_fft(Efield[:,k1,0])
-        E_cmplx_zlast[k1,:] = mn.complexify_fft(Efield[:, k1, 30])
-
-
-    plt.pcolor(tgrid,rgrid,E_cmplx_zfirst.real)
-    plt.colorbar()
-    plt.savefig('map_zfix1cmplx.png', dpi = 600)
-    plt.show()
-
-    plt.pcolor(tgrid,rgrid,E_cmplx_zlast.real)
-    plt.colorbar()
-    plt.savefig('map_zfix2cmplx.png', dpi = 600)
-    plt.show()
-
-    Rz = zgrid[30] + zR**2/zgrid[30]
-    Curv_coeff = np.pi / (Rz*mn.ConvertPhoton(omega0,'omegaSI','lambdaSI'))
-
-    E_cmplx_zlast_envel = np.exp(-1j*omega0*tgrid)*E_cmplx_zlast
-    E_cmplx_zlast_angle = np.angle(E_cmplx_zlast_envel)
-
-    plt.plot(rgrid, np.unwrap(E_cmplx_zlast_angle[:,512]),linewidth=0.2)
-    plt.plot(rgrid, -Curv_coeff*rgrid**2, linewidth=0.2)
-    plt.savefig('Phase_zfix2.png', dpi = 600)
-    plt.show()
-
-
-
-
-    E_cmplx_onax_envel = np.exp(-1j*omega0*tgrid)*E_cmplx_onax
-
-    # E_cmplx_onax_angle = np.arctan2(E_cmplx_onax_envel.imag,E_cmplx_onax_envel.real)
-    E_cmplx_onax_angle = np.angle(E_cmplx_onax_envel)
-
-    plt.plot(tgrid, Efield[:,0,0],linewidth=0.2)
-    plt.plot(tgrid, E_cmplx_onax[0,:].real,linewidth=0.2)
-    plt.plot(tgrid, E_cmplx_onax_envel[0,:].real, linewidth=0.2)
-    plt.savefig('Efieldfirstenvel.png', dpi = 600)
-    plt.show()
-
-    plt.plot(zgrid, E_cmplx_onax_angle[:,512],linewidth=0.2)
-    plt.plot(zgrid, np.arctan(zgrid/zR), linewidth=0.2)
-    plt.plot(zgridzR, np.arctan(zgridzR / zR), linewidth=0.2)
-    plt.savefig('Phase_thalf.png', dpi = 600)
-    plt.show()
-
-
-
-    plt.plot(tgrid, Efield[:,0,1],linewidth=0.2)
-    plt.plot(tgrid, Efield[:, 0, 2],linewidth=0.2)
-    plt.plot(tgrid, Efield[:, 0, 30], linewidth=0.2)
-    plt.savefig('Efield.png', dpi = 600)
-    plt.show()
-
-    plt.pcolor(tgrid,rgrid,Efield[:,:,0].T)
-    plt.colorbar()
-    plt.savefig('Efield_zfix.png', dpi = 600)
-    plt.show()
-
-
-
-    plt.pcolor(tgrid,rgrid,plasma_frequency_map[:,:,0].T)
-    plt.colorbar()
-    plt.savefig('map_zfix.png', dpi = 600)
-    plt.show()
-
-
-    plt.pcolor(zgrid,tgrid,np.squeeze(plasma_frequency_map[:,0,:]))
-    plt.colorbar()
-    plt.savefig('map_onax.png', dpi = 600)
-    plt.show()
-
-    plt.pcolor(zgrid,rgrid,np.squeeze(plasma_frequency_map[512,:,:]))
-    plt.colorbar()
-    plt.savefig('map_thalf.png', dpi = 600)
-    plt.show()
-
-
-
-## refractive index contribs
-
-
-
+#     E_cmplx_onax = np.zeros((Nz,Nt),dtype=complex)
+#     for k1 in range(Nz):
+#         E_cmplx_onax[k1,:] = mn.complexify_fft(Efield[:,0,k1])
+#
+#     E_cmplx_zfirst = np.zeros((Nr, Nt), dtype=complex)
+#     E_cmplx_zlast = np.zeros((Nr, Nt), dtype=complex)
+#
+#     for k1 in range(Nr):
+#         E_cmplx_zfirst[k1,:] = mn.complexify_fft(Efield[:,k1,0])
+#         E_cmplx_zlast[k1,:] = mn.complexify_fft(Efield[:, k1, 30])
+#
+#
+#     plt.pcolor(tgrid,rgrid,E_cmplx_zfirst.real)
+#     plt.colorbar()
+#     plt.savefig('map_zfix1cmplx.png', dpi = 600)
+#     plt.show()
+#
+#     plt.pcolor(tgrid,rgrid,E_cmplx_zlast.real)
+#     plt.colorbar()
+#     plt.savefig('map_zfix2cmplx.png', dpi = 600)
+#     plt.show()
+#
+#     Rz = zgrid[30] + zR**2/zgrid[30]
+#     Curv_coeff = np.pi / (Rz*mn.ConvertPhoton(omega0,'omegaSI','lambdaSI'))
+#
+#     E_cmplx_zlast_envel = np.exp(-1j*omega0*tgrid)*E_cmplx_zlast
+#     E_cmplx_zlast_angle = np.angle(E_cmplx_zlast_envel)
+#
+#     plt.plot(rgrid, np.unwrap(E_cmplx_zlast_angle[:,512]),linewidth=0.2)
+#     plt.plot(rgrid, -Curv_coeff*rgrid**2, linewidth=0.2)
+#     plt.savefig('Phase_zfix2.png', dpi = 600)
+#     plt.show()
+#
+#
+#
+#
+#     E_cmplx_onax_envel = np.exp(-1j*omega0*tgrid)*E_cmplx_onax
+#
+#     # E_cmplx_onax_angle = np.arctan2(E_cmplx_onax_envel.imag,E_cmplx_onax_envel.real)
+#     E_cmplx_onax_angle = np.angle(E_cmplx_onax_envel)
+#
+#     plt.plot(tgrid, Efield[:,0,0],linewidth=0.2)
+#     plt.plot(tgrid, E_cmplx_onax[0,:].real,linewidth=0.2)
+#     plt.plot(tgrid, E_cmplx_onax_envel[0,:].real, linewidth=0.2)
+#     plt.savefig('Efieldfirstenvel.png', dpi = 600)
+#     plt.show()
+#
+#     plt.plot(zgrid, E_cmplx_onax_angle[:,512],linewidth=0.2)
+#     plt.plot(zgrid, np.arctan(zgrid/zR), linewidth=0.2)
+#     plt.plot(zgridzR, np.arctan(zgridzR / zR), linewidth=0.2)
+#     plt.savefig('Phase_thalf.png', dpi = 600)
+#     plt.show()
+#
+#
+#
+#     plt.plot(tgrid, Efield[:,0,1],linewidth=0.2)
+#     plt.plot(tgrid, Efield[:, 0, 2],linewidth=0.2)
+#     plt.plot(tgrid, Efield[:, 0, 30], linewidth=0.2)
+#     plt.savefig('Efield.png', dpi = 600)
+#     plt.show()
+#
+#     plt.pcolor(tgrid,rgrid,Efield[:,:,0].T)
+#     plt.colorbar()
+#     plt.savefig('Efield_zfix.png', dpi = 600)
+#     plt.show()
+#
+#
+#
+#     plt.pcolor(tgrid,rgrid,plasma_frequency_map[:,:,0].T)
+#     plt.colorbar()
+#     plt.savefig('map_zfix.png', dpi = 600)
+#     plt.show()
+#
+#
+#     plt.pcolor(zgrid,tgrid,np.squeeze(plasma_frequency_map[:,0,:]))
+#     plt.colorbar()
+#     plt.savefig('map_onax.png', dpi = 600)
+#     plt.show()
+#
+#     plt.pcolor(zgrid,rgrid,np.squeeze(plasma_frequency_map[512,:,:]))
+#     plt.colorbar()
+#     plt.savefig('map_thalf.png', dpi = 600)
+#     plt.show()
+#
+#
+#
+# ## refractive index contribs
+#
+#
+#
