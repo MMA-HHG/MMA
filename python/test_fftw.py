@@ -63,6 +63,11 @@ with h5py.File(file_path, 'r') as InputArchive:
     plt.savefig('FEfield.png', dpi = 600)
     plt.show()
 
+    plt.plot(np.abs(FEtest[75:100]), linewidth=0.2)
+    plt.savefig('FEfield_pts.png', dpi = 600)
+    plt.show()
+
+
     plt.plot(tgrid, Etest, linewidth=0.2)
     plt.savefig('Efield.png', dpi = 600)
     plt.show()
