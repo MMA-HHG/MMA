@@ -16,7 +16,7 @@ import matplotlib.pyplot as plt
 # results_path = os.path.join("/mnt", "d", "data", "Discharges") # 'D:\data\Discharges'
 results_path = os.path.join("D:\data", "Discharges")
 
-filename = "results_5.h5"
+filename = "results_1.h5"
 
 file_path = os.path.join(results_path,filename)
 
@@ -87,8 +87,12 @@ with h5py.File(file_path, 'r') as InputArchive:
     plt.savefig('EenvelR.png', dpi = 600)
     plt.show()
 
-    plt.plot(tgrid, np.unwrap(np.angle(Eenvelope)), linewidth=0.2)
+    plt.plot(tgrid, np.angle(Eenvelope), linewidth=0.2)
     plt.savefig('EenvelAngle.png', dpi = 600)
+    plt.show()
+
+    plt.plot(tgrid, np.unwrap(np.angle(Eenvelope)), linewidth=0.2)
+    plt.savefig('EenvelAngleUnwrp.png', dpi = 600)
     plt.show()
 
     plt.plot(tgrid, abs(Ecmplx.real-Etest), linewidth=0.2)
