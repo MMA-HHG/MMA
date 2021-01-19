@@ -34,10 +34,10 @@ with h5py.File(file_path, 'r') as InputArchive:
     electron_density_map = InputArchive['/outputs/output_plasma'][:]
     Efield = InputArchive['/outputs/output_field'][:]
 
-    # plot plasma
-    plt.plot(electron_density_map[:,0,0])
-    plt.savefig('plasma.png')
-    plt.show()
+    # # plot plasma
+    # plt.plot(electron_density_map[:,0,0])
+    # plt.savefig('plasma.png')
+    # plt.show()
 
 
     w0 = 1e-2*mn.readscalardataset(InputArchive,'/inputs/laser_beamwaist','N')
@@ -87,25 +87,29 @@ with h5py.File(file_path, 'r') as InputArchive:
     Curvature_map = Curvature_map - np.max(Curvature_map)
 
     # plt.pcolor(zgrid,rgrid,Lcoh_map,vmax=0.1)
-    plt.pcolor(zgrid, rgrid[:(Nr//2)], Lcoh_map)
+    plt.pcolor(zgrid[:-1], rgrid[:(Nr//2)], Lcoh_map)
     plt.colorbar()
-    plt.savefig('Lcoh_mapinv.png', dpi = 600)
+    plt.savefig('dPhidz_map.png', dpi = 600)
     plt.show()
 
-    plt.pcolor(zgrid, rgrid[:(Nr//2)], Lcoh_map2, vmax=0.25)
+    plt.pcolor(zgrid[:-1], rgrid[:(Nr//2)], Lcoh_map2, vmax=0.3)
     plt.colorbar()
-    plt.savefig('Lcoh_map2.png', dpi = 600)
+    plt.savefig('Lcoh_map.png', dpi = 600)
     plt.show()
 
     plt.pcolor(zgrid,rgrid,phase_map)
     plt.colorbar()
-    plt.savefig('Phase_map.png', dpi = 600)
+    plt.savefig('Phase_z_unwrp_map.png', dpi = 600)
     plt.show()
 
     plt.pcolor(zgrid, rgrid[:(Nr//2)], Curvature_map, vmax=0.25)
     plt.colorbar()
     plt.savefig('Curvature_map.png', dpi = 600)
     plt.show()
+
+    # plt.plot(Curvature_map[:,0])
+    # plt.savefig('0curv.png', dpi=600)
+    # plt.show()
 
     plt.pcolor(zgrid, rgrid[:(Nr//2)], Curvature_Gaussian_map, vmax=0.25)
     plt.colorbar()
@@ -125,6 +129,23 @@ with h5py.File(file_path, 'r') as InputArchive:
     ## Get plasma contribution
 
     ## Plasma and geometry cannot be separated with the numerical solution
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     # plasma_frequency_map[512, :, :]
 
