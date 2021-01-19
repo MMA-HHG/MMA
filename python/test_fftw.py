@@ -48,6 +48,7 @@ with h5py.File(file_path, 'r') as InputArchive:
 
     print(1e-2*InputArchive['/inputs/laser_wavelength'][()])
     omega0 = mn.ConvertPhoton(1e-2*InputArchive['/inputs/laser_wavelength'][()],'lambdaSI','omegaSI')
+    # omega0 = 2379924242424242.5
     print(omega0)
     tgrid = InputArchive['/outputs/tgrid'][:]
     rgrid = InputArchive['/outputs/rgrid'][:]
@@ -55,7 +56,15 @@ with h5py.File(file_path, 'r') as InputArchive:
     electron_density_map = InputArchive['/outputs/output_plasma'][:]
     Efield = InputArchive['/outputs/output_field'][:]
 
-    Etest = Efield[:, 0, 30]
+    Etest = Efield[:,0,10]
+
+    omegauppe = 10.1 * omega0
+    # Etest = np.exp(-(tgrid/29.72626301008067e-15)**2)*np.cos(omega0*tgrid+1.0) #Efield[:, 0, 30]
+    # Etest = np.exp(-(tgrid / 29.72626301008067e-15) ** 2 + 1j*(omegauppe - omega0)*tgrid)
+    # Etest = np.exp(-1j*omegauppe*tgrid)*Etest
+    # Etest = Etest.real
+
+    # Etest = Etest.astype(np.float32)
 
     ogrid, FEtest = myfft(tgrid,Etest)
 
@@ -69,6 +78,7 @@ with h5py.File(file_path, 'r') as InputArchive:
 
 
     plt.plot(tgrid, Etest, linewidth=0.2)
+    plt.xlim([-30.e-15,30.e-15])
     plt.savefig('Efield.png', dpi = 600)
     plt.show()
 

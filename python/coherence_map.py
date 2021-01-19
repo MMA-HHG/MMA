@@ -34,6 +34,12 @@ with h5py.File(file_path, 'r') as InputArchive:
     electron_density_map = InputArchive['/outputs/output_plasma'][:]
     Efield = InputArchive['/outputs/output_field'][:]
 
+    # plot plasma
+    plt.plot(electron_density_map[:,0,0])
+    plt.savefig('plasma.png')
+    plt.show()
+
+
     w0 = 1e-2*mn.readscalardataset(InputArchive,'/inputs/laser_beamwaist','N')
     zR = np.pi * w0**2 / mn.ConvertPhoton(omega0,'omegaSI','lambdaSI')
     zgridzR = np.linspace(0,zR,100)
