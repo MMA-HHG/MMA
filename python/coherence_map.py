@@ -14,7 +14,7 @@ import matplotlib.pyplot as plt
 # results_path = os.path.join("/mnt", "d", "data", "Discharges") # 'D:\data\Discharges'
 results_path = os.path.join("D:\data", "Discharges")
 
-filename = "results_5.h5"
+filename = "results_11.h5"
 
 file_path = os.path.join(results_path,filename)
 
@@ -43,6 +43,8 @@ with h5py.File(file_path, 'r') as InputArchive:
     w0 = 1e-2*mn.readscalardataset(InputArchive,'/inputs/laser_beamwaist','N')
     zR = np.pi * w0**2 / mn.ConvertPhoton(omega0,'omegaSI','lambdaSI')
     zgridzR = np.linspace(0,zR,100)
+
+    rho0 = 1e6 * mn.readscalardataset(InputArchive, '/inputs/calculated/medium_effective_density_of_neutral_molecules','N')
 
     plasma_frequency_map = np.sqrt((units.elcharge ** 2) / (units.eps0 * units.elmass)) * np.sqrt(electron_density_map)
 
@@ -86,13 +88,28 @@ with h5py.File(file_path, 'r') as InputArchive:
 
     Curvature_map = Curvature_map - np.max(Curvature_map)
 
+    ## Fluence estimation
+    Fluence = np.zeros((Nr//2, Nz))
+    for k1 in range(Nz):
+        for k2 in range(Nr//2):
+            Fluence[k2, k1] = sum(abs(Efield[:, k2, k1])**2)
+
+    ## thalf_ionisation map
+    ionisation_tfix_map = np.zeros((Nr//2, Nz))
+    for k1 in range(Nz):
+        for k2 in range(Nr//2):
+            ionisation_tfix_map[k2, k1] = electron_density_map[k_t,k2,k1]
+
     # plt.pcolor(zgrid,rgrid,Lcoh_map,vmax=0.1)
     plt.pcolor(zgrid[:-1], rgrid[:(Nr//2)], Lcoh_map)
     plt.colorbar()
     plt.savefig('dPhidz_map.png', dpi = 600)
     plt.show()
 
-    plt.pcolor(zgrid[:-1], rgrid[:(Nr//2)], Lcoh_map2, vmax=0.3)
+    plt.pcolor(1e3*zgrid[:-1], 1e6*rgrid[:(Nr//2)], Lcoh_map2, vmax=0.3)
+    plt.xlabel('z [mm]')
+    plt.ylabel('r [mum]')
+    plt.title('Lcoh [m]')
     plt.colorbar()
     plt.savefig('Lcoh_map.png', dpi = 600)
     plt.show()
@@ -102,7 +119,10 @@ with h5py.File(file_path, 'r') as InputArchive:
     plt.savefig('Phase_z_unwrp_map.png', dpi = 600)
     plt.show()
 
-    plt.pcolor(zgrid, rgrid[:(Nr//2)], Curvature_map, vmax=0.25)
+    plt.pcolor(1e3*zgrid, 1e6*rgrid[:(Nr//2)], Curvature_map, vmax = 0)
+    plt.xlabel('z [mm]')
+    plt.ylabel('r [mum]')
+    plt.title('phi_Curv [rad]')
     plt.colorbar()
     plt.savefig('Curvature_map.png', dpi = 600)
     plt.show()
@@ -111,9 +131,38 @@ with h5py.File(file_path, 'r') as InputArchive:
     # plt.savefig('0curv.png', dpi=600)
     # plt.show()
 
-    plt.pcolor(zgrid, rgrid[:(Nr//2)], Curvature_Gaussian_map, vmax=0.25)
+    plt.pcolor(1e3*zgrid, 1e6*rgrid[:(Nr//2)], Curvature_Gaussian_map, vmax = 0)
+    plt.xlabel('z [mm]')
+    plt.ylabel('r [mum]')
+    plt.title('phi_Curv [rad]')
     plt.colorbar()
     plt.savefig('Curvature_map_Gauss.png', dpi = 600)
+    plt.show()
+
+    # Fluence
+    plt.pcolor(1e3*zgrid, 1e6*rgrid[:(Nr//2)], Fluence)
+    plt.xlabel('z [mm]')
+    plt.ylabel('r [mum]')
+    plt.title('Fluence [arb.u.]')
+    plt.colorbar()
+    plt.savefig('Fluence.png', dpi = 600)
+    plt.show()
+
+    # thalf ionisation
+    plt.pcolor(1e3*zgrid, 1e6*rgrid[:(Nr//2)], 100.0*ionisation_tfix_map/rho0)
+    plt.xlabel('z [mm]')
+    plt.ylabel('r [mum]')
+    plt.title('electron density [%]')
+    plt.colorbar()
+    plt.savefig('ionisation_thalf.png', dpi = 600)
+    plt.show()
+
+    # thalf ionisation
+    plt.plot(1e15*tgrid, 100.0*electron_density_map[:,0,15]/rho0)
+    plt.xlabel('t [fs]')
+    plt.ylabel('electron density [%]')
+    plt.title('z = ' + str(1e3*zgrid[15]) + ' mm')
+    plt.savefig('ionisation_middle.png', dpi = 600)
     plt.show()
 
     # plt.plot(zgrid, phase_map[0,:],linewidth=0.2)

@@ -33,6 +33,8 @@ with h5py.File(file_path, 'r') as InputArchive:
     zR = np.pi * w0**2 / mn.ConvertPhoton(omega0,'omegaSI','lambdaSI')
     zgridzR = np.linspace(0,zR,100)
 
+    rho0 = 1e6*mn.readscalardataset(InputArchive,'/inputs/calculated/medium_effective_density_of_neutral_molecules')
+
     plasma_frequency_map = np.sqrt((units.elcharge ** 2) / (units.eps0 * units.elmass)) * np.sqrt(electron_density_map)
 
 
