@@ -106,9 +106,12 @@ with h5py.File(file_path, 'r') as InputArchive:
     Ecmplxe = rem_fast_oscillations*mn.complexify_fft(FFEtest.real)
     Ecmplxes = rem_fast_oscillations*mn.complexify_fft(FFEtest_shift.real)
 
+    Ecmplxea = np.abs(Ecmplxe)
+    Ecmplxesa = np.abs(Ecmplxes)
+
     # the amplitude seems to be wrong
-    plt.plot(tt_center,Ecmplxe.real, linewidth=0.2)
-    plt.plot(tt_center,Ecmplxes.real, linewidth=0.2)
+    plt.plot(tt_center,Ecmplxea, linewidth=0.2)
+    plt.plot(tt_center,Ecmplxesa, linewidth=0.2)
     plt.title('FFE + shift + envel')
     plt.savefig('FFEfield_cmplxe.png', dpi=600)
     plt.show()
