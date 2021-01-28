@@ -11,6 +11,7 @@
 ! the authors of most of them.
 
 MODULE first_step
+  USE constants
   USE fields
   USE parameters
   USE mpi_stuff
@@ -339,7 +340,7 @@ CONTAINS
     ALLOCATE(real_e(dim_t,dim_r/num_proc),imag_e(dim_t,dim_r/num_proc))
     CALL read_dset(group_id,'startfield_r',real_e,dim_t,dim_r,dim_t,dim_r/num_proc,0,(dim_r/num_proc)*my_rank)
     CALL read_dset(group_id,'startfield_i',imag_e,dim_t,dim_r,dim_t,dim_r/num_proc,0,(dim_r/num_proc)*my_rank)
-    efield_factor = SQRT(critical_power*1.D9*3.D8*4.D0*3.1415D-7/(4.D0*3.1415D0*beam_waist**2*1.D-4*2.D0*n0_indice))*2.D0 ! normalization factor electric field V/m
+    efield_factor = SQRT(critical_power*1.D9*3.D8*4.D0*PI*1.D-7/(4.D0*PI*beam_waist**2*1.D-4*2.D0*n0_indice))*2.D0 ! normalization factor electric field V/m
     ALLOCATE(efield_osc(dim_t))
     DO j=1,dim_t
        efield_osc(j) = exp(CMPLX(0.D0,-omega_uppe*(tlo+REAL(j,8)*delta_t),8)) ! fast oscillating term exp(-i*omegauppe*t)
@@ -384,7 +385,7 @@ CONTAINS
     w0m = beam_waist*1.D-2 ! beam width in m (w0cm*1e-2 in octave files)
     ! n0_indice : refractive index at center frequency (n0 in octave files)
     ! electric field: REAL(efield_factor*e(:,k)*efield_osc,4) : one temporal profile in GV/m    
-    four_z_Rayleigh = 4.D0*3.1415D0*n0_indice/(lambdanm*1.D-9)*(beam_waist/100.D0)**2 ! 4 times the rayleigh length in m (normalization factor for z)
+    four_z_Rayleigh = 4.D0*PI*n0_indice/(lambdanm*1.D-9)*(beam_waist/100.D0)**2 ! 4 times the rayleigh length in m (normalization factor for z)
 
     Nz_points = CEILING(proplength/outlength)+1 ! expected number of hdf5 output along z (with safety)
     Nz_points_Efield = CEILING(proplength/outlength_Efield)+1 ! expected number of hdf5 output along z (with safety) ! need to add if to compute only once this print is needed

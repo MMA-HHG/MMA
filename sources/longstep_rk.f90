@@ -17,6 +17,7 @@
 
 
 MODULE long_step
+  USE constants
   USE parameters
   REAL(8) rhompi,rho1,rho2,rhoth,rhotr,rhofh,rhoslg2,rhoav
 CONTAINS
@@ -555,12 +556,12 @@ CONTAINS
             ! rhoabs_max dataset creation and writting
             CALL create_1D_dset_unlimited(file_id, rhoabs_max_dset_name, REAL(rhoabs_max(1:rhodist),4), rhodist) 
             ! the following normalisation code is commented out, because of unsolved variable linking
-            ! rhoabs_max(1:rhodist)=rhoc_cm3_phys/(4*3.1415**2*beam_waist**2/(wavelength*1.D-7)**2)*rhoabs_max(1:rhodist)
+            ! rhoabs_max(1:rhodist)=rhoc_cm3_phys/(4.D0*PI**2*beam_waist**2/(wavelength*1.D-7)**2)*rhoabs_max(1:rhodist)
             CALL create_1D_dset_unlimited(file_id, TRIM(rhoabs_max_dset_name)//"_normalised", REAL(rhoabs_max(1:rhodist),4), rhodist)
            
             ! peakmax creation of the dataset, writting to it and doing the same after the normalisation
             CALL create_1D_dset_unlimited(file_id, peakmax_dset_name, REAL(peakmax(1:rhodist),4), rhodist)
-            peakmax(1:rhodist) = critical_power/(1000*4*3.1415*beam_waist**2)*peakmax(1:rhodist)*peakmax(1:rhodist)
+            peakmax(1:rhodist) = critical_power/(1000.d0*4.d0*PI*beam_waist**2)*peakmax(1:rhodist)*peakmax(1:rhodist)
             CALL create_1D_dset_unlimited(file_id, TRIM(peakmax_dset_name)//"_normalised", REAL(peakmax(1:rhodist),4), rhodist)
             
             ! rhomax dataset creation and writting to it
@@ -570,7 +571,7 @@ CONTAINS
             ! CALL create_1D_dset_unlimited(file_id, energy_dset_name, &
             !   REAL(6.2831853D0*energy(1:rhodist)*delta_t*delta_r**2,4), rhodist)
 
-            energy(1:rhodist)=1.D-6*critical_power*1.D9/(4*3.1415)*pulse_duration*1.D-15*1.D6*energy(1:rhodist)
+            energy(1:rhodist)=1.D-6*critical_power*1.D9/(4.D0*PI)*pulse_duration*1.D-15*1.D6*energy(1:rhodist)
             CALL create_1D_dset_unlimited(file_id, energy_dset_name, &
               REAL(6.2831853D0*energy(1:rhodist)*delta_t*delta_r**2,4), rhodist)
 
@@ -580,7 +581,7 @@ CONTAINS
             ! CALL create_1D_dset_unlimited(file_id, energy_fil_dset_name, &
             !   REAL(6.2831853D0*energy_fil(1:rhodist)*delta_t*delta_r**2,4), rhodist)
 
-            energy_fil(1:rhodist)=1.D-6*critical_power*1.D9/(4*3.1415)*pulse_duration*1.D-15*1.D6*energy_fil(1:rhodist)
+            energy_fil(1:rhodist)=1.D-6*critical_power*1.D9/(4.D0*PI)*pulse_duration*1.D-15*1.D6*energy_fil(1:rhodist)
             CALL create_1D_dset_unlimited(file_id, energy_fil_dset_name, &
               REAL(6.2831853D0*energy_fil(1:rhodist)*delta_t*delta_r**2,4), rhodist)
          
@@ -658,7 +659,7 @@ CONTAINS
               CALL extend_1D_dset_unlimited(file_id, peakmax_dset_name, & 
                 REAL(peakmax(1:count),4), new_dims, &
                 memspace_dims, offset, hyperslab_size)
-              peakmax(1:rhodist) = critical_power/(1000*4*3.1415*beam_waist**2)*peakmax(1:rhodist)*peakmax(1:rhodist)
+              peakmax(1:rhodist) = critical_power/(1000.D0*4.D0*PI*beam_waist**2)*peakmax(1:rhodist)*peakmax(1:rhodist)
               CALL extend_1D_dset_unlimited(file_id, TRIM(peakmax_dset_name)//"_normalised", & 
                 REAL(peakmax(1:count),4), new_dims, &
                 memspace_dims, offset, hyperslab_size)
@@ -673,7 +674,7 @@ CONTAINS
             !     REAL(6.2831853D0*energy(1:count)*delta_t*delta_r**2,4), new_dims, &
             !     memspace_dims, offset, hyperslab_size)
 
-              energy(1:rhodist)=1.D-6*critical_power*1.D9/(4*3.1415)*pulse_duration*1.D-15*1.D6*energy(1:rhodist)
+              energy(1:rhodist)=1.D-6*critical_power*1.D9/(4.D0*PI)*pulse_duration*1.D-15*1.D6*energy(1:rhodist)
               CALL extend_1D_dset_unlimited(file_id, energy_dset_name, & 
                 REAL(6.2831853D0*energy(1:count)*delta_t*delta_r**2,4), new_dims, &
                 memspace_dims, offset, hyperslab_size)
@@ -683,7 +684,7 @@ CONTAINS
             !     REAL(6.2831853D0*energy_fil(1:count)*delta_t*delta_r**2,4), new_dims, &
             !     memspace_dims, offset, hyperslab_size)
 
-              energy_fil(1:rhodist)=1.D-6*critical_power*1.D9/(4*3.1415)*pulse_duration*1.D-15*1.D6*energy_fil(1:rhodist)
+              energy_fil(1:rhodist)=1.D-6*critical_power*1.D9/(4.D0*PI)*pulse_duration*1.D-15*1.D6*energy_fil(1:rhodist)
               CALL extend_1D_dset_unlimited(file_id, energy_fil_dset_name, & 
                 REAL(6.2831853D0*energy_fil(1:count)*delta_t*delta_r**2,4), new_dims, &
                 memspace_dims, offset, hyperslab_size)
