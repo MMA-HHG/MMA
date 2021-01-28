@@ -27,7 +27,7 @@ numerics_length_of_window_for_t_normalized_to_pulse_duration    8   R   -
 
 numerics_number_of_absorber_points_in_time  16  I   -
 
-numerics_physical_output_distance_for_plasma_and_Efield 0.0005   R   m
+numerics_physical_output_distance_for_plasma_and_Efield 0.000125   R   m
 numerics_physical_output_distance_for_Efield_only 0.075   R   m
 
 numerics_output_distance_in_z-steps_for_fluence_and_power	100	I	-
