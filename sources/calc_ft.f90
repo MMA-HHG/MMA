@@ -1,4 +1,5 @@
 PROGRAM CALC_FT
+  USE constants
   USE fft
 
   IMPLICIT NONE
@@ -56,7 +57,7 @@ CONTAINS
        READ(100,'(a,t50,es12.4)') dummy,tp_fs_phys
        CLOSE(100)
        c = 3.d10 !speed of light in the vacuum      cm/s
-       k0_phys = 2.D0*3.1415D0/lambda0_cm_phys  !central wave number in vacuum     cm-1
+       k0_phys = 2.D0*PI/lambda0_cm_phys  !central wave number in vacuum     cm-1
        omega=c*k0_phys*tp_fs_phys*1.d-15 ! adimensioned frequency
        i=1.D-1*omega*lt/(4.D0*DATAN(1.D0))
        omega_uppe=MAX(omega,4.D0*DATAN(1.D0)*REAL(dim_t+i)/lt)

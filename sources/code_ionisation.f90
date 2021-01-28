@@ -129,6 +129,7 @@ MODULE PPT
   ! 3- Create the table
   ! $- A routine to serach the intensity
 
+  USE CONSTANTS
   USE MEDIUM_PARAMETER
   USE LASER_PARAMETER
   USE PPT_PARAMETER
@@ -172,7 +173,7 @@ CONTAINS
 
     IMPLICIT NONE
     CHARACTER(LEN=3), INTENT(IN)  :: THEORY
-    DOUBLE PRECISION, PARAMETER   :: PI = 3.14159265d0
+    ! DOUBLE PRECISION, PARAMETER   :: PI = 3.14159265d0
     DOUBLE PRECISION, PARAMETER   :: epsilon = 0.1d0
     DOUBLE PRECISION              :: INTENSITY_MAX
     DOUBLE PRECISION              :: factor
@@ -230,7 +231,7 @@ CONTAINS
     USE h5namelist
     IMPLICIT NONE
     CHARACTER(len = 3),INTENT(IN):: THEORY
-    DOUBLE PRECISION, PARAMETER :: PI = 3.14159265d0
+    ! DOUBLE PRECISION, PARAMETER :: PI = 3.14159265d0
     DOUBLE PRECISION, PARAMETER :: field_intensity_au = 3.50944758d16 !unit of the field intensity in atomic units
     DOUBLE PRECISION            :: intensity_factor
     DOUBLE PRECISION            :: rate_factor
@@ -405,6 +406,7 @@ MODULE External_ionisation_table
   ! RESCALE_TABLE_EXT: it loads the table and transform it into C.U.
   ! INTERPOLATE_EXT: table lookup
 
+  USE CONSTANTS
   USE MEDIUM_PARAMETER
   USE LASER_PARAMETER
   USE PPT_PARAMETER
@@ -430,7 +432,7 @@ CONTAINS
     USE HDF5_helper
     USE h5namelist
     IMPLICIT NONE
-    DOUBLE PRECISION, PARAMETER :: PI = 3.14159265d0
+    ! DOUBLE PRECISION, PARAMETER :: PI = 3.14159265d0
     DOUBLE PRECISION, PARAMETER :: field_intensity_au = 3.50944758d16 !field intensity in atomic units
     DOUBLE PRECISION            :: intensity_factor
     DOUBLE PRECISION            :: rate_factor
@@ -623,6 +625,7 @@ DOUBLE PRECISION FUNCTION IONISATION_RATE_PPT(intensity)
   ! Function which evaluates cthe ionisation rate in atomic unit in the case of gas
   ! Modified 19/04/04
 
+  USE CONSTANTS
   USE MEDIUM_PARAMETER
   USE LASER_PARAMETER
   USE PPT_PARAMETER
@@ -631,7 +634,7 @@ DOUBLE PRECISION FUNCTION IONISATION_RATE_PPT(intensity)
   DOUBLE PRECISION, PARAMETER :: electric_field_au = 5.14224d11
   DOUBLE PRECISION, PARAMETER :: epsilon_0 = 8.85419d-12
   DOUBLE PRECISION, PARAMETER :: light_velocity = 3.0d8
-  DOUBLE PRECISION, PARAMETER :: PI = 3.14159265d0
+  ! DOUBLE PRECISION, PARAMETER :: PI = 3.14159265d0
   DOUBLE PRECISION, INTENT(IN):: intensity 
   DOUBLE PRECISION            :: electric_field
   DOUBLE PRECISION            :: gamma
@@ -672,13 +675,14 @@ DOUBLE PRECISION FUNCTION A_FACTOR(gamma)
 
   ! Fonction qui calcule le facteur A(gamma)
 
+  USE CONSTANTS
   USE MEDIUM_PARAMETER
   USE LASER_PARAMETER
 
   IMPLICIT NONE
 
   INTEGER, PARAMETER            :: Nmax = 5000
-  DOUBLE PRECISION, PARAMETER   :: PI = 3.14159265d0
+  ! DOUBLE PRECISION, PARAMETER   :: PI = 3.14159265d0
   DOUBLE PRECISION, PARAMETER   :: tiny = 1.d-13
   DOUBLE PRECISION, intent(in)  :: gamma 
   DOUBLE PRECISION              :: last_value, delta, alpha, beta, nu 
