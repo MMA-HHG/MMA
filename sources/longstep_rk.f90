@@ -569,28 +569,28 @@ CONTAINS
             
             ! energy dataset creation and writting to it, following the same process with normalised data
             ! CALL create_1D_dset_unlimited(file_id, energy_dset_name, &
-            !   REAL(6.2831853D0*energy(1:rhodist)*delta_t*delta_r**2,4), rhodist)
+            !   REAL(2.D0*PI*energy(1:rhodist)*delta_t*delta_r**2,4), rhodist) 
 
             energy(1:rhodist)=1.D-6*critical_power*1.D9/(4.D0*PI)*pulse_duration*1.D-15*1.D6*energy(1:rhodist)
             CALL create_1D_dset_unlimited(file_id, energy_dset_name, &
-              REAL(6.2831853D0*energy(1:rhodist)*delta_t*delta_r**2,4), rhodist)
+              REAL(2.D0*PI*energy(1:rhodist)*delta_t*delta_r**2,4), rhodist)
 
             CALL h5_add_units_1D(file_id, energy_dset_name, '[J]')
             
             ! energy_fil dataset creation and writting to it, following the same process with normalised data
             ! CALL create_1D_dset_unlimited(file_id, energy_fil_dset_name, &
-            !   REAL(6.2831853D0*energy_fil(1:rhodist)*delta_t*delta_r**2,4), rhodist)
+            !   REAL(2.D0*PI*energy_fil(1:rhodist)*delta_t*delta_r**2,4), rhodist)
 
             energy_fil(1:rhodist)=1.D-6*critical_power*1.D9/(4.D0*PI)*pulse_duration*1.D-15*1.D6*energy_fil(1:rhodist)
             CALL create_1D_dset_unlimited(file_id, energy_fil_dset_name, &
-              REAL(6.2831853D0*energy_fil(1:rhodist)*delta_t*delta_r**2,4), rhodist)
+              REAL(2.D0*PI*energy_fil(1:rhodist)*delta_t*delta_r**2,4), rhodist)
          
             CALL h5_add_units_1D(file_id, energy_fil_dset_name, '[J]')
            
 
             ! write max power with corresponding z to a variable and prepare for writting to a dataset
             !powmax_data(1,1) = REAL(z,4)
-            !powmax_data(1,2) = REAL(6.2831853D0*MAXVAL(e_2KK)*delta_r**2,4)
+            !powmax_data(1,2) = REAL(2.D0*PI*MAXVAL(e_2KK)*delta_r**2,4)
             ! write on axis in time tensor to a variable and prepare for writting to a dataset
             !z_data(1) = REAL(z,4)
             !onax_t_data(1,:) = REAL(ABS(e(1:dim_t,1)),4)
@@ -601,7 +601,7 @@ CONTAINS
             ENDDO
             ! create the datasets if they do not exist yet 
             IF ( dset_write_count .EQ. 0 ) THEN
-              CALL create_1D_dset_unlimited(file_id, powmax_dset_name, (/REAL(6.2831853D0*MAXVAL(e_2KK)*delta_r**2,4)/), 1)
+              CALL create_1D_dset_unlimited(file_id, powmax_dset_name, (/REAL(2.D0*PI*MAXVAL(e_2KK)*delta_r**2,4)/), 1)
               CALL h5_add_units_1D(file_id, powmax_dset_name, '[C.U.]')
               CALL create_2D_dset_unlimited(file_id, onax_t_dset_name, onax_t_data, dim_t)
               CALL h5_add_units_1D(file_id, onax_t_dset_name, '[V/m]?')
@@ -609,7 +609,7 @@ CONTAINS
               CALL h5_add_units_1D(file_id, every_rhodist_z_dset_name, '[m]')
             ! extend datasets if they do exist
             ELSE
-              CALL extend_1D_dset_unlimited(file_id, powmax_dset_name, (/REAL(6.2831853D0*MAXVAL(e_2KK)*delta_r**2,4)/), &
+              CALL extend_1D_dset_unlimited(file_id, powmax_dset_name, (/REAL(2.D0*PI*MAXVAL(e_2KK)*delta_r**2,4)/), &
               new_dims=(/int(dset_write_count + 1,HSIZE_T)/), memspace_dims=(/int(1,HSIZE_T)/), &
               offset = (/int(dset_write_count, HSIZE_T)/), hyperslab_size = (/int(1,HSIZE_T)/))
               CALL extend_2D_dset_unlimited(file_id, onax_t_dset_name, onax_t_data, & 
@@ -671,29 +671,29 @@ CONTAINS
 
               ! extend energy dataset and the normalised energy dataset
             !   CALL extend_1D_dset_unlimited(file_id, energy_dset_name, & 
-            !     REAL(6.2831853D0*energy(1:count)*delta_t*delta_r**2,4), new_dims, &
+            !     REAL(2.D0*PI*energy(1:count)*delta_t*delta_r**2,4), new_dims, &
             !     memspace_dims, offset, hyperslab_size)
 
               energy(1:rhodist)=1.D-6*critical_power*1.D9/(4.D0*PI)*pulse_duration*1.D-15*1.D6*energy(1:rhodist)
               CALL extend_1D_dset_unlimited(file_id, energy_dset_name, & 
-                REAL(6.2831853D0*energy(1:count)*delta_t*delta_r**2,4), new_dims, &
+                REAL(2.D0*PI*energy(1:count)*delta_t*delta_r**2,4), new_dims, &
                 memspace_dims, offset, hyperslab_size)
               
               ! extend energy_fil dataset and the normalised energy_fil dataset
             !   CALL extend_1D_dset_unlimited(file_id, energy_fil_dset_name, &
-            !     REAL(6.2831853D0*energy_fil(1:count)*delta_t*delta_r**2,4), new_dims, &
+            !     REAL(2.D0*PI*energy_fil(1:count)*delta_t*delta_r**2,4), new_dims, &
             !     memspace_dims, offset, hyperslab_size)
 
               energy_fil(1:rhodist)=1.D-6*critical_power*1.D9/(4.D0*PI)*pulse_duration*1.D-15*1.D6*energy_fil(1:rhodist)
               CALL extend_1D_dset_unlimited(file_id, energy_fil_dset_name, & 
-                REAL(6.2831853D0*energy_fil(1:count)*delta_t*delta_r**2,4), new_dims, &
+                REAL(2.D0*PI*energy_fil(1:count)*delta_t*delta_r**2,4), new_dims, &
                 memspace_dims, offset, hyperslab_size)
 
               
             ENDIF
             ! extend powmax and on axis data dataset
             !powmax_data(1,1) = REAL(z,4)
-            !powmax_data(1,2) = REAL(6.2831853D0*MAXVAL(e_2KK)*delta_r**2,4)
+            !powmax_data(1,2) = REAL(2.D0*PI*MAXVAL(e_2KK)*delta_r**2,4)
             !z_data(1) = REAL(z,4)
             !onax_t_data(1,:) = REAL(ABS(e(1:dim_t,1)),4)
             DO k1=1, dim_t
@@ -701,7 +701,7 @@ CONTAINS
               !fields_array(1,k1,k2) = REAL( REAL( (efield_factor*efield_osc(k2)*e(k2,r_offset+k1)) ) , 4 ) ! SINGLE PRECISION, corresponding H5T_NATIVE_REAL (REAL(.,8) corresponds to H5T_NATIVE_DOUBLE)
               ! e(t,r)
             ENDDO 
-            CALL extend_1D_dset_unlimited(file_id, powmax_dset_name, (/REAL(6.2831853D0*MAXVAL(e_2KK)*delta_r**2,4)/), &
+            CALL extend_1D_dset_unlimited(file_id, powmax_dset_name, (/REAL(2.D0*PI*MAXVAL(e_2KK)*delta_r**2,4)/), &
               new_dims=(/int(dset_write_count + 1,HSIZE_T)/), memspace_dims=(/int(1,HSIZE_T)/), &
               offset = (/int(dset_write_count, HSIZE_T)/), hyperslab_size = (/int(1,HSIZE_T)/))
             CALL extend_2D_dset_unlimited(file_id, onax_t_dset_name, onax_t_data, & 
@@ -804,7 +804,7 @@ CONTAINS
           ENDIF
           ! store data of maximal power to a variable
           powmax_data(1,1) = REAL(z,4)
-          powmax_data(1,2) = REAL(6.2831853D0*MAXVAL(e_2KK)*delta_r**2,4)
+          powmax_data(1,2) = REAL(2.D0*PI*MAXVAL(e_2KK)*delta_r**2,4)
           !z_data(1) = REAL(four_z_Rayleigh*z,4)
           ! calculate on axis data
           !onax_t_data(1,:) = REAL(ABS(e(1:dim_t,1)),4)
@@ -815,7 +815,7 @@ CONTAINS
           ENDDO 
           ! write to datasets, either create
           IF ( dset_write_count .EQ. 0 ) THEN
-            CALL create_1D_dset_unlimited(file_id, powmax_dset_name, (/REAL(6.2831853D0*MAXVAL(e_2KK)*delta_r**2,4)/), 1)
+            CALL create_1D_dset_unlimited(file_id, powmax_dset_name, (/REAL(2.D0*PI*MAXVAL(e_2KK)*delta_r**2,4)/), 1)
             CALL create_2D_dset_unlimited(file_id, onax_t_dset_name, onax_t_data, dim_t)
             CALL create_1D_dset_unlimited(file_id, every_rhodist_z_dset_name, (/REAL(four_z_Rayleigh*z,4)/), 1)
             CALL h5_add_units_1D(file_id, powmax_dset_name, '[C.U.]2')
@@ -823,7 +823,7 @@ CONTAINS
             CALL h5_add_units_1D(file_id, every_rhodist_z_dset_name, '[m]2')
           ! or extend the existing ones
           ELSE
-            CALL extend_1D_dset_unlimited(file_id, powmax_dset_name, (/REAL(6.2831853D0*MAXVAL(e_2KK)*delta_r**2,4)/), &
+            CALL extend_1D_dset_unlimited(file_id, powmax_dset_name, (/REAL(2.D0*PI*MAXVAL(e_2KK)*delta_r**2,4)/), &
               new_dims=(/int(dset_write_count + 1,HSIZE_T)/), memspace_dims=(/int(1,HSIZE_T)/), &
               offset = (/int(dset_write_count, HSIZE_T)/), hyperslab_size = (/int(1,HSIZE_T)/))
             CALL extend_2D_dset_unlimited(file_id, onax_t_dset_name, onax_t_data, & 
