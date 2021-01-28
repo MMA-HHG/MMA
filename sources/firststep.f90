@@ -425,6 +425,16 @@ CONTAINS
        CALL create_dset(group_id, 'op_t_inv', op_t_inv, dim_t)
        CALL h5_add_units_1D(group_id, 'op_t_inv', '[C.U.]')
 
+       ! group velocity
+       CALL create_dset(group_id, 'inverse_group_velocity_CU', rekp)
+       CALL h5_add_units_1D(group_id, 'inverse_group_velocity_CU', '[C.U.]')
+
+       CALL create_dset(group_id, 'inverse_group_velocity_SI', rekp*tps/four_z_Rayleigh)
+       CALL h5_add_units_1D(group_id, 'inverse_group_velocity_SI', '[s/m]')
+
+       CALL create_dset(group_id, 'time-conversion', tps)
+       CALL h5_add_units_1D(group_id, 'time-conversion', '[s]/[C.U.]')
+
        CALL h5gclose_f(group_id, error) 
        CALL h5fclose_f(file_id, error)
        
