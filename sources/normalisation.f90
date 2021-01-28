@@ -854,7 +854,7 @@ CONTAINS
        ENDIF
     ENDIF
     
-    Pcr_phys = ((lambda0_cm_phys)**2)/(2*3.1415*n0*n2_phys)  !critical power          W
+    Pcr_phys = ((lambda0_cm_phys)**2)/(2.D0*PI*n0*n2_phys)  !critical power          W
     print *, 'aPcr ', 'n0', n0, 'n2', n2_phys
     k0_phys = 2.D0*PI/lambda0_cm_phys  !central wave number in vacuum     cm-1
     proplength = proplength_m_phys*100.D0/(4.D0*z_rayleigh_cm_phys)  !adimensionned distance of propagation
@@ -866,17 +866,17 @@ CONTAINS
     z_out_Efield=z
     rfil=0.1D0*rfil_mm_phys/w0_cm_phys ! adimensioned radius for diagnostics
     c3=1.d0  !adimensionned coefficient for kerr effect
-    c5=(n4_phys)/(n2_phys)*(Pcr_phys)/(4*3.1415*w0_cm_phys**2)  !adimensionned coefficient for chi5 effect
+    c5=(n4_phys)/(n2_phys)*(Pcr_phys)/(4.D0*PI*w0_cm_phys**2)  !adimensionned coefficient for chi5 effect
     gamma1=sigma_cm2_phys*n0*rhoc_cm3_phys/k0_phys  !adimensionned coefficient for losses due to normalized conductivity
     gamma2=1.d0  !adimensionned coefficient for plasma defocusing
-    muk=2.D0*z_rayleigh_cm_phys*betak_phys*(Pcr_phys/(4.d0*3.1415))**(KK-1)*w0_cm_phys**(2*(1-KK))  !adimensionned coefficient for MPA effect
+    muk=2.D0*z_rayleigh_cm_phys*betak_phys*(Pcr_phys/(4.d0*PI))**(KK-1)*w0_cm_phys**(2*(1-KK))  !adimensionned coefficient for MPA effect
     beta_inv_2KK=k0_phys**2*(sigmak_phys)*1.d-15*tp_fs_phys*(rhont_cm3_phys/rhoc_cm3_phys)* &
-      (Pcr_phys/(4.d0*3.1415))**KK*w0_cm_phys**(2*(1-KK))  !adimensionned MPI coefficient
-    eta1 = 2.d0 * z_rayleigh_cm_phys * sigman_phys * NN * ( h * 2.d0 *3.1415 *c/ lambda0_cm_phys)  * rhoabs_cm3_phys * & 
-          (Pcr_phys/(4.d0*3.1415))**(NN-1)* w0_cm_phys**(2*(1-NN))                               ! adimensionned coefficient for absorption  
-    eta2 = sigman_phys * 1.d-15*tp_fs_phys * ( Pcr_phys /(4.d0*3.1415 *w0_cm_phys**2))**NN       ! adimensionned coefficient for excited molecules 
+      (Pcr_phys/(4.d0*PI))**KK*w0_cm_phys**(2*(1-KK))  !adimensionned MPI coefficient
+    eta1 = 2.d0 * z_rayleigh_cm_phys * sigman_phys * NN * ( h * 2.d0 *PI *c/ lambda0_cm_phys)  * rhoabs_cm3_phys * & 
+          (Pcr_phys/(4.d0*PI))**(NN-1)* w0_cm_phys**(2*(1-NN))                               ! adimensionned coefficient for absorption  
+    eta2 = sigman_phys * 1.d-15*tp_fs_phys * ( Pcr_phys /(4.d0*PI *w0_cm_phys**2))**NN       ! adimensionned coefficient for excited molecules 
     rho0=(rho0_phys)/(rhoc_cm3_phys*n0/(2.D0*z_rayleigh_cm_phys*k0_phys))  !adimensionned initial electron density
-    nu=(sigma_cm2_phys*tp_fs_phys*1.d-15/(w0_cm_phys**2*Ui_eV_phys*1.6d-19))*(Pcr_phys/(4.d0*3.1415))  !adimensionned avalanche coefficient    
+    nu=(sigma_cm2_phys*tp_fs_phys*1.d-15/(w0_cm_phys**2*Ui_eV_phys*1.6d-19))*(Pcr_phys/(4.d0*PI))  !adimensionned avalanche coefficient    
     alpha=alpha_fs_phys*tp_fs_phys !adimensionned linear recombination coefficient
     alphaquad=alphaquad_fscm3_phys*tp_fs_phys*(rhoc_cm3_phys*n0/(2*z_rayleigh_cm_phys*k0_phys)) !adimensionned quadratic recombination coefficient
     rhoat_inv=rhoc_cm3_phys*n0/(rhont_cm3_phys*2.d0*z_rayleigh_cm_phys*k0_phys) !adimensioned inverse density of neutral molekules
