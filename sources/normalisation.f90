@@ -25,8 +25,8 @@ CONTAINS
     REAL(8) c,delta,tod,fod,vod,k_t,help1,help2
     LOGICAL(4) mess1,mess2,cut
 
-    c = 3.d10 !speed of light in the vacuum      cm/s
-    k0_phys = 2.D0*3.1415D0/lambda0_cm_phys  !central wave number in vacuum     cm-1
+    c = c_light*1.d2 ! 3.d10 !speed of light in the vacuum      cm/s
+    k0_phys = 2.D0*PI/lambda0_cm_phys  !central wave number in vacuum     cm-1
     omega=c*k0_phys*tp_fs_phys*1.d-15 ! adimensioned frequency
     i=CEILING(omega*lt/(8.D0*DATAN(1.D0)))
     lt=8.D0*DATAN(1.D0)*REAL(i,8)/omega
@@ -47,7 +47,7 @@ CONTAINS
        k_ppp_fs3_per_cm_phys=k_ppp_fs3_per_cm_phys*pressure
        k_pppp_fs4_per_cm_phys=k_pppp_fs4_per_cm_phys*pressure
        k_ppppp_fs5_per_cm_phys=k_ppppp_fs5_per_cm_phys*pressure
-       z_rayleigh_cm_phys  = 3.1415D0*w0_cm_phys**2*n0/lambda0_cm_phys  !Rayleigh lenght      cm
+       z_rayleigh_cm_phys  = PI*w0_cm_phys**2*n0/lambda0_cm_phys  !Rayleigh lenght      cm
        delta = 2.D0*z_rayleigh_cm_phys*(k_pp_fs2_per_cm_phys)/((tp_fs_phys)**2)  !adimensionned coefficient for GVD
        tod = (2.D0/3.D0)*z_rayleigh_cm_phys*(k_ppp_fs3_per_cm_phys)/((tp_fs_phys)**3)
        fod = (2.D0/12.D0)*z_rayleigh_cm_phys*(k_pppp_fs4_per_cm_phys)/((tp_fs_phys)**4)
@@ -79,8 +79,8 @@ CONTAINS
        ALLOCATE(chi(dim_chi),omegachi(dim_chi))
        DO j=dim_chi/2,dim_chi/2+2
           k_t=8.D0*DATAN(1.D0)*REAL(j-dim_t/2-1)/lt   ! k_t = w_adim - w0_adim
-          omegachi(j) = c*2.D0*3.1415D0/lambda0_cm_phys+k_t/(tp_fs_phys*1.d-15)   ! omegachi = w
-          omegachi(j) = omegachi(j)/(c*2.D0*3.1415D0*1.d4)
+          omegachi(j) = c*2.D0*PI/lambda0_cm_phys+k_t/(tp_fs_phys*1.d-15)   ! omegachi = w
+          omegachi(j) = omegachi(j)/(c*2.D0*PI*1.d4)
           chi(j) = 0.69661663D0 * (1.d0/0.0684043D0**2) / ( (1.d0/0.0684043D0**2) - omegachi(j)**2) + &
                0.4079426D0 * (1.D0/0.1162414D0**2) / ( (1.D0/0.1162414D0**2) - omegachi(j)**2) + &
                0.8974794D0 * (1.d0/9.896161D0**2) / ( (1.d0/9.896161D0**2) -  omegachi(j)**2 )      ! Sellmeier formula silica, Agrawal
@@ -88,32 +88,32 @@ CONTAINS
           chi(j) = sqrt(chi(j))                ! chi = E(w) =  sqrt(1+X(w))
        ENDDO
        n0 = REAL(chi(dim_t/2+1)) !refractive index at lambda0
-       z_rayleigh_cm_phys  = 3.1415D0*w0_cm_phys**2*n0/lambda0_cm_phys  !Rayleigh lenght      cm
+       z_rayleigh_cm_phys  = PI*w0_cm_phys**2*n0/lambda0_cm_phys  !Rayleigh lenght      cm
        DO j=dim_t/2,dim_t/2+2
           k_t=8.D0*DATAN(1.D0)*REAL(j-dim_t/2-1)/lt
-          komega(j) = (c*2.D0*3.1415D0/lambda0_cm_phys*tp_fs_phys*1.d-15+k_t)/(c*tp_fs_phys*1.d-15/(4*z_rayleigh_cm_phys))*chi(j)
+          komega(j) = (c*2.D0*PI/lambda0_cm_phys*tp_fs_phys*1.d-15+k_t)/(c*tp_fs_phys*1.d-15/(4*z_rayleigh_cm_phys))*chi(j)
        ENDDO
        rek0 = REAL(komega(dim_t/2+1)) !adimensioned central wavenumber in the medium
        rekp = REAL(komega(dim_t/2+2)-komega(dim_t/2))*lt/(16.D0*DATAN(1.D0))!adimensioned group velocity
 
        DO j=1,2
           k_t=REAL(j,8)*2.D0*omega   ! k_t = w_adim - w0_adim
-          omegachi(j) = c*2.D0*3.1415D0/lambda0_cm_phys+k_t/(tp_fs_phys*1.d-15)   ! omegachi = w
-          omegachi(j) = omegachi(j)/(c*2.D0*3.1415D0*1.d4)
+          omegachi(j) = c*2.D0*PI/lambda0_cm_phys+k_t/(tp_fs_phys*1.d-15)   ! omegachi = w
+          omegachi(j) = omegachi(j)/(c*2.D0*PI*1.d4)
           chi(j) = 0.69661663D0 * (1.d0/0.0684043D0**2) / ( (1.d0/0.0684043D0**2) - omegachi(j)**2) + &
                0.4079426D0 * (1.D0/0.1162414D0**2) / ( (1.D0/0.1162414D0**2) - omegachi(j)**2) + &
                0.8974794D0 * (1.d0/9.896161D0**2) / ( (1.d0/9.896161D0**2) -  omegachi(j)**2 )      ! Sellmeier formula silica, Agrawal
           chi(j) = 1.D0+chi(j)*pressure
           chi(j) = sqrt(chi(j))                ! chi = E(w) =  sqrt(1+X(w))
-          komega(j) = (c*2.D0*3.1415D0/lambda0_cm_phys*tp_fs_phys*1.d-15+k_t)/(c*tp_fs_phys*1.d-15/(4*z_rayleigh_cm_phys))*chi(j)
+          komega(j) = (c*2.D0*PI/lambda0_cm_phys*tp_fs_phys*1.d-15+k_t)/(c*tp_fs_phys*1.d-15/(4*z_rayleigh_cm_phys))*chi(j)
        ENDDO
        deltak3omega(1)=3.D0*rek0 - REAL(komega(1)) 
        deltak5omega(1)=5.D0*rek0 - REAL(komega(2))
 
        DO j=1,dim_chi
           k_t=8.D0*DATAN(1.D0)*REAL(j-dim_t/2-1)/lt+omega_uppe-omega   ! k_t = w_adim - w0_adim
-          omegachi(j) = c*2.D0*3.1415D0/lambda0_cm_phys+k_t/(tp_fs_phys*1.d-15)   ! omegachi = w
-          omegachi(j) = omegachi(j)/(c*2.D0*3.1415D0*1.d4)
+          omegachi(j) = c*2.D0*PI/lambda0_cm_phys+k_t/(tp_fs_phys*1.d-15)   ! omegachi = w
+          omegachi(j) = omegachi(j)/(c*2.D0*PI*1.d4)
           chi(j) = 0.69661663D0 * (1.d0/0.0684043D0**2) / ( (1.d0/0.0684043D0**2) - omegachi(j)**2) + &
                0.4079426D0 * (1.D0/0.1162414D0**2) / ( (1.D0/0.1162414D0**2) - omegachi(j)**2) + &
                0.8974794D0 * (1.d0/9.896161D0**2) / ( (1.d0/9.896161D0**2) -  omegachi(j)**2 )      ! Sellmeier formula silica, Agrawal
@@ -124,9 +124,9 @@ CONTAINS
        endcut=dim_t
        DO j=1,dim_t
           k_t=8.D0*DATAN(1.D0)*REAL(j-dim_t/2-1)/lt+omega_uppe-omega
-          komega(j) = (c*2.D0*3.1415D0/lambda0_cm_phys*tp_fs_phys*1.d-15+k_t)/(c*tp_fs_phys*1.d-15/(4*z_rayleigh_cm_phys))*chi(j)
-          omegachi(j) = c*2.D0*3.1415D0/lambda0_cm_phys+k_t/(tp_fs_phys*1.d-15)   ! omegachi = w
-          omegachi(j) = omegachi(j)/(c*2.D0*3.1415D0*1.d4)
+          komega(j) = (c*2.D0*PI/lambda0_cm_phys*tp_fs_phys*1.d-15+k_t)/(c*tp_fs_phys*1.d-15/(4*z_rayleigh_cm_phys))*chi(j)
+          omegachi(j) = c*2.D0*PI/lambda0_cm_phys+k_t/(tp_fs_phys*1.d-15)   ! omegachi = w
+          omegachi(j) = omegachi(j)/(c*2.D0*PI*1.d4)
           IF ((omegachi(j).GT.1.D0/0.185D0).AND.(startcut.EQ.dim_t)) startcut=j  
        ENDDO
        IF (startcut.LT.endcut) THEN
@@ -141,52 +141,52 @@ CONTAINS
        ALLOCATE(chi(dim_chi),omegachi(dim_chi))
        DO j=dim_chi/2,dim_chi/2+2
           k_t=8.D0*DATAN(1.D0)*REAL(j-dim_t/2-1)/lt
-          omegachi(j) = c*2.D0*3.1415D0/lambda0_cm_phys+k_t/(tp_fs_phys*1.d-15)
-          omegachi(j) = omegachi(j)/(c*2.D0*3.1415D0*1.d8)
+          omegachi(j) = c*2.D0*PI/lambda0_cm_phys+k_t/(tp_fs_phys*1.d-15)
+          omegachi(j) = omegachi(j)/(c*2.D0*PI*1.d8)
           chi(j) = 5.547d-4*(1.D0+5.15d5*omegachi(j)**2+4.19d11*omegachi(j)**4+4.09d17*omegachi(j)**6+4.32d23*omegachi(j)**8) !argon, dalgarno and kingston
           chi(j) = 1.D0+chi(j)*pressure
           chi(j) = sqrt(chi(j))
        ENDDO
        n0 = REAL(chi(dim_t/2+1)) !refractive index at lambda0
-       z_rayleigh_cm_phys  = 3.1415D0*w0_cm_phys**2*n0/lambda0_cm_phys  !Rayleigh lenght      cm
+       z_rayleigh_cm_phys  = PI*w0_cm_phys**2*n0/lambda0_cm_phys  !Rayleigh lenght      cm
        DO j=dim_t/2,dim_t/2+2
           k_t=8.D0*DATAN(1.D0)*REAL(j-dim_t/2-1)/lt
-          komega(j) = (c*2.D0*3.1415D0/lambda0_cm_phys*tp_fs_phys*1.d-15+k_t)/(c*tp_fs_phys*1.d-15/(4*z_rayleigh_cm_phys))*chi(j)
+          komega(j) = (c*2.D0*PI/lambda0_cm_phys*tp_fs_phys*1.d-15+k_t)/(c*tp_fs_phys*1.d-15/(4*z_rayleigh_cm_phys))*chi(j)
        ENDDO
        rek0 = REAL(komega(dim_t/2+1)) !adimensioned central wavenumber in the medium
        rekp = REAL(komega(dim_t/2+2)-komega(dim_t/2))*lt/(16.D0*DATAN(1.D0))!adimensioned group velocity
 
        DO j=1,2
           k_t=REAL(j,8)*2.D0*omega   ! k_t = w_adim - w0_adim
-          omegachi(j) = c*2.D0*3.1415D0/lambda0_cm_phys+k_t/(tp_fs_phys*1.d-15)
-          omegachi(j) = omegachi(j)/(c*2.D0*3.1415D0*1.d8)
+          omegachi(j) = c*2.D0*PI/lambda0_cm_phys+k_t/(tp_fs_phys*1.d-15)
+          omegachi(j) = omegachi(j)/(c*2.D0*PI*1.d8)
           chi(j) = 5.547d-4*(1.D0+5.15d5*omegachi(j)**2+4.19d11*omegachi(j)**4+4.09d17*omegachi(j)**6+4.32d23*omegachi(j)**8) !argon, dalgarno and kingston 
           chi(j) = 1.D0+chi(j)*pressure
           chi(j) = sqrt(chi(j))                ! chi = E(w) =  sqrt(1+X(w))
-          komega(j) = (c*2.D0*3.1415D0/lambda0_cm_phys*tp_fs_phys*1.d-15+k_t)/(c*tp_fs_phys*1.d-15/(4*z_rayleigh_cm_phys))*chi(j)
+          komega(j) = (c*2.D0*PI/lambda0_cm_phys*tp_fs_phys*1.d-15+k_t)/(c*tp_fs_phys*1.d-15/(4*z_rayleigh_cm_phys))*chi(j)
        ENDDO
        deltak3omega(1)=3.D0*rek0 - REAL(komega(1)) 
        deltak5omega(1)=5.D0*rek0 - REAL(komega(2))
 
        DO j=1,dim_chi
           k_t=8.D0*DATAN(1.D0)*REAL(j-dim_t/2-1)/lt+omega_uppe-omega
-          omegachi(j) = c*2.D0*3.1415D0/lambda0_cm_phys+k_t/(tp_fs_phys*1.d-15)
-          omegachi(j) = omegachi(j)/(c*2.D0*3.1415D0*1.d8)
+          omegachi(j) = c*2.D0*PI/lambda0_cm_phys+k_t/(tp_fs_phys*1.d-15)
+          omegachi(j) = omegachi(j)/(c*2.D0*PI*1.d8)
           chi(j) = 5.547d-4*(1.D0+5.15d5*omegachi(j)**2+4.19d11*omegachi(j)**4+4.09d17*omegachi(j)**6+4.32d23*omegachi(j)**8) !argon, dalgarno and kingston
           chi(j) = 1.D0+chi(j)*pressure
           chi(j) = sqrt(chi(j))
        ENDDO
        DO j=1,dim_t
           k_t=8.D0*DATAN(1.D0)*REAL(j-dim_t/2-1)/lt+omega_uppe-omega
-          komega(j) = (c*2.D0*3.1415D0/lambda0_cm_phys*tp_fs_phys*1.d-15+k_t)/(c*tp_fs_phys*1.d-15/(4*z_rayleigh_cm_phys))*chi(j)
+          komega(j) = (c*2.D0*PI/lambda0_cm_phys*tp_fs_phys*1.d-15+k_t)/(c*tp_fs_phys*1.d-15/(4*z_rayleigh_cm_phys))*chi(j)
        ENDDO
        startcut=dim_t
        endcut=dim_t
        DO j=1,dim_t
           k_t=8.D0*DATAN(1.D0)*REAL(j-dim_t/2-1)/lt+omega_uppe-omega
-          komega(j) = (c*2.D0*3.1415D0/lambda0_cm_phys*tp_fs_phys*1.d-15+k_t)/(c*tp_fs_phys*1.d-15/(4*z_rayleigh_cm_phys))*chi(j)
-          omegachi(j) = c*2.D0*3.1415D0/lambda0_cm_phys+k_t/(tp_fs_phys*1.d-15)
-          omegachi(j) = omegachi(j)/(c*2.D0*3.1415D0*1.d8)
+          komega(j) = (c*2.D0*PI/lambda0_cm_phys*tp_fs_phys*1.d-15+k_t)/(c*tp_fs_phys*1.d-15/(4*z_rayleigh_cm_phys))*chi(j)
+          omegachi(j) = c*2.D0*PI/lambda0_cm_phys+k_t/(tp_fs_phys*1.d-15)
+          omegachi(j) = omegachi(j)/(c*2.D0*PI*1.d8)
           IF ((omegachi(j).GT.7.D-4).AND.(startcut.EQ.dim_t)) startcut=j  
        ENDDO
        IF (startcut.LT.endcut) THEN
@@ -207,12 +207,12 @@ CONTAINS
           chi(j) = sqrt(chi(j))
        ENDDO
        CLOSE(10)
-       omegachi=omegachi*tp_fs_phys*1.d-15-c*2.D0*3.1415D0/lambda0_cm_phys*tp_fs_phys*1.d-15
+       omegachi=omegachi*tp_fs_phys*1.d-15-c*2.D0*PI/lambda0_cm_phys*tp_fs_phys*1.d-15
        n0 = REAL(compute_n(0.D0)) !refractive index at lambda0
-       z_rayleigh_cm_phys  = 3.1415D0*w0_cm_phys**2*n0/lambda0_cm_phys  !Rayleigh lenght      cm
+       z_rayleigh_cm_phys  = PI*w0_cm_phys**2*n0/lambda0_cm_phys  !Rayleigh lenght      cm
        DO j=dim_t/2,dim_t/2+2
           k_t=8.D0*DATAN(1.D0)*REAL(j-dim_t/2-1)/lt
-          komega(j) = (c*2.D0*3.1415D0/lambda0_cm_phys*tp_fs_phys*1.d-15+k_t)/(c*tp_fs_phys*1.d-15/(4*z_rayleigh_cm_phys))* &
+          komega(j) = (c*2.D0*PI/lambda0_cm_phys*tp_fs_phys*1.d-15+k_t)/(c*tp_fs_phys*1.d-15/(4*z_rayleigh_cm_phys))* &
             compute_n(k_t)
        ENDDO
        rek0 = REAL(komega(dim_t/2+1)) !adimensioned central wavenumber in the medium
@@ -220,7 +220,7 @@ CONTAINS
 
        DO j=1,2
           k_t=REAL(j,8)*2.D0*omega   ! k_t = w_adim - w0_adim
-          komega(j) = (c*2.D0*3.1415D0/lambda0_cm_phys*tp_fs_phys*1.d-15+k_t)/(c*tp_fs_phys*1.d-15/(4*z_rayleigh_cm_phys))* &
+          komega(j) = (c*2.D0*PI/lambda0_cm_phys*tp_fs_phys*1.d-15+k_t)/(c*tp_fs_phys*1.d-15/(4*z_rayleigh_cm_phys))* &
             compute_n(k_t)
        ENDDO
        deltak3omega(1)=3.D0*rek0 - REAL(komega(1)) 
@@ -228,7 +228,7 @@ CONTAINS
 
        DO j=1,dim_t
           k_t=8.D0*DATAN(1.D0)*REAL(j-dim_t/2-1)/lt+omega_uppe-omega
-          komega(j) = (c*2.D0*3.1415D0/lambda0_cm_phys*tp_fs_phys*1.d-15+k_t)/(c*tp_fs_phys*1.d-15/(4*z_rayleigh_cm_phys))* &
+          komega(j) = (c*2.D0*PI/lambda0_cm_phys*tp_fs_phys*1.d-15+k_t)/(c*tp_fs_phys*1.d-15/(4*z_rayleigh_cm_phys))* &
             compute_n(k_t)
        ENDDO
        mess1=.TRUE.
@@ -260,52 +260,52 @@ CONTAINS
        ALLOCATE(chi(dim_chi),omegachi(dim_chi))
        DO j=dim_chi/2,dim_chi/2+2
           k_t=8.D0*DATAN(1.D0)*REAL(j-dim_t/2-1)/lt
-          omegachi(j) = c*2.D0*3.1415D0/lambda0_cm_phys+k_t/(tp_fs_phys*1.d-15)
-          omegachi(j) = omegachi(j)/(c*2.D0*3.1415D0*1.d4)
+          omegachi(j) = c*2.D0*PI/lambda0_cm_phys+k_t/(tp_fs_phys*1.d-15)
+          omegachi(j) = omegachi(j)/(c*2.D0*PI*1.d4)
           chi(j) = (1.D0+1.D-8*(8060.51+2480990/(132.274-omegachi(j)**2)+17455.7/(39.32957-omegachi(j)**2)))**2-1.D0 !air, peck and reeder
           chi(j) = 1.D0+chi(j)*pressure
           chi(j) = sqrt(chi(j))
        ENDDO
        n0 = REAL(chi(dim_t/2+1)) !refractive index at lambda0
-       z_rayleigh_cm_phys  = 3.1415D0*w0_cm_phys**2*n0/lambda0_cm_phys  !Rayleigh lenght      cm
+       z_rayleigh_cm_phys  = PI*w0_cm_phys**2*n0/lambda0_cm_phys  !Rayleigh lenght      cm
        DO j=dim_t/2,dim_t/2+2
           k_t=8.D0*DATAN(1.D0)*REAL(j-dim_t/2-1)/lt
-          komega(j) = (c*2.D0*3.1415D0/lambda0_cm_phys*tp_fs_phys*1.d-15+k_t)/(c*tp_fs_phys*1.d-15/(4*z_rayleigh_cm_phys))*chi(j)
+          komega(j) = (c*2.D0*PI/lambda0_cm_phys*tp_fs_phys*1.d-15+k_t)/(c*tp_fs_phys*1.d-15/(4*z_rayleigh_cm_phys))*chi(j)
        ENDDO
        rek0 = REAL(komega(dim_t/2+1)) !adimensioned central wavenumber in the medium
        rekp = REAL(komega(dim_t/2+2)-komega(dim_t/2))*lt/(16.D0*DATAN(1.D0))!adimensioned group velocity
 
        DO j=1,2
           k_t=REAL(j,8)*2.D0*omega   ! k_t = w_adim - w0_adim
-          omegachi(j) = c*2.D0*3.1415D0/lambda0_cm_phys+k_t/(tp_fs_phys*1.d-15)
-          omegachi(j) = omegachi(j)/(c*2.D0*3.1415D0*1.d4)
+          omegachi(j) = c*2.D0*PI/lambda0_cm_phys+k_t/(tp_fs_phys*1.d-15)
+          omegachi(j) = omegachi(j)/(c*2.D0*PI*1.d4)
           chi(j) = (1.D0+1.D-8*(8060.51+2480990/(132.274-omegachi(j)**2)+17455.7/(39.32957-omegachi(j)**2)))**2-1.D0 !air, peck and reeder
           chi(j) = 1.D0+chi(j)*pressure
           chi(j) = sqrt(chi(j))                ! chi = E(w) =  sqrt(1+X(w))
-          komega(j) = (c*2.D0*3.1415D0/lambda0_cm_phys*tp_fs_phys*1.d-15+k_t)/(c*tp_fs_phys*1.d-15/(4*z_rayleigh_cm_phys))*chi(j)
+          komega(j) = (c*2.D0*PI/lambda0_cm_phys*tp_fs_phys*1.d-15+k_t)/(c*tp_fs_phys*1.d-15/(4*z_rayleigh_cm_phys))*chi(j)
        ENDDO
        deltak3omega(1)=3.D0*rek0 - REAL(komega(1)) 
        deltak5omega(1)=5.D0*rek0 - REAL(komega(2))
 
        DO j=1,dim_chi
           k_t=8.D0*DATAN(1.D0)*REAL(j-dim_t/2-1)/lt+omega_uppe-omega
-          omegachi(j) = c*2.D0*3.1415D0/lambda0_cm_phys+k_t/(tp_fs_phys*1.d-15)
-          omegachi(j) = omegachi(j)/(c*2.D0*3.1415D0*1.d4)
+          omegachi(j) = c*2.D0*PI/lambda0_cm_phys+k_t/(tp_fs_phys*1.d-15)
+          omegachi(j) = omegachi(j)/(c*2.D0*PI*1.d4)
           chi(j) = (1.D0+1.D-8*(8060.51+2480990/(132.274-omegachi(j)**2)+17455.7/(39.32957-omegachi(j)**2)))**2-1.D0 !air, peck and reeder
           chi(j) = 1.D0+chi(j)*pressure
           chi(j) = sqrt(chi(j))
        ENDDO
        DO j=1,dim_t
           k_t=8.D0*DATAN(1.D0)*REAL(j-dim_t/2-1)/lt+omega_uppe-omega
-          komega(j) = (c*2.D0*3.1415D0/lambda0_cm_phys*tp_fs_phys*1.d-15+k_t)/(c*tp_fs_phys*1.d-15/(4*z_rayleigh_cm_phys))*chi(j)
+          komega(j) = (c*2.D0*PI/lambda0_cm_phys*tp_fs_phys*1.d-15+k_t)/(c*tp_fs_phys*1.d-15/(4*z_rayleigh_cm_phys))*chi(j)
        ENDDO
        startcut=dim_t
        endcut=dim_t
        DO j=1,dim_t
           k_t=8.D0*DATAN(1.D0)*REAL(j-dim_t/2-1)/lt+omega_uppe-omega
-          komega(j) = (c*2.D0*3.1415D0/lambda0_cm_phys*tp_fs_phys*1.d-15+k_t)/(c*tp_fs_phys*1.d-15/(4*z_rayleigh_cm_phys))*chi(j)
-          omegachi(j) = c*2.D0*3.1415D0/lambda0_cm_phys+k_t/(tp_fs_phys*1.d-15)
-          omegachi(j) = omegachi(j)/(c*2.D0*3.1415D0*1.d4)
+          komega(j) = (c*2.D0*PI/lambda0_cm_phys*tp_fs_phys*1.d-15+k_t)/(c*tp_fs_phys*1.d-15/(4*z_rayleigh_cm_phys))*chi(j)
+          omegachi(j) = c*2.D0*PI/lambda0_cm_phys+k_t/(tp_fs_phys*1.d-15)
+          omegachi(j) = omegachi(j)/(c*2.D0*PI*1.d4)
           IF ((omegachi(j).GT.1.D0/0.185D0).AND.(startcut.EQ.dim_t)) startcut=j  
        ENDDO
        IF (startcut.LT.endcut) THEN
@@ -321,52 +321,52 @@ CONTAINS
        ALLOCATE(chi(dim_chi),omegachi(dim_chi))
        DO j=dim_chi/2,dim_chi/2+2
           k_t=8.D0*DATAN(1.D0)*REAL(j-dim_t/2-1)/lt
-          omegachi(j) = c*2.D0*3.1415D0/lambda0_cm_phys+k_t/(tp_fs_phys*1.d-15)
-          omegachi(j) = omegachi(j)/(c*2.D0*3.1415D0*1.d8)
+          omegachi(j) = c*2.D0*PI/lambda0_cm_phys+k_t/(tp_fs_phys*1.d-15)
+          omegachi(j) = omegachi(j)/(c*2.D0*PI*1.d8)
           chi(j) = 1.366d-3*(1.D0+9.02d5*omegachi(j)**2+1.81d12*omegachi(j)**4+4.89d18*omegachi(j)**6+1.45d25*omegachi(j)**8) !xenon, dalgarno and kingston
           chi(j) = 1.D0+chi(j)*pressure
           chi(j) = sqrt(chi(j))
        ENDDO
        n0 = REAL(chi(dim_t/2+1)) !refractive index at lambda0
-       z_rayleigh_cm_phys  = 3.1415D0*w0_cm_phys**2*n0/lambda0_cm_phys  !Rayleigh lenght      cm
+       z_rayleigh_cm_phys  = PI*w0_cm_phys**2*n0/lambda0_cm_phys  !Rayleigh lenght      cm
        DO j=dim_t/2,dim_t/2+2
           k_t=8.D0*DATAN(1.D0)*REAL(j-dim_t/2-1)/lt
-          komega(j) = (c*2.D0*3.1415D0/lambda0_cm_phys*tp_fs_phys*1.d-15+k_t)/(c*tp_fs_phys*1.d-15/(4*z_rayleigh_cm_phys))*chi(j)
+          komega(j) = (c*2.D0*PI/lambda0_cm_phys*tp_fs_phys*1.d-15+k_t)/(c*tp_fs_phys*1.d-15/(4*z_rayleigh_cm_phys))*chi(j)
        ENDDO
        rek0 = REAL(komega(dim_t/2+1)) !adimensioned central wavenumber in the medium
        rekp = REAL(komega(dim_t/2+2)-komega(dim_t/2))*lt/(16.D0*DATAN(1.D0))!adimensioned group velocity
 
        DO j=1,2
           k_t=REAL(j,8)*2.D0*omega   ! k_t = w_adim - w0_adim
-          omegachi(j) = c*2.D0*3.1415D0/lambda0_cm_phys+k_t/(tp_fs_phys*1.d-15)
-          omegachi(j) = omegachi(j)/(c*2.D0*3.1415D0*1.d8)
+          omegachi(j) = c*2.D0*PI/lambda0_cm_phys+k_t/(tp_fs_phys*1.d-15)
+          omegachi(j) = omegachi(j)/(c*2.D0*PI*1.d8)
           chi(j) = 1.366d-3*(1.D0+9.02d5*omegachi(j)**2+1.81d12*omegachi(j)**4+4.89d18*omegachi(j)**6+1.45d25*omegachi(j)**8) !xenon, dalgarno and kingston
           chi(j) = 1.D0+chi(j)*pressure
           chi(j) = sqrt(chi(j))                ! chi = E(w) =  sqrt(1+X(w))
-          komega(j) = (c*2.D0*3.1415D0/lambda0_cm_phys*tp_fs_phys*1.d-15+k_t)/(c*tp_fs_phys*1.d-15/(4*z_rayleigh_cm_phys))*chi(j)
+          komega(j) = (c*2.D0*PI/lambda0_cm_phys*tp_fs_phys*1.d-15+k_t)/(c*tp_fs_phys*1.d-15/(4*z_rayleigh_cm_phys))*chi(j)
        ENDDO
        deltak3omega(1)=3.D0*rek0 - REAL(komega(1)) 
        deltak5omega(1)=5.D0*rek0 - REAL(komega(2))
 
        DO j=1,dim_chi
           k_t=8.D0*DATAN(1.D0)*REAL(j-dim_t/2-1)/lt+omega_uppe-omega
-          omegachi(j) = c*2.D0*3.1415D0/lambda0_cm_phys+k_t/(tp_fs_phys*1.d-15)
-          omegachi(j) = omegachi(j)/(c*2.D0*3.1415D0*1.d8)
+          omegachi(j) = c*2.D0*PI/lambda0_cm_phys+k_t/(tp_fs_phys*1.d-15)
+          omegachi(j) = omegachi(j)/(c*2.D0*PI*1.d8)
           chi(j) = 1.366d-3*(1.D0+9.02d5*omegachi(j)**2+1.81d12*omegachi(j)**4+4.89d18*omegachi(j)**6+1.45d25*omegachi(j)**8) !xenon, dalgarno and kingston
           chi(j) = 1.D0+chi(j)*pressure
           chi(j) = sqrt(chi(j))
        ENDDO
        DO j=1,dim_t
           k_t=8.D0*DATAN(1.D0)*REAL(j-dim_t/2-1)/lt+omega_uppe-omega
-          komega(j) = (c*2.D0*3.1415D0/lambda0_cm_phys*tp_fs_phys*1.d-15+k_t)/(c*tp_fs_phys*1.d-15/(4*z_rayleigh_cm_phys))*chi(j)
+          komega(j) = (c*2.D0*PI/lambda0_cm_phys*tp_fs_phys*1.d-15+k_t)/(c*tp_fs_phys*1.d-15/(4*z_rayleigh_cm_phys))*chi(j)
        ENDDO
        startcut=dim_t
        endcut=dim_t
        DO j=1,dim_t
           k_t=8.D0*DATAN(1.D0)*REAL(j-dim_t/2-1)/lt+omega_uppe-omega
-          komega(j) = (c*2.D0*3.1415D0/lambda0_cm_phys*tp_fs_phys*1.d-15+k_t)/(c*tp_fs_phys*1.d-15/(4*z_rayleigh_cm_phys))*chi(j)
-          omegachi(j) = c*2.D0*3.1415D0/lambda0_cm_phys+k_t/(tp_fs_phys*1.d-15)
-          omegachi(j) = omegachi(j)/(c*2.D0*3.1415D0*1.d8)
+          komega(j) = (c*2.D0*PI/lambda0_cm_phys*tp_fs_phys*1.d-15+k_t)/(c*tp_fs_phys*1.d-15/(4*z_rayleigh_cm_phys))*chi(j)
+          omegachi(j) = c*2.D0*PI/lambda0_cm_phys+k_t/(tp_fs_phys*1.d-15)
+          omegachi(j) = omegachi(j)/(c*2.D0*PI*1.d8)
           IF ((omegachi(j).GT.7.D-4).AND.(startcut.EQ.dim_t)) startcut=j  
        ENDDO
        IF (startcut.LT.endcut) THEN
@@ -382,52 +382,52 @@ CONTAINS
        ALLOCATE(chi(dim_chi),omegachi(dim_chi))
        DO j=dim_chi/2,dim_chi/2+2
           k_t=8.D0*DATAN(1.D0)*REAL(j-dim_t/2-1)/lt
-          omegachi(j) = c*2.D0*3.1415D0/lambda0_cm_phys+k_t/(tp_fs_phys*1.d-15)
-          omegachi(j) = omegachi(j)/(c*2.D0*3.1415D0*1.d8)
+          omegachi(j) = c*2.D0*PI/lambda0_cm_phys+k_t/(tp_fs_phys*1.d-15)
+          omegachi(j) = omegachi(j)/(c*2.D0*PI*1.d8)
           chi(j) = 1.335d-4*(1.D0+2.24d5*omegachi(j)**2+8.09d10*omegachi(j)**4+3.56d16*omegachi(j)**6) !neon, dalgarno and kingston
           chi(j) = 1.D0+chi(j)*pressure
           chi(j) = sqrt(chi(j))
        ENDDO
        n0 = REAL(chi(dim_t/2+1)) !refractive index at lambda0
-       z_rayleigh_cm_phys  = 3.1415D0*w0_cm_phys**2*n0/lambda0_cm_phys  !Rayleigh lenght      cm
+       z_rayleigh_cm_phys  = PI*w0_cm_phys**2*n0/lambda0_cm_phys  !Rayleigh lenght      cm
        DO j=dim_t/2,dim_t/2+2
           k_t=8.D0*DATAN(1.D0)*REAL(j-dim_t/2-1)/lt
-          komega(j) = (c*2.D0*3.1415D0/lambda0_cm_phys*tp_fs_phys*1.d-15+k_t)/(c*tp_fs_phys*1.d-15/(4*z_rayleigh_cm_phys))*chi(j)
+          komega(j) = (c*2.D0*PI/lambda0_cm_phys*tp_fs_phys*1.d-15+k_t)/(c*tp_fs_phys*1.d-15/(4*z_rayleigh_cm_phys))*chi(j)
        ENDDO
        rek0 = REAL(komega(dim_t/2+1)) !adimensioned central wavenumber in the medium
        rekp = REAL(komega(dim_t/2+2)-komega(dim_t/2))*lt/(16.D0*DATAN(1.D0))!adimensioned group velocity
 
        DO j=1,2
           k_t=REAL(j,8)*2.D0*omega   ! k_t = w_adim - w0_adim
-          omegachi(j) = c*2.D0*3.1415D0/lambda0_cm_phys+k_t/(tp_fs_phys*1.d-15)
-          omegachi(j) = omegachi(j)/(c*2.D0*3.1415D0*1.d8)
+          omegachi(j) = c*2.D0*PI/lambda0_cm_phys+k_t/(tp_fs_phys*1.d-15)
+          omegachi(j) = omegachi(j)/(c*2.D0*PI*1.d8)
           chi(j) = 1.335d-4*(1.D0+2.24d5*omegachi(j)**2+8.09d10*omegachi(j)**4+3.56d16*omegachi(j)**6) !neon, dalgarno and kingston
           chi(j) = 1.D0+chi(j)*pressure
           chi(j) = sqrt(chi(j))                ! chi = E(w) =  sqrt(1+X(w))
-          komega(j) = (c*2.D0*3.1415D0/lambda0_cm_phys*tp_fs_phys*1.d-15+k_t)/(c*tp_fs_phys*1.d-15/(4*z_rayleigh_cm_phys))*chi(j)
+          komega(j) = (c*2.D0*PI/lambda0_cm_phys*tp_fs_phys*1.d-15+k_t)/(c*tp_fs_phys*1.d-15/(4*z_rayleigh_cm_phys))*chi(j)
        ENDDO
        deltak3omega(1)=3.D0*rek0 - REAL(komega(1)) 
        deltak5omega(1)=5.D0*rek0 - REAL(komega(2))
 
        DO j=1,dim_chi
           k_t=8.D0*DATAN(1.D0)*REAL(j-dim_t/2-1)/lt+omega_uppe-omega
-          omegachi(j) = c*2.D0*3.1415D0/lambda0_cm_phys+k_t/(tp_fs_phys*1.d-15)
-          omegachi(j) = omegachi(j)/(c*2.D0*3.1415D0*1.d8)
+          omegachi(j) = c*2.D0*PI/lambda0_cm_phys+k_t/(tp_fs_phys*1.d-15)
+          omegachi(j) = omegachi(j)/(c*2.D0*PI*1.d8)
           chi(j) = 1.335d-4*(1.D0+2.24d5*omegachi(j)**2+8.09d10*omegachi(j)**4+3.56d16*omegachi(j)**6) !neon, dalgarno and kingston
           chi(j) = 1.D0+chi(j)*pressure
           chi(j) = sqrt(chi(j))
        ENDDO
        DO j=1,dim_t
           k_t=8.D0*DATAN(1.D0)*REAL(j-dim_t/2-1)/lt+omega_uppe-omega
-          komega(j) = (c*2.D0*3.1415D0/lambda0_cm_phys*tp_fs_phys*1.d-15+k_t)/(c*tp_fs_phys*1.d-15/(4*z_rayleigh_cm_phys))*chi(j)
+          komega(j) = (c*2.D0*PI/lambda0_cm_phys*tp_fs_phys*1.d-15+k_t)/(c*tp_fs_phys*1.d-15/(4*z_rayleigh_cm_phys))*chi(j)
        ENDDO
        startcut=dim_t
        endcut=dim_t
        DO j=1,dim_t
           k_t=8.D0*DATAN(1.D0)*REAL(j-dim_t/2-1)/lt+omega_uppe-omega
-          komega(j) = (c*2.D0*3.1415D0/lambda0_cm_phys*tp_fs_phys*1.d-15+k_t)/(c*tp_fs_phys*1.d-15/(4*z_rayleigh_cm_phys))*chi(j)
-          omegachi(j) = c*2.D0*3.1415D0/lambda0_cm_phys+k_t/(tp_fs_phys*1.d-15)
-          omegachi(j) = omegachi(j)/(c*2.D0*3.1415D0*1.d8)
+          komega(j) = (c*2.D0*PI/lambda0_cm_phys*tp_fs_phys*1.d-15+k_t)/(c*tp_fs_phys*1.d-15/(4*z_rayleigh_cm_phys))*chi(j)
+          omegachi(j) = c*2.D0*PI/lambda0_cm_phys+k_t/(tp_fs_phys*1.d-15)
+          omegachi(j) = omegachi(j)/(c*2.D0*PI*1.d8)
           IF ((omegachi(j).GT.7.D-4).AND.(startcut.EQ.dim_t)) startcut=j  
        ENDDO
        IF (startcut.LT.endcut) THEN
@@ -445,39 +445,39 @@ CONTAINS
        ALLOCATE(chi(dim_chi),omegachi(dim_chi))
        DO j=dim_chi/2,dim_chi/2+2
           k_t=8.D0*DATAN(1.D0)*REAL(j-dim_t/2-1)/lt   ! k_t = w_adim - w0_adim
-          omegachi(j) = c*2.D0*3.1415D0/lambda0_cm_phys+k_t/(tp_fs_phys*1.d-15)   ! omegachi = w
-          omegachi(j) = omegachi(j)/(c*2.D0*3.1415D0*1.d4)
+          omegachi(j) = c*2.D0*PI/lambda0_cm_phys+k_t/(tp_fs_phys*1.d-15)   ! omegachi = w
+          omegachi(j) = omegachi(j)/(c*2.D0*PI*1.d4)
           chi(j) = 2.259276D0 + 0.01008956D0/(omegachi(j)**(-2)-0.0129426D0) + &
             13.00522D0*omegachi(j)**(-2)/(omegachi(j)**(-2)-400.D0) - 1.D0 ! KDPo, Handbook of Optics
           chi(j) = 1.D0+chi(j)*pressure
           chi(j) = sqrt(chi(j))                ! chi = E(w) =  sqrt(1+X(w))
        ENDDO
        n0 = REAL(chi(dim_t/2+1)) !refractive index at lambda0
-       z_rayleigh_cm_phys  = 3.1415D0*w0_cm_phys**2*n0/lambda0_cm_phys  !Rayleigh lenght      cm
+       z_rayleigh_cm_phys  = PI*w0_cm_phys**2*n0/lambda0_cm_phys  !Rayleigh lenght      cm
        DO j=dim_t/2,dim_t/2+2
           k_t=8.D0*DATAN(1.D0)*REAL(j-dim_t/2-1)/lt
-          komega(j) = (c*2.D0*3.1415D0/lambda0_cm_phys*tp_fs_phys*1.d-15+k_t)/(c*tp_fs_phys*1.d-15/(4*z_rayleigh_cm_phys))*chi(j)
+          komega(j) = (c*2.D0*PI/lambda0_cm_phys*tp_fs_phys*1.d-15+k_t)/(c*tp_fs_phys*1.d-15/(4*z_rayleigh_cm_phys))*chi(j)
        ENDDO
        rek0 = REAL(komega(dim_t/2+1)) !adimensioned central wavenumber in the medium
        rekp = REAL(komega(dim_t/2+2)-komega(dim_t/2))*lt/(16.D0*DATAN(1.D0))!adimensioned group velocity
 
        DO j=1,2
           k_t=REAL(j,8)*2.D0*omega   ! k_t = w_adim - w0_adim
-          omegachi(j) = c*2.D0*3.1415D0/lambda0_cm_phys+k_t/(tp_fs_phys*1.d-15)   ! omegachi = w
-          omegachi(j) = omegachi(j)/(c*2.D0*3.1415D0*1.d4)
+          omegachi(j) = c*2.D0*PI/lambda0_cm_phys+k_t/(tp_fs_phys*1.d-15)   ! omegachi = w
+          omegachi(j) = omegachi(j)/(c*2.D0*PI*1.d4)
           chi(j) = 2.259276D0 + 0.01008956D0/(omegachi(j)**(-2)-0.0129426D0) + & 
             13.00522D0*omegachi(j)**(-2)/(omegachi(j)**(-2)-400.D0) - 1.D0 ! KDPo, Handbook of Optics
           chi(j) = 1.D0+chi(j)*pressure
           chi(j) = sqrt(chi(j))                ! chi = E(w) =  sqrt(1+X(w))
-          komega(j) = (c*2.D0*3.1415D0/lambda0_cm_phys*tp_fs_phys*1.d-15+k_t)/(c*tp_fs_phys*1.d-15/(4*z_rayleigh_cm_phys))*chi(j)
+          komega(j) = (c*2.D0*PI/lambda0_cm_phys*tp_fs_phys*1.d-15+k_t)/(c*tp_fs_phys*1.d-15/(4*z_rayleigh_cm_phys))*chi(j)
        ENDDO
        deltak3omega(1)=3.D0*rek0 - REAL(komega(1)) 
        deltak5omega(1)=5.D0*rek0 - REAL(komega(2))
 
        DO j=1,dim_chi
           k_t=8.D0*DATAN(1.D0)*REAL(j-dim_t/2-1)/lt+omega_uppe-omega   ! k_t = w_adim - w0_adim
-          omegachi(j) = c*2.D0*3.1415D0/lambda0_cm_phys+k_t/(tp_fs_phys*1.d-15)   ! omegachi = w
-          omegachi(j) = omegachi(j)/(c*2.D0*3.1415D0*1.d4)
+          omegachi(j) = c*2.D0*PI/lambda0_cm_phys+k_t/(tp_fs_phys*1.d-15)   ! omegachi = w
+          omegachi(j) = omegachi(j)/(c*2.D0*PI*1.d4)
           chi(j) = 2.259276D0 + 0.01008956D0/(omegachi(j)**(-2)-0.0129426D0) + &
             13.00522D0*omegachi(j)**(-2)/(omegachi(j)**(-2)-400.D0) - 1.D0 ! KDPo, Handbook of Optics
           chi(j) = 1.D0+chi(j)*pressure
@@ -491,9 +491,9 @@ CONTAINS
        endcut=dim_t
        DO j=1,dim_t
           k_t=8.D0*DATAN(1.D0)*REAL(j-dim_t/2-1)/lt+omega_uppe-omega
-          komega(j) = (c*2.D0*3.1415D0/lambda0_cm_phys*tp_fs_phys*1.d-15+k_t)/(c*tp_fs_phys*1.d-15/(4*z_rayleigh_cm_phys))*chi(j)
-          omegachi(j) = c*2.D0*3.1415D0/lambda0_cm_phys+k_t/(tp_fs_phys*1.d-15)   ! omegachi = w
-          omegachi(j) = omegachi(j)/(c*2.D0*3.1415D0*1.d4)
+          komega(j) = (c*2.D0*PI/lambda0_cm_phys*tp_fs_phys*1.d-15+k_t)/(c*tp_fs_phys*1.d-15/(4*z_rayleigh_cm_phys))*chi(j)
+          omegachi(j) = c*2.D0*PI/lambda0_cm_phys+k_t/(tp_fs_phys*1.d-15)   ! omegachi = w
+          omegachi(j) = omegachi(j)/(c*2.D0*PI*1.d4)
           IF ((omegachi(j).GT.1.D0/0.185D0).AND.(startcut.EQ.dim_t)) startcut=j  
        ENDDO
        IF (startcut.LT.endcut) THEN
@@ -507,52 +507,52 @@ CONTAINS
        ALLOCATE(chi(dim_chi),omegachi(dim_chi))
        DO j=dim_chi/2,dim_chi/2+2
           k_t=8.D0*DATAN(1.D0)*REAL(j-dim_t/2-1)/lt
-          omegachi(j) = c*2.D0*3.1415D0/lambda0_cm_phys+k_t/(tp_fs_phys*1.d-15)
-          omegachi(j) = omegachi(j)/(c*2.D0*3.1415D0*1.d8)
+          omegachi(j) = c*2.D0*PI/lambda0_cm_phys+k_t/(tp_fs_phys*1.d-15)
+          omegachi(j) = omegachi(j)/(c*2.D0*PI*1.d8)
           chi(j) = 8.377d-4*(1.D0+6.70d5*omegachi(j)**2+8.84d11*omegachi(j)**4+1.49d18*omegachi(j)**6+2.74d24*omegachi(j)**8+5.10d30*omegachi(j)**10) !krypton, dalgarno and kingston
           chi(j) = 1.D0+chi(j)*pressure
           chi(j) = sqrt(chi(j))
        ENDDO
        n0 = REAL(chi(dim_t/2+1)) !refractive index at lambda0
-       z_rayleigh_cm_phys  = 3.1415D0*w0_cm_phys**2*n0/lambda0_cm_phys  !Rayleigh lenght      cm
+       z_rayleigh_cm_phys  = PI*w0_cm_phys**2*n0/lambda0_cm_phys  !Rayleigh lenght      cm
        DO j=dim_t/2,dim_t/2+2
           k_t=8.D0*DATAN(1.D0)*REAL(j-dim_t/2-1)/lt
-          komega(j) = (c*2.D0*3.1415D0/lambda0_cm_phys*tp_fs_phys*1.d-15+k_t)/(c*tp_fs_phys*1.d-15/(4*z_rayleigh_cm_phys))*chi(j)
+          komega(j) = (c*2.D0*PI/lambda0_cm_phys*tp_fs_phys*1.d-15+k_t)/(c*tp_fs_phys*1.d-15/(4*z_rayleigh_cm_phys))*chi(j)
        ENDDO
        rek0 = REAL(komega(dim_t/2+1)) !adimensioned central wavenumber in the medium
        rekp = REAL(komega(dim_t/2+2)-komega(dim_t/2))*lt/(16.D0*DATAN(1.D0))!adimensioned group velocity
 
        DO j=1,2
           k_t=REAL(j,8)*2.D0*omega   ! k_t = w_adim - w0_adim
-          omegachi(j) = c*2.D0*3.1415D0/lambda0_cm_phys+k_t/(tp_fs_phys*1.d-15)
-          omegachi(j) = omegachi(j)/(c*2.D0*3.1415D0*1.d8)
+          omegachi(j) = c*2.D0*PI/lambda0_cm_phys+k_t/(tp_fs_phys*1.d-15)
+          omegachi(j) = omegachi(j)/(c*2.D0*PI*1.d8)
           chi(j) = 8.377d-4*(1.D0+6.70d5*omegachi(j)**2+8.84d11*omegachi(j)**4+1.49d18*omegachi(j)**6+2.74d24*omegachi(j)**8+5.10d30*omegachi(j)**10) !krypton, dalgarno and kingston
           chi(j) = 1.D0+chi(j)*pressure
           chi(j) = sqrt(chi(j))                ! chi = E(w) =  sqrt(1+X(w))
-          komega(j) = (c*2.D0*3.1415D0/lambda0_cm_phys*tp_fs_phys*1.d-15+k_t)/(c*tp_fs_phys*1.d-15/(4*z_rayleigh_cm_phys))*chi(j)
+          komega(j) = (c*2.D0*PI/lambda0_cm_phys*tp_fs_phys*1.d-15+k_t)/(c*tp_fs_phys*1.d-15/(4*z_rayleigh_cm_phys))*chi(j)
        ENDDO
        deltak3omega(1)=3.D0*rek0 - REAL(komega(1)) 
        deltak5omega(1)=5.D0*rek0 - REAL(komega(2))
 
        DO j=1,dim_chi
           k_t=8.D0*DATAN(1.D0)*REAL(j-dim_t/2-1)/lt+omega_uppe-omega
-          omegachi(j) = c*2.D0*3.1415D0/lambda0_cm_phys+k_t/(tp_fs_phys*1.d-15)
-          omegachi(j) = omegachi(j)/(c*2.D0*3.1415D0*1.d8)
+          omegachi(j) = c*2.D0*PI/lambda0_cm_phys+k_t/(tp_fs_phys*1.d-15)
+          omegachi(j) = omegachi(j)/(c*2.D0*PI*1.d8)
           chi(j) = 8.377d-4*(1.D0+6.70d5*omegachi(j)**2+8.84d11*omegachi(j)**4+1.49d18*omegachi(j)**6+2.74d24*omegachi(j)**8+5.10d30*omegachi(j)**10) !krypton, dalgarno and kingston
           chi(j) = 1.D0+chi(j)*pressure
           chi(j) = sqrt(chi(j))
        ENDDO
        DO j=1,dim_t
           k_t=8.D0*DATAN(1.D0)*REAL(j-dim_t/2-1)/lt+omega_uppe-omega
-          komega(j) = (c*2.D0*3.1415D0/lambda0_cm_phys*tp_fs_phys*1.d-15+k_t)/(c*tp_fs_phys*1.d-15/(4*z_rayleigh_cm_phys))*chi(j)
+          komega(j) = (c*2.D0*PI/lambda0_cm_phys*tp_fs_phys*1.d-15+k_t)/(c*tp_fs_phys*1.d-15/(4*z_rayleigh_cm_phys))*chi(j)
        ENDDO
        startcut=dim_t
        endcut=dim_t
        DO j=1,dim_t
           k_t=8.D0*DATAN(1.D0)*REAL(j-dim_t/2-1)/lt+omega_uppe-omega
-          komega(j) = (c*2.D0*3.1415D0/lambda0_cm_phys*tp_fs_phys*1.d-15+k_t)/(c*tp_fs_phys*1.d-15/(4*z_rayleigh_cm_phys))*chi(j)
-          omegachi(j) = c*2.D0*3.1415D0/lambda0_cm_phys+k_t/(tp_fs_phys*1.d-15)
-          omegachi(j) = omegachi(j)/(c*2.D0*3.1415D0*1.d8)
+          komega(j) = (c*2.D0*PI/lambda0_cm_phys*tp_fs_phys*1.d-15+k_t)/(c*tp_fs_phys*1.d-15/(4*z_rayleigh_cm_phys))*chi(j)
+          omegachi(j) = c*2.D0*PI/lambda0_cm_phys+k_t/(tp_fs_phys*1.d-15)
+          omegachi(j) = omegachi(j)/(c*2.D0*PI*1.d8)
           IF ((omegachi(j).GT.7.D-4).AND.(startcut.EQ.dim_t)) startcut=j  
        ENDDO
        IF (startcut.LT.endcut) THEN
@@ -829,8 +829,8 @@ CONTAINS
     INTEGER(4) KKnew
     REAL(8) c,h
 
-    c = 3.d10 !speed of light in the vacuum      cm/s
-    h = 6.634d-34/(2*3.1415) !Planck constant   J.s
+    c = c_light*1.d2 ! 3.d10 !speed of light in the vacuum      cm/s
+    h = hbar !6.634d-34/(2*3.1415) !Planck constant   J.s
     n2_phys = n2_phys*pressure
     n4_phys = n4_phys*pressure
     rhont_cm3_phys = rhont_cm3_phys*pressure
@@ -838,25 +838,25 @@ CONTAINS
     tauc_fs_phys = tauc_fs_phys/pressure
     rhoc_cm3_phys = 1.11d13/lambda0_cm_phys**2 ! critical plasma censity  cm-3
     sigma_cm2_phys =  3.535d-12*(omega*tauc_fs_phys/tp_fs_phys)/(k0_phys*n0*(1.D0+(omega*tauc_fs_phys/tp_fs_phys)**2)) !cross section for inverse bremsstrahlung  cm2
-    photon_energy_au_phys = h*c*2*3.1415D0/lambda0_cm_phys/4.359d-18 ! photon energy  au
-    Ui_au_phys = Ui_eV_phys/27.2116d0 ! gap potential for ionization of oxygen molecules  au
+    photon_energy_au_phys = h*c*2.d0*PI/lambda0_cm_phys/4.359d-18 ! photon energy  au ! still not precise
+    Ui_au_phys = Ui_eV_phys/Ip_HeV ! gap potential for ionization of oxygen molecules  au
 
-    z_rayleigh_cm_phys  = 3.1415D0*w0_cm_phys**2*n0/lambda0_cm_phys  !Rayleigh lenght      cm
+    z_rayleigh_cm_phys  = PI*w0_cm_phys**2*n0/lambda0_cm_phys  !Rayleigh lenght      cm
     KK = int(Ui_au_phys/photon_energy_au_phys)+1
-    betak_phys =(KK*h*2*3.1415D0*c/(lambda0_cm_phys))*rhont_cm3_phys*sigmak_phys !coefficient of multiphoton absorption   cm2K-3/WK-1
+    betak_phys =(KK*h*2.0*PI*c/(lambda0_cm_phys))*rhont_cm3_phys*sigmak_phys !coefficient of multiphoton absorption   cm2K-3/WK-1
     
     IF (switch_rho.LE.2) THEN
        PRINT*, 'From given ionization potential we get KK = ', KK, 'type alternative value or 0 to keep it'
        READ(5,*) KKnew
        IF (KKnew.GE.0) THEN
           KK=KKnew
-          betak_phys =(Ui_au_phys/photon_energy_au_phys*h*2*3.1415D0*c/(lambda0_cm_phys))*rhont_cm3_phys*sigmak_phys
+          betak_phys =(Ui_au_phys/photon_energy_au_phys*h*2*PI*c/(lambda0_cm_phys))*rhont_cm3_phys*sigmak_phys
        ENDIF
     ENDIF
     
     Pcr_phys = ((lambda0_cm_phys)**2)/(2*3.1415*n0*n2_phys)  !critical power          W
     print *, 'aPcr ', 'n0', n0, 'n2', n2_phys
-    k0_phys = 2.D0*3.1415D0/lambda0_cm_phys  !central wave number in vacuum     cm-1
+    k0_phys = 2.D0*PI/lambda0_cm_phys  !central wave number in vacuum     cm-1
     proplength = proplength_m_phys*100.D0/(4.D0*z_rayleigh_cm_phys)  !adimensionned distance of propagation
     outlength = outlength_m_phys*100.D0/(4.D0*z_rayleigh_cm_phys)  !adimmensionned output distance for whole field
     IF (out_Efield) outlength_Efield = outlength_Efield_m_phys*100.D0/(4.D0*z_rayleigh_cm_phys) ! dtto
@@ -885,7 +885,7 @@ CONTAINS
     if (f_cm_phys.EQ.0.D0 ) then
        lense_factor = 0.D0
     else
-       lense_factor=3.1415D0*w0_cm_phys**2*n0/(f_cm_phys*lambda0_cm_phys)
+       lense_factor=PI*w0_cm_phys**2*n0/(f_cm_phys*lambda0_cm_phys)
     endif
     increase=decrease/2.5D0               !phase threshold for increasing delta_z, should be <= increase/2.5
 

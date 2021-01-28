@@ -295,8 +295,8 @@ end subroutine calck0
              r=REAL(l-1,8)*delta_r
              norm=norm+r*exp(-2.D0*r**(2*super_N))
           ENDDO
-          norm=norm*2.D0*3.1415D0*delta_r
-          buffer=SQRT(4.D0*3.1415D0*numcrit/norm)*buffer
+          norm=norm*2.D0*PI*delta_r
+          buffer=SQRT(4.D0*PI*numcrit/norm)*buffer
        ENDIF
 
        DO l=p*(dim_r/num_proc)+1,(p+1)*(dim_r/num_proc)

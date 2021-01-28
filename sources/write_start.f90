@@ -1,8 +1,9 @@
 MODULE write_start
   USE hdf5_helper
   USE HDF5
+  USE constants
 
-  REAL(8), PARAMETER  :: Pi = acos(-1.0d0)
+  ! REAL(8), PARAMETER  :: Pi = acos(-1.0d0)
 
   INTEGER(4) num_proc,dim_t,dim_r,KK,NN,switch_rho,switch_dKerr,absorb,rhodist,angular_momentum,switch_T
   INTEGER(4) i_x_max, i_z_max, i_x, i_z
@@ -130,7 +131,7 @@ CONTAINS
       CALL create_dset(group_id,'density_normalisation_factor',density_normalisation_factor)
 
       !r_offset = dim_r_start(num_proc)-1
-      efield_factor = SQRT(Pcr_phys*1.D-9*1.D9*3.D8*4.D0*3.1415D-7/(4.D0*3.1415D0*w0_cm_phys**2*1.D-4*2.D0*n0))*2.D0 ! normalization factor electric field V/m
+      efield_factor = SQRT(Pcr_phys*1.D-9*1.D9*3.D8*4.D0*PI*1.D-7/(4.D0*PI*w0_cm_phys**2*1.D-4*2.D0*n0))*2.D0 ! normalization factor electric field V/m
       print *, 'efield_factor', efield_factor, 'w0', w0_cm_phys, 'Pcr', Pcr_phys
       ALLOCATE(efield_osc(dim_t))
       PRINT*, 'beosc'
