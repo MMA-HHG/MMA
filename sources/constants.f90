@@ -1,5 +1,5 @@
 module constants
-    real(8), parameter  :: PI = 4.d0*acos(1.d0)
+    real(8), parameter  :: PI = 4.d0*atan(1.d0)
 
     ! physical constants in SI units
     real(8), parameter  :: echarge = 1.60217662d-19
