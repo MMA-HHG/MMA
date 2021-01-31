@@ -55,6 +55,8 @@ with h5py.File(file_path, 'r') as InputArchive:
     zgrid = InputArchive['/outputs/zgrid'][:]
     electron_density_map = InputArchive['/outputs/output_plasma'][:]
     Efield = InputArchive['/outputs/output_field'][:]
+    
+    inverse_GV = InputArchive['/logs/inverse_group_velocity_SI'][()]
 
 
 
@@ -78,16 +80,36 @@ with h5py.File(file_path, 'r') as InputArchive:
     plt.savefig('Efield.png', dpi = 600)
     plt.show()
 
+    # test 1
     # delta_t = 50.0e-15  # 0.01
     wavenumber = 2.0*np.pi/mn.ConvertPhoton(omega0,'omegaSI','lambdaSI')
 
     delta_z = 0.001
     delta_n = 0.0004
 
-    delta_phi = wavenumber*delta_n*delta_z
-
+    delta_phi = np.pi# wavenumber*delta_n*delta_z
+    
     delta_t = delta_phi / omega0
 
+    
+# =============================================================================
+#     # test 2 - move in the laboratory frame adjusted by 'c' (a vacuum case)
+#     delta_z = 0.00001
+#     
+#     delta_t = delta_z/units.c_light
+#     
+#     # test 3 - move in the laboratory frame adjusted by 'vg' (a vacuum case)
+#     delta_z = 0.00001
+#     
+#     delta_t = inverse_GV*delta_z
+#     
+#     # test 4 - two shifts
+#     delta_z = 0.0022456
+#     delta_t = inverse_GV*delta_z
+#     delta_t = delta_t - delta_z/units.c_light
+# =============================================================================
+    
+    
     # FEtest_shift = np.exp(1j*np.linspace(0,len(ogrid)-1,len(ogrid))*delta_t)*FEtest
     FEtest_shift = np.exp(1j*ogrid*delta_t)*FEtest
 

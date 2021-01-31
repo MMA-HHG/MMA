@@ -14,7 +14,7 @@ import matplotlib.pyplot as plt
 # results_path = os.path.join("/mnt", "d", "data", "Discharges") # 'D:\data\Discharges'
 results_path = os.path.join("D:\data", "Discharges")
 
-filename = "results_11.h5"
+filename = "results_1.h5"
 
 file_path = os.path.join(results_path,filename)
 
