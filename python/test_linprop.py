@@ -18,7 +18,9 @@ f1h = XUV_index.index_funct['Ar']['f1'](29.5)
 
 f1, f2 = XUV_index.getf('Ar',29.5)
 
-susc = IR_index.getsusc('Ar',600e-9)
+susc = IR_index.getsusc('Ar',800e-9)
+
+# nIR = 1 + susc
 
 # Energy = XUV_index.Energy
 
