@@ -1,4 +1,5 @@
 import numpy as np
+from scipy import integrate
 import os
 import time
 # import multiprocessing as mp
@@ -25,14 +26,14 @@ def myfft(x,fx):
     if (len(x)%2==1): x = x[0:-1]
     N = len(x)
     dx = x[1]-x[0]
-    Fx = (dx/np.sqrt(2.0*np.pi))*np.conj(np.fft.fft(fx)[0:((N//2)+1)])
+    Fx = (dx/np.sqrt(np.pi))*np.conj(np.fft.fft(fx)[0:((N//2)+1)])
     xi = (np.pi/dx)*np.linspace(0,1,(N//2)+1)
     return xi, Fx
 
 def imyfft(xi,Fx):
     dxi = xi[1]-xi[0]
     Fx = np.append(Fx, np.flip(np.conj(Fx[1:])))
-    fx = ((len(Fx)*dxi)/(np.sqrt(2.0*np.pi)))*np.flip(np.fft.ifft(Fx))
+    fx = ((len(Fx)*dxi)/(2.0*np.sqrt(np.pi)))*np.flip(np.fft.ifft(Fx))
     x = np.linspace(0,2.0*np.pi/dxi,len(fx))
     return x, fx
 
@@ -56,8 +57,8 @@ with h5py.File(file_path, 'r') as InputArchive:
     electron_density_map = InputArchive['/outputs/output_plasma'][:]
     Efield = InputArchive['/outputs/output_field'][:]
     
-    # inverse_GV = InputArchive['/logs/inverse_group_velocity_SI'][()]
-    inverse_GV  = 1/units.c_light
+    inverse_GV = InputArchive['/logs/inverse_group_velocity_SI'][()]
+    # inverse_GV  = 1/units.c_light
 
 
 
@@ -66,6 +67,10 @@ with h5py.File(file_path, 'r') as InputArchive:
     omegauppe = 10.1 * omega0
 
     ogrid, FEtest = myfft(tgrid,Etest)
+    
+    FEtest_norm = np.trapz(np.abs(FEtest)**2,ogrid)
+    Etest_norm = np.trapz(np.abs(Etest)**2,tgrid)
+    
 
     plt.plot(ogrid,np.abs(FEtest), linewidth=0.2)
     plt.savefig('FEfield.png', dpi = 600)
@@ -111,6 +116,7 @@ with h5py.File(file_path, 'r') as InputArchive:
     
     # FEtest_shift = np.exp(1j*np.linspace(0,len(ogrid)-1,len(ogrid))*delta_t)*FEtest
     FEtest_shift = np.exp(1j*ogrid*delta_t)*FEtest
+    
 
     tt, FFEtest = imyfft(ogrid,FEtest)
     FFEtest_shift = imyfft(ogrid, FEtest_shift)[1]
