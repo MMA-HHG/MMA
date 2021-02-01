@@ -10,16 +10,17 @@ import units
 import mynumerics as mn
 # import mynumerics as mn
 import matplotlib.pyplot as plt
+import re
 
 # results_path = os.path.join("/mnt", "d", "data", "Discharges") # 'D:\data\Discharges'
 results_path = os.path.join("D:\data", "Discharges")
 
-filename = "results_1.h5"
+filename = "results_11.h5"
 
 file_path = os.path.join(results_path,filename)
 
 # my inputs
-k_t = 512 # the choice of time
+k_t = 1024 # the choice of time
 
 with h5py.File(file_path, 'r') as InputArchive:
 
@@ -27,19 +28,15 @@ with h5py.File(file_path, 'r') as InputArchive:
 
     print(1e-2*mn.readscalardataset(InputArchive,'/inputs/laser_wavelength','N'))
     omega0 = mn.ConvertPhoton(1e-2*mn.readscalardataset(InputArchive,'/inputs/laser_wavelength','N'),'lambdaSI','omegaSI')
+    
     print(omega0)
     tgrid = InputArchive['/outputs/tgrid'][:]; Nt = len(tgrid)
     rgrid = InputArchive['/outputs/rgrid'][:]; Nr = len(rgrid)
     zgrid = InputArchive['/outputs/zgrid'][:]; Nz = len(zgrid)
     electron_density_map = InputArchive['/outputs/output_plasma'][:]
     Efield = InputArchive['/outputs/output_field'][:]
-
-    # # plot plasma
-    # plt.plot(electron_density_map[:,0,0])
-    # plt.savefig('plasma.png')
-    # plt.show()
-
-
+    
+    inverse_GV = InputArchive['/logs/inverse_group_velocity_SI'][()]
     w0 = 1e-2*mn.readscalardataset(InputArchive,'/inputs/laser_beamwaist','N')
     zR = np.pi * w0**2 / mn.ConvertPhoton(omega0,'omegaSI','lambdaSI')
     zgridzR = np.linspace(0,zR,100)
@@ -55,6 +52,8 @@ with h5py.File(file_path, 'r') as InputArchive:
         for k2 in range(Nr):
             Efield_cmplx_envel[:,k2,k1] = rem_fast_oscillations*mn.complexify_fft(Efield[:,k2,k1])
 
+    k_t = mn.FindInterval(tgrid, 0.0)
+    
     # phase_map = np.zeros((Nr,Nz))
     phase_map = np.angle(Efield_cmplx_envel[k_t,:,:])
 
