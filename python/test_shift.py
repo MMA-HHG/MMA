@@ -37,6 +37,27 @@ def imyfft(xi,Fx):
     x = np.linspace(0,2.0*np.pi/dxi,len(fx))
     return x, fx
 
+def fft_t_nonorm(t,ft):
+    # if (len(x)%2==1): x = x[0:-1]
+    Nt = len(t)
+    # dx = x[1]-x[0]
+    Ft = np.conj(np.fft.fft(ft)[0:((Nt//2)+1)])
+    # xi = (np.pi/dx)*np.linspace(0,1,(N//2)+1)
+    omega = np.linspace(0,(np.pi*(Nt-1)/(t[-1]-t[0])),(Nt//2)+1)
+    # return xi, Fx, Nx
+    return omega, Ft, Nt
+
+def ifft_t_nonorm(omega,Ft,Nt):
+    # dxi = xi[1]-xi[0]
+    # N2 = Nx - len(Fx) + 1
+    Ft = np.append(Ft, np.flip(np.conj(Ft[1:(Nt - len(Ft) + 1)])))
+    # fx = ((len(Fx)*dxi)/(2.0*np.sqrt(np.pi)))*np.flip(np.fft.ifft(Fx))
+    
+    # return x, fx
+    ft = np.flip(np.fft.ifft(Ft))
+    t = np.linspace(0,2.0*np.pi*(len(omega))/(omega[-1]-omega[0]),len(ft))
+    return t, ft
+
 def complexify_fft(fx):
     N = len(fx)
     fx = np.fft.fft(fx)
@@ -76,8 +97,13 @@ with h5py.File(file_path, 'r') as InputArchive:
     plt.savefig('FEfield.png', dpi = 600)
     plt.show()
 
-    plt.plot(np.abs(FEtest[75:100]), linewidth=0.2)
+    # plt.plot(np.abs(FEtest[75:100]), linewidth=0.2)
+    plt.plot(np.abs(FEtest[125:145]), linewidth=0.2)
     plt.savefig('FEfield_pts.png', dpi = 600)
+    plt.show()
+    
+    plt.plot(ogrid[125:145],np.abs(FEtest[125:145]), linewidth=0.2)
+    plt.savefig('FEfield_zoom.png', dpi = 600)
     plt.show()
 
 
@@ -112,6 +138,17 @@ with h5py.File(file_path, 'r') as InputArchive:
     delta_z = 0.01
     delta_t = inverse_GV*delta_z
     delta_t = delta_t - delta_z/units.c_light
+    
+    # testing shift using nonorm
+    ogrid_nn, FEtest_nn, NF = fft_t_nonorm(tgrid,Etest)
+    FEtest_nns = np.exp(1j*ogrid_nn*delta_t) * FEtest_nn
+    tnew, FFEtest_nns = ifft_t_nonorm(ogrid_nn,FEtest_nns,NF)
+    
+    plt.plot(tgrid, Etest, linewidth=0.2)
+    plt.plot(tgrid, FFEtest_nns.real, linewidth=0.2)
+    plt.title('FFE + shift, 2')
+    plt.savefig('FFEfield_s2.png', dpi=600)
+    plt.show()    
     
     
     # FEtest_shift = np.exp(1j*np.linspace(0,len(ogrid)-1,len(ogrid))*delta_t)*FEtest
