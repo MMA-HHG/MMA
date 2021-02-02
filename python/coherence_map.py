@@ -11,172 +11,220 @@ import mynumerics as mn
 # import mynumerics as mn
 import matplotlib.pyplot as plt
 import re
+import glob
 
 # results_path = os.path.join("/mnt", "d", "data", "Discharges") # 'D:\data\Discharges'
 results_path = os.path.join("D:\data", "Discharges")
+cwd = os.getcwd()
+os.chdir(results_path)
+files = glob.glob('results_*.h5')
+os.chdir(cwd)
 
-filename = "results_11.h5"
+# sys.exit()
 
-file_path = os.path.join(results_path,filename)
-
-# my inputs
-k_t = 1024 # the choice of time
-
-with h5py.File(file_path, 'r') as InputArchive:
-
-    ## Load data
-
-    print(1e-2*mn.readscalardataset(InputArchive,'/inputs/laser_wavelength','N'))
-    omega0 = mn.ConvertPhoton(1e-2*mn.readscalardataset(InputArchive,'/inputs/laser_wavelength','N'),'lambdaSI','omegaSI')
+for fname in files:
+    filename = fname
     
-    print(omega0)
-    tgrid = InputArchive['/outputs/tgrid'][:]; Nt = len(tgrid)
-    rgrid = InputArchive['/outputs/rgrid'][:]; Nr = len(rgrid)
-    zgrid = InputArchive['/outputs/zgrid'][:]; Nz = len(zgrid)
-    electron_density_map = InputArchive['/outputs/output_plasma'][:]
-    Efield = InputArchive['/outputs/output_field'][:]
+    # k_sim = re.findall(r'\d+', filename)
+    # k_sim = re.search(r'\d+', filename)
+    k_sim = re.findall(r'\d+', filename)
+    k_sim = k_sim[0]
     
-    inverse_GV = InputArchive['/logs/inverse_group_velocity_SI'][()]
-    w0 = 1e-2*mn.readscalardataset(InputArchive,'/inputs/laser_beamwaist','N')
-    zR = np.pi * w0**2 / mn.ConvertPhoton(omega0,'omegaSI','lambdaSI')
-    zgridzR = np.linspace(0,zR,100)
-
-    rho0 = 1e6 * mn.readscalardataset(InputArchive, '/inputs/calculated/medium_effective_density_of_neutral_molecules','N')
-
-    plasma_frequency_map = np.sqrt((units.elcharge ** 2) / (units.eps0 * units.elmass)) * np.sqrt(electron_density_map)
-
-    ## Retrieve phase
-    Efield_cmplx_envel = np.zeros((Nt,Nr,Nz),dtype=complex)
-    rem_fast_oscillations = np.exp(-1j*omega0*tgrid)
-    for k1 in range(Nz):
-        for k2 in range(Nr):
-            Efield_cmplx_envel[:,k2,k1] = rem_fast_oscillations*mn.complexify_fft(Efield[:,k2,k1])
-
-    k_t = mn.FindInterval(tgrid, 0.0)
+    file_path = os.path.join(results_path,filename)
     
-    # phase_map = np.zeros((Nr,Nz))
-    phase_map = np.angle(Efield_cmplx_envel[k_t,:,:])
-
-    Lcoh_map = np.zeros((Nr//2,Nz-1))
-    for k1 in range(Nr//2):
-        phase_r = np.unwrap(phase_map[k1,:])
-        Lcoh_map[k1, 0] = (phase_r[1] - phase_r[0]) / (zgrid[1] - zgrid[0])
-        Lcoh_map[k1, -1] = (phase_r[-1] - phase_r[-2]) / (zgrid[-1] - zgrid[-2])
-        for k2 in range(0, Nz - 1):
-            Lcoh_map[k1, k2] = (phase_r[k2+1] - phase_r[k2]) / (zgrid[k2+1] - zgrid[k2])
-    # Lcoh_map = np.abs(np.pi / Lcoh_map)
-
-        # Lcoh_map[k1, 0] = (phase_r[1]-phase_r[0])/(zgrid[1]-zgrid[0])
-        # Lcoh_map[k1, -1] = (phase_r[-1]-phase_r[-2])/(zgrid[-1]-zgrid[-2])
-        # for k2 in range(1,Nz-1):
-        #     Lcoh_map[k1,k2] = mn.ddx_arb(k2,zgrid,phase_r)
-
-    Lcoh_map2 = np.abs(np.pi/Lcoh_map)
-
-    # compute also local curvature
-    Curvature_Gaussian_map = np.zeros((Nr//2,Nz))
-    Curvature_map = np.zeros((Nr // 2, Nz))
-    for k1 in range(Nz):
-        if (k1 == 0): Curv_coeff = 0
-        else:
-            Rz = zgrid[k1] + zR ** 2 / zgrid[k1]
-            Curv_coeff = np.pi / (Rz * mn.ConvertPhoton(omega0, 'omegaSI', 'lambdaSI'))
-        Curvature_Gaussian_map[:(Nr//2), k1] = -Curv_coeff*(rgrid[:(Nr//2)])**2
-        Curvature_map[:(Nr//2), k1] = np.unwrap(phase_map[:(Nr//2), k1])
-        Curvature_map[:(Nr // 2), k1] = Curvature_map[:(Nr//2), k1] - Curvature_map[0, k1] # start always at 0
-
-    Curvature_map = Curvature_map - np.max(Curvature_map)
-
-    ## Fluence estimation
-    Fluence = np.zeros((Nr//2, Nz))
-    for k1 in range(Nz):
-        for k2 in range(Nr//2):
-            Fluence[k2, k1] = sum(abs(Efield[:, k2, k1])**2)
-
-    ## thalf_ionisation map
-    ionisation_tfix_map = np.zeros((Nr//2, Nz))
-    for k1 in range(Nz):
-        for k2 in range(Nr//2):
-            ionisation_tfix_map[k2, k1] = electron_density_map[k_t,k2,k1]
-
-    # plt.pcolor(zgrid,rgrid,Lcoh_map,vmax=0.1)
-    plt.pcolor(zgrid[:-1], rgrid[:(Nr//2)], Lcoh_map)
-    plt.colorbar()
-    plt.savefig('dPhidz_map.png', dpi = 600)
-    plt.show()
-
-    plt.pcolor(1e3*zgrid[:-1], 1e6*rgrid[:(Nr//2)], Lcoh_map2, vmax=0.3)
-    plt.xlabel('z [mm]')
-    plt.ylabel('r [mum]')
-    plt.title('Lcoh [m]')
-    plt.colorbar()
-    plt.savefig('Lcoh_map.png', dpi = 600)
-    plt.show()
-
-    plt.pcolor(zgrid,rgrid,phase_map)
-    plt.colorbar()
-    plt.savefig('Phase_z_unwrp_map.png', dpi = 600)
-    plt.show()
-
-    plt.pcolor(1e3*zgrid, 1e6*rgrid[:(Nr//2)], Curvature_map, vmax = 0)
-    plt.xlabel('z [mm]')
-    plt.ylabel('r [mum]')
-    plt.title('phi_Curv [rad]')
-    plt.colorbar()
-    plt.savefig('Curvature_map.png', dpi = 600)
-    plt.show()
-
-    # plt.plot(Curvature_map[:,0])
-    # plt.savefig('0curv.png', dpi=600)
-    # plt.show()
-
-    plt.pcolor(1e3*zgrid, 1e6*rgrid[:(Nr//2)], Curvature_Gaussian_map, vmax = 0)
-    plt.xlabel('z [mm]')
-    plt.ylabel('r [mum]')
-    plt.title('phi_Curv [rad]')
-    plt.colorbar()
-    plt.savefig('Curvature_map_Gauss.png', dpi = 600)
-    plt.show()
-
-    # Fluence
-    plt.pcolor(1e3*zgrid, 1e6*rgrid[:(Nr//2)], Fluence)
-    plt.xlabel('z [mm]')
-    plt.ylabel('r [mum]')
-    plt.title('Fluence [arb.u.]')
-    plt.colorbar()
-    plt.savefig('Fluence.png', dpi = 600)
-    plt.show()
-
-    # thalf ionisation
-    plt.pcolor(1e3*zgrid, 1e6*rgrid[:(Nr//2)], 100.0*ionisation_tfix_map/rho0)
-    plt.xlabel('z [mm]')
-    plt.ylabel('r [mum]')
-    plt.title('electron density [%]')
-    plt.colorbar()
-    plt.savefig('ionisation_thalf.png', dpi = 600)
-    plt.show()
-
-    # thalf ionisation
-    plt.plot(1e15*tgrid, 100.0*electron_density_map[:,0,15]/rho0)
-    plt.xlabel('t [fs]')
-    plt.ylabel('electron density [%]')
-    plt.title('z = ' + str(1e3*zgrid[15]) + ' mm')
-    plt.savefig('ionisation_middle.png', dpi = 600)
-    plt.show()
-
-    # plt.plot(zgrid, phase_map[0,:],linewidth=0.2)
-    # plt.plot(zgrid, phase_map[1, :], linewidth=0.2)
-    # plt.plot(zgrid, phase_map[2, :], linewidth=0.2)
-    # plt.plot(zgrid, phase_map[3, :], linewidth=0.2)
-    # plt.plot(zgrid, phase_map[4, :], linewidth=0.2)
-    # plt.savefig('Phases.png', dpi = 600)
-    # plt.show()
-
-
-
-    ## Get plasma contribution
-
-    ## Plasma and geometry cannot be separated with the numerical solution
+    # my inputs
+    k_t = 1024 # the choice of time
+    
+    with h5py.File(file_path, 'r') as InputArchive:
+    
+        ## Load data
+    
+        print(1e-2*mn.readscalardataset(InputArchive,'/inputs/laser_wavelength','N'))
+        omega0 = mn.ConvertPhoton(1e-2*mn.readscalardataset(InputArchive,'/inputs/laser_wavelength','N'),'lambdaSI','omegaSI')
+        
+        print(omega0)
+        tgrid = InputArchive['/outputs/tgrid'][:]; Nt = len(tgrid)
+        rgrid = InputArchive['/outputs/rgrid'][:]; Nr = len(rgrid)
+        zgrid = InputArchive['/outputs/zgrid'][:]; Nz = len(zgrid)
+        electron_density_map = InputArchive['/outputs/output_plasma'][:]
+        Efield = InputArchive['/outputs/output_field'][:]
+        
+        inverse_GV = InputArchive['/logs/inverse_group_velocity_SI'][()]
+        w0 = 1e-2*mn.readscalardataset(InputArchive,'/inputs/laser_beamwaist','N')
+        zR = np.pi * w0**2 / mn.ConvertPhoton(omega0,'omegaSI','lambdaSI')
+        zgridzR = np.linspace(0,zR,100)
+    
+        rho0 = 1e6 * mn.readscalardataset(InputArchive, '/inputs/calculated/medium_effective_density_of_neutral_molecules','N')
+    
+        plasma_frequency_map = np.sqrt((units.elcharge ** 2) / (units.eps0 * units.elmass)) * np.sqrt(electron_density_map)
+    
+        ## Retrieve phase
+        Efield_cmplx_envel = np.zeros((Nt,Nr,Nz),dtype=complex)
+        rem_fast_oscillations = np.exp(-1j*omega0*tgrid)
+        for k1 in range(Nz):
+            for k2 in range(Nr):
+                Efield_cmplx_envel[:,k2,k1] = rem_fast_oscillations*mn.complexify_fft(Efield[:,k2,k1])
+    
+        k_t = mn.FindInterval(tgrid, 0.0)
+        
+        # phase_map = np.zeros((Nr,Nz))
+        phase_map = np.angle(Efield_cmplx_envel[k_t,:,:])
+    
+        Lcoh_map = np.zeros((Nr//2,Nz-1))
+        for k1 in range(Nr//2):
+            phase_r = np.unwrap(phase_map[k1,:])
+            Lcoh_map[k1, 0] = (phase_r[1] - phase_r[0]) / (zgrid[1] - zgrid[0])
+            Lcoh_map[k1, -1] = (phase_r[-1] - phase_r[-2]) / (zgrid[-1] - zgrid[-2])
+            for k2 in range(0, Nz - 1):
+                Lcoh_map[k1, k2] = (phase_r[k2+1] - phase_r[k2]) / (zgrid[k2+1] - zgrid[k2])
+        # Lcoh_map = np.abs(np.pi / Lcoh_map)
+    
+            # Lcoh_map[k1, 0] = (phase_r[1]-phase_r[0])/(zgrid[1]-zgrid[0])
+            # Lcoh_map[k1, -1] = (phase_r[-1]-phase_r[-2])/(zgrid[-1]-zgrid[-2])
+            # for k2 in range(1,Nz-1):
+            #     Lcoh_map[k1,k2] = mn.ddx_arb(k2,zgrid,phase_r)
+    
+        Lcoh_map2 = np.abs(np.pi/Lcoh_map)
+    
+        # compute also local curvature
+        Curvature_Gaussian_map = np.zeros((Nr//2,Nz))
+        Curvature_map = np.zeros((Nr // 2, Nz))
+        for k1 in range(Nz):
+            if (k1 == 0): Curv_coeff = 0
+            else:
+                Rz = zgrid[k1] + zR ** 2 / zgrid[k1]
+                Curv_coeff = np.pi / (Rz * mn.ConvertPhoton(omega0, 'omegaSI', 'lambdaSI'))
+            Curvature_Gaussian_map[:(Nr//2), k1] = -Curv_coeff*(rgrid[:(Nr//2)])**2
+            Curvature_map[:(Nr//2), k1] = np.unwrap(phase_map[:(Nr//2), k1])
+            Curvature_map[:(Nr // 2), k1] = Curvature_map[:(Nr//2), k1] - Curvature_map[0, k1] # start always at 0
+    
+        Curvature_map = Curvature_map - np.max(Curvature_map)
+    
+        ## Fluence estimation
+        Fluence = np.zeros((Nr//2, Nz))
+        for k1 in range(Nz):
+            for k2 in range(Nr//2):
+                Fluence[k2, k1] = sum(abs(Efield[:, k2, k1])**2)
+    
+        ## thalf_ionisation map
+        ionisation_tfix_map = np.zeros((Nr//2, Nz))
+        for k1 in range(Nz):
+            for k2 in range(Nr//2):
+                ionisation_tfix_map[k2, k1] = electron_density_map[k_t,k2,k1]
+    
+        # plt.pcolor(zgrid,rgrid,Lcoh_map,vmax=0.1)
+        plt.pcolor(zgrid[:-1], rgrid[:(Nr//2)], Lcoh_map)
+        plt.colorbar()
+        plt.savefig('dPhidz_map_'+str(k_sim)+'.png', dpi = 600)
+        plt.show()
+    
+        plt.pcolor(1e3*zgrid[:-1], 1e6*rgrid[:(Nr//2)], Lcoh_map2, vmax=0.3)
+        plt.xlabel('z [mm]')
+        plt.ylabel('r [mum]')
+        plt.title('Lcoh [m]')
+        plt.colorbar()
+        plt.savefig('Lcoh_map_'+str(k_sim)+'.png', dpi = 600)
+        plt.show()
+    
+        plt.pcolor(zgrid,rgrid,phase_map)
+        plt.colorbar()
+        plt.savefig('Phase_z_unwrp_map_'+str(k_sim)+'.png', dpi = 600)
+        plt.show()
+    
+        plt.pcolor(1e3*zgrid, 1e6*rgrid[:(Nr//2)], Curvature_map, vmax = 0)
+        plt.xlabel('z [mm]')
+        plt.ylabel('r [mum]')
+        plt.title('phi_Curv [rad]')
+        plt.colorbar()
+        plt.savefig('Curvature_map_'+str(k_sim)+'.png', dpi = 600)
+        plt.show()
+    
+        # plt.plot(Curvature_map[:,0])
+        # plt.savefig('0curv.png', dpi=600)
+        # plt.show()
+    
+        plt.pcolor(1e3*zgrid, 1e6*rgrid[:(Nr//2)], Curvature_Gaussian_map, vmax = 0)
+        plt.xlabel('z [mm]')
+        plt.ylabel('r [mum]')
+        plt.title('phi_Curv [rad]')
+        plt.colorbar()
+        plt.savefig('Curvature_map_Gauss_'+str(k_sim)+'.png', dpi = 600)
+        plt.show()
+    
+        # Fluence
+        plt.pcolor(1e3*zgrid, 1e6*rgrid[:(Nr//2)], Fluence)
+        plt.xlabel('z [mm]')
+        plt.ylabel('r [mum]')
+        plt.title('Fluence [arb.u.]')
+        plt.colorbar()
+        plt.savefig('Fluence_'+str(k_sim)+'.png', dpi = 600)
+        plt.show()
+    
+        # thalf ionisation
+        plt.pcolor(1e3*zgrid, 1e6*rgrid[:(Nr//2)], 100.0*ionisation_tfix_map/rho0)
+        plt.xlabel('z [mm]')
+        plt.ylabel('r [mum]')
+        plt.title('electron density [%]')
+        plt.colorbar()
+        plt.savefig('ionisation_thalf_'+str(k_sim)+'.png', dpi = 600)
+        plt.show()
+    
+        # thalf ionisation
+        plt.plot(1e15*tgrid, 100.0*electron_density_map[:,0,15]/rho0)
+        plt.xlabel('t [fs]')
+        plt.ylabel('electron density [%]')
+        plt.title('z = ' + str(1e3*zgrid[15]) + ' mm')
+        plt.savefig('ionisation_middle_'+str(k_sim)+'.png', dpi = 600)
+        plt.show()
+        
+        
+        ## Get the field shift in the vacuum frame
+        
+        Efield_onaxis_s = np.squeeze(Efield[:,0,:])
+        for k1 in range(Nz):
+            ogrid_nn, FE_s, NF = mn.fft_t_nonorm(tgrid, Efield_onaxis_s[:,k1])
+            
+            delta_z = zgrid[k1]
+            delta_t = inverse_GV*delta_z
+            delta_t = delta_t - delta_z/units.c_light
+            
+            FE_s = np.exp(1j*ogrid_nn*delta_t) * FE_s
+            
+            tnew, E_s = mn.ifft_t_nonorm(ogrid_nn,FE_s,NF)
+            Efield_onaxis_s[:,k1] = E_s.real
+            
+         # shifted
+        plt.plot(1e15*tgrid, Efield_onaxis_s[:,0], linewidth=0.2)
+        plt.plot(1e15*tgrid, Efield_onaxis_s[:,Nz//2], linewidth=0.2)
+        plt.plot(1e15*tgrid, Efield_onaxis_s[:,-1], linewidth=0.2)
+        plt.xlabel('t [fs]')
+        plt.ylabel('E [V/m]')
+        # plt.title('z = ' + str(1e3*zgrid[15]) + ' mm')
+        plt.savefig('Field_shift_lines_'+str(k_sim)+'.png', dpi = 600)
+        plt.show()
+        
+        
+        plt.pcolor(1e3*zgrid, 1e15*tgrid, Efield_onaxis_s)
+        plt.xlabel('z [mm]')
+        plt.ylabel('t [fs]')
+        plt.title('shifted field [V/m]')
+        plt.colorbar()
+        plt.savefig('Field_shift_'+str(k_sim)+'.png', dpi = 600)
+        plt.show()
+    
+        # plt.plot(zgrid, phase_map[0,:],linewidth=0.2)
+        # plt.plot(zgrid, phase_map[1, :], linewidth=0.2)
+        # plt.plot(zgrid, phase_map[2, :], linewidth=0.2)
+        # plt.plot(zgrid, phase_map[3, :], linewidth=0.2)
+        # plt.plot(zgrid, phase_map[4, :], linewidth=0.2)
+        # plt.savefig('Phases.png', dpi = 600)
+        # plt.show()
+    
+    
+    
+        ## Get plasma contribution
+    
+        ## Plasma and geometry cannot be separated with the numerical solution
 
 
 
