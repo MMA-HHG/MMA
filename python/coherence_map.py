@@ -145,10 +145,17 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
                 dPhi_dz_map[k1, -1] = (phase_r[-1] - phase_r[-2]) / (zgrid[-1] - zgrid[-2])
                 for k2 in range(1, Nz - 1):
                     dPhi_dz_map[k1, k2] = mn.ddx_arb(k2,zgrid,phase_r)
-        
+                    
+
+            # ===============================================
+            # Coherence length
+            
             # The coherence lenght taking only the dephasing from CUPRAD in the group-velocity frame
             Lcoh_map2 = np.abs(np.pi/dPhi_dz_map)
-        
+
+            # ===============================================
+            # Local curvature
+            
             # Local curvature: phase evolution for a fixed z compared to the on-axis phase
             Curvature_Gaussian_map = np.zeros((Nr//2,Nz)) # Gaussian beam for a comparison
             Curvature_map = np.zeros((Nr // 2, Nz)) # Phas from CUPRAD
@@ -163,8 +170,12 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
                 Curvature_map[:(Nr//2), k1] = Curvature_map[:(Nr//2), k1] - Curvature_map[0, k1] # start always at 0
         
             Curvature_map = Curvature_map - np.max(Curvature_map)
-        
-            # Fluence estimation by integratin over time
+            
+  
+            # ===============================================
+            # Get the fluence
+            
+            # Fluence is either computed from Efield or taken from the file
             if (fluence_source == 'file'):
                 Fluence = InputArchive['/longstep/fluence'][:(Nr//2),:]
                 zgrid_Fluence = InputArchive['/longstep/zgrid_analyses2'][:]
@@ -177,37 +188,46 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
                     for k2 in range(Nr//2):
                         Fluence[k2, k1] = sum(abs(Efield[:, k2, k1])**2)
                 Fluence_units = 'arb.u.'
+                
             
-            # Fluence from file
-            # plt.pcolor(1e3*zgrid_Fluence, 1e6*rgrid[:(Nr//2)], Fluence_from_file)
-            # plt.xlabel('z [mm]')
-            # plt.ylabel('r [mum]')
-            # plt.title('Fluence [arb.u.]')
-            # plt.colorbar()
-            # plt.savefig('Fluence_from_file_'+str(k_sim)+'.png', dpi = 600)
-            # plt.show()
-        
-            ## thalf_ionisation map
+            # ===============================================
+            # The ionisation map at t = t_fix
+            
             ionisation_tfix_map = np.zeros((Nr//2, Nz))
             for k1 in range(Nz):
                 for k2 in range(Nr//2):
                     ionisation_tfix_map[k2, k1] = electron_density_map[k_t,k2,k1]
-        
+
+
+            # ===============================================
+            # The shift by the group velocity
+            
+            # The shift is done in the Fourier space only by a phase factor,
+            # we use no normalisation as it is just a mid-step.
+            
+            Efield_onaxis_s = np.squeeze(Efield[:,0,:])
+            for k1 in range(Nz):
+                ogrid_nn, FE_s, NF = mn.fft_t_nonorm(tgrid, Efield_onaxis_s[:,k1]) # transform to omega space
+                
+                delta_z = zgrid[k1] # local shift
+                delta_t = inverse_GV*delta_z # shift to the laboratory frame
+                delta_t = delta_t - delta_z/units.c_light # shift to the coordinates moving by c.
+                
+                FE_s = np.exp(1j*ogrid_nn*delta_t) * FE_s # phase factor
+                
+                tnew, E_s = mn.ifft_t_nonorm(ogrid_nn,FE_s,NF)
+                Efield_onaxis_s[:,k1] = E_s.real
+                
+
+            # =================================================================
+            # Print outputs
+            
             # plt.pcolor(zgrid,rgrid,Lcoh_map,vmax=0.1)
             plt.pcolor(zgrid[:-1], rgrid[:(Nr//2)], dPhi_dz_map)
             plt.colorbar()
             plt.savefig('dPhidz_map_'+str(k_sim)+'.png', dpi = 600)
             plt.show()
             
-            # plt.pcolor(zgrid[:-1], rgrid[:(Nr//2)], Lcoh_map_dd)
-            # plt.colorbar()
-            # plt.savefig('dPhidz_map_dd_'+str(k_sim)+'.png', dpi = 600)
-            # plt.show()
-            
-            # plt.pcolor(zgrid[:-1], rgrid[:(Nr//2)], Lcoh_map-Lcoh_map_dd)
-            # plt.colorbar()
-            # plt.savefig('dPhidz_map_error_'+str(k_sim)+'.png', dpi = 600)
-            # plt.show()
         
             plt.pcolor(1e3*zgrid[:-1], 1e6*rgrid[:(Nr//2)], Lcoh_map2, vmax=0.3)
             plt.xlabel('z [mm]')
@@ -271,23 +291,13 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
             
             ## Get the field shift in the vacuum frame
             
-            Efield_onaxis_s = np.squeeze(Efield[:,0,:])
-            for k1 in range(Nz):
-                ogrid_nn, FE_s, NF = mn.fft_t_nonorm(tgrid, Efield_onaxis_s[:,k1])
-                
-                delta_z = zgrid[k1]
-                delta_t = inverse_GV*delta_z
-                delta_t = delta_t - delta_z/units.c_light
-                
-                FE_s = np.exp(1j*ogrid_nn*delta_t) * FE_s
-                
-                tnew, E_s = mn.ifft_t_nonorm(ogrid_nn,FE_s,NF)
-                Efield_onaxis_s[:,k1] = E_s.real
+
                 
              # shifted
-            plt.plot(1e15*tgrid, Efield_onaxis_s[:,0], linewidth=0.2)
-            plt.plot(1e15*tgrid, Efield_onaxis_s[:,Nz//2], linewidth=0.2)
-            plt.plot(1e15*tgrid, Efield_onaxis_s[:,-1], linewidth=0.2)
+            plt.plot(1e15*tgrid, Efield_onaxis_s[:,0], linewidth=0.2, label='z=0')
+            plt.plot(1e15*tgrid, Efield_onaxis_s[:,Nz//2], linewidth=0.2, label='z=0.5zmax')
+            plt.plot(1e15*tgrid, Efield_onaxis_s[:,-1], linewidth=0.2, label='z=zmax')
+            plt.legend(loc='best')
             plt.xlabel('t [fs]')
             plt.ylabel('E [V/m]')
             # plt.title('z = ' + str(1e3*zgrid[15]) + ' mm')
@@ -303,150 +313,5 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
             plt.savefig('Field_shift_'+str(k_sim)+'.png', dpi = 600)
             plt.show()
         
-            # plt.plot(zgrid, phase_map[0,:],linewidth=0.2)
-            # plt.plot(zgrid, phase_map[1, :], linewidth=0.2)
-            # plt.plot(zgrid, phase_map[2, :], linewidth=0.2)
-            # plt.plot(zgrid, phase_map[3, :], linewidth=0.2)
-            # plt.plot(zgrid, phase_map[4, :], linewidth=0.2)
-            # plt.savefig('Phases.png', dpi = 600)
-            # plt.show()
-        
-        
-        
-            ## Get plasma contribution
-        
-            ## Plasma and geometry cannot be separated with the numerical solution
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    # plasma_frequency_map[512, :, :]
-
-    # onax-thalf phase
-
-    # n_plasma_map = np.sqrt(1-(plasma_frequency_map/omega0)**2)
-    #
-    # k_plas_map = 25*(2.0*np.pi/mn.ConvertPhoton(omega0,'omegaSI','lambdaSI'))*(n_plasma_map-1)
-    #
-    # plt.pcolor(tgrid,rgrid,k_plas_map[:,:,0].T)
-    # plt.colorbar()
-    # plt.savefig('kmap.png', dpi = 600)
-    # plt.show()
-    #
-    # plt.pcolor(tgrid,rgrid,abs(np.pi/k_plas_map[:,:,15].T))
-    # plt.colorbar()
-    # plt.savefig('Lcohmap.png', dpi = 600)
-    # plt.show()
-    #
-    # xxx = electron_density_map[0:3,0,0]
-    # yyy = electron_density_map[0, 0:3, 0]
-
-
-    ## Get geometrical phase contribution
-
-
-
-#     E_cmplx_onax = np.zeros((Nz,Nt),dtype=complex)
-#     for k1 in range(Nz):
-#         E_cmplx_onax[k1,:] = mn.complexify_fft(Efield[:,0,k1])
-#
-#     E_cmplx_zfirst = np.zeros((Nr, Nt), dtype=complex)
-#     E_cmplx_zlast = np.zeros((Nr, Nt), dtype=complex)
-#
-#     for k1 in range(Nr):
-#         E_cmplx_zfirst[k1,:] = mn.complexify_fft(Efield[:,k1,0])
-#         E_cmplx_zlast[k1,:] = mn.complexify_fft(Efield[:, k1, 30])
-#
-#
-#     plt.pcolor(tgrid,rgrid,E_cmplx_zfirst.real)
-#     plt.colorbar()
-#     plt.savefig('map_zfix1cmplx.png', dpi = 600)
-#     plt.show()
-#
-#     plt.pcolor(tgrid,rgrid,E_cmplx_zlast.real)
-#     plt.colorbar()
-#     plt.savefig('map_zfix2cmplx.png', dpi = 600)
-#     plt.show()
-#
-#     Rz = zgrid[30] + zR**2/zgrid[30]
-#     Curv_coeff = np.pi / (Rz*mn.ConvertPhoton(omega0,'omegaSI','lambdaSI'))
-#
-#     E_cmplx_zlast_envel = np.exp(-1j*omega0*tgrid)*E_cmplx_zlast
-#     E_cmplx_zlast_angle = np.angle(E_cmplx_zlast_envel)
-#
-#     plt.plot(rgrid, np.unwrap(E_cmplx_zlast_angle[:,512]),linewidth=0.2)
-#     plt.plot(rgrid, -Curv_coeff*rgrid**2, linewidth=0.2)
-#     plt.savefig('Phase_zfix2.png', dpi = 600)
-#     plt.show()
-#
-#
-#
-#
-#     E_cmplx_onax_envel = np.exp(-1j*omega0*tgrid)*E_cmplx_onax
-#
-#     # E_cmplx_onax_angle = np.arctan2(E_cmplx_onax_envel.imag,E_cmplx_onax_envel.real)
-#     E_cmplx_onax_angle = np.angle(E_cmplx_onax_envel)
-#
-#     plt.plot(tgrid, Efield[:,0,0],linewidth=0.2)
-#     plt.plot(tgrid, E_cmplx_onax[0,:].real,linewidth=0.2)
-#     plt.plot(tgrid, E_cmplx_onax_envel[0,:].real, linewidth=0.2)
-#     plt.savefig('Efieldfirstenvel.png', dpi = 600)
-#     plt.show()
-#
-#     plt.plot(zgrid, E_cmplx_onax_angle[:,512],linewidth=0.2)
-#     plt.plot(zgrid, np.arctan(zgrid/zR), linewidth=0.2)
-#     plt.plot(zgridzR, np.arctan(zgridzR / zR), linewidth=0.2)
-#     plt.savefig('Phase_thalf.png', dpi = 600)
-#     plt.show()
-#
-#
-#
-#     plt.plot(tgrid, Efield[:,0,1],linewidth=0.2)
-#     plt.plot(tgrid, Efield[:, 0, 2],linewidth=0.2)
-#     plt.plot(tgrid, Efield[:, 0, 30], linewidth=0.2)
-#     plt.savefig('Efield.png', dpi = 600)
-#     plt.show()
-#
-#     plt.pcolor(tgrid,rgrid,Efield[:,:,0].T)
-#     plt.colorbar()
-#     plt.savefig('Efield_zfix.png', dpi = 600)
-#     plt.show()
-#
-#
-#
-#     plt.pcolor(tgrid,rgrid,plasma_frequency_map[:,:,0].T)
-#     plt.colorbar()
-#     plt.savefig('map_zfix.png', dpi = 600)
-#     plt.show()
-#
-#
-#     plt.pcolor(zgrid,tgrid,np.squeeze(plasma_frequency_map[:,0,:]))
-#     plt.colorbar()
-#     plt.savefig('map_onax.png', dpi = 600)
-#     plt.show()
-#
-#     plt.pcolor(zgrid,rgrid,np.squeeze(plasma_frequency_map[512,:,:]))
-#     plt.colorbar()
-#     plt.savefig('map_thalf.png', dpi = 600)
-#     plt.show()
-#
-#
-#
-# ## refractive index contribs
-#
-#
-#
+print('done')
