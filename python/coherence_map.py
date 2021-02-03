@@ -15,6 +15,8 @@ import glob
 import XUV_refractive_index as XUV_index
 import IR_refractive_index as IR_index
 
+# There may be a large memory overload in this implementation, it's for testing putposes
+
 # results_path = os.path.join("/mnt", "d", "data", "Discharges") # 'D:\data\Discharges'
 results_path = os.path.join("D:\data", "Discharges")
 cwd = os.getcwd()
@@ -134,41 +136,34 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
             k_t = mn.FindInterval(tgrid, t_fix) # find time index
             phase_map = np.angle(Efield_cmplx_envel[k_t,:,:]) # ordering (r,z)
         
-            Lcoh_map = np.zeros((Nr//2,Nz-1))
-            Lcoh_map_dd = np.zeros((Nr//2,Nz-1))
+            # Compute dPhi/dz at t = t_fix
+            dPhi_dz_map = np.zeros((Nr//2,Nz-1))
             for k1 in range(Nr//2):
                 phase_r = np.unwrap(phase_map[k1,:])
-                Lcoh_map[k1, 0] = (phase_r[1] - phase_r[0]) / (zgrid[1] - zgrid[0])
-                Lcoh_map[k1, -1] = (phase_r[-1] - phase_r[-2]) / (zgrid[-1] - zgrid[-2])
-                Lcoh_map_dd[k1, 0] = Lcoh_map[k1, 0]
-                Lcoh_map_dd[k1, -1] = Lcoh_map[k1, -1]
+                dPhi_dz_map[k1, 0] = (phase_r[1] - phase_r[0]) / (zgrid[1] - zgrid[0])
+                dPhi_dz_map[k1, -1] = (phase_r[-1] - phase_r[-2]) / (zgrid[-1] - zgrid[-2])
                 for k2 in range(1, Nz - 1):
-                    Lcoh_map[k1, k2] = (phase_r[k2+1] - phase_r[k2]) / (zgrid[k2+1] - zgrid[k2])
-                    Lcoh_map_dd[k1, k2] = mn.ddx_arb(k2,zgrid,phase_r)
-            # Lcoh_map = np.abs(np.pi / Lcoh_map)
+                    dPhi_dz_map[k1, k2] = mn.ddx_arb(k2,zgrid,phase_r)
         
-                # Lcoh_map[k1, 0] = (phase_r[1]-phase_r[0])/(zgrid[1]-zgrid[0])
-                # Lcoh_map[k1, -1] = (phase_r[-1]-phase_r[-2])/(zgrid[-1]-zgrid[-2])
-                # for k2 in range(1,Nz-1):
-                #     Lcoh_map[k1,k2] = mn.ddx_arb(k2,zgrid,phase_r)
+            # The coherence lenght taking only the dephasing from CUPRAD in the group-velocity frame
+            Lcoh_map2 = np.abs(np.pi/dPhi_dz_map)
         
-            Lcoh_map2 = np.abs(np.pi/Lcoh_map)
-        
-            # compute also local curvature
-            Curvature_Gaussian_map = np.zeros((Nr//2,Nz))
-            Curvature_map = np.zeros((Nr // 2, Nz))
+            # Local curvature: phase evolution for a fixed z compared to the on-axis phase
+            Curvature_Gaussian_map = np.zeros((Nr//2,Nz)) # Gaussian beam for a comparison
+            Curvature_map = np.zeros((Nr // 2, Nz)) # Phas from CUPRAD
             for k1 in range(Nz):
-                if (k1 == 0): Curv_coeff = 0
+                if (k1 == 0):
+                    Curv_coeff = 0
                 else:
                     Rz = zgrid[k1] + zR ** 2 / zgrid[k1]
                     Curv_coeff = np.pi / (Rz * mn.ConvertPhoton(omega0, 'omegaSI', 'lambdaSI'))
                 Curvature_Gaussian_map[:(Nr//2), k1] = -Curv_coeff*(rgrid[:(Nr//2)])**2
                 Curvature_map[:(Nr//2), k1] = np.unwrap(phase_map[:(Nr//2), k1])
-                Curvature_map[:(Nr // 2), k1] = Curvature_map[:(Nr//2), k1] - Curvature_map[0, k1] # start always at 0
+                Curvature_map[:(Nr//2), k1] = Curvature_map[:(Nr//2), k1] - Curvature_map[0, k1] # start always at 0
         
             Curvature_map = Curvature_map - np.max(Curvature_map)
         
-            ## Fluence estimation
+            # Fluence estimation by integratin over time
             Fluence = np.zeros((Nr//2, Nz))
             for k1 in range(Nz):
                 for k2 in range(Nr//2):
@@ -181,20 +176,20 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
                     ionisation_tfix_map[k2, k1] = electron_density_map[k_t,k2,k1]
         
             # plt.pcolor(zgrid,rgrid,Lcoh_map,vmax=0.1)
-            plt.pcolor(zgrid[:-1], rgrid[:(Nr//2)], Lcoh_map)
+            plt.pcolor(zgrid[:-1], rgrid[:(Nr//2)], dPhi_dz_map)
             plt.colorbar()
             plt.savefig('dPhidz_map_'+str(k_sim)+'.png', dpi = 600)
             plt.show()
             
-            plt.pcolor(zgrid[:-1], rgrid[:(Nr//2)], Lcoh_map_dd)
-            plt.colorbar()
-            plt.savefig('dPhidz_map_dd_'+str(k_sim)+'.png', dpi = 600)
-            plt.show()
+            # plt.pcolor(zgrid[:-1], rgrid[:(Nr//2)], Lcoh_map_dd)
+            # plt.colorbar()
+            # plt.savefig('dPhidz_map_dd_'+str(k_sim)+'.png', dpi = 600)
+            # plt.show()
             
-            plt.pcolor(zgrid[:-1], rgrid[:(Nr//2)], Lcoh_map-Lcoh_map_dd)
-            plt.colorbar()
-            plt.savefig('dPhidz_map_error_'+str(k_sim)+'.png', dpi = 600)
-            plt.show()
+            # plt.pcolor(zgrid[:-1], rgrid[:(Nr//2)], Lcoh_map-Lcoh_map_dd)
+            # plt.colorbar()
+            # plt.savefig('dPhidz_map_error_'+str(k_sim)+'.png', dpi = 600)
+            # plt.show()
         
             plt.pcolor(1e3*zgrid[:-1], 1e6*rgrid[:(Nr//2)], Lcoh_map2, vmax=0.3)
             plt.xlabel('z [mm]')
