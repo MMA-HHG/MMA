@@ -32,6 +32,8 @@ q = 23 # harmonic of our interest
 t_fix = 0.0 # the time of our interest to inspect e.g. phase
 fluence_source = 'computed' # options: 'file', 'computed'
 
+Gaussian_curvature = True # print Gaussian curvature, it is applied only in the first run
+
 
 
 with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analyses
@@ -200,7 +202,7 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
 
 
             # ===============================================
-            # The shift by the group velocity
+            # Get the field shift in the vacuum frame: the shift by the group velocity
             
             # The shift is done in the Fourier space only by a phase factor,
             # we use no normalisation as it is just a mid-step.
@@ -222,13 +224,13 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
             # =================================================================
             # Print outputs
             
-            # plt.pcolor(zgrid,rgrid,Lcoh_map,vmax=0.1)
+            # dPhi/dz
             plt.pcolor(zgrid[:-1], rgrid[:(Nr//2)], dPhi_dz_map)
             plt.colorbar()
             plt.savefig('dPhidz_map_'+str(k_sim)+'.png', dpi = 600)
             plt.show()
             
-        
+            # Coherence length
             plt.pcolor(1e3*zgrid[:-1], 1e6*rgrid[:(Nr//2)], Lcoh_map2, vmax=0.3)
             plt.xlabel('z [mm]')
             plt.ylabel('r [mum]')
@@ -237,11 +239,14 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
             plt.savefig('Lcoh_map_'+str(k_sim)+'.png', dpi = 600)
             plt.show()
         
+            # Phase(r,z,t=t_fix)
             plt.pcolor(zgrid,rgrid,phase_map)
             plt.colorbar()
+            plt.title('Phi [rad]')
             plt.savefig('Phase_z_unwrp_map_'+str(k_sim)+'.png', dpi = 600)
             plt.show()
         
+            # Curvature of the beam 
             plt.pcolor(1e3*zgrid, 1e6*rgrid[:(Nr//2)], Curvature_map, vmax = 0)
             plt.xlabel('z [mm]')
             plt.ylabel('r [mum]')
@@ -250,17 +255,16 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
             plt.savefig('Curvature_map_'+str(k_sim)+'.png', dpi = 600)
             plt.show()
         
-            # plt.plot(Curvature_map[:,0])
-            # plt.savefig('0curv.png', dpi=600)
-            # plt.show()
-        
-            plt.pcolor(1e3*zgrid, 1e6*rgrid[:(Nr//2)], Curvature_Gaussian_map, vmax = 0)
-            plt.xlabel('z [mm]')
-            plt.ylabel('r [mum]')
-            plt.title('phi_Curv [rad]')
-            plt.colorbar()
-            plt.savefig('Curvature_map_Gauss_'+str(k_sim)+'.png', dpi = 600)
-            plt.show()
+            # reference Gaussian curvature 
+            if Gaussian_curvature:
+                Gaussian_curvature = False
+                plt.pcolor(1e3*zgrid, 1e6*rgrid[:(Nr//2)], Curvature_Gaussian_map, vmax = 0)
+                plt.xlabel('z [mm]')
+                plt.ylabel('r [mum]')
+                plt.title('phi_Curv [rad]')
+                plt.colorbar()
+                plt.savefig('Curvature_map_Gauss.png', dpi = 600)
+                plt.show()
         
             # Fluence
             plt.pcolor(1e3*zgrid_Fluence, 1e6*rgrid[:(Nr//2)], Fluence)
@@ -271,7 +275,7 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
             plt.savefig('Fluence_'+str(k_sim)+'.png', dpi = 600)
             plt.show()
         
-            # thalf ionisation
+            # ionisation(r,z,t=t_fix)
             plt.pcolor(1e3*zgrid, 1e6*rgrid[:(Nr//2)], 100.0*ionisation_tfix_map/rho0_atm)
             plt.xlabel('z [mm]')
             plt.ylabel('r [mum]')
@@ -280,31 +284,26 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
             plt.savefig('ionisation_thalf_'+str(k_sim)+'.png', dpi = 600)
             plt.show()
         
-            # thalf ionisation
-            plt.plot(1e15*tgrid, 100.0*electron_density_map[:,0,15]/rho0_atm)
+            # ionisation(r=0,z=zmax/2,t)
+            plt.plot(1e15*tgrid, 100.0*electron_density_map[:,0,Nz//2]/rho0_atm)
             plt.xlabel('t [fs]')
             plt.ylabel('electron density [%]')
-            plt.title('z = ' + str(1e3*zgrid[15]) + ' mm')
+            plt.title('z = ' + str(1e3*zgrid[Nz//2]) + ' mm')
             plt.savefig('ionisation_middle_'+str(k_sim)+'.png', dpi = 600)
             plt.show()
             
             
-            ## Get the field shift in the vacuum frame
-            
-
-                
-             # shifted
+            # Field in the vacuum frame
             plt.plot(1e15*tgrid, Efield_onaxis_s[:,0], linewidth=0.2, label='z=0')
             plt.plot(1e15*tgrid, Efield_onaxis_s[:,Nz//2], linewidth=0.2, label='z=0.5zmax')
             plt.plot(1e15*tgrid, Efield_onaxis_s[:,-1], linewidth=0.2, label='z=zmax')
             plt.legend(loc='best')
             plt.xlabel('t [fs]')
             plt.ylabel('E [V/m]')
-            # plt.title('z = ' + str(1e3*zgrid[15]) + ' mm')
             plt.savefig('Field_shift_lines_'+str(k_sim)+'.png', dpi = 600)
             plt.show()
             
-            
+            # E(r=0,z,t) in the vacuum frame
             plt.pcolor(1e3*zgrid, 1e15*tgrid, Efield_onaxis_s)
             plt.xlabel('z [mm]')
             plt.ylabel('t [fs]')
