@@ -326,4 +326,5 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
             plt.show()
         
 
+os.chdir(cwd)
 print('done')
