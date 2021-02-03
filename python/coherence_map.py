@@ -30,6 +30,7 @@ out_h5name = 'analyses.h5'
 
 q = 23 # harmonic of our interest
 t_fix = 0.0 # the time of our interest to inspect e.g. phase
+fluence_source = 'computed' # options: 'file', 'computed'
 
 
 
@@ -164,22 +165,27 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
             Curvature_map = Curvature_map - np.max(Curvature_map)
         
             # Fluence estimation by integratin over time
-            Fluence = np.zeros((Nr//2, Nz))
-            for k1 in range(Nz):
-                for k2 in range(Nr//2):
-                    Fluence[k2, k1] = sum(abs(Efield[:, k2, k1])**2)
-                    
-            Fluence_from_file = InputArchive['/longstep/fluence'][:(Nr//2),:]
-            zgrid_Fluence = InputArchive['/longstep/zgrid_analyses2'][:]
+            if (fluence_source == 'file'):
+                Fluence = InputArchive['/longstep/fluence'][:(Nr//2),:]
+                zgrid_Fluence = InputArchive['/longstep/zgrid_analyses2'][:]
+                Fluence_units = 'SI'                
+                
+            elif (fluence_source == 'computed'):                
+                zgrid_Fluence = zgrid
+                Fluence = np.zeros((Nr//2, Nz))
+                for k1 in range(Nz):
+                    for k2 in range(Nr//2):
+                        Fluence[k2, k1] = sum(abs(Efield[:, k2, k1])**2)
+                Fluence_units = 'arb.u.'
             
             # Fluence from file
-            plt.pcolor(1e3*zgrid_Fluence, 1e6*rgrid[:(Nr//2)], Fluence_from_file)
-            plt.xlabel('z [mm]')
-            plt.ylabel('r [mum]')
-            plt.title('Fluence [arb.u.]')
-            plt.colorbar()
-            plt.savefig('Fluence_from_file_'+str(k_sim)+'.png', dpi = 600)
-            plt.show()
+            # plt.pcolor(1e3*zgrid_Fluence, 1e6*rgrid[:(Nr//2)], Fluence_from_file)
+            # plt.xlabel('z [mm]')
+            # plt.ylabel('r [mum]')
+            # plt.title('Fluence [arb.u.]')
+            # plt.colorbar()
+            # plt.savefig('Fluence_from_file_'+str(k_sim)+'.png', dpi = 600)
+            # plt.show()
         
             ## thalf_ionisation map
             ionisation_tfix_map = np.zeros((Nr//2, Nz))
@@ -237,10 +243,10 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
             plt.show()
         
             # Fluence
-            plt.pcolor(1e3*zgrid, 1e6*rgrid[:(Nr//2)], Fluence)
+            plt.pcolor(1e3*zgrid_Fluence, 1e6*rgrid[:(Nr//2)], Fluence)
             plt.xlabel('z [mm]')
             plt.ylabel('r [mum]')
-            plt.title('Fluence [arb.u.]')
+            plt.title('Fluence ['+Fluence_units+']')
             plt.colorbar()
             plt.savefig('Fluence_'+str(k_sim)+'.png', dpi = 600)
             plt.show()
