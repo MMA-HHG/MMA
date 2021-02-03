@@ -168,6 +168,18 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
             for k1 in range(Nz):
                 for k2 in range(Nr//2):
                     Fluence[k2, k1] = sum(abs(Efield[:, k2, k1])**2)
+                    
+            Fluence_from_file = InputArchive['/longstep/fluence'][:(Nr//2),:]
+            zgrid_Fluence = InputArchive['/longstep/zgrid_analyses2'][:]
+            
+            # Fluence from file
+            plt.pcolor(1e3*zgrid_Fluence, 1e6*rgrid[:(Nr//2)], Fluence_from_file)
+            plt.xlabel('z [mm]')
+            plt.ylabel('r [mum]')
+            plt.title('Fluence [arb.u.]')
+            plt.colorbar()
+            plt.savefig('Fluence_from_file_'+str(k_sim)+'.png', dpi = 600)
+            plt.show()
         
             ## thalf_ionisation map
             ionisation_tfix_map = np.zeros((Nr//2, Nz))
