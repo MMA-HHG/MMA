@@ -66,6 +66,10 @@ with h5py.File(out_h5name,'w') as OutFile:
         four_zR_main = []
         four_zR_my = []
         w0 = []
+        inverse_GV_CU_SI = []
+        rek0 = []
+        
+        inverse_GV_num = []
         
         for k1 in range(Nfiles):
             # dum = InArch[k1]['/outputs/output_field'][:,0,:]
@@ -87,6 +91,21 @@ with h5py.File(out_h5name,'w') as OutFile:
             
             four_zR_my.append(4.0*np.pi*(w0[k1]**2)*nIR[k1]/mn.ConvertPhoton(omega0,'omegaSI','lambdaSI'))
             inverse_GV_CU.append(InArch[k1]['/logs/inverse_group_velocity_CU'][()])
+            t_normalisation  = InArch[k1]['/pre-processed/pulsedurat'][()]
+            
+            rek0.append(InArch[k1]['/pre-processed/rek0'][()])
+ 
+            delta_omega = 1e12
+            dum1 = IR_index.getsusc('Ar', mn.ConvertPhoton(omega0 - delta_omega,'omegaSI','lambdaSI'))
+            dum1 = (omega0-delta_omega)*np.sqrt(1.0+pressure[k1]*dum1)
+            dum2 = IR_index.getsusc('Ar', mn.ConvertPhoton(omega0 + delta_omega,'omegaSI','lambdaSI'))
+            dum2 = (omega0+delta_omega)*np.sqrt(1.0+pressure[k1]*dum2)
+            dum = dum2-dum1
+            inverse_GV_num.append((1.0/units.c_light)*(dum/(2.0*delta_omega)))       
+            
+            
+            
+            inverse_GV_CU_SI.append(t_normalisation*1e-15*inverse_GV_CU[k1]/four_zR_my[k1])
             
             for k2 in range(len(zgrid[k1])):
                 ogrid_nn, FE_s, NF = mn.fft_t_nonorm(tgrid[k1], Efield_onaxis_s[k1][:,k2]) # transform to omega space

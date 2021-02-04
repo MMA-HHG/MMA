@@ -229,7 +229,7 @@ CONTAINS
     k_t=8.D0*DATAN(1.D0)/lt
     dim_th=dim_t/2
     DO j=1,dim_t
-       komega_red(j)=komega(j)-CMPLX(rek0+rekp*(k_t*(REAL(j-dim_th-1,8))+omega_uppe-omega),0.D0,8)
+       komega_red(j)=komega(j)-CMPLX(rekp*(k_t*(REAL(j-dim_th-1,8))+omega_uppe),0.D0,8)
     ENDDO
     SELECT CASE (switch_T)
     CASE(1)

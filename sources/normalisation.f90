@@ -616,16 +616,16 @@ CONTAINS
        cut=.FALSE.
        DO j=1,dim_t 
           k_t=8.D0*DATAN(1.D0)*REAL(j-dim_t/2-1)/lt
-          if (( ABS(REAL(komega(j)-rek0-rekp*(k_t+omega_uppe-omega))).GT.help1).AND.(cut.EQV..FALSE.)) then
+          if (( ABS(REAL(komega(j)-rekp*(k_t+omega_uppe))).GT.help1).AND.(cut.EQV..FALSE.)) then
              startcut=j
              cut=.TRUE.
           ENDIF
-          if (( ABS(REAL(komega(j)-rek0-rekp*(k_t+omega_uppe-omega))).LE.help1).AND.(cut.EQV..TRUE.)) then
+          if (( ABS(REAL(komega(j)-rekp*(k_t+omega_uppe))).LE.help1).AND.(cut.EQV..TRUE.)) then
              endcut=j-1
              cut=.FALSE.
              CALL artifabs(startcut,endcut,help1)
           endif
-          if (( ABS(REAL(komega(j)-rek0-rekp*(k_t+omega_uppe-omega))).GT.help1).AND.(cut.EQV..TRUE.).AND.(j.EQ.dim_t)) then
+          if (( ABS(REAL(komega(j)-rekp*(k_t+omega_uppe))).GT.help1).AND.(cut.EQV..TRUE.).AND.(j.EQ.dim_t)) then
              endcut=dim_t
              CALL artifabs(startcut,endcut,help1)
           endif
@@ -638,16 +638,16 @@ CONTAINS
        cut=.FALSE.
        DO j=1,dim_t 
           k_t=8.D0*DATAN(1.D0)*REAL(j-dim_t/2-1)/lt
-          if (( ABS(REAL(komega(j)-rek0-rekp*(k_t+omega_uppe-omega))).GT.help1).AND.(cut.EQV..FALSE.)) then
+          if (( ABS(REAL(komega(j)-rekp*(k_t+omega_uppe))).GT.help1).AND.(cut.EQV..FALSE.)) then
              startcut=j
              cut=.TRUE.
           ENDIF
-          if (( ABS(REAL(komega(j)-rek0-rekp*(k_t+omega_uppe-omega))).LE.help1).AND.(cut.EQV..TRUE.)) then
+          if (( ABS(REAL(komega(j)-rekp*(k_t+omega_uppe))).LE.help1).AND.(cut.EQV..TRUE.)) then
              endcut=j-1
              cut=.FALSE.
              CALL artifdisp(startcut,endcut,help1)
           endif
-          if (( ABS(REAL(komega(j)-rek0-rekp*(k_t+omega_uppe-omega))).GT.help1).AND.(cut.EQV..TRUE.).AND.(j.EQ.dim_t)) then
+          if (( ABS(REAL(komega(j)-rekp*(k_t+omega_uppe))).GT.help1).AND.(cut.EQV..TRUE.).AND.(j.EQ.dim_t)) then
              endcut=dim_t
              CALL artifdisp(startcut,endcut,help1)
           endif
@@ -662,7 +662,7 @@ CONTAINS
     OPEN(10,FILE='komega_reduced.dat',STATUS='UNKNOWN')
     DO j=1,dim_t
        k_t=8.D0*DATAN(1.D0)*REAL(j-dim_t/2-1)/lt
-       write(10,*) k_t+omega_uppe,REAL(komega(j)-rek0-rekp*(k_t+omega_uppe-omega)),AIMAG(komega(j))
+       write(10,*) k_t+omega_uppe,REAL(komega(j)-rekp*(k_t+omega_uppe)),AIMAG(komega(j))
     ENDDO
     CLOSE(10)
     OPEN(10,FILE='nomega.dat',STATUS='UNKNOWN')
