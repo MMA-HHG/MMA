@@ -151,7 +151,7 @@ CONTAINS
        z_rayleigh_cm_phys  = PI*w0_cm_phys**2*n0/lambda0_cm_phys  !Rayleigh lenght      cm
        DO j=dim_t/2,dim_t/2+2
           k_t=8.D0*DATAN(1.D0)*REAL(j-dim_t/2-1)/lt
-          komega(j) = (c*2.D0*PI/lambda0_cm_phys*tp_fs_phys*1.d-15+k_t)/(c*tp_fs_phys*1.d-15/(4*z_rayleigh_cm_phys))*chi(j)
+          komega(j) = (c*2.D0*PI/lambda0_cm_phys*tp_fs_phys*1.d-15+k_t)/(c*tp_fs_phys*1.d-15/(4.d0*z_rayleigh_cm_phys))*chi(j)
        ENDDO
        rek0 = REAL(komega(dim_t/2+1)) !adimensioned central wavenumber in the medium
        rekp = REAL(komega(dim_t/2+2)-komega(dim_t/2))*lt/(16.D0*DATAN(1.D0))!adimensioned group velocity
@@ -163,7 +163,7 @@ CONTAINS
           chi(j) = 5.547d-4*(1.D0+5.15d5*omegachi(j)**2+4.19d11*omegachi(j)**4+4.09d17*omegachi(j)**6+4.32d23*omegachi(j)**8) !argon, dalgarno and kingston 
           chi(j) = 1.D0+chi(j)*pressure
           chi(j) = sqrt(chi(j))                ! chi = E(w) =  sqrt(1+X(w))
-          komega(j) = (c*2.D0*PI/lambda0_cm_phys*tp_fs_phys*1.d-15+k_t)/(c*tp_fs_phys*1.d-15/(4*z_rayleigh_cm_phys))*chi(j)
+          komega(j) = (c*2.D0*PI/lambda0_cm_phys*tp_fs_phys*1.d-15+k_t)/(c*tp_fs_phys*1.d-15/(4.d0*z_rayleigh_cm_phys))*chi(j)
        ENDDO
        deltak3omega(1)=3.D0*rek0 - REAL(komega(1)) 
        deltak5omega(1)=5.D0*rek0 - REAL(komega(2))
