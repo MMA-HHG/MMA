@@ -59,9 +59,14 @@ with h5py.File(out_h5name,'w') as OutFile:
         zgrid = []
         tgrid = []
         inverse_GV = []
+        inverse_GV_CU = []
         pressure = []
         VF_IR = []
         nIR = []
+        four_zR_main = []
+        four_zR_my = []
+        w0 = []
+        
         for k1 in range(Nfiles):
             # dum = InArch[k1]['/outputs/output_field'][:,0,:]
             Efield_onaxis_s.append(InArch[k1]['/outputs/output_field'][:,0,:])
@@ -71,9 +76,17 @@ with h5py.File(out_h5name,'w') as OutFile:
             inverse_GV.append(InArch[k1]['/logs/inverse_group_velocity_SI'][()])
             pressure.append(InArch[k1]['/inputs/medium_pressure_in_bar'][()])
             
+            four_zR_main.append(InArch[k1]['/logs/z-length_conversion'][()])
+            w0.append(1e-2*InArch[k1]['/inputs/laser_beamwaist'][()])
+            
+            
+            
             nIR.append(IR_index.getsusc('Ar', mn.ConvertPhoton(omega0,'omegaSI','lambdaSI')))
             nIR[k1] = np.sqrt(1.0 + pressure[k1]*nIR[k1])
             VF_IR.append(units.c_light/nIR[k1]) # phase velocity of IR
+            
+            four_zR_my.append(4.0*np.pi*(w0[k1]**2)*nIR[k1]/mn.ConvertPhoton(omega0,'omegaSI','lambdaSI'))
+            inverse_GV_CU.append(InArch[k1]['/logs/inverse_group_velocity_CU'][()])
             
             for k2 in range(len(zgrid[k1])):
                 ogrid_nn, FE_s, NF = mn.fft_t_nonorm(tgrid[k1], Efield_onaxis_s[k1][:,k2]) # transform to omega space
