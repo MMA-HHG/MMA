@@ -59,12 +59,21 @@ with h5py.File(out_h5name,'w') as OutFile:
         zgrid = []
         tgrid = []
         inverse_GV = []
+        pressure = []
+        VF_IR = []
         for k1 in range(Nfiles):
             # dum = InArch[k1]['/outputs/output_field'][:,0,:]
             Efield_onaxis_s.append(InArch[k1]['/outputs/output_field'][:,0,:])
             zgrid.append(InArch[k1]['/outputs/zgrid'][:])
             tgrid.append(InArch[k1]['/outputs/tgrid'][:])
+            omega0 = mn.ConvertPhoton(1e-2*mn.readscalardataset(InArch[0],'/inputs/laser_wavelength','N'),'lambdaSI','omegaSI')
             inverse_GV.append(InArch[k1]['/logs/inverse_group_velocity_SI'][()])
+            pressure.append(InArch[k1]['/inputs/medium_pressure_in_bar'][()])
+            
+            nIR = IR_index.getsusc('Ar', mn.ConvertPhoton(omega0,'omegaSI','lambdaSI'))
+            nIR = np.sqrt(1.0 + pressure[k1]*nIR)
+            VF_IR.append(units.c_light/nIR) # phase velocity of IR
+            
             for k2 in range(len(zgrid[k1])):
                 ogrid_nn, FE_s, NF = mn.fft_t_nonorm(tgrid[k1], Efield_onaxis_s[k1][:,k2]) # transform to omega space
                 
@@ -88,6 +97,10 @@ with h5py.File(out_h5name,'w') as OutFile:
     plt.ylabel('E [V/m]')
     plt.savefig(outgraph_name+'.png', dpi = 600)
     plt.show()
+    
+    print(zgrid[0][-1])
+    print(zgrid[1][-1])
+    print(1e15*(zgrid[0][-1]-zgrid[1][-1])*(1/units.c_light-1/VF_IR[0]))
             
         
             
