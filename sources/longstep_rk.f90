@@ -311,8 +311,6 @@ CONTAINS
     energy_part=0.D0
     energy_fil_part=0.D0
     maxphase_part=0.D0
-    phaserelation(1)=exp(CMPLX(0.D0,2.D0*(rek0-rekp*omega)*z,8))
-    phaserelation(2)=exp(CMPLX(0.D0,4.D0*(rek0-rekp*omega)*z,8))
 
     DO l=dim_r_start(num_proc),dim_r_end(num_proc)
        r=REAL(l-1)*delta_r
@@ -370,9 +368,9 @@ CONTAINS
              jtemp(j,l)=e(j,l)*CMPLX(0.D0,phase_j)
              etemp(j,l)=e(j,l)*exp(CMPLX(losses_j-delta_zh*(mpa+mediumabs),phase_index,8))
           CASE(3)
-             ptemp(j,l)=e(j,l)*CMPLX(0.D0,phase_p) + hfac(j,4)*CONJG(hfac(j,0)*e(j,l)*phaserelation(1))*CMPLX(0.D0,phase_p) &
-                  + (hfac(j,1)*(hfac(j,0)*e(j,l))**3 + hfac(j,2)*(hfac(j,0)*e(j,l))**3*e_2(j))*phaserelation(1) &
-                  + (hfac(j,3)*(hfac(j,0)*e(j,l))**5)*phaserelation(2)
+             ptemp(j,l)=e(j,l)*CMPLX(0.D0,phase_p) + hfac(j,4)*CONJG(hfac(j,0)*e(j,l))*CMPLX(0.D0,phase_p) &
+                  + (hfac(j,1)*(hfac(j,0)*e(j,l))**3 + hfac(j,2)*(hfac(j,0)*e(j,l))**3*e_2(j)) &
+                  + (hfac(j,3)*(hfac(j,0)*e(j,l))**5)
              jtemp(j,l)=e(j,l)*CMPLX(0.D0,phase_j)
              etemp(j,l)=e(j,l)*exp(CMPLX(losses_j-delta_zh*(mpa+mediumabs),phase_index,8))
           CASE(4)
@@ -483,9 +481,9 @@ CONTAINS
              jtemp(j,l)=etemp(j,l)*CMPLX(0.D0,phase_j)
              e(j,l)=e(j,l)*exp(CMPLX(losses_j-delta_z*(mpa+mediumabs),phase_index,8))
           CASE(3)
-             ptemp(j,l)=etemp(j,l)*CMPLX(0.D0,phase_p) + hfac(j,4)*CONJG(hfac(j,0)*etemp(j,l)*phaserelation(1))*CMPLX(0.D0,phase_p) &
-                  + 2.D0*(hfac(j,1)*(hfac(j,0)*etemp(j,l))**3 + hfac(j,2)*(hfac(j,0)*etemp(j,l))**3*e_2(j))*phaserelation(1) &
-                  + 2.D0*(hfac(j,3)*(hfac(j,0)*etemp(j,l))**5)*phaserelation(2)
+             ptemp(j,l)=etemp(j,l)*CMPLX(0.D0,phase_p) + hfac(j,4)*CONJG(hfac(j,0)*etemp(j,l))*CMPLX(0.D0,phase_p) &
+                  + 2.D0*(hfac(j,1)*(hfac(j,0)*etemp(j,l))**3 + hfac(j,2)*(hfac(j,0)*etemp(j,l))**3*e_2(j)) &
+                  + 2.D0*(hfac(j,3)*(hfac(j,0)*etemp(j,l))**5)
              jtemp(j,l)=etemp(j,l)*CMPLX(0.D0,phase_j)
              e(j,l)=e(j,l)*exp(CMPLX(losses_j-delta_z*(mpa+mediumabs),phase_index,8))
           CASE(4)

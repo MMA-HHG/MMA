@@ -62,7 +62,7 @@ module constants
             case ('Joule')
                 ConvertPhoton = omega*(emass*alpha_fine**2 * c_light**2)
             case default
-                print *, 'Wrong input in ConvertPhoton'
+                print *, 'Wrong output in ConvertPhoton'
         end select
 
     end function

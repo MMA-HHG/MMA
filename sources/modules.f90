@@ -1,6 +1,5 @@
 MODULE fields
   INTEGER(4)               :: dim_t,dim_r,dim_t_local,dim_r_local,omega_offset(2), i_x_max, i_z_max
-  COMPLEX(8) phaserelation(3)
   INTEGER(4), ALLOCATABLE  :: dim_t_start(:),dim_t_end(:),dim_r_start(:),dim_r_end(:),num_ex(:)
   INTEGER(4), ALLOCATABLE  :: send_e(:),send_etemp(:),send_efft(:),recv_e(:),recv_etemp(:),recv_efft(:)
   REAL(8) , ALLOCATABLE    :: bound_t(:),e_2(:),e_2KK(:),e_2KKm2(:),rho(:),fluence(:),rhoabs(:),losses_ionization(:),losses_plasma(:)
