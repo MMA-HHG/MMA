@@ -130,8 +130,10 @@ CONTAINS
 
       CALL create_dset(group_id,'density_normalisation_factor',density_normalisation_factor)
 
+      CALL create_dset(group_id,'four_z_rayleigh_cm_phys', 4.D0*z_rayleigh_cm_phys)
+
       !r_offset = dim_r_start(num_proc)-1
-      efield_factor = SQRT(Pcr_phys*1.D-9*1.D9*3.D8*4.D0*PI*1.D-7/(4.D0*PI*w0_cm_phys**2*1.D-4*2.D0*n0))*2.D0 ! normalization factor electric field V/m
+      efield_factor = SQRT(Pcr_phys*1.D-9*1.D9*c_light*4.D0*PI*1.D-7/(4.D0*PI*w0_cm_phys**2*1.D-4*2.D0*n0))*2.D0 ! normalization factor electric field V/m
       print *, 'efield_factor', efield_factor, 'w0', w0_cm_phys, 'Pcr', Pcr_phys
       ALLOCATE(efield_osc(dim_t))
       PRINT*, 'beosc'

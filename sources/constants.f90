@@ -18,6 +18,7 @@ module constants
     CONTAINS
 
     function ConvertPhoton(x,inp,outp)
+    ! It is not optimalised (case constructs etc.). An alternative for a fast use: call once with x=1. to get conversion numerical factor.
         real(8)         :: ConvertPhoton
 
         real(8)         :: x, omega

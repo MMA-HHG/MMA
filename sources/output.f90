@@ -376,7 +376,9 @@ CONTAINS
        CALL create_dset(field_group_id,'finished',finished)
        CALL create_dset(field_group_id,'omega_uppe',omega_uppe)
 
-       efield_factor = SQRT(critical_power*1.D9*3.D8*4.D0*PI*1.D-7/(4.D0*PI*beam_waist**2*1.D-4*2.D0*n0_indice))*2.D0 ! normalization factor electric field V/m
+       ! efield_factor = SQRT(critical_power*1.D9*3.D8*4.D0*PI*1.D-7/(4.D0*PI*beam_waist**2*1.D-4*2.D0*n0_indice))*2.D0 ! normalization factor electric field V/m
+       ! defined in the first step
+
        ALLOCATE(real_e(dim_t,dim_r/num_proc),imag_e(dim_t,dim_r/num_proc))
        r_offset = dim_r/num_proc*my_rank
        DO k1=1, dim_t

@@ -836,9 +836,21 @@ CONTAINS
     rhont_cm3_phys = rhont_cm3_phys*pressure
 
     tauc_fs_phys = tauc_fs_phys/pressure
-    rhoc_cm3_phys = 1.11d13/lambda0_cm_phys**2 ! critical plasma censity  cm-3
-    sigma_cm2_phys =  3.535d-12*(omega*tauc_fs_phys/tp_fs_phys)/(k0_phys*n0*(1.D0+(omega*tauc_fs_phys/tp_fs_phys)**2)) !cross section for inverse bremsstrahlung  cm2
-    photon_energy_au_phys = h*c*2.d0*PI/lambda0_cm_phys/4.359d-18 ! photon energy  au ! still not precise
+
+    rhoc_cm3_phys = (emass*PI*c_light*alpha_fine_inv/hbar) * 1.d2/lambda0_cm_phys**2 ! critical plasma censity  cm-3
+    print *, 'old rhoc_cm3_phys', 1.11d13/lambda0_cm_phys**2 ! critical plasma censity  cm-3
+    print *, 'new rhoc_cm3_phys', rhoc_cm3_phys
+
+    !sigma_cm2_phys =  3.535d-12*(omega*tauc_fs_phys/tp_fs_phys)/(k0_phys*n0*(1.D0+(omega*tauc_fs_phys/tp_fs_phys)**2)) !cross section for inverse bremsstrahlung  cm2
+    
+    sigma_cm2_phys = 4.d0*PI*hbar*alpha_fine*tauc_fs_phys / (emass*n0*(1.D0+(omega*tauc_fs_phys/tp_fs_phys)**2)) !cross section for inverse bremsstrahlung  cm2
+    print *, 'sigma_cm2_phys', 3.535d-12*(omega*tauc_fs_phys/tp_fs_phys)/(k0_phys*n0*(1.D0+(omega*tauc_fs_phys/tp_fs_phys)**2)) !cross section for inverse bremsstrahlung  cm2
+    print *, 'sigma_cm2_phys', sigma_cm2_phys ! seek for proper normalisation
+
+    photon_energy_au_phys = ConvertPhoton(1.d-2*lambda0_cm_phys,'lambdaSI','omegaau') ! h*c*2.d0*PI/lambda0_cm_phys/4.359d-18 ! photon energy  au ! still not precise
+    print *, 'old energy', h*c*2.d0*PI/lambda0_cm_phys/4.359d-18
+    print *, 'new energy', photon_energy_au_phys
+
     Ui_au_phys = Ui_eV_phys/Ip_HeV ! gap potential for ionization of oxygen molecules  au
 
     z_rayleigh_cm_phys  = PI*w0_cm_phys**2*n0/lambda0_cm_phys  !Rayleigh lenght      cm
@@ -850,7 +862,7 @@ CONTAINS
        READ(5,*) KKnew
        IF (KKnew.GE.0) THEN
           KK=KKnew
-          betak_phys =(Ui_au_phys/photon_energy_au_phys*h*2*PI*c/(lambda0_cm_phys))*rhont_cm3_phys*sigmak_phys
+          betak_phys =(Ui_au_phys/photon_energy_au_phys*h*2.d0*PI*c/(lambda0_cm_phys))*rhont_cm3_phys*sigmak_phys
        ENDIF
     ENDIF
     
