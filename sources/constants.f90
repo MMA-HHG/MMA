@@ -36,7 +36,7 @@ module constants
             case ('eV')
                 omega = x * echarge/(emass*alpha_fine**2*c_light**2)
             case ('T0SI')
-                omega = units.TIMEau*2.d0*PI/x
+                omega = TIMEau*2.d0*PI/x
             case ('T0au')
                 omega = 2.d0*PI/x
             case ('Joule')

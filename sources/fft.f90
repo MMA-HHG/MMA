@@ -140,10 +140,10 @@ CONTAINS
              e(l,k)=e(l,k)+(op_t(l)-1.D0)*ptemp(l,k)+(op_t_inv(l)-1.D0)*jtemp(l,k)+op_t(l)*pharm(l,k)
           ENDDO
           DO l=dim_th+1,dim_t-2*omega_offset(1)+1
-             e(l,k)=e(l,k)-phaserelation(3)*op_t(l)*CONJG(ptemp(dim_t-2*(omega_offset(1)-1)-l,k)*phaserelation(1))
+             e(l,k)=e(l,k)-op_t(l)*CONJG(ptemp(dim_t-2*(omega_offset(1)-1)-l,k))
           ENDDO
           DO l=dim_t-2*(omega_offset(1)-1),dim_t
-             e(l,k)=e(l,k)-phaserelation(3)*op_t(l)*CONJG(ptemp(2*dim_t-2*(omega_offset(1)-1)-l,k)*phaserelation(1))
+             e(l,k)=e(l,k)-op_t(l)*CONJG(ptemp(2*dim_t-2*(omega_offset(1)-1)-l,k))
           ENDDO
 !          DO l=1,dim_th
 !             e(l,k)=e(l,k)-phaserelation(3)*op_t(l)*CONJG(ptemp(dim_t-2*(omega_offset(1)-1)-l,k)*phaserelation(1))
