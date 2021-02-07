@@ -32,9 +32,9 @@ module constants
             case ('lambdaau')
                 omega = 2.d0 * PI/(alpha_fine*x)
             case ('omegaSI')
-                omega = x * units.TIMEau
+                omega = x * TIMEau
             case ('eV')
-                omega = x * np.elcharge/(emass*alpha_fine**2*c_light**2)
+                omega = x * echarge/(emass*alpha_fine**2*c_light**2)
             case ('T0SI')
                 omega = units.TIMEau*2.d0*PI/x
             case ('T0au')
@@ -53,11 +53,11 @@ module constants
             case ('lambdaau')
                 ConvertPhoton = 2.d0*PI/(alpha_fine*omega)
             case ('omegaSI')
-                ConvertPhoton = omega/units.TIMEau
+                ConvertPhoton = omega/TIMEau
             case ('eV')
-                ConvertPhoton = omega/(units.elcharge/(emass*alpha_fine**2 * c_light**2))
+                ConvertPhoton = omega/(echarge/(emass*alpha_fine**2 * c_light**2))
             case ('T0SI')
-                ConvertPhoton = units.TIMEau*2.d0*PI/omega
+                ConvertPhoton = TIMEau*2.d0*PI/omega
             case ('T0au')
                 ConvertPhoton = 2.d0*PI/omega
             case ('Joule')
