@@ -15,6 +15,8 @@ MODULE write_start
   REAL(8) photon_energy_au_phys,tp_fs_phys,Pcr_phys,w0_cm_phys
   REAL(8) Ui_au_phys,residue_charge,n0,rhoc_cm3_phys,rhont_cm3_phys
 
+  REAL(8) z_rayleigh_cm_phys
+
   REAL(8) ions_Kerr_ratio
 
   REAL(8) density_normalisation_factor
@@ -135,6 +137,11 @@ CONTAINS
       !r_offset = dim_r_start(num_proc)-1
       efield_factor = SQRT(Pcr_phys*1.D-9*1.D9*c_light*4.D0*PI*1.D-7/(4.D0*PI*w0_cm_phys**2*1.D-4*2.D0*n0))*2.D0 ! normalization factor electric field V/m
       print *, 'efield_factor', efield_factor, 'w0', w0_cm_phys, 'Pcr', Pcr_phys
+
+      print *, 'old efield fact', SQRT(Pcr_phys*1.D-9*1.D9*3.D8*4.D0*PI*1.D-7/(4.D0*PI*w0_cm_phys**2*1.D-4*2.D0*n0))*2.D0
+      print *, 'new efield fact', SQRT(Pcr_phys*1.D-9*1.D9*c_light*4.D0*PI*1.D-7/(4.D0*PI*w0_cm_phys**2*1.D-4*2.D0*n0))*2.D0
+
+
       ALLOCATE(efield_osc(dim_t))
       PRINT*, 'beosc'
       DO j=1,dim_t

@@ -7,7 +7,7 @@ MODULE normalisation
   REAL(8) rho0_phys
   REAL(8) delta_k_p_fs_per_cm_phys,k_p_fs_per_cm_phys,k_pp_fs2_per_cm_phys,k_ppp_fs3_per_cm_phys,k_pppp_fs4_per_cm_phys
   REAL(8) k_ppppp_fs5_per_cm_phys,rhoabs_cm3_phys,f_cm_phys,betak_phys
-  REAL(8) z_rayleigh_cm_phys,k0_phys
+  REAL(8) k0_phys
   REAL(8) deltak3omega(3),deltak5omega(3)
   REAL(8), ALLOCATABLE :: xx_mum(:),zz_mum(:),Indice(:,:)
   CHARACTER(15) dispfilename
@@ -837,18 +837,18 @@ CONTAINS
 
     tauc_fs_phys = tauc_fs_phys/pressure
 
-    rhoc_cm3_phys = (emass*PI*c_light*alpha_fine_inv/hbar) * 1.d2/lambda0_cm_phys**2 ! critical plasma censity  cm-3
+    rhoc_cm3_phys = (emass*PI*c_light*alpha_fine_inv/hbar) * 1.d-2/lambda0_cm_phys**2 ! critical plasma censity  cm-3
     print *, 'old rhoc_cm3_phys', 1.11d13/lambda0_cm_phys**2 ! critical plasma censity  cm-3
     print *, 'new rhoc_cm3_phys', rhoc_cm3_phys
 
     !sigma_cm2_phys =  3.535d-12*(omega*tauc_fs_phys/tp_fs_phys)/(k0_phys*n0*(1.D0+(omega*tauc_fs_phys/tp_fs_phys)**2)) !cross section for inverse bremsstrahlung  cm2
     
-    sigma_cm2_phys = 4.d0*PI*hbar*alpha_fine*tauc_fs_phys / (emass*n0*(1.D0+(omega*tauc_fs_phys/tp_fs_phys)**2)) !cross section for inverse bremsstrahlung  cm2
+    sigma_cm2_phys = 1.d-11 * 4.d0*PI*hbar*alpha_fine*tauc_fs_phys / (emass*n0*(1.D0+(omega*tauc_fs_phys/tp_fs_phys)**2)) !cross section for inverse bremsstrahlung  cm2
     print *, 'old sigma_cm2_phys', 3.535d-12*(omega*tauc_fs_phys/tp_fs_phys)/(k0_phys*n0*(1.D0+(omega*tauc_fs_phys/tp_fs_phys)**2)) !cross section for inverse bremsstrahlung  cm2
     print *, 'new sigma_cm2_phys', sigma_cm2_phys ! seek for proper normalisation
 
     print *, 'old sigma_prefactor', 3.535d-12*(omega*tauc_fs_phys/tp_fs_phys)/(k0_phys*n0) !cross section for inverse bremsstrahlung  cm2
-    print *, 'new sigma_prefactor', 4.d0*PI*hbar*alpha_fine*tauc_fs_phys / (emass*n0)
+    print *, 'new sigma_prefactor', 1.d-11 * 4.d0*PI*hbar*alpha_fine*tauc_fs_phys / (emass*n0)
 
     photon_energy_au_phys = ConvertPhoton(1.d-2*lambda0_cm_phys,'lambdaSI','omegaau') ! h*c*2.d0*PI/lambda0_cm_phys/4.359d-18 ! photon energy  au ! still not precise
     print *, 'old energy', h*c*2.d0*PI/lambda0_cm_phys/4.359d-18
