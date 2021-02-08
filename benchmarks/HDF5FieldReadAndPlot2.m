@@ -20,11 +20,11 @@ delete('*.png');
 %% parameters
 
 % path = 'D:\data\CUPRAD';
-HDF5_path = 'D:\TEMP\OCCIGEN_CUPRAD\compares4\';
+HDF5_path = 'D:\TEMP\OCCIGEN_CUPRAD\compares4\allfiles_norm\';
 % HDF5_filename = "results_GfP.h5";
 % HDF5_filename = "results_GfFWHMI.h5";
 % HDF5_filename = "results_short.h5";
-HDF5_filename = "results_ELI.h5";
+HDF5_filename = "results.h5";
 
 
 
@@ -69,7 +69,7 @@ Nz = length(zgrid); Nt = length(tgrid); Nr = length(rgrid);
 
 %% tests
 
-rho0 = h5read(HDF5_filepath,"/inputs/medium_effective_density_of_neutral_molecules");
+rho0 = h5read(HDF5_filepath,"/inputs/medium_effective_atmospheric_density_of_neutral_molecules");
 
 firstplasma = squeeze(100*1e-6*output_plasma(1,:,:)/rho0);
 firstplasma(1,end)
