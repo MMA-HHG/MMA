@@ -27,7 +27,7 @@ os.chdir(results_path)
 files = glob.glob('results_*.h5')
 os.chdir(cwd)
 
-# files = ['results_1.h5']
+files = ['results_1.h5']
 
 out_h5name = 'analyses.h5'
 

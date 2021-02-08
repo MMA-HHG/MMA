@@ -366,6 +366,7 @@ CONTAINS
     CALL read_dset(group_id, "indexes_group/z_vector", zz, i_z_max)
     
     CALL read_dset(group_id,'four_z_rayleigh_cm_phys', four_z_Rayleigh)
+    four_z_Rayleigh = 1.d-2 * four_z_Rayleigh ! convert to meters
 
     CALL h5gclose_f(group_id, error) ! all pre-processed inputs read
    
@@ -395,6 +396,11 @@ CONTAINS
     ! electric field: REAL(efield_factor*e(:,k)*efield_osc,4) : one temporal profile in GV/m
 
     ! four_z_Rayleigh = 4.D0*PI*n0_indice/(lambdanm*1.D-9)*(beam_waist/100.D0)**2 ! 4 times the rayleigh length in m (normalization factor for z)
+
+    IF (my_rank.EQ.0) THEN
+      print *, "old four_z_Rayleigh", 4.D0*PI*n0_indice/(lambdanm*1.D-9)*(beam_waist/100.D0)**2
+      print *, "new four_z_Rayleigh", four_z_Rayleigh
+    ENDIF
 
     Nz_points = CEILING(proplength/outlength)+1 ! expected number of hdf5 output along z (with safety)
     Nz_points_Efield = CEILING(proplength/outlength_Efield)+1 ! expected number of hdf5 output along z (with safety) ! need to add if to compute only once this print is needed
