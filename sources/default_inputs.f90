@@ -8,9 +8,9 @@ real(8) :: Intensity_entry, Intensity_focus, waist_focus, Curvature_radius_entry
 character(15)   ::  gas_preset
 
 integer                 :: k1
-integer, parameter      :: N_tests = 14
+integer, parameter      :: N_tests = 15
 character(*), parameter :: available_tests(N_tests) = (/"test", "test2", "GfP", "GfI", "GfFWHME", "GfFWHMI", "GfH5w", "PI", "PIPPT", &
-                                                        "pressure", "ELI1", "ELI1ppt", "ELI2", "ELI3"/) ! "GfH5w_pre_ionised_PPT"
+                                                        "pressure", "ELI1", "ELI1ppt", "ELI2", "ELI3", "ELI4"/) ! "GfH5w_pre_ionised_PPT"
 ! integer, parameter      :: test_numbers(N_tests) =  (k1, k1=1,N_tests)
 
 CONTAINS
@@ -327,9 +327,17 @@ subroutine preset_numerics_tests(test_number)
     time_limit = 0.48d0
 
     ! time
-    lt = 8.d0
-    dim_t = 2048 ! asymmetric
-    absorb = 16
+    select case(test_number)
+    case(1:14)
+        lt = 8.d0
+        dim_t = 2048 ! asymmetric
+        absorb = 16
+    case(15)
+        lt = 12.d0
+        dim_t = 2048 ! asymmetric
+        absorb = 16     
+    end select
+
 
     ! space
     lr = 4.d0
@@ -344,13 +352,17 @@ subroutine preset_numerics_tests(test_number)
     ! writing
     rfil_mm_phys = 0.1d0
     rhodist = 100
-    outlength_m_phys = 0.001d0
 
     select case(test_number)
     case(1:6)
+        outlength_m_phys = 0.001d0
         outlength_Efield_m_phys = outlength_m_phys
-    case(7:N_tests)
-        outlength_Efield_m_phys = 0.0005d0        
+    case(7:14)
+        outlength_m_phys = 0.001d0
+        outlength_Efield_m_phys = 0.0005d0 
+    case(15)
+        outlength_m_phys = 0.000125d0
+        outlength_Efield_m_phys = 0.075d0       
     end select
     call save_or_replace(file_id, 'inputs/numerics_physical_output_distance_for_Efield_only', outlength_Efield_m_phys, error, units_in = '[m]')
     
@@ -363,13 +375,13 @@ subroutine preset_physics(test_number)
     select case(test_number)
     case(1:10)
         lambda0_cm_phys = 8.d-5
-    case(11:14)
+    case(11:15)
         lambda0_cm_phys = 7.92d-5
     end select
 
 !---------------------------------------------------------------------------------------------------------------------!
     select case(test_number)
-    case(1,9,12)
+    case(1,9,12,15)
         gas_preset = 'Ar_PPT'
     case(2:8,10,11,13,14)
         gas_preset = 'Ar_ext'
@@ -383,13 +395,15 @@ subroutine preset_physics(test_number)
         proplength_m_phys = 0.005d0
     case(12)
         proplength_m_phys = 0.0025d0
+    case(15)
+        proplength_m_phys = 0.015d0
     end select   
 
 !---------------------------------------------------------------------------------------------------------------------!
     select case(test_number)
     case(1:10)
         w0_cm_phys = 0.1d0
-    case(11:14)
+    case(11:15)
         w0_cm_phys = 0.011d0
     end select
     
@@ -400,7 +414,7 @@ subroutine preset_physics(test_number)
     case(1:3,5:10)
         numcrit = 2.0d0
         call save_or_replace(file_id, 'inputs/laser_ratio_pin_pcr', numcrit, error, units_in = '[-]')
-    case(4)
+    case(4,15)
         Intensity_entry = 1.d18
         call save_or_replace(file_id, 'inputs/laser_intensity_entry', Intensity_entry, error, units_in = '[SI]')
     case(11,12)
@@ -423,7 +437,7 @@ subroutine preset_physics(test_number)
     case(6)
         tp_fs_phys = 50.d0
         call save_or_replace(file_id, 'inputs/laser_pulse_duration_in_FWHM_Intensity', tp_fs_phys, error, units_in = '[fs]')
-    case(11:14)
+    case(11:15)
         tp_fs_phys = 35.d0
         call save_or_replace(file_id, 'inputs/laser_pulse_duration_in_FWHM_Intensity', tp_fs_phys, error, units_in = '[fs]')
     end select   
@@ -447,17 +461,23 @@ subroutine preset_physics(test_number)
         pressure = 0.5d0
     case(11:14)
         pressure = 0.035d0
+    case(15)
+        pressure = 0.015d0
     end select
     
 
 
 !---------------------------------------------------------------------------------------------------------------------!
 ! pre-ionized
-    if ( any(test_number == (/8, 9, 14/)) ) then
+    if ( any(test_number == (/8, 9, 14, 15/)) ) then
         call h5gcreate_f(file_id, 'pre_ionised', group_id2, error)
         call save_or_replace(group_id2, 'method_geometry', 1, error, units_in = '[-]')
         call save_or_replace(group_id2, 'method_units', 1, error, units_in = '[-]')
-        call save_or_replace(group_id2, 'initial_electrons_ratio', 0.04d0, error, units_in = '[-]')
+        if ( any(test_number == (/8, 9, 14/)) ) then
+            call save_or_replace(group_id2, 'initial_electrons_ratio', 0.04d0, error, units_in = '[-]')
+        else
+            call save_or_replace(group_id2, 'initial_electrons_ratio', 0.0d0, error, units_in = '[-]')
+        endif
         call h5gclose_f(group_id2, error)   
     endif    
 

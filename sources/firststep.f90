@@ -381,7 +381,7 @@ CONTAINS
     ! PREPARATION OF INPUTS
     ! compute normalization factors
  
-    lambdanm = 1.d-9*ConvertPhoton(photon_energy,'omegaau','lambdaSI') !6.634D-34*3.D17/photon_energy/4.359d-18 ! center wavelength in nm
+    lambdanm = 1.d9*ConvertPhoton(photon_energy,'omegaau','lambdaSI') !6.634D-34*3.D17/photon_energy/4.359d-18 ! center wavelength in nm
 
     IF (my_rank.EQ.0) THEN
       print *, "lambdanm old:", 6.634D-34*3.D17/photon_energy/4.359d-18 ! center wavelength in nm
