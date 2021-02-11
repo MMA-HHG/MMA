@@ -29,6 +29,7 @@ files = glob.glob('results_*.h5')
 os.chdir(cwd)
 
 # files = ['results_1.h5','results_25.h5','results_2.h5']
+files = ['results_1.h5']
 
 out_h5name = 'analyses.h5'
 
@@ -50,7 +51,11 @@ os.mkdir(OutPath)
 
 os.chdir(OutPath)
 
-df_delta_t_columns = ['pressure \\\ [mbar]', 'ionisation \\\ [\%]', 'Intensity \\\ $10^{14}$ [W/cm2]', 'IR phase \\\ [fs]', 'IR group \\\ [fs]', 'XUV phase \\\ [fs]']
+df_delta_t_columns = pd.MultiIndex.from_arrays([['pressure', 'ionisation', 'Intensity'        ,'IR phase','IR group','XUV phase'],
+                                                ['[bar]',     '[\%]',      '$10^{14}$ [W/cm2]','[fs]',    '[fs]',    '[fs]']])
+
+
+#  ['pressure \\\ [mbar]', 'ionisation \\\ [\%]', 'Intensity \\\ $10^{14}$ [W/cm2]', 'IR phase \\\ [fs]', 'IR group \\\ [fs]', 'XUV phase \\\ [fs]']
 df_delta_t = pd.DataFrame(columns = df_delta_t_columns)
 # df_delta_t.loc[len(df_delta_t)+1] = [10, 15, 20]
 
@@ -343,9 +348,12 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
             plt.show()
 
 
-    df_delta_t = df_delta_t.sort_values(by=df_delta_t_columns[0:3]) 
+    df_delta_t_columns_tup = df_delta_t_columns.tolist()
+    df_delta_t = df_delta_t.sort_values(by=df_delta_t_columns_tup[0:3]) 
     print(df_delta_t)
-    print(df_delta_t.to_latex(float_format="%.3f",escape=False))        
+    print(df_delta_t.to_latex(float_format="%.3f",escape=False,index=False)) 
+    df_delta_t.to_latex('ltxtable.out',float_format="%.3f",escape=False,index=False)
+    # with open('lout.out','w') as lout:   
 
 os.chdir(cwd)
 print('done')
