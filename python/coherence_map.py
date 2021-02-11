@@ -12,6 +12,7 @@ import mynumerics as mn
 import matplotlib.pyplot as plt
 import re
 import glob
+import pandas as pd
 import XUV_refractive_index as XUV_index
 import IR_refractive_index as IR_index
 
@@ -27,7 +28,7 @@ os.chdir(results_path)
 files = glob.glob('results_*.h5')
 os.chdir(cwd)
 
-files = ['TEMP/results.h5']
+# files = ['results_1.h5','results_25.h5','results_2.h5']
 
 out_h5name = 'analyses.h5'
 
@@ -48,6 +49,10 @@ if os.path.exists(OutPath) and os.path.isdir(OutPath):
 os.mkdir(OutPath)
 
 os.chdir(OutPath)
+
+df_delta_t_columns = ['pressure \\\ [mbar]', 'ionisation \\\ [\%]', 'Intensity \\\ $10^{14}$ [W/cm2]', 'IR phase \\\ [fs]', 'IR group \\\ [fs]', 'XUV phase \\\ [fs]']
+df_delta_t = pd.DataFrame(columns = df_delta_t_columns)
+# df_delta_t.loc[len(df_delta_t)+1] = [10, 15, 20]
 
 with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analyses
 # This is the archive, where we store numerical results at the instant. It may
@@ -89,6 +94,9 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
             rho0_atm = 1e6 * mn.readscalardataset(InputArchive, '/inputs/calculated/medium_effective_density_of_neutral_molecules','N')
             pressure = InputArchive['/inputs/medium_pressure_in_bar'][()]
             
+            pre_ion_ratio = InputArchive['/pre_ionised/initial_electrons_ratio'][()]
+            I0 = InputArchive['/inputs/laser_intensity_entry'][()]
+            
             
             # =================================================================
             # Process the data
@@ -111,6 +119,10 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
             # ===============================================
             # Compute delays and store them
 
+            delta_t_IR_phase = -1e15*zgrid[-1]*(1.0/units.c_light - 1.0/VF_IR)
+            delta_t_IR_group = -1e15*zgrid[-1]*(1.0/units.c_light - 1.0/VG_IR)
+            delta_t_XUV_phase = -1e15*zgrid[-1]*(1.0/units.c_light - 1.0/VF_XUV)
+            
             dset_id = grp.create_dataset('delta_t_IR_phase', data=-1e15*zgrid[-1]*(1.0/units.c_light - 1.0/VF_IR))
             dset_id.attrs['units'] = np.string_('[fs]')            
  
@@ -133,6 +145,11 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
             print('delta_t_XUV_phase =', -1e15*zgrid[-1]*(1.0/units.c_light - 1.0/VF_XUV),'fs')          
             print('T0_IR =', 1e15*mn.ConvertPhoton(omega0,'omegaSI','T0SI'),'fs')           
             print('T0_XUV =', 1e15*mn.ConvertPhoton(q*omega0,'omegaSI','T0SI'),'fs')
+            
+            # store in dataframe
+            # df_delta_t_columns = ['pressure', 'ionisation', 'Intensity', 'IR phase', 'IR group', 'XUV phase']
+            # df_delta_t = pd.DataFrame(columns = df_delta_t_columns)
+            df_delta_t.loc[len(df_delta_t)+1] = [pressure, pre_ion_ratio, 1e-18*I0, delta_t_IR_phase, delta_t_IR_group, delta_t_XUV_phase]
 
 
             # ===============================================
@@ -324,7 +341,11 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
             plt.colorbar()
             plt.savefig('Field_shift_'+str(k_sim)+'.png', dpi = 600)
             plt.show()
-        
+
+
+    df_delta_t = df_delta_t.sort_values(by=df_delta_t_columns[0:3]) 
+    print(df_delta_t)
+    print(df_delta_t.to_latex(float_format="%.3f",escape=False))        
 
 os.chdir(cwd)
 print('done')

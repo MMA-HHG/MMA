@@ -25,7 +25,7 @@ from contextlib import ExitStack
 results_path = os.path.join("D:\data", "Discharges")
 cwd = os.getcwd()
 # os.chdir(results_path)
-files = ['results_5.h5', 'results_35.h5']
+files = ['results_3.h5', 'results_6.h5']
 labels = ['p=15 mbar', 'p=35 mbar']
 outgraph_name = 'Field_shift_press'
 # os.chdir(cwd)
@@ -34,7 +34,8 @@ outgraph_name = 'Field_shift_press'
 
 out_h5name = 'analyses.h5'
 
-tlim = [25.0,160.0]
+# tlim = [25.0,160.0]
+tlim = [-60.0,60.0]
 
 OutPath = 'outputs'
 
