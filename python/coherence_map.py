@@ -29,7 +29,7 @@ files = glob.glob('results_*.h5')
 os.chdir(cwd)
 
 # files = ['results_1.h5','results_25.h5','results_2.h5']
-files = ['results_1.h5']
+# files = ['results_1.h5']
 
 out_h5name = 'analyses.h5'
 
@@ -52,7 +52,7 @@ os.mkdir(OutPath)
 os.chdir(OutPath)
 
 df_delta_t_columns = pd.MultiIndex.from_arrays([['pressure', 'ionisation', 'Intensity'        ,'IR phase','IR group','XUV phase'],
-                                                ['[bar]',     '[\%]',      '$10^{14}$ [W/cm2]','[fs]',    '[fs]',    '[fs]']])
+                                                ['{[bar]}',     '[\%]',      '$10^{14}$ [W/cm2]','[fs]',    '[fs]',    '[fs]']])
 
 
 #  ['pressure \\\ [mbar]', 'ionisation \\\ [\%]', 'Intensity \\\ $10^{14}$ [W/cm2]', 'IR phase \\\ [fs]', 'IR group \\\ [fs]', 'XUV phase \\\ [fs]']
@@ -154,7 +154,7 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
             # store in dataframe
             # df_delta_t_columns = ['pressure', 'ionisation', 'Intensity', 'IR phase', 'IR group', 'XUV phase']
             # df_delta_t = pd.DataFrame(columns = df_delta_t_columns)
-            df_delta_t.loc[len(df_delta_t)+1] = [pressure, pre_ion_ratio, 1e-18*I0, delta_t_IR_phase, delta_t_IR_group, delta_t_XUV_phase]
+            df_delta_t.loc[len(df_delta_t)+1] = [1e3*pressure, 100*pre_ion_ratio, 1e-18*I0, delta_t_IR_phase, delta_t_IR_group, delta_t_XUV_phase]
 
 
             # ===============================================
@@ -350,8 +350,21 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
 
     df_delta_t_columns_tup = df_delta_t_columns.tolist()
     df_delta_t = df_delta_t.sort_values(by=df_delta_t_columns_tup[0:3]) 
+    
+    format_mapping={df_delta_t_columns_tup[0]: '{:,.0f}',
+                    df_delta_t_columns_tup[1]: '{:,.0f}',
+                    df_delta_t_columns_tup[2]: '{:,.2f}',
+                    df_delta_t_columns_tup[3]: '{:,.3f}',
+                    df_delta_t_columns_tup[4]: '{:,.3f}',
+                    df_delta_t_columns_tup[5]: '{:,.3f}'}
+    
+    for key, value in format_mapping.items():
+        df_delta_t[key] = df_delta_t[key].apply(value.format)
+
+    # https://stackoverflow.com/questions/32744997/python-pandas-apply-formatting-to-each-column-in-dataframe-using-a-dict-mapping
     print(df_delta_t)
-    print(df_delta_t.to_latex(float_format="%.3f",escape=False,index=False)) 
+    # print(df_delta_t.to_latex(float_format="%.3f",escape=False,index=False)) 
+    print(df_delta_t.to_latex(escape=False,index=False)) 
     df_delta_t.to_latex('ltxtable.out',float_format="%.3f",escape=False,index=False)
     # with open('lout.out','w') as lout:   
 

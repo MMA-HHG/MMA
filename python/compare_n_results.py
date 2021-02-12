@@ -25,12 +25,14 @@ from contextlib import ExitStack
 results_path = os.path.join("D:\data", "Discharges")
 cwd = os.getcwd()
 # os.chdir(results_path)
-# files = ['results_1.h5', 'results_4.h5', 'results_7.h5', 'results_10.h5', 'results_13.h5']
+files = ['results_1.h5', 'results_4.h5', 'results_7.h5', 'results_10.h5', 'results_13.h5']
 
-files = ['results_2.h5', 'results_17.h5']
+# files = ['results_2.h5', 'results_17.h5']
+files = ['results_1.h5', 'results_2.h5', 'results_3.h5']
 
-# labels = ['p=15 mbar', 'p=35 mbar']
+# labels = ['p=15 mbar', 'p=35 mbar'], ['Pi=0 %', 'Pi=4 %','Pi=8 %', 'Pi=12 %', 'Pi=16 %'], ['I0=1e14 W/cm2', 'I0=1.75e14 W/cm2', 'I0=2.5e14 W/cm2']
 labels = ['a','b','c','d','e','f']
+labels = ['I0=1e14 W/cm2', 'I0=1.75e14 W/cm2', 'I0=2.5e14 W/cm2']
 linestyles = ['-','--','-.',':','-','--']
 outgraph_name = 'Field_shift_press'
 # os.chdir(cwd)
