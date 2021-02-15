@@ -29,13 +29,17 @@ files = glob.glob('results_*.h5')
 os.chdir(cwd)
 
 # files = ['results_1.h5','results_25.h5','results_2.h5']
-# files = ['results_1.h5']
+files = ['results_1.h5']
 
 out_h5name = 'analyses.h5'
 
 q = 23 # harmonic of our interest
 t_fix = 0.0 # the time of our interest to inspect e.g. phase
 fluence_source = 'computed' # options: 'file', 'computed'
+
+
+rmax = 200e-6 # only for analyses
+dr = rmax/50.0
 
 Gaussian_curvature = True # print Gaussian curvature, it is applied only in the first run
 
@@ -86,9 +90,14 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
             print(omega0)
             tgrid = InputArchive['/outputs/tgrid'][:]; Nt = len(tgrid)
             rgrid = InputArchive['/outputs/rgrid'][:]; Nr = len(rgrid)
+            dr_file = rgrid[1]-rgrid[0]; kr_step = max(1,int(np.floor(dr/dr_file))); Nr_max = mn.FindInterval(rgrid, rmax)
             zgrid = InputArchive['/outputs/zgrid'][:]; Nz = len(zgrid)
-            electron_density_map = InputArchive['/outputs/output_plasma'][:]
-            Efield = InputArchive['/outputs/output_field'][:]
+            
+            
+            rgrid = rgrid[0:Nr_max:kr_step]; Nr = len(rgrid)
+            electron_density_map = InputArchive['/outputs/output_plasma'][:,0:Nr_max:kr_step,:]
+            # electron_density_map_slice = InputArchive['/outputs/output_plasma'][:,0:Nr_max:kr_step,:]
+            Efield = InputArchive['/outputs/output_field'][:,0:Nr_max:kr_step,:]
             
             inverse_GV = InputArchive['/logs/inverse_group_velocity_SI'][()]
             VG_IR = 1.0/inverse_GV
@@ -164,7 +173,7 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
             Efield_cmplx_envel = np.zeros((Nt,Nr,Nz),dtype=complex)
             rem_fast_oscillations = np.exp(-1j*omega0*tgrid)
             for k1 in range(Nz):
-                for k2 in range(Nr):
+                for k2 in range(0,Nr):
                     Efield_cmplx_envel[:,k2,k1] = rem_fast_oscillations*mn.complexify_fft(Efield[:,k2,k1])
 
 
@@ -175,8 +184,8 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
             phase_map = np.angle(Efield_cmplx_envel[k_t,:,:]) # ordering (r,z)
         
             # Compute dPhi/dz at t = t_fix
-            dPhi_dz_map = np.zeros((Nr//2,Nz))
-            for k1 in range(Nr//2):
+            dPhi_dz_map = np.zeros((Nr,Nz))
+            for k1 in range(Nr):
                 phase_r = np.unwrap(phase_map[k1,:])
                 dPhi_dz_map[k1, 0] = (phase_r[1] - phase_r[0]) / (zgrid[1] - zgrid[0])
                 dPhi_dz_map[k1, -1] = (phase_r[-1] - phase_r[-2]) / (zgrid[-1] - zgrid[-2])
@@ -194,17 +203,17 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
             # Local curvature
             
             # Local curvature: phase evolution for a fixed z compared to the on-axis phase
-            Curvature_Gaussian_map = np.zeros((Nr//2,Nz)) # Gaussian beam for a comparison
-            Curvature_map = np.zeros((Nr // 2, Nz)) # Phas from CUPRAD
+            Curvature_Gaussian_map = np.zeros((Nr,Nz)) # Gaussian beam for a comparison
+            Curvature_map = np.zeros((Nr, Nz)) # Phas from CUPRAD
             for k1 in range(Nz):
                 if (k1 == 0):
                     Curv_coeff = 0
                 else:
                     Rz = zgrid[k1] + zR ** 2 / zgrid[k1]
                     Curv_coeff = np.pi / (Rz * mn.ConvertPhoton(omega0, 'omegaSI', 'lambdaSI'))
-                Curvature_Gaussian_map[:(Nr//2), k1] = -Curv_coeff*(rgrid[:(Nr//2)])**2
-                Curvature_map[:(Nr//2), k1] = np.unwrap(phase_map[:(Nr//2), k1])
-                Curvature_map[:(Nr//2), k1] = Curvature_map[:(Nr//2), k1] - Curvature_map[0, k1] # start always at 0
+                Curvature_Gaussian_map[:, k1] = -Curv_coeff*(rgrid)**2
+                Curvature_map[:, k1] = np.unwrap(phase_map[:, k1])
+                Curvature_map[:, k1] = Curvature_map[:, k1] - Curvature_map[0, k1] # start always at 0
         
             Curvature_map = Curvature_map - np.max(Curvature_map)
             
@@ -214,15 +223,15 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
             
             # Fluence is either computed from Efield or taken from the file
             if (fluence_source == 'file'):
-                Fluence = InputArchive['/longstep/fluence'][:(Nr//2),:]
+                Fluence = InputArchive['/longstep/fluence'][:,:]
                 zgrid_Fluence = InputArchive['/longstep/zgrid_analyses2'][:]
                 Fluence_units = 'SI'                
                 
             elif (fluence_source == 'computed'):                
                 zgrid_Fluence = zgrid
-                Fluence = np.zeros((Nr//2, Nz))
+                Fluence = np.zeros((Nr, Nz))
                 for k1 in range(Nz):
-                    for k2 in range(Nr//2):
+                    for k2 in range(Nr):
                         Fluence[k2, k1] = sum(abs(Efield[:, k2, k1])**2)
                 Fluence_units = 'arb.u.'
                 
@@ -230,9 +239,9 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
             # ===============================================
             # The ionisation map at t = t_fix
             
-            ionisation_tfix_map = np.zeros((Nr//2, Nz))
+            ionisation_tfix_map = np.zeros((Nr, Nz))
             for k1 in range(Nz):
-                for k2 in range(Nr//2):
+                for k2 in range(Nr):
                     ionisation_tfix_map[k2, k1] = electron_density_map[k_t,k2,k1]
 
 
@@ -260,13 +269,13 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
             # Print outputs
             
             # dPhi/dz
-            plt.pcolor(zgrid, rgrid[:(Nr//2)], dPhi_dz_map)
+            plt.pcolor(zgrid, rgrid, dPhi_dz_map)
             plt.colorbar()
             plt.savefig('dPhidz_map_'+str(k_sim)+'.png', dpi = 600)
             plt.show()
             
             # Coherence length
-            plt.pcolor(1e3*zgrid, 1e6*rgrid[:(Nr//2)], Lcoh_map2, vmax=0.3)
+            plt.pcolor(1e3*zgrid, 1e6*rgrid, Lcoh_map2, vmax=0.3)
             plt.xlabel('z [mm]')
             plt.ylabel('r [mum]')
             plt.title('Lcoh [m]')
@@ -282,7 +291,7 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
             plt.show()
         
             # Curvature of the beam 
-            plt.pcolor(1e3*zgrid, 1e6*rgrid[:(Nr//2)], Curvature_map, vmax = 0)
+            plt.pcolor(1e3*zgrid, 1e6*rgrid, Curvature_map, vmax = 0)
             plt.xlabel('z [mm]')
             plt.ylabel('r [mum]')
             plt.title('phi_Curv [rad]')
@@ -293,7 +302,7 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
             # reference Gaussian curvature 
             if Gaussian_curvature:
                 Gaussian_curvature = False
-                plt.pcolor(1e3*zgrid, 1e6*rgrid[:(Nr//2)], Curvature_Gaussian_map, vmax = 0)
+                plt.pcolor(1e3*zgrid, 1e6*rgrid, Curvature_Gaussian_map, vmax = 0)
                 plt.xlabel('z [mm]')
                 plt.ylabel('r [mum]')
                 plt.title('phi_Curv [rad]')
@@ -302,7 +311,7 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
                 plt.show()
         
             # Fluence
-            plt.pcolor(1e3*zgrid_Fluence, 1e6*rgrid[:(Nr//2)], Fluence)
+            plt.pcolor(1e3*zgrid_Fluence, 1e6*rgrid, Fluence)
             plt.xlabel('z [mm]')
             plt.ylabel('r [mum]')
             plt.title('Fluence ['+Fluence_units+']')
@@ -311,7 +320,7 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
             plt.show()
         
             # ionisation(r,z,t=t_fix)
-            plt.pcolor(1e3*zgrid, 1e6*rgrid[:(Nr//2)], 100.0*ionisation_tfix_map/rho0_atm)
+            plt.pcolor(1e3*zgrid, 1e6*rgrid, 100.0*ionisation_tfix_map/rho0_atm)
             plt.xlabel('z [mm]')
             plt.ylabel('r [mum]')
             plt.title('electron density [%]')
