@@ -115,7 +115,7 @@ with h5py.File(out_h5name,'w') as OutFile:
             VF_IR.append(units.c_light/nIR[k1]) # phase velocity of IR
             
             f1 = XUV_index.getf('Ar', mn.ConvertPhoton(q*omega0, 'omegaSI', 'eV'))[0]
-            nXUV.append(1.0 - pressure[k1]*rho0_atm*units.r_electron_classical*(mn.ConvertPhoton(q*omega0,'omegaSI','lambdaSI')**2)*f1/(2.0*np.pi))
+            nXUV.append(1.0 - rho0_atm*units.r_electron_classical*(mn.ConvertPhoton(q*omega0,'omegaSI','lambdaSI')**2)*f1/(2.0*np.pi))
             VF_XUV = units.c_light/nXUV[k1] # phase velocity of XUV
             
             for k2 in range(len(zgrid[k1])):
