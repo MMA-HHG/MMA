@@ -130,7 +130,7 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
             # IR is given by the Dalgarno, Kingston; 1960
             
             f1 = XUV_index.getf('Ar', mn.ConvertPhoton(q*omega0, 'omegaSI', 'eV'))[0]
-            nXUV = 1 - pressure*rho0_init*units.r_electron_classical*(mn.ConvertPhoton(q*omega0,'omegaSI','lambdaSI')**2)*f1/(2.0*np.pi)
+            nXUV = 1 - rho0_init*units.r_electron_classical*(mn.ConvertPhoton(q*omega0,'omegaSI','lambdaSI')**2)*f1/(2.0*np.pi)
             VF_XUV = units.c_light/nXUV # phase velocity of XUV
             
             nIR = IR_index.getsusc('Ar', mn.ConvertPhoton(omega0,'omegaSI','lambdaSI'))
