@@ -70,9 +70,12 @@ with h5py.File(out_h5name,'w') as OutFile:
         Efield_onaxis_s_XUV=[]
         
         Efield_onaxis_cmplx_envel = []
+        Efield_onaxis_cmplx_envel_XUV = []
         
         phase_onaxis_map = []
+        phase_onaxis_map_XUV = []
         dPhi_dz_map = []
+        dPhi_dz_map_XUV = []
         
         Efield_s=[]
         Efield_s_XUV=[]
@@ -83,6 +86,7 @@ with h5py.File(out_h5name,'w') as OutFile:
         pressure = []
         VF_IR = []
         nIR = []
+        nXUV = []
         for k1 in range(Nfiles):
             # dum = InArch[k1]['/outputs/output_field'][:,0,:]
             Efield_onaxis_s.append(InArch[k1]['/outputs/output_field'][:,0,:])
@@ -105,8 +109,8 @@ with h5py.File(out_h5name,'w') as OutFile:
             VF_IR.append(units.c_light/nIR[k1]) # phase velocity of IR
             
             f1 = XUV_index.getf('Ar', mn.ConvertPhoton(q*omega0, 'omegaSI', 'eV'))[0]
-            nXUV = 1 - pressure[k1]*rho0_atm*units.r_electron_classical*(mn.ConvertPhoton(omega0,'omegaSI','lambdaSI')**2)*f1/(2.0*np.pi)
-            VF_XUV = units.c_light/nXUV # phase velocity of XUV
+            nXUV.append(1 - pressure[k1]*rho0_atm*units.r_electron_classical*(mn.ConvertPhoton(omega0,'omegaSI','lambdaSI')**2)*f1/(2.0*np.pi))
+            VF_XUV = units.c_light/nXUV[k1] # phase velocity of XUV
             
             for k2 in range(len(zgrid[k1])):
                 ogrid_nn, FE_s, NF = mn.fft_t_nonorm(tgrid[k1], Efield_onaxis_s[k1][:,k2]) # transform to omega space
@@ -127,18 +131,31 @@ with h5py.File(out_h5name,'w') as OutFile:
                 
             ## Complexify the field using fft -> ifft & remove fast oscillations
             Efield_onaxis_cmplx_envel.append(np.zeros(Efield_onaxis_s[k1].shape, dtype=complex))
+            Efield_onaxis_cmplx_envel_XUV.append(np.zeros(Efield_onaxis_s[k1].shape, dtype=complex))
+            
             rem_fast_oscillations = np.exp(-1j*omega0*tgrid[k1])
             for k2 in range(len(zgrid[k1])):
                 Efield_onaxis_cmplx_envel[k1][:,k2] = rem_fast_oscillations*mn.complexify_fft(Efield_onaxis_s[k1][:,k2])
+                Efield_onaxis_cmplx_envel_XUV[k1][:,k2] = rem_fast_oscillations*mn.complexify_fft(Efield_onaxis_s_XUV[k1][:,k2])
                 
             phase_onaxis_map.append(np.squeeze(np.angle(Efield_onaxis_cmplx_envel[k1])))
+            phase_onaxis_map_XUV.append(np.squeeze(np.angle(Efield_onaxis_cmplx_envel_XUV[k1])))
+            
             dPhi_dz_map.append(np.zeros(phase_onaxis_map[k1].shape))
+            dPhi_dz_map_XUV.append(np.zeros(phase_onaxis_map_XUV[k1].shape))
+            
             for k2 in range(len(tgrid[k1])):
                 phase_t = np.unwrap(phase_onaxis_map[k1][k2,:])
+                phase_t_XUV = np.unwrap(phase_onaxis_map_XUV[k1][k2,:])
+                
                 dPhi_dz_map[k1][k2, 0] = (phase_t[1] - phase_t[0]) / (zgrid[k1][1] - zgrid[k1][0])
                 dPhi_dz_map[k1][k2, -1] = (phase_t[-1] - phase_t[-2]) / (zgrid[k1][-1] - zgrid[k1][-2])
+                
+                dPhi_dz_map_XUV[k1][k2, 0] = (phase_t_XUV[1] - phase_t_XUV[0]) / (zgrid[k1][1] - zgrid[k1][0])
+                dPhi_dz_map_XUV[k1][k2, -1] = (phase_t_XUV[-1] - phase_t_XUV[-2]) / (zgrid[k1][-1] - zgrid[k1][-2])
                 for k3 in range(1,len(zgrid[k1])-1):
                     dPhi_dz_map[k1][k2, k3] = mn.ddx_arb(k3,zgrid[k1],phase_t)
+                    dPhi_dz_map_XUV[k1][k2, k3] = mn.ddx_arb(k3,zgrid[k1],phase_t_XUV)
                     # Efield_onaxis_cmplx_envel[k1][:,k2] = rem_fast_oscillations*mn.complexify_fft(Efield_s[:,k2])
                 
     # Field in the vacuum frame
@@ -163,8 +180,14 @@ with h5py.File(out_h5name,'w') as OutFile:
     print(zgrid[1][-1])
     print(1e15*(zgrid[0][-1]-zgrid[1][-1])*(1/units.c_light-1/VF_IR[0]))
     
+    dPhi_dz_map_XUV2 = [] 
     for k1 in range(Nfiles):
         plt.plot(zgrid[k1], dPhi_dz_map[k1][len(tgrid[k1])//2,:], linewidth=0.2, label=labels[k1])
+        plt.plot(zgrid[k1], dPhi_dz_map_XUV[k1][len(tgrid[k1])//2,:], linewidth=0.2, label=labels[k1])
+        
+        k0_wave = 2.0*np.pi/mn.ConvertPhoton(omega0,'omegaSI','lambdaSI')
+        dPhi_dz_map_XUV2.append(dPhi_dz_map[k1] + k0_wave*(nXUV[k1]-1))
+        plt.plot(zgrid[k1], dPhi_dz_map_XUV2[k1][len(tgrid[k1])//2,:], linestyle = '--', linewidth=0.2, label=labels[k1])
     
     # for k1 in range(Nfiles):
     #     plt.plot(1e15*tgrid[k1], Efield_onaxis_s[k1][:,-1], linewidth=0.2, linestyle=linestyles[k1], label=labels[k1])
