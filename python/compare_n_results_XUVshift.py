@@ -29,7 +29,7 @@ files = ['results_1.h5', 'results_4.h5', 'results_7.h5', 'results_10.h5', 'resul
 
 # files = ['results_2.h5', 'results_17.h5']
 # files = ['results_1.h5', 'results_2.h5', 'results_3.h5']
-files = ['results_1.h5', 'results_13.h5']
+files = ['results_1.h5', 'results_16.h5']
 
 
 # labels = ['p=15 mbar', 'p=35 mbar'], ['Pi=0 %', 'Pi=4 %','Pi=8 %', 'Pi=12 %', 'Pi=16 %'], ['I0=1e14 W/cm2', 'I0=1.75e14 W/cm2', 'I0=2.5e14 W/cm2']
@@ -43,7 +43,8 @@ outgraph_name = 'Field_compare'
 
 out_h5name = 'analyses.h5'
 
-q = 23
+Horders = [19, 21, 23, 25, 27]
+q = Horders[2]
 
 tlim = [-60.0,60.0]
 
@@ -87,6 +88,9 @@ with h5py.File(out_h5name,'w') as OutFile:
         VF_IR = []
         nIR = []
         nXUV = []
+        
+        dens = []
+        
         for k1 in range(Nfiles):
             # dum = InArch[k1]['/outputs/output_field'][:,0,:]
             Efield_onaxis_s.append(InArch[k1]['/outputs/output_field'][:,0,:])
@@ -104,12 +108,14 @@ with h5py.File(out_h5name,'w') as OutFile:
             
             rho0_atm = 1e6 * mn.readscalardataset(InArch[k1], '/inputs/calculated/medium_effective_density_of_neutral_molecules','N')
             
+            dens.append(rho0_atm)
+            
             nIR.append(IR_index.getsusc('Ar', mn.ConvertPhoton(omega0,'omegaSI','lambdaSI')))
             nIR[k1] = np.sqrt(1.0 + pressure[k1]*nIR[k1])
             VF_IR.append(units.c_light/nIR[k1]) # phase velocity of IR
             
             f1 = XUV_index.getf('Ar', mn.ConvertPhoton(q*omega0, 'omegaSI', 'eV'))[0]
-            nXUV.append(1 - pressure[k1]*rho0_atm*units.r_electron_classical*(mn.ConvertPhoton(q*omega0,'omegaSI','lambdaSI')**2)*f1/(2.0*np.pi))
+            nXUV.append(1.0 - pressure[k1]*rho0_atm*units.r_electron_classical*(mn.ConvertPhoton(q*omega0,'omegaSI','lambdaSI')**2)*f1/(2.0*np.pi))
             VF_XUV = units.c_light/nXUV[k1] # phase velocity of XUV
             
             for k2 in range(len(zgrid[k1])):
