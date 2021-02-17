@@ -133,7 +133,7 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
             # IR is given by the Dalgarno, Kingston; 1960
             
             f1 = XUV_index.getf('Ar', mn.ConvertPhoton(q*omega0, 'omegaSI', 'eV'))[0]
-            nXUV = 1 - pressure*rho0_atm*units.r_electron_classical*(mn.ConvertPhoton(omega0,'omegaSI','lambdaSI')**2)*f1/(2.0*np.pi)
+            nXUV = 1 - pressure*rho0_atm*units.r_electron_classical*(mn.ConvertPhoton(q*omega0,'omegaSI','lambdaSI')**2)*f1/(2.0*np.pi)
             VF_XUV = units.c_light/nXUV # phase velocity of XUV
             
             nIR = IR_index.getsusc('Ar', mn.ConvertPhoton(omega0,'omegaSI','lambdaSI'))
@@ -252,7 +252,10 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
             # Coherence length
             
             # The coherence lenght taking only the dephasing from CUPRAD in the group-velocity frame
-                Lcoh_map2 = np.abs(np.pi/dPhi_dz_map)
+                Lcoh_map = np.abs(np.pi/dPhi_dz_map)
+                
+                k0_wave = 2.0*np.pi/mn.ConvertPhoton(omega0,'omegaSI','lambdaSI')
+                Lcoh_map_XUV = np.abs(np.pi/(dPhi_dz_map + k0_wave*0.0))
 
             # ===============================================
             # Local curvature
@@ -315,7 +318,7 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
                 plt.show()
                 
                 # Coherence length
-                plt.pcolor(1e3*zgrid, 1e6*rgrid, Lcoh_map2, vmax=0.3)
+                plt.pcolor(1e3*zgrid, 1e6*rgrid, Lcoh_map, vmax=0.3)
                 plt.xlabel('z [mm]')
                 plt.ylabel('r [mum]')
                 plt.title('Lcoh [m]')
