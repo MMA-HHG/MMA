@@ -106,16 +106,16 @@ with h5py.File(out_h5name,'w') as OutFile:
             inverse_GV.append(InArch[k1]['/logs/inverse_group_velocity_SI'][()])
             pressure.append(InArch[k1]['/inputs/medium_pressure_in_bar'][()])
             
-            rho0_atm = 1e6 * mn.readscalardataset(InArch[k1], '/inputs/calculated/medium_effective_density_of_neutral_molecules','N')
+            rho0_init = 1e6 * mn.readscalardataset(InArch[k1], '/inputs/calculated/medium_effective_density_of_neutral_molecules','N')
             
-            dens.append(rho0_atm)
+            dens.append(rho0_init)
             
             nIR.append(IR_index.getsusc('Ar', mn.ConvertPhoton(omega0,'omegaSI','lambdaSI')))
             nIR[k1] = np.sqrt(1.0 + pressure[k1]*nIR[k1])
             VF_IR.append(units.c_light/nIR[k1]) # phase velocity of IR
             
             f1 = XUV_index.getf('Ar', mn.ConvertPhoton(q*omega0, 'omegaSI', 'eV'))[0]
-            nXUV.append(1.0 - rho0_atm*units.r_electron_classical*(mn.ConvertPhoton(q*omega0,'omegaSI','lambdaSI')**2)*f1/(2.0*np.pi))
+            nXUV.append(1.0 - rho0_init*units.r_electron_classical*(mn.ConvertPhoton(q*omega0,'omegaSI','lambdaSI')**2)*f1/(2.0*np.pi))
             VF_XUV = units.c_light/nXUV[k1] # phase velocity of XUV
             
             for k2 in range(len(zgrid[k1])):

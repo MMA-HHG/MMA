@@ -112,7 +112,7 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
             zR = np.pi * w0**2 / mn.ConvertPhoton(omega0,'omegaSI','lambdaSI')
             zgridzR = np.linspace(0,zR,100)
         
-            rho0_atm = 1e6 * mn.readscalardataset(InputArchive, '/inputs/calculated/medium_effective_density_of_neutral_molecules','N')
+            rho0_init = 1e6 * mn.readscalardataset(InputArchive, '/inputs/calculated/medium_effective_density_of_neutral_molecules','N')
             pressure = InputArchive['/inputs/medium_pressure_in_bar'][()]
             
             pre_ion_ratio = InputArchive['/pre_ionised/initial_electrons_ratio'][()]
@@ -130,7 +130,7 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
             # IR is given by the Dalgarno, Kingston; 1960
             
             f1 = XUV_index.getf('Ar', mn.ConvertPhoton(q*omega0, 'omegaSI', 'eV'))[0]
-            nXUV = 1 - pressure*rho0_atm*units.r_electron_classical*(mn.ConvertPhoton(q*omega0,'omegaSI','lambdaSI')**2)*f1/(2.0*np.pi)
+            nXUV = 1 - pressure*rho0_init*units.r_electron_classical*(mn.ConvertPhoton(q*omega0,'omegaSI','lambdaSI')**2)*f1/(2.0*np.pi)
             VF_XUV = units.c_light/nXUV # phase velocity of XUV
             
             nIR = IR_index.getsusc('Ar', mn.ConvertPhoton(omega0,'omegaSI','lambdaSI'))
@@ -335,7 +335,7 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
                 plt.show()
             
                 # ionisation(r,z,t=t_fix)
-                plt.pcolor(1e3*zgrid, 1e6*rgrid, 100.0*ionisation_tfix_map/rho0_atm)
+                plt.pcolor(1e3*zgrid, 1e6*rgrid, 100.0*ionisation_tfix_map/rho0_init)
                 plt.xlabel('z [mm]')
                 plt.ylabel('r [mum]')
                 plt.title('electron density [%]')
@@ -344,7 +344,7 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
                 plt.show()
             
                 # ionisation(r=0,z=zmax/2,t)
-                plt.plot(1e15*tgrid, 100.0*electron_density_map[:,0,Nz//2]/rho0_atm)
+                plt.plot(1e15*tgrid, 100.0*electron_density_map[:,0,Nz//2]/rho0_init)
                 plt.xlabel('t [fs]')
                 plt.ylabel('electron density [%]')
                 plt.title('z = ' + str(1e3*zgrid[Nz//2]) + ' mm')
