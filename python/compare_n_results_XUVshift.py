@@ -44,7 +44,7 @@ outgraph_name = 'Field_compare'
 out_h5name = 'analyses.h5'
 
 Horders = [19, 21, 23, 25, 27]
-q = Horders[2]
+# q = Horders[2]
 
 tlim = [-60.0,60.0]
 
@@ -53,6 +53,9 @@ OutPath = 'outputs'
 
 # =============================================================================
 # The body of the script
+
+NH = len(Horders)
+
 if os.path.exists(OutPath) and os.path.isdir(OutPath):
   shutil.rmtree(OutPath)
   print('deleted previous results')
@@ -88,6 +91,7 @@ with h5py.File(out_h5name,'w') as OutFile:
         VF_IR = []
         nIR = []
         nXUV = []
+        VF_XUV = []
         
         dens = []
         
@@ -114,9 +118,12 @@ with h5py.File(out_h5name,'w') as OutFile:
             nIR[k1] = np.sqrt(1.0 + pressure[k1]*nIR[k1])
             VF_IR.append(units.c_light/nIR[k1]) # phase velocity of IR
             
-            f1 = XUV_index.getf('Ar', mn.ConvertPhoton(q*omega0, 'omegaSI', 'eV'))[0]
-            nXUV.append(1.0 - rho0_init*units.r_electron_classical*(mn.ConvertPhoton(q*omega0,'omegaSI','lambdaSI')**2)*f1/(2.0*np.pi))
-            VF_XUV = units.c_light/nXUV[k1] # phase velocity of XUV
+            nXUV.append([]); VF_XUV.append([])
+            for k2 in range(NH):
+                q = Horders[k2]
+                f1 = XUV_index.getf('Ar', mn.ConvertPhoton(q*omega0, 'omegaSI', 'eV'))[0]
+                nXUV[k1].append(1.0 - rho0_init*units.r_electron_classical*(mn.ConvertPhoton(q*omega0,'omegaSI','lambdaSI')**2)*f1/(2.0*np.pi))
+                VF_XUV[k1].append(units.c_light/nXUV[k1][k2]) # phase velocity of XUV
             
             for k2 in range(len(zgrid[k1])):
                 ogrid_nn, FE_s, NF = mn.fft_t_nonorm(tgrid[k1], Efield_onaxis_s[k1][:,k2]) # transform to omega space
