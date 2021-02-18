@@ -156,7 +156,9 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
 
             delta_t_IR_phase = -1e15*zgrid[-1]*(1.0/units.c_light - 1.0/VF_IR)
             delta_t_IR_group = -1e15*zgrid[-1]*(1.0/units.c_light - 1.0/VG_IR)
-            delta_t_XUV_phase = -1e15*zgrid[-1]*(1.0/units.c_light - 1.0/VF_XUV[0])
+            delta_t_XUV_phase = []
+            for k1 in range(NH):
+                delta_t_XUV_phase.append(-1e15*zgrid[-1]*(1.0/units.c_light - 1.0/VF_XUV[k1]))
             
             dset_id = grp.create_dataset('delta_t_IR_phase', data=-1e15*zgrid[-1]*(1.0/units.c_light - 1.0/VF_IR))
             dset_id.attrs['units'] = np.string_('[fs]')            
@@ -164,7 +166,7 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
             dset_id = grp.create_dataset('delta_t_IR_group', data=-1e15*zgrid[-1]*(1.0/units.c_light - 1.0/VG_IR))
             dset_id.attrs['units'] = np.string_('[fs]')
 
-            dset_id = grp.create_dataset('delta_t_XUV_phase', data=-1e15*zgrid[-1]*(1.0/units.c_light - 1.0/VF_XUV[0]))
+            dset_id = grp.create_dataset('delta_t_XUV_phase', data=np.asarray(delta_t_XUV_phase))
             dset_id.attrs['units'] = np.string_('[fs]')
 
             dset_id = grp.create_dataset('T0_IR', data=1e15*mn.ConvertPhoton(omega0,'omegaSI','T0SI'))
@@ -184,7 +186,7 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
             # store in dataframe
             # df_delta_t_columns = ['pressure', 'ionisation', 'Intensity', 'IR phase', 'IR group', 'XUV phase']
             # df_delta_t = pd.DataFrame(columns = df_delta_t_columns)
-            df_delta_t.loc[len(df_delta_t)+1] = [1e3*pressure, 100*pre_ion_ratio, 1e-18*I0, delta_t_IR_phase, delta_t_IR_group, delta_t_XUV_phase]
+            df_delta_t.loc[len(df_delta_t)+1] = [1e3*pressure, 100*pre_ion_ratio, 1e-18*I0, delta_t_IR_phase, delta_t_IR_group, delta_t_XUV_phase[0]]
 
             # ===============================================
             # Shift fields
