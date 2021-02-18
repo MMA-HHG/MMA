@@ -330,13 +330,14 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
                     plt.show()
                 
                 # Coherence length
-                plt.pcolor(1e3*zgrid, 1e6*rgrid, Lcoh_map, vmax=0.3)
-                plt.xlabel('z [mm]')
-                plt.ylabel('r [mum]')
-                plt.title('Lcoh [m]')
-                plt.colorbar()
-                plt.savefig('Lcoh_map_'+str(k_sim)+'.png', dpi = 600)
-                plt.show()
+                    Lcoh_map_XUV = np.abs(np.pi/(dPhi_dz_map + k0_wave*(nXUV[k1]-1.0)))
+                    plt.pcolor(1e3*zgrid, 1e6*rgrid, Lcoh_map_XUV, vmax=0.3)
+                    plt.xlabel('z [mm]')
+                    plt.ylabel('r [mum]')
+                    plt.title('Lcoh [m]')
+                    plt.colorbar()
+                    plt.savefig('Lcoh_map_'+str(k_sim)+'_'+str(Horders[k1])+'.png', dpi = 600)
+                    plt.show()
                 
             if Coherence_length or Beam_analysis:
                 # Phase(r,z,t=t_fix) # not unwrapped, should be not difficult in a smooth case, or use some 2D-unwprapping
