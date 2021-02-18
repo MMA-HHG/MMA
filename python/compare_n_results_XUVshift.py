@@ -30,6 +30,7 @@ files = ['results_1.h5', 'results_4.h5', 'results_7.h5', 'results_10.h5', 'resul
 # files = ['results_2.h5', 'results_17.h5']
 # files = ['results_1.h5', 'results_2.h5', 'results_3.h5']
 files = ['results_1.h5', 'results_16.h5']
+files = ['results_1.h5', 'results_4.h5', 'results_7.h5']
 
 
 # labels = ['p=15 mbar', 'p=35 mbar'], ['Pi=0 %', 'Pi=4 %','Pi=8 %', 'Pi=12 %', 'Pi=16 %'], ['I0=1e14 W/cm2', 'I0=1.75e14 W/cm2', 'I0=2.5e14 W/cm2']
@@ -131,7 +132,7 @@ with h5py.File(out_h5name,'w') as OutFile:
                 delta_z = zgrid[k1][k2] # local shift
                 delta_t_lab = inverse_GV[k1]*delta_z # shift to the laboratory frame
                 delta_t = delta_t_lab - delta_z/units.c_light # shift to the coordinates moving by c.
-                delta_t_XUV = delta_t_lab - delta_z/VF_XUV # shift to the coordinates moving by XUV phase.
+                delta_t_XUV = delta_t_lab - delta_z/VF_XUV[k1][0] # shift to the coordinates moving by XUV phase.
                 
                 FE_s_XUV = np.exp(1j*ogrid_nn*delta_t_XUV) * FE_s # phase factor
                 FE_s = np.exp(1j*ogrid_nn*delta_t) * FE_s # phase factor
@@ -199,7 +200,7 @@ with h5py.File(out_h5name,'w') as OutFile:
         plt.plot(zgrid[k1], dPhi_dz_map_XUV[k1][len(tgrid[k1])//2,:], linewidth=0.2, label=labels[k1])
         
         k0_wave = 2.0*np.pi/mn.ConvertPhoton(omega0,'omegaSI','lambdaSI')
-        dPhi_dz_map_XUV2.append(dPhi_dz_map[k1] + k0_wave*(nXUV[k1]-1))
+        dPhi_dz_map_XUV2.append(dPhi_dz_map[k1] + k0_wave*(nXUV[k1][0]-1))
         plt.plot(zgrid[k1], dPhi_dz_map_XUV2[k1][len(tgrid[k1])//2,:], linestyle = '--', linewidth=0.2, label=labels[k1])
     
     # for k1 in range(Nfiles):
