@@ -212,10 +212,18 @@ with h5py.File(out_h5name,'w') as OutFile:
     plt.savefig('Lcoh.png', dpi = 600)
     plt.show()
     
-    # print(zgrid[0][-1])
-    # print(zgrid[1][-1])
-    # print(1e15*(zgrid[0][-1]-zgrid[1][-1])*(1/units.c_light-1/VF_IR[0]))
-            
+
+    # Plot all orders for the first file
+    for k2 in range(NH):
+        k0_wave = 2.0*np.pi/mn.ConvertPhoton(omega0,'omegaSI','lambdaSI')
+        Harm_map = dPhi_dz_map[0] + k0_wave*(nXUV[0][k2]-1)
+        plt.plot(zgrid[k1], Harm_map[len(tgrid[k1])//2,:], linestyle = '-', linewidth=0.2, label=str(k2))
+      
+    plt.legend(loc='best')
+    plt.xlabel('z [m]')
+    plt.ylabel('Lcoh [m]')
+    plt.savefig('Lcoh_Harm.png', dpi = 600)
+    plt.show()
         
         
 
