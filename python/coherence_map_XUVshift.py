@@ -34,9 +34,11 @@ files = ['results_19.h5']
 
 out_h5name = 'analyses.h5'
 
-q = 23 # harmonic of our interest
+# q = 23 # harmonic of our interest
 t_fix = 0.0 # the time of our interest to inspect e.g. phase
 fluence_source = 'computed' # options: 'file', 'computed'
+
+Horders = [19, 21, 23, 25, 27]
 
 tlim = [-60.0,60.0]
 
@@ -47,7 +49,7 @@ Beam_analysis = False
 Efield_analysis = False
 
 rmax = 200e-6 # only for analyses
-dr = rmax/3.0
+dr = rmax/40.0
 
 Gaussian_curvature = True # print Gaussian curvature, it is applied only in the first run
 
@@ -62,6 +64,8 @@ if os.path.exists(OutPath) and os.path.isdir(OutPath):
 os.mkdir(OutPath)
 
 os.chdir(OutPath)
+
+NH = len(Horders)
 
 df_delta_t_columns = pd.MultiIndex.from_arrays([['pressure', 'ionisation', 'Intensity'        ,'IR phase','IR group','XUV phase'],
                                                 ['{[bar]}',     '[\%]',      '$10^{14}$ [W/cm2]','[fs]',    '[fs]',    '[fs]']])
@@ -115,7 +119,7 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
             zR = np.pi * w0**2 / mn.ConvertPhoton(omega0,'omegaSI','lambdaSI')
             zgridzR = np.linspace(0,zR,100)
         
-            rho0_atm = 1e6 * mn.readscalardataset(InputArchive, '/inputs/calculated/medium_effective_density_of_neutral_molecules','N')
+            rho0_init = 1e6 * mn.readscalardataset(InputArchive, '/inputs/calculated/medium_effective_density_of_neutral_molecules','N')
             pressure = InputArchive['/inputs/medium_pressure_in_bar'][()]
             
             pre_ion_ratio = InputArchive['/pre_ionised/initial_electrons_ratio'][()]
@@ -132,9 +136,14 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
             # See also (2.80) in Attwood: X-Rays and Extreme Ultraviolet Radiation Principles and Applications; 2016
             # IR is given by the Dalgarno, Kingston; 1960
             
-            f1 = XUV_index.getf('Ar', mn.ConvertPhoton(q*omega0, 'omegaSI', 'eV'))[0]
-            nXUV = 1 - pressure*rho0_atm*units.r_electron_classical*(mn.ConvertPhoton(q*omega0,'omegaSI','lambdaSI')**2)*f1/(2.0*np.pi)
-            VF_XUV = units.c_light/nXUV # phase velocity of XUV
+            # For all harmonics
+            nXUV = []
+            VF_XUV = []
+            for k1 in range(NH):
+                q = Horders[k1]
+                f1 = XUV_index.getf('Ar', mn.ConvertPhoton(q*omega0, 'omegaSI', 'eV'))[0]
+                nXUV.append( 1.0 - rho0_init*units.r_electron_classical*(mn.ConvertPhoton(q*omega0,'omegaSI','lambdaSI')**2)*f1/(2.0*np.pi) )
+                VF_XUV.append( units.c_light/nXUV[k1] ) # phase velocity of XUV
             
             nIR = IR_index.getsusc('Ar', mn.ConvertPhoton(omega0,'omegaSI','lambdaSI'))
             nIR = np.sqrt(1.0 + pressure*nIR)
@@ -145,7 +154,7 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
 
             delta_t_IR_phase = -1e15*zgrid[-1]*(1.0/units.c_light - 1.0/VF_IR)
             delta_t_IR_group = -1e15*zgrid[-1]*(1.0/units.c_light - 1.0/VG_IR)
-            delta_t_XUV_phase = -1e15*zgrid[-1]*(1.0/units.c_light - 1.0/VF_XUV)
+            delta_t_XUV_phase = -1e15*zgrid[-1]*(1.0/units.c_light - 1.0/VF_XUV[0])
             
             dset_id = grp.create_dataset('delta_t_IR_phase', data=-1e15*zgrid[-1]*(1.0/units.c_light - 1.0/VF_IR))
             dset_id.attrs['units'] = np.string_('[fs]')            
@@ -153,7 +162,7 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
             dset_id = grp.create_dataset('delta_t_IR_group', data=-1e15*zgrid[-1]*(1.0/units.c_light - 1.0/VG_IR))
             dset_id.attrs['units'] = np.string_('[fs]')
 
-            dset_id = grp.create_dataset('delta_t_XUV_phase', data=-1e15*zgrid[-1]*(1.0/units.c_light - 1.0/VF_XUV))
+            dset_id = grp.create_dataset('delta_t_XUV_phase', data=-1e15*zgrid[-1]*(1.0/units.c_light - 1.0/VF_XUV[0]))
             dset_id.attrs['units'] = np.string_('[fs]')
 
             dset_id = grp.create_dataset('T0_IR', data=1e15*mn.ConvertPhoton(omega0,'omegaSI','T0SI'))
@@ -188,7 +197,7 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
                 delta_z = zgrid[k1] # local shift
                 delta_t_lab = inverse_GV*delta_z # shift to the laboratory frame
                 delta_t_vac = delta_t_lab - delta_z/units.c_light # shift to the coordinates moving by c.
-                delta_t_XUV = delta_t_lab - delta_z/VF_XUV # shift to the coordinates moving by XUV phase.
+                delta_t_XUV = delta_t_lab - delta_z/VF_XUV[0] # shift to the coordinates moving by XUV phase.
                 for k2 in range(Nr):
                     ogrid_nn, FE_s, NF = mn.fft_t_nonorm(tgrid, Efield[:,k2,k1]) # transform to omega space
                     
@@ -312,10 +321,13 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
             if Coherence_length:
                 
                 # dPhi/dz
-                plt.pcolor(zgrid, rgrid, dPhi_dz_map)
-                plt.colorbar()
-                plt.savefig('dPhidz_map_'+str(k_sim)+'.png', dpi = 600)
-                plt.show()
+                for k1 in range(NH):
+                    k0_wave = 2.0*np.pi/mn.ConvertPhoton(omega0,'omegaSI','lambdaSI')
+                    
+                    plt.pcolor(zgrid, rgrid, dPhi_dz_map + k0_wave*(nXUV[k1]-1.0))
+                    plt.colorbar()
+                    plt.savefig('dPhidz_map_'+str(k_sim)+'_'+str(Horders[k1])+'.png', dpi = 600)
+                    plt.show()
                 
                 # Coherence length
                 plt.pcolor(1e3*zgrid, 1e6*rgrid, Lcoh_map, vmax=0.3)
@@ -365,7 +377,7 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
                 plt.show()
             
                 # ionisation(r,z,t=t_fix)
-                plt.pcolor(1e3*zgrid, 1e6*rgrid, 100.0*ionisation_tfix_map/rho0_atm)
+                plt.pcolor(1e3*zgrid, 1e6*rgrid, 100.0*ionisation_tfix_map/rho0_init)
                 plt.xlabel('z [mm]')
                 plt.ylabel('r [mum]')
                 plt.title('electron density [%]')
@@ -374,7 +386,7 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
                 plt.show()
             
                 # ionisation(r=0,z=zmax/2,t)
-                plt.plot(1e15*tgrid, 100.0*electron_density_map[:,0,Nz//2]/rho0_atm)
+                plt.plot(1e15*tgrid, 100.0*electron_density_map[:,0,Nz//2]/rho0_init)
                 plt.xlabel('t [fs]')
                 plt.ylabel('electron density [%]')
                 plt.title('z = ' + str(1e3*zgrid[Nz//2]) + ' mm')
