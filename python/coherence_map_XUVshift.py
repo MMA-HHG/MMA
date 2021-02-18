@@ -29,8 +29,8 @@ files = glob.glob('results_*.h5')
 os.chdir(cwd)
 
 # files = ['results_1.h5','results_25.h5','results_2.h5']
-files = ['results_1.h5']
-files = ['results_19.h5']
+# files = ['results_1.h5']
+# files = ['results_19.h5']
 
 out_h5name = 'analyses.h5'
 
@@ -39,6 +39,8 @@ t_fix = 0.0 # the time of our interest to inspect e.g. phase
 fluence_source = 'computed' # options: 'file', 'computed'
 
 Horders = [19, 21, 23, 25, 27]
+
+Lcoh_saturation = 0.2
 
 tlim = [-60.0,60.0]
 
@@ -331,7 +333,7 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
                 
                 # Coherence length
                     Lcoh_map_XUV = np.abs(np.pi/(dPhi_dz_map + k0_wave*(nXUV[k1]-1.0)))
-                    plt.pcolor(1e3*zgrid, 1e6*rgrid, Lcoh_map_XUV, vmax=0.3)
+                    plt.pcolor(1e3*zgrid, 1e6*rgrid, Lcoh_map_XUV, vmax=Lcoh_saturation)
                     plt.xlabel('z [mm]')
                     plt.ylabel('r [mum]')
                     plt.title('Lcoh [m]')
