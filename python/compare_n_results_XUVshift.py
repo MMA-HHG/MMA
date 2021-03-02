@@ -20,9 +20,15 @@ from contextlib import ExitStack
 
 # =============================================================================
 # Inputs of the script
+arguments = sys.argv
 
-# results_path = os.path.join("/mnt", "d", "data", "Discharges") # 'D:\data\Discharges'
-results_path = os.path.join("D:\data", "Discharges")
+if ('-here' in arguments):
+    results_path = os.getcwd()
+else:
+    # results_path = os.path.join("/mnt", "d", "data", "Discharges") # 'D:\data\Discharges'
+    results_path = os.path.join("D:\data", "Discharges")
+    
+    
 cwd = os.getcwd()
 # os.chdir(results_path)
 files = ['results_1.h5', 'results_4.h5', 'results_7.h5', 'results_10.h5', 'results_13.h5']
@@ -32,7 +38,7 @@ files = ['results_1.h5', 'results_4.h5', 'results_7.h5', 'results_10.h5', 'resul
 files = ['results_1.h5', 'results_16.h5']
 files = ['results_1.h5', 'results_4.h5', 'results_7.h5']
 
-files = ['results_1.h5', 'results_1.h5']
+files = ['results_1.h5', 'results_10.h5']
 
 
 # labels = ['p=15 mbar', 'p=35 mbar'], ['Pi=0 %', 'Pi=4 %','Pi=8 %', 'Pi=12 %', 'Pi=16 %'], ['I0=1e14 W/cm2', 'I0=1.75e14 W/cm2', 'I0=2.5e14 W/cm2']
@@ -48,7 +54,7 @@ out_h5name = 'analyses.h5'
 
 Horders = [19, 21, 23, 25, 27]
 
-gas_type = 'Ar'
+gas_type = 'Kr'
 
 # q = Horders[2]
 

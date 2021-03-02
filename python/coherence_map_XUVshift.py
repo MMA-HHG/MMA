@@ -22,16 +22,16 @@ import IR_refractive_index as IR_index
 # Inputs of the script
 
 # results_path = os.path.join("/mnt", "d", "data", "Discharges") # 'D:\data\Discharges'
-# results_path = os.path.join("D:\data", "Discharges")
-results_path = os.path.join("D:\TEMP", "OCCIGEN_CUPRAD", "tests", "sim")
+results_path = os.path.join("D:\data", "Discharges")
+# results_path = os.path.join("D:\TEMP", "OCCIGEN_CUPRAD", "tests", "sim")
 cwd = os.getcwd()
 os.chdir(results_path)
 files = glob.glob('results_*.h5')
 os.chdir(cwd)
 
 # files = ['results_1.h5','results_25.h5','results_2.h5']
-files = ['results_1.h5']
-files = ['results.h5']
+# files = ['results_1.h5']
+# files = ['results.h5']
 # files = ['results_19.h5']
 
 out_h5name = 'analyses.h5'
@@ -41,7 +41,7 @@ t_fix = 0.0e-15 # the time of our interest to inspect e.g. phase
 fluence_source = 'computed' # options: 'file', 'computed'
 
 
-gas_type = 'Ar'
+gas_type = 'Kr'
 
 Horders = [19, 21, 23, 25, 27]
 
@@ -229,6 +229,18 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
             plt.ylabel('E [V/m]')
             plt.savefig('Field_shifts_lines_'+str(k_sim)+'.png', dpi = 600)
             plt.show()
+ 
+            
+            plt.plot(1e15*tgrid, Efield_s[:,0,0], linewidth=0.2, label='z='+str(zgrid[0]) )
+            plt.plot(1e15*tgrid, Efield_s[:,0,Nz//2], linewidth=0.2, label='z='+str(zgrid[Nz//2]) )
+            plt.plot(1e15*tgrid, Efield_s[:,0,-1], linewidth=0.2, label='z='+str(zgrid[-1]) )
+            plt.xlim(tlim)
+            plt.legend(loc='best')
+            plt.xlabel('t [fs]')
+            plt.ylabel('E [V/m]')
+            plt.savefig('Field_vacuum_z_evol_'+str(k_sim)+'.png', dpi = 600)
+            plt.show()
+            
             
             # E(r=0,z,t) in the vacuum frame
             plt.pcolor(1e3*zgrid, 1e15*tgrid, np.squeeze(Efield_s_XUV[:,0,:]))
