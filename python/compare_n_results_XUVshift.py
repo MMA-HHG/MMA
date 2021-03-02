@@ -32,6 +32,8 @@ files = ['results_1.h5', 'results_4.h5', 'results_7.h5', 'results_10.h5', 'resul
 files = ['results_1.h5', 'results_16.h5']
 files = ['results_1.h5', 'results_4.h5', 'results_7.h5']
 
+files = ['results_1.h5', 'results_1.h5']
+
 
 # labels = ['p=15 mbar', 'p=35 mbar'], ['Pi=0 %', 'Pi=4 %','Pi=8 %', 'Pi=12 %', 'Pi=16 %'], ['I0=1e14 W/cm2', 'I0=1.75e14 W/cm2', 'I0=2.5e14 W/cm2']
 labels = ['a','b','c','d','e','f']
@@ -45,6 +47,9 @@ outgraph_name = 'Field_compare'
 out_h5name = 'analyses.h5'
 
 Horders = [19, 21, 23, 25, 27]
+
+gas_type = 'Ar'
+
 # q = Horders[2]
 
 tlim = [-60.0,60.0]
@@ -115,14 +120,14 @@ with h5py.File(out_h5name,'w') as OutFile:
             
             dens.append(rho0_init)
             
-            nIR.append(IR_index.getsusc('Ar', mn.ConvertPhoton(omega0,'omegaSI','lambdaSI')))
+            nIR.append(IR_index.getsusc(gas_type, mn.ConvertPhoton(omega0,'omegaSI','lambdaSI')))
             nIR[k1] = np.sqrt(1.0 + pressure[k1]*nIR[k1])
             VF_IR.append(units.c_light/nIR[k1]) # phase velocity of IR
             
             nXUV.append([]); VF_XUV.append([])
             for k2 in range(NH):
                 q = Horders[k2]
-                f1 = XUV_index.getf('Ar', mn.ConvertPhoton(q*omega0, 'omegaSI', 'eV'))[0]
+                f1 = XUV_index.getf(gas_type, mn.ConvertPhoton(q*omega0, 'omegaSI', 'eV'))[0]
                 nXUV[k1].append(1.0 - rho0_init*units.r_electron_classical*(mn.ConvertPhoton(q*omega0,'omegaSI','lambdaSI')**2)*f1/(2.0*np.pi))
                 VF_XUV[k1].append(units.c_light/nXUV[k1][k2]) # phase velocity of XUV
             
@@ -217,7 +222,7 @@ with h5py.File(out_h5name,'w') as OutFile:
     for k2 in range(NH):
         k0_wave = 2.0*np.pi/mn.ConvertPhoton(omega0,'omegaSI','lambdaSI')
         Harm_map = dPhi_dz_map[0] + k0_wave*(nXUV[0][k2]-1)
-        plt.plot(zgrid[k1], Harm_map[len(tgrid[k1])//2,:], linestyle = '-', linewidth=0.2, label=str(k2))
+        plt.plot(zgrid[k1], Harm_map[len(tgrid[k1])//2,:], linestyle = '-', linewidth=0.2, label=str(Horders[k2]))
       
     plt.legend(loc='best')
     plt.xlabel('z [m]')

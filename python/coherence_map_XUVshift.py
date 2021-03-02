@@ -22,14 +22,16 @@ import IR_refractive_index as IR_index
 # Inputs of the script
 
 # results_path = os.path.join("/mnt", "d", "data", "Discharges") # 'D:\data\Discharges'
-results_path = os.path.join("D:\data", "Discharges")
+# results_path = os.path.join("D:\data", "Discharges")
+results_path = os.path.join("D:\TEMP", "OCCIGEN_CUPRAD", "tests", "sim")
 cwd = os.getcwd()
 os.chdir(results_path)
 files = glob.glob('results_*.h5')
 os.chdir(cwd)
 
 # files = ['results_1.h5','results_25.h5','results_2.h5']
-# files = ['results_1.h5']
+files = ['results_1.h5']
+files = ['results.h5']
 # files = ['results_19.h5']
 
 out_h5name = 'analyses.h5'
@@ -37,6 +39,9 @@ out_h5name = 'analyses.h5'
 # q = 23 # harmonic of our interest
 t_fix = 0.0e-15 # the time of our interest to inspect e.g. phase
 fluence_source = 'computed' # options: 'file', 'computed'
+
+
+gas_type = 'Ar'
 
 Horders = [19, 21, 23, 25, 27]
 
@@ -144,11 +149,11 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
             VF_XUV = []
             for k1 in range(NH):
                 q = Horders[k1]
-                f1 = XUV_index.getf('Ar', mn.ConvertPhoton(q*omega0, 'omegaSI', 'eV'))[0]
+                f1 = XUV_index.getf(gas_type, mn.ConvertPhoton(q*omega0, 'omegaSI', 'eV'))[0]
                 nXUV.append( 1.0 - rho0_init*units.r_electron_classical*(mn.ConvertPhoton(q*omega0,'omegaSI','lambdaSI')**2)*f1/(2.0*np.pi) )
                 VF_XUV.append( units.c_light/nXUV[k1] ) # phase velocity of XUV
             
-            nIR = IR_index.getsusc('Ar', mn.ConvertPhoton(omega0,'omegaSI','lambdaSI'))
+            nIR = IR_index.getsusc(gas_type, mn.ConvertPhoton(omega0,'omegaSI','lambdaSI'))
             nIR = np.sqrt(1.0 + pressure*nIR)
             VF_IR = units.c_light/nIR # phase velocity of IR
             
