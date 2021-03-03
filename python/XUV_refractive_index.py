@@ -13,8 +13,10 @@ import sys
 import os
 import shutil
 
+THIS_DIR = os.path.dirname(os.path.abspath(__file__))
 
-source_archive = 'XUV_refractive_index_tables.h5'
+
+source_archive = os.path.join(THIS_DIR, 'XUV_refractive_index_tables.h5')
 index_funct = {}
 
 with h5py.File(source_archive, 'r') as SourceFile: # access option http://docs.h5py.org/en/stable/high/file.html#file
