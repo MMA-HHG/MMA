@@ -1,3 +1,5 @@
+! there are still some approximate values: avalanche coefficient
+
 MODULE normalisation
   USE calc_start
 

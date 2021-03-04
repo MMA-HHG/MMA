@@ -8,6 +8,7 @@ import sys
 sys.path.append('D:\git\python_modules')
 import units
 import mynumerics as mn
+import HHG
 # import mynumerics as mn
 import matplotlib.pyplot as plt
 import re
@@ -41,6 +42,7 @@ files = ['results_1.h5', 'results_16.h5']
 files = ['results_1.h5', 'results_4.h5', 'results_7.h5']
 
 files = ['results_1.h5', 'results_10.h5']
+files = ['results_1.h5', 'results_2.h5', 'results_3.h5']
 
 
 # labels = ['p=15 mbar', 'p=35 mbar'], ['Pi=0 %', 'Pi=4 %','Pi=8 %', 'Pi=12 %', 'Pi=16 %'], ['I0=1e14 W/cm2', 'I0=1.75e14 W/cm2', 'I0=2.5e14 W/cm2']
@@ -108,6 +110,8 @@ with h5py.File(out_h5name,'w') as OutFile:
         VF_XUV = []
         
         dens = []
+        Intensity_entry = []
+        Ip_eV = []
         
         for k1 in range(Nfiles):
             # dum = InArch[k1]['/outputs/output_field'][:,0,:]
@@ -123,6 +127,9 @@ with h5py.File(out_h5name,'w') as OutFile:
             omega0 = mn.ConvertPhoton(1e-2*mn.readscalardataset(InArch[0],'/inputs/laser_wavelength','N'),'lambdaSI','omegaSI')
             inverse_GV.append(InArch[k1]['/logs/inverse_group_velocity_SI'][()])
             pressure.append(InArch[k1]['/inputs/medium_pressure_in_bar'][()])
+            
+            Intensity_entry.append(InArch[k1]['/inputs/laser_intensity_entry'][()])
+            Ip_eV.append(InArch[k1]['/inputs/ionization_ionization_poential_of_neutral_molecules'][()])
             
             rho0_init = 1e6 * mn.readscalardataset(InArch[k1], '/inputs/calculated/medium_effective_density_of_neutral_molecules','N')
             
@@ -230,13 +237,21 @@ with h5py.File(out_h5name,'w') as OutFile:
     for k2 in range(NH):
         k0_wave = 2.0*np.pi/mn.ConvertPhoton(omega0,'omegaSI','lambdaSI')
         Harm_map = dPhi_dz_map[0] + k0_wave*(nXUV[0][k2]-1)
-        plt.plot(zgrid[k1], Harm_map[len(tgrid[k1])//2,:], linestyle = '-', linewidth=0.2, label=str(Horders[k2]))
+        plt.plot(zgrid[0], Harm_map[len(tgrid[0])//2,:], linestyle = '-', linewidth=0.2, label=str(Horders[k2]))
       
     plt.legend(loc='best')
     plt.xlabel('z [m]')
     plt.ylabel('Lcoh [m]')
     plt.savefig('Lcoh_Harm.png', dpi = 600)
     if showplots: plt.show()
+    
+    Cutoff_entry = []
+    for k1 in range(Nfiles):
+        Cutoff_entry.append(HHG.ComputeCutoff(Intensity_entry[k1]/units.INTENSITYau,
+                                              mn.ConvertPhoton(omega0,'omegaSI','omegaau'),
+                                              mn.ConvertPhoton(Ip_eV[k1],'eV','omegaau')
+                                              )[1])
+    
         
         
 

@@ -208,7 +208,7 @@ PROGRAM make_start
   IF (ANY( (/1, 2/) ==  switch_rho)) THEN
     CALL save_or_replace(file_id, 'inputs/ionization_mpi_cross_section_for_method_1-2', sigmak_phys, error, units_in = '[s-1cm2K/WK]')
   ELSEIF (3 == switch_rho) THEN
-    CALL save_or_replace(file_id, 'inputs/ionization_ionization_poential_of_neutral_molecules', Ui_eV_phys, error, units_in = '[eV]')
+    CALL save_or_replace(file_id, 'inputs/ionization_ionization_potential_of_neutral_molecules', Ui_eV_phys, error, units_in = '[eV]')
     CALL save_or_replace(file_id, 'inputs/ionization_angular_momentum_for_method_3_7', angular_momentum, error, units_in = '[-]')
     CALL save_or_replace(file_id, 'inputs/ionization_effective_residue_charge_for_method_3-4_7', residue_charge, error, units_in = '[-]')
   ENDIF
