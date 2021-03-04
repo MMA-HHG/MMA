@@ -246,11 +246,13 @@ with h5py.File(out_h5name,'w') as OutFile:
     if showplots: plt.show()
     
     Cutoff_entry = []
+    Plateau_threshold = []
     for k1 in range(Nfiles):
         Cutoff_entry.append(HHG.ComputeCutoff(Intensity_entry[k1]/units.INTENSITYau,
                                               mn.ConvertPhoton(omega0,'omegaSI','omegaau'),
                                               mn.ConvertPhoton(Ip_eV[k1],'eV','omegaau')
                                               )[1])
+        Plateau_threshold.append(mn.ConvertPhoton(Ip_eV[k1],'eV','omegaau')/mn.ConvertPhoton(omega0,'omegaSI','omegaau'))
     
         
         
