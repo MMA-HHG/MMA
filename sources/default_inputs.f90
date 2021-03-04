@@ -67,8 +67,9 @@ integer         :: switch_ionisation, switch_atom
 
 
     select case(switch_atom)
+    ! ionization potentials https://en.wikipedia.org/wiki/Ionization_energies_of_the_elements_(data_page)
     case (1) ! Argon
-        Ui_eV_phys =            15.76D0 ! ionisation potential (eV)
+        Ui_eV_phys =            15.75962D0 ! ionisation potential (eV)
         angular_momentum  =     1 ! (-)
         residue_charge =        1.0D0 ! (-)
 
@@ -77,7 +78,7 @@ integer         :: switch_ionisation, switch_atom
 
 
     case (2) ! Neon
-        Ui_eV_phys =            21.56D0 ! ionisation potential (eV)
+        Ui_eV_phys =            21.5646D0 ! ionisation potential (eV)
         angular_momentum  =     1 ! (-)
         residue_charge =        1.0D0 ! (-)
 
@@ -85,7 +86,7 @@ integer         :: switch_ionisation, switch_atom
         n2_phys =               1.d-19 ! Kerr as in n_2*I (cm2/W)
 
     case (3) ! Xenon
-        Ui_eV_phys =            12.13D0 ! ionisation potential (eV)
+        Ui_eV_phys =            12.1298D0 ! ionisation potential (eV)
         angular_momentum  =     1 ! (-)
         residue_charge =        1.0D0 ! (-)
 
@@ -93,7 +94,7 @@ integer         :: switch_ionisation, switch_atom
         n2_phys =               1.d-19 ! Kerr as in n_2*I (cm2/W)
 
     case (4) ! Krypton
-        Ui_eV_phys =            14.00D0 ! ionisation potential (eV)
+        Ui_eV_phys =            13.99961D0 ! ionisation potential (eV)
         angular_momentum  =     1 ! (-)
         residue_charge =        1.0D0 ! (-)
 
