@@ -22,6 +22,8 @@ from contextlib import ExitStack
 # Inputs of the script
 arguments = sys.argv
 
+showplots = not('-nodisplay' in arguments)
+
 if ('-here' in arguments):
     results_path = os.getcwd()
 else:
@@ -199,7 +201,7 @@ with h5py.File(out_h5name,'w') as OutFile:
     plt.xlabel('t [fs]')
     plt.ylabel('E [V/m]')
     plt.savefig(outgraph_name+'.png', dpi = 600)
-    plt.show()
+    if showplots: plt.show()
     
     print(zgrid[0][-1])
     print(zgrid[1][-1])
@@ -221,7 +223,7 @@ with h5py.File(out_h5name,'w') as OutFile:
     plt.xlabel('z [m]')
     plt.ylabel('Lcoh [m]')
     plt.savefig('Lcoh.png', dpi = 600)
-    plt.show()
+    if showplots: plt.show()
     
 
     # Plot all orders for the first file
@@ -234,7 +236,7 @@ with h5py.File(out_h5name,'w') as OutFile:
     plt.xlabel('z [m]')
     plt.ylabel('Lcoh [m]')
     plt.savefig('Lcoh_Harm.png', dpi = 600)
-    plt.show()
+    if showplots: plt.show()
         
         
 
