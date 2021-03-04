@@ -9,4 +9,4 @@
 module purge
 module load intelpython3/2019.3
 
-python $PYTHON_CUPRAD/coherence_map_XUVshift.py -here
+python $PYTHON_CUPRAD/compare_n_results_XUVshift.py -here
