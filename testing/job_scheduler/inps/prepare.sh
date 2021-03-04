@@ -9,7 +9,7 @@ rm *.h5
 
 module purge
 module load intel/17.2 python/3.6.3
-python3 $UNIV_INPUT_PATH/process_multiparametric.py -i-reg ELI4.inp -i-mp ELI4_MP.inp -multiparam-groups -keep-intermediate -univ-inps -ohdf5 results.h5 -g inputs
+python3 $UNIV_INPUT_PATH/process_multiparametric.py -i-reg ELI5.inp -i-mp ELI5_MP.inp -multiparam-groups -keep-intermediate -univ-inps -ohdf5 results.h5 -g inputs
 
 cp multiparameters/*.h5 .
 
