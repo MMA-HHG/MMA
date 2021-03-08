@@ -8,6 +8,7 @@ import sys
 sys.path.append('D:\git\python_modules')
 import units
 import mynumerics as mn
+import HHG
 # import mynumerics as mn
 import matplotlib.pyplot as plt
 import re
@@ -118,8 +119,8 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
                 dr_file = rgrid[1]-rgrid[0]; kr_step = max(1,int(np.floor(dr/dr_file))); Nr_max = mn.FindInterval(rgrid, rmax)
                 rgrid = rgrid[0:Nr_max:kr_step]; Nr = len(rgrid)
                 
-            Efield = InputArchive['/outputs/output_field'][:,0:Nr_max:kr_step,:]
-            electron_density_map = InputArchive['/outputs/output_plasma'][:,0:Nr_max:kr_step,:]            
+            Efield = InputArchive['/outputs/output_field'][:,0:Nr_max:kr_step,:Nz] # Arrays may be over-allocated by CUPRAD
+            electron_density_map = InputArchive['/outputs/output_plasma'][:,0:Nr_max:kr_step,:Nz]            
             
             inverse_GV = InputArchive['/logs/inverse_group_velocity_SI'][()]
             VG_IR = 1.0/inverse_GV
@@ -129,6 +130,9 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
         
             rho0_init = 1e6 * mn.readscalardataset(InputArchive, '/inputs/calculated/medium_effective_density_of_neutral_molecules','N')
             pressure = InputArchive['/inputs/medium_pressure_in_bar'][()]
+            
+            Intensity_entry = InputArchive['/inputs/laser_intensity_entry'][()]
+            Ip_eV = InputArchive['/inputs/ionization_ionization_potential_of_neutral_molecules'][()]
             
             pre_ion_ratio = InputArchive['/pre_ionised/initial_electrons_ratio'][()]
             I0 = InputArchive['/inputs/laser_intensity_entry'][()]
@@ -178,8 +182,21 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
             dset_id = grp.create_dataset('T0_IR', data=1e15*mn.ConvertPhoton(omega0,'omegaSI','T0SI'))
             dset_id.attrs['units'] = np.string_('[fs]')            
 
-            dset_id = grp.create_dataset('T0_XUV', data=1e15*mn.ConvertPhoton(q*omega0,'omegaSI','T0SI'))
+            dset_id = grp.create_dataset('investigated_harmonic_orders', data=np.asarray(Horders))
+            dset_id.attrs['units'] = np.string_('[-]')
+            
+            T0_XUV = []
+            for k1 in range(NH): T0_XUV.append(1e15*mn.ConvertPhoton(q*omega0,'omegaSI','T0SI'))
+            dset_id = grp.create_dataset('T0_XUV', data=np.asarray(T0_XUV))
             dset_id.attrs['units'] = np.string_('[fs]')
+                
+            dset_id = grp.create_dataset('entry_cutoff',
+                                         data=HHG.ComputeCutoff(
+                                              Intensity_entry/units.INTENSITYau,
+                                              mn.ConvertPhoton(omega0,'omegaSI','omegaau'),
+                                              mn.ConvertPhoton(Ip_eV,'eV','omegaau')
+                                              )[1])
+            dset_id.attrs['units'] = np.string_('[-]')               
 
             print('characteristic velocities')
             print(units.c_light,VF_IR,1.0/inverse_GV,VF_XUV, sep='\n')

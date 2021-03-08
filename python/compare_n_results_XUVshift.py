@@ -43,7 +43,7 @@ files = ['results_1.h5', 'results_4.h5', 'results_7.h5']
 
 files = ['results_1.h5', 'results_10.h5']
 files = ['results_1.h5', 'results_2.h5', 'results_3.h5']
-
+files = ['results_12.h5', 'results_13.h5']
 
 # labels = ['p=15 mbar', 'p=35 mbar'], ['Pi=0 %', 'Pi=4 %','Pi=8 %', 'Pi=12 %', 'Pi=16 %'], ['I0=1e14 W/cm2', 'I0=1.75e14 W/cm2', 'I0=2.5e14 W/cm2']
 labels = ['a','b','c','d','e','f']
@@ -115,21 +115,25 @@ with h5py.File(out_h5name,'w') as OutFile:
         
         for k1 in range(Nfiles):
             # dum = InArch[k1]['/outputs/output_field'][:,0,:]
-            Efield_onaxis_s.append(InArch[k1]['/outputs/output_field'][:,0,:])
-            Efield_onaxis_s_XUV.append(np.zeros(Efield_onaxis_s[k1].shape))
             
             # Efield_s.append(InArch[k1]['/outputs/output_field'][:])
             # Efield_s_XUV.append(np.zeros(Efield_s[k1].shape))
             
             
-            zgrid.append(InArch[k1]['/outputs/zgrid'][:])
+            zgrid.append(InArch[k1]['/outputs/zgrid'][:]); Nz_loc=len(zgrid[k1])
+            
+            # We arrived to the problem with possible over-allocation of Efield in CUPRAD
+            Efield_onaxis_s.append(InArch[k1]['/outputs/output_field'][:,0,:Nz_loc])
+            Efield_onaxis_s_XUV.append(np.zeros(Efield_onaxis_s[k1].shape))
+            
+            
             tgrid.append(InArch[k1]['/outputs/tgrid'][:])
             omega0 = mn.ConvertPhoton(1e-2*mn.readscalardataset(InArch[0],'/inputs/laser_wavelength','N'),'lambdaSI','omegaSI')
             inverse_GV.append(InArch[k1]['/logs/inverse_group_velocity_SI'][()])
             pressure.append(InArch[k1]['/inputs/medium_pressure_in_bar'][()])
             
             Intensity_entry.append(InArch[k1]['/inputs/laser_intensity_entry'][()])
-            Ip_eV.append(InArch[k1]['/inputs/ionization_ionization_poential_of_neutral_molecules'][()])
+            Ip_eV.append(InArch[k1]['/inputs/ionization_ionization_potential_of_neutral_molecules'][()])
             
             rho0_init = 1e6 * mn.readscalardataset(InArch[k1], '/inputs/calculated/medium_effective_density_of_neutral_molecules','N')
             
