@@ -200,6 +200,7 @@ with h5py.File(out_h5name,'w') as OutFile:
     # plt.plot(1e15*tgrid, Efield_onaxis_s[:,0], linewidth=0.2, label='z=0')
     # plt.plot(1e15*tgrid, Efield_onaxis_s[:,Nz//2], linewidth=0.2, label='z=0.5zmax')
     
+    fig = plt.figure()
     for k1 in range(Nfiles):
         plt.plot(1e15*tgrid[k1], Efield_onaxis_s[k1][:,-1], linewidth=0.2, label=labels[k1])
         plt.plot(1e15*tgrid[k1], Efield_onaxis_s_XUV[k1][:,-1], linewidth=0.2, label=labels[k1])
@@ -213,12 +214,15 @@ with h5py.File(out_h5name,'w') as OutFile:
     plt.ylabel('E [V/m]')
     plt.savefig(outgraph_name+'.png', dpi = 600)
     if showplots: plt.show()
+    plt.close(fig)
     
     print(zgrid[0][-1])
     print(zgrid[1][-1])
     print(1e15*(zgrid[0][-1]-zgrid[1][-1])*(1/units.c_light-1/VF_IR[0]))
     
     dPhi_dz_map_XUV2 = [] 
+    
+    fig = plt.figure()
     for k1 in range(Nfiles):
         plt.plot(zgrid[k1], dPhi_dz_map[k1][len(tgrid[k1])//2,:], linewidth=0.2, label=labels[k1])
         plt.plot(zgrid[k1], dPhi_dz_map_XUV[k1][len(tgrid[k1])//2,:], linewidth=0.2, label=labels[k1])
@@ -235,9 +239,11 @@ with h5py.File(out_h5name,'w') as OutFile:
     plt.ylabel('Lcoh [m]')
     plt.savefig('Lcoh.png', dpi = 600)
     if showplots: plt.show()
+    plt.close(fig)
     
 
     # Plot all orders for the first file
+    fig = plt.figure()
     for k2 in range(NH):
         k0_wave = 2.0*np.pi/mn.ConvertPhoton(omega0,'omegaSI','lambdaSI')
         Harm_map = dPhi_dz_map[0] + k0_wave*(nXUV[0][k2]-1)
@@ -248,6 +254,7 @@ with h5py.File(out_h5name,'w') as OutFile:
     plt.ylabel('Lcoh [m]')
     plt.savefig('Lcoh_Harm.png', dpi = 600)
     if showplots: plt.show()
+    plt.close(fig)
     
     Cutoff_entry = []
     Plateau_threshold = []
