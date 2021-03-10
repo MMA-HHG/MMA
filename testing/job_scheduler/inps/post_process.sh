@@ -22,11 +22,12 @@ done
 case $analysis in
     general)
       sbatch $TESTPATH/coherence_map_XUVshift.slurm
+      echo 'general submitted'
     #   echo 'plot 1'
       ;;
     compare)
       sbatch $TESTPATH/compare_n_results_XUVshift.slurm
-    #   echo 'plot 2'
+      echo 'comparison submitted'
       ;;
 esac
 

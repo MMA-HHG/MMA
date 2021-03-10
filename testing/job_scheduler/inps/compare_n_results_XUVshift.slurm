@@ -4,7 +4,7 @@
 #SBATCH --constraint=[HSW24|BDW28]
 #SBATCH --ntasks=1
 #SBATCH --time=01:00:00
-#SBATCH --output plot1-%J.output
+#SBATCH --output compare-2-%J.output
 
 module purge
 module load intelpython3/2019.3
