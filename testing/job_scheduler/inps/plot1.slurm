@@ -7,7 +7,6 @@
 #SBATCH --output plot1-%J.output
 
 module purge
-module load qt
 module load intelpython3/2019.3
 
 python $PYTHON_CUPRAD/compare_n_results_XUVshift.py -here -nodisplay
