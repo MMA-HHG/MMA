@@ -22,9 +22,20 @@ import IR_refractive_index as IR_index
 # =============================================================================
 # Inputs of the script
 
+arguments = sys.argv
+
+showplots = not('-nodisplay' in arguments)
+
+if ('-here' in arguments):
+    results_path = os.getcwd()
+else:
+    # results_path = os.path.join("/mnt", "d", "data", "Discharges") # 'D:\data\Discharges'
+    results_path = os.path.join("D:\data", "Discharges")
+
 # results_path = os.path.join("/mnt", "d", "data", "Discharges") # 'D:\data\Discharges'
-results_path = os.path.join("D:\data", "Discharges")
+
 # results_path = os.path.join("D:\TEMP", "OCCIGEN_CUPRAD", "tests", "sim")
+
 cwd = os.getcwd()
 os.chdir(results_path)
 files = glob.glob('results_*.h5')
@@ -237,6 +248,7 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
                     Efield_s_XUV[:,k2,k1] = E_s_XUV.real
                     
                     
+            fig = plt.figure()        
             plt.plot(1e15*tgrid, Efield[:,0,-1], linewidth=0.2, label='orig')
             plt.plot(1e15*tgrid, Efield_s[:,0,-1], linewidth=0.2, label='Vvac')
             plt.plot(1e15*tgrid, Efield_s_XUV[:,0,-1], linewidth=0.2, label='VFXUV')
@@ -245,9 +257,10 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
             plt.xlabel('t [fs]')
             plt.ylabel('E [V/m]')
             plt.savefig('Field_shifts_lines_'+str(k_sim)+'.png', dpi = 600)
-            plt.show()
+            if showplots: plt.show()
+            plt.close(fig)
  
-            
+            fig = plt.figure()
             plt.plot(1e15*tgrid, Efield_s[:,0,0], linewidth=0.2, label='z='+str(zgrid[0]) )
             plt.plot(1e15*tgrid, Efield_s[:,0,Nz//2], linewidth=0.2, label='z='+str(zgrid[Nz//2]) )
             plt.plot(1e15*tgrid, Efield_s[:,0,-1], linewidth=0.2, label='z='+str(zgrid[-1]) )
@@ -256,17 +269,20 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
             plt.xlabel('t [fs]')
             plt.ylabel('E [V/m]')
             plt.savefig('Field_vacuum_z_evol_'+str(k_sim)+'.png', dpi = 600)
-            plt.show()
+            if showplots: plt.show()
+            plt.close(fig)
             
             
             # E(r=0,z,t) in the vacuum frame
+            fig = plt.figure()
             plt.pcolor(1e3*zgrid, 1e15*tgrid, np.squeeze(Efield_s_XUV[:,0,:]))
             plt.xlabel('z [mm]')
             plt.ylabel('t [fs]')
             plt.title('shifted field [V/m]')
             plt.colorbar()
             plt.savefig('Field_shift_'+str(k_sim)+'.png', dpi = 600)
-            plt.show()
+            if showplots: plt.show()
+            plt.close(fig)
 
             # ===============================================
             # Complexify the fields: E(r,z,t) = Re(E_cmplx(r,z,t))
@@ -363,12 +379,15 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
                 for k1 in range(NH):
                     k0_wave = 2.0*np.pi/mn.ConvertPhoton(omega0,'omegaSI','lambdaSI')
                     
+                    fig = plt.figure()
                     plt.pcolor(zgrid, rgrid, dPhi_dz_map + k0_wave*(nXUV[k1]-1.0))
                     plt.colorbar()
                     plt.savefig('dPhidz_map_'+str(k_sim)+'_'+str(Horders[k1])+'.png', dpi = 600)
-                    plt.show()
+                    if showplots: plt.show()
+                    plt.close(fig)
                 
                 # Coherence length
+                    fig = plt.figure()
                     Lcoh_map_XUV = np.abs(np.pi/(dPhi_dz_map + k0_wave*(nXUV[k1]-1.0)))
                     plt.pcolor(1e3*zgrid, 1e6*rgrid, Lcoh_map_XUV, vmin=Lcoh_zero, vmax=Lcoh_saturation)
                     plt.xlabel('z [mm]')
@@ -377,61 +396,75 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
                     plt.colorbar()
                     plt.savefig('Lcoh_map_'+str(k_sim)+'_'+str(Horders[k1])+'.png', dpi = 600)
                     plt.show()
+                    if showplots: plt.show()
+                    plt.close(fig)
                 
             if Coherence_length or Beam_analysis:
                 # Phase(r,z,t=t_fix) # not unwrapped, should be not difficult in a smooth case, or use some 2D-unwprapping
+                fig = plt.figure()
                 plt.pcolor(zgrid,rgrid,phase_map)
                 plt.colorbar()
                 plt.title('Phi [rad]')
                 plt.savefig('Phase_z_map_'+str(k_sim)+'.png', dpi = 600)
-                plt.show()
+                if showplots: plt.show()
+                plt.close(fig)
         
             if Beam_analysis:
                 # Curvature of the beam 
+                fig = plt.figure()
                 plt.pcolor(1e3*zgrid, 1e6*rgrid, Curvature_map, vmax = 0)
                 plt.xlabel('z [mm]')
                 plt.ylabel('r [mum]')
                 plt.title('phi_Curv [rad]')
                 plt.colorbar()
                 plt.savefig('Curvature_map_'+str(k_sim)+'.png', dpi = 600)
-                plt.show()
+                if showplots: plt.show()
+                plt.close(fig)
             
                 # reference Gaussian curvature 
                 if Gaussian_curvature:
                     Gaussian_curvature = False
+                    fig = plt.figure()
                     plt.pcolor(1e3*zgrid, 1e6*rgrid, Curvature_Gaussian_map, vmax = 0)
                     plt.xlabel('z [mm]')
                     plt.ylabel('r [mum]')
                     plt.title('phi_Curv [rad]')
                     plt.colorbar()
                     plt.savefig('Curvature_map_Gauss.png', dpi = 600)
-                    plt.show()
+                    if showplots: plt.show()
+                    plt.close(fig)
             
                 # Fluence
+                fig = plt.figure()
                 plt.pcolor(1e3*zgrid_Fluence, 1e6*rgrid, Fluence)
                 plt.xlabel('z [mm]')
                 plt.ylabel('r [mum]')
                 plt.title('Fluence ['+Fluence_units+']')
                 plt.colorbar()
                 plt.savefig('Fluence_'+str(k_sim)+'.png', dpi = 600)
-                plt.show()
+                if showplots: plt.show()
+                plt.close(fig)
             
                 # ionisation(r,z,t=t_fix)
+                fig = plt.figure()
                 plt.pcolor(1e3*zgrid, 1e6*rgrid, 100.0*ionisation_tfix_map/rho0_init)
                 plt.xlabel('z [mm]')
                 plt.ylabel('r [mum]')
                 plt.title('electron density [%]')
                 plt.colorbar()
                 plt.savefig('ionisation_thalf_'+str(k_sim)+'.png', dpi = 600)
-                plt.show()
+                if showplots: plt.show()
+                plt.close(fig)
             
                 # ionisation(r=0,z=zmax/2,t)
+                fig = plt.figure()
                 plt.plot(1e15*tgrid, 100.0*electron_density_map[:,0,Nz//2]/rho0_init)
                 plt.xlabel('t [fs]')
                 plt.ylabel('electron density [%]')
                 plt.title('z = ' + str(1e3*zgrid[Nz//2]) + ' mm')
                 plt.savefig('ionisation_middle_'+str(k_sim)+'.png', dpi = 600)
-                plt.show()
+                if showplots: plt.show()
+                plt.close(fig)
             
             # if Efield_analysis:
             #     # Field in the vacuum frame
