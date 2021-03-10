@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH -J plot1
+#SBATCH -J compare-2
 #SBATCH --nodes=1
 #SBATCH --constraint=[HSW24|BDW28]
 #SBATCH --ntasks=1
