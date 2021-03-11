@@ -24,13 +24,13 @@ with h5py.File(source_archive, 'r') as SourceFile: # access option http://docs.h
     index_table = {}
     print(gases)
     for gas in gases:
-        local_table ={
+        local_table = {
             'Energy': SourceFile[gas]['Energy'][:],
             'f1': SourceFile[gas]['f1'][:],
             'f2': SourceFile[gas]['f2'][:]
         }
         index_table.update({gas: local_table})
-        local_table ={
+        local_table = {
             'f1': interpolate.interp1d(SourceFile[gas]['Energy'][:],SourceFile[gas]['f1'][:]),
             'f2': interpolate.interp1d(SourceFile[gas]['Energy'][:], SourceFile[gas]['f2'][:])
         }
