@@ -34,9 +34,9 @@ else:
 with h5py.File('tables_Krypton.h5','r') as h5_FSPA_tables:
     interp_FSPA_short = HHG.FSPA.get_dphase(h5_FSPA_tables,'Igrid','Hgrid','short/dphi')
 
-print(interp_FSPA_short[17]([8.47268e-5,9.56486e-5]))
+# print(interp_FSPA_short[17]([8.47268e-5,9.56486e-5]))
 
-sys.exit(0)    
+# sys.exit(0)    
     
 cwd = os.getcwd()
 # os.chdir(results_path)
@@ -271,7 +271,21 @@ with h5py.File(out_h5name,'w') as OutFile:
                                               )[1])
         Plateau_threshold.append(mn.ConvertPhoton(Ip_eV[k1],'eV','omegaau')/mn.ConvertPhoton(omega0,'omegaSI','omegaau'))
     
-        
+    
+    # test f1 values
+    f1_val = []
+    f1_grid = np.linspace(13, 23, 1000)
+    for k1 in range(len(f1_grid)):
+        f1_val.append(XUV_index.getf(gas_type, mn.ConvertPhoton(f1_grid[k1]*omega0, 'omegaSI', 'eV'))[0])
+    f1_val = np.asarray(f1_val)
+    fig = plt.figure()
+    plt.plot(f1_grid,f1_val)
+    # plt.legend(loc='best')
+    plt.xlabel('H [-]')
+    plt.ylabel('f1 [SI]')
+    plt.savefig('f1_vals.png', dpi = 600)
+    if showplots: plt.show()
+    plt.close(fig)
         
 
 os.chdir(cwd)
