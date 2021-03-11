@@ -34,6 +34,8 @@ else:
 with h5py.File('tables_Krypton.h5','r') as h5_FSPA_tables:
     interp_FSPA_short = HHG.FSPA.get_dphase(h5_FSPA_tables,'Igrid','Hgrid','short/dphi')
 
+print(interp_FSPA_short[17]([8.47268e-5,9.56486e-5]))
+
 sys.exit(0)    
     
 cwd = os.getcwd()
