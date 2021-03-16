@@ -65,6 +65,7 @@ out_h5name = 'analyses.h5'
 Horders = [19, 21, 23, 25, 27]
 
 gas_type = 'Kr'
+XUV_table_type = 'Henke' # {Henke, NIST}
 
 # q = Horders[2]
 
@@ -152,7 +153,7 @@ with h5py.File(out_h5name,'w') as OutFile:
             nXUV.append([]); VF_XUV.append([])
             for k2 in range(NH):
                 q = Horders[k2]
-                f1 = XUV_index.getf(gas_type, mn.ConvertPhoton(q*omega0, 'omegaSI', 'eV'))[0]
+                f1 = XUV_index.getf1(gas_type+'_'+XUV_table_type, mn.ConvertPhoton(q*omega0, 'omegaSI', 'eV'))
                 nXUV[k1].append(1.0 - rho0_init*units.r_electron_classical*(mn.ConvertPhoton(q*omega0,'omegaSI','lambdaSI')**2)*f1/(2.0*np.pi))
                 VF_XUV[k1].append(units.c_light/nXUV[k1][k2]) # phase velocity of XUV
             
@@ -274,16 +275,30 @@ with h5py.File(out_h5name,'w') as OutFile:
     
     # test f1 values
     f1_val = []
-    f1_grid = np.linspace(13, 23, 1000)
+    f1_grid = np.linspace(15, 23, 1000)
     for k1 in range(len(f1_grid)):
-        f1_val.append(XUV_index.getf(gas_type, mn.ConvertPhoton(f1_grid[k1]*omega0, 'omegaSI', 'eV'))[0])
+        f1_val.append(XUV_index.getf1(gas_type+'_'+'NIST', mn.ConvertPhoton(f1_grid[k1]*omega0, 'omegaSI', 'eV')))
     f1_val = np.asarray(f1_val)
     fig = plt.figure()
     plt.plot(f1_grid,f1_val)
     # plt.legend(loc='best')
     plt.xlabel('H [-]')
     plt.ylabel('f1 [SI]')
-    plt.savefig('f1_vals.png', dpi = 600)
+    plt.savefig('f1_vals_NIST.png', dpi = 600)
+    if showplots: plt.show()
+    plt.close(fig)
+    
+    f1_val = []
+    f1_grid = np.linspace(15, 23, 1000)
+    for k1 in range(len(f1_grid)):
+        f1_val.append(XUV_index.getf1(gas_type+'_'+'Henke', mn.ConvertPhoton(f1_grid[k1]*omega0, 'omegaSI', 'eV')))
+    f1_val = np.asarray(f1_val)
+    fig = plt.figure()
+    plt.plot(f1_grid,f1_val)
+    # plt.legend(loc='best')
+    plt.xlabel('H [-]')
+    plt.ylabel('f1 [SI]')
+    plt.savefig('f1_vals_Henke.png', dpi = 600)
     if showplots: plt.show()
     plt.close(fig)
         
