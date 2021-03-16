@@ -31,10 +31,10 @@ else:
     # results_path = os.path.join("/mnt", "d", "data", "Discharges") # 'D:\data\Discharges'
     results_path = os.path.join("D:\data", "Discharges")
 
-with h5py.File('tables_Krypton.h5','r') as h5_FSPA_tables:
+with h5py.File('FSPA_tables_Krypton.h5','r') as h5_FSPA_tables:
     interp_FSPA_short = HHG.FSPA.get_dphase(h5_FSPA_tables,'Igrid','Hgrid','short/dphi')
 
-# print(interp_FSPA_short[17]([8.47268e-5,9.56486e-5]))
+print(interp_FSPA_short[17]([8.47268e-5,9.56486e-5]))
 
 # sys.exit(0)    
     
@@ -62,10 +62,10 @@ outgraph_name = 'Field_compare'
 
 out_h5name = 'analyses.h5'
 
-Horders = [19, 21, 23, 25, 27]
+Horders = [15, 17, 19, 21, 23]
 
 gas_type = 'Kr'
-XUV_table_type = 'Henke' # {Henke, NIST}
+XUV_table_type = 'NIST' # {Henke, NIST}
 
 # q = Horders[2]
 
@@ -99,6 +99,15 @@ with h5py.File(out_h5name,'w') as OutFile:
         Efield_onaxis_cmplx_envel = []
         Efield_onaxis_cmplx_envel_XUV = []
         
+        # test intensities
+        Intens_onaxis_envel = []
+        Intens_onaxis_envel_XUV = []
+        
+        dI_dz_map = []
+        dI_dz_map_XUV = []
+        
+        
+        # Phase maps from the propagation
         phase_onaxis_map = []
         phase_onaxis_map_XUV = []
         dPhi_dz_map = []
@@ -202,6 +211,55 @@ with h5py.File(out_h5name,'w') as OutFile:
                     dPhi_dz_map[k1][k2, k3] = mn.ddx_arb(k3,zgrid[k1],phase_t)
                     dPhi_dz_map_XUV[k1][k2, k3] = mn.ddx_arb(k3,zgrid[k1],phase_t_XUV)
                     # Efield_onaxis_cmplx_envel[k1][:,k2] = rem_fast_oscillations*mn.complexify_fft(Efield_s[:,k2])
+                    
+            ## Compute the intensity profile to get the atomic phase
+            # We have to point out that our actual FSPA gives only dphi/dI! We cannot obtain full phase at the instant
+            Efield_onaxis_envel = abs(Efield_onaxis_cmplx_envel[k1])
+            Efield_onaxis_envel_XUV = abs(Efield_onaxis_cmplx_envel_XUV[k1])
+
+            Intens_onaxis_envel.append( mn.FieldToIntensitySI(Efield_onaxis_envel) )
+            Intens_onaxis_envel_XUV.append( mn.FieldToIntensitySI(Efield_onaxis_envel_XUV) ) 
+            
+            dI_dz_map.append(np.zeros(Intens_onaxis_envel[k1].shape))
+            dI_dz_map_XUV.append(np.zeros(Intens_onaxis_envel_XUV[k1].shape))
+            
+            for k2 in range(len(tgrid[k1])):
+                
+                dI_dz_map[k1][k2, 0] = (Intens_onaxis_envel[k1][k2,1] - Intens_onaxis_envel[k1][k2,0]) / (zgrid[k1][1] - zgrid[k1][0])
+                dI_dz_map[k1][k2, -1] = (Intens_onaxis_envel[k1][k2,-1] - Intens_onaxis_envel[k1][k2,-2]) / (zgrid[k1][-1] - zgrid[k1][-2])
+                
+                dI_dz_map_XUV[k1][k2, 0] = (Intens_onaxis_envel_XUV[k1][k2,1] - Intens_onaxis_envel_XUV[k1][k2,0]) / (zgrid[k1][1] - zgrid[k1][0])
+                dI_dz_map_XUV[k1][k2, -1] = (Intens_onaxis_envel_XUV[k1][k2,-1] - Intens_onaxis_envel_XUV[k1][k2,-2]) / (zgrid[k1][-1] - zgrid[k1][-2])
+
+                
+                for k3 in range(1,len(zgrid[k1])-1):
+                    dI_dz_map[k1][k2, k3] = mn.ddx_arb(k3,zgrid[k1],Intens_onaxis_envel[k1][k2,:])
+                    dI_dz_map_XUV[k1][k2, k3] = mn.ddx_arb(k3,zgrid[k1],Intens_onaxis_envel_XUV[k1][k2,:])
+                    # Efield_onaxis_cmplx_envel[k1][:,k2] = rem_fast_oscillations*mn.complexify_fft(Efield_s[:,k2])
+            
+            
+
+    # Intensity compare
+    
+    fig = plt.figure()
+    for k1 in range(Nfiles):
+        plt.plot(1e15*tgrid[k1], Intens_onaxis_envel[k1][:,-1], linewidth=0.2, label=labels[k1])
+        plt.plot(1e15*tgrid[k1], Intens_onaxis_envel_XUV[k1][:,-1], linewidth=0.2, label=labels[k1])
+    
+    # for k1 in range(Nfiles):
+    #     plt.plot(1e15*tgrid[k1], Efield_onaxis_s[k1][:,-1], linewidth=0.2, linestyle=linestyles[k1], label=labels[k1])
+    # plt.plot(1e15*tgrid[1], Efield_onaxis_s[1][:,-1], linewidth=0.2, linestyle='--', label=labels[1])
+    plt.xlim(tlim)
+    plt.legend(loc='best')
+    plt.xlabel('t [fs]')
+    plt.ylabel('I [SI]')
+    plt.savefig('Intens_compare'+'.png', dpi = 600)
+    if showplots: plt.show()
+    plt.close(fig)
+
+    # FSPA phase
+    FSPA_alpha_map = interp_FSPA_short[17](np.asarray([[8.47268e-5,9.56486e-5],[8.47268e-5,9.56486e-5]]))
+    # FSPA_phase 
                 
     # Field in the vacuum frame
     # plt.plot(1e15*tgrid, Efield_onaxis_s[:,0], linewidth=0.2, label='z=0')
