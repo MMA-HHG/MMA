@@ -54,6 +54,7 @@ fluence_source = 'computed' # options: 'file', 'computed'
 
 
 gas_type = 'Kr'
+XUV_table_type = 'NIST' # {Henke, NIST}
 
 Horders = [19, 21, 23, 25, 27]
 
@@ -164,7 +165,7 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
             VF_XUV = []
             for k1 in range(NH):
                 q = Horders[k1]
-                f1 = XUV_index.getf(gas_type, mn.ConvertPhoton(q*omega0, 'omegaSI', 'eV'))[0]
+                f1 = XUV_index.getf1(gas_type+'_'+XUV_table_type, mn.ConvertPhoton(q*omega0, 'omegaSI', 'eV'))
                 nXUV.append( 1.0 - rho0_init*units.r_electron_classical*(mn.ConvertPhoton(q*omega0,'omegaSI','lambdaSI')**2)*f1/(2.0*np.pi) )
                 VF_XUV.append( units.c_light/nXUV[k1] ) # phase velocity of XUV
             

@@ -225,17 +225,20 @@ with h5py.File(out_h5name,'w') as OutFile:
             
             for k2 in range(len(tgrid[k1])):
                 
-                dI_dz_map[k1][k2, 0] = (Intens_onaxis_envel[k1][k2,1] - Intens_onaxis_envel[k1][k2,0]) / (zgrid[k1][1] - zgrid[k1][0])
-                dI_dz_map[k1][k2, -1] = (Intens_onaxis_envel[k1][k2,-1] - Intens_onaxis_envel[k1][k2,-2]) / (zgrid[k1][-1] - zgrid[k1][-2])
+                dI_dz_map[k1][k2, :] = mn.ddx_vec_arb(zgrid[k1], Intens_onaxis_envel[k1][k2,:])
+                dI_dz_map_XUV[k1][k2, :] = mn.ddx_vec_arb(zgrid[k1], Intens_onaxis_envel_XUV[k1][k2,:])
                 
-                dI_dz_map_XUV[k1][k2, 0] = (Intens_onaxis_envel_XUV[k1][k2,1] - Intens_onaxis_envel_XUV[k1][k2,0]) / (zgrid[k1][1] - zgrid[k1][0])
-                dI_dz_map_XUV[k1][k2, -1] = (Intens_onaxis_envel_XUV[k1][k2,-1] - Intens_onaxis_envel_XUV[k1][k2,-2]) / (zgrid[k1][-1] - zgrid[k1][-2])
+                # dI_dz_map[k1][k2, 0] = (Intens_onaxis_envel[k1][k2,1] - Intens_onaxis_envel[k1][k2,0]) / (zgrid[k1][1] - zgrid[k1][0])
+                # dI_dz_map[k1][k2, -1] = (Intens_onaxis_envel[k1][k2,-1] - Intens_onaxis_envel[k1][k2,-2]) / (zgrid[k1][-1] - zgrid[k1][-2])
+                
+                # dI_dz_map_XUV[k1][k2, 0] = (Intens_onaxis_envel_XUV[k1][k2,1] - Intens_onaxis_envel_XUV[k1][k2,0]) / (zgrid[k1][1] - zgrid[k1][0])
+                # dI_dz_map_XUV[k1][k2, -1] = (Intens_onaxis_envel_XUV[k1][k2,-1] - Intens_onaxis_envel_XUV[k1][k2,-2]) / (zgrid[k1][-1] - zgrid[k1][-2])
 
                 
-                for k3 in range(1,len(zgrid[k1])-1):
-                    dI_dz_map[k1][k2, k3] = mn.ddx_arb(k3,zgrid[k1],Intens_onaxis_envel[k1][k2,:])
-                    dI_dz_map_XUV[k1][k2, k3] = mn.ddx_arb(k3,zgrid[k1],Intens_onaxis_envel_XUV[k1][k2,:])
-                    # Efield_onaxis_cmplx_envel[k1][:,k2] = rem_fast_oscillations*mn.complexify_fft(Efield_s[:,k2])
+                # for k3 in range(1,len(zgrid[k1])-1):
+                #     dI_dz_map[k1][k2, k3] = mn.ddx_arb(k3,zgrid[k1],Intens_onaxis_envel[k1][k2,:])
+                #     dI_dz_map_XUV[k1][k2, k3] = mn.ddx_arb(k3,zgrid[k1],Intens_onaxis_envel_XUV[k1][k2,:])
+                #     # Efield_onaxis_cmplx_envel[k1][:,k2] = rem_fast_oscillations*mn.complexify_fft(Efield_s[:,k2])
             
             
 
@@ -258,8 +261,41 @@ with h5py.File(out_h5name,'w') as OutFile:
     plt.close(fig)
 
     # FSPA phase
-    FSPA_alpha_map = interp_FSPA_short[17](np.asarray([[8.47268e-5,9.56486e-5],[8.47268e-5,9.56486e-5]]))
-    # FSPA_phase 
+    FSPA_alpha_map = interp_FSPA_short[15](Intens_onaxis_envel_XUV[0]/units.INTENSITYau)
+    FSPA_phase_map = np.multiply(Intens_onaxis_envel_XUV[0]/units.INTENSITYau, FSPA_alpha_map)
+    dFSPA_phase_map = np.multiply(dI_dz_map_XUV[0]/units.INTENSITYau, FSPA_alpha_map)
+    
+    
+    # plot
+    fig = plt.figure()
+    plt.pcolor(zgrid[0], tgrid[0], dFSPA_phase_map)
+    # plt.xlabel('z [mm]')
+    # plt.ylabel('r [mum]')
+    plt.title('dphiFSPA/dz')
+    plt.colorbar()
+    plt.savefig('dphiFSPA_dz.png', dpi = 600)
+    if showplots: plt.show()
+    plt.close(fig)    
+
+    fig = plt.figure()
+    plt.pcolor(zgrid[0], tgrid[0], dPhi_dz_map[0])
+    # plt.xlabel('z [mm]')
+    # plt.ylabel('r [mum]')
+    plt.title('dPhi/dz')
+    plt.colorbar()
+    plt.savefig('dPhi_dz.png', dpi = 600)
+    if showplots: plt.show()
+    plt.close(fig)
+
+    fig = plt.figure()
+    plt.pcolor(zgrid[0], tgrid[0], dPhi_dz_map_XUV[0])
+    # plt.xlabel('z [mm]')
+    # plt.ylabel('r [mum]')
+    plt.title('dPhi/dz')
+    plt.colorbar()
+    plt.savefig('dPhi_dz_XUV.png', dpi = 600)
+    if showplots: plt.show()
+    plt.close(fig)
                 
     # Field in the vacuum frame
     # plt.plot(1e15*tgrid, Efield_onaxis_s[:,0], linewidth=0.2, label='z=0')
