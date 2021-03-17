@@ -309,6 +309,16 @@ with h5py.File(out_h5name,'w') as OutFile:
     if showplots: plt.show()
     plt.close(fig)
     
+    
+    fig = plt.figure()
+    plt.plot(zgrid[0], dFSPA_phase_map[k_t,:])
+    plt.xlabel('z [m]')
+    plt.ylabel('dPhiFSPA/dz')
+    plt.title('onaxis')
+    plt.savefig('dPhiFSPA_dz_onaxis_test.png', dpi = 600)
+    if showplots: plt.show()
+    plt.close(fig)
+    
 
     fig = plt.figure()
     plt.pcolor(zgrid[0], tgrid[0][kt1:kt2], dPhi_dz_map_XUV[0][kt1:kt2,:],shading='auto')
