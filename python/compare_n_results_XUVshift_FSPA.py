@@ -299,11 +299,19 @@ with h5py.File(out_h5name,'w') as OutFile:
     plt.close(fig)    
     
     
+    # linear plots of dPhi/dz
+    k0_wave = 2.0*np.pi/mn.ConvertPhoton(omega0,'omegaSI','lambdaSI')
+    
     k_t = mn.FindInterval(tgrid[0], t_fix) 
     fig = plt.figure()
-    plt.plot(zgrid[0], dPhi_dz_map[0][k_t,:])
+    plt.plot(zgrid[0], dPhi_dz_map[0][k_t,:], label='only IR')
+    for k2 in range(NH):
+        dPhi_dz_map_Harm = dPhi_dz_map[0] + k0_wave*(nXUV[0][k2]-1)
+        plt.plot(zgrid[0], dPhi_dz_map_Harm[k_t,:], label='H'+str(Horders[k2]))
+    
     plt.xlabel('z [m]')
-    plt.ylabel('dPhi/dz')
+    plt.ylabel('dPhi/dz [rad/m]')
+    plt.legend(loc='best')
     plt.title('onaxis')
     plt.savefig('dPhidz_onaxis_test.png', dpi = 600)
     if showplots: plt.show()
@@ -311,9 +319,15 @@ with h5py.File(out_h5name,'w') as OutFile:
     
     
     fig = plt.figure()
-    plt.plot(zgrid[0], dFSPA_phase_map[k_t,:])
+    for k2 in range(NH):
+        FSPA_alpha_map = interp_FSPA_short[Horders[k2]](Intens_onaxis_envel_XUV[0]/units.INTENSITYau)
+        FSPA_phase_map = np.multiply(Intens_onaxis_envel_XUV[0]/units.INTENSITYau, FSPA_alpha_map)
+        dFSPA_phase_map = np.multiply(dI_dz_map_XUV[0]/units.INTENSITYau, FSPA_alpha_map)
+        plt.plot(zgrid[0], dFSPA_phase_map[k_t,:], label='H'+str(Horders[k2]))
+        
     plt.xlabel('z [m]')
-    plt.ylabel('dPhiFSPA/dz')
+    plt.ylabel('dPhiFSPA/dz [rad/m]')
+    plt.legend(loc='best')
     plt.title('onaxis')
     plt.savefig('dPhiFSPA_dz_onaxis_test.png', dpi = 600)
     if showplots: plt.show()
