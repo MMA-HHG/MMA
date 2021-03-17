@@ -42,7 +42,7 @@ files = glob.glob('results_*.h5')
 os.chdir(cwd)
 
 # files = ['results_1.h5','results_25.h5','results_2.h5']
-# files = ['results_1.h5']
+files = ['results_1.h5']
 # files = ['results.h5']
 # files = ['results_19.h5']
 
@@ -56,7 +56,7 @@ fluence_source = 'computed' # options: 'file', 'computed'
 gas_type = 'Kr'
 XUV_table_type = 'NIST' # {Henke, NIST}
 
-Horders = [19, 21, 23, 25, 27]
+Horders = [15, 17, 19, 21, 23]# [19, 21, 23, 25, 27]
 
 Lcoh_saturation = 0.05
 Lcoh_zero = 0.0
@@ -399,6 +399,15 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
                     plt.show()
                     if showplots: plt.show()
                     plt.close(fig)
+                    
+                fig = plt.figure()
+                plt.plot(zgrid, dPhi_dz_map[0,:])
+                plt.xlabel('z [m]')
+                plt.ylabel('dPhi/dz')
+                plt.title('onaxis')
+                plt.savefig('dPhidz_onaxis_'+str(k_sim)+'.png', dpi = 600)
+                if showplots: plt.show()
+                plt.close(fig)
                 
             if Coherence_length or Beam_analysis:
                 # Phase(r,z,t=t_fix) # not unwrapped, should be not difficult in a smooth case, or use some 2D-unwprapping

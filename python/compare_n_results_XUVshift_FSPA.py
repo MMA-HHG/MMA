@@ -50,6 +50,7 @@ files = ['results_1.h5', 'results_4.h5', 'results_7.h5']
 files = ['results_1.h5', 'results_10.h5']
 files = ['results_1.h5', 'results_2.h5', 'results_3.h5']
 files = ['results_12.h5', 'results_13.h5']
+files = ['results_1.h5', 'results_2.h5']
 
 # labels = ['p=15 mbar', 'p=35 mbar'], ['Pi=0 %', 'Pi=4 %','Pi=8 %', 'Pi=12 %', 'Pi=16 %'], ['I0=1e14 W/cm2', 'I0=1.75e14 W/cm2', 'I0=2.5e14 W/cm2']
 labels = ['a','b','c','d','e','f']
@@ -70,6 +71,7 @@ XUV_table_type = 'NIST' # {Henke, NIST}
 # q = Horders[2]
 
 tlim = [-60.0,60.0]
+t_fix = 0.0e-15 # the time of our interest to inspect e.g. phase
 
 OutPath = 'outputs'
 
@@ -202,14 +204,18 @@ with h5py.File(out_h5name,'w') as OutFile:
                 phase_t = np.unwrap(phase_onaxis_map[k1][k2,:])
                 phase_t_XUV = np.unwrap(phase_onaxis_map_XUV[k1][k2,:])
                 
-                dPhi_dz_map[k1][k2, 0] = (phase_t[1] - phase_t[0]) / (zgrid[k1][1] - zgrid[k1][0])
-                dPhi_dz_map[k1][k2, -1] = (phase_t[-1] - phase_t[-2]) / (zgrid[k1][-1] - zgrid[k1][-2])
+                dPhi_dz_map[k1][k2, :] = mn.ddx_vec_arb(zgrid[k1],phase_t)
+                dPhi_dz_map_XUV[k1][k2, :] = mn.ddx_vec_arb(zgrid[k1],phase_t_XUV)
                 
-                dPhi_dz_map_XUV[k1][k2, 0] = (phase_t_XUV[1] - phase_t_XUV[0]) / (zgrid[k1][1] - zgrid[k1][0])
-                dPhi_dz_map_XUV[k1][k2, -1] = (phase_t_XUV[-1] - phase_t_XUV[-2]) / (zgrid[k1][-1] - zgrid[k1][-2])
-                for k3 in range(1,len(zgrid[k1])-1):
-                    dPhi_dz_map[k1][k2, k3] = mn.ddx_arb(k3,zgrid[k1],phase_t)
-                    dPhi_dz_map_XUV[k1][k2, k3] = mn.ddx_arb(k3,zgrid[k1],phase_t_XUV)
+                
+                # dPhi_dz_map[k1][k2, 0] = (phase_t[1] - phase_t[0]) / (zgrid[k1][1] - zgrid[k1][0])
+                # dPhi_dz_map[k1][k2, -1] = (phase_t[-1] - phase_t[-2]) / (zgrid[k1][-1] - zgrid[k1][-2])
+                
+                # dPhi_dz_map_XUV[k1][k2, 0] = (phase_t_XUV[1] - phase_t_XUV[0]) / (zgrid[k1][1] - zgrid[k1][0])
+                # dPhi_dz_map_XUV[k1][k2, -1] = (phase_t_XUV[-1] - phase_t_XUV[-2]) / (zgrid[k1][-1] - zgrid[k1][-2])
+                # for k3 in range(1,len(zgrid[k1])-1):
+                #     dPhi_dz_map[k1][k2, k3] = mn.ddx_arb(k3,zgrid[k1],phase_t)
+                #     dPhi_dz_map_XUV[k1][k2, k3] = mn.ddx_arb(k3,zgrid[k1],phase_t_XUV)
                     # Efield_onaxis_cmplx_envel[k1][:,k2] = rem_fast_oscillations*mn.complexify_fft(Efield_s[:,k2])
                     
             ## Compute the intensity profile to get the atomic phase
@@ -264,34 +270,52 @@ with h5py.File(out_h5name,'w') as OutFile:
     FSPA_alpha_map = interp_FSPA_short[15](Intens_onaxis_envel_XUV[0]/units.INTENSITYau)
     FSPA_phase_map = np.multiply(Intens_onaxis_envel_XUV[0]/units.INTENSITYau, FSPA_alpha_map)
     dFSPA_phase_map = np.multiply(dI_dz_map_XUV[0]/units.INTENSITYau, FSPA_alpha_map)
+ 
     
+    kt1 = mn.FindInterval(tgrid[0], 1e-15*tlim[0])
+    kt2 = mn.FindInterval(tgrid[0], 1e-15*tlim[1])
     
     # plot
     fig = plt.figure()
-    plt.pcolor(zgrid[0], tgrid[0], dFSPA_phase_map)
+    plt.pcolor(zgrid[0], tgrid[0][kt1:kt2], dFSPA_phase_map[kt1:kt2,:],shading='auto')
     # plt.xlabel('z [mm]')
     # plt.ylabel('r [mum]')
     plt.title('dphiFSPA/dz')
+    # plt.ylim(1e-15*np.asarray(tlim))
     plt.colorbar()
     plt.savefig('dphiFSPA_dz.png', dpi = 600)
     if showplots: plt.show()
     plt.close(fig)    
 
     fig = plt.figure()
-    plt.pcolor(zgrid[0], tgrid[0], dPhi_dz_map[0])
+    plt.pcolor(zgrid[0], tgrid[0][kt1:kt2], dPhi_dz_map[0][kt1:kt2,:],shading='auto')
     # plt.xlabel('z [mm]')
     # plt.ylabel('r [mum]')
     plt.title('dPhi/dz')
+    # plt.ylim(1e-15*np.asarray(tlim))
     plt.colorbar()
     plt.savefig('dPhi_dz.png', dpi = 600)
     if showplots: plt.show()
+    plt.close(fig)    
+    
+    
+    k_t = mn.FindInterval(tgrid[0], t_fix) 
+    fig = plt.figure()
+    plt.plot(zgrid[0], dPhi_dz_map[0][k_t,:])
+    plt.xlabel('z [m]')
+    plt.ylabel('dPhi/dz')
+    plt.title('onaxis')
+    plt.savefig('dPhidz_onaxis_test.png', dpi = 600)
+    if showplots: plt.show()
     plt.close(fig)
+    
 
     fig = plt.figure()
-    plt.pcolor(zgrid[0], tgrid[0], dPhi_dz_map_XUV[0])
+    plt.pcolor(zgrid[0], tgrid[0][kt1:kt2], dPhi_dz_map_XUV[0][kt1:kt2,:],shading='auto')
     # plt.xlabel('z [mm]')
     # plt.ylabel('r [mum]')
     plt.title('dPhi/dz')
+    plt.ylim(1e-15*np.asarray(tlim))
     plt.colorbar()
     plt.savefig('dPhi_dz_XUV.png', dpi = 600)
     if showplots: plt.show()
