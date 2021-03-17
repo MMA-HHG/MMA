@@ -49,6 +49,9 @@ files = ['results_1.h5', 'results_4.h5', 'results_7.h5']
 
 files = ['results_1.h5', 'results_10.h5']
 files = ['results_1.h5', 'results_2.h5', 'results_3.h5']
+
+files = ['results_1.h5', 'results_4.h5', 'results_7.h5', 'results_10.h5', 'results_13.h5', 'results_16.h5', 'results_19.h5']
+
 # files = ['results_12.h5', 'results_13.h5']
 # files = ['results_1.h5', 'results_2.h5']
 
@@ -252,8 +255,10 @@ with h5py.File(out_h5name,'w') as OutFile:
     
     fig = plt.figure()
     for k1 in range(Nfiles):
-        plt.plot(1e15*tgrid[k1], Intens_onaxis_envel[k1][:,-1], linewidth=0.2, label=labels[k1])
-        plt.plot(1e15*tgrid[k1], Intens_onaxis_envel_XUV[k1][:,-1], linewidth=0.2, label=labels[k1])
+        # plt.plot(1e15*tgrid[k1], Intens_onaxis_envel[k1][:,-1], linewidth=0.2, label=labels[k1])
+        # plt.plot(1e15*tgrid[k1], Intens_onaxis_envel_XUV[k1][:,-1], linewidth=0.2, label=labels[k1])
+        plt.plot(1e15*tgrid[k1], Intens_onaxis_envel[k1][:,-1], linewidth=0.2)
+        plt.plot(1e15*tgrid[k1], Intens_onaxis_envel_XUV[k1][:,-1], linewidth=0.2)
     
     # for k1 in range(Nfiles):
     #     plt.plot(1e15*tgrid[k1], Efield_onaxis_s[k1][:,-1], linewidth=0.2, linestyle=linestyles[k1], label=labels[k1])
@@ -368,9 +373,12 @@ with h5py.File(out_h5name,'w') as OutFile:
     
     fig = plt.figure()
     for k1 in range(Nfiles):
-        plt.plot(1e15*tgrid[k1], Efield_onaxis_s[k1][:,-1], linewidth=0.2, label=labels[k1])
-        plt.plot(1e15*tgrid[k1], Efield_onaxis_s_XUV[k1][:,-1], linewidth=0.2, label=labels[k1])
-    
+        # plt.plot(1e15*tgrid[k1], Efield_onaxis_s[k1][:,-1], linewidth=0.2, label=labels[k1])
+        # plt.plot(1e15*tgrid[k1], Efield_onaxis_s_XUV[k1][:,-1], linewidth=0.2, label=labels[k1])
+
+        plt.plot(1e15*tgrid[k1], Efield_onaxis_s[k1][:,-1], linewidth=0.2)
+        plt.plot(1e15*tgrid[k1], Efield_onaxis_s_XUV[k1][:,-1], linewidth=0.2)
+        
     # for k1 in range(Nfiles):
     #     plt.plot(1e15*tgrid[k1], Efield_onaxis_s[k1][:,-1], linewidth=0.2, linestyle=linestyles[k1], label=labels[k1])
     # plt.plot(1e15*tgrid[1], Efield_onaxis_s[1][:,-1], linewidth=0.2, linestyle='--', label=labels[1])
@@ -390,12 +398,16 @@ with h5py.File(out_h5name,'w') as OutFile:
     
     fig = plt.figure()
     for k1 in range(Nfiles):
-        plt.plot(zgrid[k1], dPhi_dz_map[k1][len(tgrid[k1])//2,:], linewidth=0.2, label=labels[k1])
-        plt.plot(zgrid[k1], dPhi_dz_map_XUV[k1][len(tgrid[k1])//2,:], linewidth=0.2, label=labels[k1])
+        # plt.plot(zgrid[k1], dPhi_dz_map[k1][len(tgrid[k1])//2,:], linewidth=0.2, label=labels[k1])
+        # plt.plot(zgrid[k1], dPhi_dz_map_XUV[k1][len(tgrid[k1])//2,:], linewidth=0.2, label=labels[k1])
+        
+        plt.plot(zgrid[k1], dPhi_dz_map[k1][len(tgrid[k1])//2,:], linewidth=0.2)
+        plt.plot(zgrid[k1], dPhi_dz_map_XUV[k1][len(tgrid[k1])//2,:], linewidth=0.2)
         
         k0_wave = 2.0*np.pi/mn.ConvertPhoton(omega0,'omegaSI','lambdaSI')
         dPhi_dz_map_XUV2.append(dPhi_dz_map[k1] + k0_wave*(nXUV[k1][0]-1))
-        plt.plot(zgrid[k1], dPhi_dz_map_XUV2[k1][len(tgrid[k1])//2,:], linestyle = '--', linewidth=0.2, label=labels[k1])
+        # plt.plot(zgrid[k1], dPhi_dz_map_XUV2[k1][len(tgrid[k1])//2,:], linestyle = '--', linewidth=0.2, label=labels[k1])
+        plt.plot(zgrid[k1], dPhi_dz_map_XUV2[k1][len(tgrid[k1])//2,:], linestyle = '--', linewidth=0.2)
     
     # for k1 in range(Nfiles):
     #     plt.plot(1e15*tgrid[k1], Efield_onaxis_s[k1][:,-1], linewidth=0.2, linestyle=linestyles[k1], label=labels[k1])
