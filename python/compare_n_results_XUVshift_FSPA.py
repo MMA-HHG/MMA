@@ -49,8 +49,8 @@ files = ['results_1.h5', 'results_4.h5', 'results_7.h5']
 
 files = ['results_1.h5', 'results_10.h5']
 files = ['results_1.h5', 'results_2.h5', 'results_3.h5']
-files = ['results_12.h5', 'results_13.h5']
-files = ['results_1.h5', 'results_2.h5']
+# files = ['results_12.h5', 'results_13.h5']
+# files = ['results_1.h5', 'results_2.h5']
 
 # labels = ['p=15 mbar', 'p=35 mbar'], ['Pi=0 %', 'Pi=4 %','Pi=8 %', 'Pi=12 %', 'Pi=16 %'], ['I0=1e14 W/cm2', 'I0=1.75e14 W/cm2', 'I0=2.5e14 W/cm2']
 labels = ['a','b','c','d','e','f']
@@ -301,38 +301,55 @@ with h5py.File(out_h5name,'w') as OutFile:
     
     # linear plots of dPhi/dz
     k0_wave = 2.0*np.pi/mn.ConvertPhoton(omega0,'omegaSI','lambdaSI')
-    
-    k_t = mn.FindInterval(tgrid[0], t_fix) 
-    fig = plt.figure()
-    plt.plot(zgrid[0], dPhi_dz_map[0][k_t,:], label='only IR')
-    for k2 in range(NH):
-        dPhi_dz_map_Harm = dPhi_dz_map[0] + k0_wave*(nXUV[0][k2]-1)
-        plt.plot(zgrid[0], dPhi_dz_map_Harm[k_t,:], label='H'+str(Horders[k2]))
-    
-    plt.xlabel('z [m]')
-    plt.ylabel('dPhi/dz [rad/m]')
-    plt.legend(loc='best')
-    plt.title('onaxis')
-    plt.savefig('dPhidz_onaxis_test.png', dpi = 600)
-    if showplots: plt.show()
-    plt.close(fig)
-    
-    
-    fig = plt.figure()
-    for k2 in range(NH):
-        FSPA_alpha_map = interp_FSPA_short[Horders[k2]](Intens_onaxis_envel_XUV[0]/units.INTENSITYau)
-        FSPA_phase_map = np.multiply(Intens_onaxis_envel_XUV[0]/units.INTENSITYau, FSPA_alpha_map)
-        dFSPA_phase_map = np.multiply(dI_dz_map_XUV[0]/units.INTENSITYau, FSPA_alpha_map)
-        plt.plot(zgrid[0], dFSPA_phase_map[k_t,:], label='H'+str(Horders[k2]))
+    for k1 in range(Nfiles):
+        k_t = mn.FindInterval(tgrid[k1], t_fix) 
+        fig = plt.figure()
+        plt.plot(zgrid[k1], dPhi_dz_map[k1][k_t,:], label='only IR')
+        for k2 in range(NH):
+            dPhi_dz_map_Harm = dPhi_dz_map[k1] + k0_wave*(nXUV[k1][k2]-1)
+            plt.plot(zgrid[0], dPhi_dz_map_Harm[k_t,:], label='H'+str(Horders[k2]))
         
-    plt.xlabel('z [m]')
-    plt.ylabel('dPhiFSPA/dz [rad/m]')
-    plt.legend(loc='best')
-    plt.title('onaxis')
-    plt.savefig('dPhiFSPA_dz_onaxis_test.png', dpi = 600)
-    if showplots: plt.show()
-    plt.close(fig)
+        plt.xlabel('z [m]')
+        plt.ylabel('dPhi/dz [rad/m]')
+        plt.legend(loc='best')
+        plt.title('onaxis')
+        plt.savefig('dPhidz_onaxis_test_'+str(k1)+'.png', dpi = 600)
+        if showplots: plt.show()
+        plt.close(fig)
+        
+        
+        fig = plt.figure()
+        for k2 in range(NH):
+            FSPA_alpha_map = interp_FSPA_short[Horders[k2]](Intens_onaxis_envel_XUV[k1]/units.INTENSITYau)
+            FSPA_phase_map = np.multiply(Intens_onaxis_envel_XUV[k1]/units.INTENSITYau, FSPA_alpha_map)
+            dFSPA_phase_map = np.multiply(dI_dz_map_XUV[k1]/units.INTENSITYau, FSPA_alpha_map)
+            plt.plot(zgrid[0], dFSPA_phase_map[k_t,:], label='H'+str(Horders[k2]))
+            
+        plt.xlabel('z [m]')
+        plt.ylabel('dPhiFSPA/dz [rad/m]')
+        plt.legend(loc='best')
+        plt.title('onaxis')
+        plt.savefig('dPhiFSPA_dz_onaxis_XUV_test_'+str(k1)+'.png', dpi = 600)
+        if showplots: plt.show()
+        plt.close(fig)
+ 
     
+        fig = plt.figure()
+        for k2 in range(NH):
+            FSPA_alpha_map = interp_FSPA_short[Horders[k2]](Intens_onaxis_envel[k1]/units.INTENSITYau)
+            FSPA_phase_map = np.multiply(Intens_onaxis_envel[k1]/units.INTENSITYau, FSPA_alpha_map)
+            dFSPA_phase_map = np.multiply(dI_dz_map[k1]/units.INTENSITYau, FSPA_alpha_map)
+            plt.plot(zgrid[0], dFSPA_phase_map[k_t,:], label='H'+str(Horders[k2]))
+            
+        plt.xlabel('z [m]')
+        plt.ylabel('dPhiFSPA/dz [rad/m]')
+        plt.legend(loc='best')
+        plt.title('onaxis')
+        plt.savefig('dPhiFSPA_dz_onaxis_test_'+str(k1)+'.png', dpi = 600)
+        if showplots: plt.show()
+        plt.close(fig)
+        
+        
 
     fig = plt.figure()
     plt.pcolor(zgrid[0], tgrid[0][kt1:kt2], dPhi_dz_map_XUV[0][kt1:kt2,:],shading='auto')
