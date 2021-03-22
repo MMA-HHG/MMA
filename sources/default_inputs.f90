@@ -8,9 +8,10 @@ real(8) :: Intensity_entry, Intensity_focus, waist_focus, Curvature_radius_entry
 character(15)   ::  gas_preset
 
 integer                 :: k1
-integer, parameter      :: N_tests = 17
+integer, parameter      :: N_tests = 18
 character(*), parameter :: available_tests(N_tests) = (/"test", "test2", "GfP", "GfI", "GfFWHME", "GfFWHMI", "GfH5w", "PI", "PIPPT", &
-                                                        "pressure", "ELI1", "ELI1ppt", "ELI2", "ELI3", "ELI4", "ELI_PI_PPT_Kr", "Ar_vacuum1"/) ! "GfH5w_pre_ionised_PPT"
+                                                        "pressure", "ELI1", "ELI1ppt", "ELI2", "ELI3", "ELI4", "ELI_PI_PPT_Kr", "Ar_vacuum1", &
+                                                        "Ar_vacuum1_long" /) ! "GfH5w_pre_ionised_PPT"
 ! integer, parameter      :: test_numbers(N_tests) =  (k1, k1=1,N_tests)
 
 CONTAINS
@@ -366,7 +367,10 @@ subroutine preset_numerics_tests(test_number)
         outlength_Efield_m_phys = 0.075d0    
     case(17)
         outlength_m_phys = 0.0005d0
-        outlength_Efield_m_phys = 0.075d0       
+        outlength_Efield_m_phys = 0.075d0
+    case(18)
+        outlength_m_phys = 0.001d0
+        outlength_Efield_m_phys = 0.075d0     
     end select
     call save_or_replace(file_id, 'inputs/numerics_physical_output_distance_for_Efield_only', outlength_Efield_m_phys, error, units_in = '[m]')
     
@@ -377,7 +381,7 @@ subroutine preset_physics(test_number)
 
 !---------------------------------------------------------------------------------------------------------------------!    
     select case(test_number)
-    case(1:10,17)
+    case(1:10,17,18)
         lambda0_cm_phys = 8.d-5
     case(11:16)
         lambda0_cm_phys = 7.92d-5
@@ -385,7 +389,7 @@ subroutine preset_physics(test_number)
 
 !---------------------------------------------------------------------------------------------------------------------!
     select case(test_number)
-    case(1,9,12,15,17)
+    case(1,9,12,15,17,18)
         gas_preset = 'Ar_PPT'
     case(2:8,10,11,13,14)
         gas_preset = 'Ar_ext'
@@ -403,6 +407,8 @@ subroutine preset_physics(test_number)
         proplength_m_phys = 0.0025d0
     case(16,17)
         proplength_m_phys = 0.015d0
+    case(18)
+        proplength_m_phys = 0.08d0
     end select   
 
 !---------------------------------------------------------------------------------------------------------------------!
@@ -411,7 +417,7 @@ subroutine preset_physics(test_number)
         w0_cm_phys = 0.1d0
     case(11:16)
         w0_cm_phys = 0.011d0
-    case(17)
+    case(17,18)
         w0_cm_phys = 0.01d0
     end select
     
@@ -422,7 +428,7 @@ subroutine preset_physics(test_number)
     case(1:3,5:10)
         numcrit = 2.0d0
         call save_or_replace(file_id, 'inputs/laser_ratio_pin_pcr', numcrit, error, units_in = '[-]')
-    case(4,15,16,17)
+    case(4,15,16,17,18)
         Intensity_entry = 1.d18
         call save_or_replace(file_id, 'inputs/laser_intensity_entry', Intensity_entry, error, units_in = '[SI]')
     case(11,12)
@@ -436,7 +442,7 @@ subroutine preset_physics(test_number)
 
 !---------------------------------------------------------------------------------------------------------------------!
     select case(test_number)
-    case(1:4,7:10,17)
+    case(1:4,7:10,17,18)
         tp_fs_phys = 50.d0
         call save_or_replace(file_id, 'inputs/laser_pulse_duration_in_1_e_Efield', tp_fs_phys, error, units_in = '[fs]')
     case(5)
@@ -471,7 +477,7 @@ subroutine preset_physics(test_number)
         pressure = 0.035d0
     case(15,16)
         pressure = 0.015d0
-    case(17)
+    case(17, 18)
         pressure = 0.001d0
     end select
     
@@ -479,7 +485,7 @@ subroutine preset_physics(test_number)
 
 !---------------------------------------------------------------------------------------------------------------------!
 ! pre-ionized
-    if ( any(test_number == (/8, 9, 14, 15, 16, 17/)) ) then
+    if ( any(test_number == (/8, 9, 14, 15, 16, 17, 18/)) ) then
         call h5gcreate_f(file_id, 'pre_ionised', group_id2, error)
         call save_or_replace(group_id2, 'method_geometry', 1, error, units_in = '[-]')
         call save_or_replace(group_id2, 'method_units', 1, error, units_in = '[-]')
