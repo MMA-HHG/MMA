@@ -452,7 +452,7 @@ subroutine preset_physics(test_number)
     select case(test_number)
     case(1, 2)
         f_cm_phys = 50.d0 ! THIS IS SOMETHING TO COMPUTE
-    case(3:N_tests,17)
+    case(3:N_tests)
         f_cm_phys = 0.d0
     end select
 
