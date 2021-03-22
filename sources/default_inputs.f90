@@ -407,10 +407,12 @@ subroutine preset_physics(test_number)
 
 !---------------------------------------------------------------------------------------------------------------------!
     select case(test_number)
-    case(1:10,17)
+    case(1:10)
         w0_cm_phys = 0.1d0
     case(11:16)
         w0_cm_phys = 0.011d0
+    case(17)
+        w0_cm_phys = 0.01d0
     end select
     
     call save_or_replace(file_id, 'inputs/laser_beamwaist', w0_cm_phys, error, units_in = '[cm]')

@@ -52,7 +52,7 @@ files = ['results_1.h5', 'results_2.h5', 'results_3.h5']
 
 files = ['results_1.h5', 'results_4.h5', 'results_7.h5', 'results_10.h5', 'results_13.h5', 'results_16.h5', 'results_19.h5']
 
-files = ['results_1.h5']
+files = ['results_Ar_vac.h5']
 
 # files = ['results_12.h5', 'results_13.h5']
 # files = ['results_1.h5', 'results_2.h5']
@@ -113,6 +113,10 @@ with h5py.File(out_h5name,'w') as OutFile:
         dI_dz_map = []
         dI_dz_map_XUV = []
         
+        # Copmare to Gaussian
+        w0 = []
+        zR = []
+        
         
         # Phase maps from the propagation
         phase_onaxis_map = []
@@ -161,6 +165,10 @@ with h5py.File(out_h5name,'w') as OutFile:
             rho0_init = 1e6 * mn.readscalardataset(InArch[k1], '/inputs/calculated/medium_effective_density_of_neutral_molecules','N')
             
             dens.append(rho0_init)
+            
+            # Gaussian
+            w0.append(1e-2*mn.readscalardataset(InArch[k1],'/inputs/laser_beamwaist','N'))
+            zR.append(np.pi * (w0[k1])**2 / mn.ConvertPhoton(omega0,'omegaSI','lambdaSI'))
             
             nIR.append(IR_index.getsusc(gas_type, mn.ConvertPhoton(omega0,'omegaSI','lambdaSI')))
             nIR[k1] = np.sqrt(1.0 + pressure[k1]*nIR[k1])
