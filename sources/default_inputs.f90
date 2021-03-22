@@ -330,7 +330,7 @@ subroutine preset_numerics_tests(test_number)
 
     ! time
     select case(test_number)
-    case(1:14,17)
+    case(1:14,17,18)
         lt = 8.d0
         dim_t = 2048 ! asymmetric
         absorb = 16
@@ -408,7 +408,7 @@ subroutine preset_physics(test_number)
     case(16,17)
         proplength_m_phys = 0.015d0
     case(18)
-        proplength_m_phys = 0.08d0
+        proplength_m_phys = 0.06d0
     end select   
 
 !---------------------------------------------------------------------------------------------------------------------!
