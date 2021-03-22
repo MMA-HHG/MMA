@@ -10,7 +10,7 @@ character(15)   ::  gas_preset
 integer                 :: k1
 integer, parameter      :: N_tests = 17
 character(*), parameter :: available_tests(N_tests) = (/"test", "test2", "GfP", "GfI", "GfFWHME", "GfFWHMI", "GfH5w", "PI", "PIPPT", &
-                                                        "pressure", "ELI1", "ELI1ppt", "ELI2", "ELI3", "ELI4", "ELI_PI_PPT_Kr", "Ar_vaccuum1"/) ! "GfH5w_pre_ionised_PPT"
+                                                        "pressure", "ELI1", "ELI1ppt", "ELI2", "ELI3", "ELI4", "ELI_PI_PPT_Kr", "Ar_vacuum1"/) ! "GfH5w_pre_ionised_PPT"
 ! integer, parameter      :: test_numbers(N_tests) =  (k1, k1=1,N_tests)
 
 CONTAINS
@@ -355,7 +355,7 @@ subroutine preset_numerics_tests(test_number)
     rhodist = 100
 
     select case(test_number)
-    case(1:6,17)
+    case(1:6)
         outlength_m_phys = 0.001d0
         outlength_Efield_m_phys = outlength_m_phys
     case(7:14)
@@ -363,6 +363,9 @@ subroutine preset_numerics_tests(test_number)
         outlength_Efield_m_phys = 0.0005d0 
     case(15,16)
         outlength_m_phys = 0.000125d0
+        outlength_Efield_m_phys = 0.075d0    
+    case(17)
+        outlength_m_phys = 0.0005d0
         outlength_Efield_m_phys = 0.075d0       
     end select
     call save_or_replace(file_id, 'inputs/numerics_physical_output_distance_for_Efield_only', outlength_Efield_m_phys, error, units_in = '[m]')
