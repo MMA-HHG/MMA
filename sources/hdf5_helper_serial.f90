@@ -481,6 +481,9 @@ MODULE hdf5_helper_serial
       INTEGER(HID_T) :: dset_id, dataspace_id ! necessary identifiers
       INTEGER(HSIZE_T), DIMENSION(3) :: data_dims ! data dimensions array
       REAL(8), DIMENSION(dims_y,dims_x,2) :: res ! temporary variable storing the real and imag part separately
+
+      print *, '2D complex array invoked'
+
       rank = 3 ! initialize rank
       ! fill in the data_dims array
       data_dims = (/2, dims_x, dims_y/)

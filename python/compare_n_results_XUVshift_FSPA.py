@@ -52,6 +52,8 @@ files = ['results_1.h5', 'results_2.h5', 'results_3.h5']
 
 files = ['results_1.h5', 'results_4.h5', 'results_7.h5', 'results_10.h5', 'results_13.h5', 'results_16.h5', 'results_19.h5']
 
+files = ['results_1.h5']
+
 # files = ['results_12.h5', 'results_13.h5']
 # files = ['results_1.h5', 'results_2.h5']
 
@@ -303,6 +305,16 @@ with h5py.File(out_h5name,'w') as OutFile:
     if showplots: plt.show()
     plt.close(fig)    
     
+    # phase plot
+    fig = plt.figure()
+    k_t = mn.FindInterval(tgrid[k1], t_fix) 
+    plt.plot(zgrid[0], phase_onaxis_map[0][k_t,:], label='IR-phase')
+    plt.xlabel('z [m]')
+    plt.ylabel('Phi [rad]')
+    plt.legend(loc='best')
+    plt.title('onaxis')
+    plt.savefig('phase_onaxis_test.png', dpi = 600)
+    plt.close(fig) 
     
     # linear plots of dPhi/dz
     k0_wave = 2.0*np.pi/mn.ConvertPhoton(omega0,'omegaSI','lambdaSI')
@@ -390,9 +402,9 @@ with h5py.File(out_h5name,'w') as OutFile:
     if showplots: plt.show()
     plt.close(fig)
     
-    print(zgrid[0][-1])
-    print(zgrid[1][-1])
-    print(1e15*(zgrid[0][-1]-zgrid[1][-1])*(1/units.c_light-1/VF_IR[0]))
+    # print(zgrid[0][-1])
+    # print(zgrid[1][-1])
+    # print(1e15*(zgrid[0][-1]-zgrid[1][-1])*(1/units.c_light-1/VF_IR[0]))
     
     dPhi_dz_map_XUV2 = [] 
     
