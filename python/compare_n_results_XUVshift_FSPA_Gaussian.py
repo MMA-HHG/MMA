@@ -159,15 +159,15 @@ with h5py.File(out_h5name,'w') as OutFile:
             tgrid.append(InArch[k1]['/outputs/tgrid'][:]);  # t_probe1_ind = mn.FindInterval(tgrid[k1], t_probe1)
             rgrid.append(InArch[k1]['/outputs/rgrid'][:]);
             z_probe1_ind = np.asarray([0,Nz_loc//2,Nz_loc-1])
-            # zgrid_probe1.append(zgrid[k1][z_probe1_ind])
-            zgrid_probe1.append(zgrid[k1])
+            zgrid_probe1.append(zgrid[k1][z_probe1_ind])
+            # zgrid_probe1.append(zgrid[k1])
             
             
             # We arrived to the problem with possible over-allocation of Efield in CUPRAD
             Efield_onaxis_s.append(InArch[k1]['/outputs/output_field'][:,0,:Nz_loc])
             Efield_onaxis_s_XUV.append(np.zeros(Efield_onaxis_s[k1].shape))
-            # Efield_probe.append(InArch[k1]['/outputs/output_field'][:,:,z_probe1_ind])  
-            Efield_probe.append(InArch[k1]['/outputs/output_field'][:,:,:Nz_loc])
+            Efield_probe.append(InArch[k1]['/outputs/output_field'][:,:,z_probe1_ind])  
+            # Efield_probe.append(InArch[k1]['/outputs/output_field'][:,:,:Nz_loc])
             
             
             omega0 = mn.ConvertPhoton(1e-2*mn.readscalardataset(InArch[0],'/inputs/laser_wavelength','N'),'lambdaSI','omegaSI')
@@ -543,10 +543,11 @@ with h5py.File(out_h5name,'w') as OutFile:
         k_t = mn.FindInterval(tgrid[k1], t_fix) # find time index
         
         phase_map_probe.append(np.angle(Efield_probe_cmplx_envel[k1][k_t,:,:])) # ordering (r,z)
-        Intens_loc = abs(Efield_probe_cmplx_envel[k1])
+        Intens_loc = mn.FieldToIntensitySI(abs(Efield_probe_cmplx_envel[k1]))
+         # mn.FieldToIntensitySI(Efield_onaxis_envel)
         
         phase_map_Gauss = np.angle(Efield_Gauss_cmplx_envel[k_t,:,:]) # ordering (r,z)
-        Intens_loc_Gauss = abs(Efield_Gauss_cmplx_envel)
+        Intens_loc_Gauss = mn.FieldToIntensitySI(abs(Efield_Gauss_cmplx_envel))
         
         
 
@@ -554,21 +555,16 @@ with h5py.File(out_h5name,'w') as OutFile:
         fig = plt.figure()    
         plt.plot(rgrid[k1],Intens_loc[k_t,:,0]) 
         plt.plot(rgrid[k1],Intens_loc_Gauss[k_t,:,0],linestyle='--') 
-        plt.plot(rgrid[k1],Intens_loc[k_t,:,1])   
+        plt.plot(rgrid[k1],Intens_loc[k_t,:,1])  
+        plt.plot(rgrid[k1],Intens_loc_Gauss[k_t,:,1],linestyle='--') 
         plt.plot(rgrid[k1],Intens_loc[k_t,:,2])   
+        plt.plot(rgrid[k1],Intens_loc_Gauss[k_t,:,2],linestyle='--') 
         if showplots: plt.show()
         plt.close(fig)
-
-    fig = plt.figure()    
-    plt.plot(rgrid[0],np.unwrap(phase_map_probe[0][:,1]))    
-    
-    plt.plot(rgrid[0],np.unwrap(phase_map_Gauss[:,1]))    
-    
-    if showplots: plt.show()
-    plt.close(fig)
     
     
-    fig = plt.figure()    
+    fig = plt.figure()  
+    plt.title('z-phase')
     plt.plot(zgrid_probe1[0],np.unwrap(phase_map_probe[0][0,:]))    
     
     plt.plot(zgrid_probe1[0],np.unwrap(phase_map_Gauss[0,:]))    
@@ -576,5 +572,31 @@ with h5py.File(out_h5name,'w') as OutFile:
     if showplots: plt.show()
     plt.close(fig)
     
+    fig = plt.figure()   
+    plt.title('r-IR-phase')
+    plt.plot(rgrid[0],np.unwrap(phase_map_probe[0][:,1]))    
+    
+    plt.plot(rgrid[0],np.unwrap(phase_map_Gauss[:,1]))    
+    
+    if showplots: plt.show()
+    plt.close(fig)
+    
+    # FSPA phase
+    FSPA_alpha_map2 = interp_FSPA_short[15](Intens_loc/units.INTENSITYau)
+    FSPA_phase_map2 = np.multiply(Intens_loc/units.INTENSITYau, FSPA_alpha_map2)
+
+    fig = plt.figure()    
+    plt.title('r-FSPA-phase')
+    dum = FSPA_phase_map2[k_t,:,1]
+    plt.plot(1e6*rgrid[0],dum-dum[0])
+    dum = -(FSPA_alpha_map2[k_t,0,1]/units.INTENSITYau) * Intens_loc[k_t,:,1]
+    plt.plot(1e6*rgrid[0],dum-dum[0])
+    
+    dum = np.unwrap(phase_map_Gauss[:,1])
+    plt.plot(1e6*rgrid[0],dum-dum[0])
+    
+    if showplots: plt.show()
+    # plt.close(fig)
+
 os.chdir(cwd)
 # print('done')
