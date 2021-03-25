@@ -159,13 +159,15 @@ with h5py.File(out_h5name,'w') as OutFile:
             tgrid.append(InArch[k1]['/outputs/tgrid'][:]);  # t_probe1_ind = mn.FindInterval(tgrid[k1], t_probe1)
             rgrid.append(InArch[k1]['/outputs/rgrid'][:]);
             z_probe1_ind = np.asarray([0,Nz_loc//2,Nz_loc-1])
-            zgrid_probe1.append(zgrid[k1][z_probe1_ind])
+            # zgrid_probe1.append(zgrid[k1][z_probe1_ind])
+            zgrid_probe1.append(zgrid[k1])
             
             
             # We arrived to the problem with possible over-allocation of Efield in CUPRAD
             Efield_onaxis_s.append(InArch[k1]['/outputs/output_field'][:,0,:Nz_loc])
             Efield_onaxis_s_XUV.append(np.zeros(Efield_onaxis_s[k1].shape))
-            Efield_probe.append(InArch[k1]['/outputs/output_field'][:,:,z_probe1_ind])           
+            # Efield_probe.append(InArch[k1]['/outputs/output_field'][:,:,z_probe1_ind])  
+            Efield_probe.append(InArch[k1]['/outputs/output_field'][:,:,:Nz_loc])
             
             
             omega0 = mn.ConvertPhoton(1e-2*mn.readscalardataset(InArch[0],'/inputs/laser_wavelength','N'),'lambdaSI','omegaSI')
@@ -558,9 +560,18 @@ with h5py.File(out_h5name,'w') as OutFile:
         plt.close(fig)
 
     fig = plt.figure()    
-    plt.plot(rgrid[k1],np.unwrap(phase_map_probe[k1][:,1]))    
+    plt.plot(rgrid[0],np.unwrap(phase_map_probe[0][:,1]))    
     
-    plt.plot(rgrid[k1],np.unwrap(phase_map_Gauss[:,1]))    
+    plt.plot(rgrid[0],np.unwrap(phase_map_Gauss[:,1]))    
+    
+    if showplots: plt.show()
+    plt.close(fig)
+    
+    
+    fig = plt.figure()    
+    plt.plot(zgrid_probe1[0],np.unwrap(phase_map_probe[0][0,:]))    
+    
+    plt.plot(zgrid_probe1[0],np.unwrap(phase_map_Gauss[0,:]))    
     
     if showplots: plt.show()
     plt.close(fig)
