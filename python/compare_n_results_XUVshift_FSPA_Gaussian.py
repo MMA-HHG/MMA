@@ -585,15 +585,26 @@ with h5py.File(out_h5name,'w') as OutFile:
     FSPA_alpha_map2 = interp_FSPA_short[15](Intens_loc/units.INTENSITYau)
     FSPA_phase_map2 = np.multiply(Intens_loc/units.INTENSITYau, FSPA_alpha_map2)
 
+
+    k_z = 0
+    
     fig = plt.figure()    
     plt.title('r-FSPA-phase')
-    dum = FSPA_phase_map2[k_t,:,1]
+    dum = FSPA_phase_map2[k_t,:, k_z]
     plt.plot(1e6*rgrid[0],dum-dum[0])
-    dum = -(FSPA_alpha_map2[k_t,0,1]/units.INTENSITYau) * Intens_loc[k_t,:,1]
+    dum = -(FSPA_alpha_map2[k_t,0, k_z]/units.INTENSITYau) * Intens_loc[k_t,:, k_z]
     plt.plot(1e6*rgrid[0],dum-dum[0])
     
-    dum = np.unwrap(phase_map_Gauss[:,1])
+    dum = np.unwrap(phase_map_Gauss[:, k_z])
     plt.plot(1e6*rgrid[0],dum-dum[0])
+    
+    if showplots: plt.show()
+    
+    
+    fig = plt.figure()    
+    plt.title('r-FSPA-alpha')
+
+    plt.plot(1e6*rgrid[0],FSPA_alpha_map2[k_t,:, k_z])
     
     if showplots: plt.show()
     # plt.close(fig)
