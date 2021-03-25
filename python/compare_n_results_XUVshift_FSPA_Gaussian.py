@@ -513,35 +513,45 @@ with h5py.File(out_h5name,'w') as OutFile:
     
     
     # radial profile of the phase in the comoving frame
+            
+            
     Efield_probe_cmplx_envel = []; phase_map_probe = []
+    
+    
     for k1 in range(Nfiles):
+        
+        Efocus = np.sqrt(2.0*Intensity_entry[0]/(units.c_light*units.eps0))
+        Efield_Gauss = np.moveaxis(mn.GaussianBeamEfieldConstruct(
+            rgrid[0],zgrid_probe1[0],tgrid[0],Efocus,w0[0],tFWHM[0],mn.ConvertPhoton(omega0, 'omegaSI', 'lambdaSI')
+            ),[0,1],[1,2])
+    
         Nt, Nr, Nz = Efield_probe[k1].shape
         Efield_probe_cmplx_envel.append(np.zeros(Efield_probe[k1].shape,dtype=complex))
         rem_fast_oscillations = np.exp(-1j*omega0*tgrid[k1])
+        
+        Efield_Gauss_cmplx_envel = np.zeros(Efield_Gauss.shape,dtype=complex)
+        
         for k2 in range(Nz):
             for k3 in range(Nr):
                 Efield_probe_cmplx_envel[k1][:,k3,k2] = rem_fast_oscillations*mn.complexify_fft(Efield_probe[k1][:,k3,k2])
 
+                Efield_Gauss_cmplx_envel[:,k3,k2] = rem_fast_oscillations*mn.complexify_fft(Efield_Gauss[:,k3,k2])
+
+
         k_t = mn.FindInterval(tgrid[k1], t_fix) # find time index
+        
         phase_map_probe.append(np.angle(Efield_probe_cmplx_envel[k1][k_t,:,:])) # ordering (r,z)
         Intens_loc = abs(Efield_probe_cmplx_envel[k1])
         
-        Efocus = np.sqrt(2.0*Intensity_entry[k1]/(units.c_light*units.eps0))
+        phase_map_Gauss = np.angle(Efield_Gauss_cmplx_envel[k_t,:,:]) # ordering (r,z)
+        Intens_loc_Gauss = abs(Efield_Gauss_cmplx_envel)
         
         
-        Efield_Gauss = np.moveaxis(mn.GaussianBeamEfieldConstruct(
-            rgrid[k1],zgrid_probe1[k1],tgrid[k1],Efocus,w0[k1],tFWHM[k1],mn.ConvertPhoton(omega0, 'omegaSI', 'lambdaSI')
-            ),[0,1],[1,2])
-        
-        print(Efield_Gauss.shape)
-        print(Efield_probe[k1].shape)
-        # dum = np.moveaxis(Efield_Gauss,0,1)
-        # print(dum.shape)
-        # dum = np.moveaxis(Efield_Gauss,[0,1],[1,2])
-        # print(dum.shape)           
+
         
         fig = plt.figure()    
         plt.plot(rgrid[k1],Intens_loc[k_t,:,0]) 
+        plt.plot(rgrid[k1],Intens_loc_Gauss[k_t,:,0],linestyle='--') 
         plt.plot(rgrid[k1],Intens_loc[k_t,:,1])   
         plt.plot(rgrid[k1],Intens_loc[k_t,:,2])   
         if showplots: plt.show()
@@ -549,6 +559,9 @@ with h5py.File(out_h5name,'w') as OutFile:
 
     fig = plt.figure()    
     plt.plot(rgrid[k1],np.unwrap(phase_map_probe[k1][:,1]))    
+    
+    plt.plot(rgrid[k1],np.unwrap(phase_map_Gauss[:,1]))    
+    
     if showplots: plt.show()
     plt.close(fig)
     
