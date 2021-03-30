@@ -160,15 +160,15 @@ with h5py.File(out_h5name,'w') as OutFile:
             tgrid.append(InArch[k1]['/outputs/tgrid'][:]);  # t_probe1_ind = mn.FindInterval(tgrid[k1], t_probe1)
             rgrid.append(InArch[k1]['/outputs/rgrid'][:]);
             z_probe1_ind = np.asarray([0,Nz_loc//2,Nz_loc-1])
-            zgrid_probe1.append(zgrid[k1][z_probe1_ind])
-            # zgrid_probe1.append(zgrid[k1])
+            # zgrid_probe1.append(zgrid[k1][z_probe1_ind])
+            zgrid_probe1.append(zgrid[k1])
             
             
             # We arrived to the problem with possible over-allocation of Efield in CUPRAD
             Efield_onaxis_s.append(InArch[k1]['/outputs/output_field'][:,0,:Nz_loc])
             Efield_onaxis_s_XUV.append(np.zeros(Efield_onaxis_s[k1].shape))
-            Efield_probe.append(InArch[k1]['/outputs/output_field'][:,:,z_probe1_ind])  
-            # Efield_probe.append(InArch[k1]['/outputs/output_field'][:,:,:Nz_loc])
+            # Efield_probe.append(InArch[k1]['/outputs/output_field'][:,:,z_probe1_ind])  
+            Efield_probe.append(InArch[k1]['/outputs/output_field'][:,:,:Nz_loc])
             
             
             omega0 = mn.ConvertPhoton(1e-2*mn.readscalardataset(InArch[0],'/inputs/laser_wavelength','N'),'lambdaSI','omegaSI')
@@ -551,9 +551,9 @@ with h5py.File(out_h5name,'w') as OutFile:
         Intens_loc_Gauss = mn.FieldToIntensitySI(abs(Efield_Gauss_cmplx_envel))
         
         
-        grad_full_Intens = np.gradient(Intens_loc)
-        grad_tfix_Intens = np.gradient(Intens_loc[k_t,:,:])
-        grad_onax_Intens = np.gradient(Intens_loc[:,0,:])
+        # grad_full_Intens = np.gradient(Intens_loc)
+        # grad_tfix_Intens = np.gradient(Intens_loc[k_t,:,:])
+        # grad_onax_Intens = np.gradient(Intens_loc[:,0,:])
         
         
 
@@ -568,16 +568,7 @@ with h5py.File(out_h5name,'w') as OutFile:
         if showplots: plt.show()
         plt.close(fig)
     
-    
-    fig = plt.figure()  
-    plt.title('z-phase')
-    plt.plot(zgrid_probe1[0],np.unwrap(phase_map_probe[0][0,:]))    
-    
-    plt.plot(zgrid_probe1[0],np.unwrap(phase_map_Gauss[0,:]))    
-    
-    if showplots: plt.show()
-    plt.close(fig)
-    
+        
     k_z = 1
     
     fig = plt.figure()   
@@ -590,8 +581,8 @@ with h5py.File(out_h5name,'w') as OutFile:
     plt.close(fig)
     
     # FSPA phase
-    FSPA_alpha_map2 = interp_FSPA_short[15](Intens_loc/units.INTENSITYau)
-    FSPA_phase_map2 = np.multiply(Intens_loc/units.INTENSITYau, FSPA_alpha_map2)
+    FSPA_alpha_map2 = -interp_FSPA_short[15](Intens_loc/units.INTENSITYau)
+    FSPA_phase_map2 = -np.multiply(Intens_loc/units.INTENSITYau, FSPA_alpha_map2)
 
 
     k_z = 1
@@ -600,7 +591,7 @@ with h5py.File(out_h5name,'w') as OutFile:
     plt.title('r-FSPA-phase')
     dum = FSPA_phase_map2[k_t,:, k_z]
     plt.plot(1e6*rgrid[0],dum-dum[0])
-    dum = -(FSPA_alpha_map2[k_t,0, k_z]/units.INTENSITYau) * Intens_loc[k_t,:, k_z]
+    dum = (FSPA_alpha_map2[k_t,0, k_z]/units.INTENSITYau) * Intens_loc[k_t,:, k_z]
     plt.plot(1e6*rgrid[0],dum-dum[0])
     
     dum = np.unwrap(phase_map_Gauss[:, k_z])
@@ -608,6 +599,7 @@ with h5py.File(out_h5name,'w') as OutFile:
     
     dum = -interp_FSPA_short_phi[15](Intens_loc[k_t,:, k_z]/units.INTENSITYau)
     plt.plot(1e6*rgrid[0],dum-dum[0])
+    Phi_FSPA_r = dum
     
     if showplots: plt.show()
     
@@ -627,8 +619,84 @@ with h5py.File(out_h5name,'w') as OutFile:
     
     if showplots: plt.show()
     # plt.close(fig)
+
+    # z grid
+    fig = plt.figure()  
+    plt.title('z-phase')
+    plt.plot(zgrid_probe1[0],np.unwrap(phase_map_probe[0][0,:]))    
+    
+    plt.plot(zgrid_probe1[0],np.unwrap(phase_map_Gauss[0,:]))    
+    
+    if showplots: plt.show()
+    plt.close(fig)    
+    
+    fig = plt.figure()  
+    plt.title('z-Intens')
+    plt.plot(zgrid_probe1[0],Intens_loc[k_t,0, :]/units.INTENSITYau)    
+    
+    plt.plot(zgrid_probe1[0],Intens_loc_Gauss[k_t,0, :]/units.INTENSITYau,linestyle='--')  
+    
+    if showplots: plt.show()
+    # plt.close(fig)  
+
+    
+    fig = plt.figure()  
+    plt.title('z-FSPA-phase')
+    dum = -interp_FSPA_short_phi[15](Intens_loc[k_t,0, :]/units.INTENSITYau)     
+    plt.plot(zgrid_probe1[0],dum-dum[0])
+
+    Phi_FSPA_z = dum 
+    
+    plt.plot(zgrid_probe1[0],np.unwrap(phase_map_probe[0][0,:]))  
+    
+    if showplots: plt.show()
+    # plt.close(fig)   
+    
+    
+    
     
     # FSPA phase derivatives
+    I_grad_r, I_grad_z = np.gradient(Intens_loc[k_t,:,:],rgrid[0],zgrid_probe1[0],edge_order=2)
+
+    fig = plt.figure()  
+    plt.title('grad_z I')
+    plt.plot(zgrid_probe1[0],dI_dz_map[0][k_t,:])    
+    plt.plot(zgrid_probe1[0],I_grad_z[0,:],linestyle='--')    
+    if showplots: plt.show()
+    plt.close(fig)    
+    
+    fig = plt.figure()  
+    plt.title('grad_z I')
+    plt.plot(rgrid[0],I_grad_z[:,0],linestyle='--')    
+    if showplots: plt.show()
+    plt.close(fig)  
+    
+    fig = plt.figure()  
+    plt.title('grad_r I')
+    plt.plot(rgrid[0],I_grad_r[:,0],linestyle='--')    
+    if showplots: plt.show()
+    plt.close(fig)  
+    
+    FSPA_alpha_rz = FSPA_alpha_map2[k_t,:,:]
+    dPhi_dr_FSPA = FSPA_alpha_rz*I_grad_r/units.INTENSITYau
+    dPhi_dz_FSPA = FSPA_alpha_rz*I_grad_z/units.INTENSITYau
+    
+    fig = plt.figure()  
+    plt.title('grad_z Phi_FSPA')
+    plt.plot(zgrid_probe1[0],dPhi_dz_FSPA[0,:])
+    plt.plot(zgrid_probe1[0],np.gradient(Phi_FSPA_z,zgrid_probe1[0],edge_order=2),linestyle='--')      
+    if showplots: plt.show()
+    # plt.close(fig)  
+    
+    fig = plt.figure()  
+    plt.title('grad_r Phi_FSPA')
+    plt.plot(rgrid[0],dPhi_dr_FSPA[:,0])
+    dum = np.unwrap(Phi_FSPA_r)
+    dum = np.gradient(dum,rgrid[0],edge_order=2)
+    dum = np.unwrap(dum,discont = 1e4)
+    plt.plot(rgrid[0],dum,linestyle='--')   
+    if showplots: plt.show()
+    # plt.close(fig)      
 
 os.chdir(cwd)
 # print('done')
