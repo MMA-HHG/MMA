@@ -31,8 +31,9 @@ else:
     # results_path = os.path.join("/mnt", "d", "data", "Discharges") # 'D:\data\Discharges'
     results_path = os.path.join("D:\data", "Discharges")
 
-with h5py.File('FSPA_tables_Krypton.h5','r') as h5_FSPA_tables:
+with h5py.File('FSPA_tables_Krypton_test.h5','r') as h5_FSPA_tables:
     interp_FSPA_short = HHG.FSPA.get_dphase(h5_FSPA_tables,'Igrid','Hgrid','short/dphi')
+    interp_FSPA_short_phi = HHG.FSPA.get_interp(h5_FSPA_tables,'Igrid','Hgrid','short/phi')
 
 print(interp_FSPA_short[17]([8.47268e-5,9.56486e-5]))
 
@@ -550,6 +551,11 @@ with h5py.File(out_h5name,'w') as OutFile:
         Intens_loc_Gauss = mn.FieldToIntensitySI(abs(Efield_Gauss_cmplx_envel))
         
         
+        grad_full_Intens = np.gradient(Intens_loc)
+        grad_tfix_Intens = np.gradient(Intens_loc[k_t,:,:])
+        grad_onax_Intens = np.gradient(Intens_loc[:,0,:])
+        
+        
 
         
         fig = plt.figure()    
@@ -572,11 +578,13 @@ with h5py.File(out_h5name,'w') as OutFile:
     if showplots: plt.show()
     plt.close(fig)
     
+    k_z = 1
+    
     fig = plt.figure()   
     plt.title('r-IR-phase')
-    plt.plot(rgrid[0],np.unwrap(phase_map_probe[0][:,1]))    
+    plt.plot(rgrid[0],np.unwrap(phase_map_probe[0][:,k_z]))    
     
-    plt.plot(rgrid[0],np.unwrap(phase_map_Gauss[:,1]))    
+    plt.plot(rgrid[0],np.unwrap(phase_map_Gauss[:,k_z]))    
     
     if showplots: plt.show()
     plt.close(fig)
@@ -586,7 +594,7 @@ with h5py.File(out_h5name,'w') as OutFile:
     FSPA_phase_map2 = np.multiply(Intens_loc/units.INTENSITYau, FSPA_alpha_map2)
 
 
-    k_z = 0
+    k_z = 1
     
     fig = plt.figure()    
     plt.title('r-FSPA-phase')
@@ -598,6 +606,17 @@ with h5py.File(out_h5name,'w') as OutFile:
     dum = np.unwrap(phase_map_Gauss[:, k_z])
     plt.plot(1e6*rgrid[0],dum-dum[0])
     
+    dum = -interp_FSPA_short_phi[15](Intens_loc[k_t,:, k_z]/units.INTENSITYau)
+    plt.plot(1e6*rgrid[0],dum-dum[0])
+    
+    if showplots: plt.show()
+    
+    
+    fig = plt.figure()    
+    plt.title('r-Intensity')
+
+    plt.plot(1e6*rgrid[0],Intens_loc[k_t,:, k_z]/units.INTENSITYau)
+    
     if showplots: plt.show()
     
     
@@ -608,6 +627,8 @@ with h5py.File(out_h5name,'w') as OutFile:
     
     if showplots: plt.show()
     # plt.close(fig)
+    
+    # FSPA phase derivatives
 
 os.chdir(cwd)
 # print('done')
