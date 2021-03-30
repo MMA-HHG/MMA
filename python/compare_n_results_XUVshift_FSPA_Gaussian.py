@@ -681,12 +681,6 @@ with h5py.File(out_h5name,'w') as OutFile:
     dPhi_dr_FSPA = FSPA_alpha_rz*I_grad_r/units.INTENSITYau
     dPhi_dz_FSPA = FSPA_alpha_rz*I_grad_z/units.INTENSITYau
     
-    fig = plt.figure()  
-    plt.title('grad_z Phi_FSPA')
-    plt.plot(zgrid_probe1[0],dPhi_dz_FSPA[0,:])
-    plt.plot(zgrid_probe1[0],np.gradient(Phi_FSPA_z,zgrid_probe1[0],edge_order=2),linestyle='--')      
-    if showplots: plt.show()
-    # plt.close(fig)  
     
     fig = plt.figure()  
     plt.title('grad_r Phi_FSPA')
@@ -698,5 +692,30 @@ with h5py.File(out_h5name,'w') as OutFile:
     if showplots: plt.show()
     # plt.close(fig)      
 
+    fig = plt.figure()  
+    plt.title('grad_z Phi_FSPA')
+    plt.plot(zgrid_probe1[0],dPhi_dz_FSPA[0,:])
+    plt.plot(zgrid_probe1[0],np.gradient(Phi_FSPA_z,zgrid_probe1[0],edge_order=2),linestyle='--')      
+    if showplots: plt.show()
+    # plt.close(fig)  
+    
+    
+    fig = plt.figure()  
+    plt.title('dPhi/dz XUV')
+    plt.plot(zgrid_probe1[0],dPhi_dz_map[0][k_t,:])
+    plt.plot(zgrid_probe1[0],dPhi_dz_map_XUV2[0][k_t,:],linestyle='--')      
+    if showplots: plt.show()
+    # plt.close(fig)  
+    
+
+    fig = plt.figure()  
+    plt.title('dPhi/dz sum')
+    plt.plot(zgrid_probe1[0],15*dPhi_dz_map_XUV2[0][k_t,:])   
+    plt.plot(zgrid_probe1[0],dPhi_dz_FSPA[0,:])   
+    plt.plot(zgrid_probe1[0],15*dPhi_dz_map_XUV2[0][k_t,:]+dPhi_dz_FSPA[0,:])   
+    if showplots: plt.show()
+    # plt.close(fig)  
+    
+    
 os.chdir(cwd)
 # print('done')
