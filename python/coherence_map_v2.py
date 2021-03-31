@@ -111,31 +111,24 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
         grp = OutFile.create_group('results_' + str(k_sim))   
         file_path = os.path.join(results_path,filename)
         print('processing:', file_path)             
-        with h5py.File(file_path, 'r') as InputArchive:           
-
-            # =================================================================
-            # Load data
-
-        
-            print(1e-2*mn.readscalardataset(InputArchive,'/inputs/laser_wavelength','N'))
+        with h5py.File(file_path, 'r') as InputArchive:
             omega0 = mn.ConvertPhoton(1e-2*mn.readscalardataset(InputArchive,'/inputs/laser_wavelength','N'),'lambdaSI','omegaSI')
-            
-            print(omega0)
             tgrid = InputArchive['/outputs/tgrid'][:]; Nt = len(tgrid)
             rgrid = InputArchive['/outputs/rgrid'][:]; Nr = len(rgrid)            
-            zgrid = InputArchive['/outputs/zgrid'][:]; Nz = len(zgrid)
-            
+            zgrid = InputArchive['/outputs/zgrid'][:]; Nz = len(zgrid)            
             if full_resolution:
                 kr_step = 1; Nr_max = Nr
             else:
                 dr_file = rgrid[1]-rgrid[0]; kr_step = max(1,int(np.floor(dr/dr_file))); Nr_max = mn.FindInterval(rgrid, rmax)
-                rgrid = rgrid[0:Nr_max:kr_step]; Nr = len(rgrid)
-                
-            Efield = InputArchive['/outputs/output_field'][:,0:Nr_max:kr_step,:Nz] # Arrays may be over-allocated by CUPRAD
+                rgrid = rgrid[0:Nr_max:kr_step]; Nr = len(rgrid)                
+            E_trz = InputArchive['/outputs/output_field'][:,0:Nr_max:kr_step,:Nz] # Arrays may be over-allocated by CUPRAD
+            inverse_GV = InputArchive['/logs/inverse_group_velocity_SI'][()]
+            VG_IR = 1.0/inverse_GV           
+            
+            
             electron_density_map = InputArchive['/outputs/output_plasma'][:,0:Nr_max:kr_step,:Nz]            
             
-            inverse_GV = InputArchive['/logs/inverse_group_velocity_SI'][()]
-            VG_IR = 1.0/inverse_GV
+
             w0 = 1e-2*mn.readscalardataset(InputArchive,'/inputs/laser_beamwaist','N')
             zR = np.pi * w0**2 / mn.ConvertPhoton(omega0,'omegaSI','lambdaSI')
             zgridzR = np.linspace(0,zR,100)

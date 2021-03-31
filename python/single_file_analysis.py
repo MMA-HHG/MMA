@@ -89,6 +89,8 @@ with h5py.File(file_path, 'r') as InputArchive:
     
     inverse_GV = InputArchive['/logs/inverse_group_velocity_SI'][()]
     VG_IR = 1.0/inverse_GV
+    
+    Ip_eV = InputArchive['/inputs/ionization_ionization_potential_of_neutral_molecules'][()]
             
             
     
@@ -208,5 +210,15 @@ ax6.set_xlabel('z [mm]'); ax6.set_ylabel('r [mum]'); ax6.set_title('Intensity')
 fig6.colorbar(map1) 
 fig6.savefig('Intensity.png', dpi = 600)
 
+# Cut-off map
+Cutoff = HHG.ComputeCutoff(Intens[k_t,:,:]/units.INTENSITYau,
+                           mn.ConvertPhoton(omega0,'omegaSI','omegaau'),
+                           mn.ConvertPhoton(Ip_eV,'eV','omegaau')
+                           )[1]
+fig7, ax7 = plt.subplots()
+map1 = ax7.pcolor(1e3*zgrid, 1e6*rgrid, Cutoff, shading='auto')
+ax7.set_xlabel('z [mm]'); ax7.set_ylabel('r [mum]'); ax7.set_title('Cutoff')
+fig7.colorbar(map1) 
+fig7.savefig('Cutoff.png', dpi = 600)
     
 os.chdir(cwd)
