@@ -87,6 +87,13 @@ t_probe1 = 1e-15*np.asanyarray([-10.0, 0.0, 10.0])
 
 OutPath = 'outputs'
 
+full_resolution = False
+rmax = 200e-6 # only for analyses
+dr = rmax/40.0
+
+# Lcoh_saturation = 0.05
+# Lcoh_zero = 0.0
+
 # new version
 
 
@@ -102,7 +109,14 @@ with h5py.File(file_path, 'r') as InputArchive:
     zgrid = InputArchive['/outputs/zgrid'][:]; Nz=len(zgrid)
     tgrid = InputArchive['/outputs/tgrid'][:]; Nt=len(tgrid)
     rgrid = InputArchive['/outputs/rgrid'][:]; Nr=len(rgrid)
-    E_trz = InputArchive['/outputs/output_field'][:,:,:Nz]
+    
+    if full_resolution:
+        kr_step = 1; Nr_max = Nr
+    else:
+        dr_file = rgrid[1]-rgrid[0]; kr_step = max(1,int(np.floor(dr/dr_file))); Nr_max = mn.FindInterval(rgrid, rmax)
+        rgrid = rgrid[0:Nr_max:kr_step]; Nr = len(rgrid)
+    
+    E_trz = InputArchive['/outputs/output_field'][:,0:Nr_max:kr_step,:Nz]
     
     rho0_init = 1e6 * mn.readscalardataset(InputArchive, '/inputs/calculated/medium_effective_density_of_neutral_molecules','N')
     
@@ -172,15 +186,35 @@ k0_wave = 2.0*np.pi/mn.ConvertPhoton(omega0,'omegaSI','lambdaSI')
 fig1, ax1 = plt.subplots()
 fig2, ax2 = plt.subplots()
 
+# xxx = plt.subplots()
+
 for k1 in range(NH):
     q = Horders[k1]     
     # plt.title('dPhi/dz XUV')
     ax1.plot(zgrid,q*(grad_z_phase[0,:] + k0_wave*(nXUV[k1]-1)))      
     ax2.plot(zgrid,grad_z_phase_FSPA[k1][0,:])
     # if showplots: plt.show()
+    
+    fig3, ax3 = plt.subplots()
+    # ax3.plot(zgrid,q*(grad_z_phase[0,:] + k0_wave*(nXUV[k1]-1)))  
+    map1 = ax3.pcolor(zgrid, rgrid,
+                      q*(grad_z_phase + k0_wave*(nXUV[k1]-1))+grad_z_phase_FSPA[k1],
+                         shading='auto')
+    
+    fig3.colorbar(map1)
+    
+    fig4, ax4 = plt.subplots()
+    map1 = ax4.pcolor(zgrid, rgrid,
+                      1.0/ (q*(grad_z_phase + k0_wave*(nXUV[k1]-1))+grad_z_phase_FSPA[k1] ),
+                         shading='auto') #, vmin=Lcoh_zero, vmax=Lcoh_saturation)
+    
+    fig4.colorbar(map1)
 
-fig1.show()
-fig2.show()
+    
+
+# plt.show()
+# fig1.show()
+# fig2.show()
 
 
 # plt.figure() 
