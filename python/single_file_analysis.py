@@ -31,27 +31,8 @@ else:
     # results_path = os.path.join("/mnt", "d", "data", "Discharges") # 'D:\data\Discharges'
     results_path = os.path.join("D:\data", "Discharges")
 
- 
     
 cwd = os.getcwd()
-# os.chdir(results_path)
-files = ['results_1.h5', 'results_4.h5', 'results_7.h5', 'results_10.h5', 'results_13.h5']
-
-# files = ['results_2.h5', 'results_17.h5']
-# files = ['results_1.h5', 'results_2.h5', 'results_3.h5']
-files = ['results_1.h5', 'results_16.h5']
-files = ['results_1.h5', 'results_4.h5', 'results_7.h5']
-
-files = ['results_1.h5', 'results_10.h5']
-files = ['results_1.h5', 'results_2.h5', 'results_3.h5']
-
-files = ['results_1.h5', 'results_4.h5', 'results_7.h5', 'results_10.h5', 'results_13.h5', 'results_16.h5', 'results_19.h5']
-
-files = ['results_Ar_vac.h5']
-
-files = ['Ar_vac_long.h5']
-
-file = 'results_3.h5'
 
 
 Horders = [15, 17, 19, 21, 23]
@@ -59,7 +40,6 @@ Horders = [15, 17, 19, 21, 23]
 gas_type = 'Kr'
 XUV_table_type = 'NIST' # {Henke, NIST}
 
-# q = Horders[2]
 
 tlim = [-60.0,60.0]
 t_fix = 0.0e-15 # the time of our interest to inspect e.g. phase
@@ -75,8 +55,7 @@ dr = rmax/40.0
 Lcoh_saturation = 0.01
 Lcoh_zero = 0.0
 
-# new version
-
+file = 'results_Ar_vac.h5' # 'results_Ar_vac.h5', 'Ar_vac_long.h5' 'results_3.h5'
 
 
 # =============================================================================
@@ -89,7 +68,7 @@ os.mkdir(OutPath)
 os.chdir(OutPath)
 
 
-file_path = os.path.join(results_path,files[0])
+file_path = os.path.join(results_path,file)
 print('processing:', file_path)             
 with h5py.File(file_path, 'r') as InputArchive:
     omega0 = mn.ConvertPhoton(1e-2*mn.readscalardataset(InputArchive,'/inputs/laser_wavelength','N'),'lambdaSI','omegaSI')
@@ -175,7 +154,7 @@ for k1 in range(NH):
     ax3.plot(1e3*zgrid,
              q*(grad_z_phase[0,:] + k0_wave*(nXUV[k1]-1)) + grad_z_phase_FSPA[k1][0,:],
              label='H'+str(q))
-    ax3.set_xlabel('z [mm]'); ax2.set_ylabel('dPhi/dz [1/m]'); ax2.set_title('full phase') 
+    ax3.set_xlabel('z [mm]'); ax3.set_ylabel('dPhi/dz [1/m]'); ax3.set_title('full phase') 
     
     fig4, ax4 = plt.subplots()
     
@@ -199,7 +178,9 @@ ax1.legend(loc='best')
 ax2.legend(loc='best')
 ax3.legend(loc='best')
 
-fig1.savefig('Test.png', dpi = 600)
+fig1.savefig('phase_onax_beam.png', dpi = 600)
+fig2.savefig('phase_onax_FSPA.png', dpi = 600)
+fig3.savefig('phase_onax_full.png', dpi = 600)
     
 os.chdir(cwd)
 # plt.show()
