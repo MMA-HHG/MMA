@@ -34,6 +34,7 @@ else:
     
 cwd = os.getcwd()
 
+vacuum_frame = True
 
 Horders = [15, 17, 19, 21, 23]
 
@@ -55,7 +56,7 @@ dr = rmax/40.0
 Lcoh_saturation = 0.01
 Lcoh_zero = 0.0
 
-file = 'results_Ar_vac.h5' # 'results_Ar_vac.h5', 'Ar_vac_long.h5' 'results_3.h5'
+file = 'results_3.h5' # 'results_Ar_vac.h5', 'Ar_vac_long.h5' 'results_3.h5'
 
 
 # =============================================================================
@@ -86,9 +87,25 @@ with h5py.File(file_path, 'r') as InputArchive:
     
     rho0_init = 1e6 * mn.readscalardataset(InputArchive, '/inputs/calculated/medium_effective_density_of_neutral_molecules','N')
     
+    inverse_GV = InputArchive['/logs/inverse_group_velocity_SI'][()]
+    VG_IR = 1.0/inverse_GV
+            
+            
     
-
-
+# shift to the vacuum frame
+if vacuum_frame:
+    E_vac = np.zeros(E_trz.shape)   
+    for k1 in range(Nz):
+        delta_z = zgrid[k1] # local shift
+        delta_t_lab = inverse_GV*delta_z # shift to the laboratory frame
+        delta_t_vac = delta_t_lab - delta_z/units.c_light # shift to the coordinates moving by c.
+        for k2 in range(Nr):
+            ogrid_nn, FE_s, NF = mn.fft_t_nonorm(tgrid, E_trz[:,k2,k1]) # transform to omega space        
+            FE_s = np.exp(1j*ogrid_nn*delta_t_vac) * FE_s # phase factor        
+            tnew, E_s = mn.ifft_t_nonorm(ogrid_nn,FE_s,NF)
+            E_vac[:,k2,k1] = E_s.real
+        
+    E_trz = E_vac
 
 # Get intensity, envelope & phase
 E_trz_cmplx_envel = np.zeros(E_trz.shape,dtype=complex)
@@ -163,6 +180,7 @@ for k1 in range(NH):
                          shading='auto')
     ax4.set_xlabel('z [mm]'); ax4.set_ylabel('r [mum]'); ax4.set_title('dPhi/dz, full, H'+str(q)) 
     fig4.colorbar(map1)
+    fig4.savefig('dPhi_dz_H'+str(q)+'.png', dpi = 600)
     
     fig5, ax5 = plt.subplots()
     dum = abs( 1.0/ (q*(grad_z_phase + k0_wave*(nXUV[k1]-1))+grad_z_phase_FSPA[k1] ) )
@@ -173,6 +191,8 @@ for k1 in range(NH):
     
     ax5.set_xlabel('z [mm]'); ax5.set_ylabel('r [mum]'); ax5.set_title('Lcoh, H'+str(q))         
     fig5.colorbar(map1)
+    fig5.savefig('Lcoh_H'+str(q)+'.png', dpi = 600)
+    
 
 ax1.legend(loc='best')
 ax2.legend(loc='best')
@@ -181,28 +201,12 @@ ax3.legend(loc='best')
 fig1.savefig('phase_onax_beam.png', dpi = 600)
 fig2.savefig('phase_onax_FSPA.png', dpi = 600)
 fig3.savefig('phase_onax_full.png', dpi = 600)
+
+fig6, ax6 = plt.subplots()
+map1 = ax6.pcolor(1e3*zgrid, 1e6*rgrid, Intens[k_t,:,:], shading='auto')
+ax6.set_xlabel('z [mm]'); ax6.set_ylabel('r [mum]'); ax6.set_title('Intensity')
+fig6.colorbar(map1) 
+fig6.savefig('Intensity.png', dpi = 600)
+
     
 os.chdir(cwd)
-# plt.show()
-# fig1.show()
-# fig2.show()
-
-
-# plt.figure() 
-# for k1 in range(NH):
-#     q = Horders[k1]     
-#     plt.title('dPhi/dz FSPA')
-#     plt.plot(zgrid,grad_z_phase_FSPA[k1][0,:])      
-#     # if showplots: plt.show()
-
-# plt.show()
-
-
-# plt.figure() 
-# for k1 in range(NH):
-#     q = Horders[k1]     
-#     plt.title('dPhi/dz sum')
-#     plt.plot(zgrid,grad_z_phase_FSPA[k1][0,:] + q*(grad_z_phase[0,:] + k0_wave*(nXUV[k1]-1)) )      
-#     # if showplots: plt.show()
-
-# plt.show()
