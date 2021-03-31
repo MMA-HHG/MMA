@@ -169,34 +169,38 @@ k0_wave = 2.0*np.pi/mn.ConvertPhoton(omega0,'omegaSI','lambdaSI')
 
 # on-axis phase derivatives
 
-plt.figure() 
+fig1, ax1 = plt.subplots()
+fig2, ax2 = plt.subplots()
+
 for k1 in range(NH):
     q = Horders[k1]     
-    plt.title('dPhi/dz XUV')
-    plt.plot(zgrid,q*(grad_z_phase[0,:] + k0_wave*(nXUV[k1]-1)))      
+    # plt.title('dPhi/dz XUV')
+    ax1.plot(zgrid,q*(grad_z_phase[0,:] + k0_wave*(nXUV[k1]-1)))      
+    ax2.plot(zgrid,grad_z_phase_FSPA[k1][0,:])
     # if showplots: plt.show()
 
-plt.show()
+fig1.show()
+fig2.show()
 
 
-plt.figure() 
-for k1 in range(NH):
-    q = Horders[k1]     
-    plt.title('dPhi/dz FSPA')
-    plt.plot(zgrid,grad_z_phase_FSPA[k1][0,:])      
-    # if showplots: plt.show()
+# plt.figure() 
+# for k1 in range(NH):
+#     q = Horders[k1]     
+#     plt.title('dPhi/dz FSPA')
+#     plt.plot(zgrid,grad_z_phase_FSPA[k1][0,:])      
+#     # if showplots: plt.show()
 
-plt.show()
+# plt.show()
 
 
-plt.figure() 
-for k1 in range(NH):
-    q = Horders[k1]     
-    plt.title('dPhi/dz sum')
-    plt.plot(zgrid,grad_z_phase_FSPA[k1][0,:] + q*(grad_z_phase[0,:] + k0_wave*(nXUV[k1]-1)) )      
-    # if showplots: plt.show()
+# plt.figure() 
+# for k1 in range(NH):
+#     q = Horders[k1]     
+#     plt.title('dPhi/dz sum')
+#     plt.plot(zgrid,grad_z_phase_FSPA[k1][0,:] + q*(grad_z_phase[0,:] + k0_wave*(nXUV[k1]-1)) )      
+#     # if showplots: plt.show()
 
-plt.show()
+# plt.show()
 
 
 sys.exit(0) 
