@@ -57,6 +57,8 @@ files = ['results_Ar_vac.h5']
 
 files = ['Ar_vac_long.h5']
 
+files = ['results_15.h5']
+
 # files = ['results_12.h5', 'results_13.h5']
 # files = ['results_1.h5', 'results_2.h5']
 
@@ -85,9 +87,119 @@ t_probe1 = 1e-15*np.asanyarray([-10.0, 0.0, 10.0])
 
 OutPath = 'outputs'
 
+# new version
+
+
 
 # =============================================================================
 # The body of the script
+
+
+file_path = os.path.join(results_path,files[0])
+print('processing:', file_path)             
+with h5py.File(file_path, 'r') as InputArchive:
+    omega0 = mn.ConvertPhoton(1e-2*mn.readscalardataset(InputArchive,'/inputs/laser_wavelength','N'),'lambdaSI','omegaSI')
+    zgrid = InputArchive['/outputs/zgrid'][:]; Nz=len(zgrid)
+    tgrid = InputArchive['/outputs/tgrid'][:]; Nt=len(tgrid)
+    rgrid = InputArchive['/outputs/rgrid'][:]; Nr=len(rgrid)
+    E_trz = InputArchive['/outputs/output_field'][:,:,:Nz]
+    
+    rho0_init = 1e6 * mn.readscalardataset(InputArchive, '/inputs/calculated/medium_effective_density_of_neutral_molecules','N')
+    
+    
+
+
+
+# Get intensity, envelope & phase
+E_trz_cmplx_envel = np.zeros(E_trz.shape,dtype=complex)
+rem_fast_oscillations = np.exp(-1j*omega0*tgrid)
+
+for k2 in range(Nz):
+    for k3 in range(Nr):
+        E_trz_cmplx_envel[:,k3,k2] = rem_fast_oscillations*mn.complexify_fft(E_trz[:,k3,k2])
+
+k_t = mn.FindInterval(tgrid, t_fix)
+
+phase = np.angle(E_trz_cmplx_envel[k_t,:,:]) # ordering (r,z)
+Intens = mn.FieldToIntensitySI(abs(E_trz_cmplx_envel))
+
+grad_z_I = np.gradient(Intens[k_t,:,:],zgrid,axis=1,edge_order=2)
+
+grad_z_phase = np.zeros(phase.shape)
+
+
+
+for k1 in range(Nr):
+    phase_rfix = np.unwrap(phase[k1,:])
+    grad_z_phase[k1,:] = np.gradient(phase_rfix,zgrid,edge_order=2)
+
+fig = plt.figure()  
+plt.title('grad_z phase onax')
+plt.plot(zgrid,grad_z_phase[0,:])   
+if showplots: plt.show()
+        
+# Get XUV
+# the additional term for the phase derivative is given by k0*(nXUV-1), k0 is the vacuum wavenumber
+nXUV = [];
+NH = len(Horders)
+for k1 in range(NH):
+    q = Horders[k1]
+    f1 = XUV_index.getf1(gas_type+'_'+XUV_table_type, mn.ConvertPhoton(q*omega0, 'omegaSI', 'eV'))
+    nXUV.append(1.0 - rho0_init*units.r_electron_classical*(mn.ConvertPhoton(q*omega0,'omegaSI','lambdaSI')**2)*f1/(2.0*np.pi))
+
+
+
+# Get FSPA 
+with h5py.File('FSPA_tables_Krypton_test.h5','r') as h5_FSPA_tables:
+    interp_FSPA_short = HHG.FSPA.get_dphase(h5_FSPA_tables,'Igrid','Hgrid','short/dphi')
+
+
+FSPA_alphas = []; grad_z_phase_FSPA = []
+for k1 in range(NH):
+    q = Horders[k1]
+    FSPA_alphas.append(-interp_FSPA_short[q](Intens[k_t,:,:]/units.INTENSITYau))
+    grad_z_phase_FSPA.append(FSPA_alphas[k1]*grad_z_I /units.INTENSITYau)
+    # FSPA_alpha_rz = FSPA_alpha_map2[k_t,:,:]
+    # dPhi_dr_FSPA = FSPA_alpha_rz*I_grad_r/units.INTENSITYau
+    # dPhi_dz_FSPA = FSPA_alpha_rz*I_grad_z/units.INTENSITYau
+    
+# make the maps
+k0_wave = 2.0*np.pi/mn.ConvertPhoton(omega0,'omegaSI','lambdaSI')
+
+
+# on-axis phase derivatives
+
+plt.figure() 
+for k1 in range(NH):
+    q = Horders[k1]     
+    plt.title('dPhi/dz XUV')
+    plt.plot(zgrid,q*(grad_z_phase[0,:] + k0_wave*(nXUV[k1]-1)))      
+    # if showplots: plt.show()
+
+plt.show()
+
+
+plt.figure() 
+for k1 in range(NH):
+    q = Horders[k1]     
+    plt.title('dPhi/dz FSPA')
+    plt.plot(zgrid,grad_z_phase_FSPA[k1][0,:])      
+    # if showplots: plt.show()
+
+plt.show()
+
+
+plt.figure() 
+for k1 in range(NH):
+    q = Horders[k1]     
+    plt.title('dPhi/dz sum')
+    plt.plot(zgrid,grad_z_phase_FSPA[k1][0,:] + q*(grad_z_phase[0,:] + k0_wave*(nXUV[k1]-1)) )      
+    # if showplots: plt.show()
+
+plt.show()
+
+
+sys.exit(0) 
 
 NH = len(Horders)
 
@@ -712,12 +824,7 @@ with h5py.File(out_h5name,'w') as OutFile:
     plt.title('dPhi/dz sum')
     plt.plot(zgrid_probe1[0],15*dPhi_dz_map_XUV2[0][k_t,:])   
     plt.plot(zgrid_probe1[0],dPhi_dz_FSPA[0,:])   
-    plt.plot(zgrid_probe1[0],15*dPhi_dz_map_XUV2[0][k_t,:]+dPhi_dz_FSPA[0,:])
-    
-    
-    plt.plot(zgrid_probe1[0],15*(dPhi_dz_map[0][k_t,:] + k0_wave*(nXUV[0][0]-1.0)),linestyle='--')
-    plt.plot(zgrid_probe1[0],15*dPhi_dz_map[0][k_t,:],linestyle='--')  
-    
+    plt.plot(zgrid_probe1[0],15*dPhi_dz_map_XUV2[0][k_t,:]+dPhi_dz_FSPA[0,:])   
     if showplots: plt.show()
     # plt.close(fig)  
     
