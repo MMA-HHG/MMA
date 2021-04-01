@@ -56,7 +56,7 @@ dr = rmax/40.0
 Lcoh_saturation = 0.01
 Lcoh_zero = 0.0
 
-file = 'results_3.h5' # 'results_Ar_vac.h5', 'Ar_vac_long.h5' 'results_3.h5'
+file = 'results_1.h5' # 'results_Ar_vac.h5', 'Ar_vac_long.h5' 'results_3.h5'
 
 
 # =============================================================================
