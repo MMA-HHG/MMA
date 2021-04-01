@@ -48,6 +48,8 @@ files = ['results_1.h5','results_2.h5', 'results_3.h5']
 # files = ['results.h5']
 # files = ['results_19.h5']
 
+files = ['results_1.h5']
+
 out_h5name = 'analyses.h5'
 
 # q = 23 # harmonic of our interest
@@ -96,7 +98,9 @@ os.chdir(OutPath)
 
 prop_cycle = plt.rcParams['axes.prop_cycle']
 colors_plt = prop_cycle.by_key()['color']
-linestyles_plt = ['--','-','-.']
+linestyles_plt = ['--','-','-.'] 
+
+
 NH = len(Horders)
 Nt_probe = len(t_probe)
 
@@ -138,6 +142,7 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
             inverse_GV = InputArchive['/logs/inverse_group_velocity_SI'][()]
             VG_IR = 1.0/inverse_GV               
             rho0_init = 1e6 * mn.readscalardataset(InputArchive, '/inputs/calculated/medium_effective_density_of_neutral_molecules','N')
+            Ip_eV = InputArchive['/inputs/ionization_ionization_potential_of_neutral_molecules'][()]
             
             ### Shift to the vacuum frame
             if vacuum_frame:
@@ -196,23 +201,65 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
             fig2, ax2 = plt.subplots()
             fig3, ax3 = plt.subplots()
             for k1 in range(Nt_probe):
+              # Cut-off map
+              Cutoff = HHG.ComputeCutoff(Intens[t_probe_ind,:,:]/units.INTENSITYau,
+                                       mn.ConvertPhoton(omega0,'omegaSI','omegaau'),
+                                       mn.ConvertPhoton(Ip_eV,'eV','omegaau')
+                                       )[1]
+              fig7, ax7 = plt.subplots()
+              map1 = ax7.pcolor(1e3*zgrid, 1e6*rgrid, Cutoff[k1,:,:], shading='auto')
+              ax7.set_xlabel('z [mm]'); ax7.set_ylabel('r [mum]'); ax7.set_title('Cutoff')
+              fig7.colorbar(map1) 
+              fig7.savefig('Cutoff_t'+str(k1)+'_sim'+str(k_sim)+'.png', dpi = 600)
+              # if showplots: plt.show(fig7)
+              # plt.close(fig7)
+              
               for k2 in range(NH):
                 q = Horders[k2]
                 
                 # onax
-                ax1.plot(1e3*zgrid,q*(grad_z_phase[k1,0,:] + k0_wave*(nXUV[k2]-1)),label='H'+str(q),
-                         color=colors_plt[k2], linestyle=linestyles_plt[k1])
-                ax1.set_xlabel('z [mm]'); ax1.set_ylabel('dPhi/dz [1/m]'); ax1.set_title('beam phase')      
-                
-                ax2.plot(1e3*zgrid,grad_z_phase_FSPA[k2][k1,0,:],label='H'+str(q),
-                         color=colors_plt[k2], linestyle=linestyles_plt[k1])
-                ax2.set_xlabel('z [mm]'); ax2.set_ylabel('dPhi/dz [1/m]'); ax2.set_title('FSPA (atom)') 
-                
-                ax3.plot(1e3*zgrid,
+                if (linestyles_plt[k1] == '-'):              
+                  ax1.plot(1e3*zgrid,q*(grad_z_phase[k1,0,:] + k0_wave*(nXUV[k2]-1)),label='H'+str(q),
+                         color=colors_plt[k2], linestyle=linestyles_plt[k1])               
+                  ax2.plot(1e3*zgrid,grad_z_phase_FSPA[k2][k1,0,:],label='H'+str(q),
+                         color=colors_plt[k2], linestyle=linestyles_plt[k1])                
+                  ax3.plot(1e3*zgrid,
                          q*(grad_z_phase[k1,0,:] + k0_wave*(nXUV[k2]-1)) + grad_z_phase_FSPA[k2][k1,0,:],
                          label='H'+str(q), color=colors_plt[k2], linestyle=linestyles_plt[k1])
-                ax3.set_xlabel('z [mm]'); ax3.set_ylabel('dPhi/dz [1/m]'); ax3.set_title('full phase') 
+                else:
+                  ax1.plot(1e3*zgrid,q*(grad_z_phase[k1,0,:] + k0_wave*(nXUV[k2]-1)),
+                         color=colors_plt[k2], linestyle=linestyles_plt[k1])               
+                  ax2.plot(1e3*zgrid,grad_z_phase_FSPA[k2][k1,0,:],
+                         color=colors_plt[k2], linestyle=linestyles_plt[k1])                
+                  ax3.plot(1e3*zgrid,
+                         q*(grad_z_phase[k1,0,:] + k0_wave*(nXUV[k2]-1)) + grad_z_phase_FSPA[k2][k1,0,:],
+                         color=colors_plt[k2], linestyle=linestyles_plt[k1])
+                  
+                  
+                fig4, ax4 = plt.subplots()
                 
+                map1 = ax4.pcolor(1e3*zgrid, 1e6*rgrid,
+                                  q*(grad_z_phase[k1,:,:] + k0_wave*(nXUV[k2]-1))+grad_z_phase_FSPA[k2][k1,:,:],
+                                     shading='auto')
+                ax4.set_xlabel('z [mm]'); ax4.set_ylabel('r [mum]'); ax4.set_title('dPhi/dz, full, H'+str(q)) 
+                fig4.colorbar(map1)
+                fig4.savefig('dPhi_dz_t_'+str(k1)+'_H'+str(q)+'_sim'+str(k_sim)+'.png', dpi = 600)
+                
+                fig5, ax5 = plt.subplots()
+                dum = abs( 1.0/ (q*(grad_z_phase[k1,:,:] + k0_wave*(nXUV[k2]-1))+grad_z_phase_FSPA[k2][k1,:,:] ) )
+                if (np.max(dum) > Lcoh_saturation):
+                    map1 = ax5.pcolor(1e3*zgrid, 1e6*rgrid, dum, shading='auto', vmax=Lcoh_saturation)
+                else:
+                    map1 = ax5.pcolor(1e3*zgrid, 1e6*rgrid, dum, shading='auto')
+                
+                ax5.set_xlabel('z [mm]'); ax5.set_ylabel('r [mum]'); ax5.set_title('Lcoh, H'+str(q))         
+                fig5.colorbar(map1)
+                fig5.savefig('Lcoh_t_'+str(k1)+'_H'+str(q)+'_sim'+str(k_sim)+'.png', dpi = 600)
+                
+             
+            ax1.set_xlabel('z [mm]'); ax1.set_ylabel('dPhi/dz [1/m]'); ax1.set_title('beam phase')   
+            ax2.set_xlabel('z [mm]'); ax2.set_ylabel('dPhi/dz [1/m]'); ax2.set_title('FSPA (atom)')
+            ax3.set_xlabel('z [mm]'); ax3.set_ylabel('dPhi/dz [1/m]'); ax3.set_title('full phase') 
             ax1.legend(loc='best')
             ax2.legend(loc='best')
             ax3.legend(loc='best')
@@ -221,9 +268,6 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
             fig2.savefig('phase_onax_FSPA_'+str(k_sim)+'.png', dpi = 600)
             fig3.savefig('phase_onax_full_'+str(k_sim)+'.png', dpi = 600)
                 
-                
-            
-            
             
             
             
