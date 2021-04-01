@@ -48,7 +48,7 @@ vacuum_frame = True
 # files = ['results.h5']
 # files = ['results_19.h5']
 
-# files = ['results_1.h5']
+files = ['results_1.h5']
 
 # files = ['results_1.h5','results_10.h5', 'results_15.h5']
 
@@ -66,6 +66,8 @@ Horders = [15, 17, 19, 21, 23]# [19, 21, 23, 25, 27]
 
 Lcoh_saturation = 0.02
 Lcoh_zero = 0.0
+
+H_shift_mask = 4.0
 
 tlim = [-60.0,60.0]
 
@@ -209,8 +211,11 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
             fig3, ax3 = plt.subplots()
             for k1 in range(Nt_probe):
 
+              Cutoff_loc = Cutoff[t_probe_ind[k1],:,:]
+
               fig7, ax7 = plt.subplots()
               map1 = ax7.pcolor(1e3*zgrid, 1e6*rgrid, Cutoff[t_probe_ind[k1],:,:], shading='auto')
+              map2 = ax7.contour(1e3*zgrid, 1e6*rgrid, Cutoff[t_probe_ind[k1],:,:], Horders, colors = "black")
               ax7.set_xlabel('z [mm]'); ax7.set_ylabel('r [mum]'); ax7.set_title('Cutoff')
               fig7.colorbar(map1) 
               fig7.savefig('Cutoff_t'+str(k1)+'_sim'+str(k_sim)+'.png', dpi = 600)
@@ -219,6 +224,11 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
               
               for k2 in range(NH):
                 q = Horders[k2]
+                
+                # Create mask
+                H_mask = Cutoff_loc
+                H_mask[H_mask < q-H_shift_mask] = np.nan # https://stackoverflow.com/questions/38800532/set-color-for-nan-values-in-matplotlib/38800580
+                H_mask = np.ma.masked_where(np.isnan(H_mask),H_mask) 
                 
                 # onax
                 if (linestyles_plt[k1] == '-'):              
@@ -241,8 +251,10 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
                   
                 fig4, ax4 = plt.subplots()
                 
+                masked = np.ma.masked_where(np.isnan(H_mask), q*(grad_z_phase[k1,:,:] + k0_wave*(nXUV[k2]-1))+grad_z_phase_FSPA[k2][k1,:,:] )
+                
                 map1 = ax4.pcolor(1e3*zgrid, 1e6*rgrid,
-                                  q*(grad_z_phase[k1,:,:] + k0_wave*(nXUV[k2]-1))+grad_z_phase_FSPA[k2][k1,:,:],
+                                  masked, # q*(grad_z_phase[k1,:,:] + k0_wave*(nXUV[k2]-1))+grad_z_phase_FSPA[k2][k1,:,:],
                                      shading='auto')
                 ax4.set_xlabel('z [mm]'); ax4.set_ylabel('r [mum]'); ax4.set_title('dPhi/dz, full, H'+str(q)) 
                 fig4.colorbar(map1)
@@ -310,221 +322,4 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
             
 
 os.chdir(cwd)
-print('done') 
-
-           
-            
-    #         if Coherence_length:
-    #             # Compute dPhi/dz at t = t_fix
-    #             dPhi_dz_map = np.zeros((Nr,Nz))
-    #             for k1 in range(Nr):
-    #                 phase_r = np.unwrap(phase_map[k1,:])
-    #                 dPhi_dz_map[k1, 0] = (phase_r[1] - phase_r[0]) / (zgrid[1] - zgrid[0])
-    #                 dPhi_dz_map[k1, -1] = (phase_r[-1] - phase_r[-2]) / (zgrid[-1] - zgrid[-2])
-    #                 for k2 in range(1, Nz - 1):
-    #                     dPhi_dz_map[k1, k2] = mn.ddx_arb(k2,zgrid,phase_r)
-                    
-
-    #         # ===============================================
-    #         # Coherence length
-            
-    #         # The coherence lenght taking only the dephasing from CUPRAD in the group-velocity frame
-    #             Lcoh_map = np.abs(np.pi/dPhi_dz_map)
-                
-    #             k0_wave = 2.0*np.pi/mn.ConvertPhoton(omega0,'omegaSI','lambdaSI')
-    #             Lcoh_map_XUV = np.abs(np.pi/(dPhi_dz_map + k0_wave*0.0))
-
-    #         # ===============================================
-    #         # Local curvature
-            
-    #         if Beam_analysis:
-            
-    #             # Local curvature: phase evolution for a fixed z compared to the on-axis phase
-    #             Curvature_Gaussian_map = np.zeros((Nr,Nz)) # Gaussian beam for a comparison
-    #             Curvature_map = np.zeros((Nr, Nz)) # Phas from CUPRAD
-    #             for k1 in range(Nz):
-    #                 if (k1 == 0):
-    #                     Curv_coeff = 0
-    #                 else:
-    #                     Rz = zgrid[k1] + zR ** 2 / zgrid[k1]
-    #                     Curv_coeff = np.pi / (Rz * mn.ConvertPhoton(omega0, 'omegaSI', 'lambdaSI'))
-    #                 Curvature_Gaussian_map[:, k1] = -Curv_coeff*(rgrid)**2
-    #                 Curvature_map[:, k1] = np.unwrap(phase_map[:, k1])
-    #                 Curvature_map[:, k1] = Curvature_map[:, k1] - Curvature_map[0, k1] # start always at 0
-            
-    #             Curvature_map = Curvature_map - np.max(Curvature_map)
-            
-  
-    #         # ===============================================
-    #         # Get the fluence
-            
-    #         # Fluence is either computed from Efield or taken from the file
-    #             if (fluence_source == 'file'):
-    #                 Fluence = InputArchive['/longstep/fluence'][:,:]
-    #                 zgrid_Fluence = InputArchive['/longstep/zgrid_analyses2'][:]
-    #                 Fluence_units = 'SI'                
-                    
-    #             elif (fluence_source == 'computed'):                
-    #                 zgrid_Fluence = zgrid
-    #                 Fluence = np.zeros((Nr, Nz))
-    #                 for k1 in range(Nz):
-    #                     for k2 in range(Nr):
-    #                         Fluence[k2, k1] = sum(abs(Efield[:, k2, k1])**2)
-    #                 Fluence_units = 'arb.u.'
-                
-            
-    #         # ===============================================
-    #         # The ionisation map at t = t_fix
-            
-    #             ionisation_tfix_map = np.zeros((Nr, Nz))
-    #             for k1 in range(Nz):
-    #                 for k2 in range(Nr):
-    #                     ionisation_tfix_map[k2, k1] = electron_density_map[k_t,k2,k1]
-
-
-
-    #         # =================================================================
-    #         # Print outputs
-            
-    #         if Coherence_length:
-                
-    #             # dPhi/dz
-    #             for k1 in range(NH):
-    #                 k0_wave = 2.0*np.pi/mn.ConvertPhoton(omega0,'omegaSI','lambdaSI')
-                    
-    #                 fig = plt.figure()
-    #                 plt.pcolor(zgrid, rgrid, dPhi_dz_map + k0_wave*(nXUV[k1]-1.0))
-    #                 plt.colorbar()
-    #                 plt.savefig('dPhidz_map_'+str(k_sim)+'_'+str(Horders[k1])+'.png', dpi = 600)
-    #                 if showplots: plt.show()
-    #                 plt.close(fig)
-                
-    #             # Coherence length
-    #                 fig = plt.figure()
-    #                 Lcoh_map_XUV = np.abs(np.pi/(dPhi_dz_map + k0_wave*(nXUV[k1]-1.0)))
-    #                 plt.pcolor(1e3*zgrid, 1e6*rgrid, Lcoh_map_XUV, vmin=Lcoh_zero, vmax=Lcoh_saturation)
-    #                 plt.xlabel('z [mm]')
-    #                 plt.ylabel('r [mum]')
-    #                 plt.title('Lcoh [m]')
-    #                 plt.colorbar()
-    #                 plt.savefig('Lcoh_map_'+str(k_sim)+'_'+str(Horders[k1])+'.png', dpi = 600)
-    #                 plt.show()
-    #                 if showplots: plt.show()
-    #                 plt.close(fig)
-                    
-    #             fig = plt.figure()
-    #             plt.plot(zgrid, dPhi_dz_map[0,:])
-    #             plt.xlabel('z [m]')
-    #             plt.ylabel('dPhi/dz')
-    #             plt.title('onaxis')
-    #             plt.savefig('dPhidz_onaxis_'+str(k_sim)+'.png', dpi = 600)
-    #             if showplots: plt.show()
-    #             plt.close(fig)
-                
-    #         if Coherence_length or Beam_analysis:
-    #             # Phase(r,z,t=t_fix) # not unwrapped, should be not difficult in a smooth case, or use some 2D-unwprapping
-    #             fig = plt.figure()
-    #             plt.pcolor(zgrid,rgrid,phase_map)
-    #             plt.colorbar()
-    #             plt.title('Phi [rad]')
-    #             plt.savefig('Phase_z_map_'+str(k_sim)+'.png', dpi = 600)
-    #             if showplots: plt.show()
-    #             plt.close(fig)
-        
-    #         if Beam_analysis:
-    #             # Curvature of the beam 
-    #             fig = plt.figure()
-    #             plt.pcolor(1e3*zgrid, 1e6*rgrid, Curvature_map, vmax = 0)
-    #             plt.xlabel('z [mm]')
-    #             plt.ylabel('r [mum]')
-    #             plt.title('phi_Curv [rad]')
-    #             plt.colorbar()
-    #             plt.savefig('Curvature_map_'+str(k_sim)+'.png', dpi = 600)
-    #             if showplots: plt.show()
-    #             plt.close(fig)
-            
-    #             # reference Gaussian curvature 
-    #             if Gaussian_curvature:
-    #                 Gaussian_curvature = False
-    #                 fig = plt.figure()
-    #                 plt.pcolor(1e3*zgrid, 1e6*rgrid, Curvature_Gaussian_map, vmax = 0)
-    #                 plt.xlabel('z [mm]')
-    #                 plt.ylabel('r [mum]')
-    #                 plt.title('phi_Curv [rad]')
-    #                 plt.colorbar()
-    #                 plt.savefig('Curvature_map_Gauss.png', dpi = 600)
-    #                 if showplots: plt.show()
-    #                 plt.close(fig)
-            
-    #             # Fluence
-    #             fig = plt.figure()
-    #             plt.pcolor(1e3*zgrid_Fluence, 1e6*rgrid, Fluence)
-    #             plt.xlabel('z [mm]')
-    #             plt.ylabel('r [mum]')
-    #             plt.title('Fluence ['+Fluence_units+']')
-    #             plt.colorbar()
-    #             plt.savefig('Fluence_'+str(k_sim)+'.png', dpi = 600)
-    #             if showplots: plt.show()
-    #             plt.close(fig)
-            
-    #             # ionisation(r,z,t=t_fix)
-    #             fig = plt.figure()
-    #             plt.pcolor(1e3*zgrid, 1e6*rgrid, 100.0*ionisation_tfix_map/rho0_init)
-    #             plt.xlabel('z [mm]')
-    #             plt.ylabel('r [mum]')
-    #             plt.title('electron density [%]')
-    #             plt.colorbar()
-    #             plt.savefig('ionisation_thalf_'+str(k_sim)+'.png', dpi = 600)
-    #             if showplots: plt.show()
-    #             plt.close(fig)
-            
-    #             # ionisation(r=0,z=zmax/2,t)
-    #             fig = plt.figure()
-    #             plt.plot(1e15*tgrid, 100.0*electron_density_map[:,0,Nz//2]/rho0_init)
-    #             plt.xlabel('t [fs]')
-    #             plt.ylabel('electron density [%]')
-    #             plt.title('z = ' + str(1e3*zgrid[Nz//2]) + ' mm')
-    #             plt.savefig('ionisation_middle_'+str(k_sim)+'.png', dpi = 600)
-    #             if showplots: plt.show()
-    #             plt.close(fig)
-            
-    #         # if Efield_analysis:
-    #         #     # Field in the vacuum frame
-    #         #     plt.plot(1e15*tgrid, Efield_onaxis_s[:,0], linewidth=0.2, label='z=0')
-    #         #     plt.plot(1e15*tgrid, Efield_onaxis_s[:,Nz//2], linewidth=0.2, label='z=0.5zmax')
-    #         #     plt.plot(1e15*tgrid, Efield_onaxis_s[:,-1], linewidth=0.2, label='z=zmax')
-    #         #     plt.legend(loc='best')
-    #         #     plt.xlabel('t [fs]')
-    #         #     plt.ylabel('E [V/m]')
-    #         #     plt.savefig('Field_shift_lines_'+str(k_sim)+'.png', dpi = 600)
-    #         #     plt.show()
-                
-    #         #     # E(r=0,z,t) in the vacuum frame
-    #         #     plt.pcolor(1e3*zgrid, 1e15*tgrid, Efield_onaxis_s)
-    #         #     plt.xlabel('z [mm]')
-    #         #     plt.ylabel('t [fs]')
-    #         #     plt.title('shifted field [V/m]')
-    #         #     plt.colorbar()
-    #         #     plt.savefig('Field_shift_'+str(k_sim)+'.png', dpi = 600)
-    #         #     plt.show()
-
-
-    # df_delta_t_columns_tup = df_delta_t_columns.tolist()
-    # df_delta_t = df_delta_t.sort_values(by=df_delta_t_columns_tup[0:3]) 
-    
-    # format_mapping={df_delta_t_columns_tup[0]: '{:,.0f}',
-    #                 df_delta_t_columns_tup[1]: '{:,.0f}',
-    #                 df_delta_t_columns_tup[2]: '{:,.2f}',
-    #                 df_delta_t_columns_tup[3]: '{:,.3f}',
-    #                 df_delta_t_columns_tup[4]: '{:,.3f}',
-    #                 df_delta_t_columns_tup[5]: '{:,.3f}'}
-    
-    # for key, value in format_mapping.items():
-    #     df_delta_t[key] = df_delta_t[key].apply(value.format)
-
-    # # https://stackoverflow.com/questions/32744997/python-pandas-apply-formatting-to-each-column-in-dataframe-using-a-dict-mapping
-    # print(df_delta_t)
-    # # print(df_delta_t.to_latex(float_format="%.3f",escape=False,index=False)) 
-    # print(df_delta_t.to_latex(escape=False,index=False)) 
-    # df_delta_t.to_latex('ltxtable.out',float_format="%.3f",escape=False,index=False)
-    # # with open('lout.out','w') as lout:   
+print('done')
