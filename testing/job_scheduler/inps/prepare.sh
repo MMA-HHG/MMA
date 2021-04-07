@@ -1,6 +1,25 @@
 #!/bin/bash
 
-rm -r * # Clean folder
+# # rm -r * # Clean folder # rather do it manually
+
+while getopts :i:a: flags; do
+  case "${flags}" in
+    i)
+      analysis=${OPTARG}
+      echo "-i was triggered, Parameter: $OPTARG"
+      ;;
+    a)
+      analysis=${OPTARG}
+      echo "-a was triggered, Parameter: $OPTARG"
+      ;;
+    :)
+      echo "Option -$OPTARG requires an argument."
+    #   exit 1
+      ;;
+  esac
+done
+
+exit 1
 
 cp $TESTPATH/*.inp .
 

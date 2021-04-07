@@ -12,6 +12,7 @@ import HHG
 # import mynumerics as mn
 import matplotlib.pyplot as plt
 import re
+import copy
 import glob
 import pandas as pd
 import XUV_refractive_index as XUV_index
@@ -48,7 +49,7 @@ vacuum_frame = True
 # files = ['results.h5']
 # files = ['results_19.h5']
 
-files = ['results_1.h5']
+# files = ['results_1.h5']
 
 # files = ['results_1.h5','results_10.h5', 'results_15.h5']
 
@@ -77,7 +78,7 @@ Coherence_length = True
 Beam_analysis = False
 Efield_analysis = False
 
-rmax = 200e-6 # only for analyses
+rmax = 130e-6 # only for analyses
 dr = rmax/40.0
 
 t_probe = 1e-15*np.asanyarray([-5.0, 0.0, 5.0])
@@ -226,7 +227,7 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
                 q = Horders[k2]
                 
                 # Create mask
-                H_mask = Cutoff_loc
+                H_mask = 1.0*Cutoff_loc[:] # instead of copy.deepcopy(Cutoff_loc[:])
                 H_mask[H_mask < q-H_shift_mask] = np.nan # https://stackoverflow.com/questions/38800532/set-color-for-nan-values-in-matplotlib/38800580
                 H_mask = np.ma.masked_where(np.isnan(H_mask),H_mask) 
                 
@@ -249,10 +250,8 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
                          color=colors_plt[k2], linestyle=linestyles_plt[k1])
                   
                   
-                fig4, ax4 = plt.subplots()
-                
-                masked = np.ma.masked_where(np.isnan(H_mask), q*(grad_z_phase[k1,:,:] + k0_wave*(nXUV[k2]-1))+grad_z_phase_FSPA[k2][k1,:,:] )
-                
+                fig4, ax4 = plt.subplots()                
+                masked = np.ma.masked_where(np.isnan(H_mask), q*(grad_z_phase[k1,:,:] + k0_wave*(nXUV[k2]-1))+grad_z_phase_FSPA[k2][k1,:,:] )                
                 map1 = ax4.pcolor(1e3*zgrid, 1e6*rgrid,
                                   masked, # q*(grad_z_phase[k1,:,:] + k0_wave*(nXUV[k2]-1))+grad_z_phase_FSPA[k2][k1,:,:],
                                      shading='auto')
@@ -262,8 +261,9 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
                 
                 fig8, ax8 = plt.subplots()
                 
+                masked = np.ma.masked_where(np.isnan(H_mask), abs(q*(grad_z_phase[k1,:,:] + k0_wave*(nXUV[k2]-1))+grad_z_phase_FSPA[k2][k1,:,:]))
                 map1 = ax8.pcolor(1e3*zgrid, 1e6*rgrid,
-                                  abs(q*(grad_z_phase[k1,:,:] + k0_wave*(nXUV[k2]-1))+grad_z_phase_FSPA[k2][k1,:,:]),
+                                  masked,
                                      shading='auto',vmin=0.0)
                 ax8.set_xlabel('z [mm]'); ax8.set_ylabel('r [mum]'); ax8.set_title('d|Phi/dz|, full, H'+str(q)) 
                 fig8.colorbar(map1)
@@ -271,10 +271,11 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
                 
                 fig5, ax5 = plt.subplots()
                 dum = abs( 1.0/ (q*(grad_z_phase[k1,:,:] + k0_wave*(nXUV[k2]-1))+grad_z_phase_FSPA[k2][k1,:,:] ) )
+                masked = np.ma.masked_where(np.isnan(H_mask), abs( 1.0/ (q*(grad_z_phase[k1,:,:] + k0_wave*(nXUV[k2]-1))+grad_z_phase_FSPA[k2][k1,:,:] ) ))
                 if (np.max(dum) > Lcoh_saturation):
-                    map1 = ax5.pcolor(1e3*zgrid, 1e6*rgrid, dum, shading='auto', vmax=Lcoh_saturation)
+                    map1 = ax5.pcolor(1e3*zgrid, 1e6*rgrid, masked, shading='auto', vmax=Lcoh_saturation)
                 else:
-                    map1 = ax5.pcolor(1e3*zgrid, 1e6*rgrid, dum, shading='auto')
+                    map1 = ax5.pcolor(1e3*zgrid, 1e6*rgrid, masked, shading='auto')
                 
                 ax5.set_xlabel('z [mm]'); ax5.set_ylabel('r [mum]'); ax5.set_title('Lcoh, H'+str(q))         
                 fig5.colorbar(map1)
