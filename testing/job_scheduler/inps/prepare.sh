@@ -2,15 +2,15 @@
 
 # # rm -r * # Clean folder # rather do it manually
 
-while getopts :i:a: flags; do
+while getopts :r:m: flags; do
   case "${flags}" in
-    i)
-      analysis=${OPTARG}
-      echo "-i was triggered, Parameter: $OPTARG"
+    r)
+      regular=${OPTARG}
+      echo "regular input: $regular"
       ;;
-    a)
-      analysis=${OPTARG}
-      echo "-a was triggered, Parameter: $OPTARG"
+    m)
+      multiparametric=${OPTARG}
+      echo "multiparametric input: $multiparametric"
       ;;
     :)
       echo "Option -$OPTARG requires an argument."
@@ -19,16 +19,16 @@ while getopts :i:a: flags; do
   esac
 done
 
-exit 1
+# exit 1
 
-cp $TESTPATH/*.inp .
+# cp $TESTPATH/*.inp .
 
-rm -r sim_*
-rm *.h5
+# rm -r sim_*
+# rm *.h5
 
 module purge
 module load intel/17.2 python/3.6.3
-python3 $UNIV_INPUT_PATH/process_multiparametric.py -i-reg ELI5.inp -i-mp ELI5_MP.inp -multiparam-groups -keep-intermediate -univ-inps -ohdf5 results.h5 -g inputs
+python3 $UNIV_INPUT_PATH/process_multiparametric.py -i-reg $regular -i-mp $multiparametric -multiparam-groups -keep-intermediate -univ-inps -ohdf5 results.h5 -g inputs
 
 cp multiparameters/*.h5 .
 
