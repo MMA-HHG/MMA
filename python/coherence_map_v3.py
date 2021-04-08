@@ -12,12 +12,22 @@ import HHG
 # import mynumerics as mn
 import matplotlib.pyplot as plt
 import re
-import copy
+# import copy
 import glob
 import pandas as pd
 import XUV_refractive_index as XUV_index
 import IR_refractive_index as IR_index
+import subprocess
 
+try:
+    univ_input_path = os.environ['UNIV_INPUT_PATH']
+except:
+    univ_input_path = os.path.join("D:\git", "universal_input")
+        
+
+print('path:', univ_input_path)
+print('test1')
+# sys.exit(0)
 # There may be a large memory overload in this implementation, it's for testing putposes
 
 # =============================================================================
@@ -37,10 +47,10 @@ else:
 
 # results_path = os.path.join("D:\TEMP", "OCCIGEN_CUPRAD", "tests", "sim")
 
-cwd = os.getcwd()
-os.chdir(results_path)
-files = glob.glob('results_*.h5')
-os.chdir(cwd)
+# cwd = os.getcwd()
+# os.chdir(results_path)
+# files = glob.glob('results_*.h5')
+# os.chdir(cwd)
 
 vacuum_frame = True
 
@@ -55,9 +65,18 @@ vacuum_frame = True
 
 out_h5name = 'analyses.h5'
 
+# create inputs from the free-form inp
+run_args = ['python3', univ_input_path +'/create_universal_HDF5.py',
+            '-i', 'map3.inp', '-ohdf5', 'inputs_tmp.h5',
+            '-g', 'inputs']
+
+subprocess.run(run_args)
+
+print('archive created')
+sys.exit(0)
 # q = 23 # harmonic of our interest
 t_fix = 0.0e-15 # the time of our interest to inspect e.g. phase
-fluence_source = 'computed' # options: 'file', 'computed'
+# fluence_source = 'computed' # options: 'file', 'computed'
 
 
 gas_type = 'Kr'
