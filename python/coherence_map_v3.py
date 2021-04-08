@@ -47,10 +47,10 @@ else:
 
 # results_path = os.path.join("D:\TEMP", "OCCIGEN_CUPRAD", "tests", "sim")
 
-# cwd = os.getcwd()
-# os.chdir(results_path)
-# files = glob.glob('results_*.h5')
-# os.chdir(cwd)
+cwd = os.getcwd()
+os.chdir(results_path)
+files = glob.glob('results_*.h5')
+os.chdir(cwd)
 
 vacuum_frame = True
 
@@ -70,7 +70,8 @@ run_args = ['python3', univ_input_path +'/create_universal_HDF5.py',
             '-i', 'map3.inp', '-ohdf5', 'inputs_tmp.h5',
             '-g', 'inputs']
 
-subprocess.run(run_args)
+subprocess.run(run_args) # problematic in Spyder
+# runfile(run_args)
 
 print('archive created')
 sys.exit(0)
