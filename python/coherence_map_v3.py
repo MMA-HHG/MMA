@@ -66,47 +66,61 @@ vacuum_frame = True
 out_h5name = 'analyses.h5'
 
 # create inputs from the free-form inp
-run_args = ['python3', univ_input_path +'/create_universal_HDF5.py',
-            '-i', 'map3.inp', '-ohdf5', 'inputs_tmp.h5',
-            '-g', 'inputs']
+# run_args = ['python3', univ_input_path +'/create_universal_HDF5.py',
+#             '-i', 'map3.inp', '-ohdf5', 'inputs_tmp.h5',
+#             '-g', 'inputs']
 
-subprocess.run(run_args) # problematic in Spyder
-# runfile(run_args)
+# subprocess.run(run_args) # problematic in Spyder
+# # runfile(run_args)
 
 print('archive created')
-sys.exit(0)
-# q = 23 # harmonic of our interest
-t_fix = 0.0e-15 # the time of our interest to inspect e.g. phase
-# fluence_source = 'computed' # options: 'file', 'computed'
+print('my dir is:',os.getcwd())
 
 
-gas_type = 'Kr'
-XUV_table_type = 'NIST' # {Henke, NIST}
-
-Horders = [15, 17, 19, 21, 23]# [19, 21, 23, 25, 27]
-
-Lcoh_saturation = 0.02
-Lcoh_zero = 0.0
-
-H_shift_mask = 4.0
-
-tlim = [-60.0,60.0]
 
 
-full_resolution = False
-Coherence_length = True
-Beam_analysis = False
-Efield_analysis = False
+try:
+    with h5py.File('inputs_tmp.h5', 'r') as Parameters:
+        gas_type = mn.readscalardataset(Parameters, 'inputs/gas_type', 'S')
+        XUV_table_type = mn.readscalardataset(Parameters, 'inputs/XUV_table_type', 'S') # 'NIST' # {Henke, NIST}
+        Horders = Parameters['inputs/Horders'][:].tolist() # mn.readscalardataset(Parameters, 'inputs/gas_type', 'S') # [15, 17, 19, 21, 23] # [19, 21, 23, 25, 27]
+        Lcoh_saturation = mn.readscalardataset(Parameters, 'inputs/Lcoh_saturation', 'N') #0.02
+        Lcoh_zero = mn.readscalardataset(Parameters, 'inputs/Lcoh_zero', 'N') # 0.0
+        H_shift_mask = mn.readscalardataset(Parameters, 'inputs/H_shift_mask', 'N') # 4.0
+        tlim = Parameters['inputs/tlim'][:].tolist() # [-60.0,60.0]
+except:
+    print('error reading hdf5 file, using defaults') 
+    
+    gas_type = 'Kr'
+    XUV_table_type = 'NIST' # {Henke, NIST}
+    Horders = [15, 17, 19, 21, 23]# [19, 21, 23, 25, 27]
+    Lcoh_saturation = 0.02
+    Lcoh_zero = 0.0
+    H_shift_mask = 4.0
+    tlim = [-60.0,60.0]
+
+
+
+
 
 rmax = 130e-6 # only for analyses
 dr = rmax/40.0
 
 t_probe = 1e-15*np.asanyarray([-5.0, 0.0, 5.0])
 
-Gaussian_curvature = True # print Gaussian curvature, it is applied only in the first run
+
+full_resolution = False
 
 OutPath = 'outputs'
 
+# t_fix = 0.0e-15 # the time of our interest to inspect e.g. phase
+# q = 23 # harmonic of our interest
+# Coherence_length = True
+# Beam_analysis = False
+# Efield_analysis = False
+# Gaussian_curvature = True # print Gaussian curvature, it is applied only in the first run
+# fluence_source = 'computed' # options: 'file', 'computed'
+sys.exit(0)
 
 # Get FSPA 
 with h5py.File(os.path.join(cwd,'FSPA_tables_Krypton_test.h5'),'r') as h5_FSPA_tables:
