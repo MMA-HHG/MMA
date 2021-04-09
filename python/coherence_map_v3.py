@@ -88,6 +88,9 @@ try:
         Lcoh_zero = mn.readscalardataset(Parameters, 'inputs/Lcoh_zero', 'N') # 0.0
         H_shift_mask = mn.readscalardataset(Parameters, 'inputs/H_shift_mask', 'N') # 4.0
         tlim = Parameters['inputs/tlim'][:].tolist() # [-60.0,60.0]
+        t_probe = Parameters['inputs/t_probe'][:]
+        rmax = mn.readscalardataset(Parameters, 'inputs/rmax', 'N')
+        dr = mn.readscalardataset(Parameters, 'inputs/dr', 'N')
 except:
     print('error reading hdf5 file, using defaults') 
     
@@ -98,15 +101,10 @@ except:
     Lcoh_zero = 0.0
     H_shift_mask = 4.0
     tlim = [-60.0,60.0]
+    t_probe = 1e-15*np.asanyarray([-5.0, 0.0, 5.0])
+    rmax = 130e-6 # only for analyses
+    dr = rmax/40.0
 
-
-
-
-
-rmax = 130e-6 # only for analyses
-dr = rmax/40.0
-
-t_probe = 1e-15*np.asanyarray([-5.0, 0.0, 5.0])
 
 
 full_resolution = False
@@ -120,7 +118,7 @@ OutPath = 'outputs'
 # Efield_analysis = False
 # Gaussian_curvature = True # print Gaussian curvature, it is applied only in the first run
 # fluence_source = 'computed' # options: 'file', 'computed'
-sys.exit(0)
+# sys.exit(0)
 
 # Get FSPA 
 with h5py.File(os.path.join(cwd,'FSPA_tables_Krypton_test.h5'),'r') as h5_FSPA_tables:
@@ -143,12 +141,12 @@ linestyles_plt = ['--','-','-.']
 NH = len(Horders)
 Nt_probe = len(t_probe)
 
-df_delta_t_columns = pd.MultiIndex.from_arrays([['pressure', 'ionisation', 'Intensity'        ,'IR phase','IR group','XUV phase'],
-                                                ['{[bar]}',     '[\%]',      '$10^{14}$ [W/cm2]','[fs]',    '[fs]',    '[fs]']])
+# df_delta_t_columns = pd.MultiIndex.from_arrays([['pressure', 'ionisation', 'Intensity'        ,'IR phase','IR group','XUV phase'],
+#                                                 ['{[bar]}',     '[\%]',      '$10^{14}$ [W/cm2]','[fs]',    '[fs]',    '[fs]']])
 
 
 #  ['pressure \\\ [mbar]', 'ionisation \\\ [\%]', 'Intensity \\\ $10^{14}$ [W/cm2]', 'IR phase \\\ [fs]', 'IR group \\\ [fs]', 'XUV phase \\\ [fs]']
-df_delta_t = pd.DataFrame(columns = df_delta_t_columns)
+# df_delta_t = pd.DataFrame(columns = df_delta_t_columns)
 # df_delta_t.loc[len(df_delta_t)+1] = [10, 15, 20]
 
 with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analyses
@@ -182,6 +180,8 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
             VG_IR = 1.0/inverse_GV               
             rho0_init = 1e6 * mn.readscalardataset(InputArchive, '/inputs/calculated/medium_effective_density_of_neutral_molecules','N')
             Ip_eV = InputArchive['/inputs/ionization_ionization_potential_of_neutral_molecules'][()]
+            pressure_mbar = 1e3*InputArchive['/inputs/medium_pressure_in_bar'][()]; pressure_string = "{:.1f}".format(pressure_mbar)+' mbar'
+            preionisation_ratio = InputArchive['/pre_ionised/initial_electrons_ratio'][()]; preionisation_string = "{:.1f}".format(100*preionisation_ratio) + '%'
             
             ### Shift to the vacuum frame
             if vacuum_frame:
@@ -244,6 +244,7 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
             fig1, ax1 = plt.subplots()
             fig2, ax2 = plt.subplots()
             fig3, ax3 = plt.subplots()
+            title_string = ', ' + preionisation_string + ', ' + pressure_string
             for k1 in range(Nt_probe):
 
               Cutoff_loc = Cutoff[t_probe_ind[k1],:,:]
@@ -251,7 +252,7 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
               fig7, ax7 = plt.subplots()
               map1 = ax7.pcolor(1e3*zgrid, 1e6*rgrid, Cutoff[t_probe_ind[k1],:,:], shading='auto')
               map2 = ax7.contour(1e3*zgrid, 1e6*rgrid, Cutoff[t_probe_ind[k1],:,:], Horders, colors = "black")
-              ax7.set_xlabel('z [mm]'); ax7.set_ylabel('r [mum]'); ax7.set_title('Cutoff')
+              ax7.set_xlabel('z [mm]'); ax7.set_ylabel('r [mum]'); ax7.set_title('Cutoff'+title_string)
               fig7.colorbar(map1) 
               fig7.savefig('Cutoff_t'+str(k1)+'_sim'+str(k_sim)+'.png', dpi = 600)
               # if showplots: plt.show(fig7)
@@ -289,7 +290,7 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
                 map1 = ax4.pcolor(1e3*zgrid, 1e6*rgrid,
                                   masked, # q*(grad_z_phase[k1,:,:] + k0_wave*(nXUV[k2]-1))+grad_z_phase_FSPA[k2][k1,:,:],
                                      shading='auto')
-                ax4.set_xlabel('z [mm]'); ax4.set_ylabel('r [mum]'); ax4.set_title('dPhi/dz, full, H'+str(q)) 
+                ax4.set_xlabel('z [mm]'); ax4.set_ylabel('r [mum]'); ax4.set_title('dPhi/dz, full, H'+str(q)+title_string) 
                 fig4.colorbar(map1)
                 fig4.savefig('dPhi_dz_t'+str(k1)+'_H'+str(q)+'_sim'+str(k_sim)+'.png', dpi = 600)
                 
@@ -299,7 +300,7 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
                 map1 = ax8.pcolor(1e3*zgrid, 1e6*rgrid,
                                   masked,
                                      shading='auto',vmin=0.0)
-                ax8.set_xlabel('z [mm]'); ax8.set_ylabel('r [mum]'); ax8.set_title('d|Phi/dz|, full, H'+str(q)) 
+                ax8.set_xlabel('z [mm]'); ax8.set_ylabel('r [mum]'); ax8.set_title('|dPhi/dz|, full, H'+str(q)+title_string) 
                 fig8.colorbar(map1)
                 fig8.savefig('abs_dPhi_dz_t'+str(k1)+'_H'+str(q)+'_sim'+str(k_sim)+'.png', dpi = 600)
                 
@@ -311,14 +312,14 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
                 else:
                     map1 = ax5.pcolor(1e3*zgrid, 1e6*rgrid, masked, shading='auto')
                 
-                ax5.set_xlabel('z [mm]'); ax5.set_ylabel('r [mum]'); ax5.set_title('Lcoh, H'+str(q))         
+                ax5.set_xlabel('z [mm]'); ax5.set_ylabel('r [mum]'); ax5.set_title('Lcoh, H'+str(q)+title_string)         
                 fig5.colorbar(map1)
                 fig5.savefig('Lcoh_t'+str(k1)+'_H'+str(q)+'_sim'+str(k_sim)+'.png', dpi = 600)
                 
              
-            ax1.set_xlabel('z [mm]'); ax1.set_ylabel('dPhi/dz [1/m]'); ax1.set_title('beam phase')   
-            ax2.set_xlabel('z [mm]'); ax2.set_ylabel('dPhi/dz [1/m]'); ax2.set_title('FSPA (atom)')
-            ax3.set_xlabel('z [mm]'); ax3.set_ylabel('dPhi/dz [1/m]'); ax3.set_title('full phase') 
+            ax1.set_xlabel('z [mm]'); ax1.set_ylabel('dPhi/dz [1/m]'); ax1.set_title('beam phase'+title_string)   
+            ax2.set_xlabel('z [mm]'); ax2.set_ylabel('dPhi/dz [1/m]'); ax2.set_title('FSPA (atom)'+title_string)
+            ax3.set_xlabel('z [mm]'); ax3.set_ylabel('dPhi/dz [1/m]'); ax3.set_title('full phase'+title_string) 
             ax1.legend(loc='best')
             ax2.legend(loc='best')
             ax3.legend(loc='best')
@@ -335,7 +336,7 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
             ax9.plot(1e15*tgrid,Cutoff[:,0,-1], color=colors_plt[2],label='z='+"{:.1f}".format(1e3*zgrid[-1]))
             ax9.set_xlim(tlim)
             ax9.legend(loc='best')
-            ax9.set_xlabel('t [fs]'); ax9.set_ylabel('I [cutoff]'); ax9.set_title('onaxis intensity')   
+            ax9.set_xlabel('t [fs]'); ax9.set_ylabel('I [cutoff]'); ax9.set_title('onaxis intensity'+title_string)   
             fig9.savefig('Intens_onax_sim'+str(k_sim)+'.png', dpi = 600)
             
             k_t = mn.FindInterval(tgrid, 0.0)
@@ -344,7 +345,7 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
             ax10.plot(1e6*rgrid,Cutoff[k_t,:,(Nz-1)//2], color=colors_plt[1],label='z='+"{:.1f}".format(1e3*zgrid[(Nz-1)//2])) 
             ax10.plot(1e6*rgrid,Cutoff[k_t,:,-1], color=colors_plt[2],label='z='+"{:.1f}".format(1e3*zgrid[-1]))
             ax10.legend(loc='best')
-            ax10.set_xlabel('r [mum]'); ax10.set_ylabel('I [cutoff]'); ax10.set_title('t=0 fs, intensity')   
+            ax10.set_xlabel('r [mum]'); ax10.set_ylabel('I [cutoff]'); ax10.set_title('t=0 fs, intensity'+title_string)   
             fig10.savefig('Intens_tfix_sim'+str(k_sim)+'.png', dpi = 600)
             
             

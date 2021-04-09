@@ -7,3 +7,5 @@ Lcoh_zero	0	R	m
 H_shift_mask	4	R	-
 $array tlim	R	fs	-60	60
 $array t_probe	R	s	-5e-15 0e-15 5e-15
+rmax	130e-6	R	m
+dr	3.25e-6	R	m
