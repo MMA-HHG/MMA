@@ -59,7 +59,7 @@ vacuum_frame = True
 # files = ['results.h5']
 # files = ['results_19.h5']
 
-files = ['results_1.h5']
+# files = ['results_1.h5']
 
 # files = ['results_1.h5','results_10.h5', 'results_15.h5']
 
@@ -246,7 +246,7 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
             fig3, ax3 = plt.subplots()
             title_string = ', ' + preionisation_string + ', ' + pressure_string
             for k1 in range(Nt_probe):
-              t_string = ', '+"{:.1f}".format(1e15*t_probe[k1])+' fs' 
+              t_string = ', '+"{:.1f}".format(1e15*tgrid[t_probe_ind[k1]])+' fs'
             
               Cutoff_loc = Cutoff[t_probe_ind[k1],:,:]
 
