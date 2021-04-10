@@ -59,7 +59,7 @@ vacuum_frame = True
 # files = ['results.h5']
 # files = ['results_19.h5']
 
-# files = ['results_1.h5']
+files = ['results_1.h5']
 
 # files = ['results_1.h5','results_10.h5', 'results_15.h5']
 
@@ -246,13 +246,14 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
             fig3, ax3 = plt.subplots()
             title_string = ', ' + preionisation_string + ', ' + pressure_string
             for k1 in range(Nt_probe):
-
+              t_string = ', '+"{:.1f}".format(1e15*t_probe[k1])+' fs' 
+            
               Cutoff_loc = Cutoff[t_probe_ind[k1],:,:]
 
               fig7, ax7 = plt.subplots()
               map1 = ax7.pcolor(1e3*zgrid, 1e6*rgrid, Cutoff[t_probe_ind[k1],:,:], shading='auto')
               map2 = ax7.contour(1e3*zgrid, 1e6*rgrid, Cutoff[t_probe_ind[k1],:,:], Horders, colors = "black")
-              ax7.set_xlabel('z [mm]'); ax7.set_ylabel('r [mum]'); ax7.set_title('Cutoff'+title_string)
+              ax7.set_xlabel('z [mm]'); ax7.set_ylabel('r [mum]'); ax7.set_title('Cutoff'+title_string+t_string )
               fig7.colorbar(map1) 
               fig7.savefig('Cutoff_t'+str(k1)+'_sim'+str(k_sim)+'.png', dpi = 600)
               # if showplots: plt.show(fig7)
@@ -290,7 +291,7 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
                 map1 = ax4.pcolor(1e3*zgrid, 1e6*rgrid,
                                   masked, # q*(grad_z_phase[k1,:,:] + k0_wave*(nXUV[k2]-1))+grad_z_phase_FSPA[k2][k1,:,:],
                                      shading='auto')
-                ax4.set_xlabel('z [mm]'); ax4.set_ylabel('r [mum]'); ax4.set_title('dPhi/dz, full, H'+str(q)+title_string) 
+                ax4.set_xlabel('z [mm]'); ax4.set_ylabel('r [mum]'); ax4.set_title('dPhi/dz, full, H'+str(q)+title_string+t_string ) 
                 fig4.colorbar(map1)
                 fig4.savefig('dPhi_dz_t'+str(k1)+'_H'+str(q)+'_sim'+str(k_sim)+'.png', dpi = 600)
                 
@@ -300,7 +301,7 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
                 map1 = ax8.pcolor(1e3*zgrid, 1e6*rgrid,
                                   masked,
                                      shading='auto',vmin=0.0)
-                ax8.set_xlabel('z [mm]'); ax8.set_ylabel('r [mum]'); ax8.set_title('|dPhi/dz|, full, H'+str(q)+title_string) 
+                ax8.set_xlabel('z [mm]'); ax8.set_ylabel('r [mum]'); ax8.set_title('|dPhi/dz|, full, H'+str(q)+title_string+t_string ) 
                 fig8.colorbar(map1)
                 fig8.savefig('abs_dPhi_dz_t'+str(k1)+'_H'+str(q)+'_sim'+str(k_sim)+'.png', dpi = 600)
                 
@@ -312,7 +313,7 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
                 else:
                     map1 = ax5.pcolor(1e3*zgrid, 1e6*rgrid, masked, shading='auto')
                 
-                ax5.set_xlabel('z [mm]'); ax5.set_ylabel('r [mum]'); ax5.set_title('Lcoh, H'+str(q)+title_string)         
+                ax5.set_xlabel('z [mm]'); ax5.set_ylabel('r [mum]'); ax5.set_title('Lcoh, H'+str(q)+title_string+t_string )         
                 fig5.colorbar(map1)
                 fig5.savefig('Lcoh_t'+str(k1)+'_H'+str(q)+'_sim'+str(k_sim)+'.png', dpi = 600)
                 
