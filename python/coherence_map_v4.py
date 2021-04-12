@@ -17,7 +17,7 @@ import pandas as pd
 import XUV_refractive_index as XUV_index
 import IR_refractive_index as IR_index
 import subprocess
-# import dataformat_CUPRAD as dfC
+import dataformat_CUPRAD as dfC
 
 try:
     univ_input_path = os.environ['UNIV_INPUT_PATH']
@@ -59,7 +59,7 @@ vacuum_frame = True
 # files = ['results.h5']
 # files = ['results_19.h5']
 
-# files = ['results_1.h5']
+files = ['results_1.h5']
 
 # files = ['results_1.h5','results_10.h5', 'results_15.h5']
 
@@ -165,6 +165,9 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
         file_path = os.path.join(results_path,filename)
         print('processing:', file_path)             
         with h5py.File(file_path, 'r') as InputArchive:
+            
+            test_import = dfC.get_data(InputArchive)
+            
             omega0 = mn.ConvertPhoton(1e-2*mn.readscalardataset(InputArchive,'/inputs/laser_wavelength','N'),'lambdaSI','omegaSI')
             k0_wave = 2.0*np.pi/mn.ConvertPhoton(omega0,'omegaSI','lambdaSI')
             tgrid = InputArchive['/outputs/tgrid'][:]; Nt = len(tgrid)
