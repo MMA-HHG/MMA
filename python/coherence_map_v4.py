@@ -92,10 +92,8 @@ try:
         rmax = mn.readscalardataset(Parameters, 'inputs/rmax', 'N')
         dr = mn.readscalardataset(Parameters, 'inputs/dr', 'N')
         
-        print_parameters0 = Parameters['inputs/print_parameters'][0]
-        print_parameters_all = Parameters['inputs/print_parameters'][:]
-        print_parameters_array = Parameters['inputs/print_parameters'][:].tolist()
-        print_parameters_array_decoded = [k1.decode() for k1 in print_parameters_array]
+        print_parameters = Parameters['inputs/print_parameters'][:].tolist()
+        print_parameters = [k1.decode() for k1 in print_parameters]
         
 except:
     print('error reading hdf5 file, using defaults') 
@@ -236,7 +234,8 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
             fig1, ax1 = plt.subplots()
             fig2, ax2 = plt.subplots()
             fig3, ax3 = plt.subplots()
-            title_string = ', ' + res.preionisation_string + ', ' + res.pressure_string
+            title_string = dfC.create_param_string(print_parameters, res)
+            # title_string = ', ' + res.preionisation_string + ', ' + res.pressure_string
             for k1 in range(Nt_probe):
               t_string = ', '+"{:.1f}".format(1e15*res.tgrid[t_probe_ind[k1]])+' fs'
             

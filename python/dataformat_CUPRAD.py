@@ -32,3 +32,16 @@ class get_data:
             
         self.rgrid = rgrid
         self.Nr = Nr; self.Nt = Nt; self.Nz = Nz
+        
+def add_print_parameter(parameter,data):
+    if (parameter=='pressure'): return data.pressure_string
+    elif (parameter=='preionisation'): return data.preionisation_string
+    else: return ''
+
+def create_param_string(params,data):
+    res = ''
+    for param in params:
+        curr = add_print_parameter(param,data)
+        if not(len(curr)==0):
+            res = res + ', ' + curr     
+    return res   
