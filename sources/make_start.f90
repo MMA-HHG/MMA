@@ -317,14 +317,14 @@ CALL save_or_replace(group_id, 'laser_pulse_duration_in_1_e_Intensity', Convert_
   
   CALL save_or_replace(file_id, 'inputs/laser_initial_chirp_phase', chirp_factor, error)
   
-  CALL h5lexists_f(file_id, 'inputs/laser_beamwaist', dumlog, error)
+  CALL h5lexists_f(file_id, 'inputs/laser_beamwaist_entry', dumlog, error)
   IF (dumlog) THEN
     CALL save_or_replace(file_id, 'inputs/laser_focal_length_in_the_medium_cm', f_cm_phys, error) !! input given at the entrance plane, it's equal to the radius of the curvature
                                                                                                   ! this dataset in HDF5 has wrong unit [0 for no lense]
     
     Curvature_radius_entry = f_cm_phys * 1.D-2                              !!!!!!!!!!!!!!! CHECK SIGN
     
-    CALL save_or_replace(file_id, 'inputs/laser_beamwaist', w0_cm_phys, error)
+    CALL save_or_replace(file_id, 'inputs/laser_beamwaist_entry', w0_cm_phys, error)
     CALL h5lexists_f(file_id, 'inputs/laser_ratio_pin_pcr', dumlog, error)
     IF (dumlog) THEN ! input given in the P_in/P_cr
       CALL save_or_replace(file_id, 'inputs/laser_ratio_pin_pcr', numcrit, error)
@@ -335,17 +335,17 @@ CALL save_or_replace(group_id, 'laser_pulse_duration_in_1_e_Intensity', Convert_
       CALL save_or_replace(file_id, 'inputs/laser_intensity_entry', Intensity_entry, error)
       ! convert
 
-	print *, 'in make_start'
-	print *, 'n2_phys', n2_phys
-	print *, 'pressure', pressure
-	print *, 'all', pressure*n2_phys*1.D-4
+	    print *, 'in make_start'
+	    print *, 'n2_phys', n2_phys
+	    print *, 'pressure', pressure
+	    print *, 'all', pressure*n2_phys*1.D-4
 
       numcrit = I_entry2ratio_Pin_Pcr_entry(Intensity_entry,w0_cm_phys*1.D-2,pressure*n2_phys*1.D-4,lambda0_cm_phys*1.D-2)
       CALL save_or_replace(group_id, 'laser_ratio_pin_pcr', numcrit, error, units_in = '[-]')
     ENDIF
 
     ! convert to focus values    
-    CALL Gaussian_entry2Gaussian_focus(Intensity_entry,w0_cm_phys*1.D-2,Curvature_radius_entry,Intensity_focus, waist_focus, focus_position, lambda0_cm_phys*1.D-2)
+    CALL Gaussian_entry2Gaussian_focus(Intensity_entry,w0_cm_phys*1.D-2,1.D0/Curvature_radius_entry,Intensity_focus, waist_focus, focus_position, lambda0_cm_phys*1.D-2)
   
     ! Store the reference Gaussian beam
     CALL save_or_replace(group_id, 'laser_focus_beamwaist_Gaussian', waist_focus, error, units_in = '[SI]')
@@ -361,14 +361,20 @@ CALL save_or_replace(group_id, 'laser_pulse_duration_in_1_e_Intensity', Convert_
 
     ! Convert
     CALL Gaussian_focus2Gaussian_entry(Intensity_focus,waist_focus,focus_position,Intensity_entry,w0_cm_phys,Curvature_radius_entry,lambda0_cm_phys*1.D-2)
+    IF (Curvature_radius_entry == 0.D0) THEN ! cumbersome as the inverse of the radius is not used... For compatibility.
+      f_cm_phys = 0.D0
+    ELSE
+      Curvature_radius_entry = 1.D0 / Curvature_radius_entry
+      f_cm_phys = Curvature_radius_entry*1.D2
+    ENDIF
     w0_cm_phys = w0_cm_phys*1.D2
-    f_cm_phys = Curvature_radius_entry*1.D2
+    
 
     numcrit = I_entry2ratio_Pin_Pcr_entry(Intensity_entry,w0_cm_phys*1.D-2,pressure*n2_phys,lambda0_cm_phys*1.D-2) ! intensity -> ratio
 
     CALL save_or_replace(group_id, 'laser_intensity_entry', Intensity_entry, error, units_in = '[SI]')
     CALL save_or_replace(group_id, 'laser_ratio_pin_pcr', numcrit, error, units_in = '[-]')
-    CALL save_or_replace(group_id, 'laser_beamwaist', w0_cm_phys, error, units_in = '[cm]')
+    CALL save_or_replace(group_id, 'laser_beamwaist_entry', w0_cm_phys, error, units_in = '[cm]')
     CALL save_or_replace(group_id, 'laser_focal_length_in_the_medium_cm', f_cm_phys, error, units_in = '[cm]') !! input given at the entrance plane, it's equal to the radius of the curvature    
 
   ENDIF
