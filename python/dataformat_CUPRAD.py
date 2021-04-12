@@ -21,5 +21,14 @@ class get_data:
             dr_file = rgrid[1]-rgrid[0]; kr_step = max(1,int(np.floor(dr/dr_file))); Nr_max = mn.FindInterval(rgrid, rmax)
             rgrid = rgrid[0:Nr_max:kr_step]; Nr = len(rgrid) 
             
+        self.E_trz = InputArchive['/outputs/output_field'][:,0:Nr_max:kr_step,:Nz] # Arrays may be over-allocated by CUPRAD
+
+        self.inverse_GV = InputArchive['/logs/inverse_group_velocity_SI'][()]
+        self.VG_IR = 1.0/self.inverse_GV               
+        self.rho0_init = 1e6 * mn.readscalardataset(InputArchive, '/inputs/calculated/medium_effective_density_of_neutral_molecules','N')
+        self.Ip_eV = InputArchive['/inputs/ionization_ionization_potential_of_neutral_molecules'][()]
+        self.pressure_mbar = 1e3*InputArchive['/inputs/medium_pressure_in_bar'][()]; self.pressure_string = "{:.1f}".format(self.pressure_mbar)+' mbar'
+        self.preionisation_ratio = InputArchive['/pre_ionised/initial_electrons_ratio'][()]; self.preionisation_string = "{:.1f}".format(100*self.preionisation_ratio) + '%'
+            
         self.rgrid = rgrid
         self.Nr = Nr; self.Nt = Nt; self.Nz = Nz

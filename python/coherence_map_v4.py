@@ -166,7 +166,7 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
         print('processing:', file_path)             
         with h5py.File(file_path, 'r') as InputArchive:
             
-            test_import = dfC.get_data(InputArchive)
+            test_import = dfC.get_data(InputArchive, r_resolution = [full_resolution, dr, rmax])
             
             omega0 = mn.ConvertPhoton(1e-2*mn.readscalardataset(InputArchive,'/inputs/laser_wavelength','N'),'lambdaSI','omegaSI')
             k0_wave = 2.0*np.pi/mn.ConvertPhoton(omega0,'omegaSI','lambdaSI')
