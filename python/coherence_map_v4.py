@@ -91,6 +91,12 @@ try:
         t_probe = Parameters['inputs/t_probe'][:]
         rmax = mn.readscalardataset(Parameters, 'inputs/rmax', 'N')
         dr = mn.readscalardataset(Parameters, 'inputs/dr', 'N')
+        
+        print_parameters0 = Parameters['inputs/print_parameters'][0]
+        print_parameters_all = Parameters['inputs/print_parameters'][:]
+        print_parameters_array = Parameters['inputs/print_parameters'][:].tolist()
+        print_parameters_array_decoded = [k1.decode() for k1 in print_parameters_array]
+        
 except:
     print('error reading hdf5 file, using defaults') 
     
@@ -166,6 +172,7 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
         print('processing:', file_path)             
         with h5py.File(file_path, 'r') as InputArchive:
             
+            # load data
             res = dfC.get_data(InputArchive, r_resolution = [full_resolution, dr, rmax])
             
             ### Shift to the vacuum frame
