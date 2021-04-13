@@ -1,6 +1,6 @@
 # Laser
 laser_wavelength    7.92e-5 R cm
-laser_beamwaist     0.011   R   cm
+laser_beamwaist_entry    0.011   R   cm
 laser_pulse_duration_in_FWHM_Intensity  35  R   fs
 laser_focal_length_in_the_medium_cm 0.0 R   cm
 

@@ -32,6 +32,24 @@ class get_data:
             
         self.rgrid = rgrid
         self.Nr = Nr; self.Nt = Nt; self.Nz = Nz
+        
+    def vacuum_shift(self,output='replace'):
+        E_vac = np.zeros(self.E_trz.shape)   
+        for k1 in range(self.Nz):
+            delta_z = self.zgrid[k1] # local shift
+            delta_t_lab = self.inverse_GV*delta_z # shift to the laboratory frame
+            delta_t_vac = delta_t_lab - delta_z/units.c_light # shift to the coordinates moving by c.
+            for k2 in range(self.Nr):
+                ogrid_nn, FE_s, NF = mn.fft_t_nonorm(self.tgrid, self.E_trz[:,k2,k1]) # transform to omega space        
+                FE_s = np.exp(1j*ogrid_nn*delta_t_vac) * FE_s # phase factor        
+                tnew, E_s = mn.ifft_t_nonorm(ogrid_nn,FE_s,NF)
+                E_vac[:,k2,k1] = E_s.real
+        
+        if (output == 'replace'):      self.E_trz = E_vac 
+        elif (output == 'return'):     return E_vac 
+        elif (output == 'add'):        self.E_trz_vac = E_vac 
+        else: raise ValueError('wrongly specified output for the vacuum shift.')
+        
 
         
 def add_print_parameter(parameter,data):
