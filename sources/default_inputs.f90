@@ -417,18 +417,18 @@ subroutine preset_physics(test_number)
 !---------------------------------------------------------------------------------------------------------------------!
     select case(test_number)
     case(1:10)
-        w0_cm_phys = 0.1d0      ! cm
+        w0_cm_phys = 0.001d0      ! cm
     case(11:16)
-        w0_cm_phys = 0.011d0    ! cm
+        w0_cm_phys = 0.00011d0    ! cm
     case(17,18)
-        w0_cm_phys = 0.01d0     ! cm
+        w0_cm_phys = 0.0001d0     ! cm
     case(19:21)
         waist_focus = 100.d-6   ! m
     end select
 
     select case(test_number) ! switch is over this variable
     case(1:18)    
-        call save_or_replace(file_id, 'inputs/laser_beamwaist_entry', w0_cm_phys, error, units_in = '[cm]')
+        call save_or_replace(file_id, 'inputs/laser_beamwaist_entry', w0_m_phys, error, units_in = '[m]')
     case(19:21)
         call save_or_replace(file_id, 'inputs/laser_focus_beamwaist_Gaussian', waist_focus, error, units_in = '[m]')
     end select

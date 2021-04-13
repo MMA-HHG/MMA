@@ -324,12 +324,12 @@ CALL save_or_replace(group_id, 'laser_pulse_duration_in_1_e_Intensity', Convert_
     
     Curvature_radius_entry = f_cm_phys * 1.D-2                              !!!!!!!!!!!!!!! CHECK SIGN
     
-    CALL save_or_replace(file_id, 'inputs/laser_beamwaist_entry', w0_cm_phys, error)
+    CALL save_or_replace(file_id, 'inputs/laser_beamwaist_entry', w0_m_phys, error)
     CALL h5lexists_f(file_id, 'inputs/laser_ratio_pin_pcr', dumlog, error)
     IF (dumlog) THEN ! input given in the P_in/P_cr
       CALL save_or_replace(file_id, 'inputs/laser_ratio_pin_pcr', numcrit, error)
       ! convert
-      Intensity_entry = ratio_Pin_Pcr_entry2I_entry(numcrit,w0_cm_phys*1.D-2,pressure*n2_phys*1.D-4,lambda0_cm_phys*1.D-2)
+      Intensity_entry = ratio_Pin_Pcr_entry2I_entry(numcrit,w0_m_phys,pressure*n2_phys*1.D-4,lambda0_cm_phys*1.D-2)
       CALL save_or_replace(group_id, 'laser_intensity_entry', Intensity_entry, error, units_in = '[SI]')
     ELSE ! input given in the entrance intensity
       CALL save_or_replace(file_id, 'inputs/laser_intensity_entry', Intensity_entry, error)
@@ -340,7 +340,7 @@ CALL save_or_replace(group_id, 'laser_pulse_duration_in_1_e_Intensity', Convert_
 	    print *, 'pressure', pressure
 	    print *, 'all', pressure*n2_phys*1.D-4
 
-      numcrit = I_entry2ratio_Pin_Pcr_entry(Intensity_entry,w0_cm_phys*1.D-2,pressure*n2_phys*1.D-4,lambda0_cm_phys*1.D-2)
+      numcrit = I_entry2ratio_Pin_Pcr_entry(Intensity_entry,w0_m_phys,pressure*n2_phys*1.D-4,lambda0_cm_phys*1.D-2)
       CALL save_or_replace(group_id, 'laser_ratio_pin_pcr', numcrit, error, units_in = '[-]')
     ENDIF
 
@@ -350,7 +350,7 @@ CALL save_or_replace(group_id, 'laser_pulse_duration_in_1_e_Intensity', Convert_
     ELSE
       invCurvature_radius_entry = 1.D0 / Curvature_radius_entry
     ENDIF   
-    CALL Gaussian_entry2Gaussian_focus(Intensity_entry,w0_cm_phys*1.D-2,invCurvature_radius_entry,Intensity_focus, waist_focus, focus_position, lambda0_cm_phys*1.D-2)
+    CALL Gaussian_entry2Gaussian_focus(Intensity_entry,w0_m_phys,invCurvature_radius_entry,Intensity_focus, waist_focus, focus_position, lambda0_cm_phys*1.D-2)
   
     ! Store the reference Gaussian beam
     CALL save_or_replace(group_id, 'laser_focus_beamwaist_Gaussian', waist_focus, error, units_in = '[SI]')
@@ -365,24 +365,26 @@ CALL save_or_replace(group_id, 'laser_pulse_duration_in_1_e_Intensity', Convert_
     CALL save_or_replace(file_id, 'inputs/laser_focus_position_Gaussian', focus_position, error) !!!!!!!!!!!!!!! CHECK SIGN
 
     ! Convert
-    CALL Gaussian_focus2Gaussian_entry(Intensity_focus,waist_focus,focus_position,Intensity_entry,w0_cm_phys,Curvature_radius_entry,lambda0_cm_phys*1.D-2)
+    CALL Gaussian_focus2Gaussian_entry(Intensity_focus,waist_focus,focus_position,Intensity_entry,w0_m_phys,Curvature_radius_entry,lambda0_cm_phys*1.D-2)
     IF (Curvature_radius_entry == 0.D0) THEN ! cumbersome as the inverse of the radius is not used... For compatibility.
       f_cm_phys = 0.D0
     ELSE
       Curvature_radius_entry = 1.D0 / Curvature_radius_entry
       f_cm_phys = Curvature_radius_entry*1.D2
     ENDIF
-    w0_cm_phys = w0_cm_phys*1.D2
+    ! w0_cm_phys = w0_cm_phys*1.D2
     
 
-    numcrit = I_entry2ratio_Pin_Pcr_entry(Intensity_entry,w0_cm_phys*1.D-2,pressure*n2_phys,lambda0_cm_phys*1.D-2) ! intensity -> ratio
+    numcrit = I_entry2ratio_Pin_Pcr_entry(Intensity_entry,w0_m_phys,pressure*n2_phys,lambda0_cm_phys*1.D-2) ! intensity -> ratio
 
     CALL save_or_replace(group_id, 'laser_intensity_entry', Intensity_entry, error, units_in = '[SI]')
     CALL save_or_replace(group_id, 'laser_ratio_pin_pcr', numcrit, error, units_in = '[-]')
-    CALL save_or_replace(group_id, 'laser_beamwaist_entry', w0_cm_phys, error, units_in = '[cm]')
+    CALL save_or_replace(group_id, 'laser_beamwaist_entry', w0_m_phys, error, units_in = '[m]')
     CALL save_or_replace(group_id, 'laser_focal_length_in_the_medium_cm', f_cm_phys, error, units_in = '[cm]') !! input given at the entrance plane, it's equal to the radius of the curvature    
 
   ENDIF
+
+  w0_cm_phys = 1.D2*w0_m_phys ! It is used in the normalisation module, kept to minimise testing therein
 
   ! test Energy
   Energy = ratio_Pin_Pcr_entry2Energy(numcrit,pressure*n2_phys*1.D-4,lambda0_cm_phys*1.D-2,tp_fs_phys*1.D-15)

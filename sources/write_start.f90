@@ -12,7 +12,7 @@ MODULE write_start
   REAL(8) omega_uppe
   REAL(8) lt,lr,proplength,outlength,outlength_Efield,delta_z,z,z_out,z_out_Efield,rfil,increase,decrease,time_limit
   LOGICAL out_Efield
-  REAL(8) photon_energy_au_phys,tp_fs_phys,Pcr_phys,w0_cm_phys
+  REAL(8) photon_energy_au_phys,tp_fs_phys,Pcr_phys,w0_m_phys,w0_cm_phys
   REAL(8) Ui_au_phys,residue_charge,n0,rhoc_cm3_phys,rhont_cm3_phys
 
   REAL(8) z_rayleigh_cm_phys
