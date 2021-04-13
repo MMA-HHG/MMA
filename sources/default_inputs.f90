@@ -268,7 +268,7 @@ end subroutine Gaussian_focus2Gaussian_entry
 subroutine Gaussian_entry2Gaussian_focus(Iz,wz,invRz,I0,w0,focus,lambda)
     ! for small z's (large R(z)), this could be critical
     real(8)     :: Iz,wz,invRz,I0,w0,focus,lambda
-    w0 = wz**2 / (1.D0+((PI*invRz*wz**2)/lambda)**2)
+    w0 = sqrt( wz**2 / (1.D0+((PI*invRz*wz**2)/lambda)**2) )
     !zR = (PI * lambda * Rz**2 * wz**2) / (lambda**2 * Rz**2 + PI**2 * wz**4)
     ! focus = -Rz/(1.D0+(lambda*Rz/(PI*wz**2))**2)
     focus = -invRz/(invRz**2 + (lambda/(PI*wz**2))**2)
@@ -417,11 +417,11 @@ subroutine preset_physics(test_number)
 !---------------------------------------------------------------------------------------------------------------------!
     select case(test_number)
     case(1:10)
-        w0_cm_phys = 0.001d0      ! cm
+        w0_m_phys = 0.001d0      ! cm
     case(11:16)
-        w0_cm_phys = 0.00011d0    ! cm
+        w0_m_phys = 0.00011d0    ! cm
     case(17,18)
-        w0_cm_phys = 0.0001d0     ! cm
+        w0_m_phys = 0.0001d0     ! cm
     case(19:21)
         waist_focus = 100.d-6   ! m
     end select

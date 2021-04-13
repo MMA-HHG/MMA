@@ -375,7 +375,7 @@ CALL save_or_replace(group_id, 'laser_pulse_duration_in_1_e_Intensity', Convert_
     ! w0_cm_phys = w0_cm_phys*1.D2
     
 
-    numcrit = I_entry2ratio_Pin_Pcr_entry(Intensity_entry,w0_m_phys,pressure*n2_phys,lambda0_cm_phys*1.D-2) ! intensity -> ratio
+    numcrit = I_entry2ratio_Pin_Pcr_entry(Intensity_entry,w0_m_phys,pressure*n2_phys*1.D-4,lambda0_cm_phys*1.D-2) ! intensity -> ratio
 
     CALL save_or_replace(group_id, 'laser_intensity_entry', Intensity_entry, error, units_in = '[SI]')
     CALL save_or_replace(group_id, 'laser_ratio_pin_pcr', numcrit, error, units_in = '[-]')
@@ -391,6 +391,14 @@ CALL save_or_replace(group_id, 'laser_pulse_duration_in_1_e_Intensity', Convert_
   ! Energy = ratio_Pin_Pcr_entry2Energy(Pin_Pcr,n2p,lambda,t0)
   print *, 'Energy=', Energy
   CALL save_or_replace(group_id, 'laser_Energy', Energy, error, units_in = '[J]')
+
+
+  print *, '========= Testing waists ========='
+  print *, 'waist_entry =', w0_m_phys, 'm'
+  print *, 'waist_Gauss =', waist_focus, 'm'
+  print *, 'Pin/Pcr =', numcrit
+  print *, '=================================='
+
 
   CALL h5gclose_f(group_id, error)  
 
