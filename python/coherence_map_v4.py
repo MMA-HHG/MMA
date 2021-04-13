@@ -176,18 +176,7 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
             ### Shift to the vacuum frame
             if vacuum_frame:
                 res.vacuum_shift()
-                # E_vac = np.zeros(res.E_trz.shape)   
-                # for k1 in range(res.Nz):
-                #     delta_z = res.zgrid[k1] # local shift
-                #     delta_t_lab = res.inverse_GV*delta_z # shift to the laboratory frame
-                #     delta_t_vac = delta_t_lab - delta_z/units.c_light # shift to the coordinates moving by c.
-                #     for k2 in range(res.Nr):
-                #         ogrid_nn, FE_s, NF = mn.fft_t_nonorm(res.tgrid, res.E_trz[:,k2,k1]) # transform to omega space        
-                #         FE_s = np.exp(1j*ogrid_nn*delta_t_vac) * FE_s # phase factor        
-                #         tnew, E_s = mn.ifft_t_nonorm(ogrid_nn,FE_s,NF)
-                #         E_vac[:,k2,k1] = E_s.real
-                    
-                # res.E_trz = E_vac          
+         
 
             # ===============================================
             # Complexify the fields: E(r,z,t) = Re(E_cmplx(r,z,t))

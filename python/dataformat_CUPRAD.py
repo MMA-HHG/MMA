@@ -28,7 +28,7 @@ class get_data:
         self.rho0_init = 1e6 * mn.readscalardataset(InputArchive, '/inputs/calculated/medium_effective_density_of_neutral_molecules','N')
         self.Ip_eV = InputArchive['/inputs/ionization_ionization_potential_of_neutral_molecules'][()]
         self.pressure_mbar = 1e3*InputArchive['/inputs/medium_pressure_in_bar'][()]; self.pressure_string = "{:.1f}".format(self.pressure_mbar)+' mbar'
-        self.preionisation_ratio = InputArchive['/pre_ionised/initial_electrons_ratio'][()]; self.preionisation_string = "{:.1f}".format(100*self.preionisation_ratio) + '%'
+        self.preionisation_ratio = InputArchive['/pre_ionised/initial_electrons_ratio'][()]; self.preionisation_string = "{:.1f}".format(100*self.preionisation_ratio) + ' %'
             
         self.rgrid = rgrid
         self.Nr = Nr; self.Nt = Nt; self.Nz = Nz
