@@ -344,8 +344,13 @@ CALL save_or_replace(group_id, 'laser_pulse_duration_in_1_e_Intensity', Convert_
       CALL save_or_replace(group_id, 'laser_ratio_pin_pcr', numcrit, error, units_in = '[-]')
     ENDIF
 
-    ! convert to focus values    
-    CALL Gaussian_entry2Gaussian_focus(Intensity_entry,w0_cm_phys*1.D-2,1.D0/Curvature_radius_entry,Intensity_focus, waist_focus, focus_position, lambda0_cm_phys*1.D-2)
+    ! convert to focus values 
+    IF (Curvature_radius_entry == 0.D0) THEN ! cumbersome as the inverse of the radius is not used... For compatibility.
+      invCurvature_radius_entry = 0.D0
+    ELSE
+      invCurvature_radius_entry = 1.D0 / Curvature_radius_entry
+    ENDIF   
+    CALL Gaussian_entry2Gaussian_focus(Intensity_entry,w0_cm_phys*1.D-2,invCurvature_radius_entry,Intensity_focus, waist_focus, focus_position, lambda0_cm_phys*1.D-2)
   
     ! Store the reference Gaussian beam
     CALL save_or_replace(group_id, 'laser_focus_beamwaist_Gaussian', waist_focus, error, units_in = '[SI]')

@@ -33,6 +33,7 @@ class get_data:
         self.rgrid = rgrid
         self.Nr = Nr; self.Nt = Nt; self.Nz = Nz
         
+        
     def vacuum_shift(self,output='replace'):
         E_vac = np.zeros(self.E_trz.shape)   
         for k1 in range(self.Nz):
@@ -50,6 +51,18 @@ class get_data:
         elif (output == 'add'):        self.E_trz_vac = E_vac 
         else: raise ValueError('wrongly specified output for the vacuum shift.')
         
+
+    def complexify_envel(self,output='return'):
+        E_trz_cmplx_envel = np.zeros(self.E_trz.shape,dtype=complex)
+        rem_fast_oscillations = np.exp(-1j*self.omega0*self.tgrid)
+            
+        for k1 in range(self.Nz):
+            for k2 in range(self.Nr):
+                E_trz_cmplx_envel[:,k2,k1] = rem_fast_oscillations*mn.complexify_fft(self.E_trz[:,k2,k1])
+        
+        if (output == 'return'):     return E_trz_cmplx_envel
+        elif (output == 'add'):      self.E_trz_cmplx_envel = E_trz_cmplx_envel
+        else: raise ValueError('wrongly specified output for the vacuum shift.')        
 
         
 def add_print_parameter(parameter,data):
