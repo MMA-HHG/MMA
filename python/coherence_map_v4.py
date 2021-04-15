@@ -59,7 +59,7 @@ vacuum_frame = True
 # files = ['results.h5']
 # files = ['results_19.h5']
 
-files = ['results_1.h5']
+# files = ['results_1.h5']
 
 # files = ['results_1.h5','results_10.h5', 'results_15.h5']
 
@@ -328,14 +328,36 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
             ax10.plot(1e6*res.rgrid,Cutoff[k_t,:,-1], color=colors_plt[2],label='z='+"{:.1f}".format(1e3*res.zgrid[-1]))
             ax10.legend(loc='best')
             ax10.set_xlabel('r [mum]'); ax10.set_ylabel('I [cutoff]'); ax10.set_title('t=0 fs, intensity'+title_string)   
-            fig10.savefig('Intens_tfix_sim'+str(k_sim)+'.png', dpi = 600)
-            
-            
+            fig10.savefig('Intens_tfix_sim'+str(k_sim)+'.png', dpi = 600)           
             
             plt.show()
             plt.close()
                 
+        
+            # treat fluence with full precision
+            res2 = dfC.get_data(InputArchive)
+            res2.get_Fluence(InputArchive, fluence_source='computed')
             
+            k_r = mn.FindInterval(res2.rgrid, rmax)
+            
+            radius_inv_e2 = dfC.measure_beam(
+                res2.Fluence.rgrid, res2.Fluence.value, mn.measure_beam_max_ratio_zeromax, np.exp(-2.0) ) 
+            radius_RMS = dfC.measure_beam(
+                res2.Fluence.rgrid, res2.Fluence.value, mn.measure_beam_RMS )         
+            
+            fig1, ax1 = plt.subplots()
+            
+            map1 = ax1.pcolor(1e3*res2.Fluence.zgrid,
+                              1e6*res2.Fluence.rgrid[:k_r], res2.Fluence.value[:k_r,:],
+                              shading='auto', cmap='plasma')
+            ax1.plot(1e3*res2.Fluence.zgrid, 1e6*radius_RMS, '--', linewidth=1, color = 'k')
+            ax1.plot(1e3*res2.Fluence.zgrid, 1e6*radius_inv_e2, '-', linewidth=1, color = 'k')
+            
+            ax1.set_xlabel('z [mm]'); ax1.set_ylabel('r [mum]'); ax1.set_title('Fluence ['+res2.Fluence.units+']'+title_string)
+            fig1.colorbar(map1)
+            fig1.savefig('Fluence_sim'+str(k_sim)+'.png', dpi = 600)
+            plt.show()
+            plt.close()
             
             
 

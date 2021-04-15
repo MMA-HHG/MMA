@@ -6,6 +6,9 @@ import mynumerics as mn
 
 # def load_data
 
+class empty_class:
+    pass
+
 class get_data:
     def __init__(self,InputArchive,r_resolution=[True]):
         full_resolution = r_resolution[0]
@@ -62,7 +65,25 @@ class get_data:
         
         if (output == 'return'):     return E_trz_cmplx_envel
         elif (output == 'add'):      self.E_trz_cmplx_envel = E_trz_cmplx_envel
-        else: raise ValueError('wrongly specified output for the vacuum shift.')        
+        else: raise ValueError('wrongly specified output for the vacuum shift.') 
+        
+    def get_Fluence(self, InputArchive, fluence_source='file'):
+        self.Fluence = empty_class()
+        if (fluence_source == 'file'):
+            self.Fluence.value = InputArchive['/longstep/fluence'][:,:]
+            self.Fluence.zgrid = InputArchive['/longstep/zgrid_analyses2'][:]
+            self.Fluence.rgrid = InputArchive['/outputs/rgrid'][:]
+            self.Fluence.units = 'SI'                
+        
+        elif (fluence_source == 'computed'):                
+            self.Fluence.zgrid = self.zgrid
+            self.Fluence.rgrid = self.rgrid
+            self.Fluence.value = np.zeros((self.Nr, self.Nz))
+            for k1 in range(self.Nz):
+                for k2 in range(self.Nr):
+                    self.Fluence.value[k2, k1] = sum(abs(self.E_trz[:, k2, k1])**2)
+            self.Fluence.units = 'arb.u.'
+        
 
         
 def add_print_parameter(parameter,data):
