@@ -32,7 +32,7 @@ else:
     # results_path = os.path.join("/mnt", "d", "data", "Discharges") # 'D:\data\Discharges'
     results_path = os.path.join("D:\data", "Discharges")
     results_path = os.path.join("D:\TEMP", "OCCIGEN_CUPRAD", "foci")
-    results_path = os.path.join("D:\data", "Discharges", "f_scan", "all", "sim_1")
+    results_path = os.path.join("D:\data", "Discharges", "f_scan", "all", "sim_10")
 
     
 cwd = os.getcwd()
@@ -59,7 +59,7 @@ dr = rmax/200.0
 Lcoh_saturation = 0.01
 Lcoh_zero = 0.0
 
-file = 'results_1.h5' # 'results_Ar_vac.h5', 'Ar_vac_long.h5' 'results_3.h5'
+file = 'results_10.h5' # 'results_Ar_vac.h5', 'Ar_vac_long.h5' 'results_3.h5' 'results_1.h5'
 
 # file = 'results_f_half.h5' # 'results_Ar_vac.h5', 'Ar_vac_long.h5' 'results_3.h5'
 
