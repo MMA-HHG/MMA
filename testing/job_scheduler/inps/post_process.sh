@@ -21,7 +21,7 @@ done
 
 case $analysis in
     general)
-      sbatch $TESTPATH/coherence_map_XUVshift.slurm
+      sbatch $TESTPATH/coherence_map_v4.slurm
       echo 'general submitted'
     #   echo 'plot 1'
       ;;

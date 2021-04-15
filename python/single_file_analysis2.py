@@ -32,6 +32,7 @@ else:
     # results_path = os.path.join("/mnt", "d", "data", "Discharges") # 'D:\data\Discharges'
     results_path = os.path.join("D:\data", "Discharges")
     results_path = os.path.join("D:\TEMP", "OCCIGEN_CUPRAD", "foci")
+    results_path = os.path.join("D:\data", "Discharges", "f_scan", "all", "sim_1")
 
     
 cwd = os.getcwd()
@@ -60,7 +61,7 @@ Lcoh_zero = 0.0
 
 file = 'results_1.h5' # 'results_Ar_vac.h5', 'Ar_vac_long.h5' 'results_3.h5'
 
-file = 'results_f_half.h5' # 'results_Ar_vac.h5', 'Ar_vac_long.h5' 'results_3.h5'
+# file = 'results_f_half.h5' # 'results_Ar_vac.h5', 'Ar_vac_long.h5' 'results_3.h5'
 
 
 # =============================================================================
@@ -109,10 +110,10 @@ with h5py.File(file_path, 'r') as InputArchive:
  
  
 # get radii
-radius_FWHMs = dfC.measure_beam(rgrid_fluence, Fluence, mn.compute_FWHM_zeromax) 
-radius_inv_e2 = dfC.measure_beam(rgrid_fluence, Fluence, mn.compute_max_ratio_zeromax, np.exp(-2.0) )    
-radius_E_alpha = dfC.measure_beam(rgrid_fluence, Fluence, mn.compute_E_alpha_zeromax, 0.76 )    
-radius_RMS = dfC.measure_beam(rgrid_fluence, Fluence, mn.compute_RMS )   
+radius_FWHMs = dfC.measure_beam(rgrid_fluence, Fluence, mn.measure_beam_FWHM_zeromax) 
+radius_inv_e2 = dfC.measure_beam(rgrid_fluence, Fluence, mn.measure_beam_max_ratio_zeromax, np.exp(-2.0) )    
+radius_E_alpha = dfC.measure_beam(rgrid_fluence, Fluence, mn.measure_beam_E_alpha_zeromax, 0.76 )    
+radius_RMS = dfC.measure_beam(rgrid_fluence, Fluence, mn.measure_beam_RMS )   
  
 fig = plt.figure()
 plt.pcolor(1e3*zgrid_Fluence, 1e6*rgrid_fluence, Fluence, cmap='plasma',shading='nearest') # vmin=0.75*np.max(Fluence)
