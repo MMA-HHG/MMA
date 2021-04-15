@@ -1,15 +1,15 @@
 # Laser
 laser_wavelength    7.92e-5 R cm
-laser_beamwaist_entry    110e-6   R   m
+# laser_beamwaist_entry    110e-6   R   m
 laser_pulse_duration_in_FWHM_Intensity  35  R   fs
-laser_focal_length_in_the_medium_cm 0.0 R   cm
+# laser_focal_length_in_the_medium_cm 0.0 R   cm
 
 
 # Atom + medium
 gas_preset  Kr_PPT  S  -
 
 
-medium_pressure_in_bar  0.035    R    bar
+# medium_pressure_in_bar  0.035    R    bar
 medium_physical_distance_of_propagation 0.015   R   m
 
 
@@ -42,4 +42,4 @@ $change_group   pre_ionised
 
 method_units    1   I   -
 method_geometry 1   I   -
-initial_electrons_ratio pre_ionised	0.04	R	-
+# initial_electrons_ratio pre_ionised	0.04	R	-
