@@ -59,7 +59,7 @@ vacuum_frame = True
 # files = ['results.h5']
 # files = ['results_19.h5']
 
-# files = ['results_1.h5']
+# files = ['results_10.h5']
 
 # files = ['results_1.h5','results_10.h5', 'results_15.h5']
 
@@ -353,6 +353,7 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
             ax1.plot(1e3*res2.Fluence.zgrid, 1e6*radius_RMS, '--', linewidth=1, color = 'k')
             ax1.plot(1e3*res2.Fluence.zgrid, 1e6*radius_inv_e2, '-', linewidth=1, color = 'k')
             
+            ax1.set_ylim([0,1e6*rmax])
             ax1.set_xlabel('z [mm]'); ax1.set_ylabel('r [mum]'); ax1.set_title('Fluence ['+res2.Fluence.units+']'+title_string)
             fig1.colorbar(map1)
             fig1.savefig('Fluence_sim'+str(k_sim)+'.png', dpi = 600)
