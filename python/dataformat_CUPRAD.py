@@ -78,3 +78,19 @@ def create_param_string(params,data):
         if not(len(curr)==0):
             res = res + ', ' + curr     
     return res   
+
+
+def measure_beam(grid, beam, measure, *args, measured_axis = 0):
+    N0, N1 = beam.shape
+    if (measured_axis == 0):
+        radius = np.zeros(N1)
+        for k1 in range(N1):
+            radius[k1] = measure(grid,beam[:,k1],*args)
+    if (measured_axis == 1):
+        radius = np.zeros(N0)
+        for k1 in range(N0):
+            radius[k1] = measure(grid,beam[k1,:],*args)
+    
+    return radius
+
+

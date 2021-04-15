@@ -16,6 +16,7 @@ import glob
 import XUV_refractive_index as XUV_index
 import IR_refractive_index as IR_index
 from contextlib import ExitStack
+import dataformat_CUPRAD as dfC
 
 # There may be a large memory overload in this implementation, it's for testing putposes
 
@@ -72,6 +73,9 @@ os.chdir(OutPath)
 file_path = os.path.join(results_path,file)
 print('processing:', file_path)             
 with h5py.File(file_path, 'r') as InputArchive:
+    # load data
+    # res = dfC.get_data(InputArchive, r_resolution = [full_resolution, dr, rmax])
+    
     omega0 = mn.ConvertPhoton(1e-2*mn.readscalardataset(InputArchive,'/inputs/laser_wavelength','N'),'lambdaSI','omegaSI')
     zgrid = InputArchive['/outputs/zgrid'][:]; Nz=len(zgrid)
     tgrid = InputArchive['/outputs/tgrid'][:]; Nt=len(tgrid)
@@ -222,3 +226,5 @@ fig7.colorbar(map1)
 fig7.savefig('Cutoff.png', dpi = 600)
     
 os.chdir(cwd)
+
+## Beamshape
