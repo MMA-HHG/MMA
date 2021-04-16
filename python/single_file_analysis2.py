@@ -32,7 +32,7 @@ else:
     # results_path = os.path.join("/mnt", "d", "data", "Discharges") # 'D:\data\Discharges'
     results_path = os.path.join("D:\data", "Discharges")
     results_path = os.path.join("D:\TEMP", "OCCIGEN_CUPRAD", "foci")
-    results_path = os.path.join("D:\data", "Discharges", "f_scan", "all", "sim_10")
+    results_path = os.path.join("D:\data", "Discharges", "f_scan_Kerr", "all", "sim_10")
 
     
 cwd = os.getcwd()

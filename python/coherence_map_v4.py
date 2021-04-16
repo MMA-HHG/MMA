@@ -41,7 +41,8 @@ if ('-here' in arguments):
     results_path = os.getcwd()
 else:
     # results_path = os.path.join("/mnt", "d", "data", "Discharges") # 'D:\data\Discharges'
-    results_path = os.path.join("D:\data", "Discharges")
+    # results_path = os.path.join("D:\data", "Discharges")
+    results_path = os.path.join("D:\data", "Discharges", "f_scan")
 
 # results_path = os.path.join("/mnt", "d", "data", "Discharges") # 'D:\data\Discharges'
 
@@ -330,7 +331,7 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
             ax10.set_xlabel('r [mum]'); ax10.set_ylabel('I [cutoff]'); ax10.set_title('t=0 fs, intensity'+title_string)   
             fig10.savefig('Intens_tfix_sim'+str(k_sim)+'.png', dpi = 600)           
             
-            plt.show()
+            if showplots: plt.show()
             plt.close()
                 
         
@@ -357,7 +358,7 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
             ax1.set_xlabel('z [mm]'); ax1.set_ylabel('r [mum]'); ax1.set_title('Fluence ['+res2.Fluence.units+']'+title_string)
             fig1.colorbar(map1)
             fig1.savefig('Fluence_sim'+str(k_sim)+'.png', dpi = 600)
-            plt.show()
+            if showplots: plt.show()
             plt.close()
             
             
