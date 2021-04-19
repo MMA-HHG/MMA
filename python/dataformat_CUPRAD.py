@@ -36,6 +36,17 @@ class get_data:
         self.rgrid = rgrid
         self.Nr = Nr; self.Nt = Nt; self.Nz = Nz
         
+        # Further analyses that may be stored in various directions
+        self.Gaussian_focus = mn.h5_seek_for_scalar(InputArchive,'N',
+                              '/inputs/laser_focus_position_Gaussian',
+                              '/inputs/calculated/laser_focus_position_Gaussian')
+        self.Gaussian_focus_string = "{:.1f}".format(1e3*self.Gaussian_focus) + ' mm' # 'z='+"{:.1f}".format(1e3*res.zgrid[0])
+        
+        self.Intensity_entry = mn.h5_seek_for_scalar(InputArchive,'N',
+                              '/inputs/laser_intensity_entry',
+                              '/inputs/calculated/laser_intensity_entry')
+        self.Intensity_entry_string = "{:.1f}".format(1e-18*self.Intensity_entry) + ' 1e18 W/m2'
+        
         
     def vacuum_shift(self,output='replace'):
         E_vac = np.zeros(self.E_trz.shape)   
@@ -89,6 +100,8 @@ class get_data:
 def add_print_parameter(parameter,data):
     if (parameter=='pressure'): return data.pressure_string
     elif (parameter=='preionisation'): return data.preionisation_string
+    elif (parameter=='focus_in_medium'): return data.Gaussian_focus_string
+    elif (parameter=='intensity_entry'): return data.Intensity_entry_string
     else: return ''
 
 
