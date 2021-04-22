@@ -112,8 +112,6 @@ except:
     rmax = 130e-6 # only for analyses
     dr = rmax/40.0
 
-Horders = [15] # [19, 21, 23, 25, 27]
-
 
 full_resolution = False
 
@@ -218,7 +216,7 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
                 FSPA_alphas.append(-interp_FSPA_short[q](Intens[t_probe_ind,:,:]/units.INTENSITYau))
                 grad_z_phase_FSPA.append(FSPA_alphas[k1]*grad_z_I /units.INTENSITYau)
                 
-                          # Cut-off map
+            # Cut-off map
             Cutoff = HHG.ComputeCutoff(Intens/units.INTENSITYau,
                                        mn.ConvertPhoton(res.omega0,'omegaSI','omegaau'),
                                        mn.ConvertPhoton(res.Ip_eV,'eV','omegaau')
@@ -360,7 +358,27 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
                 
                 fig11.savefig('Curvature_t'+str(k1)+'_sim'+str(k_sim)+'.png', dpi = 600)
                 if showplots: plt.show()
-                plt.close()                
+                plt.close()
+
+            # plasma density map
+            res.get_plasma(InputArchive, r_resolution = [full_resolution, dr, rmax])
+            
+            fig12, ax12 = plt.subplots()
+            
+            map12 = ax12.pcolor(1e3*res.plasma.zgrid, 1e6*res.plasma.rgrid,
+                              100*res.plasma.value_trz[-1,:,:]/res.rho0_init,
+                              shading='auto', cmap='plasma')
+            
+            ax12.set_xlabel('z [mm]'); ax12.set_ylabel('r [mum]')
+            ax12.set_title('el. density [%]'+ title_string) 
+            fig12.colorbar(map12)
+            
+            fig12.savefig('Plasma_end_sim'+str(k_sim)+'.png', dpi = 600)
+            if showplots: plt.show()
+            plt.close()
+            
+            
+                
         
             # treat fluence with full precision
             res2 = dfC.get_data(InputArchive)

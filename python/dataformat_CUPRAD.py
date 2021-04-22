@@ -98,8 +98,27 @@ class get_data:
                 for k2 in range(self.Nr):
                     self.Fluence.value[k2, k1] = sum(abs(self.E_trz[:, k2, k1])**2)
             self.Fluence.units = 'arb.u.'
-        
 
+    def get_plasma(self, InputArchive, r_resolution=[True]): # analogy to the fields
+        full_resolution = r_resolution[0]
+        self.plasma = empty_class()
+        
+        self.plasma.tgrid = InputArchive['/outputs/tgrid'][:]; Nt = len(self.tgrid)
+        rgrid = InputArchive['/outputs/rgrid'][:]; Nr = len(rgrid)            
+        self.plasma.zgrid = InputArchive['/outputs/zgrid'][:]; Nz = len(self.zgrid)            
+        if full_resolution:
+            kr_step = 1; Nr_max = Nr
+        else:
+            dr = r_resolution[1]; rmax = r_resolution[2]
+            dr_file = rgrid[1]-rgrid[0]; kr_step = max(1,int(np.floor(dr/dr_file))); Nr_max = mn.FindInterval(rgrid, rmax)
+            rgrid = rgrid[0:Nr_max:kr_step]; Nr = len(rgrid) 
+            
+        self.plasma.value_trz = InputArchive['/outputs/output_plasma'][:,0:Nr_max:kr_step,:Nz] # Arrays may be over-allocated by CUPRAD
+        
+        self.plasma.rgrid = rgrid
+        self.plasma.Nr = Nr; self.plasma.Nt = Nt; self.plasma.Nz = Nz
+
+        
         
 def add_print_parameter(parameter,data):
     if (parameter=='pressure'): return data.pressure_string
