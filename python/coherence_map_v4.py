@@ -335,7 +335,8 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
             if showplots: plt.show()
             plt.close()
             
-            # Curvature map ## IMPLEMENT GAUSSIAN SEPARATELY
+            # Curvature map + plasma map ## IMPLEMENT GAUSSIAN SEPARATELY
+            res.get_plasma(InputArchive, r_resolution = [full_resolution, dr, rmax])
             beam_curvature = np.zeros(phase.shape)
             for k1 in range(Nt_probe):
                 for k2 in range(res.Nz):                
@@ -346,6 +347,7 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
             for k1 in range(Nt_probe):
                 t_string = ', '+"{:.1f}".format(1e15*res.tgrid[t_probe_ind[k1]])+' fs'
                 
+                # curvature
                 fig11, ax11 = plt.subplots()
                 
                 map11 = ax11.pcolor(1e3*res.zgrid,
@@ -359,9 +361,23 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
                 fig11.savefig('Curvature_t'+str(k1)+'_sim'+str(k_sim)+'.png', dpi = 600)
                 if showplots: plt.show()
                 plt.close()
+                
+                # plasma
+                fig12, ax12 = plt.subplots()
+                
+                map12 = ax12.pcolor(1e3*res.plasma.zgrid, 1e6*res.plasma.rgrid,
+                                  100*res.plasma.value_trz[t_probe_ind[k1],:,:]/res.rho0_init,
+                                  shading='auto', cmap='plasma')
+                
+                ax12.set_xlabel('z [mm]'); ax12.set_ylabel('r [mum]')
+                ax12.set_title('el. density [%]'+ title_string + t_string) 
+                fig12.colorbar(map12)
+                
+                fig12.savefig('Plasma_t'+str(k1)+'_sim'+str(k_sim)+'.png', dpi = 600)
+                if showplots: plt.show()
+                plt.close()
 
-            # plasma density map
-            res.get_plasma(InputArchive, r_resolution = [full_resolution, dr, rmax])
+            
             
             fig12, ax12 = plt.subplots()
             
@@ -370,7 +386,7 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
                               shading='auto', cmap='plasma')
             
             ax12.set_xlabel('z [mm]'); ax12.set_ylabel('r [mum]')
-            ax12.set_title('el. density [%]'+ title_string) 
+            ax12.set_title('el. density [%], end'+ title_string) 
             fig12.colorbar(map12)
             
             fig12.savefig('Plasma_end_sim'+str(k_sim)+'.png', dpi = 600)
