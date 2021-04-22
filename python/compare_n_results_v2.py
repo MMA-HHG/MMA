@@ -69,7 +69,8 @@ except:
 vacuum_frame = True
 
 
-files = ['results_1.h5', 'results_2.h5', 'results_3.h5']
+files = ['results_1.h5', 'results_2.h5', 'results_3.h5', 'results_4.h5']
+files = ['results_5.h5', 'results_6.h5', 'results_7.h5', 'results_8.h5']
 # files = ['results_1.h5', 'results_2.h5']
          
 
@@ -105,10 +106,16 @@ with ExitStack() as stack:
             res[k1].vacuum_shift()
             
 
+# tlim = [-20.0,0.0]
+
 fig1, ax1 = plt.subplots()
-ax1.plot(res[0].E_trz[:,0,-1])
-ax1.plot(res[1].E_trz[:,0,-1])
-ax1.plot(res[2].E_trz[:,0,-1])
+for k1 in range(4):
+    ax1.plot(1e15*res[k1].tgrid, res[k1].E_trz[:,0,-1],label=res[k1].preionisation_string)
+
+ax1.set_xlim(tlim)
+ax1.legend(loc='upper right') # 'best'
+ax1.set_xlabel('t [fs]'); ax1.set_ylabel('E [V/m]'); # ax1.set_title('onaxis intensity'+title_string)   
+fig1.savefig('Efield.png', dpi = 600)
 # ax1.plot(1e3*res.zgrid,q*(grad_z_phase[k1,0,:] + res.k0_wave*(nXUV[k2]-1)),label='H'+str(q))
          
     # color=colors_plt[k2], linestyle=linestyles_plt[k1])

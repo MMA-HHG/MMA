@@ -42,7 +42,8 @@ if ('-here' in arguments):
 else:
     # results_path = os.path.join("/mnt", "d", "data", "Discharges") # 'D:\data\Discharges'
     # results_path = os.path.join("D:\data", "Discharges")
-    results_path = os.path.join("D:\data", "Discharges", "f_scan_Kerr")
+    # results_path = os.path.join("D:\data", "Discharges", "f_scan_Kerr")
+    results_path = os.path.join("D:\data", "Discharges", "preion2")
 
 # results_path = os.path.join("/mnt", "d", "data", "Discharges") # 'D:\data\Discharges'
 
@@ -64,7 +65,7 @@ vacuum_frame = True
 
 # files = ['results_1.h5','results_10.h5', 'results_15.h5']
 
-files = ['results_10.h5']
+# files = ['results_10.h5']
 
 out_h5name = 'analyses.h5'
 
@@ -112,6 +113,7 @@ except:
     rmax = 130e-6 # only for analyses
     dr = rmax/40.0
 
+fix_saturation = True
 
 full_resolution = False
 
@@ -291,7 +293,7 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
                 fig5, ax5 = plt.subplots()
                 dum = abs( 1.0/ (q*(grad_z_phase[k1,:,:] + res.k0_wave*(nXUV[k2]-1))+grad_z_phase_FSPA[k2][k1,:,:] ) )
                 masked = np.ma.masked_where(np.isnan(H_mask), abs( 1.0/ (q*(grad_z_phase[k1,:,:] + res.k0_wave*(nXUV[k2]-1))+grad_z_phase_FSPA[k2][k1,:,:] ) ))
-                if (np.max(dum) > Lcoh_saturation):
+                if ((np.max(dum) > Lcoh_saturation) or fix_saturation):
                     map1 = ax5.pcolor(1e3*res.zgrid, 1e6*res.rgrid, masked, shading='auto', vmax=Lcoh_saturation)
                 else:
                     map1 = ax5.pcolor(1e3*res.zgrid, 1e6*res.rgrid, masked, shading='auto')
