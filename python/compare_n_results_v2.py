@@ -30,7 +30,8 @@ if ('-here' in arguments):
     results_path = os.getcwd()
 else:
     # results_path = os.path.join("/mnt", "d", "data", "Discharges") # 'D:\data\Discharges'
-    results_path = os.path.join("D:\data", "Discharges", "f_scan_Kerr")
+    # results_path = os.path.join("D:\data", "Discharges", "f_scan_Kerr")
+    results_path = os.path.join("D:\data", "Discharges", "preion2")
 
 
 cwd = os.getcwd()
@@ -69,6 +70,7 @@ vacuum_frame = True
 
 
 files = ['results_1.h5', 'results_2.h5', 'results_3.h5']
+# files = ['results_1.h5', 'results_2.h5']
          
 
 full_resolution = False
@@ -104,15 +106,28 @@ with ExitStack() as stack:
             
 
 fig1, ax1 = plt.subplots()
-ax1.plot(res[0].E_trz[:,0,0])
-ax1.plot(res[1].E_trz[:,0,0])
-ax1.plot(res[2].E_trz[:,0,0])
+ax1.plot(res[0].E_trz[:,0,-1])
+ax1.plot(res[1].E_trz[:,0,-1])
+ax1.plot(res[2].E_trz[:,0,-1])
 # ax1.plot(1e3*res.zgrid,q*(grad_z_phase[k1,0,:] + res.k0_wave*(nXUV[k2]-1)),label='H'+str(q))
          
     # color=colors_plt[k2], linestyle=linestyles_plt[k1])
 
 if showplots: plt.show()
 # plt.close()            
+
+fig2, ax2 = plt.subplots()
+ax2.plot(res[0].E_trz[:,0,0])
+ax2.plot(res[0].E_trz[:,0,res[0].Nz//2])
+ax2.plot(res[0].E_trz[:,0,-1])
+# ax1.plot(res[1].E_trz[:,0,0])
+# ax1.plot(res[2].E_trz[:,0,0])
+# ax1.plot(1e3*res.zgrid,q*(grad_z_phase[k1,0,:] + res.k0_wave*(nXUV[k2]-1)),label='H'+str(q))
+         
+    # color=colors_plt[k2], linestyle=linestyles_plt[k1])
+
+if showplots: plt.show()
+# plt.close()        
 
 os.chdir(cwd)
 print('done')

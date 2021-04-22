@@ -64,6 +64,8 @@ vacuum_frame = True
 
 # files = ['results_1.h5','results_10.h5', 'results_15.h5']
 
+files = ['results_10.h5']
+
 out_h5name = 'analyses.h5'
 
 # create inputs from the free-form inp
@@ -101,7 +103,7 @@ except:
     
     gas_type = 'Kr'
     XUV_table_type = 'NIST' # {Henke, NIST}
-    Horders = [15, 17, 19, 21, 23]# [19, 21, 23, 25, 27]
+    Horders = [15, 17, 19, 21, 23] # [19, 21, 23, 25, 27]
     Lcoh_saturation = 0.02
     Lcoh_zero = 0.0
     H_shift_mask = 4.0
@@ -110,6 +112,7 @@ except:
     rmax = 130e-6 # only for analyses
     dr = rmax/40.0
 
+Horders = [15] # [19, 21, 23, 25, 27]
 
 
 full_resolution = False
@@ -333,7 +336,31 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
             
             if showplots: plt.show()
             plt.close()
+            
+            # Curvature map ## IMPLEMENT GAUSSIAN SEPARATELY
+            beam_curvature = np.zeros(phase.shape)
+            for k1 in range(Nt_probe):
+                for k2 in range(res.Nz):                
+                    phase_tz_fix = np.unwrap(phase[k1,:,k2])
+                    beam_curvature[k1,:,k2] = phase_tz_fix - phase_tz_fix[0]
+
+
+            for k1 in range(Nt_probe):
+                t_string = ', '+"{:.1f}".format(1e15*res.tgrid[t_probe_ind[k1]])+' fs'
                 
+                fig11, ax11 = plt.subplots()
+                
+                map11 = ax11.pcolor(1e3*res.zgrid,
+                                  1e6*res.rgrid, beam_curvature[k1,:,:],
+                                  shading='auto', cmap='plasma')
+                
+                ax11.set_xlabel('z [mm]'); ax11.set_ylabel('r [mum]')
+                ax11.set_title('Curvature [rad]'+title_string+t_string ) 
+                fig11.colorbar(map11)
+                
+                fig11.savefig('Curvature_t'+str(k1)+'_sim'+str(k_sim)+'.png', dpi = 600)
+                if showplots: plt.show()
+                plt.close()                
         
             # treat fluence with full precision
             res2 = dfC.get_data(InputArchive)

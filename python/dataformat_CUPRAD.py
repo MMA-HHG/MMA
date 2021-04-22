@@ -32,6 +32,10 @@ class get_data:
         self.Ip_eV = InputArchive['/inputs/ionization_ionization_potential_of_neutral_molecules'][()]
         self.pressure_mbar = 1e3*InputArchive['/inputs/medium_pressure_in_bar'][()]; self.pressure_string = "{:.1f}".format(self.pressure_mbar)+' mbar'
         self.preionisation_ratio = InputArchive['/pre_ionised/initial_electrons_ratio'][()]; self.preionisation_string = "{:.1f}".format(100*self.preionisation_ratio) + ' %'
+        
+        self.w0_entry = mn.h5_seek_for_scalar(InputArchive,'N',
+                              '/inputs/laser_beamwaist_entry',
+                              '/inputs/calculated/laser_beamwaist_entry')
             
         self.rgrid = rgrid
         self.Nr = Nr; self.Nt = Nt; self.Nz = Nz
