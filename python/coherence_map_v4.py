@@ -19,6 +19,8 @@ import IR_refractive_index as IR_index
 import subprocess
 import dataformat_CUPRAD as dfC
 
+import gc
+
 try:
     univ_input_path = os.environ['UNIV_INPUT_PATH']
 except:
@@ -116,6 +118,8 @@ except:
 fix_saturation = True
 
 full_resolution = False
+
+invoke_garbage_collector = True
 
 OutPath = 'outputs'
 
@@ -424,7 +428,12 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
             if showplots: plt.show()
             plt.close()
             
-            
+        if invoke_garbage_collector:
+            del res
+            del res2
+            gc.collect()
+            plt.close('all')
+        
 
 os.chdir(cwd)
 print('done')
