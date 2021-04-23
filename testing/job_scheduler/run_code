@@ -1,7 +1,0 @@
-#!/bin/bash
-# Submit the first job and save the JobID as JOBONE
-JOBONE=$(qsub -W depend=afterok:$JOBPREPARE -N ArPropagationIR_$fold submit_job)
-# Submit the second job, use JOBONE as depend, save JobID
-JOBTWO=$(qsub -W depend=afterok:$JOBONE -N merge_$fold submit_merge)
-# Submit last job using JOBTWO as depend, do not need to save the JobID
-qsub -W depend=afterok:$JOBTWO -N octave_$fold submit_octave
