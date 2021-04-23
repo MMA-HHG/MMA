@@ -9,4 +9,4 @@
 module purge
 module load intelpython3/2019.3
 
-python $PYTHON_CUPRAD/coherence_map_v4.py -here -nodisplay
+python $PYTHON_CUPRAD/coherence_map.py -here -nodisplay
