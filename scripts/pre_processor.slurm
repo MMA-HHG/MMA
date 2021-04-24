@@ -6,4 +6,4 @@
 #SBATCH --time=00:10:00
 #SBATCH --output pre_processor-%J.output
 
-$TESTPATH/pre_processor.sh
+$CUPRAD_SCRIPTS/pre_processor.sh

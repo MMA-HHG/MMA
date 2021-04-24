@@ -40,7 +40,7 @@ for simulation in results_*.h5; do
     mv $simulation sim_$ksimulation/
     cd sim_$ksimulation
         echo "executing simulation $ksimulation"
-        $TESTPATH/run_CUPRAD.sh
+        $CUPRAD_SCRIPTS/run_CUPRAD.sh
     cd ..
 
 done;
