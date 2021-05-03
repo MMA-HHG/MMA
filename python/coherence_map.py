@@ -344,10 +344,12 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
             # Curvature map + plasma map ## IMPLEMENT GAUSSIAN SEPARATELY
             res.get_plasma(InputArchive, r_resolution = [full_resolution, dr, rmax])
             beam_curvature = np.zeros(phase.shape)
+            ddr_beam_curvature = np.zeros(phase.shape)
             for k1 in range(Nt_probe):
                 for k2 in range(res.Nz):                
                     phase_tz_fix = np.unwrap(phase[k1,:,k2])
                     beam_curvature[k1,:,k2] = phase_tz_fix - phase_tz_fix[0]
+                    ddr_beam_curvature[k1,:,k2] = np.gradient(phase_tz_fix,res.rgrid,edge_order=2)
 
 
             for k1 in range(Nt_probe):
@@ -365,6 +367,21 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
                 fig11.colorbar(map11)
                 
                 fig11.savefig('Curvature_t'+str(k1)+'_sim'+str(k_sim)+'.png', dpi = 600)
+                if showplots: plt.show()
+                plt.close()
+                
+                # curvature gradient
+                fig13, ax13 = plt.subplots()
+                
+                map13 = ax13.pcolor(1e3*res.zgrid,
+                                  1e6*res.rgrid, ddr_beam_curvature[k1,:,:],
+                                  shading='auto', cmap='plasma')
+                
+                ax13.set_xlabel('z [mm]'); ax11.set_ylabel('r [mum]')
+                ax13.set_title('d/dr Curv. [rad/m]'+title_string+t_string ) 
+                fig13.colorbar(map13)
+                
+                fig13.savefig('ddr_Curvature_t'+str(k1)+'_sim'+str(k_sim)+'.png', dpi = 600)
                 if showplots: plt.show()
                 plt.close()
                 
