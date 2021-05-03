@@ -508,7 +508,7 @@ subroutine preset_physics(test_number)
         pressure = 0.015d0
     case(17, 18, 19:22)
         pressure = 0.001d0
-    case(10)
+    case(23)
         pressure = 0.025d0
     end select
     
