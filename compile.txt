@@ -1,0 +1,109 @@
+Dear Evgeniya, dear Jan,
+
+sorry for the delay (moving and setting up a family in a new place
+takes time), but here is finally the "radial" (cylindrical coordinates
+r,z) version of the UPPE code.
+
+In the following I will give you a step-by-step instruction how to
+compile and run the code on avakas (works very similar for occigen
+etc, the makefile is already adapted). I also prepared a test case (2 m
+propagation in argon, focus at 50 cm) for you which you can run, as well
+as some rudimentary post-processing scripts to visualize the results. Of
+course, all this needs to be adapted and extended to your needs. In
+particular the post-processing scripts are done in octave(matlab) for
+historical reasons, and you may want to switch to something like python.
+
+1) Compilation
+In order to compile the code, a couple of modules have to be loaded.
+Either you type
+module load torque
+module load intel/compiler intel-mpi intel/mkl
+module load fftw3/intel
+in your command line on avakas, or you put those three lines in
+your .bashrc file (or any other file which is sourced by your shell).
+Next, you unpack the attached tarball in your home directory on avakas.
+This will create a folder CUPRAD, with several subfolders inside.
+Naming scheme is quite canonical, sources contains the source code,
+binary contains the compiled executables, make_start the input
+files, and octave the post-processing scripts.
+In order to compute the code, run
+make code
+in the folder ~/CUPRAD/sources, that should do it.
+You do not have to compile the code very often, only if you bring some
+changes, or if you want to change compile flags for debugging etc.
+
+2) Preparing the starting files (pre-processing)
+After compilation, the folder ~/CUPRAD/binary contains, among others, a
+binary called make_start_avakas.e. This is a small sequential program
+which reads an input file and produces the starting files for the
+parallel code. A test input file you find in ~/CUPRAD/make_start,
+called argon.inp. It is just ascii text, and you can change lots of
+parameters. Many of them you may never touch, others yes, and certainly
+you will have to add some new ones when you implement new features in
+the code. To be discussed later. For the moment, just copy the file
+argon.inp to the scratch directory. All calculation data should reside
+on /scrach/yourlogin. just create a new folder in this path, and copy
+argon.inp inside. Now you have to run the pre-processor. To this end,
+you have to run an interactive session on the cluster (you must not run
+it on the login-node). just type
+qsub -I -d $PWD
+and you will get a session on one core for one hour. Then you launch
+~/CUPRAD/binary/make_start_avakas.e
+it first asks you the name of the parameter file, so just type
+argon.inp
+and press enter. The pre-processor will ask you a couple of strange
+questions, put always 0 and press enter for the moment. Then it should
+write the starting files and terminate. Check with, e.g., ls, that the
+starting files were created. In particular, there should be files like
+000_000000_000.DAT, 000_000000_001.DAT, ..., one for each process (32
+in total for our test case).
+
+3) Launching the main code
+It is important to note that you can not submit jobs to the queue from
+within your interactive session where you launched the pre-processor.
+so either exit it for the following (by typing exit), or start another
+session on the login node.
+You can find a sample submit script for avakas in ~/CUPRAD, it is
+called submit_avakas. Most importantly, you can specify there the
+number of cores you want to use, how you want to distribute them over
+the nodes, and the wallclocktime of course. This has to match the
+configuration in you .inp file for the preprocessor (for our example
+24h, 32 cores, even if we need only about 1h for this small job).
+Copy the file submit_avakas into your folder on scratch, where you
+created the starting files. then, just submit via
+qsub submit_avakas
+with
+qstat -u yourlogin
+you can check the status. Q means queuing, and R means that it runs.
+it may take some time before it runs, because we need 3 free nodes, and
+people at bordeaux university are working very hard and the cluster is
+always busy...
+
+4) merging the output files
+running the simple test case takes less than one hour. when it is
+finished, you should have a lot of files in your directory, as we
+asked snapshots every 10 cm. don't run an ls on the directory, it may
+take long. instead, run the executable
+~/CUPRAD/binary/merge_avakas.e
+again, you should do that not on the login node (even if it may work),
+but in an interactive session
+
+5) visualization
+finally, we want to run some octave scripts to make some nice pictures.
+first, in order to keep track of the files, create a subfolder for the
+figures inside the folder of your testcase:
+mkdir figures
+then, copy the file post_process.m from ~/CUPRAD/octave into your
+folder on scratch, and run
+octave post_process
+again, this you should do in an interactive session and not on the
+login-node. this will create a couple of .pdf (or .jpg of you prefer)
+files in the figures subfolder. you can fetch them with sftp or scp and
+check them out. most of them should be self-explanatory, but the easiest
+would be to have a small chat on phone once you have them.
+
+if you run into troubles, just drop me an email, or call me on
+0472431565 or 0635770392. or on skype, hangouts, whatever you prefer ...
+
+cheers
+stefan

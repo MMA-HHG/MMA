@@ -1,0 +1,8 @@
+
+$array	rgrid	R	m	0.e0	200.e-6	200.e-6	1.e4
+
+$array	zgrid	R	m	0.e0	1.e4
+
+$matrix	refractive_index_shift	R	-	2	4
+1.e0  1.e0  1.5e0  1.5e0
+1.e0  1.e0  1.5e0  1.5e0
