@@ -44,8 +44,8 @@ if ('-here' in arguments):
 else:
     # results_path = os.path.join("/mnt", "d", "data", "Discharges") # 'D:\data\Discharges'
     # results_path = os.path.join("D:\data", "Discharges")
-    results_path = os.path.join("D:\data", "Discharges", "f_scan_Kerr")
-    results_path = os.path.join("D:\data", "Discharges","TDSE", "t2")
+    # results_path = os.path.join("D:\data", "Discharges", "f_scan_Kerr")
+    results_path = os.path.join("D:\data", "Discharges","TDSE", "t3e")
     # results_path = os.path.join("D:\data", "Discharges", "preion2")
 
 # results_path = os.path.join("/mnt", "d", "data", "Discharges") # 'D:\data\Discharges'
