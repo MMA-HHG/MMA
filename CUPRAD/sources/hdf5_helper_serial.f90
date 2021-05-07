@@ -678,7 +678,7 @@ MODULE hdf5_helper_serial
       CHARACTER(*)             :: name ! name of the dataset to be extended
       INTEGER(HID_T)           :: dset_id, dataspace, memspace ! necessary identifiers
       INTEGER                  :: error ! error stores error messages of the HDF5 interface
-      INTEGER(HSIZE_T), DIMENSION(1):: new_dims, memspace_dims, offset, hyperslab_size ! new dimensions of the dataset, of the dataspace, the offset and the hyperslab size
+      INTEGER(HSIZE_T), DIMENSION(:):: new_dims, memspace_dims, offset, hyperslab_size ! new dimensions of the dataset, of the dataspace, the offset and the hyperslab size
       CALL h5dopen_f(file_id, name, dset_id, error)   !Open the  dataset
       CALL h5dset_extent_f(dset_id, new_dims, error) ! extend the dataset
       CALL h5dget_space_f(dset_id, dataspace, error) ! get the dataspace of the dataset

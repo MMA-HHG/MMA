@@ -30,7 +30,7 @@ if ('-here' in arguments):
     results_path = os.getcwd()
 else:
     # results_path = os.path.join("/mnt", "d", "data", "Discharges") # 'D:\data\Discharges'
-    results_path = os.path.join("D:\data", "Discharges","TDSE","t3e")
+    results_path = os.path.join("D:\data", "Discharges","TDSE","t4")
 
     
 cwd = os.getcwd()
