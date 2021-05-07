@@ -435,7 +435,7 @@ subroutine preset_physics(test_number)
         proplength_m_phys = 0.015d0
     case(23)
         proplength_m_phys = 0.0002d0
-    case(23)
+    case(24)
         proplength_m_phys = 0.002d0
     end select   
 
