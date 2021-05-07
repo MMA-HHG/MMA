@@ -357,9 +357,15 @@ subroutine preset_numerics_tests(test_number)
     
 
     ! propagation & adaptive steps
-    delta_z_mm_phys = 1.d-2
     decrease = 2.d-3
     switch_T = 2 ! operator
+
+    select case(test_number)
+    case(1:22)
+        delta_z_mm_phys = 1.d-2  
+    case(23)
+        delta_z_mm_phys = 1.d-3    
+    end select
 
     ! writing
     rfil_mm_phys = 0.1d0
