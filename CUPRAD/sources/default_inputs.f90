@@ -394,11 +394,11 @@ subroutine preset_physics(test_number)
 
 !---------------------------------------------------------------------------------------------------------------------!
     select case(test_number)
-    case(1,9,12,15,17,18:23)
+    case(1,9,12,15,17,18:22)
         gas_preset = 'Ar_PPT'
     case(2:8,10,11,13,14)
         gas_preset = 'Ar_ext'
-    case(16)
+    case(16,23)
         gas_preset = 'Kr_PPT'
     end select
     call save_or_replace(file_id, 'inputs/gas_preset', gas_preset, error, units_in = '[-]')
