@@ -516,11 +516,11 @@ subroutine preset_physics(test_number)
 
 !---------------------------------------------------------------------------------------------------------------------!
 ! pre-ionized
-    if ( any(test_number == (/8, 9, 14, 15, 16, 17, 18, 19, 20, 21, 22/)) ) then
+    if ( any(test_number == (/8, 9, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23/)) ) then
         call h5gcreate_f(file_id, 'pre_ionised', group_id2, error)
         call save_or_replace(group_id2, 'method_geometry', 1, error, units_in = '[-]')
         call save_or_replace(group_id2, 'method_units', 1, error, units_in = '[-]')
-        if ( any(test_number == (/8, 9, 14, 16, 23/)) ) then
+        if ( any(test_number == (/8, 9, 14, 16/)) ) then
             call save_or_replace(group_id2, 'initial_electrons_ratio', 0.04d0, error, units_in = '[-]')
         else
             call save_or_replace(group_id2, 'initial_electrons_ratio', 0.0d0, error, units_in = '[-]')
