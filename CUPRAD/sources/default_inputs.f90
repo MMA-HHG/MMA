@@ -431,7 +431,7 @@ subroutine preset_physics(test_number)
     case(19:21)
         waist_focus = 100.d-6   ! m
     case(23)
-        waist_focus = 100.d-6   ! m
+        waist_focus = 110.d-6   ! m
     end select
 
     select case(test_number) ! switch is over this variable
@@ -449,8 +449,11 @@ subroutine preset_physics(test_number)
     case(4,15,16,17,18,22)
         Intensity_entry = 1.d18
         call save_or_replace(file_id, 'inputs/laser_intensity_entry', Intensity_entry, error, units_in = '[SI]')
-    case(19:21,23)
+    case(19:21)
         Intensity_focus = 1.d18
+        call save_or_replace(file_id, 'inputs/laser_focus_intensity_Gaussian', Intensity_focus, error, units_in = '[SI]')
+    case(23)
+        Intensity_focus = 1.8d18
         call save_or_replace(file_id, 'inputs/laser_focus_intensity_Gaussian', Intensity_focus, error, units_in = '[SI]')
     case(11,12)
         Intensity_entry = 1.129755554227896d19
