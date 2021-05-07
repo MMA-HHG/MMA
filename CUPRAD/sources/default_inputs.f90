@@ -327,8 +327,16 @@ end subroutine preset_delayed_Kerr_tests
 subroutine preset_numerics_tests(test_number)
     integer :: test_number
 
-    num_proc = 32
-    time_limit = 0.48d0
+
+    ! computer time & procs
+    select case(test_number)
+    case(1:22)
+        num_proc = 32
+        time_limit = 0.48d0
+    case(23)
+        num_proc = 32
+        time_limit = 1.98d0   
+    end select
 
     ! time
     select case(test_number)
