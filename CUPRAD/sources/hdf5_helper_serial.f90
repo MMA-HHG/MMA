@@ -582,7 +582,16 @@ MODULE hdf5_helper_serial
       CHARACTER(*)   :: name ! name of the dataset
       character(*)   :: units_value ! units to be written to the attribute
       INTEGER        :: error ! error stores error messages of the HDF5 interface
-      INTEGER(HSIZE_T), DIMENSION(1):: dumh51D ! temporary variable
+      ! INTEGER(HSIZE_T), DIMENSION(1):: dumh51D ! temporary variable
+
+      INTEGER(HSIZE_T), DIMENSION(1):: one_array = (/ INT(1,HSIZE_T) /) ! define array to avoid ifort (406) error
+
+      CHARACTER(LEN = LEN(TRIM(units_value))))  ::  data_to_write(1)
+      ! CHARACTER(*) :: data_to_write(1) = (/ TRIM(units_value) /)
+      ! CHARACTER(*), ALLOCATABLE :: data_to_write !(1) = (/ TRIM(units_value) /)
+      ! ALLOCATE(data_to_write(LEN(TRIM(units_value))))
+      data_to_write(1) = TRIM(units_value)
+
       ! ATTRIBUTES OF HDF5 DATASETS
       CHARACTER(LEN=5), PARAMETER :: aname = "units"   ! Attribute name
       INTEGER(HID_T) :: attr_id       ! Attribute identifier
@@ -594,9 +603,10 @@ MODULE hdf5_helper_serial
 
       CALL h5tcopy_f(H5T_NATIVE_CHARACTER, atype_id, error)
       CALL h5tset_size_f(atype_id, int(len(TRIM(units_value)),HSIZE_T), error)
-      CALL h5screate_simple_f(1, (/ INT(1,HSIZE_T) /), aspace_id, error)
+      CALL h5screate_simple_f(1, one_array, aspace_id, error)
       CALL h5acreate_f(dset_id, aname, atype_id, aspace_id, attr_id, error) ! Create dataset attribute.
-      CALL h5awrite_f(attr_id, atype_id, (/ TRIM(units_value) /), (/ INT(1,HSIZE_T) /), error)
+      CALL h5awrite_f(attr_id, atype_id, data_to_write, one_array, error)
+      ! CALL h5awrite_f(attr_id, atype_id, (/ TRIM(units_value) /), one_array, error)
 
       ! dumh51D = (/int(1,HSIZE_T)/) ! attribute dimension
       ! CALL h5screate_simple_f(1, dumh51D, aspace_id, error) ! Create scalar data space for the attribute. 1 stands for the rank
