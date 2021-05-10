@@ -586,11 +586,11 @@ MODULE hdf5_helper_serial
 
       INTEGER(HSIZE_T), DIMENSION(1):: one_array = (/ INT(1,HSIZE_T) /) ! define array to avoid ifort (406) error
 
-      CHARACTER(LEN = LEN(TRIM(units_value))))  ::  data_to_write(1)
+      CHARACTER(LEN = LEN(TRIM(units_value)))  ::  data_to_write(1)
       ! CHARACTER(*) :: data_to_write(1) = (/ TRIM(units_value) /)
       ! CHARACTER(*), ALLOCATABLE :: data_to_write !(1) = (/ TRIM(units_value) /)
       ! ALLOCATE(data_to_write(LEN(TRIM(units_value))))
-      data_to_write(1) = TRIM(units_value)
+      
 
       ! ATTRIBUTES OF HDF5 DATASETS
       CHARACTER(LEN=5), PARAMETER :: aname = "units"   ! Attribute name
@@ -599,6 +599,9 @@ MODULE hdf5_helper_serial
       INTEGER(HID_T) :: atype_id      ! Attribute Dataspace identifier
       CHARACTER(LEN=20), DIMENSION(1) ::  attr_data  ! Attribute data (solve the length by a correct allocation)
       ! add attributes ( https://support.hdfgroup.org/ftp/HDF5/current/src/unpacked/fortran/examples/h5_crtatt.f90 )
+
+      data_to_write(1) = TRIM(units_value)
+
       CALL h5dopen_f(file_id, name, dset_id, error)
 
       CALL h5tcopy_f(H5T_NATIVE_CHARACTER, atype_id, error)
