@@ -58,7 +58,16 @@ void findinterval(int n, double x, double *x_grid, int *k1, int *k2) //! returns
 }
 
 
+void coarsen_grid(void *in_array, int length_in, void **out_array, int *length_out, int k_step, int N_max)
+{
+	*length_out = N_max/k_step
+	*out_array = malloc(*length_out*sizeof(in_array[0]))
+	for(k1=0; k1 < N_max; k1++)
+	{
+		(*out_array)[k1] = in_array[k1*k_step]
+	}
 
+}
 
 
 // NUMERICS
