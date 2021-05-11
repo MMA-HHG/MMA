@@ -80,7 +80,21 @@ int main(int argc, char *argv[])
 	// create space for the fields & load the tgrid
 	inputs.Efield.Field = malloc(((int)dims[0])*sizeof(double));
 	inputs.Efield.tgrid =  readreal1Darray_fort(file_id, "IRProp/tgrid",&h5error,&inputs.Efield.Nt); // tgrid is not changed when program runs
-	// convert units
+	
+    // coarsing procedure
+    int kz_step, Nz_max, kr_step, Nr_max;
+    readint(file_id, "TDSE_inputs/kz_step", &h5error, &kz_step);
+    readint(file_id, "TDSE_inputs/Nz_max", &h5error, &Nz_max);
+    readint(file_id, "TDSE_inputs/kr_step", &h5error, &kr_step);
+    readint(file_id, "TDSE_inputs/Nr_max", &h5error, &Nr_max);
+
+    // redefine dimensions, t-not affected
+    dim_z = Nz_max; dim_r = Nr_max;
+    dims[0] = dim_t; dims[1] = dim_r; dims[2] = dim_z;
+    
+    
+    h5error = H5Fclose(file_id);
+    // convert units
 	for(k1 = 0 ; k1 < inputs.Efield.Nt; k1++){inputs.Efield.tgrid[k1] = inputs.Efield.tgrid[k1]/TIMEau; /*inputs.Efield.Field[k1] = inputs.Efield.Field[k1]/EFIELDau;*/} // convert to atomic units (fs->a.u.), (GV/m->a.u.)
 
 
