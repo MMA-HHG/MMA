@@ -76,6 +76,7 @@ int main(int argc, char *argv[])
             dim_z = *get_dimensions_h5(file_id, "outputs/zgrid", &h5error, &ndims, &datatype); // label the dims by physical axes	
 
     dims[0] = dim_t; dims[1] = dim_r; dims[2] = dim_z;
+	int Nz_orig = dim_z, Nr_orig = dim_r;
 
 	// create space for the fields & load the tgrid
 	inputs.Efield.Field = malloc(((int)dims[0])*sizeof(double));
@@ -122,6 +123,12 @@ int main(int argc, char *argv[])
 		kr = Nsim % dim_r; kz = Nsim - kr;  kz = kz / dim_r; // compute offsets in each dimension
 		dum3int[0]=-1; dum3int[1]=kr_step*kr; dum3int[2]=kz_step*kz;	// coarsen the access	
 		rw_real_fullhyperslab_nd_h5(file_id,"outputs/output_field",&h5error,3,dims,dum3int,inputs.Efield.Field,"r");
+
+		// original grids
+		double *rgrid_orig, *zgrid_orig
+		*rgrid_orig = readreal1Darray_fort(file_id, "outputs/rgrid", &h5error, &Nr_orig)
+		*zgrid_orig = readreal1Darray_fort(file_id, "outputs/zgrid", &h5error, &Nz_orig)
+
 		h5error = H5Fclose(file_id);
 
 		// convert units
@@ -136,6 +143,21 @@ int main(int argc, char *argv[])
 		file_id = H5Fcreate (local_filename, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
 		prepare_local_output_fixed_print_grids_h5(file_id, "", &h5error, &inputs, &outputs, Ntot/nprocs + 1, dims);
 		print_local_output_fixed_h5(file_id,"", &h5error, &inputs, &outputs, Ntot/nprocs + 1, Nsim, Nsim_loc);
+
+		// resize grids
+		double *rgrid_coarse, *zgrid_coarse
+		int Nr_coarse, Nz_coarse
+		coarsen_grid_real(rgrid_orig, Nr_orig, &rgrid_coarse, &Nr_coarse, kr_step, Nr_max)
+		coarsen_grid_real(zgrid_orig, Nz_orig, &zgrid_coarse, &Nz_coarse, kz_step, Nz_max)
+
+		// save them
+		hsize_t output_dims[1];
+		output_dims[0] = Nr_coarse;
+		print_nd_array_h5(file_id, "rgrid_coarse", &h5error, 1, output_dims, rgrid_coarse, H5T_NATIVE_DOUBLE);
+		output_dims[0] = Nz_coarse;
+		print_nd_array_h5(file_id, "zgrid_coarse", &h5error, 1, output_dims, zgrid_coarse, H5T_NATIVE_DOUBLE);
+
+
 		h5error = H5Fclose(file_id); // file
 		outputs_destructor(&outputs); // clean ouputs
 	}
