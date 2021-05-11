@@ -24,7 +24,7 @@ export I_MPI_DAPL_DIRECT_COPY_THRESHOLD=655360
 export I_MPI_PIN=1
 export I_MPI_DEBUG=6
 
-ldd ./test_strided2.e
+ldd ./test_strided3.e
 
 # time  mpirun -n $SLURM_NTASKS ./test_strided2.e > logfile.log-$SLURM_JOBID
 
