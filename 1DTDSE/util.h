@@ -172,7 +172,7 @@ void nxtval_init(int, int *);
 void nxtval_strided(int, int *);
 
 
-void coarsen_grid(void *, int, void **, int *, int, int)
+void coarsen_grid(void *, int, void **, int *, int, int);
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
