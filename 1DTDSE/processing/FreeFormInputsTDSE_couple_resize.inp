@@ -1,0 +1,53 @@
+## Field type
+
+Efield_type	0	I	-	# 0-numerical, loaded in femtosecons, 1-numerical, loaded in atomic units in whole grid, 2-analytical
+
+## coarser grid parameters
+kz_step 2  I   -
+Nz_max  4 I   -
+kr_step 2  I   -
+Nr_max  6 I   -
+
+## Numerical and starting parameters
+
+Eguess	-1	R	a.u.	# Energy of the initial state (guess)
+N_r_grid	128000	I	-	# Number of points of the initial spatial grid 16000
+N_r_grid_exp	0	I	-	# Number of points of the spatial grid for the expansion
+dx	0.2	R	R	a.u.	# resolution for the grid
+x_int	2.0	R	a.u.
+
+InterpByDTorNT	0	I	-	# refine resolution only for numerical fields (0 - by dt, 1 - by number of points)
+dt	0.5	R	a.u.	# resolution in time 0.0625
+Ntinterp	1	I	-	# number of intermediate points
+textend	200	R	a.u.	# extension of the calculation after the last fields ends !!! NOW ONLY FOR ANALYTICAL FIELD //700
+
+## target definition
+trg_a	1.3677	R	a.u. # |Krypton Ip = 0.5144761644747101 a.u. a = 1.3677 | # 0.6015 ???
+
+## Analyses
+analy_writewft	0	I	-
+analy_tprint	10	I	-
+PrintGaborAndSpectrum	0	I	-
+a_Gabor	8	R	a.u.
+omegaMaxGabor	60	R	a.u.
+dtGabor	10	R	a.u.
+
+tmin1window	2000	R	a.u.
+tmax1window	5000	R	a.u.
+tmin2window	5250	R	a.u.
+tmax2window	10000	R	a.u.
+
+PrintOutputMethod	1	I	-
+
+## units
+fieldinau	1	I	-
+input0	1	I	-
+	
+
+
+
+## further analyses
+
+## filenames
+
+## units of inputs
