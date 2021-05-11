@@ -76,7 +76,7 @@ int main(int argc, char *argv[])
             dim_z = *get_dimensions_h5(file_id, "outputs/zgrid", &h5error, &ndims, &datatype); // label the dims by physical axes	
 
     dims[0] = dim_t; dims[1] = dim_r; dims[2] = dim_z;
-	int Nz_orig = dim_z, Nr_orig = dim_r;
+	int Nz_CUPRAD = dim_z, Nr_CUPRAD = dim_r;
 
 	// create space for the fields & load the tgrid
 	inputs.Efield.Field = malloc(((int)dims[0])*sizeof(double));
@@ -125,9 +125,9 @@ int main(int argc, char *argv[])
 		rw_real_fullhyperslab_nd_h5(file_id,"outputs/output_field",&h5error,3,dims,dum3int,inputs.Efield.Field,"r");
 
 		// original grids
-		double *rgrid_orig, *zgrid_orig
-		*rgrid_orig = readreal1Darray_fort(file_id, "outputs/rgrid", &h5error, &Nr_orig)
-		*zgrid_orig = readreal1Darray_fort(file_id, "outputs/zgrid", &h5error, &Nz_orig)
+		double *rgrid_CUPRAD, *zgrid_CUPRAD
+		*rgrid_CUPRAD = readreal1Darray_fort(file_id, "outputs/rgrid", &h5error, &Nr_CUPRAD)
+		*zgrid_CUPRAD = readreal1Darray_fort(file_id, "outputs/zgrid", &h5error, &Nz_CUPRAD)
 
 		h5error = H5Fclose(file_id);
 
@@ -147,8 +147,8 @@ int main(int argc, char *argv[])
 		// resize grids
 		double *rgrid_coarse, *zgrid_coarse
 		int Nr_coarse, Nz_coarse
-		coarsen_grid_real(rgrid_orig, Nr_orig, &rgrid_coarse, &Nr_coarse, kr_step, Nr_max)
-		coarsen_grid_real(zgrid_orig, Nz_orig, &zgrid_coarse, &Nz_coarse, kz_step, Nz_max)
+		coarsen_grid_real(rgrid_CUPRAD, Nr_CUPRAD, &rgrid_coarse, &Nr_coarse, kr_step, Nr_max)
+		coarsen_grid_real(zgrid_CUPRAD, Nz_CUPRAD, &zgrid_coarse, &Nz_coarse, kz_step, Nz_max)
 
 		// save them
 		hsize_t output_dims[1];
