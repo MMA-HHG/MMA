@@ -71,9 +71,9 @@ int main(int argc, char *argv[])
 	dims = get_dimensions_h5(file_id, "outputs/Fields_rzt", &h5error, &ndims, &datatype);
     // *dims = malloc((*ndims)*sizeof(hsize_t))
 
-	hsize_t dim_t = get_dimensions_h5(file_id, "outputs/tgrid", &h5error, &ndims, &datatype), \
-            dim_r = get_dimensions_h5(file_id, "outputs/rgrid", &h5error, &ndims, &datatype), \
-            dim_z = get_dimensions_h5(file_id, "outputs/zgrid", &h5error, &ndims, &datatype); // label the dims by physical axes	
+	hsize_t dim_t = *get_dimensions_h5(file_id, "outputs/tgrid", &h5error, &ndims, &datatype), \
+            dim_r = *get_dimensions_h5(file_id, "outputs/rgrid", &h5error, &ndims, &datatype), \
+            dim_z = *get_dimensions_h5(file_id, "outputs/zgrid", &h5error, &ndims, &datatype); // label the dims by physical axes	
 
     dims[0] = dim_t; dims[1] = dim_r; dims[2] = dim_z;
 
