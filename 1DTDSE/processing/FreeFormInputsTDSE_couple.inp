@@ -27,7 +27,7 @@ trg_a	1.3677	R	a.u. # |Krypton Ip = 0.5144761644747101 a.u. a = 1.3677 | # 0.601
 ## Analyses
 analy_writewft	0	I	-
 analy_tprint	10	I	-
-PrintGaborAndSPectrum	0	I	-
+PrintGaborAndSpectrum	0	I	-
 a_Gabor	8	R	a.u.
 omegaMaxGabor	60	R	a.u.
 dtGabor	10	R	a.u.

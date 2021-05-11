@@ -68,7 +68,7 @@ int main(int argc, char *argv[])
 	// create parameters & load initial data
 	file_id = H5Fopen ("results.h5", H5F_ACC_RDONLY, H5P_DEFAULT); // the file is opened for read only by all the processes independently, every process then has its own copy of variables.
 	ReadInputs(file_id, "TDSE_inputs/", &h5error, &inputs);
-	dims = get_dimensions_h5(file_id, "outputs/Fields_rzt", &h5error, &ndims, &datatype);
+	dims = get_dimensions_h5(file_id, "outputs/output_field", &h5error, &ndims, &datatype);
     // *dims = malloc((*ndims)*sizeof(hsize_t))
 
 	hsize_t dim_t = *get_dimensions_h5(file_id, "outputs/tgrid", &h5error, &ndims, &datatype), \
@@ -121,7 +121,7 @@ int main(int argc, char *argv[])
 		file_id = H5Fopen ("results.h5", H5F_ACC_RDONLY, H5P_DEFAULT);
 		kr = Nsim % dim_r; kz = Nsim - kr;  kz = kz / dim_r; // compute offsets in each dimension
 		dum3int[0]=-1; dum3int[1]=kr_step*kr; dum3int[2]=kz_step*kz;	// coarsen the access	
-		rw_real_fullhyperslab_nd_h5(file_id,"outputs/Fields_rzt",&h5error,3,dims,dum3int,inputs.Efield.Field,"r");
+		rw_real_fullhyperslab_nd_h5(file_id,"outputs/output_field",&h5error,3,dims,dum3int,inputs.Efield.Field,"r");
 		h5error = H5Fclose(file_id);
 
 		// convert units
@@ -157,7 +157,7 @@ int main(int argc, char *argv[])
 
 		// read the HDF5 file
 		file_id = H5Fopen ("results.h5", H5F_ACC_RDONLY, H5P_DEFAULT);
-		rw_real_fullhyperslab_nd_h5(file_id,"outputs/Fields_rzt",&h5error,3,dims,dum3int,inputs.Efield.Field,"r");
+		rw_real_fullhyperslab_nd_h5(file_id,"outputs/output_field",&h5error,3,dims,dum3int,inputs.Efield.Field,"r");
 		h5error = H5Fclose(file_id);
 
 		// convert units
