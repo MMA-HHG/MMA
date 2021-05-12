@@ -76,7 +76,7 @@ int main(int argc, char *argv[])
             dim_z = *get_dimensions_h5(file_id, "outputs/zgrid", &h5error, &ndims, &datatype); // label the dims by physical axes	
 
     dims[0] = dim_t; dims[1] = dim_r; dims[2] = dim_z;
-	int Nz_CUPRAD = dim_z, Nr_CUPRAD = dim_r;
+	// int Nz_CUPRAD = dim_z, Nr_CUPRAD = dim_r;
 
 	// create space for the fields & load the tgrid
 	inputs.Efield.Field = malloc(((int)dims[0])*sizeof(double));
@@ -125,9 +125,12 @@ int main(int argc, char *argv[])
 		rw_real_fullhyperslab_nd_h5(file_id,"outputs/output_field",&h5error,3,dims,dum3int,inputs.Efield.Field,"r");
 
 		// original grids
+//printf("Proc %i c %i, bload CUPRAD\n",myrank,Nsim); fflush(NULL);
+		int Nz_CUPRAD, Nr_CUPRAD;
 		double *rgrid_CUPRAD, *zgrid_CUPRAD;
 		rgrid_CUPRAD = readreal1Darray_fort(file_id, "outputs/rgrid", &h5error, &Nr_CUPRAD);
 		zgrid_CUPRAD = readreal1Darray_fort(file_id, "outputs/zgrid", &h5error, &Nz_CUPRAD);
+//printf("Proc %i c %i, aload CUPRAD\n",myrank,Nsim); fflush(NULL);
 
 		h5error = H5Fclose(file_id);
 
@@ -135,20 +138,27 @@ int main(int argc, char *argv[])
 		for(k1 = 0 ; k1 < inputs.Efield.Nt; k1++){inputs.Efield.Field[k1] = inputs.Efield.Field[k1]*1e-15;}
 
 		// do the calculation
-		// outputs = call1DTDSE(inputs); // THE TDSE
+		outputs = call1DTDSE(inputs); // THE TDSE
 
 		// create local output file
 		local_filename[0] = '\0'; dumchar1[0] = '\0'; sprintf(dumchar1, "%07d", myrank);
+//printf("Proc %i c %i, b file created\n",myrank,Nsim); fflush(NULL);
 		strcat(local_filename,filename_stub); strcat(local_filename,dumchar1); strcat(local_filename,".h5");		
 		file_id = H5Fcreate (local_filename, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
-		// prepare_local_output_fixed_print_grids_h5(file_id, "", &h5error, &inputs, &outputs, Ntot/nprocs + 1, dims);
-		// print_local_output_fixed_h5(file_id,"", &h5error, &inputs, &outputs, Ntot/nprocs + 1, Nsim, Nsim_loc);
+		prepare_local_output_fixed_print_grids_h5(file_id, "", &h5error, &inputs, &outputs, Ntot/nprocs + 1, dims);
+		print_local_output_fixed_h5(file_id,"", &h5error, &inputs, &outputs, Ntot/nprocs + 1, Nsim, Nsim_loc);
+
+//printf("Proc %i c %i, file created\n",myrank,Nsim); fflush(NULL);
 
 		// resize grids
 		double *rgrid_coarse, *zgrid_coarse;
 		int Nr_coarse, Nz_coarse;
+//printf("Proc %i c %i, resize params: %i, %i, %i \n",myrank,Nsim, Nr_CUPRAD, kr_step, Nr_max); fflush(NULL);
 		coarsen_grid_real(rgrid_CUPRAD, Nr_CUPRAD, &rgrid_coarse, &Nr_coarse, kr_step, Nr_max);
+//printf("Proc %i c %i, resized param: %i \n",myrank,Nsim, Nr_coarse); fflush(NULL);
 		coarsen_grid_real(zgrid_CUPRAD, Nz_CUPRAD, &zgrid_coarse, &Nz_coarse, kz_step, Nz_max);
+
+//printf("Proc %i c %i, grid resized\n",myrank,Nsim); fflush(NULL);
 
 		// save them
 		hsize_t output_dims[1];
@@ -157,12 +167,13 @@ int main(int argc, char *argv[])
 		output_dims[0] = Nz_coarse;
 		print_nd_array_h5(file_id, "zgrid_coarse", &h5error, 1, output_dims, zgrid_coarse, H5T_NATIVE_DOUBLE);
 
+//printf("Proc %i c %i, grids saved\n",myrank,Nsim); fflush(NULL);
 
 		h5error = H5Fclose(file_id); // file
-		// outputs_destructor(&outputs); // clean ouputs
+		outputs_destructor(&outputs); // clean ouputs
 
                 // we don't need the resized grids nor the original grids
-                free(rgrid_coarse); free(zgrid_coarse); free(zgrid_CUPRAD); free(rgrid_CUPRAD);
+                // free(rgrid_coarse); free(zgrid_coarse); free(zgrid_CUPRAD); free(rgrid_CUPRAD);
 	}
 
 	// process the MPI queue
@@ -190,14 +201,14 @@ int main(int argc, char *argv[])
 
 		// do the calculation
     	        t_mpi[3] = MPI_Wtime(); finish3_main = clock();
-		// outputs = call1DTDSE(inputs); // THE TDSE  
+		outputs = call1DTDSE(inputs); // THE TDSE  
 		t_mpi[1] = MPI_Wtime(); finish1_main = clock();
 
 
     
 
 		file_id = H5Fopen (local_filename, H5F_ACC_RDWR, H5P_DEFAULT); // open file
-		// print_local_output_fixed_h5(file_id,"", &h5error, &inputs, &outputs, Ntot/nprocs + 1, Nsim, Nsim_loc);
+		print_local_output_fixed_h5(file_id,"", &h5error, &inputs, &outputs, Ntot/nprocs + 1, Nsim, Nsim_loc);
 
 		// //dims[0] = outputs.Nt;
 		// //rw_real_fullhyperslab_nd_h5(file_id,"/SourceTerms",&h5error,3,dims,dum3int,outputs.Efield,"w");
@@ -214,14 +225,14 @@ int main(int argc, char *argv[])
 
 		
 		// free memory
-		// outputs_destructor(&outputs);
+		outputs_destructor(&outputs);
 		nxtval_strided(nprocs,&Nsim); Nsim_loc++;
 		printf("Proc %i c %i\n",myrank,Nsim); fflush(NULL);
 		t_mpi[5] = MPI_Wtime();
 	}
 	//h5error = H5Sclose(memspace_id);
 
-	free(dims);
+	// free(dims);
  
 
 	MPI_Finalize();

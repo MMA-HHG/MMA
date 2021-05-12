@@ -3,10 +3,10 @@
 #SBATCH  --constraint=HSW24  
 #SBATCH  --exclusive
 #SBATCH  --nodes=1
-#SBATCH  --ntasks=24
-#SBATCH  --ntasks-per-node=24 
+#SBATCH  --ntasks=2
+#SBATCH  --ntasks-per-node=2 
 #SBATCH  --threads-per-core=1
-#SBATCH  --time=10:00:00 
+#SBATCH  --time=00:20:00 
 #SBATCH  --output=TDSEScheduler-%J.out
 module purge
 module load intel/18.1 intelmpi/2018.1.163 hdf5/1.10.4 
@@ -29,3 +29,4 @@ ldd ./test_strided3.e
 # time  mpirun -n $SLURM_NTASKS ./test_strided2.e > logfile.log-$SLURM_JOBID
 
 time  mpirun -n $SLURM_NTASKS ./test_strided3.e > logfile.log-$SLURM_JOBID
+# mpirun -n $SLURM_NTASKS ./test_strided3.e > logfile.log-$SLURM_JOBID
