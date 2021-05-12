@@ -94,6 +94,7 @@ printf("Proc %i, numproc %i, 2.2\n",myrank,nprocs); fflush(NULL);
 printf("Proc %i, numproc %i, 2.3\n",myrank,nprocs); fflush(NULL);
     readint(file_id, "TDSE_inputs/kr_step", &h5error, &kr_step);
 printf("Proc %i, numproc %i, 2.4, pointers: %x, %x, %x \n",myrank,nprocs,&nprocs,&Nr_max,&kr_step); fflush(NULL);
+printf("Proc %i, numproc %i, 2.4, shifted pointers: %x, %x, %x \n",myrank,nprocs,&nprocs + 1,&Nr_max + 1,&kr_step + 1); fflush(NULL);
     readint(file_id, "TDSE_inputs/Nr_max", &h5error, &Nr_max);
 
     // Nr_max = 6;
