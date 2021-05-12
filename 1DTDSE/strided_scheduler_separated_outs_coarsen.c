@@ -125,9 +125,9 @@ int main(int argc, char *argv[])
 		rw_real_fullhyperslab_nd_h5(file_id,"outputs/output_field",&h5error,3,dims,dum3int,inputs.Efield.Field,"r");
 
 		// original grids
-		double *rgrid_CUPRAD, *zgrid_CUPRAD
-		*rgrid_CUPRAD = readreal1Darray_fort(file_id, "outputs/rgrid", &h5error, &Nr_CUPRAD)
-		*zgrid_CUPRAD = readreal1Darray_fort(file_id, "outputs/zgrid", &h5error, &Nz_CUPRAD)
+		double *rgrid_CUPRAD, *zgrid_CUPRAD;
+		rgrid_CUPRAD = readreal1Darray_fort(file_id, "outputs/rgrid", &h5error, &Nr_CUPRAD);
+		zgrid_CUPRAD = readreal1Darray_fort(file_id, "outputs/zgrid", &h5error, &Nz_CUPRAD);
 
 		h5error = H5Fclose(file_id);
 
@@ -145,10 +145,10 @@ int main(int argc, char *argv[])
 		print_local_output_fixed_h5(file_id,"", &h5error, &inputs, &outputs, Ntot/nprocs + 1, Nsim, Nsim_loc);
 
 		// resize grids
-		double *rgrid_coarse, *zgrid_coarse
-		int Nr_coarse, Nz_coarse
-		coarsen_grid_real(rgrid_CUPRAD, Nr_CUPRAD, &rgrid_coarse, &Nr_coarse, kr_step, Nr_max)
-		coarsen_grid_real(zgrid_CUPRAD, Nz_CUPRAD, &zgrid_coarse, &Nz_coarse, kz_step, Nz_max)
+		double *rgrid_coarse, *zgrid_coarse;
+		int Nr_coarse, Nz_coarse;
+		coarsen_grid_real(rgrid_CUPRAD, Nr_CUPRAD, &rgrid_coarse, &Nr_coarse, kr_step, Nr_max);
+		coarsen_grid_real(zgrid_CUPRAD, Nz_CUPRAD, &zgrid_coarse, &Nz_coarse, kz_step, Nz_max);
 
 		// save them
 		hsize_t output_dims[1];
@@ -160,6 +160,9 @@ int main(int argc, char *argv[])
 
 		h5error = H5Fclose(file_id); // file
 		outputs_destructor(&outputs); // clean ouputs
+
+                // we don't need the resized grids nor the original grids
+                free(rgrid_coarse); free(zgrid_coarse); free(zgrid_CUPRAD); free(rgrid_CUPRAD);
 	}
 
 	// process the MPI queue
