@@ -66,7 +66,7 @@ void coarsen_grid_real(double *in_array, int length_in, double **out_array, int 
 	printf("coarsing, length %i \n",*length_out); fflush(NULL);
 	*out_array = calloc(*length_out,sizeof(double));
 	int k1;
-	for(k1=0; k1 < N_max; k1++)
+	for(k1=0; k1 < *length_out; k1++)
 	{
 		(*out_array)[k1] = in_array[k1*k_step];
 	}

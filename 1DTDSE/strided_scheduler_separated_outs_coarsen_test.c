@@ -143,6 +143,7 @@ printf("Proc %i, numproc %i, 6\n",myrank,nprocs); fflush(NULL);
 
 		double *rgrid_coarse, *zgrid_coarse;
 		double *rgrid_CUPRAD, *zgrid_CUPRAD;
+
 		// find proper simulation & load the field
 		file_id = H5Fopen ("results.h5", H5F_ACC_RDONLY, H5P_DEFAULT);
 		kr = Nsim % dim_r; kz = Nsim - kr;  kz = kz / dim_r; // compute offsets in each dimension
@@ -171,7 +172,7 @@ printf("Proc %i, numproc %i, 6\n",myrank,nprocs); fflush(NULL);
 		coarsen_grid_real(rgrid_CUPRAD, Nr_CUPRAD, &rgrid_coarse, &Nr_coarse, kr_step, Nr_max);
 		coarsen_grid_real(zgrid_CUPRAD, Nz_CUPRAD, &zgrid_coarse, &Nz_coarse, kz_step, Nz_max);
 
-		printf("Proc %i c %i, rgrid[1]=%e, rgrid_CUPRAD[2]=%e\n",myrank,Nsim,rgrid_coarse[1],rgrid_CUPRAD[2]); fflush(NULL);
+		// printf("Proc %i c %i, rgrid[1]=%e, rgrid_CUPRAD[2]=%e\n",myrank,Nsim,rgrid_coarse[1],rgrid_CUPRAD[2]); fflush(NULL);
 		printf("test bcreate\n"); fflush(NULL);
 		
 
