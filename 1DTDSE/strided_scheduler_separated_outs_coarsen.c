@@ -135,14 +135,14 @@ int main(int argc, char *argv[])
 		for(k1 = 0 ; k1 < inputs.Efield.Nt; k1++){inputs.Efield.Field[k1] = inputs.Efield.Field[k1]*1e-15;}
 
 		// do the calculation
-		outputs = call1DTDSE(inputs); // THE TDSE
+		// outputs = call1DTDSE(inputs); // THE TDSE
 
 		// create local output file
 		local_filename[0] = '\0'; dumchar1[0] = '\0'; sprintf(dumchar1, "%07d", myrank);
 		strcat(local_filename,filename_stub); strcat(local_filename,dumchar1); strcat(local_filename,".h5");		
 		file_id = H5Fcreate (local_filename, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
-		prepare_local_output_fixed_print_grids_h5(file_id, "", &h5error, &inputs, &outputs, Ntot/nprocs + 1, dims);
-		print_local_output_fixed_h5(file_id,"", &h5error, &inputs, &outputs, Ntot/nprocs + 1, Nsim, Nsim_loc);
+		// prepare_local_output_fixed_print_grids_h5(file_id, "", &h5error, &inputs, &outputs, Ntot/nprocs + 1, dims);
+		// print_local_output_fixed_h5(file_id,"", &h5error, &inputs, &outputs, Ntot/nprocs + 1, Nsim, Nsim_loc);
 
 		// resize grids
 		double *rgrid_coarse, *zgrid_coarse;
@@ -159,7 +159,7 @@ int main(int argc, char *argv[])
 
 
 		h5error = H5Fclose(file_id); // file
-		outputs_destructor(&outputs); // clean ouputs
+		// outputs_destructor(&outputs); // clean ouputs
 
                 // we don't need the resized grids nor the original grids
                 free(rgrid_coarse); free(zgrid_coarse); free(zgrid_CUPRAD); free(rgrid_CUPRAD);
@@ -176,7 +176,7 @@ int main(int argc, char *argv[])
 
 		// prepare the part in the arrray to r/w
 		// dum3int[0]=-1; dum3int[1]=kr; dum3int[2]=kz; // set offset as inputs for hdf5-procedures
-        dum3int[0]=-1; dum3int[1]=kr_step*kr; dum3int[2]=kz_step*kz;	// coarsen the access
+                dum3int[0]=-1; dum3int[1]=kr_step*kr; dum3int[2]=kz_step*kz;	// coarsen the access
 
 		dims[0] = dim_t;
 
@@ -189,15 +189,15 @@ int main(int argc, char *argv[])
 		for(k1 = 0 ; k1 < inputs.Efield.Nt; k1++){inputs.Efield.Field[k1] = inputs.Efield.Field[k1]*1e-15;}
 
 		// do the calculation
-    	t_mpi[3] = MPI_Wtime(); finish3_main = clock();
-		outputs = call1DTDSE(inputs); // THE TDSE  
+    	        t_mpi[3] = MPI_Wtime(); finish3_main = clock();
+		// outputs = call1DTDSE(inputs); // THE TDSE  
 		t_mpi[1] = MPI_Wtime(); finish1_main = clock();
 
 
     
 
 		file_id = H5Fopen (local_filename, H5F_ACC_RDWR, H5P_DEFAULT); // open file
-		print_local_output_fixed_h5(file_id,"", &h5error, &inputs, &outputs, Ntot/nprocs + 1, Nsim, Nsim_loc);
+		// print_local_output_fixed_h5(file_id,"", &h5error, &inputs, &outputs, Ntot/nprocs + 1, Nsim, Nsim_loc);
 
 		// //dims[0] = outputs.Nt;
 		// //rw_real_fullhyperslab_nd_h5(file_id,"/SourceTerms",&h5error,3,dims,dum3int,outputs.Efield,"w");
@@ -213,8 +213,8 @@ int main(int argc, char *argv[])
 		h5error = H5Fclose(file_id); // file
 
 		
-		// outputs_destructor(outputs); // free memory
-		outputs_destructor(&outputs);
+		// free memory
+		// outputs_destructor(&outputs);
 		nxtval_strided(nprocs,&Nsim); Nsim_loc++;
 		printf("Proc %i c %i\n",myrank,Nsim); fflush(NULL);
 		t_mpi[5] = MPI_Wtime();
