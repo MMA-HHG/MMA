@@ -161,6 +161,8 @@ void calcFFTW3(int, double, double, double *, double **, double **, double **, d
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Algorithmical tools
+void coarsen_grid_real(double *, int, double **, int *, int, int);
+
 
 double* FourInterp(int , double * , int );
 double interpolate( int , double , double* , double* );
@@ -172,7 +174,8 @@ void nxtval_init(int, int *);
 void nxtval_strided(int, int *);
 
 
-void coarsen_grid_real(double *, int, double **, int *, int, int);
+
+
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
