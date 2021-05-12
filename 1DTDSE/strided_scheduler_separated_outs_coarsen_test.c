@@ -93,10 +93,13 @@ printf("Proc %i, numproc %i, 2.2\n",myrank,nprocs); fflush(NULL);
     readint(file_id, "TDSE_inputs/Nz_max", &h5error, &Nz_max);
 printf("Proc %i, numproc %i, 2.3\n",myrank,nprocs); fflush(NULL);
     readint(file_id, "TDSE_inputs/kr_step", &h5error, &kr_step);
-printf("Proc %i, numproc %i, 2.4\n",myrank,nprocs); fflush(NULL);
+printf("Proc %i, numproc %i, 2.4, pointers: %x, %x, %x \n",myrank,nprocs,&nprocs,&Nr_max,&kr_step); fflush(NULL);
     readint(file_id, "TDSE_inputs/Nr_max", &h5error, &Nr_max);
 
+    // Nr_max = 6;
+
 printf("Proc %i, loaded values: %i, %i, %i, %i \n",myrank,kz_step,kr_step,Nr_max,Nz_max); fflush(NULL);
+printf("Proc %i, numproc %i, 2.5, pointers: %x, %x, %x \n",myrank,nprocs,&nprocs,&Nr_max,&kr_step); fflush(NULL);
 printf("Proc %i, numproc %i, 3\n",myrank,nprocs); fflush(NULL);
 
     // redefine dimensions, t-not affected
@@ -242,6 +245,7 @@ printf("Proc %i, numproc %i, 6\n",myrank,nprocs); fflush(NULL);
 	free(dims);
  
 
+	printf("Proc %i is going to finish.",myrank); fflush(NULL);
 	MPI_Finalize();
 	return 0;	
 }

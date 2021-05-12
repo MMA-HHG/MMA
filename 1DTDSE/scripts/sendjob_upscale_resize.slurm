@@ -22,7 +22,7 @@ export I_MPI_DAPL_PROVIDER=ofa-v2-mlx5_0-1s
 export I_MPI_DAPL_DIRECT_COPY_THRESHOLD=655360
 # 
 export I_MPI_PIN=1
-export I_MPI_DEBUG=6
+export I_MPI_DEBUG=+6
 
 ldd ./test_strided3.e
 
