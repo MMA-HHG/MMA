@@ -43,7 +43,7 @@ int main(int argc, char *argv[])
 	int comment_operation = 1;
 	double t_mpi[10]; 
 
-	hsize_t output_dims[4];
+	// hsize_t output_dims[4];
 
 	////////////////////////
 	// PREPARATION PAHASE //
@@ -137,11 +137,12 @@ printf("Proc %i, numproc %i, 5\n",myrank,nprocs); fflush(NULL);
 
 printf("Proc %i, numproc %i, 6\n",myrank,nprocs); fflush(NULL);
 	
-	double *rgrid_coarse, *zgrid_coarse;
-	double *rgrid_CUPRAD, *zgrid_CUPRAD;
+
 
 	if (Nsim < Ntot){
 
+		double *rgrid_coarse, *zgrid_coarse;
+		double *rgrid_CUPRAD, *zgrid_CUPRAD;
 		// find proper simulation & load the field
 		file_id = H5Fopen ("results.h5", H5F_ACC_RDONLY, H5P_DEFAULT);
 		kr = Nsim % dim_r; kz = Nsim - kr;  kz = kz / dim_r; // compute offsets in each dimension
@@ -165,8 +166,11 @@ printf("Proc %i, numproc %i, 6\n",myrank,nprocs); fflush(NULL);
 		// resize grids
 		// double *rgrid_coarse, *zgrid_coarse;
 		printf("Proc %i c %i, bcoarse\n",myrank,Nsim); fflush(NULL);
+
 		int Nr_coarse, Nz_coarse;
-		coarsen_grid_real(rgrid_CUPRAD, Nr_CUPRAD, &rgrid_coarse, &Nr_coarse, 2, 6);
+		coarsen_grid_real(rgrid_CUPRAD, Nr_CUPRAD, &rgrid_coarse, &Nr_coarse, kr_step, Nr_max);
+		coarsen_grid_real(zgrid_CUPRAD, Nz_CUPRAD, &zgrid_coarse, &Nz_coarse, kz_step, Nz_max);
+
 		printf("Proc %i c %i, rgrid[1]=%e, rgrid_CUPRAD[2]=%e\n",myrank,Nsim,rgrid_coarse[1],rgrid_CUPRAD[2]); fflush(NULL);
 		printf("test bcreate\n"); fflush(NULL);
 		
@@ -178,13 +182,19 @@ printf("Proc %i, numproc %i, 6\n",myrank,nprocs); fflush(NULL);
 		prepare_local_output_fixed_print_grids_h5(file_id, "", &h5error, &inputs, &outputs, Ntot/nprocs + 1, dims);
 		print_local_output_fixed_h5(file_id,"", &h5error, &inputs, &outputs, Ntot/nprocs + 1, Nsim, Nsim_loc);
 
-		// hsize_t output_dims[1];
-		// output_dims[0] = Nr_coarse;
-		// print_nd_array_h5(file_id, "rgrid_coarse", &h5error, 1, output_dims, rgrid_coarse, H5T_NATIVE_DOUBLE);
+		hsize_t output_dims[1];
+		output_dims[0] = Nr_coarse;
+		print_nd_array_h5(file_id, "rgrid_coarse", &h5error, 1, output_dims, rgrid_coarse, H5T_NATIVE_DOUBLE);
+		output_dims[0] = Nz_coarse;
+		print_nd_array_h5(file_id, "zgrid_coarse", &h5error, 1, output_dims, zgrid_coarse, H5T_NATIVE_DOUBLE);
 
 
 		h5error = H5Fclose(file_id); // file
 		outputs_destructor(&outputs); // clean ouputs
+
+		// free(rgrid_coarse); free(zgrid_coarse);
+		// free(rgrid_CUPRAD); free(zgrid_CUPRAD);
+		
 	}
 
 	// process the MPI queue
@@ -246,7 +256,7 @@ printf("Proc %i, numproc %i, 6\n",myrank,nprocs); fflush(NULL);
 	free(dims);
  
 
-	printf("Proc %i is going to finish.",myrank); fflush(NULL);
+	printf("Proc %i is going to finish.\n",myrank); fflush(NULL);
 	MPI_Finalize();
 	return 0;	
 }
