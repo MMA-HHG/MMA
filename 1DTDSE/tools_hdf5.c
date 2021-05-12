@@ -302,12 +302,12 @@ void rw_real_fullhyperslab_nd_h5(hid_t file_id, char *dset_name, herr_t *h5error
   }
   hid_t dset_id = H5Dopen2 (file_id, dset_name, H5P_DEFAULT);
   hid_t dspace_id = H5Dget_space (dset_id);
-  hid_t datatype  = H5Dget_type(dset_id);
+  // hid_t datatype  = H5Dget_type(dset_id);
   *h5error = H5Sselect_hyperslab (dspace_id, H5S_SELECT_SET, offset, stride, count, block); // operation with only a part of the array = hyperslab	
   if (strcmp(rw,"r")==0){
-    *h5error = H5Dread (dset_id, datatype, memspace_id, dspace_id, H5P_DEFAULT, array1D); // read only the hyperslab
+    *h5error = H5Dread (dset_id, H5T_NATIVE_DOUBLE, memspace_id, dspace_id, H5P_DEFAULT, array1D); // read only the hyperslab
   } else if (strcmp(rw,"w")==0){
-    *h5error = H5Dwrite (dset_id, datatype, memspace_id, dspace_id, H5P_DEFAULT, array1D); // write the data
+    *h5error = H5Dwrite (dset_id, H5T_NATIVE_DOUBLE, memspace_id, dspace_id, H5P_DEFAULT, array1D); // write the data
   } else {
     printf("wrongly sepcified r/w: nothing done\n"); 
   }
@@ -341,12 +341,12 @@ void rw_real_full2Dhyperslab_nd_h5(hid_t file_id, char *dset_name, herr_t *h5err
 
   hid_t dset_id = H5Dopen2 (file_id, dset_name, H5P_DEFAULT);
   hid_t dspace_id = H5Dget_space (dset_id);
-  hid_t datatype  = H5Dget_type(dset_id);
+  // hid_t datatype  = H5Dget_type(dset_id);
   *h5error = H5Sselect_hyperslab (dspace_id, H5S_SELECT_SET, offset, stride, count, block); // operation with only a part of the array = hyperslab	
   if (strcmp(rw,"r")==0){
-    *h5error = H5Dread (dset_id, datatype, memspace_id, dspace_id, H5P_DEFAULT, array1D); // read only the hyperslab
+    *h5error = H5Dread (dset_id, H5T_NATIVE_DOUBLE, memspace_id, dspace_id, H5P_DEFAULT, array1D); // read only the hyperslab
   } else if (strcmp(rw,"w")==0){
-    *h5error = H5Dwrite (dset_id, datatype, memspace_id, dspace_id, H5P_DEFAULT, array1D); // write the data
+    *h5error = H5Dwrite (dset_id, H5T_NATIVE_DOUBLE, memspace_id, dspace_id, H5P_DEFAULT, array1D); // write the data
   } else {
     printf("wrongly sepcified r/w: nothing done\n"); 
   }
@@ -360,8 +360,8 @@ void rw_real_full2Dhyperslab_nd_h5(hid_t file_id, char *dset_name, herr_t *h5err
 void readreal(hid_t file_id, char *dset_name, herr_t *h5error, double *value)
 {
   hid_t dset_id = H5Dopen2 (file_id, dset_name, H5P_DEFAULT); // open dataset
-  hid_t datatype  = H5Dget_type(dset_id);
-  *h5error = H5Dread(dset_id,  datatype, H5S_ALL, H5S_ALL, H5P_DEFAULT, value);
+  // hid_t datatype  = H5Dget_type(dset_id);
+  *h5error = H5Dread(dset_id,  H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, value);
   *h5error = H5Dclose(dset_id);
 }
 
@@ -369,7 +369,7 @@ void readreal(hid_t file_id, char *dset_name, herr_t *h5error, double *value)
 void readint(hid_t file_id, char *dset_name, herr_t *h5error, int *value)
 {
   hid_t dset_id = H5Dopen2 (file_id, dset_name, H5P_DEFAULT); // open dataset
-  hid_t datatype  = H5Dget_type(dset_id);
+  // hid_t datatype  = H5Dget_type(dset_id);
   *h5error = H5Dread(dset_id,  H5T_NATIVE_INT, H5S_ALL, H5S_ALL, H5P_DEFAULT, value);
   *h5error = H5Dclose(dset_id);
 }
@@ -382,11 +382,11 @@ double * readreal1Darray_fort(hid_t file_id, char *dset_name, herr_t *h5error, i
 	const int ndims = H5Sget_simple_extent_ndims(dspace_id); // number of dimensions in the tgrid
 	hsize_t dims[ndims]; // we need the size to allocate tgrid for us
 	H5Sget_simple_extent_dims(dspace_id, dims, NULL); // get dimensions
-	hid_t datatype  = H5Dget_type(dset_id);     // we get the type of data (SINGLE, DOUBLE, etc. from HDF5)
+	// hid_t datatype  = H5Dget_type(dset_id);     // we get the type of data (SINGLE, DOUBLE, etc. from HDF5)
   double *array = malloc((int)dims[0]*sizeof(double)); 
 	/*see https://stackoverflow.com/questions/10575544/difference-between-array-type-and-array-allocated-with-malloc
 	      https://stackoverflow.com/questions/216259/is-there-a-max-array-length-limit-in-c/216731#216731  */
-	*h5error = H5Dread(dset_id,  datatype, H5S_ALL, H5S_ALL, H5P_DEFAULT, array); // read the grid
+	*h5error = H5Dread(dset_id,  H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, array); // read the grid
   *h5error = H5Sclose(dspace_id);
   *h5error = H5Dclose(dset_id);	
 
