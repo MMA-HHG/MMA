@@ -33,7 +33,7 @@ def prepare_ouput_file(f,outf,dset_list):
 
         if (dsetname in available_outputs_list):
             dset = f[dsetname]
-            newshape = dset.shape[0:-1] + joint_rz_shape
+            newshape =  joint_rz_shape + dset.shape[0:-1]
             newdset = outf.create_dataset(dsetname, newshape,precision)
 
         if (dsetname in available_further_data):
@@ -56,9 +56,9 @@ def print_ouput_file(f,outf,dset_list):
                     kr, kz = mn.n1n2mapping_inv(ks_loc[k1], Nr)
                     # print(kr,kz)
                     if (ndims == 2): # for reals
-                        newdset[:,kr,kz] = dset[:,k1]
+                        newdset[kr,kz,:] = dset[:,k1]
                     elif (ndims == 3):  # for complex
-                        newdset[:,:,kr,kz] = dset[:,:,k1]
+                        newdset[kr,kz,:,:] = dset[:,:,k1]
                     else:
                         print('warning, dataset with unsupported dimension: ' + dsetname + ', nothing done')# general procedure should be possible
 

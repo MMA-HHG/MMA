@@ -176,7 +176,7 @@ struct outputs_def call1DTDSE(struct inputs_def inputs) // this is a wrapper tha
 
 	free(x); free(psi); free(psi0);
 	free(Efield.Field); // this is a tricky free. We pass the inputs "by value", this means that the memory in the original code is unaffected by reallocation. ! BUT it can be freed if coded badly...
-	// print
+	// printf("fftw_computed in single\n");  fflush(NULL);
 	return outputs;
 }
 

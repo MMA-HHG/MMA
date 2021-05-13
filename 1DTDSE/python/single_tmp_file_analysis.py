@@ -30,16 +30,19 @@ else:
 
 file = 'results_1.h5' # 'results_Ar_vac.h5', 'Ar_vac_long.h5' 'results_3.h5' 'results_1.h5'
 
+file_TDSE = 'results_merged.h5' # 'hdf5_temp_0000000.h5'
 
 file_path = os.path.join(results_path,file)
 print('processing:', file_path)             
-with h5py.File(file_path, 'r') as InputArchiveCUPRAD, h5py.File('hdf5_temp_0000000.h5', 'r') as InputArchiveTDSE:
+with h5py.File(file_path, 'r') as InputArchiveCUPRAD, h5py.File(file_TDSE, 'r') as InputArchiveTDSE:
     # load data
    Efield_CUPRAD = InputArchiveCUPRAD['/outputs/output_field'][:,0,0]
    tgrid_CUPRAD = InputArchiveCUPRAD['/outputs/tgrid'][:]
    
-   Efield_TDSE = InputArchiveTDSE['Efield'][:,0]
+   Efield_TDSE = InputArchiveTDSE['Efield'][:,0,0]
    tgrid_TDSE = InputArchiveTDSE['tgrid'][:]
+   
+   SourceTerm_TDSE = InputArchiveTDSE['SourceTerm'][:,0,0]
             
 
 
@@ -59,10 +62,15 @@ plt.show()
 fig = plt.figure()
 plt.plot(tgrid_CUPRAD-tgrid_CUPRAD[0],Efield_CUPRAD)
 plt.plot(tgrid_TDSE*units.TIMEau,Efield_TDSE*units.EFIELDau)
-plt.title('CUPRAD')
+plt.title('TDSE, CUPRAD')
 plt.show()
 # plt.close(fig)
 
+fig = plt.figure()
+plt.plot(tgrid_TDSE*units.TIMEau,SourceTerm_TDSE)
+plt.title('SourceTerm')
+plt.show()
+# plt.close(fig)
 
 
 
