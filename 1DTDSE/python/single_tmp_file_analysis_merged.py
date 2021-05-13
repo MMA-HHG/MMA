@@ -38,12 +38,15 @@ with h5py.File(file_path, 'r') as InputArchiveCUPRAD, h5py.File(file_TDSE, 'r') 
     # load data
    Efield_CUPRAD = InputArchiveCUPRAD['/outputs/output_field'][:,0,0]
    tgrid_CUPRAD = InputArchiveCUPRAD['/outputs/tgrid'][:]
+   omega0 = mn.ConvertPhoton(1e-2*mn.readscalardataset(InputArchiveCUPRAD,'/inputs/laser_wavelength','N'),'lambdaSI','omegaau')
    
-   Efield_TDSE = InputArchiveTDSE['Efield'][:,0]
+   Efield_TDSE = InputArchiveTDSE['Efield'][0,0,:]
    tgrid_TDSE = InputArchiveTDSE['tgrid'][:]
    
-   SourceTerm_TDSE = InputArchiveTDSE['SourceTerm'][:,0]
-            
+   SourceTerm_TDSE = InputArchiveTDSE['SourceTerm'][0,0,:]
+   FSourceTerm_TDSE = InputArchiveTDSE['FSourceTerm'][0,0,:,0] + \
+                      1j*InputArchiveTDSE['FSourceTerm'][0,0,:,1]
+   ogrid_TDSE = InputArchiveTDSE['/omegagrid'][:]
 
 
 fig = plt.figure()
@@ -72,6 +75,17 @@ plt.title('SourceTerm')
 plt.show()
 # plt.close(fig)
 
+fig = plt.figure()
+plt.plot(ogrid_TDSE/omega0,abs(FSourceTerm_TDSE))
+plt.title('FSourceTerm')
+plt.show()
+# plt.close(fig)
+
+fig = plt.figure()
+plt.semilogy(ogrid_TDSE/omega0,abs(FSourceTerm_TDSE))
+plt.title('FSourceTerm')
+plt.show()
+# plt.close(fig)
 
 
 
