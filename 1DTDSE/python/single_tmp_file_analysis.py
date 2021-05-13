@@ -44,7 +44,7 @@ with h5py.File(file_path, 'r') as InputArchiveCUPRAD, h5py.File('hdf5_temp_00000
 
 
 fig = plt.figure()
-plt.plot(tgrid_CUPRAD-tgrid_CUPRAD[0],Efield_CUPRAD)
+plt.plot(tgrid_CUPRAD,Efield_CUPRAD)
 # plt.plot(1e3*zgrid_Fluence,1e6*radius_inv_e2)
 plt.title('CUPRAD')
 plt.show()
