@@ -168,6 +168,7 @@ int main(int argc, char *argv[])
 		
 	}
 
+
 	// process the MPI queue
 	nxtval_strided(nprocs,&Nsim); Nsim_loc++;
 	printf("Proc %i c %i\n",myrank,Nsim); fflush(NULL);
