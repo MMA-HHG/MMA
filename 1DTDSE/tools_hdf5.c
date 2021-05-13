@@ -434,6 +434,7 @@ void prepare_local_output_fixed_print_grids_h5(hid_t file_id, char *inpath, herr
   output_dims[0] = nsimulations;
   path[0] = '\0';	strcat(strcat(path,inpath),"keys");
   create_nd_array_h5(file_id, path, h5error, 1, output_dims, H5T_NATIVE_INT);
+  // initilise with (-1): not merged value
 
   // time domain
 	output_dims[0] = (*out).Nt; output_dims[1] = nsimulations;

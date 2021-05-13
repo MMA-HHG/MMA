@@ -62,9 +62,6 @@ int main(int argc, char *argv[])
 	inputs.Print = Set_all_prints();
 
 	if (comment_operation == 1 ){printf("Proc %i of %i started the program\n",myrank, nprocs);}
-
-printf("Proc %i, numproc %i, 1\n",myrank,nprocs); fflush(NULL);
-
 	t_mpi[0] = MPI_Wtime();	start_main = clock(); // the clock	
 
 	// create parameters & load initial data
@@ -82,26 +79,13 @@ printf("Proc %i, numproc %i, 1\n",myrank,nprocs); fflush(NULL);
 	// create space for the fields & load the tgrid
 	inputs.Efield.Field = malloc(((int)dims[0])*sizeof(double));
 	inputs.Efield.tgrid =  readreal1Darray_fort(file_id, "outputs/tgrid",&h5error,&inputs.Efield.Nt); // tgrid is not changed when program runs
-
-printf("Proc %i, numproc %i, 2\n",myrank,nprocs); fflush(NULL);
 	
     // coarsing procedure
     int kz_step, Nz_max, kr_step, Nr_max;
-printf("Proc %i, numproc %i, 2.1\n",myrank,nprocs); fflush(NULL);
     readint(file_id, "TDSE_inputs/kz_step", &h5error, &kz_step);
-printf("Proc %i, numproc %i, 2.2\n",myrank,nprocs); fflush(NULL);
     readint(file_id, "TDSE_inputs/Nz_max", &h5error, &Nz_max);
-printf("Proc %i, numproc %i, 2.3\n",myrank,nprocs); fflush(NULL);
     readint(file_id, "TDSE_inputs/kr_step", &h5error, &kr_step);
-printf("Proc %i, numproc %i, 2.4, pointers: %x, %x, %x \n",myrank,nprocs,&nprocs,&Nr_max,&kr_step); fflush(NULL);
-printf("Proc %i, numproc %i, 2.4, shifted pointers: %x, %x, %x \n",myrank,nprocs,&nprocs + 1,&Nr_max + 1,&kr_step + 1); fflush(NULL);
     readint(file_id, "TDSE_inputs/Nr_max", &h5error, &Nr_max);
-
-    // Nr_max = 6;
-
-printf("Proc %i, loaded values: %i, %i, %i, %i \n",myrank,kz_step,kr_step,Nr_max,Nz_max); fflush(NULL);
-printf("Proc %i, numproc %i, 2.5, pointers: %x, %x, %x \n",myrank,nprocs,&nprocs,&Nr_max,&kr_step); fflush(NULL);
-printf("Proc %i, numproc %i, 3\n",myrank,nprocs); fflush(NULL);
 
     // redefine dimensions, t-not affected
     dim_z = Nz_max; dim_r = Nr_max;
@@ -111,8 +95,6 @@ printf("Proc %i, numproc %i, 3\n",myrank,nprocs); fflush(NULL);
     h5error = H5Fclose(file_id);
     // convert units
 	for(k1 = 0 ; k1 < inputs.Efield.Nt; k1++){inputs.Efield.tgrid[k1] = inputs.Efield.tgrid[k1]/TIMEau; /*inputs.Efield.Field[k1] = inputs.Efield.Field[k1]/EFIELDau;*/} // convert to atomic units (fs->a.u.), (GV/m->a.u.)
-
-printf("Proc %i, numproc %i, 4\n",myrank,nprocs); fflush(NULL);
 
 	if (comment_operation == 1 ){printf("Proc %i uses dx = %e \n",myrank,inputs.dx);}
 	if ( ( comment_operation == 1 ) && ( myrank == 0 ) ){printf("Fields dimensions (t,r,z) = (%i,%i,%i)\n",dims[0],dims[1],dims[2]);}
@@ -128,16 +110,8 @@ printf("Proc %i, numproc %i, 4\n",myrank,nprocs); fflush(NULL);
 	// COMPUTATIONAL PAHASE //
 	//////////////////////////
 
-printf("Proc %i, numproc %i, 5\n",myrank,nprocs); fflush(NULL);
-
 	// first simulation prepares the outputfile (we keep it for the purpose of possible generalisations for parallel output)
 	nxtval_strided(nprocs,&Nsim); Nsim_loc++;
-
-	printf("Proc %i c %i, bfirst, nprocs %i \n",myrank,Nsim,nprocs); fflush(NULL);
-
-printf("Proc %i, numproc %i, 6\n",myrank,nprocs); fflush(NULL);
-	
-
 
 	if (Nsim < Ntot){
 
@@ -159,22 +133,18 @@ printf("Proc %i, numproc %i, 6\n",myrank,nprocs); fflush(NULL);
 		h5error = H5Fclose(file_id);
 
 		// convert units
-		for(k1 = 0 ; k1 < inputs.Efield.Nt; k1++){inputs.Efield.Field[k1] = inputs.Efield.Field[k1]*1e-15;}
+		for(k1 = 0 ; k1 < inputs.Efield.Nt; k1++){inputs.Efield.Field[k1] = inputs.Efield.Field[k1]/EFIELDau;}
 
 		// do the calculation
 		outputs = call1DTDSE(inputs); // THE TDSE
 
 		// resize grids
 		// double *rgrid_coarse, *zgrid_coarse;
-		printf("Proc %i c %i, bcoarse\n",myrank,Nsim); fflush(NULL);
 
 		int Nr_coarse, Nz_coarse;
 		coarsen_grid_real(rgrid_CUPRAD, Nr_CUPRAD, &rgrid_coarse, &Nr_coarse, kr_step, Nr_max);
 		coarsen_grid_real(zgrid_CUPRAD, Nz_CUPRAD, &zgrid_coarse, &Nz_coarse, kz_step, Nz_max);
 
-		// printf("Proc %i c %i, rgrid[1]=%e, rgrid_CUPRAD[2]=%e\n",myrank,Nsim,rgrid_coarse[1],rgrid_CUPRAD[2]); fflush(NULL);
-		printf("test bcreate\n"); fflush(NULL);
-		
 
 		// create local output file
 		local_filename[0] = '\0'; dumchar1[0] = '\0'; sprintf(dumchar1, "%07d", myrank);
@@ -219,7 +189,7 @@ printf("Proc %i, numproc %i, 6\n",myrank,nprocs); fflush(NULL);
 		h5error = H5Fclose(file_id);
 
 		// convert units
-		for(k1 = 0 ; k1 < inputs.Efield.Nt; k1++){inputs.Efield.Field[k1] = inputs.Efield.Field[k1]*1e-15;}
+		for(k1 = 0 ; k1 < inputs.Efield.Nt; k1++){inputs.Efield.Field[k1] = inputs.Efield.Field[k1]/EFIELDau;}
 
 		// do the calculation
 		t_mpi[3] = MPI_Wtime(); finish3_main = clock();

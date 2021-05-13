@@ -63,7 +63,6 @@ void findinterval(int n, double x, double *x_grid, int *k1, int *k2) //! returns
 void coarsen_grid_real(double *in_array, int length_in, double **out_array, int *length_out, int k_step, int N_max)
 {
 	*length_out = N_max/k_step;
-	printf("coarsing, length %i \n",*length_out); fflush(NULL);
 	*out_array = calloc(*length_out,sizeof(double));
 	int k1;
 	for(k1=0; k1 < *length_out; k1++)
