@@ -41,6 +41,8 @@ with h5py.File(file_path, 'r') as InputArchiveCUPRAD, h5py.File(file_TDSE, 'r') 
    omega0 = mn.ConvertPhoton(1e-2*mn.readscalardataset(InputArchiveCUPRAD,'/inputs/laser_wavelength','N'),'lambdaSI','omegaau')
    
    Efield_TDSE = InputArchiveTDSE['Efield'][0,0,:]
+   FEfield_TDSE = InputArchiveTDSE['FEfield'][0,0,:,0] + \
+                      1j*InputArchiveTDSE['FEfield'][0,0,:,1]
    tgrid_TDSE = InputArchiveTDSE['tgrid'][:]
    
    SourceTerm_TDSE = InputArchiveTDSE['SourceTerm'][0,0,:]
@@ -50,14 +52,14 @@ with h5py.File(file_path, 'r') as InputArchiveCUPRAD, h5py.File(file_TDSE, 'r') 
 
 
 fig = plt.figure()
-plt.plot(tgrid_CUPRAD,Efield_CUPRAD)
+plt.plot(tgrid_CUPRAD,Efield_CUPRAD/units.EFIELDau)
 # plt.plot(1e3*zgrid_Fluence,1e6*radius_inv_e2)
 plt.title('CUPRAD')
 plt.show()
 # plt.close(fig)
 
 fig = plt.figure()
-plt.plot(tgrid_TDSE*units.TIMEau,Efield_TDSE*units.EFIELDau)
+plt.plot(tgrid_TDSE*units.TIMEau,Efield_TDSE)
 plt.title('TDSE')
 plt.show()
 # plt.close(fig)
@@ -84,6 +86,13 @@ plt.show()
 fig = plt.figure()
 plt.semilogy(ogrid_TDSE/omega0,abs(FSourceTerm_TDSE))
 plt.title('FSourceTerm')
+plt.show()
+# plt.close(fig)
+
+
+fig = plt.figure()
+plt.semilogy(ogrid_TDSE/omega0,abs(FEfield_TDSE))
+plt.title('FEfield')
 plt.show()
 # plt.close(fig)
 

@@ -30,7 +30,7 @@ else:
 
 file = 'results_1.h5' # 'results_Ar_vac.h5', 'Ar_vac_long.h5' 'results_3.h5' 'results_1.h5'
 
-file_TDSE = 'results_merged.h5' # 'hdf5_temp_0000000.h5'
+file_TDSE = 'hdf5_temp_0000000.h5' # 'hdf5_temp_0000000.h5'
 
 file_path = os.path.join(results_path,file)
 print('processing:', file_path)             
@@ -43,8 +43,11 @@ with h5py.File(file_path, 'r') as InputArchiveCUPRAD, h5py.File(file_TDSE, 'r') 
    tgrid_TDSE = InputArchiveTDSE['tgrid'][:]
    
    SourceTerm_TDSE = InputArchiveTDSE['SourceTerm'][:,0]
+   FSourceTerm_TDSE = InputArchiveTDSE['FSourceTerm'][:,0,0] + \
+                      1j*InputArchiveTDSE['FSourceTerm'][:,1,0]
+   ogrid = InputArchiveTDSE['omegagrid'][:]
             
-
+omega0 = 0.05752948549410085
 
 fig = plt.figure()
 plt.plot(tgrid_CUPRAD,Efield_CUPRAD)
@@ -72,6 +75,17 @@ plt.title('SourceTerm')
 plt.show()
 # plt.close(fig)
 
+fig = plt.figure()
+plt.plot(ogrid/omega0, abs(FSourceTerm_TDSE))
+plt.title('SourceTerm')
+plt.show()
+# plt.close(fig)
+
+fig = plt.figure()
+plt.semilogy(ogrid/omega0, abs(FSourceTerm_TDSE))
+plt.title('SourceTerm')
+plt.show()
+# plt.close(fig)
 
 
 
