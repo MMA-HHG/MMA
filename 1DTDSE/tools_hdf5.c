@@ -434,11 +434,7 @@ void prepare_local_output_fixed_print_grids_h5(hid_t file_id, char *inpath, herr
   // keys for post-processing
   output_dims[0] = nsimulations;
   path[0] = '\0';	strcat(strcat(path,inpath),"keys");
-  // create_nd_array_h5(file_id, path, h5error, 1, output_dims, H5T_NATIVE_INT);
-
-  // initilise with (-1): not merged value
-  int initial_keys[nsimulations];
-  for(k1 = 0 ; k1 < nsimulations; k1++){initial_keys[k1] = -1;}
+  int initial_keys[nsimulations]; for(k1 = 0 ; k1 < nsimulations; k1++){initial_keys[k1] = -1;}   // initilise with (-1): not merged value
   print_nd_array_h5(file_id, path, h5error, 1, output_dims, initial_keys, H5T_NATIVE_INT);
 
   // printf("keys: %i, %i \n",initial_keys[0],initial_keys[1]); fflush(NULL);

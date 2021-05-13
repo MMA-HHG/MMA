@@ -88,7 +88,7 @@ int main(int argc, char *argv[])
     readint(file_id, "TDSE_inputs/Nr_max", &h5error, &Nr_max);
 
     // redefine dimensions, t-not affected
-    dim_z = Nz_max; dim_r = Nr_max;
+    dim_z = Nz_max/kz_step; dim_r = Nr_max/kr_step;
     dims[0] = dim_t; dims[1] = dim_r; dims[2] = dim_z;
     
     

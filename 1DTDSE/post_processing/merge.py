@@ -52,14 +52,15 @@ def print_ouput_file(f,outf,dset_list):
             newdset = outf[dsetname]
             data = dset[()]
             for k1 in range(nsim_loc):
-                kr, kz = mn.n1n2mapping_inv(ks_loc[k1], Nr)
-                # print(kr,kz)
-                if (ndims == 2): # for reals
-                    newdset[:,kr,kz] = dset[:,k1]
-                elif (ndims == 3):  # for complex
-                    newdset[:,:,kr,kz] = dset[:,:,k1]
-                else:
-                    print('warning, dataset with unsupported dimension: ' + dsetname + ', nothing done')# general procedure should be possible
+                if (ks_loc[k1] >= 0): # only for used keys
+                    kr, kz = mn.n1n2mapping_inv(ks_loc[k1], Nr)
+                    # print(kr,kz)
+                    if (ndims == 2): # for reals
+                        newdset[:,kr,kz] = dset[:,k1]
+                    elif (ndims == 3):  # for complex
+                        newdset[:,:,kr,kz] = dset[:,:,k1]
+                    else:
+                        print('warning, dataset with unsupported dimension: ' + dsetname + ', nothing done')# general procedure should be possible
 
 with h5py.File(outfname,'w') as outf:
     firstrun = True;
