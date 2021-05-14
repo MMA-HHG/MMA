@@ -92,7 +92,7 @@ struct outputs_def call1DTDSE(struct inputs_def inputs) // this is a wrapper tha
 	Efield = inputs.Efield;
 
 
-	gauge = 1;
+	gauge = 0;
 	transformgauge = 0;
 	input0 = 1;
 	// printf("tgrid,  %e, %e \n",Efield.tgrid[0],Efield.tgrid[1]);
