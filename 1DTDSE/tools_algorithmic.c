@@ -20,9 +20,7 @@ void nxtval_init(int init_offset, int *val)
 
 void nxtval_strided(int stride, int *val)
 {
-	printf("nxtval1 %i, %i \n",*val, stride); fflush(NULL);
 	*val = *val + stride;
-	printf("nxtval2 %i, %i \n",*val, stride); fflush(NULL);
 }
 
 // MANIPULATION WITH DATA
