@@ -49,6 +49,7 @@ with h5py.File(file_path, 'r') as InputArchiveCUPRAD, h5py.File(file_TDSE, 'r') 
    FSourceTerm_TDSE = InputArchiveTDSE['FSourceTerm'][0,0,:,0] + \
                       1j*InputArchiveTDSE['FSourceTerm'][0,0,:,1]
    ogrid_TDSE = InputArchiveTDSE['/omegagrid'][:]
+   PopTot_TDSE = InputArchiveTDSE['/PopTot'][0,0,:]
 
 
 fig = plt.figure()
@@ -93,6 +94,12 @@ plt.show()
 fig = plt.figure()
 plt.semilogy(ogrid_TDSE/omega0,abs(FEfield_TDSE))
 plt.title('FEfield')
+plt.show()
+# plt.close(fig)
+
+fig = plt.figure()
+plt.semilogy(tgrid_TDSE,PopTot_TDSE)
+plt.title('PopTot')
 plt.show()
 # plt.close(fig)
 
