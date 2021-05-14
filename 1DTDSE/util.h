@@ -120,8 +120,8 @@ struct outputs_def{ // only * can be modified by direct inputs
 	double *FsourcetermM2;
 	double *PopTot;
 	double *sourcetermfiltered;
-	double *PopInt
-	double *expval
+	double *PopInt;
+	double *expval;
 	int Nt; 
 	int Nomega;
 /*	double *tmax;*/
