@@ -17,7 +17,7 @@ dx	0.2	R	R	a.u.	# resolution for the grid
 x_int	2.0	R	a.u.
 
 InterpByDTorNT	0	I	-	# refine resolution only for numerical fields (0 - by dt, 1 - by number of points)
-dt	0.25	R	a.u.	# resolution in time 0.0625
+dt	0.5	R	a.u.	# resolution in time 0.0625
 Ntinterp	1	I	-	# number of intermediate points
 textend	200	R	a.u.	# extension of the calculation after the last fields ends !!! NOW ONLY FOR ANALYTICAL FIELD //700
 
