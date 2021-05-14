@@ -560,6 +560,18 @@ void print_local_output_fixed_h5(hid_t file_id, char *inpath, herr_t *h5error, s
 		rw_real_fullhyperslab_nd_h5(file_id, path, h5error, 2, output_dims, offsets, (*out).PopTot, "w");
   }
 
+  if ( (*in).Print.PopTot == 1 ) // we use the original driver for the instant
+  {
+		path[0] = '\0';	strcat(strcat(path,inpath),"PopInt");
+		rw_real_fullhyperslab_nd_h5(file_id, path, h5error, 2, output_dims, offsets, (*out).PopInt, "w");
+  }
+
+  if ( (*in).Print.PopTot == 1 ) // we use the original driver for the instant
+  {
+		path[0] = '\0';	strcat(strcat(path,inpath),"expval_x");
+		rw_real_fullhyperslab_nd_h5(file_id, path, h5error, 2, output_dims, offsets, (*out).expval, "w");
+  }
+
   // omega domain - complex
   int hcount[3] = {(*out).Nomega,2,1};
   int hoffset[3] = {0,0,Nsim_loc};

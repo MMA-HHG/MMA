@@ -123,7 +123,9 @@ double* propagation(struct trg_def trg, struct Efield_var Efield, double tmin, i
 	cpot = 1.;
 
 	
-	outputs.tgrid[0] = tt, outputs.sourceterm[0] = 0.; outputs.Efield[0]=Field; outputs.PopTot[0]=1.0;
+	outputs.tgrid[0] = tt, outputs.sourceterm[0] = 0.; outputs.Efield[0]=Field; outputs.PopTot[0]=1.0; // wrong, first values shall be computed
+	outputs.PopInt[0]=1.0; outputs.expval[0]=0.0;
+
 
 	for(j = 0 ; j<= num_r ; j++) {psi[2*j] = psi0[2*j]; psi[2*j+1] = psi0[2*j+1];}
 

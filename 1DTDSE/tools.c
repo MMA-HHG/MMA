@@ -93,6 +93,9 @@ void outputs_destructor(struct outputs_def *outputs) // frees memory allocated f
 	free((*outputs).FEfieldM2);
 	free((*outputs).FsourcetermM2);
 
+	free((*outputs).PopInt);
+	free((*outputs).expval);
+
 	(*outputs).Nt = 0;
 	(*outputs).Nomega = 0;
 }
@@ -180,7 +183,10 @@ void compute_population(struct trg_def trg, struct Efield_var Efield, int k, dou
 
 	
 		// save to outputs
-		outputs.PopTot[k+1]=pop_tot;		
+		outputs.PopTot[k+1]=pop_tot;
+
+		outputs.expval[k+1]=position;
+		outputs.PopInt[k+1]=ion_prob2;	
 }
 
 

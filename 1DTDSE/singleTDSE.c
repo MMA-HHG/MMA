@@ -152,6 +152,10 @@ struct outputs_def call1DTDSE(struct inputs_def inputs) // this is a wrapper tha
 	outputs.Efield = calloc((Nt+1),sizeof(double));
 	outputs.sourceterm = calloc((Nt+1),sizeof(double));
 	outputs.PopTot = calloc((Nt+1),sizeof(double));
+
+	outputs.PopInt = calloc((Nt+1),sizeof(double));
+	outputs.expval = calloc((Nt+1),sizeof(double));
+
 	outputs.Nt = (Nt+1);
 
 
