@@ -3,8 +3,8 @@
 #SBATCH  --constraint=HSW24  
 #SBATCH  --exclusive
 #SBATCH  --nodes=1
-#SBATCH  --ntasks=2
-#SBATCH  --ntasks-per-node=2 
+#SBATCH  --ntasks=6
+#SBATCH  --ntasks-per-node=6 
 #SBATCH  --threads-per-core=1
 #SBATCH  --time=05:00:00 
 #SBATCH  --output=TDSEScheduler-%J.out

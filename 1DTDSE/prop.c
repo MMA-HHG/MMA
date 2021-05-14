@@ -151,7 +151,7 @@ double* propagation(struct trg_def trg, struct Efield_var Efield, double tmin, i
 
 		if(tt <= t_zero2)
 		{
-			Field = 0.
+			Field = 0.;
 		}else{
 			Field = Efield.Field[k];
 		}
