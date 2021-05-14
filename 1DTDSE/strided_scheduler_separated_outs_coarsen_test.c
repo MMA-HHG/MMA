@@ -153,11 +153,17 @@ int main(int argc, char *argv[])
 		prepare_local_output_fixed_print_grids_h5(file_id, "", &h5error, &inputs, &outputs, Ntot/nprocs + 1, dims);
 		print_local_output_fixed_h5(file_id,"", &h5error, &inputs, &outputs, Ntot/nprocs + 1, Nsim, Nsim_loc);
 
+		// print coarser grids
 		hsize_t output_dims[1];
 		output_dims[0] = Nr_coarse;
 		print_nd_array_h5(file_id, "rgrid_coarse", &h5error, 1, output_dims, rgrid_coarse, H5T_NATIVE_DOUBLE);
 		output_dims[0] = Nz_coarse;
 		print_nd_array_h5(file_id, "zgrid_coarse", &h5error, 1, output_dims, zgrid_coarse, H5T_NATIVE_DOUBLE);
+
+		// print GS etc.
+		output_dims[0] = inputs.num_r;
+		print_nd_array_h5(file_id, "xgrid_micro", &h5error, 1, output_dims, inputs.x, H5T_NATIVE_DOUBLE);
+		print_nd_array_h5(file_id, "ground_state", &h5error, 1, output_dims, inputs.psi0, H5T_NATIVE_DOUBLE);
 
 
 		h5error = H5Fclose(file_id); // file
