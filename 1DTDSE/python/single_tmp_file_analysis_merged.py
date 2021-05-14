@@ -30,7 +30,7 @@ else:
 
 file = 'results_1.h5' # 'results_Ar_vac.h5', 'Ar_vac_long.h5' 'results_3.h5' 'results_1.h5'
 
-file_TDSE = 'results_merged.h5' # 'hdf5_temp_0000000.h5'
+file_TDSE = 'results_merged_t5.h5' # 'hdf5_temp_0000000.h5'
 
 file_path = os.path.join(results_path,file)
 print('processing:', file_path)             
@@ -48,8 +48,11 @@ with h5py.File(file_path, 'r') as InputArchiveCUPRAD, h5py.File(file_TDSE, 'r') 
    SourceTerm_TDSE = InputArchiveTDSE['SourceTerm'][0,0,:]
    FSourceTerm_TDSE = InputArchiveTDSE['FSourceTerm'][0,0,:,0] + \
                       1j*InputArchiveTDSE['FSourceTerm'][0,0,:,1]
-   ogrid_TDSE = InputArchiveTDSE['/omegagrid'][:]
-   PopTot_TDSE = InputArchiveTDSE['/PopTot'][0,0,:]
+   ogrid_TDSE = InputArchiveTDSE['omegagrid'][:]
+   PopTot_TDSE = InputArchiveTDSE['PopTot'][0,0,:]
+   
+   GS_init = InputArchiveTDSE['ground_state'][:]
+   xgrid_micro = InputArchiveTDSE['xgrid_micro'][:]
 
 
 fig = plt.figure()
@@ -98,8 +101,20 @@ plt.show()
 # plt.close(fig)
 
 fig = plt.figure()
-plt.semilogy(tgrid_TDSE,PopTot_TDSE)
+plt.plot(tgrid_TDSE,PopTot_TDSE)
 plt.title('PopTot')
+plt.show()
+# plt.close(fig)
+
+# fig = plt.figure()
+# plt.semilogy(tgrid_TDSE,PopTot_TDSE)
+# plt.title('PopTot')
+# plt.show()
+# # plt.close(fig)
+
+fig = plt.figure()
+plt.plot(xgrid_micro,GS_init)
+plt.title('GS')
 plt.show()
 # plt.close(fig)
 
