@@ -84,6 +84,14 @@ plt.show()
 # plt.close(fig)
 
 fig = plt.figure()
+plt.plot(tgrid_TDSE,
+         mn.apply_filter(SourceTerm_TDSE, mn.filter_box, tgrid_TDSE, [6750,tgrid_TDSE[-1]])
+         )
+plt.title('SourceTerm, filtered')
+plt.show()
+# plt.close(fig)
+
+fig = plt.figure()
 plt.plot(ogrid_TDSE/omega0,abs(FSourceTerm_TDSE))
 plt.title('FSourceTerm')
 plt.show()
@@ -92,6 +100,18 @@ plt.show()
 fig = plt.figure()
 plt.semilogy(ogrid_TDSE/omega0,abs(FSourceTerm_TDSE))
 plt.title('FSourceTerm')
+plt.show()
+# plt.close(fig)
+
+# filter spectrum
+ogrid_FE, FE_filter, Nt = mn.fft_t_nonorm(
+                            tgrid_TDSE,
+                            mn.apply_filter(SourceTerm_TDSE, mn.filter_box, tgrid_TDSE, [6750,tgrid_TDSE[-1]])
+                            )
+
+fig = plt.figure()
+plt.semilogy(ogrid_FE/omega0,abs(FE_filter))
+plt.title('FS_filt')
 plt.show()
 # plt.close(fig)
 
