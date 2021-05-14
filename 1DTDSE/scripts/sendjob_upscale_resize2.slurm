@@ -6,7 +6,7 @@
 #SBATCH  --ntasks=6
 #SBATCH  --ntasks-per-node=6 
 #SBATCH  --threads-per-core=1
-#SBATCH  --time=05:00:00 
+#SBATCH  --time=10:00:00 
 #SBATCH  --output=TDSEScheduler-%J.out
 module purge
 module load intel/18.1 intelmpi/2018.1.163 hdf5/1.10.4 

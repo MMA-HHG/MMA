@@ -161,8 +161,7 @@ int main(int argc, char *argv[])
 		print_nd_array_h5(file_id, "zgrid_coarse", &h5error, 1, output_dims, zgrid_coarse, H5T_NATIVE_DOUBLE);
 
 		// print GS etc.
-		output_dims[0] = inputs.num_r + 1;
-		output_dims[0] = (*out).Nomega; output_dims[1] = 2;
+		output_dims[0] = inputs.num_r + 1; output_dims[1] = 2;
 		print_nd_array_h5(file_id, "xgrid_micro", &h5error, 1, output_dims, inputs.x, H5T_NATIVE_DOUBLE);
 		print_nd_array_h5(file_id, "ground_state", &h5error, 2, output_dims, inputs.psi0, H5T_NATIVE_DOUBLE);
 
