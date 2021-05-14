@@ -50,8 +50,10 @@ with h5py.File(file_path, 'r') as InputArchiveCUPRAD, h5py.File(file_TDSE, 'r') 
                       1j*InputArchiveTDSE['FSourceTerm'][0,0,:,1]
    ogrid_TDSE = InputArchiveTDSE['omegagrid'][:]
    PopTot_TDSE = InputArchiveTDSE['PopTot'][0,0,:]
+   PopInt_TDSE = InputArchiveTDSE['PopInt'][0,0,:]
+   expval_x_TDSE = InputArchiveTDSE['expval_x'][0,0,:]
    
-   GS_init = InputArchiveTDSE['ground_state'][:]
+   GS_init = InputArchiveTDSE['ground_state'][:,0] + 1j*InputArchiveTDSE['ground_state'][:,1]
    xgrid_micro = InputArchiveTDSE['xgrid_micro'][:]
 
 
@@ -104,6 +106,16 @@ fig = plt.figure()
 plt.plot(tgrid_TDSE,PopTot_TDSE)
 plt.title('PopTot')
 plt.show()
+
+fig = plt.figure()
+plt.plot(tgrid_TDSE,PopInt_TDSE)
+plt.title('PopInt')
+plt.show()
+
+fig = plt.figure()
+plt.plot(tgrid_TDSE,expval_x_TDSE)
+plt.title('<x>')
+plt.show()
 # plt.close(fig)
 
 # fig = plt.figure()
@@ -113,7 +125,7 @@ plt.show()
 # # plt.close(fig)
 
 fig = plt.figure()
-plt.plot(xgrid_micro,GS_init)
+plt.plot(xgrid_micro,abs(GS_init))
 plt.title('GS')
 plt.show()
 # plt.close(fig)
