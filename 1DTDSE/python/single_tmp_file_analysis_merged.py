@@ -30,7 +30,7 @@ else:
 
 file = 'results_1.h5' # 'results_Ar_vac.h5', 'Ar_vac_long.h5' 'results_3.h5' 'results_1.h5'
 
-file_TDSE = 'results_merged_t5.h5' # 'hdf5_temp_0000000.h5'
+file_TDSE = 'results_merged_t4.h5' # 'hdf5_temp_0000000.h5'
 
 file_path = os.path.join(results_path,file)
 print('processing:', file_path)             
@@ -149,6 +149,13 @@ plt.plot(xgrid_micro,abs(GS_init))
 plt.title('GS')
 plt.show()
 # plt.close(fig)
+
+fig = plt.figure()
+plt.semilogy(xgrid_micro,abs(GS_init))
+plt.title('GS')
+plt.show()
+# plt.close(fig)
+
 
 
 
