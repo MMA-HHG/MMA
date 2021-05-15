@@ -16,8 +16,8 @@ N_r_grid_exp	0	I	-	# Number of points of the spatial grid for the expansion
 dx	0.2	R	R	a.u.	# resolution for the grid
 x_int	2.0	R	a.u.
 
-CV_criterion_of_GS  1e-25   -
-gauge_type  0   -
+CV_criterion_of_GS  1e-25   R   -
+gauge_type  0   I   -
 
 InterpByDTorNT	0	I	-	# refine resolution only for numerical fields (0 - by dt, 1 - by number of points)
 dt	0.5	R	a.u.	# resolution in time 0.0625
