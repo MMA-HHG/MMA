@@ -136,7 +136,7 @@ struct outputs_def call1DTDSE(struct inputs_def inputs) // this is a wrapper tha
 	memcpy(x,inputs.x,(num_r+1)*sizeof(double));
 
 	psi0 = malloc(size*sizeof(double));	
-	memcpy(psi0,inputs.psi0,(num_r+1)*sizeof(double));
+	memcpy(psi0,inputs.psi0,size*sizeof(double));
 
 	psi = calloc(size,sizeof(double));
 	// t = calloc(Nt,sizeof(double));
