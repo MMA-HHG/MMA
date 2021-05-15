@@ -8,6 +8,18 @@ Nz_max  4 I   -
 kr_step 2  I   -
 Nr_max  6 I   -
 
+# control ouputs: here we set the outupts we weould like to save
+print_GS_population
+print_integrated_population
+print_Efield
+print_F_Efield
+print_Source_Term
+print_F_Source_Term
+print_x_expectation_value
+print_GS
+print_F_Efield_M2
+print_F_Source_Term_M2
+
 ## Numerical and starting parameters
 
 Eguess	-1	R	a.u.	# Energy of the initial state (guess)

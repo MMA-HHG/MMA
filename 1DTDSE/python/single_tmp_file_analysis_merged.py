@@ -78,8 +78,9 @@ plt.show()
 # plt.close(fig)
 
 fig = plt.figure()
-plt.plot(tgrid_TDSE*units.TIMEau,SourceTerm_TDSE)
-plt.title('SourceTerm')
+plt.plot(tgrid_TDSE,Efield_TDSE)
+plt.plot(tgrid_TDSE,SourceTerm_TDSE)
+plt.title('Field, SourceTerm')
 plt.show()
 # plt.close(fig)
 
@@ -112,6 +113,17 @@ ogrid_FE, FE_filter, Nt = mn.fft_t_nonorm(
 fig = plt.figure()
 plt.semilogy(ogrid_FE/omega0,abs(FE_filter))
 plt.title('FS_filt')
+plt.show()
+# plt.close(fig)
+
+ogrid_FE, FE_filter, Nt = mn.fft_t_nonorm(
+                            tgrid_TDSE,
+                            mn.apply_filter(SourceTerm_TDSE, mn.filter_box, tgrid_TDSE, [6750,tgrid_TDSE[-1]], apply_blackman = True)
+                            )
+
+fig = plt.figure()
+plt.semilogy(ogrid_FE/omega0,abs(FE_filter))
+plt.title('FS_filt, blackman')
 plt.show()
 # plt.close(fig)
 

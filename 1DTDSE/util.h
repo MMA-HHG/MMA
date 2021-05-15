@@ -73,7 +73,7 @@ struct analy_def{
 	int writewft;
 };
 struct output_print_def{
-	int Efield, FEfield, sourceterm, Fsourceterm, FEfieldM2, FsourceTermM2, PopTot, tgrid, omegagrid;
+	int Efield, FEfield, sourceterm, Fsourceterm, FEfieldM2, FsourceTermM2, PopTot, tgrid, omegagrid, PopInt, expval_x;
 };
 
 

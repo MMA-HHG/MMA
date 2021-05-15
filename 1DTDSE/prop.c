@@ -153,7 +153,7 @@ double* propagation(struct trg_def trg, struct Efield_var Efield, double tmin, i
 		comp = 100; index = 0; save = 1;
 
 		if(do_zeroing == 0){
-			if(Efield.Field[k]*Efield.Field[k+1] <= 0){do_zeroing = 1;}
+			if(Efield.Field[k]*Efield.Field[k+1] <= 0.0){do_zeroing = 1;}
 			Field = 0.;
 		}else{
 			Field = Efield.Field[k]; 

@@ -34,7 +34,7 @@ void Initialise_grid_and_ground_state(struct inputs_def *in)
 
 
 
-struct output_print_def Initialise_Printing_struct(void) // Initialise ground-state
+struct output_print_def Initialise_Printing_struct(void)
 {
 	struct output_print_def res;
 
@@ -47,11 +47,13 @@ struct output_print_def Initialise_Printing_struct(void) // Initialise ground-st
 	res.PopTot = 0;
 	res.tgrid = 0;
 	res.omegagrid = 0;
+	res.PopInt = 0;
+	res.expval_x = 0;
 
 	return res;
 }
 
-struct output_print_def Set_all_prints(void) // Initialise ground-state
+struct output_print_def Set_all_prints(void)
 {
 	struct output_print_def res;
 
@@ -64,6 +66,8 @@ struct output_print_def Set_all_prints(void) // Initialise ground-state
 	res.PopTot = 1;
 	res.tgrid = 1;
 	res.omegagrid = 1;
+	res.PopInt = 1;
+	res.expval_x = 1;
 
 	return res;
 }
