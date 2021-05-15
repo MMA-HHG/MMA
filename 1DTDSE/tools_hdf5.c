@@ -110,7 +110,15 @@ void ReadInputs(hid_t file_id, char *inpath, herr_t *h5error, struct inputs_def 
   readreal(file_id, path, h5error,&(*in).trg.a); // analyse 2nd part of the dipole
 
   // CV criterion will be added as an input
-  (*in).CV = 1E-20; 
+  // (*in).CV = 1E-20; 
+
+  path[0] = '\0';	strcat(strcat(path,inpath),"CV_criterion_of_GS");
+  readreal(file_id, path, h5error,&(*in).CV); // analyse 2nd part of the dipole
+
+
+  path[0] = '\0';	strcat(strcat(path,inpath),"gauge_type");
+  readint(file_id, path, h5error,&(*in).gauge); // analyse 2nd part of the dipole
+
   strcpy((*in).precision,"d");
 
 	//(*in).Efield.tgrid =  readreal1Darray_fort(file_id, "IRField/tgrid",h5error,&(*in).Efield.Nt); // tgrid is not changed when program runs
