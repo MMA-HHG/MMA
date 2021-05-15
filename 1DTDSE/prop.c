@@ -132,7 +132,7 @@ double* propagation(struct trg_def trg, struct Efield_var Efield, double tmin, i
 	
 	start2 = clock();
 	
-	int do_zeroing = 0
+	int do_zeroing = 0;
 	for(k = 0 ; k < Nt ; k++)
 	{
 
