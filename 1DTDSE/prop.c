@@ -132,6 +132,7 @@ double* propagation(struct trg_def trg, struct Efield_var Efield, double tmin, i
 	
 	start2 = clock();
 	
+	int do_zeroing = 0
 	for(k = 0 ; k < Nt ; k++)
 	{
 
@@ -151,12 +152,19 @@ double* propagation(struct trg_def trg, struct Efield_var Efield, double tmin, i
 		
 		comp = 100; index = 0; save = 1;
 
-		if(tt <= t_zero2)
-		{
+		if(do_zeroing == 0){
+			if(Efield.Field[k]*Efield.Field[k+1] <= 0){do_zeroing = 1;}
 			Field = 0.;
 		}else{
-			Field = Efield.Field[k];
+			Field = Efield.Field[k]; 
 		}
+		
+		// if(tt <= t_zero2)
+		// {
+		// 	Field = 0.;
+		// }else{
+		// 	Field = Efield.Field[k];
+		// }
 		
 
 
