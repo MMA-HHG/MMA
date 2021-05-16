@@ -168,7 +168,18 @@ plt.title('GS')
 plt.show()
 # plt.close(fig)
 
+# Gabor
+# t_G, o_G, Gabor = mn.gabor_transf(SourceTerm_TDSE, tgrid_TDSE, 5000, 10000, 2000, 8.0)
+t_G, o_G, Gabor = mn.gabor_transf(SourceTerm_TDSE, tgrid_TDSE, 7000, 9000, 2000, 8.0, omegamax=40*omega0)
 
+o_Gr, t_Gr, Gaborr = mn.interpolate_2D(o_G,t_G,Gabor,2000,2000)
+
+vmin = np.max(np.log(Gaborr))-6.
+fig = plt.figure()
+plt.pcolor(t_Gr,o_Gr/omega0,(np.log(Gaborr)).T, shading='auto',vmin=vmin)
+plt.title('Gabor')
+plt.show()
+# plt.close(fig)
 
 
 

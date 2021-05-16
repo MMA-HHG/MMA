@@ -169,8 +169,8 @@ int main(int argc, char *argv[])
 		h5error = H5Fclose(file_id); // file
 		outputs_destructor(&outputs); // clean ouputs
 
-		// free(rgrid_coarse); free(zgrid_coarse);
-		// free(rgrid_CUPRAD); free(zgrid_CUPRAD);
+		free(rgrid_coarse); free(zgrid_coarse);
+		free(rgrid_CUPRAD); free(zgrid_CUPRAD);
 		
 	}
 
