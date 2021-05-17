@@ -67,6 +67,9 @@ int main(int argc, char *argv[])
 	// create parameters & load initial data
 	file_id = H5Fopen ("results.h5", H5F_ACC_RDONLY, H5P_DEFAULT); // the file is opened for read only by all the processes independently, every process then has its own copy of variables.
 	ReadInputs(file_id, "TDSE_inputs/", &h5error, &inputs);
+	printf("Proc %i of %i bSetPrints\n",myrank, nprocs);
+	inputs.Print = Set_prints_from_HDF5(file_id, "TDSE_inputs/", &h5error);
+	printf("Proc %i of %i aSetPrints\n",myrank, nprocs);
 	dims = get_dimensions_h5(file_id, "outputs/output_field", &h5error, &ndims, &datatype);
     // *dims = malloc((*ndims)*sizeof(hsize_t))
 

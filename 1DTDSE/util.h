@@ -133,6 +133,9 @@ void outputs_destructor(struct outputs_def *);
 void inputs_destructor(struct inputs_def *);
 struct output_print_def Initialise_Printing_struct(void);
 struct output_print_def Set_all_prints(void);
+
+// struct output_print_def Set_prints_from_HDF5(hid_t, char *, herr_t *);
+
 void Initialise_grid_and_ground_state(struct inputs_def *);
 void Initialise_grid_and_D2(double, int, double **, double **, double **);
 struct outputs_def call1DTDSE(struct inputs_def); // the caller

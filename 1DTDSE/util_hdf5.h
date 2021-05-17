@@ -15,3 +15,6 @@ void Read_1_field_and_grid(hid_t, char *, herr_t *, struct inputs_def *);
 void PrintOutputs(hid_t, char *, herr_t *, struct inputs_def *, struct outputs_def *);
 hid_t dtype_h5(char *);
 
+
+struct output_print_def Set_prints_from_HDF5(hid_t, char *, herr_t *); // sequence of *.h-files is that it cannot be in util.h now
+

@@ -481,7 +481,7 @@ void prepare_local_output_fixed_print_grids_h5(hid_t file_id, char *inpath, herr
 
   // the grid
   output_dims[0] = (*out).Nt; output_dims[1] = 0;
-  if ( (*in).Print.Efield == 1 || (*in).Print.sourceterm == 1 || (*in).Print.PopTot ==  || (*in).Print.PopInt == 1 || (*in).Print.expval_x == 1 )
+  if ( (*in).Print.Efield == 1 || (*in).Print.sourceterm == 1 || (*in).Print.PopTot == 1  || (*in).Print.PopInt == 1 || (*in).Print.expval_x == 1 )
   {
 		path[0] = '\0';	strcat(strcat(path,inpath),"tgrid");
 		print_nd_array_h5(file_id, path, h5error, 1, output_dims, (*out).tgrid, H5T_NATIVE_DOUBLE);
