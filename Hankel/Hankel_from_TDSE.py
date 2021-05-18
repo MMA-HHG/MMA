@@ -8,6 +8,7 @@ import sys
 import units
 import mynumerics as mn
 import Hfn
+import Hfn2
 
 #the plan is to
 # - load all data from the HDF5 intensity list
@@ -15,6 +16,18 @@ import Hfn
 # - generate the Gaussian profile at any point
 # - add the extra phase
 # - we use precomputed dipoles now
+
+
+Hrange = [16, 18]
+H_indices = [mn.FindInterval(Hgrid,Hvalue) for Hvalue in Hrange]
+rgrid_FF = [0]
+ogrid_select = ogrid[H_indices[0]:H_indices[1]]
+
+FField_FF = Hfn2.HankelTransform(ogrid_select, rgrid, FField, 0.3, rgrid_FF)
+
+
+sys.exit()
+
 
 #### THE MAIN PROGRAM #####
 class LaserParamsClass:

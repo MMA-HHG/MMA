@@ -81,16 +81,10 @@ struct output_print_def Set_prints_from_HDF5(hid_t file_id, char *inpath, herr_t
 	char path[50];
 	int dum_int;
 
-printf("tp1\n");
-
 	res = Initialise_Printing_struct();
-printf("tp2\n");
 	path[0] = '\0';	strcat(strcat(path,inpath),"print_Efield");
-printf("tp2.1\n");
 	readint(file_id, path, h5error,&dum_int);
-printf("tp2.2\n");
 	if(dum_int==1){res.Efield = 1;}
-printf("tp2.3\n");
 
 	path[0] = '\0';	strcat(strcat(path,inpath),"print_Source_Term");
 	readint(file_id, path, h5error,&dum_int);
@@ -104,7 +98,9 @@ printf("tp2.3\n");
 	readint(file_id, path, h5error,&dum_int);
 	if(dum_int==1){res.FEfieldM2 = 1;}
 
-printf("tp3\n");
+	path[0] = '\0';	strcat(strcat(path,inpath),"print_F_Efield");
+	readint(file_id, path, h5error,&dum_int);
+	if(dum_int==1){res.FEfield = 1;}
 
 	path[0] = '\0';	strcat(strcat(path,inpath),"print_F_Source_Term_M2");
 	readint(file_id, path, h5error,&dum_int);
@@ -122,7 +118,6 @@ printf("tp3\n");
 	readint(file_id, path, h5error,&dum_int);
 	if(dum_int==1){res.expval_x = 1;}
 
-printf("tp4\n");
 	
 	// res.FEfield = 1;
 	// res.sourceterm = 1;

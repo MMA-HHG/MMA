@@ -20,7 +20,22 @@ import sys
 import units
 import mynumerics as mn
 
+def HankelTransform(ogrid, rgrid, FField, distance, rgrid_FF, integrator = integrate.trapz, near_filed_factor = True):
+    No = len(ogrid); Nr = len(rgrid); Nr_FF = len(rgrid_FF)
+    FField_FF = np.empty(No,Nr_FF, dtype=np.cdouble)
+    integrand = np.empty(Nr, dtype=np.cdouble)
+    for k1 in range(No):
+        k_omega = ogrid[k1] * units.alpha_fine # ogrid[k3] / units.c_light  # ??? units
+        for k2 in range(Nr_FF):
+            for k3 in range(Nr):
+                if near_filed_factor:
+                    integrand[k3] = np.exp(-1j * k_omega * (rgrid[k3] ** 2) / (2.0 * distance)) * rgrid[k3] *\
+                                    FField[k1,k3] * special.jn(0, k_omega * rgrid[k3] * rgrid_FF[k2] / distance)
+                else:
+                    integrand[k3] = rgrid[k3] * FField[k1,k3] * special.jn(0, k_omega * rgrid[k3] * rgrid_FF[k2] / distance)
+            FField_FF[k1,k2] = integrator(integrand,rgrid)
 
+    return FField_FF
 
 def FieldOnScreen(k_start, k_num, NP, LP):
 # this function computes the Hankel transform of a given source term in omega-domain stored in FField_r
