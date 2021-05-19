@@ -113,6 +113,7 @@ int main(int argc, char *argv[])
 
 	// first simulation prepares the outputfile (we keep it for the purpose of possible generalisations for parallel output)
 	nxtval_strided(nprocs,&Nsim); Nsim_loc++;
+	t_mpi[0] = MPI_Wtime(); 
 
 	if (Nsim < Ntot){
 
@@ -174,14 +175,15 @@ int main(int argc, char *argv[])
 		free(rgrid_CUPRAD); free(zgrid_CUPRAD);
 		
 	}
+	t_mpi[1] = MPI_Wtime(); 
 
 
 	// process the MPI queue
 	nxtval_strided(nprocs,&Nsim); Nsim_loc++;
-	printf("Proc %i c %i\n",myrank,Nsim); fflush(NULL);
+	printf("Proc %i c %i; time %f sec \n",myrank,Nsim, t_mpi[1]- t_mpi[0]); fflush(NULL);
 	//t_mpi[7] = MPI_Wtime();
 	//printf("Proc %i, reached the point 2  : %f sec\n",myrank,t_mpi[7]-t_mpi[0]);
-	//t_mpi[5] = MPI_Wtime(); 
+	t_mpi[2] = MPI_Wtime(); 
 	while (Nsim < Ntot){ // run till queue is not treated
 		kr = Nsim % dim_r; kz = Nsim - kr;  kz = kz / dim_r; // compute offsets in each dimension
 
@@ -227,7 +229,10 @@ int main(int argc, char *argv[])
 		// outputs_destructor(outputs); // free memory
 		outputs_destructor(&outputs);
 		nxtval_strided(nprocs,&Nsim); Nsim_loc++;
-		printf("Proc %i c %i\n",myrank,Nsim); fflush(NULL);
+		// printf("Proc %i c %i\n",myrank,Nsim); fflush(NULL);
+		t_mpi[3] = MPI_Wtime();
+		printf("Proc %i c %i; time %f sec \n",myrank,Nsim, t_mpi[3]- t_mpi[2]); fflush(NULL);
+		
 		t_mpi[5] = MPI_Wtime();
 	}
 	//h5error = H5Sclose(memspace_id);
