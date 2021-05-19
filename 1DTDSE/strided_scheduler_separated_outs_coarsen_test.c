@@ -183,8 +183,8 @@ int main(int argc, char *argv[])
 	printf("Proc %i c %i; time %f sec \n",myrank,Nsim, t_mpi[1]- t_mpi[0]); fflush(NULL);
 	//t_mpi[7] = MPI_Wtime();
 	//printf("Proc %i, reached the point 2  : %f sec\n",myrank,t_mpi[7]-t_mpi[0]);
-	t_mpi[2] = MPI_Wtime(); 
 	while (Nsim < Ntot){ // run till queue is not treated
+		t_mpi[2] = MPI_Wtime(); 
 		kr = Nsim % dim_r; kz = Nsim - kr;  kz = kz / dim_r; // compute offsets in each dimension
 
 		// prepare the part in the arrray to r/w
@@ -220,7 +220,7 @@ int main(int argc, char *argv[])
 		nxtval_strided(nprocs,&Nsim); Nsim_loc++;
 		// printf("Proc %i c %i\n",myrank,Nsim); fflush(NULL);
 		t_mpi[3] = MPI_Wtime();
-		printf("Proc %i c %i; time %f sec \n",myrank,Nsim, t_mpi[3]- t_mpi[2]); fflush(NULL);
+		printf("Proc %i c %i; time %f sec, from start %f sec \n",myrank,Nsim, t_mpi[3]- t_mpi[2], t_mpi[3]- t_mpi[0]); fflush(NULL);
 		
 		t_mpi[5] = MPI_Wtime();
 	}

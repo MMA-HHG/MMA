@@ -140,7 +140,7 @@ double* propagation(struct trg_def trg, struct Efield_var Efield, double tmin, i
 		if( k%num_t == 0 )
 		{
 		start = clock();	
-		printf("Cycle number : %i ; size of the box : %i ; progress %i/%i \n",(k/num_t)+1,num_r,k,Nt); fflush(NULL);
+		// printf("Cycle number : %i ; size of the box : %i ; progress %i/%i \n",(k/num_t)+1,num_r,k,Nt); fflush(NULL);
 		}
 
 
