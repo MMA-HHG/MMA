@@ -212,17 +212,6 @@ int main(int argc, char *argv[])
 		file_id = H5Fopen (local_filename, H5F_ACC_RDWR, H5P_DEFAULT); // open file
 		print_local_output_fixed_h5(file_id,"", &h5error, &inputs, &outputs, Ntot/nprocs + 1, Nsim, Nsim_loc);
 
-		// //dims[0] = outputs.Nt;
-		// //rw_real_fullhyperslab_nd_h5(file_id,"/SourceTerms",&h5error,3,dims,dum3int,outputs.Efield,"w");
-
-		// rw_hyperslab_nd_h5(file_id, "/keys", &h5error, one, &one, &Nsim_loc, &one, &Nsim, "w");
-
-		// output_dims[0] = outputs.Nt; output_dims[1] = Ntot/nprocs + 1;
-		// // create_nd_array_h5(file_id, "/Efield", &h5error, 2, output_dims, H5T_NATIVE_DOUBLE);
-		// dum3int[0] = Nsim; dum3int[0] = -1;
-		// rw_real_fullhyperslab_nd_h5(file_id, "/Efield", &h5error, 2, output_dims, dum3int, outputs.Efield, "w");
-
-
 		h5error = H5Fclose(file_id); // file
 
 		
