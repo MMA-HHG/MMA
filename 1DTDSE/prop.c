@@ -4,11 +4,15 @@
 #include<stdio.h>
 #include<time.h>
 
+#include <mpi.h>
+#include "util_mpi.h"
+
 #include "numerical_constants.h"
 #include "util.h"
 
 clock_t start, finish;
 clock_t start2, finish2;
+double MPI_clock_start, MPI_clock_finish;
 
 extern double* timet,dipole;
 
@@ -131,6 +135,7 @@ double* propagation(struct trg_def trg, struct Efield_var Efield, double tmin, i
 
 	
 	start2 = clock();
+	MPI_clock_start = MPI_Wtime(); 
 	
 	int do_zeroing = 0;
 	for(k = 0 ; k < Nt ; k++)
@@ -318,7 +323,8 @@ double* propagation(struct trg_def trg, struct Efield_var Efield, double tmin, i
 	} // end of the main loop
 
 	finish2 = clock();
-	printf("\nDuration of calculation for the whole problem %f sec\n\n",(double)(finish2 - start2) / CLOCKS_PER_SEC);
+	MPI_clock_finish = MPI_Wtime(); 
+	printf("\nDuration of calculation for the whole problem %f sec, MPI time %f sec\n\n",(double)(finish2 - start2) / CLOCKS_PER_SEC, MPI_clock_finish-MPI_clock_start);
 
 	
 	free(psi_inter1);free(res1);free(dnew1);free(dinfnew1);free(dsupnew1);
