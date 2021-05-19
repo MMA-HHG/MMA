@@ -113,7 +113,7 @@ int main(int argc, char *argv[])
 
 	// first simulation prepares the outputfile (we keep it for the purpose of possible generalisations for parallel output)
 	nxtval_strided(nprocs,&Nsim); Nsim_loc++;
-	t_mpi[0] = MPI_Wtime(); 
+	t_mpi[1] = MPI_Wtime(); 
 
 	if (Nsim < Ntot){
 
@@ -175,16 +175,16 @@ int main(int argc, char *argv[])
 		free(rgrid_CUPRAD); free(zgrid_CUPRAD);
 		
 	}
-	t_mpi[1] = MPI_Wtime(); 
+	t_mpi[2] = MPI_Wtime(); 
 
 
 	// process the MPI queue
 	nxtval_strided(nprocs,&Nsim); Nsim_loc++;
-	printf("Proc %i c %i; time %f sec \n",myrank,Nsim, t_mpi[1]- t_mpi[0]); fflush(NULL);
+	printf("Proc %i c %i; time %f sec \n",myrank,Nsim, t_mpi[2]- t_mpi[1]); fflush(NULL);
 	//t_mpi[7] = MPI_Wtime();
 	//printf("Proc %i, reached the point 2  : %f sec\n",myrank,t_mpi[7]-t_mpi[0]);
 	while (Nsim < Ntot){ // run till queue is not treated
-		t_mpi[2] = MPI_Wtime(); 
+		t_mpi[3] = MPI_Wtime(); 
 		kr = Nsim % dim_r; kz = Nsim - kr;  kz = kz / dim_r; // compute offsets in each dimension
 
 		// prepare the part in the arrray to r/w
@@ -202,9 +202,9 @@ int main(int argc, char *argv[])
 		for(k1 = 0 ; k1 < inputs.Efield.Nt; k1++){inputs.Efield.Field[k1] = inputs.Efield.Field[k1]/EFIELDau;}
 
 		// do the calculation
-		t_mpi[3] = MPI_Wtime(); finish3_main = clock();
+		// t_mpi[3] = MPI_Wtime(); finish3_main = clock();
 		outputs = call1DTDSE(inputs); // THE TDSE  
-		t_mpi[1] = MPI_Wtime(); finish1_main = clock();
+		// t_mpi[1] = MPI_Wtime(); finish1_main = clock();
 
 
     
@@ -219,8 +219,8 @@ int main(int argc, char *argv[])
 		outputs_destructor(&outputs);
 		nxtval_strided(nprocs,&Nsim); Nsim_loc++;
 		// printf("Proc %i c %i\n",myrank,Nsim); fflush(NULL);
-		t_mpi[3] = MPI_Wtime();
-		printf("Proc %i c %i; time %f sec, from start %f sec \n",myrank,Nsim, t_mpi[3]- t_mpi[2], t_mpi[3]- t_mpi[0]); fflush(NULL);
+		t_mpi[4] = MPI_Wtime();
+		printf("Proc %i c %i; time %f sec, from start %f sec \n",myrank,Nsim, t_mpi[4]- t_mpi[3], t_mpi[4]- t_mpi[1]); fflush(NULL);
 		
 		t_mpi[5] = MPI_Wtime();
 	}
@@ -229,7 +229,8 @@ int main(int argc, char *argv[])
 	free(dims);
  
 
-	printf("Proc %i is going to finish.\n",myrank); fflush(NULL);
+	t_mpi[6] = MPI_Wtime();
+	printf("Proc %i is going to finish., Total time %f sec.\n",myrank,t_mpi[6]-t_mpi[0]); fflush(NULL);
 	MPI_Finalize();
 	return 0;	
 }
