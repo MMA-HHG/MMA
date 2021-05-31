@@ -54,17 +54,22 @@ with h5py.File(file_CUPRAD, 'r') as InputArchiveCUPRAD, h5py.File(file_TDSE, 'r'
    # GS_init = InputArchiveTDSE['ground_state'][:,0] + 1j*InputArchiveTDSE['ground_state'][:,1]
 
 
-Nr_max = 470;
-kr_step = 10;
-ko_step = 2;
+Nr_max = 130 #470; 235; 155-still fine
+kr_step = 1
+ko_step = 2
+
+rmax_FF = 8*1e-4
+Nr_FF = 800
+
+FF_orders_plot = 10
 
 omega_au2SI = mn.ConvertPhoton(1.0, 'omegaau', 'omegaSI')
 ogridSI = omega_au2SI * ogrid
 
 Hgrid = ogrid/omega0
-Hrange = [16, 20]
+Hrange = [14, 36]
 H_indices = [mn.FindInterval(Hgrid,Hvalue) for Hvalue in Hrange]
-rgrid_FF = np.linspace(0.0, 1e-4, 100)
+rgrid_FF = np.linspace(0.0, rmax_FF, Nr_FF)
 ogrid_select_SI = ogridSI[H_indices[0]:H_indices[1]:ko_step]
 FSourceTerm_select = np.squeeze(FSourceTerm[0:Nr_max:kr_step,:,H_indices[0]:H_indices[1]:ko_step]).T
 
@@ -91,10 +96,12 @@ plt.show()
 # vmin = np.max(np.log(Gaborr))-6.
 fig = plt.figure()
 FF_spectrum_logscale = np.log(abs(FField_FF.T)**2);
-vmin = np.max(FF_spectrum_logscale)-6.
+vmin = np.max(FF_spectrum_logscale)-FF_orders_plot
 plt.pcolor(Hgrid_select,rgrid_FF,np.log(abs(FField_FF.T)**2), shading='auto',vmin=vmin)
 # plt.pcolor(t_Gr,o_Gr/omega0,(np.log(Gaborr)).T, shading='auto',vmin=vmin)
-plt.title('Far-field spectrum, log')
+plt.title('Far-field spectrum (30 cm), log')
+plt.xlabel('H [-]')
+plt.ylabel('r [m]')
 plt.show()
 # plt.close(fig)
 
