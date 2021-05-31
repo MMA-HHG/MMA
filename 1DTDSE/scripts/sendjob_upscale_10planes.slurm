@@ -2,8 +2,8 @@
 #SBATCH -J 1DTDSE_MPI
 #SBATCH  --constraint=HSW24  
 #SBATCH  --exclusive
-#SBATCH  --nodes=25
-#SBATCH  --ntasks=600
+#SBATCH  --nodes=5
+#SBATCH  --ntasks=120
 #SBATCH  --ntasks-per-node=24 
 #SBATCH  --threads-per-core=1
 #SBATCH  --time=20:00:00 
