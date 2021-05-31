@@ -177,7 +177,7 @@ struct outputs_def call1DTDSE(struct inputs_def inputs) // this is a wrapper tha
 	calcFFTW3(outputs.Nt, dt, tmax, outputs.Efield, &(dumptrs_real[0]), &(dumptrs_real[1]), &outputs.FEfield_data, &outputs.FEfieldM2, &outputs.Nomega); free(dumptrs_real[0]); free(dumptrs_real[1]);
 	calcFFTW3(outputs.Nt, dt, tmax, outputs.sourceterm, &outputs.tgrid_fftw, &outputs.omegagrid, &outputs.Fsourceterm_data, &outputs.FsourcetermM2, &outputs.Nomega);
 
-	printf("TDSE: FEfield: %e, %e, %e, %e \n",outputs.FEfield_data[0],outputs.FEfield_data[1],outputs.FEfield_data[2],outputs.FEfield_data[3]);
+	// printf("TDSE: FEfield: %e, %e, %e, %e \n",outputs.FEfield_data[0],outputs.FEfield_data[1],outputs.FEfield_data[2],outputs.FEfield_data[3]);
 
 	free(x); free(psi); free(psi0);
 	free(Efield.Field); // this is a tricky free. We pass the inputs "by value", this means that the memory in the original code is unaffected by reallocation. ! BUT it can be freed if coded badly...
