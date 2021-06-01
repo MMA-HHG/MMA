@@ -34,26 +34,35 @@ file = 'results_1.h5' # 'results_Ar_vac.h5', 'Ar_vac_long.h5' 'results_3.h5' 're
 
 file_TDSE = 'results_merged.h5' # 'hdf5_temp_0000000.h5'
 
+file_TDSE = os.path.join(results_TDSE,file_TDSE)
+
+kz_TDSE = 0
+kr_TDSE = 0
+kz_CUPRAD = 0
+kr_CUPRAD = 0
+
 file_path = os.path.join(results_path,file)
 print('processing:', file_path)             
 with h5py.File(file_path, 'r') as InputArchiveCUPRAD, h5py.File(file_TDSE, 'r') as InputArchiveTDSE:
     # load data
-   Efield_CUPRAD = InputArchiveCUPRAD['/outputs/output_field'][:,0,0]
+   # xxx = InputArchiveCUPRAD['/outputs/output_field'][:]
+   # yyy = InputArchiveTDSE['SourceTerm'][:]
+   Efield_CUPRAD = InputArchiveCUPRAD['/outputs/output_field'][:,kr_CUPRAD,kz_CUPRAD]
    tgrid_CUPRAD = InputArchiveCUPRAD['/outputs/tgrid'][:]
    omega0 = mn.ConvertPhoton(1e-2*mn.readscalardataset(InputArchiveCUPRAD,'/inputs/laser_wavelength','N'),'lambdaSI','omegaau')
    
-   Efield_TDSE = InputArchiveTDSE['Efield'][0,0,:]
-   FEfield_TDSE = InputArchiveTDSE['FEfield'][0,0,:,0] + \
-                      1j*InputArchiveTDSE['FEfield'][0,0,:,1]
+   # Efield_TDSE = InputArchiveTDSE['Efield'][kr_TDSE,kz_TDSE,:]
+   # FEfield_TDSE = InputArchiveTDSE['FEfield'][kr_TDSE,kz_TDSE,:,0] + \
+   #                    1j*InputArchiveTDSE['FEfield'][kr_TDSE,kz_TDSE,:,1]
    tgrid_TDSE = InputArchiveTDSE['tgrid'][:]
    
-   SourceTerm_TDSE = InputArchiveTDSE['SourceTerm'][0,0,:]
-   FSourceTerm_TDSE = InputArchiveTDSE['FSourceTerm'][0,0,:,0] + \
-                      1j*InputArchiveTDSE['FSourceTerm'][0,0,:,1]
+   SourceTerm_TDSE = InputArchiveTDSE['SourceTerm'][kr_TDSE,kz_TDSE,:]
+   FSourceTerm_TDSE = InputArchiveTDSE['FSourceTerm'][kr_TDSE,kz_TDSE,:,0] + \
+                      1j*InputArchiveTDSE['FSourceTerm'][kr_TDSE,kz_TDSE,:,1]
    ogrid_TDSE = InputArchiveTDSE['omegagrid'][:]
-   PopTot_TDSE = InputArchiveTDSE['PopTot'][0,0,:]
-   PopInt_TDSE = InputArchiveTDSE['PopInt'][0,0,:]
-   expval_x_TDSE = InputArchiveTDSE['expval_x'][0,0,:]
+   PopTot_TDSE = InputArchiveTDSE['PopTot'][kr_TDSE,kz_TDSE,:]
+   PopInt_TDSE = InputArchiveTDSE['PopInt'][kr_TDSE,kz_TDSE,:]
+   expval_x_TDSE = InputArchiveTDSE['expval_x'][kr_TDSE,kz_TDSE,:]
    
    GS_init = InputArchiveTDSE['ground_state'][:,0] + 1j*InputArchiveTDSE['ground_state'][:,1]
    xgrid_micro = InputArchiveTDSE['xgrid_micro'][:]
@@ -67,20 +76,20 @@ plt.show()
 # plt.close(fig)
 
 fig = plt.figure()
-plt.plot(tgrid_TDSE*units.TIMEau,Efield_TDSE)
+# plt.plot(tgrid_TDSE*units.TIMEau,Efield_TDSE)
 plt.title('TDSE')
 plt.show()
 # plt.close(fig)
 
 fig = plt.figure()
 plt.plot(tgrid_CUPRAD-tgrid_CUPRAD[0],Efield_CUPRAD)
-plt.plot(tgrid_TDSE*units.TIMEau,Efield_TDSE*units.EFIELDau)
+# plt.plot(tgrid_TDSE*units.TIMEau,Efield_TDSE*units.EFIELDau)
 plt.title('TDSE, CUPRAD')
 plt.show()
 # plt.close(fig)
 
 fig = plt.figure()
-plt.plot(tgrid_TDSE,Efield_TDSE)
+# plt.plot(tgrid_TDSE,Efield_TDSE)
 plt.plot(tgrid_TDSE,SourceTerm_TDSE)
 plt.title('Field, SourceTerm')
 plt.show()
@@ -131,7 +140,7 @@ plt.show()
 
 
 fig = plt.figure()
-plt.semilogy(ogrid_TDSE/omega0,abs(FEfield_TDSE))
+# plt.semilogy(ogrid_TDSE/omega0,abs(FEfield_TDSE))
 plt.title('FEfield')
 plt.show()
 # plt.close(fig)
