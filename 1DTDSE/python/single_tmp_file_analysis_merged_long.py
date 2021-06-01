@@ -36,11 +36,8 @@ file_TDSE = 'results_merged.h5' # 'hdf5_temp_0000000.h5'
 
 file_TDSE = os.path.join(results_TDSE,file_TDSE)
 
-index_select = [(0,0),(10,0),(0,2)] # (r,z)
-kz_TDSE = 0
-kr_TDSE = 0
-kz_CUPRAD = 0
-kr_CUPRAD = 0
+index_select = [(0,0),(100,0)] # (r,z)
+
 
 r_select = [k1[0] for k1 in index_select]
 z_select = [k1[1] for k1 in index_select]
@@ -54,7 +51,7 @@ def get_slices(dset,i_select):
         for k1 in range(N_select):
             res[k1,:] = dset [i_select[k1][0],i_select[k1][1],:]
     if (len(dset_shape) == 4):  
-        res = np.zeros((N_select,dset_shape[-1]), dtype = np.cdouble)
+        res = np.zeros((N_select,dset_shape[-2]), dtype = np.cdouble)
         for k1 in range(N_select):
             res[k1,:] = dset [i_select[k1][0],i_select[k1][1],:,0] + \
                         1j*dset [i_select[k1][0],i_select[k1][1],:,1]
@@ -64,22 +61,25 @@ file_path = os.path.join(results_path,file)
 print('processing:', file_path)             
 with h5py.File(file_TDSE, 'r') as InputArchiveTDSE:
    
-   Efield_full =  InputArchiveTDSE['Efield'][:]
-   
    omega0 = 0.05752948549410085
-   # Efield_TDSE = InputArchiveTDSE['Efield'][r_select,z_select,:]
-   
-   Efield_TDSE = Efield_full[r_select,z_select,:]
-   
-   field_shape = InputArchiveTDSE['Efield'].shape
-   
-   Efield_selected = get_slices(InputArchiveTDSE['Efield'],index_select)
-   
+   # Efield_TDSE = InputArchiveTDSE['Efield'][r_select,z_select,:]   
+   Efield_TDSE = get_slices(InputArchiveTDSE['Efield'],index_select)   
    # FEfield_TDSE = InputArchiveTDSE['FEfield'][kr_TDSE,kz_TDSE,:,0] + \
    #                     1j*InputArchiveTDSE['FEfield'][kr_TDSE,kz_TDSE,:,1]
-   # tgrid_TDSE = InputArchiveTDSE['tgrid'][:]
    
-   # SourceTerm_TDSE = InputArchiveTDSE['SourceTerm'][kr_TDSE,kz_TDSE,:]
+   tgrid_TDSE = InputArchiveTDSE['tgrid'][:]
+   SourceTerm_TDSE = get_slices( InputArchiveTDSE['SourceTerm'],index_select)
+   FSourceTerm_TDSE = get_slices( InputArchiveTDSE['FSourceTerm'],index_select)   
+   ogrid_TDSE = InputArchiveTDSE['omegagrid'][:]
+   
+   PopTot_TDSE = get_slices( InputArchiveTDSE['PopTot'],index_select)
+   PopInt_TDSE = get_slices( InputArchiveTDSE['PopInt'],index_select)
+   expval_x_TDSE = get_slices( InputArchiveTDSE['expval_x'],index_select)
+   
+   GS_init = InputArchiveTDSE['ground_state'][:,0] + 1j*InputArchiveTDSE['ground_state'][:,1]
+   xgrid_micro = InputArchiveTDSE['xgrid_micro'][:]
+   
+   
    # FSourceTerm_TDSE = InputArchiveTDSE['FSourceTerm'][kr_TDSE,kz_TDSE,:,0] + \
    #                    1j*InputArchiveTDSE['FSourceTerm'][kr_TDSE,kz_TDSE,:,1]
    # ogrid_TDSE = InputArchiveTDSE['omegagrid'][:]
@@ -90,7 +90,19 @@ with h5py.File(file_TDSE, 'r') as InputArchiveTDSE:
    # GS_init = InputArchiveTDSE['ground_state'][:,0] + 1j*InputArchiveTDSE['ground_state'][:,1]
    # xgrid_micro = InputArchiveTDSE['xgrid_micro'][:]
 
+def plot_selected(x,fxs,title):
+    fig = plt.figure()
+    for k1 in range(fxs.shape[0]):
+        plt.plot(x,fxs[k1,:])
+    plt.title(title)
+    plt.show()
+    
+plot_selected(tgrid_TDSE*units.TIMEau, Efield_TDSE, 'TDSE')
 
+
+plot_selected(tgrid_TDSE,PopTot_TDSE,'PopTot')
+        
+    
 
 
 # fig = plt.figure()
