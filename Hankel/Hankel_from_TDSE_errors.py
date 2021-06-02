@@ -88,7 +88,7 @@ for k1 in range(len(kr_steps)):
 Hankel_errors = []
 for k1 in range(len(kr_steps)-1):
     Hankel_errors.append(
-                         (FField_FF[k1+1]-FField_FF[k1])/max(FField_FF[k1])
+                         (FField_FF[k1+1]-FField_FF[k1])/np.max(abs(FField_FF[k1]))
                          )
 
 Hgrid_select = Hgrid[H_indices[0]:H_indices[1]:ko_step]
@@ -108,7 +108,7 @@ Hgrid_select = Hgrid[H_indices[0]:H_indices[1]:ko_step]
 fig = plt.figure()
 FF_spectrum_logscale = np.log(abs(FField_FF[-1].T)**2);
 vmin = np.max(FF_spectrum_logscale)-FF_orders_plot
-plt.pcolor(Hgrid_select,rgrid_FF,np.log(abs(FField_FF.T)**2), shading='auto',vmin=vmin)
+plt.pcolor(Hgrid_select,rgrid_FF,FF_spectrum_logscale, shading='auto',vmin=vmin)
 # plt.pcolor(t_Gr,o_Gr/omega0,(np.log(Gaborr)).T, shading='auto',vmin=vmin)
 plt.title('Far-field spectrum (30 cm), log')
 plt.xlabel('H [-]')
