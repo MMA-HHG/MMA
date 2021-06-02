@@ -28,6 +28,7 @@ else:
     results_path = os.path.join("D:\data", "Discharges", "TDSE", "t6")
     
     results_TDSE = os.path.join("D:\data", "Discharges", "TDSE", "TDSE10planes1")
+    results_TDSE = os.path.join("D:\data", "Discharges", "TDSE", "TDSE10planes2")
 
 
 file = 'results_1.h5' # 'results_Ar_vac.h5', 'Ar_vac_long.h5' 'results_3.h5' 'results_1.h5'
@@ -36,11 +37,10 @@ file_TDSE = 'results_merged.h5' # 'hdf5_temp_0000000.h5'
 
 file_TDSE = os.path.join(results_TDSE,file_TDSE)
 
-index_select = [(0,0),(100,0)] # (r,z)
+index_select = [(0,0),(0,9)] # (r,z)
 
 
-r_select = [k1[0] for k1 in index_select]
-z_select = [k1[1] for k1 in index_select]
+compare_with_CUPRAD = False
 
 
 def get_slices(dset,i_select):
@@ -57,9 +57,24 @@ def get_slices(dset,i_select):
                         1j*dset [i_select[k1][0],i_select[k1][1],:,1]
     return res
 
+def get_slices_CUPRAD(dset,i_select): # different index order
+    N_select = len(i_select)
+    dset_shape = dset.shape
+    if (len(dset_shape) == 3):
+        res = np.zeros((N_select,dset_shape[0]))
+        for k1 in range(N_select):
+            res[k1,:] = dset[:,i_select[k1][0],i_select[k1][1]]
+    return res
+
 file_path = os.path.join(results_path,file)
 print('processing:', file_path)             
 with h5py.File(file_TDSE, 'r') as InputArchiveTDSE:
+    
+   if compare_with_CUPRAD:
+       with h5py.File(file_path, 'r') as InputArchiveCUPRAD:
+           # Efield_CUPRAD = InputArchiveCUPRAD['/outputs/output_field'][:,0,0]
+           Efield_CUPRAD = get_slices_CUPRAD( InputArchiveCUPRAD['/outputs/output_field'],index_select)
+           tgrid_CUPRAD = InputArchiveCUPRAD['/outputs/tgrid'][:]
    
    omega0 = 0.05752948549410085
    # Efield_TDSE = InputArchiveTDSE['Efield'][r_select,z_select,:]   
