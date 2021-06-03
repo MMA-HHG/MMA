@@ -27,7 +27,7 @@ else:
     results_TDSE = os.path.join("D:\data", "Discharges", "TDSE", "TDSEH1")
     results_TDSE = os.path.join("D:\data", "Discharges", "TDSE", "TDSE10planes4")
     
-    results_TDSE = os.path.join("D:\data", "Discharges", "TDSE", "TDSE10planes1")
+    # results_TDSE = os.path.join("D:\data", "Discharges", "TDSE", "TDSE10planes1")
 
 
 file_CUPRAD = 'results_1.h5'
@@ -127,6 +127,11 @@ plt.show()
 fig = plt.figure()
 for k1 in range(6):
     plt.plot(rgrid_FF,FField_FF_z[k1,0,:].imag)
+plt.show()
+
+fig = plt.figure()
+for k1 in range(6):
+    plt.plot(rgrid_FF,abs(FField_FF_z[k1,0,:]))
 plt.show()
 
 
