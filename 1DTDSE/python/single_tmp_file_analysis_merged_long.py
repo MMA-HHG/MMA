@@ -29,6 +29,7 @@ else:
     
     results_TDSE = os.path.join("D:\data", "Discharges", "TDSE", "TDSE10planes1")
     results_TDSE = os.path.join("D:\data", "Discharges", "TDSE", "TDSE10planes2")
+    results_TDSE = os.path.join("D:\data", "Discharges", "TDSE", "TDSE10planes4")
 
 
 file = 'results_1.h5' # 'results_Ar_vac.h5', 'Ar_vac_long.h5' 'results_3.h5' 'results_1.h5'
@@ -37,7 +38,7 @@ file_TDSE = 'results_merged.h5' # 'hdf5_temp_0000000.h5'
 
 file_TDSE = os.path.join(results_TDSE,file_TDSE)
 
-index_select = [(0,0),(0,9)] # (r,z)
+index_select = [(0,0),(0,4),(0,9)] # (r,z)
 
 
 compare_with_CUPRAD = False

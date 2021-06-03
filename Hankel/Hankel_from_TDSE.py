@@ -25,6 +25,7 @@ if ('-here' in arguments):
 else:
     results_CUPRAD = os.path.join("D:\data", "Discharges", "TDSE", "t6")
     results_TDSE = os.path.join("D:\data", "Discharges", "TDSE", "TDSEH1")
+    results_TDSE = os.path.join("D:\data", "Discharges", "TDSE", "TDSE10planes4")
 
 
 file_CUPRAD = 'results_1.h5'
@@ -35,11 +36,15 @@ file_CUPRAD = os.path.join(results_CUPRAD,file_CUPRAD)
 file_TDSE = os.path.join(results_TDSE,file_TDSE)
 
 
+kz_select = 5
+
+
 print('processing:', file_CUPRAD, file_TDSE)             
 with h5py.File(file_CUPRAD, 'r') as InputArchiveCUPRAD, h5py.File(file_TDSE, 'r') as InputArchiveTDSE:
     # load data
    omega0 = mn.ConvertPhoton(1e-2*mn.readscalardataset(InputArchiveCUPRAD,'/inputs/laser_wavelength','N'),'lambdaSI','omegaau')
-   
+
+   FSourceTerm_full = InputArchiveTDSE['FSourceTerm'][:]  
    
    # SourceTerm_TDSE = InputArchiveTDSE['SourceTerm'][0,0,:]
    FSourceTerm = InputArchiveTDSE['FSourceTerm'][:,:,:,0] + \
@@ -53,6 +58,7 @@ with h5py.File(file_CUPRAD, 'r') as InputArchiveCUPRAD, h5py.File(file_TDSE, 'r'
    
    # GS_init = InputArchiveTDSE['ground_state'][:,0] + 1j*InputArchiveTDSE['ground_state'][:,1]
 
+# sys.exit()
 
 Nr_max = 130 #470; 235; 155-still fine
 kr_step = 1
@@ -61,17 +67,18 @@ ko_step = 2
 rmax_FF = 8*1e-4
 Nr_FF = 800
 
+Hrange = [14, 20]
+
 FF_orders_plot = 10
 
 omega_au2SI = mn.ConvertPhoton(1.0, 'omegaau', 'omegaSI')
 ogridSI = omega_au2SI * ogrid
 
 Hgrid = ogrid/omega0
-Hrange = [14, 36]
 H_indices = [mn.FindInterval(Hgrid,Hvalue) for Hvalue in Hrange]
 rgrid_FF = np.linspace(0.0, rmax_FF, Nr_FF)
 ogrid_select_SI = ogridSI[H_indices[0]:H_indices[1]:ko_step]
-FSourceTerm_select = np.squeeze(FSourceTerm[0:Nr_max:kr_step,:,H_indices[0]:H_indices[1]:ko_step]).T
+FSourceTerm_select = np.squeeze(FSourceTerm[0:Nr_max:kr_step,kz_select,H_indices[0]:H_indices[1]:ko_step]).T
 
 FField_FF = Hfn2.HankelTransform(ogrid_select_SI,
                                  rgrid_macro[0:Nr_max:kr_step],
