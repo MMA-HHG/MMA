@@ -7,7 +7,7 @@
 #SBATCH  --ntasks-per-node=24 
 #SBATCH  --threads-per-core=1
 #SBATCH  --time=20:00:00 
-#SBATCH  --output=DAPL-TDSEScheduler-10pl-%J.out
+#SBATCH  --output=TDSEScheduler-40pl-%J.out
 module purge
 module load intel/18.1 intelmpi/2018.1.163 hdf5/1.10.4 
 module load fftw/3.3.8
