@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH -J MPI_s1_v2
+#SBATCH -J MPI-s1-v2
 #SBATCH  --constraint=HSW24  
 #SBATCH  --exclusive
 #SBATCH  --nodes=5
