@@ -26,6 +26,7 @@ else:
     results_CUPRAD = os.path.join("D:\data", "Discharges", "TDSE", "t6")
     results_TDSE = os.path.join("D:\data", "Discharges", "TDSE", "TDSEH1")
     results_TDSE = os.path.join("D:\data", "Discharges", "TDSE", "TDSE40planes1")
+    results_TDSE = os.path.join("D:\data", "Discharges", "TDSE", "TDSE50planes1")
     
     # results_TDSE = os.path.join("D:\data", "Discharges", "TDSE", "TDSE10planes1")
 
