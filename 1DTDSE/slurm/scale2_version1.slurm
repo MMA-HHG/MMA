@@ -6,7 +6,7 @@
 #SBATCH  --ntasks=480
 #SBATCH  --ntasks-per-node=24 
 #SBATCH  --threads-per-core=1
-#SBATCH  --time=24:00:00 
+#SBATCH  --time=48:00:00 
 #SBATCH  --output=MPI_s2_v1-%J.out
 module purge
 module load intel/18.1 intelmpi/2018.1.163 hdf5/1.10.4 
