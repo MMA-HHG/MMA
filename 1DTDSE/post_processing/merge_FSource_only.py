@@ -22,7 +22,7 @@ import glob
 
 
 files = glob.glob('hdf5_temp_*.h5') # filter all the single-proc files
-outfname = "results_merged.h5"
+outfname = "results_merged_Fsource.h5"
 available_outputs_list = ['FSourceTerm'] # Gabor is not implemented, it's here to test an extra argument
 available_further_data = ['tgrid', 'omegagrid', 'Energy_of_the_ground_state', 'xgrid_micro', 'ground_state', 'zgrid_coarse',
                           'rgrid_coarse'] # these are in all the files and supposed to be same, e.g. grids
