@@ -76,7 +76,7 @@ Hgrid = ogrid/omega0
 Hrange = [17, 18] # [14, 36]
 H_indices = [mn.FindInterval(Hgrid,Hvalue) for Hvalue in Hrange]
 
-Nz_max_sum = 15
+Nz_max_sum = 41
 kz_steps = [8,4,2,1] # descending order, tha last is "the most accurate"
 
 # H_index = mn.FindInterval(Hgrid,Hvalue)
@@ -122,12 +122,20 @@ for k1 in range(Nz_max_sum):
     
 FField_FF_z_sum = [] # trapezoid
 for k1 in range(len(kz_steps)):
+    N_integral = len(range(0,Nz_max_sum,kz_steps[k1])) - 1
+    k_step = kz_steps[k1]
     # FField_FF_z_sum.append(FField_FF_z[0,:,:])
-    dum = 0.5*(zgrid_macro[kz_steps[k1]]-zgrid_macro[0]) * (FField_FF_z[0,:,:] + FField_FF_z[kz_steps[k1],:,:])
-    for k2 in range(kz_steps[k1],Nz_max_sum,kz_steps[k1]):
-        dum = dum + \
-              0.5*(zgrid_macro[k2]-zgrid_macro[0]) * (FField_FF_z[0,:,:] + FField_FF_z[kz_steps[k1],:,:])
-    dum = dum / len(range(0,Nz_max_sum,kz_steps[k1]))
+    
+    for k2 in range(N_integral):
+        print((k2+1)*k_step)
+        if (k2 == 0):
+            dum = 0.5*(zgrid_macro[(k2+1)*k_step]-zgrid_macro[k2*k_step]) * \
+                  (FField_FF_z[k2*k_step,:,:] + FField_FF_z[(k2+1)*k_step,:,:])
+        else:
+            dum = dum + \
+              0.5*(zgrid_macro[(k2+1)*k_step]-zgrid_macro[k2*k_step]) * \
+                  (FField_FF_z[k2*k_step,:,:] + FField_FF_z[(k2+1)*k_step,:,:])
+    # dum = dum / len(range(0,Nz_max_sum,kz_steps[k1]))
     FField_FF_z_sum.append(dum)
 
 
@@ -146,7 +154,7 @@ map1 = ax.pcolor(Hgrid_select,rgrid_FF,Hankel_errors_logscale, shading='auto')
 # plt.pcolor(t_Gr,o_Gr/omega0,(np.log(Gaborr)).T, shading='auto',vmin=vmin)
 fig.colorbar(map1)
 # dr_string = ', '+"{:.1f}".format(1e6*rgrid_macro[kr_steps[0]]) +' mum'
-# plt.title('Error' + dr_string)
+plt.title('Error 1')
 plt.xlabel('H [-]')
 plt.ylabel('r [m]')
 plt.show()
@@ -159,7 +167,7 @@ map1 = ax.pcolor(Hgrid_select,rgrid_FF,Hankel_errors_logscale, shading='auto')
 # plt.pcolor(t_Gr,o_Gr/omega0,(np.log(Gaborr)).T, shading='auto',vmin=vmin)
 fig.colorbar(map1)
 # dr_string = ', '+"{:.1f}".format(1e6*rgrid_macro[kr_steps[0]]) +' mum'
-# plt.title('Error' + dr_string)
+plt.title('Error 2')
 plt.xlabel('H [-]')
 plt.ylabel('r [m]')
 plt.show()
@@ -172,13 +180,13 @@ map1 = ax.pcolor(Hgrid_select,rgrid_FF,Hankel_errors_logscale, shading='auto')
 # plt.pcolor(t_Gr,o_Gr/omega0,(np.log(Gaborr)).T, shading='auto',vmin=vmin)
 fig.colorbar(map1)
 # dr_string = ', '+"{:.1f}".format(1e6*rgrid_macro[kr_steps[0]]) +' mum'
-# plt.title('Error' + dr_string)
+plt.title('Error 3')
 plt.xlabel('H [-]')
 plt.ylabel('r [m]')
 plt.show()
 # plt.close(fig)
 
-sys.exit()
+# sys.exit()
 
 # fig = plt.figure()
 # plt.plot(rgrid_FF,abs(FField_FF_z_sum[0]))

@@ -71,7 +71,7 @@ omega_au2SI = mn.ConvertPhoton(1.0, 'omegaau', 'omegaSI')
 ogridSI = omega_au2SI * ogrid
 
 Hgrid = ogrid/omega0
-Hvalue = 17 # [14, 36]
+Hvalue = 18 # [14, 36]
 
 Nz_max_sum = 41
 kz_steps = [8,4,2,1] # descending order, tha last is "the most accurate"
