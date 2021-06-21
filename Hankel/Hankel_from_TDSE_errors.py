@@ -61,7 +61,7 @@ ko_step = 2
 rmax_FF = 8*1e-4
 Nr_FF = 800
 
-FF_orders_plot = 10
+FF_orders_plot = 4
 
 omega_au2SI = mn.ConvertPhoton(1.0, 'omegaau', 'omegaSI')
 ogridSI = omega_au2SI * ogrid
@@ -106,7 +106,7 @@ Hgrid_select = Hgrid[H_indices[0]:H_indices[1]:ko_step]
 
 # vmin = np.max(np.log(Gaborr))-6.
 fig, ax = plt.subplots()   
-FF_spectrum_logscale = np.log(abs(FField_FF[-1].T)**2);
+FF_spectrum_logscale = np.log10(abs(FField_FF[-1].T)**2);
 vmin = np.max(FF_spectrum_logscale)-FF_orders_plot
 map1 = ax.pcolor(Hgrid_select,rgrid_FF,FF_spectrum_logscale, shading='auto',vmin=vmin)
 # plt.pcolor(t_Gr,o_Gr/omega0,(np.log(Gaborr)).T, shading='auto',vmin=vmin)
@@ -120,11 +120,11 @@ plt.show()
 
 # vmin = np.max(np.log(Gaborr))-6.
 fig, ax = plt.subplots()  
-Hankel_errors_logscale = np.log(abs(Hankel_errors[0].T))
+Hankel_errors_logscale = np.log10(abs(Hankel_errors[0].T))
 map1 = ax.pcolor(Hgrid_select,rgrid_FF,Hankel_errors_logscale, shading='auto')
 # plt.pcolor(t_Gr,o_Gr/omega0,(np.log(Gaborr)).T, shading='auto',vmin=vmin)
 fig.colorbar(map1)
-dr_string = ', '+"{:.1f}".format(1e6*rgrid_macro[kr_steps[0]]) +' mum'
+dr_string = ', dr = '+"{:.1f}".format(1e6*rgrid_macro[kr_steps[0]]) +' mum'
 plt.title('Error' + dr_string)
 plt.xlabel('H [-]')
 plt.ylabel('r [m]')
@@ -133,11 +133,11 @@ plt.show()
 
 # vmin = np.max(np.log(Gaborr))-6.
 fig, ax = plt.subplots()  
-Hankel_errors_logscale = np.log(abs(Hankel_errors[1].T))
+Hankel_errors_logscale = np.log10(abs(Hankel_errors[1].T))
 map1 = ax.pcolor(Hgrid_select,rgrid_FF,Hankel_errors_logscale, shading='auto')
 # plt.pcolor(t_Gr,o_Gr/omega0,(np.log(Gaborr)).T, shading='auto',vmin=vmin)
 fig.colorbar(map1)
-dr_string = ', '+"{:.1f}".format(1e6*rgrid_macro[kr_steps[1]]) +' mum'
+dr_string = ', dr = '+"{:.1f}".format(1e6*rgrid_macro[kr_steps[1]]) +' mum'
 plt.title('Error' + dr_string)
 plt.xlabel('H [-]')
 plt.ylabel('r [m]')
@@ -146,11 +146,11 @@ plt.show()
 
 # vmin = np.max(np.log(Gaborr))-6.
 fig, ax = plt.subplots()  
-Hankel_errors_logscale = np.log(abs(Hankel_errors[2].T))
+Hankel_errors_logscale = np.log10(abs(Hankel_errors[2].T))
 map1 = ax.pcolor(Hgrid_select,rgrid_FF,Hankel_errors_logscale, shading='auto')
 # plt.pcolor(t_Gr,o_Gr/omega0,(np.log(Gaborr)).T, shading='auto',vmin=vmin)
 fig.colorbar(map1)
-dr_string = ', '+"{:.1f}".format(1e6*rgrid_macro[kr_steps[2]]) +' mum'
+dr_string = ', dr = '+"{:.1f}".format(1e6*rgrid_macro[kr_steps[2]]) +' mum'
 plt.title('Error' + dr_string)
 plt.xlabel('H [-]')
 plt.ylabel('r [m]')

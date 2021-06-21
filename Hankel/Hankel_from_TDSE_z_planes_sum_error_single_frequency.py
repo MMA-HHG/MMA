@@ -71,7 +71,7 @@ omega_au2SI = mn.ConvertPhoton(1.0, 'omegaau', 'omegaSI')
 ogridSI = omega_au2SI * ogrid
 
 Hgrid = ogrid/omega0
-Hvalue = 18 # [14, 36]
+Hvalue = 17 # [14, 36]
 
 Nz_max_sum = 41
 kz_steps = [8,4,2,1] # descending order, tha last is "the most accurate"
@@ -102,7 +102,7 @@ for k1 in range(len(zgrid_macro)):
     FField_FF = Hfn2.HankelTransform(ogrid_select_SI,
                                      rgrid_macro[0:Nr_max:kr_step],
                                      FSourceTerm_select,
-                                     0.3,
+                                     0.3-zgrid_macro[k1], # adjust the distance
                                      rgrid_FF)
     
     if (k1 == 0): FField_FF_z = np.zeros( (len(zgrid_macro),) + FField_FF.shape,dtype=np.cdouble)  
@@ -155,10 +155,16 @@ plt.show()
 
 fig = plt.figure()
 for k1 in range(35):
-    plt.plot(rgrid_FF,np.unwrap(np.angle(FField_FF_z[k1,0,:])))
+    plt.plot(1e6*rgrid_FF,np.unwrap(np.angle(FField_FF_z[k1,0,:])))
+plt.title('phase(S) (30 cm), singleplanes')
+plt.xlabel('r [mum]')
+plt.ylabel('phase [rad]')
 plt.show()
 
 fig = plt.figure()
 for k1 in range(35):
-    plt.plot(rgrid_FF,abs(FField_FF_z[k1,0,:]))
+    plt.plot(1e6*rgrid_FF,abs(FField_FF_z[k1,0,:]))
+plt.title('Far-field |S| (30 cm), singleplanes')
+plt.xlabel('r [mum]')
+plt.ylabel('|S| [arb. u.]')
 plt.show()

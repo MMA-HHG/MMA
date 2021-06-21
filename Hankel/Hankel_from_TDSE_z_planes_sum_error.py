@@ -61,19 +61,19 @@ print('data loaded:')
 
 Nr_max = 235 #470; 235; 155-still fine
 kr_step = 2 # descending order, tha last is "the most accurate"
-ko_step = 5
+ko_step = 2
 
 rmax_FF = 8*1e-4
 Nr_FF = 200
 
-FF_orders_plot = 10
+FF_orders_plot = 4
 
 omega_au2SI = mn.ConvertPhoton(1.0, 'omegaau', 'omegaSI')
 ogridSI = omega_au2SI * ogrid
 
 
 Hgrid = ogrid/omega0
-Hrange = [17, 18] # [14, 36]
+Hrange = [16, 20] # [14, 36] [17, 18]
 H_indices = [mn.FindInterval(Hgrid,Hvalue) for Hvalue in Hrange]
 
 Nz_max_sum = 41
@@ -105,7 +105,7 @@ for k1 in range(Nz_max_sum):
     FField_FF = Hfn2.HankelTransform(ogrid_select_SI,
                                      rgrid_macro[0:Nr_max:kr_step],
                                      FSourceTerm_select,
-                                     0.3,
+                                     0.3-zgrid_macro[k1],
                                      rgrid_FF)
     
     if (k1 == 0): FField_FF_z = np.zeros( (Nz_max_sum,) + FField_FF.shape,dtype=np.cdouble)  
@@ -142,19 +142,19 @@ for k1 in range(len(kz_steps)):
 Hankel_errors = []
 for k1 in range(len(kz_steps)-1):
     Hankel_errors.append(
-                         (FField_FF_z_sum[k1+1]-FField_FF_z_sum[k1])/np.max(abs(FField_FF_z_sum[k1+1]))
+                         (FField_FF_z_sum[k1]-FField_FF_z_sum[-1])/np.max(abs(FField_FF_z_sum[-1]))
                          )
     
 Hgrid_select = Hgrid[H_indices[0]:H_indices[1]:ko_step]
 
 # vmin = np.max(np.log(Gaborr))-6.
 fig, ax = plt.subplots()  
-Hankel_errors_logscale = np.log(abs(Hankel_errors[0].T))
+Hankel_errors_logscale = np.log10(abs(Hankel_errors[0].T))
 map1 = ax.pcolor(Hgrid_select,rgrid_FF,Hankel_errors_logscale, shading='auto')
 # plt.pcolor(t_Gr,o_Gr/omega0,(np.log(Gaborr)).T, shading='auto',vmin=vmin)
 fig.colorbar(map1)
-# dr_string = ', '+"{:.1f}".format(1e6*rgrid_macro[kr_steps[0]]) +' mum'
-plt.title('Error 1')
+dz_string = ', '+"{:.1f}".format(1e6*(zgrid_macro[39]-zgrid_macro[31])) +' mum'
+plt.title('Error' + dz_string)
 plt.xlabel('H [-]')
 plt.ylabel('r [m]')
 plt.show()
@@ -162,12 +162,12 @@ plt.show()
 
 # vmin = np.max(np.log(Gaborr))-6.
 fig, ax = plt.subplots()  
-Hankel_errors_logscale = np.log(abs(Hankel_errors[1].T))
+Hankel_errors_logscale = np.log10(abs(Hankel_errors[1].T))
 map1 = ax.pcolor(Hgrid_select,rgrid_FF,Hankel_errors_logscale, shading='auto')
 # plt.pcolor(t_Gr,o_Gr/omega0,(np.log(Gaborr)).T, shading='auto',vmin=vmin)
 fig.colorbar(map1)
-# dr_string = ', '+"{:.1f}".format(1e6*rgrid_macro[kr_steps[0]]) +' mum'
-plt.title('Error 2')
+dz_string = ', '+"{:.1f}".format(1e6*(zgrid_macro[39]-zgrid_macro[35])) +' mum'
+plt.title('Error' + dz_string)
 plt.xlabel('H [-]')
 plt.ylabel('r [m]')
 plt.show()
@@ -175,17 +175,56 @@ plt.show()
 
 # vmin = np.max(np.log(Gaborr))-6.
 fig, ax = plt.subplots()  
-Hankel_errors_logscale = np.log(abs(Hankel_errors[2].T))
+Hankel_errors_logscale = np.log10(abs(Hankel_errors[2].T))
 map1 = ax.pcolor(Hgrid_select,rgrid_FF,Hankel_errors_logscale, shading='auto')
 # plt.pcolor(t_Gr,o_Gr/omega0,(np.log(Gaborr)).T, shading='auto',vmin=vmin)
 fig.colorbar(map1)
-# dr_string = ', '+"{:.1f}".format(1e6*rgrid_macro[kr_steps[0]]) +' mum'
-plt.title('Error 3')
+dz_string = ', '+"{:.1f}".format(1e6*(zgrid_macro[39]-zgrid_macro[37])) +' mum'
+plt.title('Error' + dz_string)
 plt.xlabel('H [-]')
 plt.ylabel('r [m]')
 plt.show()
 # plt.close(fig)
 
+# vmin = np.max(np.log(Gaborr))-6.
+fig, ax = plt.subplots()   
+FF_spectrum_logscale = np.log10(abs(np.squeeze(FField_FF_z[0,:,:]).T)**2);
+vmin = np.max(FF_spectrum_logscale)-FF_orders_plot
+map1 = ax.pcolor(Hgrid_select,rgrid_FF,FF_spectrum_logscale, shading='auto',vmin=vmin)
+# plt.pcolor(t_Gr,o_Gr/omega0,(np.log(Gaborr)).T, shading='auto',vmin=vmin)
+fig.colorbar(map1)
+plt.title('Far-field spectrum (30 cm), entry, log')
+plt.xlabel('H [-]')
+plt.ylabel('r [m]')
+plt.show()
+# plt.close(fig)
+
+
+# vmin = np.max(np.log(Gaborr))-6.
+fig, ax = plt.subplots()   
+FF_spectrum_logscale = np.log10(abs(np.squeeze(FField_FF_z[Nz_max_sum-1,:,:]).T)**2);
+vmin = np.max(FF_spectrum_logscale)-FF_orders_plot
+map1 = ax.pcolor(Hgrid_select,rgrid_FF,FF_spectrum_logscale, shading='auto',vmin=vmin)
+# plt.pcolor(t_Gr,o_Gr/omega0,(np.log(Gaborr)).T, shading='auto',vmin=vmin)
+fig.colorbar(map1)
+plt.title('Far-field spectrum (30 cm), 40pl, log')
+plt.xlabel('H [-]')
+plt.ylabel('r [m]')
+plt.show()
+# plt.close(fig)
+
+# vmin = np.max(np.log(Gaborr))-6.
+fig, ax = plt.subplots()   
+FF_spectrum_logscale = np.log10(abs(FField_FF_z_sum[-1].T)**2);
+vmin = np.max(FF_spectrum_logscale)-FF_orders_plot
+map1 = ax.pcolor(Hgrid_select,rgrid_FF,FF_spectrum_logscale, shading='auto',vmin=vmin)
+# plt.pcolor(t_Gr,o_Gr/omega0,(np.log(Gaborr)).T, shading='auto',vmin=vmin)
+fig.colorbar(map1)
+plt.title('Far-field spectrum (30 cm), integrated, log')
+plt.xlabel('H [-]')
+plt.ylabel('r [m]')
+plt.show()
+# plt.close(fig)
 # sys.exit()
 
 # fig = plt.figure()
