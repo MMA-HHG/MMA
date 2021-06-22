@@ -26,8 +26,8 @@ which h5pcc
 export HDF5_USE_SHLIB=yes # default static lib fore h5pcc
 mpicc -c $TDSE_1D_SOURCE/constants.c $TDSE_1D_SOURCE/tools_algorithmic.c $TDSE_1D_SOURCE/tools_MPI-RMA.c $TDSE_1D_SOURCE/tools_hdf5.c $TDSE_1D_SOURCE/tridiag.c $TDSE_1D_SOURCE/tools_fftw3.c $TDSE_1D_SOURCE/tools.c $TDSE_1D_SOURCE/prop.c $TDSE_1D_SOURCE/singleTDSE.c $TDSE_1D_SOURCE/strided_scheduler_separated_outs_coarsen_test.c -L$HDF5_LIBDIR -lhdf5 -lhdf5_hl -lfftw3
 #h5pcc *.o -shlib -L$HDF5_LIBDIR -lhdf5 -lhdf5_hl -lm -lfftw3 -o H-test_strided3.e
-mpicc *.o  -L$HDF5_LIBDIR -lhdf5 -lhdf5_hl -lm -lfftw3 -o TDSEs_compilation1.e
-cksum TDSEs_compilation1.e
+mpicc *.o  -L$HDF5_LIBDIR -lhdf5 -lhdf5_hl -lm -lfftw3 -o TDSEs_compilation2.e
+cksum TDSEs_compilation2.e
 rm *.o
 
 
