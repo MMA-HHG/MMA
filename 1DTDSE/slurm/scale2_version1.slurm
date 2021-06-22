@@ -28,6 +28,6 @@ export I_MPI_ADJUST_ALLTOALL=3
  export I_MPI_PIN=1
  export I_MPI_DEBUG=+6
 
-ldd ./test_strided3.e
+ldd ./H-test_strided3.e
 
-mpirun -n $SLURM_NTASKS ./test_strided3.e > logfile.log-$SLURM_JOBID
+mpirun -n $SLURM_NTASKS ./H-test_strided3.e > logfile.log-$SLURM_JOBID

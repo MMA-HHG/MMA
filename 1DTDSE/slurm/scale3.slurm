@@ -2,8 +2,8 @@
 #SBATCH -J TDSE_2mm
 #SBATCH  --constraint=HSW24  
 #SBATCH  --exclusive
-#SBATCH  --nodes=80
-#SBATCH  --ntasks=1920
+#SBATCH  --nodes=40
+#SBATCH  --ntasks=960
 #SBATCH  --ntasks-per-node=24 
 #SBATCH  --threads-per-core=1
 #SBATCH  --time=24:00:00 
