@@ -1,13 +1,13 @@
 #!/bin/bash
-#SBATCH -J MPI-s1-v1
+#SBATCH -J MPI-scale3
 #SBATCH  --constraint=HSW24  
 #SBATCH  --exclusive
-#SBATCH  --nodes=5
-#SBATCH  --ntasks=120
+#SBATCH  --nodes=80
+#SBATCH  --ntasks=1920
 #SBATCH  --ntasks-per-node=24 
 #SBATCH  --threads-per-core=1
 #SBATCH  --time=24:00:00 
-#SBATCH  --output=MPI_s1_v1-%J.out
+#SBATCH  --output=MPI-%J.out
 module purge
 module load intel/18.1 intelmpi/2018.1.163 hdf5/1.10.4 
 module load fftw/3.3.8
@@ -28,6 +28,8 @@ export I_MPI_ADJUST_ALLTOALL=3
  export I_MPI_PIN=1
  export I_MPI_DEBUG=+6
 
-ldd ./H-test_strided3.e
+ldd ./TDSEs_compilation1.e
 
-mpirun -n $SLURM_NTASKS ./H-test_strided3.e > logfile.log-$SLURM_JOBID
+cksum TDSEs_compilation1.e
+
+mpirun -n $SLURM_NTASKS ./TDSEs_compilation1.e > logfile.log-$SLURM_JOBID
