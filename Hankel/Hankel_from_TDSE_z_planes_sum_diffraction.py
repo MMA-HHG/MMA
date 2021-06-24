@@ -23,6 +23,12 @@ XUV_table_type = 'NIST' # {Henke, NIST}
 # f1 = XUV_index.getf1(gas_type+'_'+XUV_table_type, mn.ConvertPhoton(q*res.omega0, 'omegaSI', 'eV'))
 f1 = XUV_index.getf1(gas_type+'_'+XUV_table_type, mn.ConvertPhoton(20e-9, 'lambdaSI', 'eV'))
 
+f_abs = XUV_index.getf2(gas_type+'_'+XUV_table_type, mn.ConvertPhoton(20e-9, 'lambdaSI', 'eV'))
+
+# f2 = XUV_index.getf2(gas_type+'_'+XUV_table_type, mn.ConvertPhoton(50e-9, 'lambdaSI', 'eV'))
+# f1f2 = XUV_index.getf(gas_type+'_'+XUV_table_type, mn.ConvertPhoton(20e-9, 'lambdaSI', 'eV'))
+
+
 
 
 
