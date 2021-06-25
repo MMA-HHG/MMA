@@ -21,9 +21,9 @@ XUV_table_type = 'NIST' # {Henke, NIST}
 
 
 # f1 = XUV_index.getf1(gas_type+'_'+XUV_table_type, mn.ConvertPhoton(q*res.omega0, 'omegaSI', 'eV'))
-f1 = XUV_index.getf1(gas_type+'_'+XUV_table_type, mn.ConvertPhoton(20e-9, 'lambdaSI', 'eV'))
+# f1 = XUV_index.getf1(gas_type+'_'+XUV_table_type, mn.ConvertPhoton(20e-9, 'lambdaSI', 'eV'))
 
-f_abs = XUV_index.getf2(gas_type+'_'+'Henke', [mn.ConvertPhoton(10e-9, 'lambdaSI', 'eV'), mn.ConvertPhoton(20e-9, 'lambdaSI', 'eV')])
+# f_abs = XUV_index.getf2(gas_type+'_'+'Henke', [mn.ConvertPhoton(10e-9, 'lambdaSI', 'eV'), mn.ConvertPhoton(20e-9, 'lambdaSI', 'eV')])
 
 # f2 = XUV_index.getf2(gas_type+'_'+XUV_table_type, mn.ConvertPhoton(50e-9, 'lambdaSI', 'eV'))
 # f1f2 = XUV_index.getf(gas_type+'_'+XUV_table_type, mn.ConvertPhoton(20e-9, 'lambdaSI', 'eV'))
@@ -127,6 +127,14 @@ for k1 in range(len(zgrid_macro)):
     FField_FF_z[k1,:,:] = FField_FF                    
 
 
+# FField_FF_z_sum = []
+# for k1 in range(len(kz_steps)):
+#     FField_FF_z_sum.append(FField_FF_z[0,0,:])
+#     for k2 in range(kz_steps[k1],Nz_max_sum,kz_steps[k1]):
+#         FField_FF_z_sum[k1] = FField_FF_z_sum[k1] + FField_FF_z[k2,0,:]
+#     FField_FF_z_sum[k1] = FField_FF_z_sum[k1] / len(range(0,Nz_max_sum,kz_steps[k1]))
+ 
+# Sum all the planes   
 FField_FF_z_sum = []
 for k1 in range(len(kz_steps)):
     FField_FF_z_sum.append(FField_FF_z[0,0,:])

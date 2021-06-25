@@ -125,7 +125,7 @@ plasma_map = Plasma[:,:,-1]
 # vmin = np.max(np.log(Gaborr))-6.
 fig, ax = plt.subplots()   
 map1 = ax.pcolor(zgrid_macro, rgrid_macro, 100*(1.0-plasma_map), shading='auto', cmap='plasma')
-# plt.pcolor(t_Gr,o_Gr/omega0,(np.log(Gaborr)).T, shading='auto',vmin=vmin)1
+# plt.pcolor(t_Gr,o_Gr/omega0,(np.log(Gaborr)).T, shading='auto',vmin=vmin)
 fig.colorbar(map1)
 plt.title('plasma, t_end')
 # plt.xlabel('H [-]')
