@@ -111,12 +111,13 @@ plasma_map = Plasma[:,:,index_t0]
 
 # vmin = np.max(np.log(Gaborr))-6.
 fig, ax = plt.subplots()   
-map1 = ax.pcolor(zgrid_macro, rgrid_macro, 100*(1.0-plasma_map), shading='auto', cmap='plasma')
+map1 = ax.pcolor(1e3*zgrid_macro, 1e6*rgrid_macro, 100*(1.0-plasma_map), shading='auto', cmap='plasma')
 # plt.pcolor(t_Gr,o_Gr/omega0,(np.log(Gaborr)).T, shading='auto',vmin=vmin)
 fig.colorbar(map1)
 plt.title('plasma, t=0 fs')
-# plt.xlabel('H [-]')
-# plt.ylabel('r [m]')
+plt.xlabel('z [mm]')
+plt.ylabel('r [mum]')
+plt.ylim([0, 130])
 plt.show()
 # plt.close(fig)
 
@@ -124,12 +125,13 @@ plt.show()
 plasma_map = Plasma[:,:,-1]
 # vmin = np.max(np.log(Gaborr))-6.
 fig, ax = plt.subplots()   
-map1 = ax.pcolor(zgrid_macro, rgrid_macro, 100*(1.0-plasma_map), shading='auto', cmap='plasma')
+map1 = ax.pcolor(1e3*zgrid_macro, 1e6*rgrid_macro, 100*(1.0-plasma_map), shading='auto', cmap='plasma')
 # plt.pcolor(t_Gr,o_Gr/omega0,(np.log(Gaborr)).T, shading='auto',vmin=vmin)
 fig.colorbar(map1)
 plt.title('plasma, t_end')
-# plt.xlabel('H [-]')
-# plt.ylabel('r [m]')
+plt.xlabel('z [mm]')
+plt.ylabel('r [mum]')
+plt.ylim([0, 130])
 plt.show()
 # plt.close(fig)
 

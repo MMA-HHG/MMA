@@ -107,10 +107,10 @@ ogridSI = omega_au2SI * ogrid
 
 
 Hgrid = ogrid/omega0
-Hrange = [17, 18] # [14, 36] [17, 18] [16, 20]
+Hrange = [14, 22] # [17, 18] # [14, 36] [17, 18] [16, 20]
 H_indices = [mn.FindInterval(Hgrid,Hvalue) for Hvalue in Hrange]
 
-Nz_max_sum = 30 # 41
+Nz_max_sum = 41 # 41
 kz_steps = [8,4,2,1] # descending order, tha last is "the most accurate"
 
 # H_index = mn.FindInterval(Hgrid,Hvalue)
@@ -160,13 +160,40 @@ absorption_15mm = np.outer(zgrid_macro-15e-3 ,absorbing_factor)
 absorption_e_15mm = np.exp(absorption_15mm)
 
 
+# longitudinal phase
 
+# on axis
+
+
+Hphase = 17
+Hgrid_select = Hgrid[H_indices[0]:H_indices[1]:ko_step]
+k_Hphase = mn.FindInterval(Hgrid, Hphase)
+k_Hphase_select = mn.FindInterval(Hgrid_select, Hphase)
+
+fig = plt.figure()
+plt.plot(1e3*zgrid_macro[:Nz_max_sum],np.unwrap(np.angle(FSourceTerm[0,:Nz_max_sum,k_Hphase]))) 
+plt.title('on-axis phase, group-velocity frame, H17')
+plt.xlabel('z [mm]')
+plt.ylabel('phi [rad]')
+plt.show()
+
+
+dum = np.squeeze(dephase_e[:Nz_max_sum,k_Hphase_select])*np.squeeze(FSourceTerm[0,:Nz_max_sum,k_Hphase])
+
+fig = plt.figure()
+plt.plot(1e3*zgrid_macro[:Nz_max_sum],np.unwrap(np.angle(dum[:Nz_max_sum]))) 
+plt.title('on-axis phase, XUV frame, H17')
+plt.xlabel('z [mm]')
+plt.ylabel('phi [rad]')
+plt.show()
+
+# sys.exit()
 # sys.exit()
 
 
 
-include_dispersion = True   
-include_absorption  = True
+# include_dispersion = True   
+# include_absorption  = True
 
 # FField_FF = []
 # FField_FF_scaled = []
@@ -244,8 +271,11 @@ FField_FF_int = dum
 FField_FF_int_adj = dum2
 FField_FF_int_adj_abs = dum3
 
-diff_full = FField_FF_int_adj_abs - FField_FF_int
-diff_disp = FField_FF_int_adj - FField_FF_int
+diff_full = (FField_FF_int_adj_abs - FField_FF_int)/np.max(FField_FF_int)
+diff_disp = (FField_FF_int_adj - FField_FF_int)/np.max(FField_FF_int)
+
+diff_full_a = (abs(FField_FF_int_adj_abs) - abs(FField_FF_int))/np.max(FField_FF_int)
+diff_disp_a = (abs(FField_FF_int_adj) - abs(FField_FF_int))/np.max(FField_FF_int)
 
 
 Hgrid_select = Hgrid[H_indices[0]:H_indices[1]:ko_step]
@@ -293,6 +323,78 @@ plt.ylabel('r [m]')
 plt.show()
 # plt.close(fig)
 # sys.exit()
+
+# vmin = np.max(np.log(Gaborr))-6.
+fig, ax = plt.subplots()   
+FF_spectrum_logscale = np.log10(abs(FField_FF_int_adj_abs.T)**2);
+vmin = np.max(FF_spectrum_logscale)-FF_orders_plot
+map1 = ax.pcolor(Hgrid_select,rgrid_FF,FF_spectrum_logscale, shading='auto',vmin=vmin)
+# plt.pcolor(t_Gr,o_Gr/omega0,(np.log(Gaborr)).T, shading='auto',vmin=vmin)
+fig.colorbar(map1)
+plt.title('Far-field spectrum (30 cm), integrated, disp + abs, log')
+plt.xlabel('H [-]')
+plt.ylabel('r [m]')
+plt.show()
+# plt.close(fig)
+# sys.exit()
+
+# vmin = np.max(np.log(Gaborr))-6.
+fig, ax = plt.subplots()   
+FF_spectrum_logscale = np.log10(abs(diff_full.T)**2);
+vmin = np.max(FF_spectrum_logscale)-FF_orders_plot
+map1 = ax.pcolor(Hgrid_select,rgrid_FF,FF_spectrum_logscale, shading='auto',vmin=vmin)
+# plt.pcolor(t_Gr,o_Gr/omega0,(np.log(Gaborr)).T, shading='auto',vmin=vmin)
+fig.colorbar(map1)
+plt.title('Error, disp + abs, log')
+plt.xlabel('H [-]')
+plt.ylabel('r [m]')
+plt.show()
+# plt.close(fig)
+# sys.exit()
+
+# vmin = np.max(np.log(Gaborr))-6.
+fig, ax = plt.subplots()   
+FF_spectrum_logscale = np.log10(abs(diff_disp.T)**2);
+vmin = np.max(FF_spectrum_logscale)-FF_orders_plot
+map1 = ax.pcolor(Hgrid_select,rgrid_FF,FF_spectrum_logscale, shading='auto',vmin=vmin)
+# plt.pcolor(t_Gr,o_Gr/omega0,(np.log(Gaborr)).T, shading='auto',vmin=vmin)
+fig.colorbar(map1)
+plt.title('Error, disp, log')
+plt.xlabel('H [-]')
+plt.ylabel('r [m]')
+plt.show()
+# plt.close(fig)
+# sys.exit()
+
+
+# vmin = np.max(np.log(Gaborr))-6.
+fig, ax = plt.subplots()   
+FF_spectrum_logscale = np.log10(abs(diff_full_a.T)**2);
+vmin = np.max(FF_spectrum_logscale)-FF_orders_plot
+map1 = ax.pcolor(Hgrid_select,rgrid_FF,FF_spectrum_logscale, shading='auto',vmin=vmin)
+# plt.pcolor(t_Gr,o_Gr/omega0,(np.log(Gaborr)).T, shading='auto',vmin=vmin)
+fig.colorbar(map1)
+plt.title('Error, disp + abs, log, a')
+plt.xlabel('H [-]')
+plt.ylabel('r [m]')
+plt.show()
+# plt.close(fig)
+# sys.exit()
+
+# vmin = np.max(np.log(Gaborr))-6.
+fig, ax = plt.subplots()   
+FF_spectrum_logscale = np.log10(abs(diff_disp_a.T)**2);
+vmin = np.max(FF_spectrum_logscale)-FF_orders_plot
+map1 = ax.pcolor(Hgrid_select,rgrid_FF,FF_spectrum_logscale, shading='auto',vmin=vmin)
+# plt.pcolor(t_Gr,o_Gr/omega0,(np.log(Gaborr)).T, shading='auto',vmin=vmin)
+fig.colorbar(map1)
+plt.title('Error, disp, log, a')
+plt.xlabel('H [-]')
+plt.ylabel('r [m]')
+plt.show()
+# plt.close(fig)
+# sys.exit()
+
 
 # # vmin = np.max(np.log(Gaborr))-6.
 # fig, ax = plt.subplots()   
