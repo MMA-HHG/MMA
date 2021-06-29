@@ -1,7 +1,7 @@
 !=============================================================!
 ! Here is the main cuprad program, using the propagation loop.
 ! It prepares the calculation and then loop until finshed or 
-! estimated time limit is reached.
+! estimated time limit is reached.                              !!! NOT REIMPLEMENTED NOW
 !
 ! 
 ! The main developer of the code is Stefan Skupin. The code uses
@@ -26,6 +26,8 @@ PROGRAM cuprad
   INTEGER(4) :: tcount, count_rate, count_max
   !  REAL(8)  TREM
 
+  REAL(8) :: local_time_MPI
+
 !=====================
 ! INITIALISATION PHASE
 !=====================
@@ -36,6 +38,7 @@ PROGRAM cuprad
   CALL initialize
   limit_s=timelimit*3600
 
+  start_time_MPI = MPI_Wtime()
 
 !==========================
 ! MAIN COMPUTATIONAL PHASE
@@ -53,7 +56,17 @@ PROGRAM cuprad
          ENDIF
 
          IF(z_out.LE.z) THEN
+           local_time_MPI  = MPI_Wtime()
+           IF (my_rank.EQ.0) THEN
+            print *, '-------------------------------------------------------------------------------'
+            print *, "printing number:", output_write_count, ":"
+            print *, "before printing:", local_time_MPI - start_time_MPI
+           ENDIF
            CALL write_output
+           local_time_MPI  = MPI_Wtime()
+           IF (my_rank.EQ.0) THEN
+            print *, "after printing:", local_time_MPI - start_time_MPI
+           ENDIF           
            z_out = z_out + outlength
          ENDIF
 

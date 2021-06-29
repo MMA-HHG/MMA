@@ -60,9 +60,16 @@ CONTAINS
     CHARACTER(*), PARAMETER :: tgrid_dset_name =      out_grpname//"/tgrid"
     CHARACTER(*), PARAMETER :: rgrid_dset_name =      out_grpname//"/rgrid"
 
+    REAL(8) :: local_time_MPI
+
       
     field_dimensions = 3
     allocate(fields_array(1,dim_r_local,dim_t))
+
+local_time_MPI  = MPI_Wtime()
+IF (my_rank.EQ.0) THEN
+  print *, "before field conversion:", local_time_MPI - start_time_MPI
+ENDIF  
 
     r_offset = dim_r_start(num_proc)-1
     DO k1=1, dim_r_local
@@ -71,6 +78,11 @@ CONTAINS
       ! e(t,r)
     ENDDO
     ENDDO
+
+local_time_MPI  = MPI_Wtime()
+IF (my_rank.EQ.0) THEN
+  print *, "before plasma calculation:", local_time_MPI - start_time_MPI
+ENDIF  
 
     allocate(plasma_array(1,dim_r_local,dim_t))
     k1 = 1
@@ -118,6 +130,12 @@ CONTAINS
     dims = (/int(Nz_points,HSIZE_T),int(dim_r,HSIZE_T), int(dim_t,HSIZE_T)/)
     offset = (/int(output_write_count-1,HSIZE_T),int(dim_r_start(num_proc)-1,HSIZE_T),int(0,HSIZE_T)/)
     ccount = (/int(1,HSIZE_T), int(dim_r_local,HSIZE_T) , int(dim_t,HSIZE_T)/)
+
+local_time_MPI  = MPI_Wtime()
+IF (my_rank.EQ.0) THEN
+  print *, "before file openning:", local_time_MPI - start_time_MPI
+ENDIF  
+
     CALL h5open_f(error) 
     CALL h5pcreate_f(H5P_FILE_ACCESS_F, h5parameters, error) ! create HDF5 access parameters
     CALL h5pset_fapl_mpio_f(h5parameters, MPI_COMM_WORLD, MPI_INFO_NULL, error) ! set parameters for MPI access
@@ -146,7 +164,7 @@ CONTAINS
 	      CALL h5_add_units_1D(file_id, plasma_dset_name, '[m^(-3)]') 
 
         ! r and t grids saved in the first run
-	allocate(tgrid(dim_t),rgrid(dim_r)) ! space for grids: first itration, proc # 0
+	      allocate(tgrid(dim_t),rgrid(dim_r)) ! space for grids: first itration, proc # 0
         DO k1=1, dim_t
           tgrid(k1) = REAL( tps*(tlo+REAL(k1,8)*delta_t) , 4)
         ENDDO
@@ -168,9 +186,20 @@ CONTAINS
 
 
     ELSE !!!! APPENDING THE DATA IN NEXT ITERATIONS
+
+local_time_MPI  = MPI_Wtime()
+IF (my_rank.EQ.0) THEN
+  print *, "before data write:", local_time_MPI - start_time_MPI
+ENDIF  
+
       CALL write_hyperslab_to_dset_p(file_id, field_dset_name, fields_array, offset, ccount)
       CALL write_hyperslab_to_dset_p(file_id, plasma_dset_name, plasma_array, offset, ccount)
       CALL h5fclose_f(file_id,error)
+
+local_time_MPI  = MPI_Wtime()
+IF (my_rank.EQ.0) THEN
+  print *, "file collectivelly closed:", local_time_MPI - start_time_MPI
+ENDIF  
 
       IF (my_rank.EQ.0) THEN ! only one worker is extending the zgrid
         CALL h5open_f(error)  !Initialize HDF5
@@ -219,6 +248,12 @@ CONTAINS
       ELSE
         allocate(spect_array_2(1,1:dim_t),spect_array_3(1,1:dim_t), spect_array_4(1,1:dim_t),spect_array_5(1,1:dim_t))
       ENDIF
+
+local_time_MPI  = MPI_Wtime()
+IF (my_rank.EQ.0) THEN
+  print *, "second data write, file open, only 0th worker:", local_time_MPI - start_time_MPI
+ENDIF  
+
       CALL h5open_f(error)
       CALL h5fopen_f(main_h5_fname, H5F_ACC_RDWR_F, file_id, error)
       IF ( first ) THEN
@@ -255,6 +290,12 @@ CONTAINS
       ENDIF
       CALL h5fclose_f(file_id, error)
       CALL h5close_f(error) ! close the HDF5 workspace
+      
+local_time_MPI  = MPI_Wtime()
+IF (my_rank.EQ.0) THEN
+  print *, "second data write, file close, only 0th worker:", local_time_MPI - start_time_MPI
+ENDIF  
+
     ENDIF
     output_write_count = output_write_count + 1 !increase counter in all cases
     RETURN
