@@ -178,10 +178,21 @@ ENDIF
         CALL h5_add_units_1D(file_id, tgrid_dset_name, '[m]')
         deallocate(tgrid,rgrid)
 
+local_time_MPI  = MPI_Wtime()
+IF (my_rank.EQ.0) THEN
+  print *, "before data write:", local_time_MPI - start_time_MPI
+ENDIF  
+
         CALL create_1D_dset_unlimited(file_id, zgrid_dset_name, (/REAL(four_z_Rayleigh*z,4)/), 1) ! the actual z-coordinate in SI units 
         CALL h5_add_units_1D(file_id, zgrid_dset_name, '[m]')
 
         CALL h5fclose_f(file_id, error) ! close the file
+
+local_time_MPI  = MPI_Wtime()
+IF (my_rank.EQ.0) THEN
+  print *, "file collectivelly closed:", local_time_MPI - start_time_MPI
+ENDIF
+
       ENDIF ! single-write end
 
 
@@ -290,7 +301,7 @@ ENDIF
       ENDIF
       CALL h5fclose_f(file_id, error)
       CALL h5close_f(error) ! close the HDF5 workspace
-      
+
 local_time_MPI  = MPI_Wtime()
 IF (my_rank.EQ.0) THEN
   print *, "second data write, file close, only 0th worker:", local_time_MPI - start_time_MPI
