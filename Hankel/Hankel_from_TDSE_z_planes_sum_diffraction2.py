@@ -36,8 +36,6 @@ def f2_funct(E):
 # f1f2 = XUV_index.getf(gas_type+'_'+XUV_table_type, mn.ConvertPhoton(20e-9, 'lambdaSI', 'eV'))
 
 
-
-
 arguments = sys.argv
 
 showplots = not('-nodisplay' in arguments)
@@ -90,8 +88,15 @@ with h5py.File(file_CUPRAD, 'r') as InputArchiveCUPRAD, h5py.File(file_TDSE, 'r'
 
 print('data loaded:')
 
+outfile = 'Hankel.h5'
 
-
+try:
+    os.remove(outfile)
+    print("previous results deleted")
+except:
+    print("no files deleted")
+    
+sys.exit()
 
 Nr_max = 235 #470; 235; 155-still fine
 kr_step = 2 # descending order, tha last is "the most accurate"
@@ -290,7 +295,7 @@ fig.colorbar(map1)
 plt.title('Far-field spectrum (30 cm), integrated, log')
 plt.xlabel('H [-]')
 plt.ylabel('r [m]')
-plt.show()
+if showplots: plt.show()
 # plt.close(fig)
 # sys.exit()
 
@@ -305,7 +310,7 @@ fig.colorbar(map1)
 plt.title('Far-field spectrum (30 cm), integrated, dispersion, log')
 plt.xlabel('H [-]')
 plt.ylabel('r [m]')
-plt.show()
+if showplots: plt.show()
 # plt.close(fig)
 # sys.exit()
 
@@ -320,7 +325,7 @@ fig.colorbar(map1)
 plt.title('Far-field spectrum (30 cm), integrated, disp + abs, log')
 plt.xlabel('H [-]')
 plt.ylabel('r [m]')
-plt.show()
+if showplots: plt.show()
 # plt.close(fig)
 # sys.exit()
 
@@ -334,7 +339,7 @@ fig.colorbar(map1)
 plt.title('Far-field spectrum (30 cm), integrated, disp + abs, log')
 plt.xlabel('H [-]')
 plt.ylabel('r [m]')
-plt.show()
+if showplots: plt.show()
 # plt.close(fig)
 # sys.exit()
 
@@ -348,7 +353,7 @@ fig.colorbar(map1)
 plt.title('Error, disp + abs, log')
 plt.xlabel('H [-]')
 plt.ylabel('r [m]')
-plt.show()
+if showplots: plt.show()
 # plt.close(fig)
 # sys.exit()
 
@@ -362,7 +367,7 @@ fig.colorbar(map1)
 plt.title('Error, disp, log')
 plt.xlabel('H [-]')
 plt.ylabel('r [m]')
-plt.show()
+if showplots: plt.show()
 # plt.close(fig)
 # sys.exit()
 
@@ -377,7 +382,7 @@ fig.colorbar(map1)
 plt.title('Error, disp + abs, log, a')
 plt.xlabel('H [-]')
 plt.ylabel('r [m]')
-plt.show()
+if showplots: plt.show()
 # plt.close(fig)
 # sys.exit()
 
@@ -391,7 +396,7 @@ fig.colorbar(map1)
 plt.title('Error, disp, log, a')
 plt.xlabel('H [-]')
 plt.ylabel('r [m]')
-plt.show()
+if showplots: plt.show()
 # plt.close(fig)
 # sys.exit()
 

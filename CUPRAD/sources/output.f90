@@ -152,11 +152,26 @@ ENDIF
       ENDIF
           
       ! Call writing routine
+local_time_MPI  = MPI_Wtime()
+IF (my_rank.EQ.0) THEN
+  print *, "before data write:", local_time_MPI - start_time_MPI
+ENDIF  
+
       CALL create_3D_array_real_dset_p(file_id, field_dset_name, fields_array, dims, offset, ccount)
+
+local_time_MPI  = MPI_Wtime()
+IF (my_rank.EQ.0) THEN
+  print *, "fields written:", local_time_MPI - start_time_MPI
+ENDIF 
       CALL create_3D_array_real_dset_p(file_id, plasma_dset_name, plasma_array, dims, offset, ccount)
 
       ! Terminate
       CALL h5fclose_f(file_id,error)
+
+local_time_MPI  = MPI_Wtime()
+IF (my_rank.EQ.0) THEN
+  print *, "file collectivelly closed:", local_time_MPI - start_time_MPI
+ENDIF
 
       IF (my_rank.EQ.0) THEN ! single-write start
         CALL h5fopen_f (main_h5_fname, H5F_ACC_RDWR_F, file_id, error) ! Open an existing file.
@@ -178,20 +193,12 @@ ENDIF
         CALL h5_add_units_1D(file_id, tgrid_dset_name, '[m]')
         deallocate(tgrid,rgrid)
 
-local_time_MPI  = MPI_Wtime()
-IF (my_rank.EQ.0) THEN
-  print *, "before data write:", local_time_MPI - start_time_MPI
-ENDIF  
 
         CALL create_1D_dset_unlimited(file_id, zgrid_dset_name, (/REAL(four_z_Rayleigh*z,4)/), 1) ! the actual z-coordinate in SI units 
         CALL h5_add_units_1D(file_id, zgrid_dset_name, '[m]')
 
         CALL h5fclose_f(file_id, error) ! close the file
 
-local_time_MPI  = MPI_Wtime()
-IF (my_rank.EQ.0) THEN
-  print *, "file collectivelly closed:", local_time_MPI - start_time_MPI
-ENDIF
 
       ENDIF ! single-write end
 
@@ -204,6 +211,12 @@ IF (my_rank.EQ.0) THEN
 ENDIF  
 
       CALL write_hyperslab_to_dset_p(file_id, field_dset_name, fields_array, offset, ccount)
+
+local_time_MPI  = MPI_Wtime()
+IF (my_rank.EQ.0) THEN
+  print *, "fields written:", local_time_MPI - start_time_MPI
+ENDIF 
+
       CALL write_hyperslab_to_dset_p(file_id, plasma_dset_name, plasma_array, offset, ccount)
       CALL h5fclose_f(file_id,error)
 
