@@ -88,10 +88,10 @@ with h5py.File(file_CUPRAD, 'r') as InputArchiveCUPRAD, h5py.File(file_TDSE, 'r'
 
 print('data loaded:')
 
-outfile = 'Hankel.h5'
+out_h5name = 'Hankel.h5'
 
 try:
-    os.remove(outfile)
+    os.remove(out_h5name)
     print("previous results deleted")
 except:
     print("no files deleted")
@@ -180,7 +180,7 @@ plt.plot(1e3*zgrid_macro[:Nz_max_sum],np.unwrap(np.angle(FSourceTerm[0,:Nz_max_s
 plt.title('on-axis phase, group-velocity frame, H17')
 plt.xlabel('z [mm]')
 plt.ylabel('phi [rad]')
-plt.show()
+if showplots: plt.show()
 
 
 dum = np.squeeze(dephase_e[:Nz_max_sum,k_Hphase_select])*np.squeeze(FSourceTerm[0,:Nz_max_sum,k_Hphase])
@@ -190,7 +190,7 @@ plt.plot(1e3*zgrid_macro[:Nz_max_sum],np.unwrap(np.angle(dum[:Nz_max_sum])))
 plt.title('on-axis phase, XUV frame, H17')
 plt.xlabel('z [mm]')
 plt.ylabel('phi [rad]')
-plt.show()
+if showplots: plt.show()
 
 # sys.exit()
 # sys.exit()
@@ -282,6 +282,13 @@ diff_disp = (FField_FF_int_adj - FField_FF_int)/np.max(FField_FF_int)
 diff_full_a = (abs(FField_FF_int_adj_abs) - abs(FField_FF_int))/np.max(FField_FF_int)
 diff_disp_a = (abs(FField_FF_int_adj) - abs(FField_FF_int))/np.max(FField_FF_int)
 
+
+
+with h5py.File(out_h5name,'w') as OutFile:
+    grp = OutFile.create_group('XUV')
+    
+    
+    
 
 Hgrid_select = Hgrid[H_indices[0]:H_indices[1]:ko_step]
 
