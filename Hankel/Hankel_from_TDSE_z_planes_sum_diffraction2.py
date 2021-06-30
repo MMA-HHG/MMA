@@ -288,7 +288,9 @@ diff_disp_a = (abs(FField_FF_int_adj) - abs(FField_FF_int))/np.max(FField_FF_int
 
 with h5py.File(out_h5name,'w') as OutFile:
     grp = OutFile.create_group('XUV')
-    h5_FField_FF_int = grp.create_dataset('Spectrum_on_screen', data=FField_FF_int)
+    h5_FField_FF_int = grp.create_dataset('Spectrum_on_screen',
+                                          data = np.stack((FField_FF_int.real, FField_FF_int.imag),axis=-1)
+                                          )
     
     
     
