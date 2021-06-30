@@ -141,9 +141,9 @@ ENDIF
     offset = (/int(output_write_count-1,HSIZE_T),int(dim_r_start(num_proc)-1,HSIZE_T),int(0,HSIZE_T)/)
     ccount = (/int(1,HSIZE_T), int(dim_r_local,HSIZE_T) , int(dim_t,HSIZE_T)/)
 
-    dims_shape = (/int(dim_t,HSIZE_T), int(Nz_points,HSIZE_T),int(dim_r,HSIZE_T)/)
-    offset_shape = (/int(0,HSIZE_T),int(output_write_count-1,HSIZE_T),int(dim_r_start(num_proc)-1,HSIZE_T)/)
-    ccount_shape = (/int(dim_r_local,HSIZE_T) , int(dim_t,HSIZE_T), int(1,HSIZE_T)/)
+    dims_shape = (/int(dim_r,HSIZE_T), int(dim_t,HSIZE_T),int(Nz_points,HSIZE_T)/)
+    offset_shape = (/int(output_write_count-1,HSIZE_T),int(dim_r_start(num_proc)-1,HSIZE_T),int(0,HSIZE_T)/)
+    ccount_shape = (/int(dim_t,HSIZE_T), int(1,HSIZE_T),int(dim_r_local,HSIZE_T)/)
 
 local_time_MPI  = MPI_Wtime()
 IF (my_rank.EQ.0) THEN
