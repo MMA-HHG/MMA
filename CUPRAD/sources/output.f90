@@ -45,6 +45,9 @@ CONTAINS
     INTEGER(HID_T) :: group_id      ! Group identifier 
     INTEGER(HID_T) :: h5parameters  ! Property list identifier 
     INTEGER(HSIZE_T), DIMENSION(3) :: dims, offset, ccount
+
+    INTEGER(HSIZE_T), DIMENSION(3) :: dims_shape, offset_shape, ccount_shape ! for testing the shape
+
     INTEGER(HSIZE_T), DIMENSION(2) :: dims_2d, offset_2d, ccount_2d
     INTEGER                        :: error
     LOGICAL                        :: group_status
@@ -84,7 +87,10 @@ IF (my_rank.EQ.0) THEN
   print *, "before plasma calculation:", local_time_MPI - start_time_MPI
 ENDIF  
 
-    allocate(plasma_array(1,dim_r_local,dim_t))
+    ! allocate(plasma_array(1,dim_r_local,dim_t))
+
+    allocate(plasma_array(dim_r_local,dim_t,1))
+
     k1 = 1
     DO l=dim_r_start(num_proc),dim_r_end(num_proc)
       e_2=ABS(e(1:dim_t,l))**2
@@ -114,7 +120,11 @@ ENDIF
             CALL calc_rho(rhotemp,mpa,e_2(j),e_2(j+1))
          ENDIF
       ENDDO
-      plasma_array(1,k1,:) = REAL(plasma_normalisation_factor_m3*e_2KKm2,4) ! SI units
+      
+      ! plasma_array(1,k1,:) = REAL(plasma_normalisation_factor_m3*e_2KKm2,4) ! SI units
+
+      plasma_array(k1,:,1) = REAL(plasma_normalisation_factor_m3*e_2KKm2,4) ! SI units
+
       !plasma_array(1,k1,:) = REAL(e_2KKm2,4) ! SI units
       !plasma_array(1,k1,:) = REAL(e_2KKm2,4) ! computational units
       k1 = k1 + 1
@@ -130,6 +140,10 @@ ENDIF
     dims = (/int(Nz_points,HSIZE_T),int(dim_r,HSIZE_T), int(dim_t,HSIZE_T)/)
     offset = (/int(output_write_count-1,HSIZE_T),int(dim_r_start(num_proc)-1,HSIZE_T),int(0,HSIZE_T)/)
     ccount = (/int(1,HSIZE_T), int(dim_r_local,HSIZE_T) , int(dim_t,HSIZE_T)/)
+
+    dims_shape = (/int(dim_t,HSIZE_T), int(Nz_points,HSIZE_T),int(dim_r,HSIZE_T)/)
+    offset_shape = (int(0,HSIZE_T) /int(output_write_count-1,HSIZE_T),int(dim_r_start(num_proc)-1,HSIZE_T)/)
+    ccount_shape = (/int(dim_r_local,HSIZE_T) , int(dim_t,HSIZE_T), int(1,HSIZE_T)/)
 
 local_time_MPI  = MPI_Wtime()
 IF (my_rank.EQ.0) THEN
@@ -163,7 +177,7 @@ local_time_MPI  = MPI_Wtime()
 IF (my_rank.EQ.0) THEN
   print *, "fields written:", local_time_MPI - start_time_MPI
 ENDIF 
-      CALL create_3D_array_real_dset_p(file_id, plasma_dset_name, plasma_array, dims, offset, ccount)
+      CALL create_3D_array_real_dset_p(file_id, plasma_dset_name, plasma_array, dims_shape, offset_shape, ccount_shape)
 
       ! Terminate
       CALL h5fclose_f(file_id,error)
@@ -217,7 +231,7 @@ IF (my_rank.EQ.0) THEN
   print *, "fields written:", local_time_MPI - start_time_MPI
 ENDIF 
 
-      CALL write_hyperslab_to_dset_p(file_id, plasma_dset_name, plasma_array, offset, ccount)
+      CALL write_hyperslab_to_dset_p(file_id, plasma_dset_name, plasma_array, offset_shape, ccount_shape)
       CALL h5fclose_f(file_id,error)
 
 local_time_MPI  = MPI_Wtime()
