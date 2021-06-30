@@ -42,6 +42,8 @@ showplots = not('-nodisplay' in arguments)
 
 if ('-here' in arguments):
     results_path = os.getcwd()
+    results_CUPRAD = os.getcwd()
+    results_TDSE = os.getcwd()
 else:
     results_CUPRAD = os.path.join("D:\data", "Discharges", "TDSE", "t6")
     results_TDSE = os.path.join("D:\data", "Discharges", "TDSE", "TDSEH1")
@@ -112,7 +114,7 @@ ogridSI = omega_au2SI * ogrid
 
 
 Hgrid = ogrid/omega0
-Hrange = [14, 22] # [17, 18] # [14, 36] [17, 18] [16, 20]
+Hrange = [17, 18] # [17, 18] # [14, 36] [17, 18] [16, 20] [14, 22]
 H_indices = [mn.FindInterval(Hgrid,Hvalue) for Hvalue in Hrange]
 
 Nz_max_sum = 41 # 41
@@ -286,6 +288,7 @@ diff_disp_a = (abs(FField_FF_int_adj) - abs(FField_FF_int))/np.max(FField_FF_int
 
 with h5py.File(out_h5name,'w') as OutFile:
     grp = OutFile.create_group('XUV')
+    h5_FField_FF_int = grp.create_dataset('omegagrid_screen', data=FField_FF_int)
     
     
     
