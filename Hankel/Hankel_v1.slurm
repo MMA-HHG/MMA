@@ -4,7 +4,7 @@
 #SBATCH --constraint=[HSW24|BDW28]
 #SBATCH --ntasks=1
 #SBATCH --time=03:00:00
-#SBATCH --output coherence-maps-%J.output
+#SBATCH --output cHankel_testing-%J.output
 
 module purge
 module load intelpython3/2019.3
