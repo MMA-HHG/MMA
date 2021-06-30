@@ -485,7 +485,7 @@ subroutine preset_physics(test_number)
     case(19:21)
         Intensity_focus = 1.d18
         call save_or_replace(file_id, 'inputs/laser_focus_intensity_Gaussian', Intensity_focus, error, units_in = '[SI]')
-    case(23:289)
+    case(23:29)
         Intensity_focus = 1.8d18
         call save_or_replace(file_id, 'inputs/laser_focus_intensity_Gaussian', Intensity_focus, error, units_in = '[SI]')
     case(11,12)
