@@ -37,6 +37,81 @@ def HankelTransform(ogrid, rgrid, FField, distance, rgrid_FF, integrator = integ
 
     return FField_FF
 
+
+def HankelTransform_long(ogrid, rgrid, zgrid, FSourceTerm, # FSourceTerm(r,z,omega)
+                         distance, rgrid_FF,
+                         dispersion_function = None, absorption_function = None,
+                         integrator_Hankel = integrate.trapz, integrator_planes = 'trapezoidal'):
+    
+    No = len(ogrid); Nz = len(zgrid)
+    include_dispersion = not(dispersion_function is None)
+    include_absorption = not(absorption_function is None)    
+    
+    if include_dispersion:
+        dispersion_factor = np.empty(No)
+        for k1 in range(No):
+            dispersion_factor[k1] = ogrid[k1]*dispersion_function(ogrid[k1])        
+        
+    if include_absorption:
+        absorption_factor = np.empty(No)
+        for k1 in range(No):
+            absorption_factor[k1] = ogrid[k1]*absorption_function(ogrid[k1])
+      
+    # compute z-evolution of the factors        
+    if (include_dispersion and include_absorption):
+        factor_e = np.exp(
+                          1j*np.outer(zgrid,dispersion_factor) +
+                          np.outer(zgrid-zgrid[-1] ,absorption_factor)
+                          )
+    elif include_dispersion:
+        factor_e = np.exp(1j*np.outer(zgrid,dispersion_factor))
+        # dephasing_factor = ogrid_select_SI * ((1./group_velocity_IR) - (1./phase_velocities_XUV))
+        # dephase = np.outer(zgrid_macro,dephasing_factor)
+        # dephase_e = np.exp(1j*dephase)
+    elif include_absorption:
+        factor_e = np.exp(np.outer(zgrid-zgrid[-1] ,absorption_factor))     
+        # absorbing_factor = ogrid_select_SI * beta_factor / units.c_light
+        # absorption = np.outer(zgrid_macro-z_exit ,absorbing_factor)
+        # absorption_e = np.exp(absorption)   
+
+            
+    # we keep the data for now, consider on-the-fly change
+    print('Computing Hankel from planes')
+    for k1 in range(Nz):
+        print('plane', k1)
+        FSourceTerm_select = np.squeeze(FSourceTerm[:,k1,:]).T
+        FField_FF = HankelTransform(ogrid,
+                                  rgrid,
+                                  FSourceTerm_select,
+                                  distance-zgrid[k1],
+                                  rgrid_FF)
+        
+        if (k1 == 0): # allocate space
+            FField_FF_z = np.zeros( (Nz,) + FField_FF.shape,dtype=np.cdouble) 
+        
+        if (include_dispersion or include_absorption):  
+             FField_FF_z[k1,:,:] = np.outer(factor_e[k1,:],np.ones(FField_FF.shape[1]))*FField_FF
+        else:
+            FField_FF_z[k1,:,:] = FField_FF 
+    if (integrator_planes == 'trapezoidal'):        
+        for k1 in range(Nz-1):    
+            k_step = 1
+            if (k1 == 0):
+                dum = 0.5*(zgrid[(k1+1)*k_step]-zgrid[k1*k_step]) * \
+                      (FField_FF_z[k1*k_step,:,:] + FField_FF_z[(k1+1)*k_step,:,:])
+            else:
+                dum = dum + \
+                      0.5*(zgrid[(k1+1)*k_step]-zgrid[k1*k_step]) * \
+                      (FField_FF_z[k1*k_step,:,:] + FField_FF_z[(k1+1)*k_step,:,:])
+    else:
+        raise NotImplementedError('Only trapezoidal rule implemented now')
+        
+    return dum
+                
+                
+    
+    
+
 # def FieldOnScreen(k_start, k_num, NP, LP):
 # # this function computes the Hankel transform of a given source term in omega-domain stored in FField_r
 # # all the grids are specified in the inputs, except the analysis in omega_anal, this is specified by 'k_start' and 'k_num', it is used in the multiprocessing scheme
