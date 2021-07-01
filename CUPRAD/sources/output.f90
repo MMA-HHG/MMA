@@ -67,7 +67,7 @@ CONTAINS
 
       
     field_dimensions = 3
-    allocate(fields_array(1,dim_r_local,dim_t))
+    allocate(fields_array(dim_r_local,dim_t, 1))
 
 local_time_MPI  = MPI_Wtime()
 IF (my_rank.EQ.0) THEN
@@ -77,7 +77,10 @@ ENDIF
     r_offset = dim_r_start(num_proc)-1
     DO k1=1, dim_r_local
     DO k2=1, dim_t
-      fields_array(1,k1,k2) = REAL( efield_factor*REAL( (efield_osc(k2)*e(k2,r_offset+k1)) ) , 4 ) ! SINGLE PRECISION, corresponding H5T_NATIVE_REAL (REAL(.,8) corresponds to H5T_NATIVE_DOUBLE)
+      ! fields_array(1,k1,k2) = REAL( efield_factor*REAL( (efield_osc(k2)*e(k2,r_offset+k1)) ) , 4 ) ! SINGLE PRECISION, corresponding H5T_NATIVE_REAL (REAL(.,8) corresponds to H5T_NATIVE_DOUBLE)
+
+      fields_array(k1,k2,1) = REAL( efield_factor*REAL( (efield_osc(k2)*e(k2,r_offset+k1)) ) , 4 ) ! SINGLE PRECISION, corresponding H5T_NATIVE_REAL (REAL(.,8) corresponds to H5T_NATIVE_DOUBLE)
+
       ! e(t,r)
     ENDDO
     ENDDO
@@ -171,7 +174,7 @@ IF (my_rank.EQ.0) THEN
   print *, "before data write:", local_time_MPI - start_time_MPI
 ENDIF  
 
-      CALL create_3D_array_real_dset_p(file_id, field_dset_name, fields_array, dims, offset, ccount)
+      CALL create_3D_array_real_dset_p(file_id, field_dset_name, fields_array, dims_shape, offset_shape, ccount_shape)
 
 local_time_MPI  = MPI_Wtime()
 IF (my_rank.EQ.0) THEN
@@ -224,7 +227,7 @@ IF (my_rank.EQ.0) THEN
   print *, "before data write:", local_time_MPI - start_time_MPI
 ENDIF  
 
-      CALL write_hyperslab_to_dset_p(file_id, field_dset_name, fields_array, offset, ccount)
+      CALL write_hyperslab_to_dset_p(file_id, field_dset_name, fields_array, offset_shape, ccount_shape)
 
 local_time_MPI  = MPI_Wtime()
 IF (my_rank.EQ.0) THEN
