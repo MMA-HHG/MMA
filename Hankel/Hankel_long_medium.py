@@ -284,9 +284,11 @@ diff_disp_a = (abs(FField_FF_int_adj) - abs(FField_FF_int))/np.max(FField_FF_int
 def dispersion_function(omega):
 
     f1_values_test = f1_funct(mn.ConvertPhoton(omega, 'omegaSI', 'eV'))
+    
+    lambdaSI = mn.ConvertPhoton(omega, 'omegaSI', 'lambdaSI')
 
     nXUV_test  = 1.0 - rho0_init*units.r_electron_classical * \
-              ((ogrid_select_lambdaSI**2)*f1_values_test/(2.0*np.pi))              
+              ((lambdaSI**2)*f1_values_test/(2.0*np.pi))              
             
     phase_velocities_XUV_test  = units.c_light / nXUV_test 
 
@@ -295,9 +297,11 @@ def dispersion_function(omega):
 def absorption_function(omega):
 
     f2_values_test = f2_funct(mn.ConvertPhoton(omega, 'omegaSI', 'eV'))
+    
+    lambdaSI = mn.ConvertPhoton(omega, 'omegaSI', 'lambdaSI')
 
     beta_factor_test = rho0_init*units.r_electron_classical * \
-                  ((ogrid_select_lambdaSI**2)*f2_values_test/(2.0*np.pi))
+                  ((lambdaSI**2)*f2_values_test/(2.0*np.pi))
                   
 
     
@@ -309,6 +313,24 @@ FField_FF_int_test = Hfn2.HankelTransform_long(ogrid_select_SI,
                                                FSourceTerm[0:Nr_max:kr_step,:Nz_max_sum,H_indices[0]:H_indices[1]:ko_step],
                                                0.3,
                                                rgrid_FF)
+
+FField_FF_int_adj_test = Hfn2.HankelTransform_long(ogrid_select_SI,
+                                               rgrid_macro[0:Nr_max:kr_step],
+                                               zgrid_macro[:Nz_max_sum],
+                                               FSourceTerm[0:Nr_max:kr_step,:Nz_max_sum,H_indices[0]:H_indices[1]:ko_step],
+                                               0.3,
+                                               rgrid_FF,
+                                               dispersion_function = dispersion_function)
+
+FField_FF_int_adj_abs_test = Hfn2.HankelTransform_long(ogrid_select_SI,
+                                               rgrid_macro[0:Nr_max:kr_step],
+                                               zgrid_macro[:Nz_max_sum],
+                                               FSourceTerm[0:Nr_max:kr_step,:Nz_max_sum,H_indices[0]:H_indices[1]:ko_step],
+                                               0.3,
+                                               rgrid_FF,
+                                               dispersion_function = dispersion_function,
+                                               absorption_function = absorption_function)
+
 
  # FSourceTerm_select = np.squeeze(FSourceTerm[0:Nr_max:kr_step,k1,H_indices[0]:H_indices[1]:ko_step]).T
          
@@ -329,16 +351,16 @@ with h5py.File(out_h5name,'w') as OutFile:
     grp.create_dataset('Spectrum_on_screen',
                                           data = np.stack((FField_FF_int.real, FField_FF_int.imag),axis=-1)
                                           )
-    grp.create_dataset('Spectrum_on_screen_abs',
-                       data = np.stack((FField_FF_int.real, FField_FF_int.imag),axis=-1)
-                       )
+    # grp.create_dataset('Spectrum_on_screen_abs',
+    #                    data = np.stack((FField_FF_int.real, FField_FF_int.imag),axis=-1)
+    #                    )
     
     grp.create_dataset('Spectrum_on_screen_disp',
-                       data = np.stack((FField_FF_int.real, FField_FF_int.imag),axis=-1)
+                       data = np.stack((FField_FF_int_adj.real, FField_FF_int_adj.imag),axis=-1)
                        ) 
 
     grp.create_dataset('Spectrum_on_screen_disp+abs',
-                       data = np.stack((FField_FF_int.real, FField_FF_int.imag),axis=-1)
+                       data = np.stack((FField_FF_int_adj_abs.real, FField_FF_int_adj_abs.imag),axis=-1)
                        )   
     grp.create_dataset('Spectrum_on_screen_test',
                                           data = np.stack((FField_FF_int_test.real, FField_FF_int_test.imag),axis=-1)
