@@ -41,6 +41,7 @@ try:
 
         Nr_FF = mn.readscalardataset(Parameters, 'inputs/Nr_FF', 'N')
         rmax_FF = mn.readscalardataset(Parameters, 'inputs/rmax_FF', 'N')
+        distance_FF = mn.readscalardataset(Parameters, 'inputs/distance_FF', 'N')
         
         
         FF_orders_plot = mn.readscalardataset(Parameters, 'inputs/FF_orders_plot', 'N')
@@ -62,6 +63,7 @@ except:
     
     rmax_FF = 8*1e-4
     Nr_FF = 200
+    distance_FF = 0.3
     
     FF_orders_plot = 4    
     Nz_max_sum = 5 # 41
@@ -158,7 +160,7 @@ FField_FF_integrated = Hfn2.HankelTransform_long(ogrid_select_SI,
                                                rgrid_macro[0:Nr_max:kr_step],
                                                zgrid_macro[:Nz_max_sum],
                                                FSourceTerm[0:Nr_max:kr_step,:Nz_max_sum,H_indices[0]:H_indices[1]:ko_step],
-                                               0.3,
+                                               distance_FF,
                                                rgrid_FF,
                                                dispersion_function = dispersion_function,
                                                absorption_function = absorption_function)

@@ -5,6 +5,7 @@ ko_step	2	I	-
 
 rmax_FF	8e-4	R	m
 Nr_FF	200	I	-
+distance_FF	0.3	R	m
 
 Nz_max_sum	5	I	-
 
