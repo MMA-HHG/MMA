@@ -19,6 +19,7 @@ import XUV_refractive_index as XUV_index
 
 try:
     with h5py.File('inputs_Hankel.h5', 'r') as Parameters:
+        print('reading from hdf5-input file') 
         gas_type = mn.readscalardataset(Parameters, 'inputs/gas_type', 'S')
         #  XUV_table_type = mn.readscalardataset(Parameters, 'inputs/XUV_table_type', 'S') # 'NIST' # {Henke, NIST}        
         XUV_table_type_diffraction = mn.readscalardataset(Parameters,
