@@ -16,9 +16,56 @@ import matplotlib.pyplot as plt
 import XUV_refractive_index as XUV_index
 
 
-gas_type = 'Kr'
-XUV_table_type_diffraction = 'NIST' # {Henke, NIST}
-XUV_table_type_absorption = 'Henke' # {Henke, NIST}
+
+try:
+    with h5py.File('inputs_Hankel.h5', 'r') as Parameters:
+        gas_type = mn.readscalardataset(Parameters, 'inputs/gas_type', 'S')
+        #  XUV_table_type = mn.readscalardataset(Parameters, 'inputs/XUV_table_type', 'S') # 'NIST' # {Henke, NIST}        
+        XUV_table_type_diffraction = mn.readscalardataset(Parameters,
+                                     'inputs/XUV_table_type_diffraction', 'S')
+        XUV_table_type_absorption = mn.readscalardataset(Parameters,
+                                     'inputs/XUV_table_type_absorption', 'S')  
+        
+        Nr_max = mn.readscalardataset(Parameters, 'inputs/Nr_max', 'N') # 0.0
+        
+        Nz_max_sum = mn.readscalardataset(Parameters, 'inputs/Nz_max_sum', 'N')
+        
+        Hrange = Parameters['inputs/Hrange'][:].tolist() 
+
+        
+        kr_step = mn.readscalardataset(Parameters, 'inputs/kr_step', 'N')
+        ko_step = mn.readscalardataset(Parameters, 'inputs/ko_step', 'N')
+        
+        rmax_FF = mn.readscalardataset(Parameters, 'inputs/rmax_FF', 'N')
+        Nr_FF = mn.readscalardataset(Parameters, 'inputs/Nr_FF', 'N')
+        
+        FF_orders_plot = mn.readscalardataset(Parameters, 'inputs/FF_orders_plot', 'N')
+        
+except:
+    print('error reading hdf5 file, using defaults') 
+    gas_type = 'Kr'
+    XUV_table_type_diffraction = 'NIST' # {Henke, NIST}
+    XUV_table_type_absorption = 'Henke' # {Henke, NIST} 
+    Nr_max = 235 #470; 235; 155-still fine
+    
+    Hrange = [17, 18] # [17, 18] # [14, 36] [17, 18] [16, 20] [14, 22]
+    
+    kr_step = 2 # descending order, tha last is "the most accurate"
+    ko_step = 2
+    
+    rmax_FF = 8*1e-4
+    Nr_FF = 200
+    
+    FF_orders_plot = 4
+    
+    Nz_max_sum = 5 # 41
+
+    
+    
+
+# gas_type = 'Kr'
+# XUV_table_type_diffraction = 'NIST' # {Henke, NIST}
+# XUV_table_type_absorption = 'Henke' # {Henke, NIST}
 
 
 def f1_funct(E):
@@ -91,24 +138,24 @@ except:
     
 # sys.exit()
 
-Nr_max = 235 #470; 235; 155-still fine
-kr_step = 2 # descending order, tha last is "the most accurate"
-ko_step = 2
+# Nr_max = 235 #470; 235; 155-still fine
+# kr_step = 2 # descending order, tha last is "the most accurate"
+# ko_step = 2
 
-rmax_FF = 8*1e-4
-Nr_FF = 200
+# rmax_FF = 8*1e-4
+# Nr_FF = 200
 
-FF_orders_plot = 4
+# FF_orders_plot = 4
 
 omega_au2SI = mn.ConvertPhoton(1.0, 'omegaau', 'omegaSI')
 ogridSI = omega_au2SI * ogrid
 
 
 Hgrid = ogrid/omega0
-Hrange = [17, 18] # [17, 18] # [14, 36] [17, 18] [16, 20] [14, 22]
+# Hrange = [17, 18] # [17, 18] # [14, 36] [17, 18] [16, 20] [14, 22]
 H_indices = [mn.FindInterval(Hgrid,Hvalue) for Hvalue in Hrange]
 
-Nz_max_sum = 5 # 41
+# Nz_max_sum = 5 # 41
 
 
 
