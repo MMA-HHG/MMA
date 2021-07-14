@@ -20,7 +20,7 @@ import sys
 import units
 import mynumerics as mn
 
-def HankelTransform(ogrid, rgrid, FField, distance, rgrid_FF, integrator = integrate.trapz, near_filed_factor = True):
+def HankelTransform(ogrid, rgrid, FField, distance, rgrid_FF, integrator = integrate.trapz, near_field_factor = True):
     No = len(ogrid); Nr = len(rgrid); Nr_FF = len(rgrid_FF)
     FField_FF = np.empty((No,Nr_FF), dtype=np.cdouble)
     integrand = np.empty((Nr), dtype=np.cdouble)
@@ -28,7 +28,7 @@ def HankelTransform(ogrid, rgrid, FField, distance, rgrid_FF, integrator = integ
         k_omega = ogrid[k1] / units.c_light # ogrid[k3] / units.c_light; ogrid[k1] * units.alpha_fine  # ??? units
         for k2 in range(Nr_FF):
             for k3 in range(Nr):
-                if near_filed_factor:
+                if near_field_factor:
                     integrand[k3] = np.exp(-1j * k_omega * (rgrid[k3] ** 2) / (2.0 * distance)) * rgrid[k3] *\
                                     FField[k1,k3] * special.jn(0, k_omega * rgrid[k3] * rgrid_FF[k2] / distance)
                 else:
@@ -41,7 +41,45 @@ def HankelTransform(ogrid, rgrid, FField, distance, rgrid_FF, integrator = integ
 def HankelTransform_long(ogrid, rgrid, zgrid, FSourceTerm, # FSourceTerm(r,z,omega)
                          distance, rgrid_FF,
                          dispersion_function = None, absorption_function = None,
-                         integrator_Hankel = integrate.trapz, integrator_planes = 'trapezoidal'):
+                         integrator_Hankel = integrate.trapz, integrator_longitudinal = 'trapezoidal',
+                         near_field_factor = True
+                         ):
+    """
+    It computes XUV propagation using a sum of Hankel transforms along the medium.
+
+    Parameters
+    ----------
+    ogrid : array_like
+        grid of FSourceTerm in frequencies [SI]
+    rgrid : array_like
+        grid of FSourceTerm in the radial coordinate [SI]
+    zgrid : array_like
+        grid of FSourceTerm in the longitudinal coordinate [SI]
+    FSourceTerm : The source on the grid in the medium
+        order: (r,z,omega); there is no inter check of dimensions, it has to match
+    distance : scalar
+        The distance from the first point of the medium [SI]
+    rgrid_FF : array_like
+        the required radial grid in far-field [SI]
+    dispersion_function : function, optional
+        The dispersion is factored as exp(i*z*omega*dispersion_function(omega)). The default is None.
+    absorption_function : function, optional
+        Analogical to dispersion. The default is None.
+    integrator_Hankel : function, optional
+        used method to integrate in the radial direction. The default is integrate.trapz.
+    integrator_longitudinal : function, optional
+        used method to integrate in the longitudinal direction. The default is 'trapezoidal'.
+    near_field_factor : logical, optional
+        False for far field without the Fresnel term. The default is True.
+
+
+    Returns
+    -------
+    result : the field in the radial grid of the observation plane
+        .
+
+    """
+
     
     No = len(ogrid); Nz = len(zgrid)
     include_dispersion = not(dispersion_function is None)
@@ -65,14 +103,9 @@ def HankelTransform_long(ogrid, rgrid, zgrid, FSourceTerm, # FSourceTerm(r,z,ome
                           )
     elif include_dispersion:
         factor_e = np.exp(1j*np.outer(zgrid,dispersion_factor))
-        # dephasing_factor = ogrid_select_SI * ((1./group_velocity_IR) - (1./phase_velocities_XUV))
-        # dephase = np.outer(zgrid_macro,dephasing_factor)
-        # dephase_e = np.exp(1j*dephase)
+
     elif include_absorption:
         factor_e = np.exp(np.outer(zgrid-zgrid[-1] ,absorption_factor))     
-        # absorbing_factor = ogrid_select_SI * beta_factor / units.c_light
-        # absorption = np.outer(zgrid_macro-z_exit ,absorbing_factor)
-        # absorption_e = np.exp(absorption)   
 
             
     # we keep the data for now, consider on-the-fly change
@@ -84,7 +117,9 @@ def HankelTransform_long(ogrid, rgrid, zgrid, FSourceTerm, # FSourceTerm(r,z,ome
                                   rgrid,
                                   FSourceTerm_select,
                                   distance-zgrid[k1],
-                                  rgrid_FF)
+                                  rgrid_FF,
+                                  integrator = integrator_Hankel,
+                                  near_field_factor = near_field_factor)
         
         if (k1 == 0): # allocate space
             FField_FF_z = np.zeros( (Nz,) + FField_FF.shape,dtype=np.cdouble) 
@@ -93,7 +128,7 @@ def HankelTransform_long(ogrid, rgrid, zgrid, FSourceTerm, # FSourceTerm(r,z,ome
              FField_FF_z[k1,:,:] = np.outer(factor_e[k1,:],np.ones(FField_FF.shape[1]))*FField_FF
         else:
             FField_FF_z[k1,:,:] = FField_FF 
-    if (integrator_planes == 'trapezoidal'):        
+    if (integrator_longitudinal == 'trapezoidal'):        
         for k1 in range(Nz-1):    
             k_step = 1
             if (k1 == 0):
