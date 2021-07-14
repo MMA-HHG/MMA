@@ -10,6 +10,9 @@ Nz_max_sum	5	I	-
 
 $array	Hrange	R	-	17 18
 
+# XUV propagation params
+$array apply_diffraction	S	-	dispersion absorption
+
 # Gas parameters (to be unified for the whole simulation)
 gas_type	Kr	S	-
 XUV_table_type_diffraction	NIST	S	-

@@ -42,6 +42,9 @@ try:
         
         FF_orders_plot = mn.readscalardataset(Parameters, 'inputs/FF_orders_plot', 'N')
         
+        apply_diffraction = Parameters['inputs/apply_diffraction'][:].tolist()
+        apply_diffraction = [k1.decode() for k1 in apply_diffraction]
+        
 except:
     print('error reading hdf5 file, using defaults') 
     gas_type = 'Kr'
@@ -166,7 +169,7 @@ ogrid_select_SI = ogridSI[H_indices[0]:H_indices[1]:ko_step]
 
 
 # Here are the fuction to obtain the phase factors in SI units: exp(i*omega*function(omega))
-def dispersion_function(omega):
+def dispersion_function_def(omega):
     f1_value = f1_funct(mn.ConvertPhoton(omega, 'omegaSI', 'eV'))    
     lambdaSI = mn.ConvertPhoton(omega, 'omegaSI', 'lambdaSI')
     nXUV     = 1.0 - rho0_init*units.r_electron_classical * \
@@ -174,12 +177,18 @@ def dispersion_function(omega):
     phase_velocity_XUV  = units.c_light / nXUV
     return ((1./group_velocity_IR) - (1./phase_velocity_XUV))
 
-def absorption_function(omega):
+def absorption_function_def(omega):
     f2_value    = f2_funct(mn.ConvertPhoton(omega, 'omegaSI', 'eV'))
     lambdaSI    = mn.ConvertPhoton(omega, 'omegaSI', 'lambdaSI')
     beta_factor = rho0_init*units.r_electron_classical * \
                   ((lambdaSI**2)*f2_value/(2.0*np.pi))
     return beta_factor / units.c_light
+
+if ('dispersion' in apply_diffraction): dispersion_function = dispersion_function_def
+else: dispersion_function = None
+
+if ('absorption' in apply_diffraction): absorption_function = absorption_function_def
+else: dispersion_function = None
 
 FField_FF_int_test = Hfn2.HankelTransform_long(ogrid_select_SI,
                                                rgrid_macro[0:Nr_max:kr_step],
