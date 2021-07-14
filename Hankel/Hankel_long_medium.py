@@ -108,7 +108,7 @@ Hgrid = ogrid/omega0
 Hrange = [17, 18] # [17, 18] # [14, 36] [17, 18] [16, 20] [14, 22]
 H_indices = [mn.FindInterval(Hgrid,Hvalue) for Hvalue in Hrange]
 
-Nz_max_sum = 41 # 41
+Nz_max_sum = 5 # 41
 
 
 
