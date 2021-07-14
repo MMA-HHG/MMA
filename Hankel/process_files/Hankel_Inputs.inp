@@ -21,3 +21,8 @@ XUV_table_type_absorption	Henke	S	-
 
 # Plotting
 FF_orders_plot	4	R	-
+
+# file names
+file_CUPRAD	results_1.h5	S	-
+file_TDSE	results_merged_Fsource.h5	S	-
+out_h5name	Hankel.h5	S	-
