@@ -125,12 +125,11 @@ with h5py.File(file_CUPRAD, 'r') as InputArchiveCUPRAD, h5py.File(file_TDSE, 'r'
 
    
    # GS_init = InputArchiveTDSE['ground_state'][:,0] + 1j*InputArchiveTDSE['ground_state'][:,1]
-
-
-
-
-
 print('data loaded:')
+omega_au2SI = mn.ConvertPhoton(1.0, 'omegaau', 'omegaSI')
+ogridSI = omega_au2SI * ogrid
+Hgrid = ogrid/omega0
+H_indices = [mn.FindInterval(Hgrid,Hvalue) for Hvalue in Hrange]
 
 out_h5name = 'Hankel.h5'
 
@@ -140,28 +139,6 @@ try:
 except:
     print("no files deleted")
     
-# sys.exit()
-
-# Nr_max = 235 #470; 235; 155-still fine
-# kr_step = 2 # descending order, tha last is "the most accurate"
-# ko_step = 2
-
-# rmax_FF = 8*1e-4
-# Nr_FF = 200
-
-# FF_orders_plot = 4
-
-omega_au2SI = mn.ConvertPhoton(1.0, 'omegaau', 'omegaSI')
-ogridSI = omega_au2SI * ogrid
-
-
-Hgrid = ogrid/omega0
-# Hrange = [17, 18] # [17, 18] # [14, 36] [17, 18] [16, 20] [14, 22]
-H_indices = [mn.FindInterval(Hgrid,Hvalue) for Hvalue in Hrange]
-
-# Nz_max_sum = 5 # 41
-
-
 
 rgrid_FF = np.linspace(0.0, rmax_FF, Nr_FF)
 ogrid_select_SI = ogridSI[H_indices[0]:H_indices[1]:ko_step]
@@ -190,22 +167,8 @@ else: dispersion_function = None
 if ('absorption' in apply_diffraction): absorption_function = absorption_function_def
 else: dispersion_function = None
 
-FField_FF_int_test = Hfn2.HankelTransform_long(ogrid_select_SI,
-                                               rgrid_macro[0:Nr_max:kr_step],
-                                               zgrid_macro[:Nz_max_sum],
-                                               FSourceTerm[0:Nr_max:kr_step,:Nz_max_sum,H_indices[0]:H_indices[1]:ko_step],
-                                               0.3,
-                                               rgrid_FF)
 
-FField_FF_int_adj_test = Hfn2.HankelTransform_long(ogrid_select_SI,
-                                               rgrid_macro[0:Nr_max:kr_step],
-                                               zgrid_macro[:Nz_max_sum],
-                                               FSourceTerm[0:Nr_max:kr_step,:Nz_max_sum,H_indices[0]:H_indices[1]:ko_step],
-                                               0.3,
-                                               rgrid_FF,
-                                               dispersion_function = dispersion_function)
-
-FField_FF_int_adj_abs_test = Hfn2.HankelTransform_long(ogrid_select_SI,
+FField_FF_integrated = Hfn2.HankelTransform_long(ogrid_select_SI,
                                                rgrid_macro[0:Nr_max:kr_step],
                                                zgrid_macro[:Nz_max_sum],
                                                FSourceTerm[0:Nr_max:kr_step,:Nz_max_sum,H_indices[0]:H_indices[1]:ko_step],
@@ -232,28 +195,28 @@ FField_FF_int_adj_abs_test = Hfn2.HankelTransform_long(ogrid_select_SI,
 with h5py.File(out_h5name,'w') as OutFile:
     grp = OutFile.create_group('XUV')
     grp.create_dataset('Spectrum_on_screen',
-                                          data = np.stack((FField_FF_int_test.real, FField_FF_int_test.imag),axis=-1)
+                                          data = np.stack((FField_FF_integrated.real, FField_FF_integrated.imag),axis=-1)
                                           )
     # grp.create_dataset('Spectrum_on_screen_abs',
     #                    data = np.stack((FField_FF_int.real, FField_FF_int.imag),axis=-1)
     #                    )
     
-    grp.create_dataset('Spectrum_on_screen_disp',
-                       data = np.stack((FField_FF_int_adj_test.real, FField_FF_int_adj_test.imag),axis=-1)
-                       ) 
+    # grp.create_dataset('Spectrum_on_screen_disp',
+    #                    data = np.stack((FField_FF_int_adj_test.real, FField_FF_int_adj_test.imag),axis=-1)
+    #                    ) 
 
-    grp.create_dataset('Spectrum_on_screen_disp+abs',
-                       data = np.stack((FField_FF_int_adj_abs_test.real, FField_FF_int_adj_abs_test.imag),axis=-1)
-                       )   
-    grp.create_dataset('Spectrum_on_screen_test',
-                                          data = np.stack((FField_FF_int_test.real, FField_FF_int_test.imag),axis=-1)
-                                          )    
+    # grp.create_dataset('Spectrum_on_screen_disp+abs',
+    #                    data = np.stack((FField_FF_int_adj_abs_test.real, FField_FF_int_adj_abs_test.imag),axis=-1)
+    #                    )   
+    # grp.create_dataset('Spectrum_on_screen_test',
+    #                                       data = np.stack((FField_FF_int_test.real, FField_FF_int_test.imag),axis=-1)
+    #                                       )    
 
 Hgrid_select = Hgrid[H_indices[0]:H_indices[1]:ko_step]
 
 # vmin = np.max(np.log(Gaborr))-6.
 fig, ax = plt.subplots()   
-FF_spectrum_logscale = np.log10(abs(FField_FF_int_test.T)**2);
+FF_spectrum_logscale = np.log10(abs(FField_FF_integrated.T)**2);
 vmin = np.max(FF_spectrum_logscale)-FF_orders_plot
 map1 = ax.pcolor(Hgrid_select,rgrid_FF,FF_spectrum_logscale, shading='auto',vmin=vmin)
 # plt.pcolor(t_Gr,o_Gr/omega0,(np.log(Gaborr)).T, shading='auto',vmin=vmin)
@@ -266,45 +229,45 @@ if showplots: plt.show()
 # sys.exit()
 
 
-# vmin = np.max(np.log(Gaborr))-6.
-fig, ax = plt.subplots()   
-FF_spectrum_logscale = np.log10(abs(FField_FF_int_adj_test.T)**2);
-vmin = np.max(FF_spectrum_logscale)-FF_orders_plot
-map1 = ax.pcolor(Hgrid_select,rgrid_FF,FF_spectrum_logscale, shading='auto',vmin=vmin)
-# plt.pcolor(t_Gr,o_Gr/omega0,(np.log(Gaborr)).T, shading='auto',vmin=vmin)
-fig.colorbar(map1)
-plt.title('Far-field spectrum (30 cm), integrated, dispersion, log')
-plt.xlabel('H [-]')
-plt.ylabel('r [m]')
-if showplots: plt.show()
-# plt.close(fig)
-# sys.exit()
+# # vmin = np.max(np.log(Gaborr))-6.
+# fig, ax = plt.subplots()   
+# FF_spectrum_logscale = np.log10(abs(FField_FF_int_adj_test.T)**2);
+# vmin = np.max(FF_spectrum_logscale)-FF_orders_plot
+# map1 = ax.pcolor(Hgrid_select,rgrid_FF,FF_spectrum_logscale, shading='auto',vmin=vmin)
+# # plt.pcolor(t_Gr,o_Gr/omega0,(np.log(Gaborr)).T, shading='auto',vmin=vmin)
+# fig.colorbar(map1)
+# plt.title('Far-field spectrum (30 cm), integrated, dispersion, log')
+# plt.xlabel('H [-]')
+# plt.ylabel('r [m]')
+# if showplots: plt.show()
+# # plt.close(fig)
+# # sys.exit()
 
 
-# vmin = np.max(np.log(Gaborr))-6.
-fig, ax = plt.subplots()   
-FF_spectrum_logscale = np.log10(abs(FField_FF_int_adj_abs_test.T)**2);
-vmin = np.max(FF_spectrum_logscale)-FF_orders_plot
-map1 = ax.pcolor(Hgrid_select,rgrid_FF,FF_spectrum_logscale, shading='auto',vmin=vmin)
-# plt.pcolor(t_Gr,o_Gr/omega0,(np.log(Gaborr)).T, shading='auto',vmin=vmin)
-fig.colorbar(map1)
-plt.title('Far-field spectrum (30 cm), integrated, disp + abs, log')
-plt.xlabel('H [-]')
-plt.ylabel('r [m]')
-if showplots: plt.show()
-# plt.close(fig)
-# sys.exit()
+# # vmin = np.max(np.log(Gaborr))-6.
+# fig, ax = plt.subplots()   
+# FF_spectrum_logscale = np.log10(abs(FField_FF_int_adj_abs_test.T)**2);
+# vmin = np.max(FF_spectrum_logscale)-FF_orders_plot
+# map1 = ax.pcolor(Hgrid_select,rgrid_FF,FF_spectrum_logscale, shading='auto',vmin=vmin)
+# # plt.pcolor(t_Gr,o_Gr/omega0,(np.log(Gaborr)).T, shading='auto',vmin=vmin)
+# fig.colorbar(map1)
+# plt.title('Far-field spectrum (30 cm), integrated, disp + abs, log')
+# plt.xlabel('H [-]')
+# plt.ylabel('r [m]')
+# if showplots: plt.show()
+# # plt.close(fig)
+# # sys.exit()
 
-# vmin = np.max(np.log(Gaborr))-6.
-fig, ax = plt.subplots()   
-FF_spectrum_logscale = np.log10(abs(FField_FF_int_adj_abs_test.T)**2);
-vmin = np.max(FF_spectrum_logscale)-FF_orders_plot
-map1 = ax.pcolor(Hgrid_select,rgrid_FF,FF_spectrum_logscale, shading='auto',vmin=vmin)
-# plt.pcolor(t_Gr,o_Gr/omega0,(np.log(Gaborr)).T, shading='auto',vmin=vmin)
-fig.colorbar(map1)
-plt.title('Far-field spectrum (30 cm), integrated, disp + abs, log')
-plt.xlabel('H [-]')
-plt.ylabel('r [m]')
-if showplots: plt.show()
-# plt.close(fig)
-# sys.exit()
+# # vmin = np.max(np.log(Gaborr))-6.
+# fig, ax = plt.subplots()   
+# FF_spectrum_logscale = np.log10(abs(FField_FF_int_adj_abs_test.T)**2);
+# vmin = np.max(FF_spectrum_logscale)-FF_orders_plot
+# map1 = ax.pcolor(Hgrid_select,rgrid_FF,FF_spectrum_logscale, shading='auto',vmin=vmin)
+# # plt.pcolor(t_Gr,o_Gr/omega0,(np.log(Gaborr)).T, shading='auto',vmin=vmin)
+# fig.colorbar(map1)
+# plt.title('Far-field spectrum (30 cm), integrated, disp + abs, log')
+# plt.xlabel('H [-]')
+# plt.ylabel('r [m]')
+# if showplots: plt.show()
+# # plt.close(fig)
+# # sys.exit()
