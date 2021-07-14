@@ -60,18 +60,22 @@ file_TDSE = os.path.join(results_TDSE,file_TDSE)
 
 print('processing:', file_CUPRAD, file_TDSE)             
 with h5py.File(file_CUPRAD, 'r') as InputArchiveCUPRAD, h5py.File(file_TDSE, 'r') as InputArchiveTDSE:
-   # load data
+    # load data
    omega0 = mn.ConvertPhoton(1e-2*mn.readscalardataset(InputArchiveCUPRAD,'/inputs/laser_wavelength','N'),'lambdaSI','omegaau')
    inverse_GV_IR = InputArchiveCUPRAD['/logs/inverse_group_velocity_SI'][()]; group_velocity_IR = 1./inverse_GV_IR
    # pressure_mbar = 1e3*InputArchiveCUPRAD['/inputs/medium_pressure_in_bar'][()]
    rho0_init = 1e6 * mn.readscalardataset(InputArchiveCUPRAD, '/inputs/calculated/medium_effective_density_of_neutral_molecules','N') # SI
    
+   
+   # SourceTerm_TDSE = InputArchiveTDSE['SourceTerm'][0,0,:]
    FSourceTerm = InputArchiveTDSE['FSourceTerm'][:,:,:,0] + \
                        1j*InputArchiveTDSE['FSourceTerm'][:,:,:,1]
    ogrid = InputArchiveTDSE['omegagrid'][:]
    rgrid_macro = InputArchiveTDSE['rgrid_coarse'][:]
    zgrid_macro = InputArchiveTDSE['zgrid_coarse'][:]
-
+   # PopTot_TDSE = InputArchiveTDSE['PopTot'][0,0,:]
+   # PopInt_TDSE = InputArchiveTDSE['PopInt'][0,0,:]
+   # expval_x_TDSE = InputArchiveTDSE['expval_x'][0,0,:]
    
    # GS_init = InputArchiveTDSE['ground_state'][:,0] + 1j*InputArchiveTDSE['ground_state'][:,1]
 
@@ -125,57 +129,182 @@ ogrid_select_eV = ogrid_select_SI * omega_SI2energy_eV
 ogrid_select_lambdaSI =  omega_SI2lambda_SI / ogrid_select_SI
 
 
-# f2_values = f2_funct(ogrid_select_eV)
-# f1_values = f1_funct(ogrid_select_eV)
+f2_values = f2_funct(ogrid_select_eV)
+f1_values = f1_funct(ogrid_select_eV)
 
-# nXUV = 1.0 - rho0_init*units.r_electron_classical * \
-#               ((ogrid_select_lambdaSI**2)*f1_values/(2.0*np.pi))
+nXUV = 1.0 - rho0_init*units.r_electron_classical * \
+              ((ogrid_select_lambdaSI**2)*f1_values/(2.0*np.pi))
               
             
-# phase_velocities_XUV = units.c_light / nXUV
+phase_velocities_XUV = units.c_light / nXUV
 
-# dephasing_factor = ogrid_select_SI * ((1./group_velocity_IR) - (1./phase_velocities_XUV))
+dephasing_factor = ogrid_select_SI * ((1./group_velocity_IR) - (1./phase_velocities_XUV))
 
-# dephase = np.outer(zgrid_macro,dephasing_factor)
+dephase = np.outer(zgrid_macro,dephasing_factor)
 
-# dephase_e = np.exp(1j*dephase)
+dephase_e = np.exp(1j*dephase)
 
 
 
-# beta_factor = rho0_init*units.r_electron_classical * \
-#               ((ogrid_select_lambdaSI**2)*f2_values/(2.0*np.pi))
+beta_factor = rho0_init*units.r_electron_classical * \
+              ((ogrid_select_lambdaSI**2)*f2_values/(2.0*np.pi))
               
-# z_exit = zgrid_macro[Nz_max_sum-1]  # zgrid_macro[-1]
+z_exit = zgrid_macro[Nz_max_sum-1]  # zgrid_macro[-1]
 
-# absorbing_factor = ogrid_select_SI * beta_factor / units.c_light
+absorbing_factor = ogrid_select_SI * beta_factor / units.c_light
 
-# absorption = np.outer(zgrid_macro-z_exit ,absorbing_factor)
+absorption = np.outer(zgrid_macro-z_exit ,absorbing_factor)
 
-# absorption_e = np.exp(absorption)
+absorption_e = np.exp(absorption)
 
-# absorption_15mm = np.outer(zgrid_macro-15e-3 ,absorbing_factor)
+absorption_15mm = np.outer(zgrid_macro-15e-3 ,absorbing_factor)
 
-# absorption_e_15mm = np.exp(absorption_15mm)
-
-
+absorption_e_15mm = np.exp(absorption_15mm)
 
 
+# longitudinal phase
+
+# on axis
+
+
+Hphase = 17
+Hgrid_select = Hgrid[H_indices[0]:H_indices[1]:ko_step]
+k_Hphase = mn.FindInterval(Hgrid, Hphase)
+k_Hphase_select = mn.FindInterval(Hgrid_select, Hphase)
+
+fig = plt.figure()
+plt.plot(1e3*zgrid_macro[:Nz_max_sum],np.unwrap(np.angle(FSourceTerm[0,:Nz_max_sum,k_Hphase]))) 
+plt.title('on-axis phase, group-velocity frame, H17')
+plt.xlabel('z [mm]')
+plt.ylabel('phi [rad]')
+if showplots: plt.show()
+
+
+dum = np.squeeze(dephase_e[:Nz_max_sum,k_Hphase_select])*np.squeeze(FSourceTerm[0,:Nz_max_sum,k_Hphase])
+
+fig = plt.figure()
+plt.plot(1e3*zgrid_macro[:Nz_max_sum],np.unwrap(np.angle(dum[:Nz_max_sum]))) 
+plt.title('on-axis phase, XUV frame, H17')
+plt.xlabel('z [mm]')
+plt.ylabel('phi [rad]')
+if showplots: plt.show()
+
+# sys.exit()
+# sys.exit()
+
+
+
+# include_dispersion = True   
+# include_absorption  = True
+
+# FField_FF = []
+# FField_FF_scaled = []
+for k1 in range(Nz_max_sum):
+    print(k1)
+
+    
+    # FSourceTerm_select = np.squeeze(FSourceTerm[0:Nr_max:kr_step,k1,H_index]).T
+    
+    # if (k1 == 0):  # to enforce correct dimensions
+    #      dum = np.squeeze(FSourceTerm[0:Nr_max:kr_step,k1,H_indices[0]:H_indices[1]:ko_step]).T
+    #      FSourceTerm_select = np.zeros((1,)+dum.shape, dtype=np.cdouble)
+    #      FSourceTerm_select = dum # np.squeeze(FSourceTerm[0:Nr_max:kr_step,k1,H_index]).T
+    # else:
+    FSourceTerm_select = np.squeeze(FSourceTerm[0:Nr_max:kr_step,k1,H_indices[0]:H_indices[1]:ko_step]).T
+         
+    # FSourceTerm_select[np.newaxis] # to enforce correct dimensions
+    # FSourceTerm_select.reshape((1,) + FSourceTerm_select.shape) # to enforce correct dimensions
+    
+   
+    
+    FField_FF = Hfn2.HankelTransform(ogrid_select_SI,
+                                      rgrid_macro[0:Nr_max:kr_step],
+                                      FSourceTerm_select,
+                                      0.3-zgrid_macro[k1],
+                                      rgrid_FF)
+    
+    if (k1 == 0):
+        FField_FF_z = np.zeros( (Nz_max_sum,) + FField_FF.shape,dtype=np.cdouble) 
+        FField_FF_z_adj = np.zeros( (Nz_max_sum,) + FField_FF.shape,dtype=np.cdouble)
+        FField_FF_z_adj_abs = np.zeros( (Nz_max_sum,) + FField_FF.shape,dtype=np.cdouble)
+    
+        
+    
+    FField_FF_z[k1,:,:] = FField_FF    
+    FField_FF_z_adj[k1,:,:] = np.outer(dephase_e[k1,:],np.ones(FField_FF.shape[1]))*FField_FF    
+    FField_FF_z_adj_abs[k1,:,:] = np.outer(dephase_e[k1,:],np.ones(FField_FF.shape[1])) * \
+                                  np.outer(absorption_e[k1,:],np.ones(FField_FF.shape[1])) * \
+                                  FField_FF               
+
+
+# def adjust_plane(k1,plane,include_dispersion,include_absorption,fact1,fact2):
+#     pass
+
+
+# trapezoid
+for k1 in range(Nz_max_sum-1):    
+    k_step = 1
+    
+    ## other versions
+    if (k1 == 0):
+        dum = 0.5*(zgrid_macro[(k1+1)*k_step]-zgrid_macro[k1*k_step]) * \
+              (FField_FF_z[k1*k_step,:,:] + FField_FF_z[(k1+1)*k_step,:,:])
+              
+        dum2 = 0.5*(zgrid_macro[(k1+1)*k_step]-zgrid_macro[k1*k_step]) * \
+              (FField_FF_z_adj[k1*k_step,:,:] + FField_FF_z_adj[(k1+1)*k_step,:,:])
+              
+        dum3 = 0.5*(zgrid_macro[(k1+1)*k_step]-zgrid_macro[k1*k_step]) * \
+              (FField_FF_z_adj_abs[k1*k_step,:,:] + FField_FF_z_adj_abs[(k1+1)*k_step,:,:])
+    else:
+        dum = dum + \
+          0.5*(zgrid_macro[(k1+1)*k_step]-zgrid_macro[k1*k_step]) * \
+              (FField_FF_z[k1*k_step,:,:] + FField_FF_z[(k1+1)*k_step,:,:])
+
+        dum2 = dum2 + \
+          0.5*(zgrid_macro[(k1+1)*k_step]-zgrid_macro[k1*k_step]) * \
+              (FField_FF_z_adj[k1*k_step,:,:] + FField_FF_z_adj[(k1+1)*k_step,:,:])
+              
+        dum3 = dum3 + \
+          0.5*(zgrid_macro[(k1+1)*k_step]-zgrid_macro[k1*k_step]) * \
+              (FField_FF_z_adj_abs[k1*k_step,:,:] + FField_FF_z_adj_abs[(k1+1)*k_step,:,:])
+
+
+FField_FF_int = dum
+FField_FF_int_adj = dum2
+FField_FF_int_adj_abs = dum3
+
+diff_full = (FField_FF_int_adj_abs - FField_FF_int)/np.max(FField_FF_int)
+diff_disp = (FField_FF_int_adj - FField_FF_int)/np.max(FField_FF_int)
+
+diff_full_a = (abs(FField_FF_int_adj_abs) - abs(FField_FF_int))/np.max(FField_FF_int)
+diff_disp_a = (abs(FField_FF_int_adj) - abs(FField_FF_int))/np.max(FField_FF_int)
 
 
 ## test the function
 def dispersion_function(omega):
-    f1_values_test = f1_funct(mn.ConvertPhoton(omega, 'omegaSI', 'eV'))    
+
+    f1_values_test = f1_funct(mn.ConvertPhoton(omega, 'omegaSI', 'eV'))
+    
     lambdaSI = mn.ConvertPhoton(omega, 'omegaSI', 'lambdaSI')
+
     nXUV_test  = 1.0 - rho0_init*units.r_electron_classical * \
-              ((lambdaSI**2)*f1_values_test/(2.0*np.pi))           
-    phase_velocities_XUV_test  = units.c_light / nXUV_test
+              ((lambdaSI**2)*f1_values_test/(2.0*np.pi))              
+            
+    phase_velocities_XUV_test  = units.c_light / nXUV_test 
+
     return ((1./group_velocity_IR) - (1./phase_velocities_XUV_test))
 
 def absorption_function(omega):
+
     f2_values_test = f2_funct(mn.ConvertPhoton(omega, 'omegaSI', 'eV'))
+    
     lambdaSI = mn.ConvertPhoton(omega, 'omegaSI', 'lambdaSI')
+
     beta_factor_test = rho0_init*units.r_electron_classical * \
                   ((lambdaSI**2)*f2_values_test/(2.0*np.pi))
+                  
+
+    
     return beta_factor_test / units.c_light
 
 FField_FF_int_test = Hfn2.HankelTransform_long(ogrid_select_SI,
@@ -220,18 +349,18 @@ FField_FF_int_adj_abs_test = Hfn2.HankelTransform_long(ogrid_select_SI,
 with h5py.File(out_h5name,'w') as OutFile:
     grp = OutFile.create_group('XUV')
     grp.create_dataset('Spectrum_on_screen',
-                                          data = np.stack((FField_FF_int_test.real, FField_FF_int_test.imag),axis=-1)
+                                          data = np.stack((FField_FF_int.real, FField_FF_int.imag),axis=-1)
                                           )
     # grp.create_dataset('Spectrum_on_screen_abs',
     #                    data = np.stack((FField_FF_int.real, FField_FF_int.imag),axis=-1)
     #                    )
     
     grp.create_dataset('Spectrum_on_screen_disp',
-                       data = np.stack((FField_FF_int_adj_test.real, FField_FF_int_adj_test.imag),axis=-1)
+                       data = np.stack((FField_FF_int_adj.real, FField_FF_int_adj.imag),axis=-1)
                        ) 
 
     grp.create_dataset('Spectrum_on_screen_disp+abs',
-                       data = np.stack((FField_FF_int_adj_abs_test.real, FField_FF_int_adj_abs_test.imag),axis=-1)
+                       data = np.stack((FField_FF_int_adj_abs.real, FField_FF_int_adj_abs.imag),axis=-1)
                        )   
     grp.create_dataset('Spectrum_on_screen_test',
                                           data = np.stack((FField_FF_int_test.real, FField_FF_int_test.imag),axis=-1)
@@ -241,7 +370,7 @@ Hgrid_select = Hgrid[H_indices[0]:H_indices[1]:ko_step]
 
 # vmin = np.max(np.log(Gaborr))-6.
 fig, ax = plt.subplots()   
-FF_spectrum_logscale = np.log10(abs(FField_FF_int_test.T)**2);
+FF_spectrum_logscale = np.log10(abs(FField_FF_int.T)**2);
 vmin = np.max(FF_spectrum_logscale)-FF_orders_plot
 map1 = ax.pcolor(Hgrid_select,rgrid_FF,FF_spectrum_logscale, shading='auto',vmin=vmin)
 # plt.pcolor(t_Gr,o_Gr/omega0,(np.log(Gaborr)).T, shading='auto',vmin=vmin)
@@ -256,7 +385,7 @@ if showplots: plt.show()
 
 # vmin = np.max(np.log(Gaborr))-6.
 fig, ax = plt.subplots()   
-FF_spectrum_logscale = np.log10(abs(FField_FF_int_adj_test.T)**2);
+FF_spectrum_logscale = np.log10(abs(FField_FF_int_adj.T)**2);
 vmin = np.max(FF_spectrum_logscale)-FF_orders_plot
 map1 = ax.pcolor(Hgrid_select,rgrid_FF,FF_spectrum_logscale, shading='auto',vmin=vmin)
 # plt.pcolor(t_Gr,o_Gr/omega0,(np.log(Gaborr)).T, shading='auto',vmin=vmin)
@@ -271,7 +400,7 @@ if showplots: plt.show()
 
 # vmin = np.max(np.log(Gaborr))-6.
 fig, ax = plt.subplots()   
-FF_spectrum_logscale = np.log10(abs(FField_FF_int_adj_abs_test.T)**2);
+FF_spectrum_logscale = np.log10(abs(FField_FF_int_adj_abs.T)**2);
 vmin = np.max(FF_spectrum_logscale)-FF_orders_plot
 map1 = ax.pcolor(Hgrid_select,rgrid_FF,FF_spectrum_logscale, shading='auto',vmin=vmin)
 # plt.pcolor(t_Gr,o_Gr/omega0,(np.log(Gaborr)).T, shading='auto',vmin=vmin)
@@ -285,7 +414,7 @@ if showplots: plt.show()
 
 # vmin = np.max(np.log(Gaborr))-6.
 fig, ax = plt.subplots()   
-FF_spectrum_logscale = np.log10(abs(FField_FF_int_adj_abs_test.T)**2);
+FF_spectrum_logscale = np.log10(abs(FField_FF_int_adj_abs.T)**2);
 vmin = np.max(FF_spectrum_logscale)-FF_orders_plot
 map1 = ax.pcolor(Hgrid_select,rgrid_FF,FF_spectrum_logscale, shading='auto',vmin=vmin)
 # plt.pcolor(t_Gr,o_Gr/omega0,(np.log(Gaborr)).T, shading='auto',vmin=vmin)
@@ -297,62 +426,62 @@ if showplots: plt.show()
 # plt.close(fig)
 # sys.exit()
 
-# # vmin = np.max(np.log(Gaborr))-6.
-# fig, ax = plt.subplots()   
-# FF_spectrum_logscale = np.log10(abs(diff_full.T)**2);
-# vmin = np.max(FF_spectrum_logscale)-FF_orders_plot
-# map1 = ax.pcolor(Hgrid_select,rgrid_FF,FF_spectrum_logscale, shading='auto',vmin=vmin)
-# # plt.pcolor(t_Gr,o_Gr/omega0,(np.log(Gaborr)).T, shading='auto',vmin=vmin)
-# fig.colorbar(map1)
-# plt.title('Error, disp + abs, log')
-# plt.xlabel('H [-]')
-# plt.ylabel('r [m]')
-# if showplots: plt.show()
-# # plt.close(fig)
-# # sys.exit()
+# vmin = np.max(np.log(Gaborr))-6.
+fig, ax = plt.subplots()   
+FF_spectrum_logscale = np.log10(abs(diff_full.T)**2);
+vmin = np.max(FF_spectrum_logscale)-FF_orders_plot
+map1 = ax.pcolor(Hgrid_select,rgrid_FF,FF_spectrum_logscale, shading='auto',vmin=vmin)
+# plt.pcolor(t_Gr,o_Gr/omega0,(np.log(Gaborr)).T, shading='auto',vmin=vmin)
+fig.colorbar(map1)
+plt.title('Error, disp + abs, log')
+plt.xlabel('H [-]')
+plt.ylabel('r [m]')
+if showplots: plt.show()
+# plt.close(fig)
+# sys.exit()
 
-# # vmin = np.max(np.log(Gaborr))-6.
-# fig, ax = plt.subplots()   
-# FF_spectrum_logscale = np.log10(abs(diff_disp.T)**2);
-# vmin = np.max(FF_spectrum_logscale)-FF_orders_plot
-# map1 = ax.pcolor(Hgrid_select,rgrid_FF,FF_spectrum_logscale, shading='auto',vmin=vmin)
-# # plt.pcolor(t_Gr,o_Gr/omega0,(np.log(Gaborr)).T, shading='auto',vmin=vmin)
-# fig.colorbar(map1)
-# plt.title('Error, disp, log')
-# plt.xlabel('H [-]')
-# plt.ylabel('r [m]')
-# if showplots: plt.show()
-# # plt.close(fig)
-# # sys.exit()
+# vmin = np.max(np.log(Gaborr))-6.
+fig, ax = plt.subplots()   
+FF_spectrum_logscale = np.log10(abs(diff_disp.T)**2);
+vmin = np.max(FF_spectrum_logscale)-FF_orders_plot
+map1 = ax.pcolor(Hgrid_select,rgrid_FF,FF_spectrum_logscale, shading='auto',vmin=vmin)
+# plt.pcolor(t_Gr,o_Gr/omega0,(np.log(Gaborr)).T, shading='auto',vmin=vmin)
+fig.colorbar(map1)
+plt.title('Error, disp, log')
+plt.xlabel('H [-]')
+plt.ylabel('r [m]')
+if showplots: plt.show()
+# plt.close(fig)
+# sys.exit()
 
 
-# # vmin = np.max(np.log(Gaborr))-6.
-# fig, ax = plt.subplots()   
-# FF_spectrum_logscale = np.log10(abs(diff_full_a.T)**2);
-# vmin = np.max(FF_spectrum_logscale)-FF_orders_plot
-# map1 = ax.pcolor(Hgrid_select,rgrid_FF,FF_spectrum_logscale, shading='auto',vmin=vmin)
-# # plt.pcolor(t_Gr,o_Gr/omega0,(np.log(Gaborr)).T, shading='auto',vmin=vmin)
-# fig.colorbar(map1)
-# plt.title('Error, disp + abs, log, a')
-# plt.xlabel('H [-]')
-# plt.ylabel('r [m]')
-# if showplots: plt.show()
-# # plt.close(fig)
-# # sys.exit()
+# vmin = np.max(np.log(Gaborr))-6.
+fig, ax = plt.subplots()   
+FF_spectrum_logscale = np.log10(abs(diff_full_a.T)**2);
+vmin = np.max(FF_spectrum_logscale)-FF_orders_plot
+map1 = ax.pcolor(Hgrid_select,rgrid_FF,FF_spectrum_logscale, shading='auto',vmin=vmin)
+# plt.pcolor(t_Gr,o_Gr/omega0,(np.log(Gaborr)).T, shading='auto',vmin=vmin)
+fig.colorbar(map1)
+plt.title('Error, disp + abs, log, a')
+plt.xlabel('H [-]')
+plt.ylabel('r [m]')
+if showplots: plt.show()
+# plt.close(fig)
+# sys.exit()
 
-# # vmin = np.max(np.log(Gaborr))-6.
-# fig, ax = plt.subplots()   
-# FF_spectrum_logscale = np.log10(abs(diff_disp_a.T)**2);
-# vmin = np.max(FF_spectrum_logscale)-FF_orders_plot
-# map1 = ax.pcolor(Hgrid_select,rgrid_FF,FF_spectrum_logscale, shading='auto',vmin=vmin)
-# # plt.pcolor(t_Gr,o_Gr/omega0,(np.log(Gaborr)).T, shading='auto',vmin=vmin)
-# fig.colorbar(map1)
-# plt.title('Error, disp, log, a')
-# plt.xlabel('H [-]')
-# plt.ylabel('r [m]')
-# if showplots: plt.show()
-# # plt.close(fig)
-# # sys.exit()
+# vmin = np.max(np.log(Gaborr))-6.
+fig, ax = plt.subplots()   
+FF_spectrum_logscale = np.log10(abs(diff_disp_a.T)**2);
+vmin = np.max(FF_spectrum_logscale)-FF_orders_plot
+map1 = ax.pcolor(Hgrid_select,rgrid_FF,FF_spectrum_logscale, shading='auto',vmin=vmin)
+# plt.pcolor(t_Gr,o_Gr/omega0,(np.log(Gaborr)).T, shading='auto',vmin=vmin)
+fig.colorbar(map1)
+plt.title('Error, disp, log, a')
+plt.xlabel('H [-]')
+plt.ylabel('r [m]')
+if showplots: plt.show()
+# plt.close(fig)
+# sys.exit()
 
 
 # # vmin = np.max(np.log(Gaborr))-6.
