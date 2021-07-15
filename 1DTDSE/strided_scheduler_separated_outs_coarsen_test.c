@@ -123,7 +123,7 @@ int main(int argc, char *argv[])
 		// find proper simulation & load the field
 		file_id = H5Fopen ("results.h5", H5F_ACC_RDONLY, H5P_DEFAULT);
 		kr = Nsim % dim_r; kz = Nsim - kr;  kz = kz / dim_r; // compute offsets in each dimension
-		dum3int[0]=-1; dum3int[1]=kr_step*kr; dum3int[2]=kz_step*kz;	// coarsen the access	
+		dum3int[0]=kz_step*kz; dum3int[1]=-1; dum3int[2]=kr_step*kr;	// coarsen the access	
 		rw_real_fullhyperslab_nd_h5(file_id,"outputs/output_field",&h5error,3,dims,dum3int,inputs.Efield.Field,"r");
 
 		int Nz_CUPRAD, Nr_CUPRAD;
@@ -189,7 +189,7 @@ int main(int argc, char *argv[])
 
 		// prepare the part in the arrray to r/w
 		// dum3int[0]=-1; dum3int[1]=kr; dum3int[2]=kz; // set offset as inputs for hdf5-procedures
-        dum3int[0]=-1; dum3int[1]=kr_step*kr; dum3int[2]=kz_step*kz;	// coarsen the access
+ 		dum3int[0]=kz_step*kz; dum3int[1]=-1; dum3int[2]=kr_step*kr;	// coarsen the access
 
 		dims[0] = dim_t;
 
