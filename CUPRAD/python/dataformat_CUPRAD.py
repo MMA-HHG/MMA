@@ -27,8 +27,9 @@ class get_data:
         # self.E_trz = InputArchive['/outputs/output_field'][:,0:Nr_max:kr_step,:Nz] # Arrays may be over-allocated by CUPRAD
         
         self.E_trz = InputArchive['/outputs/output_field'][:Nz,:,0:Nr_max:kr_step] # Arrays may be over-allocated by CUPRAD
-        
+        print('oldshape', self.E_trz.shape)
         self.E_trz = self.E_trz.transpose(2,0,1) # hot-fix rearangement due to CUPRAD output
+        print('newshape', self.E_trz.shape)
 
         self.inverse_GV = InputArchive['/logs/inverse_group_velocity_SI'][()]
         self.VG_IR = 1.0/self.inverse_GV               
