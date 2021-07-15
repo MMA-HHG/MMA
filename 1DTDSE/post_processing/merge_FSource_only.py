@@ -62,7 +62,9 @@ def print_ouput_file(f,outf,dset_list):
                         newdset[kr,kz,:,:] = dset[:,:,k1]
                     else:
                         print('warning, dataset with unsupported dimension: ' + dsetname + ', nothing done')# general procedure should be possible
+    return np.max(ks_loc)
 
+ksim_max = []
 with h5py.File(outfname,'w') as outf:
     firstrun = True;
     for fname in files:
@@ -71,6 +73,7 @@ with h5py.File(outfname,'w') as outf:
             if firstrun:
                 prepare_ouput_file(f, outf, dset_list)
                 firstrun = False
-            print_ouput_file(f, outf, dset_list)
+            ksim_max.append(print_ouput_file(f, outf, dset_list))
 
+print('max ksim:', np.max(ksim_max))
 print('Done')
