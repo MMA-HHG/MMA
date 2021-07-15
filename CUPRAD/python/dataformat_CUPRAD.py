@@ -24,7 +24,10 @@ class get_data:
             dr_file = rgrid[1]-rgrid[0]; kr_step = max(1,int(np.floor(dr/dr_file))); Nr_max = mn.FindInterval(rgrid, rmax)
             rgrid = rgrid[0:Nr_max:kr_step]; Nr = len(rgrid) 
             
-        self.E_trz = InputArchive['/outputs/output_field'][:,0:Nr_max:kr_step,:Nz] # Arrays may be over-allocated by CUPRAD
+        # self.E_trz = InputArchive['/outputs/output_field'][:,0:Nr_max:kr_step,:Nz] # Arrays may be over-allocated by CUPRAD
+        
+        self.E_trz = InputArchive['/outputs/output_field'][:Nz,:,0:Nr_max:kr_step] # Arrays may be over-allocated by CUPRAD
+        self.E_trz.transpose(1,2,0) # hot-fix rearangement due to CUPRAD output
 
         self.inverse_GV = InputArchive['/logs/inverse_group_velocity_SI'][()]
         self.VG_IR = 1.0/self.inverse_GV               
@@ -117,7 +120,8 @@ class get_data:
             dr_file = rgrid[1]-rgrid[0]; kr_step = max(1,int(np.floor(dr/dr_file))); Nr_max = mn.FindInterval(rgrid, rmax)
             rgrid = rgrid[0:Nr_max:kr_step]; Nr = len(rgrid) 
             
-        self.plasma.value_trz = InputArchive['/outputs/output_plasma'][:,0:Nr_max:kr_step,:Nz] # Arrays may be over-allocated by CUPRAD
+        self.plasma.value_trz = InputArchive['/outputs/output_plasma'][:Nz,:,0:Nr_max:kr_step] # [:,0:Nr_max:kr_step,:Nz] # Arrays may be over-allocated by CUPRAD
+        self.plasma.value_trz.transpose(1,2,0) # hot-fix to reshape
         
         self.plasma.rgrid = rgrid
         self.plasma.Nr = Nr; self.plasma.Nt = Nt; self.plasma.Nz = Nz
