@@ -35,7 +35,7 @@ int main(int argc, char *argv[])
 
 	// dummy
 	int dum3int[3];
-	hsize_t * dims, dims_input; int ndims; hid_t datatype; // ! hot-fixed to have input dimension different
+	hsize_t * dims, * dims_input; int ndims; hid_t datatype; // ! hot-fixed to have input dimension different
 	char dumchar1[50], dumchar2[50];
 	// Processing the queue
 	int Nsim, Nsim_loc = -1, kr, kz; // counter of simulations, indices in the Field array
