@@ -21,7 +21,7 @@ try:
     kr = int(arguments[2])
     kz = int(arguments[3])
 except:
-    filename = 'results_merged.h5'
+    filename = 'results_merged_example.h5'
     kr = 0
     kz = 0 
 
@@ -48,7 +48,7 @@ ax10.plot(Efield)
 fig10.savefig('Efield_plot.png', dpi = 600)           
 
 if showplots: plt.show()
-plt.close()
+else: plt.close()
 
 
 

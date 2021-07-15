@@ -35,7 +35,7 @@ int main(int argc, char *argv[])
 
 	// dummy
 	int dum3int[3];
-	hsize_t * dims; int ndims; hid_t datatype;
+	hsize_t * dims, dims_input; int ndims; hid_t datatype; // ! hot-fixed to have input dimension different
 	char dumchar1[50], dumchar2[50];
 	// Processing the queue
 	int Nsim, Nsim_loc = -1, kr, kz; // counter of simulations, indices in the Field array
@@ -69,6 +69,8 @@ int main(int argc, char *argv[])
 	ReadInputs(file_id, "TDSE_inputs/", &h5error, &inputs);
 	inputs.Print = Set_prints_from_HDF5(file_id, "TDSE_inputs/", &h5error);
 	dims = get_dimensions_h5(file_id, "outputs/output_field", &h5error, &ndims, &datatype);
+	dims_input = get_dimensions_h5(file_id, "outputs/output_field", &h5error, &ndims, &datatype);
+
     // *dims = malloc((*ndims)*sizeof(hsize_t))
 
 	hsize_t dim_t = *get_dimensions_h5(file_id, "outputs/tgrid", &h5error, &ndims, &datatype), \
@@ -76,6 +78,7 @@ int main(int argc, char *argv[])
             dim_z = *get_dimensions_h5(file_id, "outputs/zgrid", &h5error, &ndims, &datatype); // label the dims by physical axes	
 
     dims[0] = dim_t; dims[1] = dim_r; dims[2] = dim_z;
+	dims_input[0] = dim_z; dims_input[1] = dim_t; dims_input[2] = dim_r;
 
 	// create space for the fields & load the tgrid
 	inputs.Efield.Field = malloc(((int)dims[0])*sizeof(double));
@@ -90,7 +93,7 @@ int main(int argc, char *argv[])
 
     // redefine dimensions, t-not affected
     dim_z = Nz_max/kz_step; dim_r = Nr_max/kr_step;
-    dims[0] = dim_t; dims[1] = dim_r; dims[2] = dim_z;
+    dims[0] = dim_z; dims[1] = dim_t; dims[2] = dim_r;
     
     
     h5error = H5Fclose(file_id);
@@ -98,7 +101,8 @@ int main(int argc, char *argv[])
 	for(k1 = 0 ; k1 < inputs.Efield.Nt; k1++){inputs.Efield.tgrid[k1] = inputs.Efield.tgrid[k1]/TIMEau; /*inputs.Efield.Field[k1] = inputs.Efield.Field[k1]/EFIELDau;*/} // convert to atomic units (fs->a.u.), (GV/m->a.u.)
 
 	if (comment_operation == 1 ){printf("Proc %i uses dx = %e \n",myrank,inputs.dx);}
-	if ( ( comment_operation == 1 ) && ( myrank == 0 ) ){printf("Fields dimensions (t,r,z) = (%i,%i,%i)\n",dims[0],dims[1],dims[2]);}
+	if ( ( comment_operation == 1 ) && ( myrank == 0 ) ){printf("Fields dimensions (t,r,z) = (%i,%i,%i)\n",dims[0],dims[1],dims[2]);
+														 printf("Fields dimensions (z,t,r) = (%i,%i,%i)\n",dims_input[0],dims_input[1],dims_input[2]);}
 
 
 	// Prepare the ground state (it's the state of the atom before the interaction)
@@ -124,7 +128,7 @@ int main(int argc, char *argv[])
 		file_id = H5Fopen ("results.h5", H5F_ACC_RDONLY, H5P_DEFAULT);
 		kr = Nsim % dim_r; kz = Nsim - kr;  kz = kz / dim_r; // compute offsets in each dimension
 		dum3int[0]=kz_step*kz; dum3int[1]=-1; dum3int[2]=kr_step*kr;	// coarsen the access	
-		rw_real_fullhyperslab_nd_h5(file_id,"outputs/output_field",&h5error,3,dims,dum3int,inputs.Efield.Field,"r");
+		rw_real_fullhyperslab_nd_h5(file_id,"outputs/output_field",&h5error,3,dims_input,dum3int,inputs.Efield.Field,"r");
 
 		int Nz_CUPRAD, Nr_CUPRAD;
 		// double *rgrid_CUPRAD, *zgrid_CUPRAD;
@@ -191,11 +195,11 @@ int main(int argc, char *argv[])
 		// dum3int[0]=-1; dum3int[1]=kr; dum3int[2]=kz; // set offset as inputs for hdf5-procedures
  		dum3int[0]=kz_step*kz; dum3int[1]=-1; dum3int[2]=kr_step*kr;	// coarsen the access
 
-		dims[0] = dim_t;
+		dims_input[0] = dim_t;
 
 		// read the HDF5 file
 		file_id = H5Fopen ("results.h5", H5F_ACC_RDONLY, H5P_DEFAULT);
-		rw_real_fullhyperslab_nd_h5(file_id,"outputs/output_field",&h5error,3,dims,dum3int,inputs.Efield.Field,"r");
+		rw_real_fullhyperslab_nd_h5(file_id,"outputs/output_field",&h5error,3,dims_input,dum3int,inputs.Efield.Field,"r");
 		h5error = H5Fclose(file_id);
 
 		// convert units
