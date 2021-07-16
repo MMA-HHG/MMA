@@ -44,7 +44,7 @@ hid_t dtype_h5(char *foo)
 void ReadInputs(hid_t file_id, char *inpath, herr_t *h5error, struct inputs_def *in)
 {
 	char path[50];
-	printf("t1 \n"); fflush(NULL);
+	 // printf("t1 \n"); fflush(NULL);
 
   path[0] = '\0';	strcat(strcat(path,inpath),"Eguess");
   readreal(file_id, path, h5error,&(*in).Eguess); // Energy of the initial state

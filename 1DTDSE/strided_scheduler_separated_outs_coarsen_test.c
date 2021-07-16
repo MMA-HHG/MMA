@@ -100,7 +100,7 @@ int main(int argc, char *argv[])
     // convert units
 	for(k1 = 0 ; k1 < inputs.Efield.Nt; k1++){inputs.Efield.tgrid[k1] = inputs.Efield.tgrid[k1]/TIMEau; /*inputs.Efield.Field[k1] = inputs.Efield.Field[k1]/EFIELDau;*/} // convert to atomic units (fs->a.u.), (GV/m->a.u.)
 
-	if (comment_operation == 1 ){printf("Proc %i uses dx = %e \n",myrank,inputs.dx);}
+	if (( comment_operation == 1 ) && ( myrank == 0 ) ){printf("Proc %i uses dx = %e \n",myrank,inputs.dx);}
 	if ( ( comment_operation == 1 ) && ( myrank == 0 ) ){printf("Fields dimensions (t,r,z) = (%i,%i,%i)\n",dims[0],dims[1],dims[2]);
 														 printf("Fields dimensions (z,t,r) = (%i,%i,%i)\n",dims_input[0],dims_input[1],dims_input[2]);}
 
@@ -184,7 +184,7 @@ int main(int argc, char *argv[])
 
 	// process the MPI queue
 	nxtval_strided(nprocs,&Nsim); Nsim_loc++;
-	printf("Proc %i c %i; time %f sec \n",myrank,Nsim, t_mpi[2]- t_mpi[1]); fflush(NULL);
+	if ( ( comment_operation == 1 ) && ( myrank == 0 ) ){ printf("Proc %i c %i; time %f sec \n",myrank,Nsim, t_mpi[2]- t_mpi[1]); fflush(NULL);}
 	//t_mpi[7] = MPI_Wtime();
 	//printf("Proc %i, reached the point 2  : %f sec\n",myrank,t_mpi[7]-t_mpi[0]);
 	while (Nsim < Ntot){ // run till queue is not treated
@@ -224,7 +224,7 @@ int main(int argc, char *argv[])
 		nxtval_strided(nprocs,&Nsim); Nsim_loc++;
 		// printf("Proc %i c %i\n",myrank,Nsim); fflush(NULL);
 		t_mpi[4] = MPI_Wtime();
-		printf("Proc %i c %i; time %f sec, from start %f sec \n",myrank,Nsim, t_mpi[4]- t_mpi[3], t_mpi[4]- t_mpi[1]); fflush(NULL);
+		if ( ( comment_operation == 1 ) && ( myrank == 0 ) ){ printf("Proc %i c %i; time %f sec, from start %f sec \n",myrank,Nsim, t_mpi[4]- t_mpi[3], t_mpi[4]- t_mpi[1]); fflush(NULL);}
 		
 		t_mpi[5] = MPI_Wtime();
 	}
@@ -234,7 +234,7 @@ int main(int argc, char *argv[])
  
 
 	t_mpi[6] = MPI_Wtime();
-	printf("Proc %i is going to finish., Total time %f sec.\n",myrank,t_mpi[6]-t_mpi[0]); fflush(NULL);
+	if ( ( comment_operation == 1 ) && ( myrank == 0 ) ){ printf("Proc %i is going to finish., Total time %f sec.\n",myrank,t_mpi[6]-t_mpi[0]); fflush(NULL);}
 	MPI_Finalize();
 	return 0;	
 }

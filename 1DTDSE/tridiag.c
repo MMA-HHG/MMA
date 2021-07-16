@@ -246,7 +246,7 @@ double Einitialise(struct trg_def trg, double *psi0,double *dinf,double *d,doubl
 	dsupnew = (double *)calloc(size,sizeof(double));
 	diag = (double *)calloc(size,sizeof(double));
 
-printf("test1\n"); fflush(NULL);
+// printf("test1\n"); fflush(NULL);
 
 	  for(i=0;i<=num_r;i++)
 	  {

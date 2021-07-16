@@ -181,7 +181,7 @@ void Initialise_grid_and_D2(double dx, int num_r, double **x, double **diagonal,
 {
     int k1;
     double xmax = 0.5*num_r*dx;
-	printf("numr : %i \n",num_r);
+	// printf("numr : %i \n",num_r);
 	*x = calloc((num_r+1),sizeof(double));
 	*off_diagonal = calloc(2*(num_r+1),sizeof(double));
 	*diagonal = calloc(2*(num_r+1),sizeof(double));	
