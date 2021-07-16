@@ -531,13 +531,13 @@ void prepare_local_output_fixed_print_grids_h5(hid_t file_id, char *inpath, herr
   path[0] = '\0'; strcat(strcat(path,inpath),"Energy_of_the_ground_state");
   print_nd_array_h5(file_id, path, h5error, 1, output_dims, &(*in).Einit, H5T_NATIVE_DOUBLE);
 
-  path[0] = '\0'; strcat(strcat(path,inpath),"Nr_orig"); int foo = dims[1];
+  path[0] = '\0'; strcat(strcat(path,inpath),"Nr_orig"); int foo = dims[2];
   print_nd_array_h5(file_id, path, h5error, 1, output_dims, &foo, H5T_NATIVE_INT);
 
-  path[0] = '\0'; strcat(strcat(path,inpath),"Nz_orig"); foo = dims[2];
+  path[0] = '\0'; strcat(strcat(path,inpath),"Nz_orig"); foo = dims[0];
   print_nd_array_h5(file_id, path, h5error, 1, output_dims, &foo, H5T_NATIVE_INT);
 
-  path[0] = '\0'; strcat(strcat(path,inpath),"Nt_orig"); foo = dims[0];
+  path[0] = '\0'; strcat(strcat(path,inpath),"Nt_orig"); foo = dims[1];
   print_nd_array_h5(file_id, path, h5error, 1, output_dims, &foo, H5T_NATIVE_INT);
 
   path[0] = '\0'; strcat(strcat(path,inpath),"number_of_local_simulations");
