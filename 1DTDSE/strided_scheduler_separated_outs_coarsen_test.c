@@ -234,7 +234,7 @@ int main(int argc, char *argv[])
  
 
 	t_mpi[6] = MPI_Wtime();
-	if ( ( comment_operation == 1 ) && ( myrank == 0 ) ){ printf("Proc %i is going to finish., Total time %f sec.\n",myrank,t_mpi[6]-t_mpi[0]); fflush(NULL);}
+	if ( ( comment_operation == 1 )){ printf("Proc %i is going to finish., Total time %f sec.\n",myrank,t_mpi[6]-t_mpi[0]); fflush(NULL);}
 	MPI_Finalize();
 	return 0;	
 }
