@@ -18,7 +18,7 @@ module load fftw/3.3.8
  export I_MPI_PIN_PROCESSOR_LIST=allcores:map=spread
  export SLURM_CPU_BIND=none
 #
-  export I_MPI_DAPL_PROVIDER=ofa-v2-mlx5_0-1s
+  export I_MPI_DAPL_PROVIDER=ofa-v2-mlx5_0-1u # update according to https://www.ibm.com/support/pages/message-passing-interface-mpi-job-using-intel-mpi-and-direct-access-programming-library-dapl-may-fail-start-ibm-system-cluster-1350
  export I_MPI_DAPL_DIRECT_COPY_THRESHOLD=655360
 # 
 export  I_MPI_HBW_POLICY=hbw_bind,hbw_preferred,hbw_bind
