@@ -17,6 +17,6 @@ module load intel intelmpi hdf5
 
 echo 'CUPRAD code executing'
 
-srun --mpi=pmi2 -K1 -n $SLURM_NTASKS /home/vabekjan/git/CUPRAD_DEVELOP/binary/cuprad_occigen.e
+srun --mpi=pmi2 -K1 -n $SLURM_NTASKS $CUPRAD_BINARY/cuprad_occigen.e
 
 echo 'CUPRAD code done'
