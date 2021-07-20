@@ -20,7 +20,8 @@ fi_info
  export I_MPI_PIN_PROCESSOR_LIST=allcores:map=spread
  export SLURM_CPU_BIND=none
 #
-export I_MPI_FABRICS_LIST="verbs:ofi_rxd" # CINES
+# export I_MPI_FABRICS_LIST="verbs:ofi_rxd" # CINES
+export I_MPI_OFI_PROVIDER=ofi_rxd
 #
 export  I_MPI_HBW_POLICY=hbw_bind,hbw_preferred,hbw_bind
 export I_MPI_ADJUST_ALLTOALLV=2
