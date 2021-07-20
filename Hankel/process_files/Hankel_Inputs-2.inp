@@ -7,7 +7,7 @@ rmax_FF	8e-4	R	m
 Nr_FF	200	I	-
 distance_FF	0.3	R	m
 
-Nz_max_sum	5	I	-
+Nz_max_sum	240	I	-
 
 $array	Hrange	R	-	17 18
 
