@@ -15,6 +15,8 @@ module load fftw/3.3.8
 # module load intel/19.4 openmpi/intel/2.0.4
 # module load gcc/8.3.0 openmpi/gnu/2.0.4
 
+fi_info
+
  export I_MPI_PIN_PROCESSOR_LIST=allcores:map=spread
  export SLURM_CPU_BIND=none
 #
