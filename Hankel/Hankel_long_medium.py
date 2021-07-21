@@ -171,7 +171,7 @@ FField_FF_integrated, source_maxima = Hfn2.HankelTransform_long(
                                                FSourceTerm[0:Nr_max:kr_step,:Nz_max_sum,H_indices[0]:H_indices[1]:ko_step],
                                                distance_FF,
                                                rgrid_FF,
-                                               dispersion_function = dispersion_function,
+                                               dispersion_function = dispersion_function, # None, #dispersion_function,
                                                absorption_function = absorption_function,
                                                frequencies_to_trace_maxima = omega_I_study_intervals)
 
