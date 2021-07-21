@@ -9,7 +9,7 @@ distance_FF	0.3	R	m
 
 Nz_max_sum	5	I	-
 
-$array	Hrange	R	-	17 18
+$array	Hrange	R	-	16 18
 
 # XUV propagation params
 $array apply_diffraction	S	-	dispersion absorption
@@ -24,6 +24,6 @@ XUV_table_type_absorption	Henke	S	-
 FF_orders_plot	4	R	-
 
 # file names
-file_CUPRAD	results_1.h5	S	-
+file_CUPRAD	results.h5	S	-
 file_TDSE	results_merged_Fsource.h5	S	-
 out_h5name	Hankel.h5	S	-
