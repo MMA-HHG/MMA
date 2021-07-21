@@ -6,6 +6,7 @@ import struct
 import array
 import os
 import time
+import warnings
 # import ray
 # import matlab.engine
 # import string
@@ -42,7 +43,8 @@ def HankelTransform_long(ogrid, rgrid, zgrid, FSourceTerm, # FSourceTerm(r,z,ome
                          distance, rgrid_FF,
                          dispersion_function = None, absorption_function = None,
                          integrator_Hankel = integrate.trapz, integrator_longitudinal = 'trapezoidal',
-                         near_field_factor = True
+                         near_field_factor = True,
+                         frequencies_to_trace_maxima = None
                          ):
     """
     It computes XUV propagation using a sum of Hankel transforms along the medium.
@@ -83,7 +85,8 @@ def HankelTransform_long(ogrid, rgrid, zgrid, FSourceTerm, # FSourceTerm(r,z,ome
     
     No = len(ogrid); Nz = len(zgrid)
     include_dispersion = not(dispersion_function is None)
-    include_absorption = not(absorption_function is None)    
+    include_absorption = not(absorption_function is None)
+    trace_maxima_log = not(frequencies_to_trace_maxima is None)
     
     if include_dispersion:
         dispersion_factor = np.empty(No)
@@ -110,8 +113,9 @@ def HankelTransform_long(ogrid, rgrid, zgrid, FSourceTerm, # FSourceTerm(r,z,ome
             
     # we keep the data for now, consider on-the-fly change
     print('Computing Hankel from planes')
+    t_start = time.perf_counter()
     for k1 in range(Nz):
-        print('plane', k1)
+        print('plane', k1, 'time:', time.perf_counter()-t_start)
         FSourceTerm_select = np.squeeze(FSourceTerm[:,k1,:]).T
         FField_FF = HankelTransform(ogrid,
                                   rgrid,
@@ -127,7 +131,8 @@ def HankelTransform_long(ogrid, rgrid, zgrid, FSourceTerm, # FSourceTerm(r,z,ome
         if (include_dispersion or include_absorption):  
              FField_FF_z[k1,:,:] = np.outer(factor_e[k1,:],np.ones(FField_FF.shape[1]))*FField_FF
         else:
-            FField_FF_z[k1,:,:] = FField_FF 
+            FField_FF_z[k1,:,:] = FField_FF # (z,omega,r)
+            
     if (integrator_longitudinal == 'trapezoidal'):        
         for k1 in range(Nz-1):    
             k_step = 1
@@ -141,7 +146,32 @@ def HankelTransform_long(ogrid, rgrid, zgrid, FSourceTerm, # FSourceTerm(r,z,ome
     else:
         raise NotImplementedError('Only trapezoidal rule implemented now')
         
-    return dum
+    if trace_maxima_log:
+        
+        frequency_indices = []
+        planes_maxima = []
+        for frequency_list in frequencies_to_trace_maxima:
+            try:
+                frequency_indices.append(mn.FindInterval(ogrid, frequency_list))
+                planes_maxima.append([])
+            except:
+                warnings.warn("A frequency from frequencies_to_trace_maxima doesn't match ogrid.")
+        
+        if (len(frequency_indices)>0):
+            for k1 in range(Nz):
+                for k2 in range(len(frequency_indices)):
+                    planes_maxima[k2].append(np.max(abs(
+                                      FField_FF_z[k1,frequency_indices[k2][0]:frequency_indices[k2][1],:]
+                                            )))
+                    
+            for k1 in range(len(frequency_indices)):
+                planes_maxima[k2] = np.asarray(planes_maxima[k2])
+        
+        return dum , planes_maxima
+            
+            
+    else: 
+        return dum
                 
                 
     

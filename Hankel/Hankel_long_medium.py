@@ -56,13 +56,13 @@ except:
     apply_diffraction = ['dispersion', 'absorption']
     
     Nr_max = 235 #470; 235; 155-still fine    
-    Hrange = [17, 18] # [17, 18] # [14, 36] [17, 18] [16, 20] [14, 22]
+    Hrange = [16, 18] # [17, 18] # [14, 36] [17, 18] [16, 20] [14, 22]
     
-    kr_step = 2 # descending order, tha last is "the most accurate"
+    kr_step = 2 # descending order, the last is "the most accurate"
     ko_step = 2
     
     rmax_FF = 8*1e-4
-    Nr_FF = 200
+    Nr_FF = 200 # 10 # 200
     distance_FF = 0.3
     
     FF_orders_plot = 4    
@@ -154,16 +154,19 @@ else: dispersion_function = None
 if ('absorption' in apply_diffraction): absorption_function = absorption_function_def
 else: dispersion_function = None
 
+omega0SI = mn.ConvertPhoton(omega0, 'omegaau', 'omegaSI')
 
 # The main integration
-FField_FF_integrated = Hfn2.HankelTransform_long(ogrid_select_SI,
+FField_FF_integrated, source_maxima = Hfn2.HankelTransform_long(
+                                               ogrid_select_SI,
                                                rgrid_macro[0:Nr_max:kr_step],
                                                zgrid_macro[:Nz_max_sum],
                                                FSourceTerm[0:Nr_max:kr_step,:Nz_max_sum,H_indices[0]:H_indices[1]:ko_step],
                                                distance_FF,
                                                rgrid_FF,
                                                dispersion_function = dispersion_function,
-                                               absorption_function = absorption_function)
+                                               absorption_function = absorption_function,
+                                               frequencies_to_trace_maxima = [[16.5*omega0SI, 17.5*omega0SI]])
 
 
 # Save the data
