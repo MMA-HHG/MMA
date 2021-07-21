@@ -148,7 +148,7 @@ os.chdir(OutPath)
 
 prop_cycle = plt.rcParams['axes.prop_cycle']
 colors_plt = prop_cycle.by_key()['color']
-linestyles_plt = ['--','-','-.'] 
+linestyles_plt = 10*['--','-','-.'] # horrible hot-fix
 
 
 NH = len(Horders)
