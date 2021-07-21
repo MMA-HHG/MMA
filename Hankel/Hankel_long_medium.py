@@ -154,7 +154,14 @@ else: dispersion_function = None
 if ('absorption' in apply_diffraction): absorption_function = absorption_function_def
 else: dispersion_function = None
 
+## create subintervals to analyse the intensities
+Hgrid_I_study = mn.get_odd_interior_points(Hrange)
+omega_I_study_intervals = []
 omega0SI = mn.ConvertPhoton(omega0, 'omegaau', 'omegaSI')
+for k1 in Hgrid_I_study:
+    omega_I_study_intervals.append(
+        [np.max([ogrid_select_SI[0],omega0SI*(k1-0.5)]), np.min([ogrid_select_SI[-1],omega0SI*(k1+0.5)])]
+        )
 
 # The main integration
 FField_FF_integrated, source_maxima = Hfn2.HankelTransform_long(
@@ -166,7 +173,7 @@ FField_FF_integrated, source_maxima = Hfn2.HankelTransform_long(
                                                rgrid_FF,
                                                dispersion_function = dispersion_function,
                                                absorption_function = absorption_function,
-                                               frequencies_to_trace_maxima = [[16.5*omega0SI, 17.5*omega0SI]])
+                                               frequencies_to_trace_maxima = omega_I_study_intervals)
 
 
 # Save the data
@@ -175,7 +182,12 @@ with h5py.File(out_h5name,'w') as OutFile:
     grp.create_dataset('Spectrum_on_screen',
                                           data = np.stack((FField_FF_integrated.real, FField_FF_integrated.imag),axis=-1)
                                           )
-
+    grp.create_dataset('Maxima_of_planes',
+                                          data = np.asarray(source_maxima)
+                                          )
+    grp.create_dataset('Maxima_Hgrid',
+                                          data = Hgrid_I_study
+                                          )
 
 Hgrid_select = Hgrid[H_indices[0]:H_indices[1]:ko_step]
 
