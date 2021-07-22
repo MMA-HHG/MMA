@@ -83,9 +83,11 @@ if ('-here' in arguments):
     results_TDSE = os.getcwd()
 else:
     results_CUPRAD = os.path.join("D:\data", "Discharges", "TDSE", "t6")
+    # results_CUPRAD = os.path.join("/mnt","d","data", "Discharges", "TDSE", "t6")
     results_TDSE = os.path.join("D:\data", "Discharges", "TDSE", "TDSEH1")
     results_TDSE = os.path.join("D:\data", "Discharges", "TDSE", "TDSE40planes1")
     results_TDSE = os.path.join("C:\data", "Discharges", "TDSE", "TDSE50planes1") # fine up to 46  
+    # results_TDSE = os.path.join("/mnt","c","data", "Discharges", "TDSE", "TDSE50planes1")
     
 
 

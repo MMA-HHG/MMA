@@ -56,7 +56,7 @@ except:
     apply_diffraction = ['dispersion', 'absorption']
     
     Nr_max = 235 #470; 235; 155-still fine    
-    Hrange = [16, 18] # [17, 18] # [14, 36] [17, 18] [16, 20] [14, 22]
+    Hrange = [17, 18] # [17, 18] # [14, 36] [17, 18] [16, 20] [14, 22]
     
     kr_step = 2 # descending order, the last is "the most accurate"
     ko_step = 2
@@ -83,9 +83,11 @@ if ('-here' in arguments):
     results_TDSE = os.getcwd()
 else:
     results_CUPRAD = os.path.join("D:\data", "Discharges", "TDSE", "t6")
+    results_CUPRAD = os.path.join("/mnt","d","data", "Discharges", "TDSE", "t6")
     results_TDSE = os.path.join("D:\data", "Discharges", "TDSE", "TDSEH1")
     results_TDSE = os.path.join("D:\data", "Discharges", "TDSE", "TDSE40planes1")
     results_TDSE = os.path.join("C:\data", "Discharges", "TDSE", "TDSE50planes1") # fine up to 46  
+    results_TDSE = os.path.join("/mnt","c","data", "Discharges", "TDSE", "TDSE50planes1")
     
 
 
@@ -172,15 +174,42 @@ for k1 in Hgrid_I_study:
 
 
 Workers = mp.cpu_count() # this is the number of workers
-# Workers = 8
+Workers = 4
 
 # sys.exit()
 
 output = mp.Queue()
 def mp_handle(*args, **kwargs):
     output.put(
-               Hfn2.HankelTransform_long(*args,**kwargs) 
+                Hfn2.HankelTransform_long(*args,**kwargs) 
               )
+
+
+# define processes
+processes = [mp.Process(target=mp_handle,
+                        args=(
+                              ogrid_select_SI,
+                              rgrid_macro[0:Nr_max:kr_step],
+                              zgrid_macro[:Nz_max_sum],
+                              FSourceTerm_select,# FSourceTerm[0:Nr_max:kr_step,:Nz_max_sum,H_indices[0]:H_indices[1]:ko_step],
+                              distance_FF,
+                              rgrid_FF
+                            ),
+                        kwargs={
+                              'dispersion_function': dispersion_function,
+                              'absorption_function': absorption_function,
+                              'frequencies_to_trace_maxima':  omega_I_study_intervals
+                            }
+                        
+                        ) for k1 in range(Workers)]
+
+# run processes
+for p in processes: p.start();
+
+results = [output.get() for p in processes]
+
+FField_FF_integratedw0 = results[0][0]
+FField_FF_integratedw1 = results[1][0]
 
 # The main integration
 FField_FF_integrated, source_maxima = Hfn2.HankelTransform_long(
@@ -214,19 +243,25 @@ with h5py.File(out_h5name,'w') as OutFile:
     grp.create_dataset('Hgrid_select',
                                           data = Hgrid_select
                                           )
-        
+    
+    grp.create_dataset('Spectrum_on_screen_worker0',
+                                          data = np.stack((FField_FF_integratedw0.real, FField_FF_integratedw0.imag),axis=-1)
+                                          )
+    grp.create_dataset('Spectrum_on_screen_worker1',
+                                          data = np.stack((FField_FF_integratedw1.real, FField_FF_integratedw1.imag),axis=-1)
+                                          )        
 
 
-# vmin = np.max(np.log(Gaborr))-6.
-fig, ax = plt.subplots()   
-FF_spectrum_logscale = np.log10(abs(FField_FF_integrated.T)**2);
-vmin = np.max(FF_spectrum_logscale)-FF_orders_plot
-map1 = ax.pcolor(Hgrid_select,rgrid_FF,FF_spectrum_logscale, shading='auto',vmin=vmin)
-# plt.pcolor(t_Gr,o_Gr/omega0,(np.log(Gaborr)).T, shading='auto',vmin=vmin)
-fig.colorbar(map1)
-plt.title('Far-field spectrum (30 cm), integrated, log')
-plt.xlabel('H [-]')
-plt.ylabel('r [m]')
-if showplots: plt.show()
-# plt.close(fig)
-# sys.exit()
+# # vmin = np.max(np.log(Gaborr))-6.
+# fig, ax = plt.subplots()   
+# FF_spectrum_logscale = np.log10(abs(FField_FF_integrated.T)**2);
+# vmin = np.max(FF_spectrum_logscale)-FF_orders_plot
+# map1 = ax.pcolor(Hgrid_select,rgrid_FF,FF_spectrum_logscale, shading='auto',vmin=vmin)
+# # plt.pcolor(t_Gr,o_Gr/omega0,(np.log(Gaborr)).T, shading='auto',vmin=vmin)
+# fig.colorbar(map1)
+# plt.title('Far-field spectrum (30 cm), integrated, log')
+# plt.xlabel('H [-]')
+# plt.ylabel('r [m]')
+# if showplots: plt.show()
+# # plt.close(fig)
+# # sys.exit()
