@@ -177,6 +177,7 @@ FField_FF_integrated, source_maxima = Hfn2.HankelTransform_long(
 
 
 # Save the data
+Hgrid_select = Hgrid[H_indices[0]:H_indices[1]:ko_step]
 with h5py.File(out_h5name,'w') as OutFile:
     grp = OutFile.create_group('XUV')
     grp.create_dataset('Spectrum_on_screen',
@@ -188,8 +189,14 @@ with h5py.File(out_h5name,'w') as OutFile:
     grp.create_dataset('Maxima_Hgrid',
                                           data = Hgrid_I_study
                                           )
+    grp.create_dataset('rgrid_FF',
+                                          data = rgrid_FF
+                                          )    
+    grp.create_dataset('Hgrid_select',
+                                          data = Hgrid_select
+                                          )
+        
 
-Hgrid_select = Hgrid[H_indices[0]:H_indices[1]:ko_step]
 
 # vmin = np.max(np.log(Gaborr))-6.
 fig, ax = plt.subplots()   
