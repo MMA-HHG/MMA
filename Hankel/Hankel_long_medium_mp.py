@@ -231,6 +231,27 @@ FField_FF_integrated, source_maxima = Hfn2.HankelTransform_long(
                                                absorption_function = absorption_function,
                                                frequencies_to_trace_maxima = omega_I_study_intervals)
 
+FField_FF_integratedp0, source_maxima = Hfn2.HankelTransform_long(
+                                               ogrid_select_SI,
+                                               rgrid_macro[0:Nr_max:kr_step],
+                                               zgrid_macro[:Nz_max_sum],
+                                               FSourceTerm_select,# FSourceTerm[0:Nr_max:kr_step,:Nz_max_sum,H_indices[0]:H_indices[1]:ko_step],
+                                               distance_FF,
+                                               rgrid_parts[0],
+                                               dispersion_function = dispersion_function, # None, #dispersion_function,
+                                               absorption_function = absorption_function,
+                                               frequencies_to_trace_maxima = omega_I_study_intervals)
+
+FField_FF_integratedp1, source_maxima = Hfn2.HankelTransform_long(
+                                               ogrid_select_SI,
+                                               rgrid_macro[0:Nr_max:kr_step],
+                                               zgrid_macro[:Nz_max_sum],
+                                               FSourceTerm_select,# FSourceTerm[0:Nr_max:kr_step,:Nz_max_sum,H_indices[0]:H_indices[1]:ko_step],
+                                               distance_FF,
+                                               rgrid_parts[1],
+                                               dispersion_function = dispersion_function, # None, #dispersion_function,
+                                               absorption_function = absorption_function,
+                                               frequencies_to_trace_maxima = omega_I_study_intervals)
 
 # Save the data
 Hgrid_select = Hgrid[H_indices[0]:H_indices[1]:ko_step]
@@ -259,6 +280,12 @@ with h5py.File(out_h5name,'w') as OutFile:
                                           data = np.stack((FField_FF_integratedw1.real, FField_FF_integratedw1.imag),axis=-1)
                                           )        
 
+    grp.create_dataset('Spectrum_on_screen_p0',
+                                          data = np.stack((FField_FF_integratedp0.real, FField_FF_integratedp0.imag),axis=-1)
+                                          )
+    grp.create_dataset('Spectrum_on_screen_p1',
+                                          data = np.stack((FField_FF_integratedp1.real, FField_FF_integratedp1.imag),axis=-1)
+                                          )
 
 # # vmin = np.max(np.log(Gaborr))-6.
 # fig, ax = plt.subplots()   
