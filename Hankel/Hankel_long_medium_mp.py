@@ -191,6 +191,11 @@ def mp_handle(*args, **kwargs):
     output.put(
                 Hfn2.HankelTransform_long(*args,**kwargs) 
               )
+    
+def mp_handle2(k_pos, *args, **kwargs):
+    output.put(
+               k_pos, *Hfn2.HankelTransform_long(*args,**kwargs) 
+              )
 
 
 # define processes
