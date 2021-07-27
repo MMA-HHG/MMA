@@ -214,7 +214,7 @@ processes = [mp.Process(target=mp_handle,
 # run processes
 for p in processes: p.start();
 
-results = [output.get() for p in processes]
+results = [output.get() for p in processes] # there is no ordering!
 
 FField_FF_integratedw0 = results[0][0]
 FField_FF_integratedw1 = results[1][0]
