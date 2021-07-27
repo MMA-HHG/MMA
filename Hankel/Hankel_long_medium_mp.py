@@ -176,6 +176,14 @@ for k1 in Hgrid_I_study:
 Workers = mp.cpu_count() # this is the number of workers
 Workers = 4
 
+
+rgrid_parts = np.array_split(rgrid_FF,Workers)
+# FSourceTerm_select_parts = np.array_split(FSourceTerm_select,Workers)
+
+# for k1 in range(Workers):
+#     print('shape rgrid', k1, rgrid_parts[k1].shape)
+#     print('shape FSourceTerm', k1, FSourceTerm_select_parts[k1].shape)
+
 # sys.exit()
 
 output = mp.Queue()
@@ -193,7 +201,7 @@ processes = [mp.Process(target=mp_handle,
                               zgrid_macro[:Nz_max_sum],
                               FSourceTerm_select,# FSourceTerm[0:Nr_max:kr_step,:Nz_max_sum,H_indices[0]:H_indices[1]:ko_step],
                               distance_FF,
-                              rgrid_FF
+                              rgrid_parts[k1]
                             ),
                         kwargs={
                               'dispersion_function': dispersion_function,
