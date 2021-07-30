@@ -178,6 +178,8 @@ Workers = 4
 
 
 rgrid_parts = np.array_split(rgrid_FF,Workers)
+
+rgrid_indices = [mn.FindInterval(rgrid_FF,r_part[0]) for r_part in rgrid_parts]
 # FSourceTerm_select_parts = np.array_split(FSourceTerm_select,Workers)
 
 # for k1 in range(Workers):
@@ -200,7 +202,7 @@ def mp_handle2(k_pos, *args, **kwargs):
 
 # define processes
 processes = [mp.Process(target=mp_handle2,
-                        args=(1,
+                        args=(k1,
                               ogrid_select_SI,
                               rgrid_macro[0:Nr_max:kr_step],
                               zgrid_macro[:Nz_max_sum],
@@ -221,8 +223,43 @@ for p in processes: p.start();
 
 results = [output.get() for p in processes] # there is no ordering!
 
-FField_FF_integratedw0 = results[0][0]
-FField_FF_integratedw1 = results[1][0]
+# collect the results
+field_final = np.empty((len(ogrid_select_SI),Nr_FF), dtype=np.cdouble)
+
+source_maxima_ref=[np.zeros(len(zgrid_macro[:Nz_max_sum])) for k1 in range(len(Hgrid_I_study))]
+
+print(results[0][2])
+
+sim_ind = [result[0] for result in results]
+FField_FF_integratedw = [[] for k1 in range(Workers)]
+for k1 in range(Workers):
+   FField_FF_integratedw[sim_ind[k1]] =  results[k1][1]
+   
+   if (sim_ind[k1] == (Workers-1)):
+       field_final[:,
+                   rgrid_indices[sim_ind[k1]]:
+                   ] = results[k1][1]
+   else:
+       field_final[:,
+                   rgrid_indices[sim_ind[k1]]:rgrid_indices[sim_ind[k1]+1]
+                   ] = results[k1][1]
+       
+   for k2 in range(len(Hgrid_I_study)):
+       for k3 in range(len(zgrid_macro[:Nz_max_sum])):
+           print([source_maxima_ref[k2][k3],results[k1][2][k2][k3]])
+           source_maxima_ref[k2][k3] = np.max([source_maxima_ref[k2][k3],results[k1][2][k2][k3]])
+
+    
+    
+# source_maxima_ref=[]
+# for k1 in range(len(Hgrid_I_study)):
+#     source_maxima_ref.append()
+
+
+FField_FF_integratedw0 = results[0][1]
+FField_FF_integratedw1 = results[1][1]
+
+
 
 # print(results)
 
@@ -238,7 +275,9 @@ FField_FF_integrated, source_maxima = Hfn2.HankelTransform_long(
                                                absorption_function = absorption_function,
                                                frequencies_to_trace_maxima = omega_I_study_intervals)
 
-FField_FF_integratedp0, source_maxima = Hfn2.HankelTransform_long(
+print(FField_FF_integrated.shape)
+
+FField_FF_integratedp0, source_maxima_tmp = Hfn2.HankelTransform_long(
                                                ogrid_select_SI,
                                                rgrid_macro[0:Nr_max:kr_step],
                                                zgrid_macro[:Nz_max_sum],
@@ -249,7 +288,7 @@ FField_FF_integratedp0, source_maxima = Hfn2.HankelTransform_long(
                                                absorption_function = absorption_function,
                                                frequencies_to_trace_maxima = omega_I_study_intervals)
 
-FField_FF_integratedp1, source_maxima = Hfn2.HankelTransform_long(
+FField_FF_integratedp1, source_maxima_tmp = Hfn2.HankelTransform_long(
                                                ogrid_select_SI,
                                                rgrid_macro[0:Nr_max:kr_step],
                                                zgrid_macro[:Nz_max_sum],
@@ -270,6 +309,11 @@ with h5py.File(out_h5name,'w') as OutFile:
     grp.create_dataset('Maxima_of_planes',
                                           data = np.asarray(source_maxima)
                                           )
+    
+    grp.create_dataset('Maxima_of_planes_ref',
+                                          data = np.asarray(source_maxima_ref)
+                                          )
+    
     grp.create_dataset('Maxima_Hgrid',
                                           data = Hgrid_I_study
                                           )
@@ -293,7 +337,21 @@ with h5py.File(out_h5name,'w') as OutFile:
     grp.create_dataset('Spectrum_on_screen_p1',
                                           data = np.stack((FField_FF_integratedp1.real, FField_FF_integratedp1.imag),axis=-1)
                                           )
+    grp.create_dataset('sim_ind',
+                                          data = sim_ind
+                                          )
+    
+    grp.create_dataset('Spectrum_on_screen_w0',
+                                          data = np.stack((FField_FF_integratedw[0].real, FField_FF_integratedw[0].imag),axis=-1)
+                                          )
+    grp.create_dataset('Spectrum_on_screen_w1',
+                                          data = np.stack((FField_FF_integratedw[1].real, FField_FF_integratedw[1].imag),axis=-1)
+                                          )   
 
+    grp.create_dataset('merged1',
+                                          data = np.stack((field_final.real, field_final.imag),axis=-1)
+                                          ) 
+    
 # # vmin = np.max(np.log(Gaborr))-6.
 # fig, ax = plt.subplots()   
 # FF_spectrum_logscale = np.log10(abs(FField_FF_integrated.T)**2);
