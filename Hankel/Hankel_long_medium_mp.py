@@ -194,13 +194,13 @@ def mp_handle(*args, **kwargs):
     
 def mp_handle2(k_pos, *args, **kwargs):
     output.put(
-               k_pos, *Hfn2.HankelTransform_long(*args,**kwargs) 
+               [k_pos, *Hfn2.HankelTransform_long(*args,**kwargs)]
               )
 
 
 # define processes
-processes = [mp.Process(target=mp_handle,
-                        args=(
+processes = [mp.Process(target=mp_handle2,
+                        args=(1,
                               ogrid_select_SI,
                               rgrid_macro[0:Nr_max:kr_step],
                               zgrid_macro[:Nz_max_sum],
@@ -223,6 +223,8 @@ results = [output.get() for p in processes] # there is no ordering!
 
 FField_FF_integratedw0 = results[0][0]
 FField_FF_integratedw1 = results[1][0]
+
+# print(results)
 
 # The main integration
 FField_FF_integrated, source_maxima = Hfn2.HankelTransform_long(
