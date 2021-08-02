@@ -220,17 +220,18 @@ for p in processes: p.start();
 results = [output.get() for p in processes] # there is no ordering!
 
 # collect the results
+# The results are unordered, we constructed the multiprocessing, that the first
+# index of the result enumerates the process. We then remember the original 
+# order and permute the results correctly.
+
 field_final = np.empty((len(ogrid_select_SI),Nr_FF), dtype=np.cdouble)
 
 source_maxima_ref=[np.zeros(len(zgrid_macro[:Nz_max_sum])) for k1 in range(len(Hgrid_I_study))]
 
-print(results[0][2])
 
 sim_ind = [result[0] for result in results]
-FField_FF_integratedw = [[] for k1 in range(Workers)]
-for k1 in range(Workers):
-   FField_FF_integratedw[sim_ind[k1]] =  results[k1][1]
-   
+
+for k1 in range(Workers):   
    if (sim_ind[k1] == (Workers-1)):
        field_final[:,
                    rgrid_indices[sim_ind[k1]]:
@@ -257,28 +258,28 @@ for k1 in range(Workers):
 # print(results)
 
 # The main integration
-FField_FF_integrated, source_maxima = Hfn2.HankelTransform_long(
-                                               ogrid_select_SI,
-                                               rgrid_macro[0:Nr_max:kr_step],
-                                               zgrid_macro[:Nz_max_sum],
-                                               FSourceTerm_select,# FSourceTerm[0:Nr_max:kr_step,:Nz_max_sum,H_indices[0]:H_indices[1]:ko_step],
-                                               distance_FF,
-                                               rgrid_FF,
-                                               dispersion_function = dispersion_function, # None, #dispersion_function,
-                                               absorption_function = absorption_function,
-                                               frequencies_to_trace_maxima = omega_I_study_intervals)
+# FField_FF_integrated, source_maxima = Hfn2.HankelTransform_long(
+#                                                ogrid_select_SI,
+#                                                rgrid_macro[0:Nr_max:kr_step],
+#                                                zgrid_macro[:Nz_max_sum],
+#                                                FSourceTerm_select,# FSourceTerm[0:Nr_max:kr_step,:Nz_max_sum,H_indices[0]:H_indices[1]:ko_step],
+#                                                distance_FF,
+#                                                rgrid_FF,
+#                                                dispersion_function = dispersion_function, # None, #dispersion_function,
+#                                                absorption_function = absorption_function,
+#                                                frequencies_to_trace_maxima = omega_I_study_intervals)
 
 
 # Save the data
 Hgrid_select = Hgrid[H_indices[0]:H_indices[1]:ko_step]
 with h5py.File(out_h5name,'w') as OutFile:
     grp = OutFile.create_group('XUV')
-    grp.create_dataset('Spectrum_on_screen',
-                                          data = np.stack((FField_FF_integrated.real, FField_FF_integrated.imag),axis=-1)
-                                          )
-    grp.create_dataset('Maxima_of_planes',
-                                          data = np.asarray(source_maxima)
-                                          )
+    # grp.create_dataset('Spectrum_on_screen',
+    #                                       data = np.stack((FField_FF_integrated.real, FField_FF_integrated.imag),axis=-1)
+    #                                       )
+    # grp.create_dataset('Maxima_of_planes',
+    #                                       data = np.asarray(source_maxima)
+    #                                       )
     
     grp.create_dataset('Maxima_of_planes_ref',
                                           data = np.asarray(source_maxima_ref)
@@ -298,12 +299,6 @@ with h5py.File(out_h5name,'w') as OutFile:
                                           data = sim_ind
                                           )
     
-    grp.create_dataset('Spectrum_on_screen_w0',
-                                          data = np.stack((FField_FF_integratedw[0].real, FField_FF_integratedw[0].imag),axis=-1)
-                                          )
-    grp.create_dataset('Spectrum_on_screen_w1',
-                                          data = np.stack((FField_FF_integratedw[1].real, FField_FF_integratedw[1].imag),axis=-1)
-                                          )   
 
     grp.create_dataset('merged1',
                                           data = np.stack((field_final.real, field_final.imag),axis=-1)
