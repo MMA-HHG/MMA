@@ -45,6 +45,7 @@ try:
         
         
         FF_orders_plot = mn.readscalardataset(Parameters, 'inputs/FF_orders_plot', 'N')
+        Workers = mn.readscalardataset(Parameters, 'inputs/N_threads', 'N')
         
 
         
@@ -71,6 +72,8 @@ except:
     file_CUPRAD = 'results_1.h5'
     file_TDSE = 'results_merged_Fsource.h5'
     out_h5name = 'Hankel.h5'
+    
+    Workers = 4
 
 
 arguments = sys.argv
@@ -173,31 +176,21 @@ for k1 in Hgrid_I_study:
         )
 
 
-Workers = mp.cpu_count() # this is the number of workers
-Workers = 4
+# Workers = mp.cpu_count() # this is the number of workers
 
 
-rgrid_parts = np.array_split(rgrid_FF,Workers)
-
+# split the work for the multiprocessing module
+rgrid_parts = np.array_split(rgrid_FF,Workers) # r-grids for respective processes
 rgrid_indices = [mn.FindInterval(rgrid_FF,r_part[0]) for r_part in rgrid_parts]
-# FSourceTerm_select_parts = np.array_split(FSourceTerm_select,Workers)
 
-# for k1 in range(Workers):
-#     print('shape rgrid', k1, rgrid_parts[k1].shape)
-#     print('shape FSourceTerm', k1, FSourceTerm_select_parts[k1].shape)
-
-# sys.exit()
-
-output = mp.Queue()
-
-    
+# define output
+output = mp.Queue()    
 def mp_handle(k_pos, *args, **kwargs):
     output.put(
-               [k_pos, *Hfn2.HankelTransform_long(*args,**kwargs)]
+               [k_pos, *Hfn2.HankelTransform_long(*args,**kwargs)] # the outputs are not ordered, keep the order in the result
               )
 
-# define processes
-processes = [mp.Process(target=mp_handle,
+processes = [mp.Process(target=mp_handle, # define processes
                         args=(k1,
                               ogrid_select_SI,
                               rgrid_macro[0:Nr_max:kr_step],
@@ -214,8 +207,7 @@ processes = [mp.Process(target=mp_handle,
                         
                         ) for k1 in range(Workers)]
 
-# run processes
-for p in processes: p.start();
+for p in processes: p.start(); # run processes
 
 results = [output.get() for p in processes] # there is no ordering!
 
@@ -224,65 +216,34 @@ results = [output.get() for p in processes] # there is no ordering!
 # index of the result enumerates the process. We then remember the original 
 # order and permute the results correctly.
 
-field_final = np.empty((len(ogrid_select_SI),Nr_FF), dtype=np.cdouble)
-
-source_maxima_ref=[np.zeros(len(zgrid_macro[:Nz_max_sum])) for k1 in range(len(Hgrid_I_study))]
-
-
+FField_FF_integrated = np.empty((len(ogrid_select_SI),Nr_FF), dtype=np.cdouble)
+source_maxima=[np.zeros(len(zgrid_macro[:Nz_max_sum])) for k1 in range(len(Hgrid_I_study))]
 sim_ind = [result[0] for result in results]
 
 for k1 in range(Workers):   
    if (sim_ind[k1] == (Workers-1)):
-       field_final[:,
+       FField_FF_integrated[:,
                    rgrid_indices[sim_ind[k1]]:
                    ] = results[k1][1]
    else:
-       field_final[:,
+       FField_FF_integrated[:,
                    rgrid_indices[sim_ind[k1]]:rgrid_indices[sim_ind[k1]+1]
                    ] = results[k1][1]
        
    for k2 in range(len(Hgrid_I_study)):
        for k3 in range(len(zgrid_macro[:Nz_max_sum])):
-           print([source_maxima_ref[k2][k3],results[k1][2][k2][k3]])
-           source_maxima_ref[k2][k3] = np.max([source_maxima_ref[k2][k3],results[k1][2][k2][k3]])
-
-    
-    
-# source_maxima_ref=[]
-# for k1 in range(len(Hgrid_I_study)):
-#     source_maxima_ref.append()
-
-
-
-
-# print(results)
-
-# The main integration
-# FField_FF_integrated, source_maxima = Hfn2.HankelTransform_long(
-#                                                ogrid_select_SI,
-#                                                rgrid_macro[0:Nr_max:kr_step],
-#                                                zgrid_macro[:Nz_max_sum],
-#                                                FSourceTerm_select,# FSourceTerm[0:Nr_max:kr_step,:Nz_max_sum,H_indices[0]:H_indices[1]:ko_step],
-#                                                distance_FF,
-#                                                rgrid_FF,
-#                                                dispersion_function = dispersion_function, # None, #dispersion_function,
-#                                                absorption_function = absorption_function,
-#                                                frequencies_to_trace_maxima = omega_I_study_intervals)
-
+           source_maxima[k2][k3] = np.max([source_maxima[k2][k3],results[k1][2][k2][k3]])
+           
 
 # Save the data
 Hgrid_select = Hgrid[H_indices[0]:H_indices[1]:ko_step]
 with h5py.File(out_h5name,'w') as OutFile:
     grp = OutFile.create_group('XUV')
-    # grp.create_dataset('Spectrum_on_screen',
-    #                                       data = np.stack((FField_FF_integrated.real, FField_FF_integrated.imag),axis=-1)
-    #                                       )
-    # grp.create_dataset('Maxima_of_planes',
-    #                                       data = np.asarray(source_maxima)
-    #                                       )
-    
-    grp.create_dataset('Maxima_of_planes_ref',
-                                          data = np.asarray(source_maxima_ref)
+    grp.create_dataset('Spectrum_on_screen',
+                                          data = np.stack((FField_FF_integrated.real, FField_FF_integrated.imag),axis=-1)
+                                          )
+    grp.create_dataset('Maxima_of_planes',
+                                          data = np.asarray(source_maxima)
                                           )
     
     grp.create_dataset('Maxima_Hgrid',
@@ -295,14 +256,6 @@ with h5py.File(out_h5name,'w') as OutFile:
                                           data = Hgrid_select
                                           )
 
-    grp.create_dataset('sim_ind',
-                                          data = sim_ind
-                                          )
-    
-
-    grp.create_dataset('merged1',
-                                          data = np.stack((field_final.real, field_final.imag),axis=-1)
-                                          ) 
     
 # # vmin = np.max(np.log(Gaborr))-6.
 # fig, ax = plt.subplots()   
