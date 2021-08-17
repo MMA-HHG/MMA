@@ -45,8 +45,9 @@ else:
     # results_path = os.path.join("/mnt", "d", "data", "Discharges") # 'D:\data\Discharges'
     # results_path = os.path.join("D:\data", "Discharges")
     # results_path = os.path.join("D:\data", "Discharges", "f_scan_Kerr")
-    results_path = os.path.join("D:\data", "Discharges","TDSE", "t6")
+    # results_path = os.path.join("D:\data", "Discharges","TDSE", "t6")
     # results_path = os.path.join("D:\data", "Discharges", "preion2")
+    results_path = os.path.join("D:\data", "Discharges","CUPRAD_tests")
 
 # results_path = os.path.join("/mnt", "d", "data", "Discharges") # 'D:\data\Discharges'
 
@@ -181,6 +182,7 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
             
             # load data
             res = dfC.get_data(InputArchive, r_resolution = [full_resolution, dr, rmax])
+            # print(res.Gaussian_zR)
             
             ### Shift to the vacuum frame
             if vacuum_frame:
@@ -233,11 +235,29 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
             fig1, ax1 = plt.subplots()
             fig2, ax2 = plt.subplots()
             fig3, ax3 = plt.subplots()
+            fig14, ax14 = plt.subplots()
             title_string = dfC.create_param_string(print_parameters, res)
             # title_string = ', ' + res.preionisation_string + ', ' + res.pressure_string
             for k1 in range(Nt_probe):
               t_string = ', '+"{:.1f}".format(1e15*res.tgrid[t_probe_ind[k1]])+' fs'
             
+              # plot pure phase of the beam for the given times
+              if (k1==0):
+                  dum = np.arctan((res.zgrid-res.Gaussian_focus)/res.Gaussian_zR)
+                  ax14.plot(1e3*res.zgrid,dum-dum[0],
+                            linestyle=linestyles_plt[k1])  
+                  
+              ax14.plot(1e3*res.zgrid,np.unwrap(phase[k1,0,:])-phase[k1,0,0],
+                         linestyle=linestyles_plt[k1+1])  
+
+              # ax14.plot(1e3*res.zgrid,np.arctan((res.zgrid-res.Gaussian_focus)/res.Gaussian_zR),
+              #           linestyle=linestyles_plt[k1])  
+              
+              # zgrid_long = np.linspace(-2*res.Gaussian_zR, 2*res.Gaussian_zR,1000)
+              
+              # ax14.plot(1e3*zgrid_long,np.arctan((zgrid_long-res.Gaussian_focus)/res.Gaussian_zR),
+              #           linestyle=linestyles_plt[k1]) 
+              
               Cutoff_loc = Cutoff[t_probe_ind[k1],:,:]
 
               fig7, ax7 = plt.subplots()
@@ -311,6 +331,7 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
             ax1.set_xlabel('z [mm]'); ax1.set_ylabel('dPhi/dz [1/m]'); ax1.set_title('beam phase'+title_string)   
             ax2.set_xlabel('z [mm]'); ax2.set_ylabel('dPhi/dz [1/m]'); ax2.set_title('FSPA (atom)'+title_string)
             ax3.set_xlabel('z [mm]'); ax3.set_ylabel('dPhi/dz [1/m]'); ax3.set_title('full phase'+title_string) 
+            ax14.set_xlabel('z [mm]'); ax14.set_ylabel('Phi [rad]'); ax14.set_title('full phase'+title_string) 
             ax1.legend(loc='best')
             ax2.legend(loc='best')
             ax3.legend(loc='best')
@@ -318,6 +339,7 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
             fig1.savefig('phase_onax_beam_sim'+str(k_sim)+'.png', dpi = 600)
             fig2.savefig('phase_onax_FSPA_sim'+str(k_sim)+'.png', dpi = 600)
             fig3.savefig('phase_onax_full_sim'+str(k_sim)+'.png', dpi = 600)
+            fig14.savefig('phase_in_rads'+str(k_sim)+'.png', dpi = 600)
             
             
             # Intnesity shape

@@ -29,6 +29,9 @@ with h5py.File('Hankel.h5', 'r') as InputArchive:
    
    
 plt.plot(Maxima[0,:])
+plt.plot(Maxima[1,:])
+plt.plot(Maxima[2,:])
+plt.plot(Maxima[3,:])
 plt.show()
 
 # vmin = np.max(np.log(Gaborr))-6.

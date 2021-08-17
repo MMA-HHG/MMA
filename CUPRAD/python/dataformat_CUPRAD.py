@@ -60,6 +60,14 @@ class get_data:
                               '/inputs/calculated/laser_intensity_entry')
         self.Intensity_entry_string = "{:.1f}".format(1e-18*self.Intensity_entry) + ' 1e18 W/m2'
         
+        # Idealised beam Rayleigh range (defined only if Gaussian waist is available)
+        
+        try:
+            Gaussian_w0 = mn.readscalardataset(InputArchive, '/inputs/laser_focus_beamwaist_Gaussian','N')
+            self.Gaussian_zR = np.pi*(Gaussian_w0**2)/(1e-2*mn.readscalardataset(InputArchive,'/inputs/laser_wavelength','N'))
+        except:
+            self.Gaussian_zR = np.NaN
+        
         
     def vacuum_shift(self,output='replace'):
         E_vac = np.zeros(self.E_trz.shape)   
