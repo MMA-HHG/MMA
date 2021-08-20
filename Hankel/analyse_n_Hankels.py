@@ -9,6 +9,7 @@ import units
 import mynumerics as mn
 import Hfn
 import Hfn2
+from contextlib import ExitStack
 
 # import mynumerics as mn
 import matplotlib.pyplot as plt
@@ -19,15 +20,34 @@ import matplotlib.pyplot as plt
 # filename = 'Hankel_dt2.h5'
 filename = 'Hankel_2Nx.h5'
 
+cwd = os.getcwd()
+results_path = cwd
+
 FF_orders_plot = 4
-         
-with h5py.File(filename, 'r') as InputArchive:
-    # load data
-   Maxima = InputArchive['XUV/Maxima_of_planes'][:]
-   FField_FF = InputArchive['XUV/Spectrum_on_screen'][:,:,0] + \
-               1j*InputArchive['XUV/Spectrum_on_screen'][:,:,1]
-   Hgrid = InputArchive['XUV/Hgrid_select'][:]
-   rgrid_FF = InputArchive['XUV/rgrid_FF'][:]
+
+files = ['Hankel.h5','Hankel_dx2.h5','Hankel_dt2.h5','Hankel_2Nx.h5']
+Nfiles = len(files)
+Maxima = []; FField_FF = []; Hgrid = []; rgrid_FF = []
+
+with ExitStack() as stack:    
+    InArch = [stack.enter_context(h5py.File(os.path.join(results_path,fname), 'r')) for fname in files]
+    for k1 in range(Nfiles):
+        # load data 
+        Maxima.append(InArch[k1]['XUV/Maxima_of_planes'][:])
+        FField_FF.append(InArch[k1]['XUV/Spectrum_on_screen'][:,:,0] + \
+                         1j*InArch[k1]['XUV/Spectrum_on_screen'][:,:,1])
+        Hgrid.append(InArch[k1]['XUV/Hgrid_select'][:])
+        rgrid_FF.append(InArch[k1]['XUV/rgrid_FF'][:])
+
+sys.exit()
+            
+# with h5py.File(filename, 'r') as InputArchive:
+#     # load data
+#    Maxima = InputArchive['XUV/Maxima_of_planes'][:]
+#    FField_FF = InputArchive['XUV/Spectrum_on_screen'][:,:,0] + \
+#                1j*InputArchive['XUV/Spectrum_on_screen'][:,:,1]
+#    Hgrid = InputArchive['XUV/Hgrid_select'][:]
+#    rgrid_FF = InputArchive['XUV/rgrid_FF'][:]
    
    
    
