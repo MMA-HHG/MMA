@@ -39,6 +39,19 @@ with ExitStack() as stack:
         Hgrid.append(InArch[k1]['XUV/Hgrid_select'][:])
         rgrid_FF.append(InArch[k1]['XUV/rgrid_FF'][:])
 
+
+FField_differences = []
+for k1 in range(Nfiles-1):
+    FField_differences.append(
+                            (FField_FF[k1+1]-FField_FF[0])//np.max(abs(FField_FF[0]))
+                            )
+    fig, ax = plt.subplots()  
+    Hankel_errors_logscale = np.log10(abs(FField_differences[k1].T))
+    map1 = ax.pcolor(Hankel_errors_logscale, shading='auto')
+    # plt.pcolor(t_Gr,o_Gr/omega0,(np.log(Gaborr)).T, shading='auto',vmin=vmin)
+    fig.colorbar(map1)
+    plt.show()
+    
 sys.exit()
             
 # with h5py.File(filename, 'r') as InputArchive:
