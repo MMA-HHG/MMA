@@ -43,9 +43,14 @@ with ExitStack() as stack:
 FField_differences = []
 for k1 in range(Nfiles-1):
     FField_differences.append(
-                            (FField_FF[k1+1]-FField_FF[0])//np.max(abs(FField_FF[0]))
+                            (FField_FF[k1+1]-FField_FF[0])/np.max(abs(FField_FF[0]))
                             )
     fig, ax = plt.subplots()  
+    
+    Hankel_errors= abs(FField_differences[k1].T)
+    # map1 = ax.pcolor(Hankel_errors, shading='auto')
+    print(np.max(abs(Hankel_errors)))
+    
     Hankel_errors_logscale = np.log10(abs(FField_differences[k1].T))
     map1 = ax.pcolor(Hankel_errors_logscale, shading='auto')
     # plt.pcolor(t_Gr,o_Gr/omega0,(np.log(Gaborr)).T, shading='auto',vmin=vmin)
