@@ -19,7 +19,6 @@ import XUV_refractive_index as XUV_index
 # inputs from hdf5-input
 try:
     with h5py.File('inputs_Hankel.h5', 'r') as Parameters:
-        print('reading from hdf5-input file') 
         inputs_group = Parameters['inputs']
         inputs_list = list(inputs_group.keys())
         
@@ -45,14 +44,18 @@ try:
         redefine_integration = False
         if ('Nz_first' in inputs_list):
             kz_start, kz_end = 0, mn.readscalardataset(Parameters, 'inputs/Nz_first', 'N')
+            print('integrating over first Nz planes')
         if ('Nz_last' in inputs_list):
             redefine_integration = True
             kz_end = -1
             Nz_last = mn.readscalardataset(Parameters, 'inputs/Nz_last', 'N')
+            print('integrating over last Nz planes')
         if ('kz_integrate' in inputs_list):
             kz_start, kz_end = Parameters['inputs/kz_integrate'][:].tolist()
+            print('integrating over slected region')
         else:
             kz_start, kz_end = 0,-1
+            print('default integration: whole zgrid')
 
             
         # Nz_max_sum = mn.readscalardataset(Parameters, 'inputs/Nz_max_sum', 'N')  
@@ -65,10 +68,11 @@ try:
         FF_orders_plot = mn.readscalardataset(Parameters, 'inputs/FF_orders_plot', 'N')
         Workers = mn.readscalardataset(Parameters, 'inputs/N_threads', 'N')
         
+        print('reading from hdf5-input file')
 
         
 except:
-    print('error reading hdf5 file, using defaults') 
+    print('error reading hdf5 input file, using defaults') 
     gas_type = 'Kr'
     XUV_table_type_diffraction = 'NIST' # {Henke, NIST}
     XUV_table_type_absorption = 'Henke' # {Henke, NIST} 
@@ -243,6 +247,7 @@ results = [output.get() for p in processes] # there is no ordering!
 # The results are unordered, we constructed the multiprocessing, that the first
 # index of the result enumerates the process. We then remember the original 
 # order and permute the results correctly.
+print('collecting results')
 
 FField_FF_integrated = np.empty((len(ogrid_select_SI),Nr_FF), dtype=np.cdouble)
 source_maxima=[np.zeros(len(zgrid_macro[kz_start:kz_end])) for k1 in range(len(Hgrid_I_study))]
@@ -263,6 +268,7 @@ for k1 in range(Workers):
            source_maxima[k2][k3] = np.max([source_maxima[k2][k3],results[k1][2][k2][k3]])
            
 
+print('before save')
 # Save the data
 Hgrid_select = Hgrid[H_indices[0]:H_indices[1]:ko_step]
 with h5py.File(out_h5name,'w') as OutFile:
