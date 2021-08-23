@@ -20,6 +20,9 @@ import XUV_refractive_index as XUV_index
 try:
     with h5py.File('inputs_Hankel.h5', 'r') as Parameters:
         print('reading from hdf5-input file') 
+        inputs_group = Parameters['inputs']
+        inputs_list = list(inputs_group.keys())
+        
         file_CUPRAD = mn.readscalardataset(Parameters, 'inputs/file_CUPRAD', 'S')  
         file_TDSE = mn.readscalardataset(Parameters, 'inputs/file_TDSE', 'S')  
         out_h5name = mn.readscalardataset(Parameters, 'inputs/out_h5name', 'S')  
@@ -36,9 +39,24 @@ try:
         kr_step = mn.readscalardataset(Parameters, 'inputs/kr_step', 'N')
         ko_step = mn.readscalardataset(Parameters, 'inputs/ko_step', 'N')       
         Nr_max = mn.readscalardataset(Parameters, 'inputs/Nr_max', 'N')        
-        Nz_max_sum = mn.readscalardataset(Parameters, 'inputs/Nz_max_sum', 'N')        
-        Hrange = Parameters['inputs/Hrange'][:].tolist()     
+             
+        Hrange = Parameters['inputs/Hrange'][:].tolist()   
+        
+        redefine_integration = False
+        if ('Nz_first' in inputs_list):
+            kz_start, kz_end = 0, mn.readscalardataset(Parameters, 'inputs/Nz_first', 'N')
+        if ('Nz_last' in inputs_list):
+            redefine_integration = True
+            kz_end = -1
+            Nz_last = mn.readscalardataset(Parameters, 'inputs/Nz_last', 'N')
+        if ('kz_integrate' in inputs_list):
+            kz_start, kz_end = Parameters['inputs/kz_integrate'][:].tolist()
+        else:
+            kz_start, kz_end = 0,-1
 
+            
+        # Nz_max_sum = mn.readscalardataset(Parameters, 'inputs/Nz_max_sum', 'N')  
+        
         Nr_FF = mn.readscalardataset(Parameters, 'inputs/Nr_FF', 'N')
         rmax_FF = mn.readscalardataset(Parameters, 'inputs/rmax_FF', 'N')
         distance_FF = mn.readscalardataset(Parameters, 'inputs/distance_FF', 'N')
@@ -57,7 +75,7 @@ except:
     apply_diffraction = ['dispersion', 'absorption']
     
     Nr_max = 235 #470; 235; 155-still fine    
-    Hrange = [17, 18] # [17, 18] # [14, 36] [17, 18] [16, 20] [14, 22]
+    Hrange = [14, 22] # [17, 18] # [17, 18] # [14, 36] [17, 18] [16, 20] [14, 22]
     
     kr_step = 2 # descending order, the last is "the most accurate"
     ko_step = 2
@@ -67,7 +85,8 @@ except:
     distance_FF = 0.3
     
     FF_orders_plot = 4    
-    Nz_max_sum = 5 # 41
+    # Nz_max_sum = 5 # 41
+    kz_start, kz_end = 0,5
     
     file_CUPRAD = 'results_1.h5'
     file_TDSE = 'results_merged_Fsource.h5'
@@ -113,7 +132,11 @@ with h5py.File(file_CUPRAD, 'r') as InputArchiveCUPRAD, h5py.File(file_TDSE, 'r'
     ogrid = InputArchiveTDSE['omegagrid'][:]
     rgrid_macro = InputArchiveTDSE['rgrid_coarse'][:]
     zgrid_macro = InputArchiveTDSE['zgrid_coarse'][:]
-   
+    
+    # Redefine integration, now only if we need last planes
+    if redefine_integration:
+        Nz_macro = len(zgrid_macro)
+        kz_start = Nz_macro - Nz_last
    
 
 
@@ -121,10 +144,12 @@ with h5py.File(file_CUPRAD, 'r') as InputArchiveCUPRAD, h5py.File(file_TDSE, 'r'
     ogridSI = omega_au2SI * ogrid
     Hgrid = ogrid/omega0
     H_indices = [mn.FindInterval(Hgrid,Hvalue) for Hvalue in Hrange]
+
+
     
     # load only the subarray off the data  # FSourceTerm[0:Nr_max:kr_step,:Nz_max_sum,H_indices[0]:H_indices[1]:ko_step]
-    FSourceTerm_select = InputArchiveTDSE['FSourceTerm'][0:Nr_max:kr_step,:Nz_max_sum,H_indices[0]:H_indices[1]:ko_step,0] + \
-                         1j*InputArchiveTDSE['FSourceTerm'][0:Nr_max:kr_step,:Nz_max_sum,H_indices[0]:H_indices[1]:ko_step,1]
+    FSourceTerm_select = InputArchiveTDSE['FSourceTerm'][0:Nr_max:kr_step,kz_start:kz_end,H_indices[0]:H_indices[1]:ko_step,0] + \
+                         1j*InputArchiveTDSE['FSourceTerm'][0:Nr_max:kr_step,kz_start:kz_end,H_indices[0]:H_indices[1]:ko_step,1]
 
 print('data loaded:')
 try:
@@ -135,6 +160,9 @@ except:
 
 rgrid_FF = np.linspace(0.0, rmax_FF, Nr_FF)
 ogrid_select_SI = ogridSI[H_indices[0]:H_indices[1]:ko_step]
+
+
+
 
 
 
@@ -194,7 +222,7 @@ processes = [mp.Process(target=mp_handle, # define processes
                         args=(k1,
                               ogrid_select_SI,
                               rgrid_macro[0:Nr_max:kr_step],
-                              zgrid_macro[:Nz_max_sum],
+                              zgrid_macro[kz_start:kz_end],
                               FSourceTerm_select,# FSourceTerm[0:Nr_max:kr_step,:Nz_max_sum,H_indices[0]:H_indices[1]:ko_step],
                               distance_FF,
                               rgrid_parts[k1]
@@ -217,7 +245,7 @@ results = [output.get() for p in processes] # there is no ordering!
 # order and permute the results correctly.
 
 FField_FF_integrated = np.empty((len(ogrid_select_SI),Nr_FF), dtype=np.cdouble)
-source_maxima=[np.zeros(len(zgrid_macro[:Nz_max_sum])) for k1 in range(len(Hgrid_I_study))]
+source_maxima=[np.zeros(len(zgrid_macro[kz_start:kz_end])) for k1 in range(len(Hgrid_I_study))]
 sim_ind = [result[0] for result in results]
 
 for k1 in range(Workers):   
@@ -231,7 +259,7 @@ for k1 in range(Workers):
                    ] = results[k1][1]
        
    for k2 in range(len(Hgrid_I_study)):
-       for k3 in range(len(zgrid_macro[:Nz_max_sum])):
+       for k3 in range(len(zgrid_macro[kz_start:kz_end])):
            source_maxima[k2][k3] = np.max([source_maxima[k2][k3],results[k1][2][k2][k3]])
            
 
@@ -254,6 +282,9 @@ with h5py.File(out_h5name,'w') as OutFile:
                                           )    
     grp.create_dataset('Hgrid_select',
                                           data = Hgrid_select
+                                          )
+    grp.create_dataset('zgrid_integration',
+                                          data = zgrid_macro[kz_start:kz_end]
                                           )
 
     
