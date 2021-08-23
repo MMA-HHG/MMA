@@ -47,14 +47,14 @@ try:
             print('integrating over first Nz planes')
         if ('Nz_last' in inputs_list):
             redefine_integration = True
-            kz_end = -1
+            kz_end = 'end'
             Nz_last = mn.readscalardataset(Parameters, 'inputs/Nz_last', 'N')
             print('integrating over last Nz planes')
         if ('kz_integrate' in inputs_list):
             kz_start, kz_end = Parameters['inputs/kz_integrate'][:].tolist()
             print('integrating over slected region')
         else:
-            kz_start, kz_end = 0,-1
+            kz_start, kz_end = 0,'end'
             print('default integration: whole zgrid')
 
             
@@ -135,11 +135,13 @@ with h5py.File(file_CUPRAD, 'r') as InputArchiveCUPRAD, h5py.File(file_TDSE, 'r'
     #                     1j*InputArchiveTDSE['FSourceTerm'][:,:,:,1]
     ogrid = InputArchiveTDSE['omegagrid'][:]
     rgrid_macro = InputArchiveTDSE['rgrid_coarse'][:]
-    zgrid_macro = InputArchiveTDSE['zgrid_coarse'][:]
+    zgrid_macro = InputArchiveTDSE['zgrid_coarse'][:]; Nz_macro = len(zgrid_macro)    
+    
+    if (kz_end == 'end'): kz_end = Nz_macro  
     
     # Redefine integration, now only if we need last planes
     if redefine_integration:
-        Nz_macro = len(zgrid_macro)
+        
         kz_start = Nz_macro - Nz_last
    
 
