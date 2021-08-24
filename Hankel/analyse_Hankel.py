@@ -14,18 +14,19 @@ import Hfn2
 import matplotlib.pyplot as plt
 
   
-# filename = 'Hankel.h5'
+filename = 'Hankel.h5'
 # filename = 'Hankel_dx2.h5'
 # filename = 'Hankel_dt2.h5'
 # filename = 'Hankel_2Nx.h5'
-filename = '60pl/Hankel.h5'
+# filename = '60pl/Hankel.h5'
 
 FF_orders_plot = 4
          
 with h5py.File(filename, 'r') as InputArchive:
     # load data
    Maxima = InputArchive['XUV/Maxima_of_planes'][:]
-   Phases = InputArchive['XUV/Phase_on_axis'][:]
+   Phases_onax = InputArchive['XUV/Phase_on_axis'][:]
+   Phases_first = InputArchive['XUV/Phase_on_axis'][:]
    FField_FF = InputArchive['XUV/Spectrum_on_screen'][:,:,0] + \
                1j*InputArchive['XUV/Spectrum_on_screen'][:,:,1]
    Hgrid = InputArchive['XUV/Hgrid_select'][:]
@@ -41,10 +42,17 @@ plt.plot(Maxima[3,:])
 plt.show()
 
 fig, ax = plt.subplots()     
-plt.plot(Phases[0,:])
-plt.plot(Phases[1,:])
-plt.plot(Phases[2,:])
-plt.plot(Phases[3,:])
+plt.plot(Phases_onax[0,:])
+plt.plot(Phases_onax[1,:])
+plt.plot(Phases_onax[2,:])
+plt.plot(Phases_onax[3,:])
+plt.show()
+
+fig, ax = plt.subplots()     
+plt.plot(Phases_first[0,:])
+plt.plot(Phases_first[1,:])
+plt.plot(Phases_first[2,:])
+plt.plot(Phases_first[3,:])
 plt.show()
 
 # vmin = np.max(np.log(Gaborr))-6.

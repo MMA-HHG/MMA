@@ -273,12 +273,14 @@ for k1 in range(Workers):
 # Diagnostics on the phase           
 Hgrid_select = Hgrid[H_indices[0]:H_indices[1]:ko_step]
 Hgrid_phase_diagnostics_indices = [mn.FindInterval(Hgrid_select,H_value) for H_value in Hgrid_I_study]
-phase_onax = []
+phase_onax = []; phase_first_plane = []
 for k1 in range(len(Hgrid_phase_diagnostics_indices)):
     phase_onax.append(
                     np.unwrap(np.angle(FSourceTerm_select[0,:,Hgrid_phase_diagnostics_indices[k1]]))
                     )
-                           
+    phase_first_plane.append(
+                    np.unwrap(np.angle(FSourceTerm_select[:,0,Hgrid_phase_diagnostics_indices[k1]]))
+                    )                      
                            
            
 
@@ -307,6 +309,9 @@ with h5py.File(out_h5name,'w') as OutFile:
                                           )
     grp.create_dataset('Phase_on_axis',
                                           data = np.asarray(phase_onax)
+                                          )
+    grp.create_dataset('Phase_first_plane',
+                                          data = np.asarray(phase_first_plane)
                                           )
     
 # # vmin = np.max(np.log(Gaborr))-6.
