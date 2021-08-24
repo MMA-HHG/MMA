@@ -45,12 +45,12 @@ try:
         if ('Nz_first' in inputs_list):
             kz_start, kz_end = 0, mn.readscalardataset(Parameters, 'inputs/Nz_first', 'N')
             print('integrating over first Nz planes')
-        if ('Nz_last' in inputs_list):
+        elif ('Nz_last' in inputs_list):
             redefine_integration = True
             kz_end = 'end'
             Nz_last = mn.readscalardataset(Parameters, 'inputs/Nz_last', 'N')
             print('integrating over last Nz planes')
-        if ('kz_integrate' in inputs_list):
+        elif ('kz_integrate' in inputs_list):
             kz_start, kz_end = Parameters['inputs/kz_integrate'][:].tolist()
             print('integrating over slected region')
         else:
