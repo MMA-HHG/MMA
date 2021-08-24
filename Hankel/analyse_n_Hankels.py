@@ -25,7 +25,30 @@ results_path = cwd
 
 FF_orders_plot = 4
 
-files = ['Hankel.h5','Hankel_dx2.h5','Hankel_dt2.h5','Hankel_2Nx.h5']
+# files = ['Hankel.h5','Hankel_dx2.h5','Hankel_dt2.h5','Hankel_2Nx.h5']
+# files = ['60pl/Hankel.h5',
+#          '60pl/Hankel_2dx.h5',
+#          '60pl/Hankel_dx2.h5',
+#          '60pl/Hankel_2dx_dt2.h5',
+#          '60pl/Hankel_2dx_dt4.h5',
+#          '60pl/Hankel_2Nx.h5',
+#          '60pl/Hankel_dt2.h5',
+#          ]
+
+# files = ['60pl/Hankel_2dx.h5',
+#          '60pl/Hankel_2dx_dt2.h5',
+#          '60pl/Hankel_2dx_dt4.h5',
+#          ]
+
+# files = ['60pl/Hankel_2dx_dt2.h5',
+#           '60pl/Hankel_2dx_dt4.h5',
+#           ]
+
+files = [ '60pl/Hankel_2dx.h5',
+          '60pl/Hankel.h5'
+          ]
+
+
 Nfiles = len(files)
 Maxima = []; FField_FF = []; Hgrid = []; rgrid_FF = []
 
@@ -69,41 +92,41 @@ sys.exit()
    
    
    
-fig, ax = plt.subplots()     
-plt.plot(Maxima[0,:])
-plt.plot(Maxima[1,:])
-plt.plot(Maxima[2,:])
-plt.plot(Maxima[3,:])
-plt.show()
+# fig, ax = plt.subplots()     
+# plt.plot(Maxima[0,:])
+# plt.plot(Maxima[1,:])
+# plt.plot(Maxima[2,:])
+# plt.plot(Maxima[3,:])
+# plt.show()
 
-# vmin = np.max(np.log(Gaborr))-6.
-fig, ax = plt.subplots()   
-FF_spectrum_logscale = np.log10(abs(FField_FF.T)**2);
-vmin = np.max(FF_spectrum_logscale)-FF_orders_plot
-# map1 = ax.pcolor(Hgrid_select,rgrid_FF,FF_spectrum_logscale, shading='auto',vmin=vmin)
-map1 = ax.pcolor(Hgrid,rgrid_FF,FF_spectrum_logscale, shading='auto',vmin=vmin)
-# plt.pcolor(t_Gr,o_Gr/omega0,(np.log(Gaborr)).T, shading='auto',vmin=vmin)
-fig.colorbar(map1)
-plt.title('Far-field spectrum (30 cm), integrated, log')
-plt.xlabel('H [-]')
-plt.ylabel('r [m]')
-plt.show()
-# if showplots: plt.show()
-# plt.close(fig)
-# sys.exit()
-
-# vmin = np.max(np.log(Gaborr))-6.
-fig, ax = plt.subplots()   
+# # vmin = np.max(np.log(Gaborr))-6.
+# fig, ax = plt.subplots()   
 # FF_spectrum_logscale = np.log10(abs(FField_FF.T)**2);
 # vmin = np.max(FF_spectrum_logscale)-FF_orders_plot
-# map1 = ax.pcolor(Hgrid_select,rgrid_FF,FF_spectrum_logscale, shading='auto',vmin=vmin)
-map1 = ax.pcolor(Hgrid,rgrid_FF,abs(FField_FF.T)**2, shading='auto')
-# plt.pcolor(t_Gr,o_Gr/omega0,(np.log(Gaborr)).T, shading='auto',vmin=vmin)
-fig.colorbar(map1)
-plt.title('Far-field spectrum (30 cm), integrated')
-plt.xlabel('H [-]')
-plt.ylabel('r [m]')
-plt.show()
+# # map1 = ax.pcolor(Hgrid_select,rgrid_FF,FF_spectrum_logscale, shading='auto',vmin=vmin)
+# map1 = ax.pcolor(Hgrid,rgrid_FF,FF_spectrum_logscale, shading='auto',vmin=vmin)
+# # plt.pcolor(t_Gr,o_Gr/omega0,(np.log(Gaborr)).T, shading='auto',vmin=vmin)
+# fig.colorbar(map1)
+# plt.title('Far-field spectrum (30 cm), integrated, log')
+# plt.xlabel('H [-]')
+# plt.ylabel('r [m]')
+# plt.show()
+# # if showplots: plt.show()
+# # plt.close(fig)
+# # sys.exit()
+
+# # vmin = np.max(np.log(Gaborr))-6.
+# fig, ax = plt.subplots()   
+# # FF_spectrum_logscale = np.log10(abs(FField_FF.T)**2);
+# # vmin = np.max(FF_spectrum_logscale)-FF_orders_plot
+# # map1 = ax.pcolor(Hgrid_select,rgrid_FF,FF_spectrum_logscale, shading='auto',vmin=vmin)
+# map1 = ax.pcolor(Hgrid,rgrid_FF,abs(FField_FF.T)**2, shading='auto')
+# # plt.pcolor(t_Gr,o_Gr/omega0,(np.log(Gaborr)).T, shading='auto',vmin=vmin)
+# fig.colorbar(map1)
+# plt.title('Far-field spectrum (30 cm), integrated')
+# plt.xlabel('H [-]')
+# plt.ylabel('r [m]')
+# plt.show()
 # if showplots: plt.show()
 # plt.close(fig)
 # sys.exit()
