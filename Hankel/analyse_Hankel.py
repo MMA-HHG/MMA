@@ -24,6 +24,7 @@ FF_orders_plot = 4
 with h5py.File(filename, 'r') as InputArchive:
     # load data
    Maxima = InputArchive['XUV/Maxima_of_planes'][:]
+   Phases = InputArchive['XUV/Phase_on_axis'][:]
    FField_FF = InputArchive['XUV/Spectrum_on_screen'][:,:,0] + \
                1j*InputArchive['XUV/Spectrum_on_screen'][:,:,1]
    Hgrid = InputArchive['XUV/Hgrid_select'][:]
@@ -36,6 +37,13 @@ plt.plot(Maxima[0,:])
 plt.plot(Maxima[1,:])
 plt.plot(Maxima[2,:])
 plt.plot(Maxima[3,:])
+plt.show()
+
+fig, ax = plt.subplots()     
+plt.plot(Phases[0,:])
+plt.plot(Phases[1,:])
+plt.plot(Phases[2,:])
+plt.plot(Phases[3,:])
 plt.show()
 
 # vmin = np.max(np.log(Gaborr))-6.

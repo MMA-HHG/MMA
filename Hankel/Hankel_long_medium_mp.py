@@ -149,7 +149,7 @@ with h5py.File(file_CUPRAD, 'r') as InputArchiveCUPRAD, h5py.File(file_TDSE, 'r'
     omega_au2SI = mn.ConvertPhoton(1.0, 'omegaau', 'omegaSI')
     ogridSI = omega_au2SI * ogrid
     Hgrid = ogrid/omega0
-    H_indices = [mn.FindInterval(Hgrid,Hvalue) for Hvalue in Hrange]
+    H_indices = [mn.FindInterval(Hgrid,H_value) for H_value in Hrange]
 
 
     
@@ -200,7 +200,7 @@ else: dispersion_function = None
 if ('absorption' in apply_diffraction): absorption_function = absorption_function_def
 else: dispersion_function = None
 
-## create subintervals to analyse the intensities
+## create subintervals to analyse the intensities and phases
 Hgrid_I_study = mn.get_odd_interior_points(Hrange)
 omega_I_study_intervals = []
 omega0SI = mn.ConvertPhoton(omega0, 'omegaau', 'omegaSI')
@@ -269,10 +269,21 @@ for k1 in range(Workers):
        for k3 in range(len(zgrid_macro[kz_start:kz_end])):
            source_maxima[k2][k3] = np.max([source_maxima[k2][k3],results[k1][2][k2][k3]])
            
+           
+# Diagnostics on the phase           
+Hgrid_select = Hgrid[H_indices[0]:H_indices[1]:ko_step]
+Hgrid_phase_diagnostics_indices = [mn.FindInterval(Hgrid_select,H_value) for H_value in Hgrid_I_study]
+phase_onax = []
+for k1 in range(len(Hgrid_phase_diagnostics_indices)):
+    phase_onax.append(
+                    np.unwrap(np.angle(FSourceTerm_select[0,:,Hgrid_phase_diagnostics_indices[k1]]))
+                    )
+                           
+                           
+           
 
 print('before save')
 # Save the data
-Hgrid_select = Hgrid[H_indices[0]:H_indices[1]:ko_step]
 with h5py.File(out_h5name,'w') as OutFile:
     grp = OutFile.create_group('XUV')
     grp.create_dataset('Spectrum_on_screen',
@@ -294,7 +305,9 @@ with h5py.File(out_h5name,'w') as OutFile:
     grp.create_dataset('zgrid_integration',
                                           data = zgrid_macro[kz_start:kz_end]
                                           )
-
+    grp.create_dataset('Phase_on_axis',
+                                          data = np.asarray(phase_onax)
+                                          )
     
 # # vmin = np.max(np.log(Gaborr))-6.
 # fig, ax = plt.subplots()   
