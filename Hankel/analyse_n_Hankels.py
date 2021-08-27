@@ -26,27 +26,29 @@ results_path = cwd
 FF_orders_plot = 4
 
 # files = ['Hankel.h5','Hankel_dx2.h5','Hankel_dt2.h5','Hankel_2Nx.h5']
+
 # files = ['60pl/Hankel.h5',
-#          '60pl/Hankel_2dx.h5',
-#          '60pl/Hankel_dx2.h5',
-#          '60pl/Hankel_2dx_dt2.h5',
-#          '60pl/Hankel_2dx_dt4.h5',
-#          '60pl/Hankel_2Nx.h5',
-#          '60pl/Hankel_dt2.h5',
-#          ]
+#           '60pl/Hankel_2dx.h5',
+#           '60pl/Hankel_dx2.h5',
+#           '60pl/Hankel_2dx_dt2.h5',
+#           '60pl/Hankel_2dx_dt4.h5',
+#           '60pl/Hankel_2Nx.h5',
+#           '60pl/Hankel_dt2.h5',
+#           '60pl/Hankel_dr2.h5'
+#           ]
 
 # files = ['60pl/Hankel_2dx.h5',
-#          '60pl/Hankel_2dx_dt2.h5',
-#          '60pl/Hankel_2dx_dt4.h5',
-#          ]
-
-# files = ['60pl/Hankel_2dx_dt2.h5',
+#           '60pl/Hankel_2dx_dt2.h5',
 #           '60pl/Hankel_2dx_dt4.h5',
 #           ]
 
-files = [ '60pl/Hankel_2dx.h5',
-          '60pl/Hankel.h5'
+files = ['60pl/Hankel_2dx_dt2.h5',
+          '60pl/Hankel_2dx_dt4.h5',
           ]
+
+# files = [ '60pl/Hankel_2dx.h5',
+#           '60pl/Hankel.h5'
+#           ]
 
 
 Nfiles = len(files)
@@ -75,7 +77,8 @@ for k1 in range(Nfiles-1):
     print(np.max(abs(Hankel_errors)))
     
     Hankel_errors_logscale = np.log10(abs(FField_differences[k1].T))
-    map1 = ax.pcolor(Hankel_errors_logscale, shading='auto')
+    # map1 = ax.pcolor(Hankel_errors_logscale, shading='auto')
+    map1 = ax.pcolor(Hgrid[k1],rgrid_FF[k1],Hankel_errors_logscale, shading='auto')
     # plt.pcolor(t_Gr,o_Gr/omega0,(np.log(Gaborr)).T, shading='auto',vmin=vmin)
     fig.colorbar(map1)
     plt.show()

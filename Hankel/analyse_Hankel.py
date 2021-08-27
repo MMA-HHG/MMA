@@ -14,23 +14,25 @@ import Hfn2
 import matplotlib.pyplot as plt
 
   
-filename = 'Hankel.h5'
+# filename = 'Hankel.h5'
 # filename = 'Hankel_dx2.h5'
 # filename = 'Hankel_dt2.h5'
 # filename = 'Hankel_2Nx.h5'
-# filename = '60pl/Hankel.h5'
+filename = '60pl/Hankel.h5'
+# filename = '60pl/Hankel_dr2.h5'
 
 FF_orders_plot = 4
          
 with h5py.File(filename, 'r') as InputArchive:
     # load data
-   Maxima = InputArchive['XUV/Maxima_of_planes'][:]
-   Phases_onax = InputArchive['XUV/Phase_on_axis'][:]
-   Phases_first = InputArchive['XUV/Phase_on_axis'][:]
+   Maxima = InputArchive['XUV/Maxima_of_planes'][:] #/np.pi
+   Phases_onax = InputArchive['XUV/Phase_on_axis'][:] #/np.pi
+   Phases_first = InputArchive['XUV/Phase_first_plane'][:]
    FField_FF = InputArchive['XUV/Spectrum_on_screen'][:,:,0] + \
                1j*InputArchive['XUV/Spectrum_on_screen'][:,:,1]
    Hgrid = InputArchive['XUV/Hgrid_select'][:]
    rgrid_FF = InputArchive['XUV/rgrid_FF'][:]
+   zgrid_integration = InputArchive['XUV/zgrid_integration'][:]
    
    
    
