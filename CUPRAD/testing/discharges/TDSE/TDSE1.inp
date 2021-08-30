@@ -49,4 +49,4 @@ $change_group   pre_ionised
 
 method_units    1   I   -
 method_geometry 1   I   -
-initial_electrons_ratio pre_ionised	0.08	R	-
+initial_electrons_ratio	0.08	R	-
