@@ -22,6 +22,36 @@ import units
 import mynumerics as mn
 
 def HankelTransform(ogrid, rgrid, FField, distance, rgrid_FF, integrator = integrate.trapz, near_field_factor = True):
+    """
+    It computes Hanikel transform with an optional near-field factor.
+    
+
+    Parameters
+    ----------
+    ogrid : array_like
+        grid of FField in frequencies [SI]
+    rgrid : array_like
+        grid of FField in the radial coordinate [SI]
+    FField : 2D array
+        The source terms on ogrid and rgrid.        
+    distance : scalar
+       The distance of the generating plane from the observational screen
+    rgrid_FF : array_like
+        The grid used to investigate the transformed field
+    integrator : function handle, optional
+        The function used for the integration. It's called by
+        'integrator(integrand,rgrid)'. It shall be extended by a list of
+        [args, kwargs].
+        The default is integrate.trapz (from scipy).
+    near_field_factor : logical, optional
+        Include near field factor. The default is True.
+
+    Returns
+    -------
+    FField_FF : 2D array
+         The far-field spectra on ogrid and rgrid_FF
+
+    """
     No = len(ogrid); Nr = len(rgrid); Nr_FF = len(rgrid_FF)
     FField_FF = np.empty((No,Nr_FF), dtype=np.cdouble)
     integrand = np.empty((Nr), dtype=np.cdouble)
