@@ -63,7 +63,9 @@ def print_ouput_file(f,outf,dset_list):
                         newdset[kr,kz,:,:] = dset[:,:,k1]
                     else:
                         print('warning, dataset with unsupported dimension: ' + dsetname + ', nothing done')# general procedure should be possible
+    return nsim_loc
 
+nsim_tot = 0
 with h5py.File(outfname,'w') as outf:
     firstrun = True;
     for fname in files:
@@ -72,6 +74,7 @@ with h5py.File(outfname,'w') as outf:
             if firstrun:
                 prepare_ouput_file(f, outf, dset_list)
                 firstrun = False
-            print_ouput_file(f, outf, dset_list)
+            nsim_tot = nsim_tot + print_ouput_file(f, outf, dset_list) # here is the printing
 
+print("total number of TDSE's merged:",nsim_tot)
 print('Done')
