@@ -102,12 +102,21 @@ def HankelTransform_long(ogrid, rgrid, zgrid, FSourceTerm, # FSourceTerm(r,z,ome
     integrator_longitudinal : function, optional
         used method to integrate in the longitudinal direction. The default is 'trapezoidal'.
     near_field_factor : logical, optional
-        False for far field without the Fresnel term. The default is True.
+        False for far field without the Fresnel term. The default is True.    
+    frequencies_to_trace_maxima : list of 2D-array_like, optional
+        If present, these windows given by the 2-D-array-likes are used to trace maxima of respective planes of integration.
+        The default is None.
 
+    Raises
+    ------
+    NotImplementedError
+        In the case a non-implemented integration rule is inputed.
 
     Returns
     -------
     result : the field in the radial grid of the observation plane
+    
+    result , planes_maxima: if frequencies_to_trace_maxima are present
         .
 
     """
