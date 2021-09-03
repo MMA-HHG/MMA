@@ -191,12 +191,7 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
 
             # ===============================================
             # Complexify the fields: E(r,z,t) = Re(E_cmplx(r,z,t))
-            E_trz_cmplx_envel = np.zeros(res.E_trz.shape,dtype=complex)
-            rem_fast_oscillations = np.exp(-1j*res.omega0*res.tgrid)
-            
-            for k1 in range(res.Nz):
-                for k2 in range(res.Nr):
-                    E_trz_cmplx_envel[:,k2,k1] = rem_fast_oscillations*mn.complexify_fft(res.E_trz[:,k2,k1])
+            E_trz_cmplx_envel = res.complexify_envel()
 
 
             # ===============================================

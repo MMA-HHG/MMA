@@ -18,8 +18,9 @@ import matplotlib.pyplot as plt
 # filename = 'Hankel_dx2.h5'
 # filename = 'Hankel_dt2.h5'
 # filename = 'Hankel_2Nx.h5'
-filename = '60pl/Hankel.h5'
+# filename = '60pl/Hankel.h5'
 # filename = '60pl/Hankel_dr2.h5'
+filename = 'PoIs/Hankel_1250pl.h5'
 
 FF_orders_plot = 4
          
