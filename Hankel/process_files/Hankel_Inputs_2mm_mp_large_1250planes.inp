@@ -1,0 +1,33 @@
+# field slices & obsarvation plane
+Nr_max	235	I	-
+kr_step	2	I	-
+ko_step	2	I	-
+
+rmax_FF	10e-4	R	m
+Nr_FF	300	I	-
+distance_FF	0.3	R	m
+
+# Nz_max_sum	240	I	-
+Nz_first	1250	I	-
+
+$array	Hrange	R	-	14 22
+
+# XUV propagation params
+$array apply_diffraction	S	-	dispersion absorption
+
+# Gas parameters (to be unified for the whole simulation)
+gas_type	Kr	S	-
+XUV_table_type_diffraction	NIST	S	-
+XUV_table_type_absorption	Henke	S	-
+
+
+# Plotting
+FF_orders_plot	4	R	-
+
+# file names
+file_CUPRAD	results.h5	S	-
+file_TDSE	results_merged.h5	S	-
+out_h5name	Hankel_1250pl.h5	S	-
+
+# numerics
+N_threads   28  I   -
