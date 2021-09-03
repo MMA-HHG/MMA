@@ -11,7 +11,7 @@ class empty_class:
 
 class get_data:
     def __init__(self,InputArchive,r_resolution=[True]):
-        full_resolution = r_resolution[0]
+        full_resolution = (r_resolution[0] is True)
         self.omega0 = mn.ConvertPhoton(1e-2*mn.readscalardataset(InputArchive,'/inputs/laser_wavelength','N'),'lambdaSI','omegaSI')
         self.k0_wave = 2.0*np.pi/mn.ConvertPhoton(self.omega0,'omegaSI','lambdaSI')
         self.tgrid = InputArchive['/outputs/tgrid'][:]; Nt = len(self.tgrid)
@@ -62,6 +62,9 @@ class get_data:
         
         # Idealised beam Rayleigh range (defined only if Gaussian waist is available)
         
+        self.energy = InputArchive['/longstep/energy'][:]
+        self.energy_zgrid = InputArchive['/longstep/z_buff'][:]
+            
         try:
             Gaussian_w0 = mn.readscalardataset(InputArchive, '/inputs/laser_focus_beamwaist_Gaussian','N')
             self.Gaussian_zR = np.pi*(Gaussian_w0**2)/(1e-2*mn.readscalardataset(InputArchive,'/inputs/laser_wavelength','N'))
@@ -135,6 +138,20 @@ class get_data:
         
         self.plasma.rgrid = rgrid
         self.plasma.Nr = Nr; self.plasma.Nt = Nt; self.plasma.Nz = Nz
+
+    def compute_spectrum(self,output='add'):
+        self.ogrid, dum, Nt = mn.fft_t(self.tgrid, self.E_trz[:,0,0])
+        
+        FE_trz = np.zeros((len(self.ogrid),len(self.rgrid),len(self.zgrid)),dtype=complex)
+        
+        for k1 in range(self.Nz):
+            for k2 in range(self.Nr):
+                FE_trz[:,k2,k1] = mn.fft_t(self.tgrid, self.E_trz[:,k2,k1])[1]
+  
+        
+        if (output == 'return'):     return FE_trz
+        elif (output == 'add'):      self.FE_trz = FE_trz
+        else: raise ValueError('wrongly specified output for the vacuum shift.') 
 
         
         
