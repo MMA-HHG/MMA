@@ -198,7 +198,8 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
             plt.plot(res.ogrid/res.omega0,np.abs(res.FE_trz[:,0,0]))
             plt.show()
             
-            fig, ax = plt.subplots()     
+            fig, ax = plt.subplots()  
+            plt.plot(res.ogrid/res.omega0,np.abs(res.FE_trz[:,0,0]))
             plt.plot(res.ogrid/res.omega0,np.abs(res.FE_trz[:,0,-1]))
             plt.show()  
             
