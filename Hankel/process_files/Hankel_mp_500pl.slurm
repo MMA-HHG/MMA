@@ -10,6 +10,6 @@
 module purge
 module load intelpython3/2019.3
 
-srun python $HANKEL_HOME/Hankel_long_medium_mp.py -here -nodisplay -input input_Hankel_500pl.h5
+srun python $HANKEL_HOME/Hankel_long_medium_mp.py -here -nodisplay -input inputs_Hankel_500pl.h5
 
 echo "Job finished" 
