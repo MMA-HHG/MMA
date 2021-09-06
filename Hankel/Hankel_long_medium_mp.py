@@ -16,9 +16,17 @@ import matplotlib.pyplot as plt
 import XUV_refractive_index as XUV_index
 
 
+arguments = sys.argv
+
+if ("-input" in arguments):
+    arg_index = arguments.index("-input")
+    inputs_archive = arguments[arg_index+1]
+else:
+    inputs_archive = 'inputs_Hankel.h5'
+
 # inputs from hdf5-input
 try:
-    with h5py.File('inputs_Hankel.h5', 'r') as Parameters:
+    with h5py.File(inputs_archive, 'r') as Parameters:
         inputs_group = Parameters['inputs']
         inputs_list = list(inputs_group.keys())
         
@@ -98,8 +106,6 @@ except:
     
     Workers = 4
 
-
-arguments = sys.argv
 
 showplots = not('-nodisplay' in arguments)
 
