@@ -225,6 +225,11 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
                                        mn.ConvertPhoton(res.omega0,'omegaSI','omegaau'),
                                        mn.ConvertPhoton(res.Ip_eV,'eV','omegaau')
                                        )[1]
+            
+            Cutoff_max = np.empty(Cutoff.shape[1:3])
+            for k1 in range(res.Nr):
+                for k2 in range(res.Nz):
+                    Cutoff_max[k1,k2] = np.max(Cutoff[:,k1,k2])
               
             # loop outputs over times and harmonic orders
             fig1, ax1 = plt.subplots()
@@ -434,7 +439,15 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
             if showplots: plt.show()
             plt.close()
             
-            
+            # Maximal intensity reached
+            fig1, ax1 = plt.subplots()
+            map1 = ax1.pcolor(1e3*res.zgrid, 1e6*res.rgrid, Cutoff_max[:,:], shading='auto')
+            map2 = ax1.contour(1e3*res.zgrid, 1e6*res.rgrid, Cutoff_max[:,:], Horders, colors = "black")
+            ax1.set_xlabel('z [mm]'); ax1.set_ylabel('r [mum]'); ax1.set_title('Max cutoff'+title_string)
+            fig1.colorbar(map1) 
+            fig1.savefig('Cutoff_max_sim'+str(k_sim)+'.png', dpi = 600)
+            if showplots: plt.show()
+            plt.close()            
                 
         
             # treat fluence with full precision
@@ -462,6 +475,8 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
             fig1.savefig('Fluence_sim'+str(k_sim)+'.png', dpi = 600)
             if showplots: plt.show()
             plt.close()
+            
+            
             
         if invoke_garbage_collector:
             del res
