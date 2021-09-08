@@ -440,9 +440,19 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
             plt.close()
             
             # Maximal intensity reached
+            radius_inv_e2 = dfC.measure_beam(
+                res.rgrid, Cutoff_max, mn.measure_beam_max_ratio_zeromax, np.exp(-2.0) ) 
+            radius_RMS = dfC.measure_beam(
+                res.rgrid, Cutoff_max, mn.measure_beam_RMS )  
+            
             fig1, ax1 = plt.subplots()
-            map1 = ax1.pcolor(1e3*res.zgrid, 1e6*res.rgrid, Cutoff_max[:,:], shading='auto')
+            map1 = ax1.pcolor(1e3*res.zgrid, 1e6*res.rgrid, Cutoff_max[:,:], shading='auto', cmap='plasma')
             map2 = ax1.contour(1e3*res.zgrid, 1e6*res.rgrid, Cutoff_max[:,:], Horders, colors = "black")
+            
+            ax1.plot(1e3*res.zgrid, 1e6*radius_RMS, '--', linewidth=1, color = 'k')
+            ax1.plot(1e3*res.zgrid, 1e6*radius_inv_e2, ':', linewidth=1, color = 'k')
+            
+            ax1.set_ylim([0,1e6*rmax])
             ax1.set_xlabel('z [mm]'); ax1.set_ylabel('r [mum]'); ax1.set_title('Max cutoff'+title_string)
             fig1.colorbar(map1) 
             fig1.savefig('Cutoff_max_sim'+str(k_sim)+'.png', dpi = 600)
@@ -453,6 +463,9 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
             # treat fluence with full precision
             res2 = dfC.get_data(InputArchive)
             res2.get_Fluence(InputArchive, fluence_source='computed')
+            # res2.get_Fluence(InputArchive)
+            
+            # energy_from_fluence = 2.0*np.pi*np.trapz(res2.Fluence.rgrid*res2.Fluence.value[:,0],res2.Fluence.rgrid)
             
             k_r = mn.FindInterval(res2.rgrid, rmax)
             

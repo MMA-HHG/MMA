@@ -108,7 +108,7 @@ class get_data:
             self.Fluence.value = InputArchive['/longstep/fluence'][:,:]
             self.Fluence.zgrid = InputArchive['/longstep/zgrid_analyses2'][:]
             self.Fluence.rgrid = InputArchive['/outputs/rgrid'][:]
-            self.Fluence.units = 'SI'                
+            self.Fluence.units = 'C.U.'                
         
         elif (fluence_source == 'computed'):                
             self.Fluence.zgrid = self.zgrid
@@ -116,8 +116,9 @@ class get_data:
             self.Fluence.value = np.zeros((self.Nr, self.Nz))
             for k1 in range(self.Nz):
                 for k2 in range(self.Nr):
-                    self.Fluence.value[k2, k1] = sum(abs(self.E_trz[:, k2, k1])**2)
-            self.Fluence.units = 'arb.u.'
+                    # self.Fluence.value[k2, k1] = sum(abs(self.E_trz[:, k2, k1])**2)
+                    self.Fluence.value[k2, k1] = units.c_light*units.eps0 * np.trapz(abs(self.E_trz[:, k2, k1])**2,self.tgrid)
+            self.Fluence.units = 'J/m2'
 
     def get_plasma(self, InputArchive, r_resolution=[True]): # analogy to the fields
         full_resolution = r_resolution[0]
