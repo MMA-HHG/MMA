@@ -21,6 +21,8 @@ import matplotlib.pyplot as plt
 # filename = '60pl/Hankel.h5'
 # filename = '60pl/Hankel_dr2.h5'
 filename = 'PoIs/Hankel_1250pl.h5'
+# filename = 'PoIs/Hankel_500pl.h5'
+# filename = 'PoIs/Hankel_1000pl.h5'
 
 FF_orders_plot = 4
          
