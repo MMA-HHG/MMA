@@ -70,7 +70,13 @@ class get_data:
             self.Gaussian_zR = np.pi*(Gaussian_w0**2)/(1e-2*mn.readscalardataset(InputArchive,'/inputs/laser_wavelength','N'))
         except:
             self.Gaussian_zR = np.NaN
-        
+
+        try:
+            self.Intensity_Gaussian_focus = mn.readscalardataset(InputArchive, '/inputs/laser_focus_intensity_Gaussian','N')
+            self.Intensity_Gaussian_focus_string = "{:.1f}".format(1e-18*self.Intensity_Gaussian_focus) + ' 1e18 W/m2'
+        except:
+            self.Intensity_Gaussian_focus = np.NaN   
+            self.Intensity_Gaussian_focus_string = "xxx"
         
     def vacuum_shift(self,output='replace'):
         E_vac = np.zeros(self.E_trz.shape)   
@@ -161,6 +167,7 @@ def add_print_parameter(parameter,data):
     elif (parameter=='preionisation'): return data.preionisation_string
     elif (parameter=='focus_in_medium'): return data.Gaussian_focus_string
     elif (parameter=='intensity_entry'): return data.Intensity_entry_string
+    elif (parameter=='intensity_Gaussian_focus'): return data.Intensity_Gaussian_focus_string
     else: return ''
 
 
