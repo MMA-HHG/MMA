@@ -123,7 +123,7 @@ full_resolution = False
 
 invoke_garbage_collector = True
 
-OutPath = 'outputs'
+OutPath = 'outputs_spectral'
 
 # t_fix = 0.0e-15 # the time of our interest to inspect e.g. phase
 # q = 23 # harmonic of our interest
@@ -206,6 +206,12 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
             fig, ax = plt.subplots()     
             plt.plot(res.energy_zgrid,res.energy)
             plt.show()   
+            
+            fig7, ax7 = plt.subplots()
+            map1 = ax7.pcolor(1e3*res.zgrid, res.ogrid/res.omega0, np.abs(res.FE_trz[:,0,:]), shading='auto')
+            # map2 = ax7.contour(1e3*res.zgrid, 1e6*res.rgrid, Cutoff[t_probe_ind[k1],:,:], Horders, colors = "black")
+            ax7.set_xlabel('z [mm]'); ax7.set_ylabel('omega [-]'); ax7.set_title('onax spectrum')
+            fig7.colorbar(map1) 
             
             # ogrid, dum, Nt = mn.fft_t(res.tgrid, res.E_trz[:,0,0])
             # fig, ax = plt.subplots()     

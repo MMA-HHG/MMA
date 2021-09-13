@@ -74,6 +74,7 @@ def HankelTransform_long(ogrid, rgrid, zgrid, FSourceTerm, # FSourceTerm(r,z,ome
                          dispersion_function = None, absorption_function = None,
                          integrator_Hankel = integrate.trapz, integrator_longitudinal = 'trapezoidal',
                          near_field_factor = True,
+                         store_cummulative_result = False,
                          frequencies_to_trace_maxima = None
                          ):
     """
@@ -171,7 +172,10 @@ def HankelTransform_long(ogrid, rgrid, zgrid, FSourceTerm, # FSourceTerm(r,z,ome
              FField_FF_z[k1,:,:] = np.outer(factor_e[k1,:],np.ones(FField_FF.shape[1]))*FField_FF
         else:
             FField_FF_z[k1,:,:] = FField_FF # (z,omega,r)
-            
+    
+    if store_cummulative_result:
+        cummulative_field = np.empty((Nz-1,) + FField_FF.shape, dtype=np.cdouble)
+        
     if (integrator_longitudinal == 'trapezoidal'):        
         for k1 in range(Nz-1):    
             k_step = 1
@@ -182,6 +186,10 @@ def HankelTransform_long(ogrid, rgrid, zgrid, FSourceTerm, # FSourceTerm(r,z,ome
                 dum = dum + \
                       0.5*(zgrid[(k1+1)*k_step]-zgrid[k1*k_step]) * \
                       (FField_FF_z[k1*k_step,:,:] + FField_FF_z[(k1+1)*k_step,:,:])
+                      
+            if store_cummulative_result:
+                cummulative_field[k1,:,:] = dum
+            
     else:
         raise NotImplementedError('Only trapezoidal rule implemented now')
         
@@ -206,11 +214,16 @@ def HankelTransform_long(ogrid, rgrid, zgrid, FSourceTerm, # FSourceTerm(r,z,ome
             for k1 in range(len(frequency_indices)):
                 planes_maxima[k2] = np.asarray(planes_maxima[k2])
         
-        return dum , planes_maxima
-            
+        if store_cummulative_result:
+            return dum , planes_maxima, cummulative_field
+        else:
+            return dum , planes_maxima
             
     else: 
-        return dum
+        if store_cummulative_result:
+            return dum, cummulative_field
+        else:
+            return dum
                 
                 
     

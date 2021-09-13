@@ -87,7 +87,7 @@ except:
     apply_diffraction = ['dispersion', 'absorption']
     
     Nr_max = 235 #470; 235; 155-still fine    
-    Hrange = [14, 22] # [17, 18] # [17, 18] # [14, 36] [17, 18] [16, 20] [14, 22]
+    Hrange = [17, 18] # [17, 18] # [17, 18] # [14, 36] [17, 18] [16, 20] [14, 22]
     
     kr_step = 2 # descending order, the last is "the most accurate"
     ko_step = 2
@@ -105,6 +105,8 @@ except:
     out_h5name = 'Hankel.h5'
     
     Workers = 4
+    
+    store_cummulative_result = False
 
 
 showplots = not('-nodisplay' in arguments)
@@ -200,6 +202,11 @@ def absorption_function_def(omega):
                   ((lambdaSI**2)*f2_value/(2.0*np.pi))
     return beta_factor / units.c_light
 
+def L_abs(omega):
+    f2_value    = f2_funct(mn.ConvertPhoton(omega, 'omegaSI', 'eV'))
+    lambdaSI    = mn.ConvertPhoton(omega, 'omegaSI', 'lambdaSI')
+    return 1.0 / (2.0 * rho0_init * units.r_electron_classical * lambdaSI * f2_value) 
+
 if ('dispersion' in apply_diffraction): dispersion_function = dispersion_function_def
 else: dispersion_function = None
 
@@ -242,7 +249,8 @@ processes = [mp.Process(target=mp_handle, # define processes
                         kwargs={
                               'dispersion_function': dispersion_function,
                               'absorption_function': absorption_function,
-                              'frequencies_to_trace_maxima':  omega_I_study_intervals
+                              'frequencies_to_trace_maxima':  omega_I_study_intervals,
+                              'store_cummulative_result': store_cummulative_result
                             }
                         
                         ) for k1 in range(Workers)]
@@ -261,15 +269,32 @@ FField_FF_integrated = np.empty((len(ogrid_select_SI),Nr_FF), dtype=np.cdouble)
 source_maxima=[np.zeros(len(zgrid_macro[kz_start:kz_end])) for k1 in range(len(Hgrid_I_study))]
 sim_ind = [result[0] for result in results]
 
+if store_cummulative_result:
+    cummulative_field = np.empty(
+                        (len(zgrid_macro[kz_start:kz_end])-1, len(ogrid_select_SI),Nr_FF),
+                        dtype=np.cdouble)
+
 for k1 in range(Workers):   
    if (sim_ind[k1] == (Workers-1)):
        FField_FF_integrated[:,
                    rgrid_indices[sim_ind[k1]]:
                    ] = results[k1][1]
+           
+       if store_cummulative_result:
+           cummulative_field[:,:,
+                   rgrid_indices[sim_ind[k1]]:
+                   ] = results[k1][3]
+               
    else:
        FField_FF_integrated[:,
                    rgrid_indices[sim_ind[k1]]:rgrid_indices[sim_ind[k1]+1]
                    ] = results[k1][1]
+       
+       if store_cummulative_result:
+           cummulative_field[:,:,
+                   rgrid_indices[sim_ind[k1]]:rgrid_indices[sim_ind[k1]+1]
+                   ] = results[k1][3]     
+       
        
    for k2 in range(len(Hgrid_I_study)):
        for k3 in range(len(zgrid_macro[kz_start:kz_end])):
@@ -318,6 +343,10 @@ with h5py.File(out_h5name,'w') as OutFile:
                                           )
     grp.create_dataset('Phase_first_plane',
                                           data = np.asarray(phase_first_plane)
+                                          )
+    if store_cummulative_result:
+            grp.create_dataset('Spectrum_on_screen_cummulative',
+                                          data = np.stack((cummulative_field.real, cummulative_field.imag),axis=-1)
                                           )
     
 # # vmin = np.max(np.log(Gaborr))-6.
