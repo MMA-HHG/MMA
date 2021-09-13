@@ -76,6 +76,10 @@ try:
         FF_orders_plot = mn.readscalardataset(Parameters, 'inputs/FF_orders_plot', 'N')
         Workers = mn.readscalardataset(Parameters, 'inputs/N_threads', 'N')
         
+        store_cummulative_result = False
+        if ('store_cummulative_result' in inputs_list):
+            store_cummulative_result = (mn.readscalardataset(Parameters, 'inputs/N_threads', 'N') == 0)
+
         print('reading from hdf5-input file')
 
         
@@ -106,7 +110,7 @@ except:
     
     Workers = 4
     
-    store_cummulative_result = False
+    store_cummulative_result = True
 
 
 showplots = not('-nodisplay' in arguments)

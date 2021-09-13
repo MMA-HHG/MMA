@@ -12,6 +12,9 @@ Nz_first	500	I	-
 
 $array	Hrange	R	-	14 22
 
+# Keep cummulative field
+store_cummulative_result	1	I	-
+
 # XUV propagation params
 $array apply_diffraction	S	-	dispersion absorption
 
