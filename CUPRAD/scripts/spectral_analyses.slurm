@@ -10,3 +10,7 @@ module purge
 module load intelpython3/2019.3
 
 python $CUPRAD_PYTHON/spectral_analyses.py -here -nodisplay
+
+echo 'organising outputs'
+
+$CUPRAD_SCRIPTS/organise_outputs.sh
