@@ -10,7 +10,7 @@ mv Curvature_* Curvature/
 mv ddr_Curvature_* Curvature/
 
 mkdir Cutoffs_slices
-mv Cutoff_t* Cutoffs/
+mv Cutoff_t* Cutoffs_slices/
 
 mkdir Fluences_and_max_cutoffs
 mv Fluence_* Fluences_and_max_cutoffs/
