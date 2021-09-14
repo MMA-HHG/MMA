@@ -22,6 +22,7 @@ done
 case $analysis in
     general)
       sbatch $CUPRAD_SCRIPTS/coherence_map.slurm
+      sbatch $CUPRAD_SCRIPTS/spectral_analyses.slurm
       echo 'general submitted'
     #   echo 'plot 1'
       ;;
