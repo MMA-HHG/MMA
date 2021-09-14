@@ -78,7 +78,7 @@ try:
         
         store_cummulative_result = False
         if ('store_cummulative_result' in inputs_list):
-            store_cummulative_result = (mn.readscalardataset(Parameters, 'inputs/N_threads', 'N') == 0)
+            store_cummulative_result = (mn.readscalardataset(Parameters, 'inputs/store_cummulative_result', 'N') == 1)
 
         print('reading from hdf5-input file')
 
