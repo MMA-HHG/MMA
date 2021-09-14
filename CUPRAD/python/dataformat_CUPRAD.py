@@ -146,19 +146,32 @@ class get_data:
         self.plasma.rgrid = rgrid
         self.plasma.Nr = Nr; self.plasma.Nt = Nt; self.plasma.Nz = Nz
 
-    def compute_spectrum(self,output='add'):
+    def compute_spectrum(self,output='add',compute_dE_domega = False):
         self.ogrid, dum, Nt = mn.fft_t(self.tgrid, self.E_trz[:,0,0])
         
-        FE_trz = np.zeros((len(self.ogrid),len(self.rgrid),len(self.zgrid)),dtype=complex)
+        No = len(self.ogrid); Nr = len(self.rgrid); Nz = len(self.zgrid)
+                
+        FE_trz = np.zeros((No,Nr,Nz),dtype=complex)
         
-        for k1 in range(self.Nz):
-            for k2 in range(self.Nr):
+        for k1 in range(Nz):
+            for k2 in range(Nr):
                 FE_trz[:,k2,k1] = mn.fft_t(self.tgrid, self.E_trz[:,k2,k1])[1]
   
         
-        if (output == 'return'):     return FE_trz
-        elif (output == 'add'):      self.FE_trz = FE_trz
-        else: raise ValueError('wrongly specified output for the vacuum shift.') 
+        if compute_dE_domega:
+            dE_domega = np.empty((No,Nz))
+            
+            for k1 in range(Nz):
+                for k2 in range(No):
+                    dE_domega[k2,k1] = np.trapz(np.abs(FE_trz[k2,:,k1])**2,self.rgrid)
+            
+            if (output == 'return'):     return FE_trz, dE_domega
+            elif (output == 'add'):      self.FE_trz = FE_trz; self.dE_domega = dE_domega
+            else: raise ValueError('wrongly specified output for the vacuum shift.') 
+        else:
+            if (output == 'return'):     return FE_trz
+            elif (output == 'add'):      self.FE_trz = FE_trz
+            else: raise ValueError('wrongly specified output for the vacuum shift.') 
 
         
         
