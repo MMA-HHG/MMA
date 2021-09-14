@@ -117,6 +117,8 @@ except:
     rmax = 130e-6 # only for analyses
     dr = rmax/40.0
 
+tlim2 = [-20,5]
+
 fix_saturation = True
 
 full_resolution = False
@@ -351,6 +353,18 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
             ax9.legend(loc='best')
             ax9.set_xlabel('t [fs]'); ax9.set_ylabel('I [cutoff]'); ax9.set_title('onaxis intensity'+title_string)   
             fig9.savefig('Intens_onax_sim'+str(k_sim)+'.png', dpi = 600)
+            
+            
+            # Field onax
+            fig9, ax9 = plt.subplots()
+            ax9.plot(1e15*res.tgrid,res.E_trz[:,0,0], color=colors_plt[0],label='z='+"{:.1f}".format(1e3*res.zgrid[0])) 
+            ax9.plot(1e15*res.tgrid,res.E_trz[:,0,(res.Nz-1)//2], color=colors_plt[1],label='z='+"{:.1f}".format(1e3*res.zgrid[(res.Nz-1)//2])) 
+            ax9.plot(1e15*res.tgrid,res.E_trz[:,0,-1], color=colors_plt[2],label='z='+"{:.1f}".format(1e3*res.zgrid[-1]))
+            ax9.set_xlim(tlim2)
+            ax9.legend(loc='best')
+            ax9.set_xlabel('t [fs]'); ax9.set_ylabel('E [SI]'); ax9.set_title('Efield'+title_string)   
+            fig9.savefig('Efield_onax_sim'+str(k_sim)+'.png', dpi = 600)
+            
             
             k_t = mn.FindInterval(res.tgrid, 0.0)
             fig10, ax10 = plt.subplots()
