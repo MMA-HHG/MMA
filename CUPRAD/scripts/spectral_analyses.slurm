@@ -13,4 +13,4 @@ python $CUPRAD_PYTHON/spectral_analyses.py -here -nodisplay
 
 echo 'organising outputs'
 
-$CUPRAD_SCRIPTS/organise_outputs.sh
+# $CUPRAD_SCRIPTS/organise_outputs.sh
