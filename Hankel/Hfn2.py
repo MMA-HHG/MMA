@@ -123,7 +123,7 @@ def HankelTransform_long(ogrid, rgrid, zgrid, FSourceTerm, # FSourceTerm(r,z,ome
     """
 
     
-    No = len(ogrid); Nz = len(zgrid)
+    No = len(ogrid); Nz = len(zgrid); Nr_FF = len(rgrid_FF)
     include_dispersion = not(dispersion_function is None)
     include_absorption = not(absorption_function is None)
     trace_maxima_log = not(frequencies_to_trace_maxima is None)
@@ -188,7 +188,11 @@ def HankelTransform_long(ogrid, rgrid, zgrid, FSourceTerm, # FSourceTerm(r,z,ome
                       (FField_FF_z[k1*k_step,:,:] + FField_FF_z[(k1+1)*k_step,:,:])
                       
             if store_cummulative_result:
-                cummulative_field[k1,:,:] = dum
+                # we need renormalise the end of the medium
+                exp_renorm = np.exp( (zgrid[-1]-zgrid[k1]) * absorption_factor)
+                for k2 in range(No):
+                    for k3 in range(Nr_FF):
+                        cummulative_field[k1,k2,k3] = exp_renorm[k2]*dum[k2,k3]
             
     else:
         raise NotImplementedError('Only trapezoidal rule implemented now')
