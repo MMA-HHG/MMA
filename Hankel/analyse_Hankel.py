@@ -10,6 +10,8 @@ import mynumerics as mn
 import Hfn
 import Hfn2
 
+import warnings
+
 # import mynumerics as mn
 import matplotlib.pyplot as plt
 
@@ -20,14 +22,19 @@ import matplotlib.pyplot as plt
 # filename = 'Hankel_2Nx.h5'
 # filename = '60pl/Hankel.h5'
 # filename = '60pl/Hankel_dr2.h5'
-filename = 'PoIs/Hankel_1250pl.h5'
+# filename = 'PoIs/Hankel_1250pl.h5'
 # filename = 'PoIs/Hankel_500pl.h5'
 # filename = 'PoIs/Hankel_1000pl.h5'
+# filename = 'PoIs/Hankel_all_cummulative1.h5'
+filename = 'PoIs/Hankel_all_cummulative2.h5'
 
 FF_orders_plot = 4
          
 with h5py.File(filename, 'r') as InputArchive:
     # load data
+   data_group = InputArchive['XUV']
+   available_data = list(data_group.keys())
+    
    Maxima = InputArchive['XUV/Maxima_of_planes'][:] #/np.pi
    Phases_onax = InputArchive['XUV/Phase_on_axis'][:] #/np.pi
    Phases_first = InputArchive['XUV/Phase_first_plane'][:]
@@ -35,7 +42,17 @@ with h5py.File(filename, 'r') as InputArchive:
                1j*InputArchive['XUV/Spectrum_on_screen'][:,:,1]
    Hgrid = InputArchive['XUV/Hgrid_select'][:]
    rgrid_FF = InputArchive['XUV/rgrid_FF'][:]
-   zgrid_integration = InputArchive['XUV/zgrid_integration'][:]
+   zgrid_integration = InputArchive['XUV/zgrid_integration'][:]; Nz = len(zgrid_integration)
+   
+   Hgrid_study = InputArchive['XUV/Maxima_Hgrid'][:]
+   
+   cummulative_spectrum = ('Spectrum_on_screen_cummulative' in available_data)
+   if cummulative_spectrum:
+       FField_FF_cummulative = InputArchive['XUV/Spectrum_on_screen_cummulative'][:,:,:,0] + \
+               1j*InputArchive['XUV/Spectrum_on_screen_cummulative'][:,:,:,1]
+   
+ 
+zgrid_integration_midpoints = 0.5*(zgrid_integration[1:]+zgrid_integration[:-1])
    
 Maxima = Maxima/np.max(Maxima)  
    
@@ -99,7 +116,47 @@ plt.show()
 # plt.close(fig)
 # sys.exit()
 
-   
+print(np.max(abs(FField_FF.T)**2))
+
+Hs_to_trace_maxima = []
+for k1 in range(len(Hgrid_study)):
+    Hs_to_trace_maxima.append([Hgrid_study[k1]-0.5 , Hgrid_study[k1]+0.5])
+
+H_indices = []
+planes_maxima = []
+for H_list in Hs_to_trace_maxima:
+    try:
+        H_indices.append(mn.FindInterval(Hgrid, H_list))
+        planes_maxima.append([])
+    except:
+        warnings.warn("A frequency from frequencies_to_trace_maxima doesn't match ogrid.")
+
+if (len(H_indices)>0):
+    for k1 in range(Nz-1):
+        for k2 in range(len(H_indices)):
+            planes_maxima[k2].append(np.max(abs(
+                              FField_FF_cummulative[k1,H_indices[k2][0]:H_indices[k2][1],:]
+                                    )))
+            
+    for k1 in range(len(H_indices)):
+        planes_maxima[k1] = np.asarray(planes_maxima[k1])
+
+planes_maxima = np.asarray(planes_maxima)
+
+# find maxima in the case we need them
+fig, ax = plt.subplots()     
+plt.plot(planes_maxima[0,:])
+plt.plot(planes_maxima[1,:])
+plt.plot(planes_maxima[2,:])
+plt.plot(planes_maxima[3,:])
+plt.show()
+
+fig, ax = plt.subplots()     
+plt.plot(zgrid_integration_midpoints, planes_maxima[0,:])
+plt.plot(zgrid_integration_midpoints, planes_maxima[1,:])
+plt.plot(zgrid_integration_midpoints, planes_maxima[2,:])
+plt.plot(zgrid_integration_midpoints, planes_maxima[3,:])
+plt.show()
    
    
    

@@ -212,7 +212,7 @@ def HankelTransform_long(ogrid, rgrid, zgrid, FSourceTerm, # FSourceTerm(r,z,ome
                                             )))
                     
             for k1 in range(len(frequency_indices)):
-                planes_maxima[k2] = np.asarray(planes_maxima[k2])
+                planes_maxima[k1] = np.asarray(planes_maxima[k1])
         
         if store_cummulative_result:
             return dum , planes_maxima, cummulative_field
