@@ -215,7 +215,7 @@ if ('dispersion' in apply_diffraction): dispersion_function = dispersion_functio
 else: dispersion_function = None
 
 if ('absorption' in apply_diffraction): absorption_function = absorption_function_def
-else: dispersion_function = None
+else: absorption_function = None
 
 ## create subintervals to analyse the intensities and phases
 Hgrid_I_study = mn.get_odd_interior_points(Hrange)
