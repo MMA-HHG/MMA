@@ -171,7 +171,9 @@ file_path = os.path.join(results_path,driving_h5file)
 with h5py.File(file_path, 'r') as InputArchive:
     pressure_list_mbar = 1e3*InputArchive['/inputs/medium_pressure_in_bar'][:]
 
-pressure_list_mbar = pressure_list_mbar[0:3]  
+
+if not('-here' in arguments):
+    pressure_list_mbar = pressure_list_mbar[0:3]  
 
 N_press = len(pressure_list_mbar)  
     
