@@ -365,6 +365,15 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
             ax9.set_xlabel('t [fs]'); ax9.set_ylabel('E [SI]'); ax9.set_title('Efield'+title_string)   
             fig9.savefig('Efield_onax_sim'+str(k_sim)+'.png', dpi = 600)
             
+            # # Field onax - compare
+            # fig9, ax9 = plt.subplots()
+            # ax9.plot(1e15*res.tgrid,res.E_trz[:,0,0]) 
+            # ax9.plot(1e15*res.tgrid,abs(E_trz_cmplx_envel[:,0,0])) 
+            # ax9.plot(1e15*res.tgrid,E_trz_cmplx_envel[:,0,0].real) 
+            # ax9.set_xlim(tlim2)
+            # ax9.legend(loc='best')
+            # ax9.set_xlabel('t [fs]'); ax9.set_ylabel('E [SI]'); ax9.set_title('Efield + envels'+title_string)   
+            # fig9.savefig('Efield_onax_sim_cmpr'+str(k_sim)+'.png', dpi = 600)
             
             k_t = mn.FindInterval(res.tgrid, 0.0)
             fig10, ax10 = plt.subplots()
