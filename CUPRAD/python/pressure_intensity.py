@@ -245,7 +245,7 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
     ax1.set_ylim([0,1e6*rmax])
     ax1.set_xlabel('p [mbar]'); ax1.set_ylabel('r [mum]'); ax1.set_title('Max cutoff, exit')
     fig1.colorbar(map1) 
-    fig1.savefig('Cutoff_entry.png', dpi = 600)
+    fig1.savefig('Cutoff_exit.png', dpi = 600)
     if showplots: plt.show()
     # plt.close()                    
 
@@ -256,7 +256,7 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
     ax1.set_xlabel('p [mbar]'); ax1.set_ylabel('r [mum]'); ax1.set_title('Max cutoff, entry')
     fig1.colorbar(map1) 
     
-    fig1.savefig('Cutoff_exit.png', dpi = 600)
+    fig1.savefig('Cutoff_entry.png', dpi = 600)
     if showplots: plt.show()
     # plt.close() 
     
