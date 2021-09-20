@@ -222,6 +222,8 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
                 k_w0 = mn.FindInterval(rgrid_ref, res.w0_entry)
                 plasma_end_pmap = np.empty((N_press,res.Nr,res.Nz))
                 plasma_tmax_pmap = np.empty((N_press,res.Nr,res.Nz))
+                z_half = 0.5*zgrid_ref[-1]
+                kz_half = mn.FindInterval(zgrid_ref, z_half)
                 Firstrun = False
             
             
@@ -286,8 +288,8 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
     
 
     fig1, ax1 = plt.subplots()
-    map1 = ax1.pcolor(pressure_list_mbar, 1e6*rgrid_ref, Cutoff_tmax_pmap[:,:,(Nz_ref//2)+1].T, shading='auto', cmap='plasma') 
-    map2 = ax1.contour(pressure_list_mbar, 1e6*rgrid_ref, Cutoff_tmax_pmap[:,:,(Nz_ref//2)+1].T, Horders, colors = "black")
+    map1 = ax1.pcolor(pressure_list_mbar, 1e6*rgrid_ref, Cutoff_tmax_pmap[:,:,kz_half+1].T, shading='auto', cmap='plasma') 
+    map2 = ax1.contour(pressure_list_mbar, 1e6*rgrid_ref, Cutoff_tmax_pmap[:,:,kz_half+1].T, Horders, colors = "black")
               
     ax1.set_ylim([0,1e6*rmax])
     ax1.set_xlabel('p [mbar]'); ax1.set_ylabel('r [mum]'); ax1.set_title('Max cutoff, middle')
@@ -369,7 +371,7 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
     
 
     fig1, ax1 = plt.subplots()
-    map1 = ax1.pcolor(pressure_list_mbar, 1e6*rgrid_ref, plasma_end_pmap[:,:,(Nz_ref//2)+1].T, shading='auto', cmap='plasma')
+    map1 = ax1.pcolor(pressure_list_mbar, 1e6*rgrid_ref, plasma_end_pmap[:,:,kz_half+1].T, shading='auto', cmap='plasma')
               
     ax1.set_ylim([0,1e6*rmax])
     ax1.set_xlabel('p [mbar]'); ax1.set_ylabel('r [mum]'); ax1.set_title('Plasma end, middle')
@@ -446,7 +448,7 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
     
 
     fig1, ax1 = plt.subplots()
-    map1 = ax1.pcolor(pressure_list_mbar, 1e6*rgrid_ref, plasma_tmax_pmap[:,:,(Nz_ref//2)+1].T, shading='auto', cmap='plasma')
+    map1 = ax1.pcolor(pressure_list_mbar, 1e6*rgrid_ref, plasma_tmax_pmap[:,:,kz_half+1].T, shading='auto', cmap='plasma')
               
     ax1.set_ylim([0,1e6*rmax])
     ax1.set_xlabel('p [mbar]'); ax1.set_ylabel('r [mum]'); ax1.set_title('Plasma tmax, middle')
