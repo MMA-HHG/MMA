@@ -7,7 +7,7 @@
 #SBATCH  --ntasks-per-node=24 
 #SBATCH  --threads-per-core=1
 #SBATCH  --time=24:00:00 
-#SBATCH  --output=TDSEs_v3-%J.out
+#SBATCH  --output=MPI_s2_v2-%J.out
 module purge
 module load intel/18.1 intelmpi/2018.1.163 hdf5/1.10.4 
 module load fftw/3.3.8
@@ -36,8 +36,8 @@ export I_MPI_ADJUST_ALLTOALL=3
  export I_MPI_DEBUG=+6
 
 
-ldd $TDSE_1D_BINARY/TDSEs_compilation1.e
+ldd ./TDSEs_compilation1.e
 
-cksum $TDSE_1D_BINARY/TDSEs_compilation1.e
+cksum TDSEs_compilation1.e
 
-mpirun -n $SLURM_NTASKS $TDSE_1D_BINARY/TDSEs_compilation1.e > logfile.log-$SLURM_JOBID
+mpirun -n $SLURM_NTASKS ./TDSEs_compilation1.e > logfile.log-$SLURM_JOBID
