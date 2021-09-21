@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH -J MPI-scale3
+#SBATCH -J TDSEs-MPI-v3
 #SBATCH  --constraint=HSW24  
 #SBATCH  --exclusive
 #SBATCH  --nodes=80
