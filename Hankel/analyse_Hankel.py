@@ -126,10 +126,11 @@ for k1 in range(len(Hgrid_study)):
 
 H_indices = []
 planes_maxima = []
+XUV_beams_energy = []
 for H_list in Hs_to_trace_maxima:
     try:
         H_indices.append(mn.FindInterval(Hgrid, H_list))
-        planes_maxima.append([])
+        planes_maxima.append([]); XUV_beams_energy.append([])
     except:
         warnings.warn("A frequency from frequencies_to_trace_maxima doesn't match ogrid.")
 
