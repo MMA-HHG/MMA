@@ -28,7 +28,7 @@ import matplotlib.pyplot as plt
 # filename = 'PoIs/Hankel_all_cummulative1.h5'
 # filename = 'PoIs/Hankel_all_cummulative2.h5'
 
-filename = 'PoIs/Hankel_all_cummulative_noabs2.h5'
+filename = 'PoIs/Hankel_all_cummulative1.h5'
 
 FF_orders_plot = 4
          
@@ -42,7 +42,7 @@ with h5py.File(filename, 'r') as InputArchive:
    Phases_first = InputArchive['XUV/Phase_first_plane'][:]
    FField_FF = InputArchive['XUV/Spectrum_on_screen'][:,:,0] + \
                1j*InputArchive['XUV/Spectrum_on_screen'][:,:,1]
-   Hgrid = InputArchive['XUV/Hgrid_select'][:]
+   Hgrid = InputArchive['XUV/Hgrid_select'][:]; NH = len(Hgrid)
    rgrid_FF = InputArchive['XUV/rgrid_FF'][:]
    zgrid_integration = InputArchive['XUV/zgrid_integration'][:]; Nz = len(zgrid_integration)
    
@@ -118,6 +118,21 @@ plt.show()
 # plt.close(fig)
 # sys.exit()
 
+
+# Compute integrated spectrum
+dE_dH = np.zeros((NH,))
+for k1 in range(NH):
+    dE_dH[k1] = np.trapz(np.abs(FField_FF[k1,:])**2)
+
+
+fig, ax = plt.subplots()     
+plt.plot(Hgrid,dE_dH)
+plt.xlabel('H [-]')
+plt.ylabel('dE/dH [arb. u.]')
+plt.show()
+
+
+
 print(np.max(abs(FField_FF.T)**2))
 
 Hs_to_trace_maxima = []
@@ -134,17 +149,25 @@ for H_list in Hs_to_trace_maxima:
     except:
         warnings.warn("A frequency from frequencies_to_trace_maxima doesn't match ogrid.")
 
+dE_dH_z = np.zeros((NH,))
+    
 if (len(H_indices)>0):
     for k1 in range(Nz-1):
+        for k2 in range(NH): dE_dH_z[k2] = np.trapz(np.abs(FField_FF_cummulative[k1,k2,:])**2) 
         for k2 in range(len(H_indices)):
             planes_maxima[k2].append(np.max(abs(
                               FField_FF_cummulative[k1,H_indices[k2][0]:H_indices[k2][1],:]
                                     )))
+            XUV_beams_energy[k2].append(
+                              mn.integrate_subinterval(dE_dH_z,Hgrid,[Hgrid_study[k2]-0.5 , Hgrid_study[k2]+0.5])
+                                    )
             
     for k1 in range(len(H_indices)):
         planes_maxima[k1] = np.asarray(planes_maxima[k1])
+        XUV_beams_energy[k1] = np.asarray(XUV_beams_energy[k1])
 
 planes_maxima = np.asarray(planes_maxima)
+XUV_beams_energy = np.asarray(XUV_beams_energy)
 
 # find maxima in the case we need them
 fig, ax = plt.subplots()     
@@ -159,6 +182,13 @@ plt.plot(zgrid_integration_midpoints, planes_maxima[0,:])
 plt.plot(zgrid_integration_midpoints, planes_maxima[1,:])
 plt.plot(zgrid_integration_midpoints, planes_maxima[2,:])
 plt.plot(zgrid_integration_midpoints, planes_maxima[3,:])
+plt.show()
+
+fig, ax = plt.subplots()     
+plt.plot(zgrid_integration_midpoints, XUV_beams_energy[0,:])
+plt.plot(zgrid_integration_midpoints, XUV_beams_energy[1,:])
+plt.plot(zgrid_integration_midpoints, XUV_beams_energy[2,:])
+plt.plot(zgrid_integration_midpoints, XUV_beams_energy[3,:])
 plt.show()
    
    
