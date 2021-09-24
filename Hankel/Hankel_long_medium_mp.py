@@ -315,8 +315,12 @@ for k1 in range(len(Hgrid_phase_diagnostics_indices)):
                     )
     phase_first_plane.append(
                     np.unwrap(np.angle(FSourceTerm_select[:,0,Hgrid_phase_diagnostics_indices[k1]]))
-                    )                      
-                           
+                    ) 
+                     
+# Diagnostics of the absorption length
+L_abs_Hgrid = np.zeros( (len(ogrid_select_SI),) )
+for k1 in range(len(ogrid_select_SI)):     
+    L_abs_Hgrid[k1] = L_abs(ogrid_select_SI[k1])                   
            
 
 print('before save')
@@ -347,6 +351,9 @@ with h5py.File(out_h5name,'w') as OutFile:
                                           )
     grp.create_dataset('Phase_first_plane',
                                           data = np.asarray(phase_first_plane)
+                                          )
+    grp.create_dataset('L_abs_Hgrid',
+                                          data = L_abs_Hgrid
                                           )
     if store_cummulative_result:
             grp.create_dataset('Spectrum_on_screen_cummulative',
