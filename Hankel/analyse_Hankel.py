@@ -28,7 +28,9 @@ import matplotlib.pyplot as plt
 # filename = 'PoIs/Hankel_all_cummulative1.h5'
 # filename = 'PoIs/Hankel_all_cummulative2.h5'
 
-filename = 'PoIs/Hankel_all_cummulative1.h5'
+# filename = 'PoIs/Hankel_all_cummulative1.h5'
+
+filename = 'TDSEs/Hankel_all_cummulative_noabs.h5'
 
 FF_orders_plot = 4
          
@@ -52,7 +54,11 @@ with h5py.File(filename, 'r') as InputArchive:
    if cummulative_spectrum:
        FField_FF_cummulative = InputArchive['XUV/Spectrum_on_screen_cummulative'][:,:,:,0] + \
                1j*InputArchive['XUV/Spectrum_on_screen_cummulative'][:,:,:,1]
-   
+               
+   L_abs_analyse = ('L_abs_Hgrid' in available_data)
+   if L_abs_analyse:
+       L_abs_Hgrid = InputArchive['XUV/L_abs_Hgrid'][:]
+               
  
 zgrid_integration_midpoints = 0.5*(zgrid_integration[1:]+zgrid_integration[:-1])
    
@@ -193,6 +199,11 @@ plt.show()
    
    
    
-   
+if L_abs_analyse:  
+    fig, ax = plt.subplots()     
+    plt.plot(Hgrid,1e3*L_abs_Hgrid)
+    plt.xlabel('H [-]')
+    plt.ylabel('Labs [mm]')
+    plt.show()
    
    
