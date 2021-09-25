@@ -280,17 +280,17 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
     if showplots: plt.show()
     # plt.close()                    
 
-    # fig1, ax1 = plt.subplots()
-    # map1 = ax1.pcolor(pressure_list_mbar, 1e6*rgrid_ref, Cutoff_tmax_pmap[:,:,0].T, shading='auto', cmap='plasma')  
-    # map2 = ax1.contour(pressure_list_mbar, 1e6*rgrid_ref, Cutoff_tmax_pmap[:,:,0].T, Horders, colors = "black")
+    fig1, ax1 = plt.subplots()
+    map1 = ax1.pcolor(pressure_list_mbar, I0_list, Cutoff_tmax_pmap[:,:,0,0].T, shading='auto', cmap='plasma')  
+    map2 = ax1.contour(pressure_list_mbar, I0_list, Cutoff_tmax_pmap[:,:,0,0].T, Horders, colors = "black")
               
     # ax1.set_ylim([0,1e6*rmax])
-    # ax1.set_xlabel('p [mbar]'); ax1.set_ylabel('r [mum]'); ax1.set_title('Max cutoff, entry')
-    # fig1.colorbar(map1) 
+    ax1.set_xlabel('p [mbar]'); ax1.set_ylabel('I0 [SI]'); ax1.set_title('Max cutoff, entry')
+    fig1.colorbar(map1) 
     
-    # fig1.savefig('Cutoff_entry.png', dpi = 600)
-    # if showplots: plt.show()
-    # # plt.close() 
+    fig1.savefig('Cutoff_entry.png', dpi = 600)
+    if showplots: plt.show()
+    # plt.close() 
     
 
     # fig1, ax1 = plt.subplots()
