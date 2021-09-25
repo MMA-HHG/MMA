@@ -366,7 +366,7 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
     map1 = ax1.pcolor(pressure_list_mbar, I0_list, plasma_end_pI0map[:,:,0,0].T, shading='auto', cmap='plasma')
               
 
-    ax1.set_xlabel('p [mbar]'); ax1.set_ylabel('r [mum]'); ax1.set_title('Plasma end, entry')
+    ax1.set_xlabel('p [mbar]'); ax1.set_ylabel('I0 [SI]'); ax1.set_title('Plasma end, entry')
     fig1.colorbar(map1) 
     
     fig1.savefig('Plasma_end_entry.png', dpi = 600)
@@ -432,8 +432,7 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
     # ax1.plot(1e3*res.zgrid, 1e6*radius_RMS, '--', linewidth=1, color = 'k')
     # ax1.plot(1e3*res.zgrid, 1e6*radius_inv_e2, ':', linewidth=1, color = 'k')
     
-    ax1.set_ylim([0,1e6*rmax])
-    ax1.set_xlabel('p [mbar]'); ax1.set_ylabel('r [mum]'); ax1.set_title('Plasma tmax, cutoff, exit')
+    ax1.set_xlabel('p [mbar]'); ax1.set_ylabel('I0 [SI]'); ax1.set_title('Plasma tmax, cutoff, exit')
     fig1.colorbar(map1) 
     fig1.savefig('Plasma_tmax_exit.png', dpi = 600)
     if showplots: plt.show()
@@ -442,8 +441,7 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
     fig1, ax1 = plt.subplots()
     map1 = ax1.pcolor(pressure_list_mbar, I0_list, plasma_tmax_pI0map[:,:,0,0].T, shading='auto', cmap='plasma')
               
-    ax1.set_ylim([0,1e6*rmax])
-    ax1.set_xlabel('p [mbar]'); ax1.set_ylabel('r [mum]'); ax1.set_title('Plasma tmax, entry')
+    ax1.set_xlabel('p [mbar]'); ax1.set_ylabel('I0 [SI]'); ax1.set_title('Plasma tmax, entry')
     fig1.colorbar(map1) 
     
     fig1.savefig('Plasma_tmax_entry.png', dpi = 600)
@@ -454,8 +452,7 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
     fig1, ax1 = plt.subplots()
     map1 = ax1.pcolor(pressure_list_mbar, I0_list ,plasma_tmax_pI0map[:,:,0,kz_half+1].T, shading='auto', cmap='plasma')
               
-    ax1.set_ylim([0,1e6*rmax])
-    ax1.set_xlabel('p [mbar]'); ax1.set_ylabel('r [mum]'); ax1.set_title('Plasma tmax, middle')
+    ax1.set_xlabel('p [mbar]'); ax1.set_ylabel('I0 [SI]'); ax1.set_title('Plasma tmax, middle')
     fig1.colorbar(map1) 
     
     fig1.savefig('Plasma_tmax_middle.png', dpi = 600)
@@ -479,8 +476,7 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
     fig1, ax1 = plt.subplots()
     map1 = ax1.pcolor(pressure_list_mbar, I0_list, plasma_tmax_pI0map[:,:,k_w0,-1].T, shading='auto', cmap='plasma')
               
-    # ax1.set_ylim([0,1e6*rmax])
-    ax1.set_xlabel('p [mbar]'); ax1.set_ylabel('z [mm]'); ax1.set_title('Plasma tmax, w0')
+    ax1.set_xlabel('p [mbar]'); ax1.set_ylabel('I0 [SI]'); ax1.set_title('Plasma tmax, w0')
     fig1.colorbar(map1) 
     
     fig1.savefig('Plasma_tmax_w0.png', dpi = 600)
@@ -490,8 +486,7 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
     fig1, ax1 = plt.subplots()
     map1 = ax1.pcolor(pressure_list_mbar, I0_list, plasma_tmax_pI0map[:,:,k_w0//2,-1].T, shading='auto', cmap='plasma')
               
-    # ax1.set_ylim([0,1e6*rmax])
-    ax1.set_xlabel('p [mbar]'); ax1.set_ylabel('z [mm]'); ax1.set_title('Plasma tmax, w0/2')
+    ax1.set_xlabel('p [mbar]'); ax1.set_ylabel('I0 [SI]'); ax1.set_title('Plasma tmax, w0/2')
     fig1.colorbar(map1) 
     
     fig1.savefig('Plasma_tmax_w0_half.png', dpi = 600)
