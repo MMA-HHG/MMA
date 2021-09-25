@@ -293,17 +293,16 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
     # plt.close() 
     
 
-    # fig1, ax1 = plt.subplots()
-    # map1 = ax1.pcolor(pressure_list_mbar, 1e6*rgrid_ref, Cutoff_tmax_pmap[:,:,kz_half+1].T, shading='auto', cmap='plasma') 
-    # map2 = ax1.contour(pressure_list_mbar, 1e6*rgrid_ref, Cutoff_tmax_pmap[:,:,kz_half+1].T, Horders, colors = "black")
+    fig1, ax1 = plt.subplots()
+    map1 = ax1.pcolor(pressure_list_mbar, I0_list, Cutoff_tmax_pmap[:,:,0,kz_half+1].T, shading='auto', cmap='plasma') 
+    map2 = ax1.contour(pressure_list_mbar, I0_list, Cutoff_tmax_pmap[:,:,0,kz_half+1].T, Horders, colors = "black")
               
-    # ax1.set_ylim([0,1e6*rmax])
-    # ax1.set_xlabel('p [mbar]'); ax1.set_ylabel('r [mum]'); ax1.set_title('Max cutoff, middle')
-    # fig1.colorbar(map1) 
+    ax1.set_xlabel('p [mbar]'); ax1.set_ylabel('I0 [SI]'); ax1.set_title('Max cutoff, middle')
+    fig1.colorbar(map1) 
     
-    # fig1.savefig('Cutoff_middle.png', dpi = 600)
-    # if showplots: plt.show()
-    # # plt.close() 
+    fig1.savefig('Cutoff_middle.png', dpi = 600)
+    if showplots: plt.show()
+    # plt.close() 
     
 
     # fig1, ax1 = plt.subplots()
@@ -320,29 +319,29 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
     
     
     
-    # fig1, ax1 = plt.subplots()
-    # map1 = ax1.pcolor(pressure_list_mbar, 1e3*zgrid_ref, Cutoff_tmax_pmap[:,k_w0,:].T, shading='auto', cmap='plasma')  
-    # map2 = ax1.contour(pressure_list_mbar, 1e3*zgrid_ref, Cutoff_tmax_pmap[:,k_w0,:].T, Horders, colors = "black")
+    fig1, ax1 = plt.subplots()
+    map1 = ax1.pcolor(pressure_list_mbar, I0_list, Cutoff_tmax_pmap[:,:,k_w0,-1].T, shading='auto', cmap='plasma')  
+    map2 = ax1.contour(pressure_list_mbar, I0_list, Cutoff_tmax_pmap[:,:,k_w0,-1].T, Horders, colors = "black")
               
-    # # ax1.set_ylim([0,1e6*rmax])
-    # ax1.set_xlabel('p [mbar]'); ax1.set_ylabel('z [mm]'); ax1.set_title('Max cutoff, w0')
-    # fig1.colorbar(map1) 
+    # ax1.set_ylim([0,1e6*rmax])
+    ax1.set_xlabel('p [mbar]'); ax1.set_ylabel('I0 [SI]'); ax1.set_title('Max cutoff, w0')
+    fig1.colorbar(map1) 
     
-    # fig1.savefig('Cutoff_w0.png', dpi = 600)
-    # if showplots: plt.show()
-    # # plt.close()  
+    fig1.savefig('Cutoff_w0.png', dpi = 600)
+    if showplots: plt.show()
+    # plt.close()  
  
-    # fig1, ax1 = plt.subplots()
-    # map1 = ax1.pcolor(pressure_list_mbar, 1e3*zgrid_ref, Cutoff_tmax_pmap[:,k_w0//2,:].T, shading='auto', cmap='plasma')  
-    # map2 = ax1.contour(pressure_list_mbar, 1e3*zgrid_ref, Cutoff_tmax_pmap[:,k_w0//2,:].T, Horders, colors = "black")
+    fig1, ax1 = plt.subplots()
+    map1 = ax1.pcolor(pressure_list_mbar, I0_list, Cutoff_tmax_pmap[:,:,k_w0//2,-1].T, shading='auto', cmap='plasma')  
+    map2 = ax1.contour(pressure_list_mbar, I0_list, Cutoff_tmax_pmap[:,:,k_w0//2,-1].T, Horders, colors = "black")
               
-    # # ax1.set_ylim([0,1e6*rmax])
-    # ax1.set_xlabel('p [mbar]'); ax1.set_ylabel('z [mm]'); ax1.set_title('Max cutoff, w0/2')
-    # fig1.colorbar(map1) 
+    # ax1.set_ylim([0,1e6*rmax])
+    ax1.set_xlabel('p [mbar]'); ax1.set_ylabel('I0 [SI]'); ax1.set_title('Max cutoff, w0/2')
+    fig1.colorbar(map1) 
     
-    # fig1.savefig('Cutoff_w0_half.png', dpi = 600)
-    # if showplots: plt.show()
-    # # plt.close()  
+    fig1.savefig('Cutoff_w0_half.png', dpi = 600)
+    if showplots: plt.show()
+    # plt.close()  
    
     
    
@@ -351,48 +350,47 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
     ########################
  
     
-    # fig1, ax1 = plt.subplots()
-    # map1 = ax1.pcolor(pressure_list_mbar, 1e6*rgrid_ref, plasma_end_pmap[:,:,-1].T, shading='auto', cmap='plasma')
+    fig1, ax1 = plt.subplots()
+    map1 = ax1.pcolor(pressure_list_mbar, I0_list, plasma_end_pI0map[:,:,0,-1].T, shading='auto', cmap='plasma')
     
-    # # ax1.plot(1e3*res.zgrid, 1e6*radius_RMS, '--', linewidth=1, color = 'k')
-    # # ax1.plot(1e3*res.zgrid, 1e6*radius_inv_e2, ':', linewidth=1, color = 'k')
+    # ax1.plot(1e3*res.zgrid, 1e6*radius_RMS, '--', linewidth=1, color = 'k')
+    # ax1.plot(1e3*res.zgrid, 1e6*radius_inv_e2, ':', linewidth=1, color = 'k')
     
-    # ax1.set_ylim([0,1e6*rmax])
-    # ax1.set_xlabel('p [mbar]'); ax1.set_ylabel('r [mum]'); ax1.set_title('Plasma end, cutoff, exit')
-    # fig1.colorbar(map1) 
-    # fig1.savefig('Plasma_end_exit.png', dpi = 600)
-    # if showplots: plt.show()
-    # # plt.close()                    
+    ax1.set_xlabel('p [mbar]'); ax1.set_ylabel('I0 [SI]'); ax1.set_title('Plasma end, exit')
+    fig1.colorbar(map1) 
+    fig1.savefig('Plasma_end_exit.png', dpi = 600)
+    if showplots: plt.show()
+    # plt.close()                    
 
-    # fig1, ax1 = plt.subplots()
-    # map1 = ax1.pcolor(pressure_list_mbar, 1e6*rgrid_ref, plasma_end_pmap[:,:,0].T, shading='auto', cmap='plasma')
+    fig1, ax1 = plt.subplots()
+    map1 = ax1.pcolor(pressure_list_mbar, I0_list, plasma_end_pI0map[:,:,0,0].T, shading='auto', cmap='plasma')
               
-    # ax1.set_ylim([0,1e6*rmax])
-    # ax1.set_xlabel('p [mbar]'); ax1.set_ylabel('r [mum]'); ax1.set_title('Plasma end, entry')
-    # fig1.colorbar(map1) 
+
+    ax1.set_xlabel('p [mbar]'); ax1.set_ylabel('r [mum]'); ax1.set_title('Plasma end, entry')
+    fig1.colorbar(map1) 
     
-    # fig1.savefig('Plasma_end_entry.png', dpi = 600)
-    # if showplots: plt.show()
-    # # plt.close() 
+    fig1.savefig('Plasma_end_entry.png', dpi = 600)
+    if showplots: plt.show()
+    # plt.close() 
     
 
-    # fig1, ax1 = plt.subplots()
-    # map1 = ax1.pcolor(pressure_list_mbar, 1e6*rgrid_ref, plasma_end_pmap[:,:,kz_half+1].T, shading='auto', cmap='plasma')
+    fig1, ax1 = plt.subplots()
+    map1 = ax1.pcolor(pressure_list_mbar, I0_list ,plasma_end_pI0map[:,:,0,kz_half+1].T, shading='auto', cmap='plasma')
               
-    # ax1.set_ylim([0,1e6*rmax])
-    # ax1.set_xlabel('p [mbar]'); ax1.set_ylabel('r [mum]'); ax1.set_title('Plasma end, middle')
-    # fig1.colorbar(map1) 
+
+    ax1.set_xlabel('p [mbar]'); ax1.set_ylabel('I0 [SI]'); ax1.set_title('Plasma end, middle')
+    fig1.colorbar(map1) 
     
-    # fig1.savefig('Plasma_end_middle.png', dpi = 600)
-    # if showplots: plt.show()
-    # # plt.close() 
+    fig1.savefig('Plasma_end_middle.png', dpi = 600)
+    if showplots: plt.show()
+    # plt.close() 
     
 
     # fig1, ax1 = plt.subplots()
-    # map1 = ax1.pcolor(pressure_list_mbar, 1e3*zgrid_ref, plasma_end_pmap[:,0,:].T, shading='auto', cmap='plasma')
+    # map1 = ax1.pcolor(pressure_list_mbar, I0_list, plasma_end_pI0map[:,0,:].T, shading='auto', cmap='plasma')
               
     # # ax1.set_ylim([0,1e6*rmax])
-    # ax1.set_xlabel('p [mbar]'); ax1.set_ylabel('z [mm]'); ax1.set_title('Plasma end, on-axis')
+    # ax1.set_xlabel('p [mbar]'); ax1.set_ylabel('I0 [SI]'); ax1.set_title('Plasma end, on-axis')
     # fig1.colorbar(map1) 
     
     # fig1.savefig('Plasma_end_onax.png', dpi = 600)
@@ -401,68 +399,68 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
     
     
     
-    # fig1, ax1 = plt.subplots()
-    # map1 = ax1.pcolor(pressure_list_mbar, 1e3*zgrid_ref, plasma_end_pmap[:,k_w0,:].T, shading='auto', cmap='plasma')
+    fig1, ax1 = plt.subplots()
+    map1 = ax1.pcolor(pressure_list_mbar, I0_list, plasma_end_pI0map[:,:,k_w0,-1].T, shading='auto', cmap='plasma')
               
-    # # ax1.set_ylim([0,1e6*rmax])
-    # ax1.set_xlabel('p [mbar]'); ax1.set_ylabel('z [mm]'); ax1.set_title('Plasma end, w0')
-    # fig1.colorbar(map1) 
+    # ax1.set_ylim([0,1e6*rmax])
+    ax1.set_xlabel('p [mbar]'); ax1.set_ylabel('I0 [SI]'); ax1.set_title('Plasma end, w0')
+    fig1.colorbar(map1) 
     
-    # fig1.savefig('Plasma_end_w0.png', dpi = 600)
-    # if showplots: plt.show()
-    # # plt.close()  
+    fig1.savefig('Plasma_end_w0.png', dpi = 600)
+    if showplots: plt.show()
+    # plt.close()  
  
-    # fig1, ax1 = plt.subplots()
-    # map1 = ax1.pcolor(pressure_list_mbar, 1e3*zgrid_ref, plasma_end_pmap[:,k_w0//2,:].T, shading='auto', cmap='plasma')
+    fig1, ax1 = plt.subplots()
+    map1 = ax1.pcolor(pressure_list_mbar, I0_list, plasma_end_pI0map[:,:,k_w0//2,-1].T, shading='auto', cmap='plasma')
               
-    # # ax1.set_ylim([0,1e6*rmax])
-    # ax1.set_xlabel('p [mbar]'); ax1.set_ylabel('z [mm]'); ax1.set_title('Plasma end, w0/2')
-    # fig1.colorbar(map1) 
+    # ax1.set_ylim([0,1e6*rmax])
+    ax1.set_xlabel('p [mbar]'); ax1.set_ylabel('I0 [SI]'); ax1.set_title('Plasma end, w0/2')
+    fig1.colorbar(map1) 
     
-    # fig1.savefig('Plasma_end_w0_half.png', dpi = 600)
-    # if showplots: plt.show()
-    # # plt.close()   
+    fig1.savefig('Plasma_end_w0_half.png', dpi = 600)
+    if showplots: plt.show()
+    # plt.close()   
     
     
     # ## Print plasmas - tmax
     # ########################
     
     
-    # fig1, ax1 = plt.subplots()
-    # map1 = ax1.pcolor(pressure_list_mbar, 1e6*rgrid_ref, plasma_tmax_pmap[:,:,-1].T, shading='auto', cmap='plasma')
+    fig1, ax1 = plt.subplots()
+    map1 = ax1.pcolor(pressure_list_mbar, I0_list, plasma_tmax_pI0map[:,:,0,-1].T, shading='auto', cmap='plasma')
     
-    # # ax1.plot(1e3*res.zgrid, 1e6*radius_RMS, '--', linewidth=1, color = 'k')
-    # # ax1.plot(1e3*res.zgrid, 1e6*radius_inv_e2, ':', linewidth=1, color = 'k')
+    # ax1.plot(1e3*res.zgrid, 1e6*radius_RMS, '--', linewidth=1, color = 'k')
+    # ax1.plot(1e3*res.zgrid, 1e6*radius_inv_e2, ':', linewidth=1, color = 'k')
     
-    # ax1.set_ylim([0,1e6*rmax])
-    # ax1.set_xlabel('p [mbar]'); ax1.set_ylabel('r [mum]'); ax1.set_title('Plasma tmax, cutoff, exit')
-    # fig1.colorbar(map1) 
-    # fig1.savefig('Plasma_tmax_exit.png', dpi = 600)
-    # if showplots: plt.show()
-    # # plt.close()                    
+    ax1.set_ylim([0,1e6*rmax])
+    ax1.set_xlabel('p [mbar]'); ax1.set_ylabel('r [mum]'); ax1.set_title('Plasma tmax, cutoff, exit')
+    fig1.colorbar(map1) 
+    fig1.savefig('Plasma_tmax_exit.png', dpi = 600)
+    if showplots: plt.show()
+    # plt.close()                    
 
-    # fig1, ax1 = plt.subplots()
-    # map1 = ax1.pcolor(pressure_list_mbar, 1e6*rgrid_ref, plasma_tmax_pmap[:,:,0].T, shading='auto', cmap='plasma')
+    fig1, ax1 = plt.subplots()
+    map1 = ax1.pcolor(pressure_list_mbar, I0_list, plasma_tmax_pI0map[:,:,0,0].T, shading='auto', cmap='plasma')
               
-    # ax1.set_ylim([0,1e6*rmax])
-    # ax1.set_xlabel('p [mbar]'); ax1.set_ylabel('r [mum]'); ax1.set_title('Plasma tmax, entry')
-    # fig1.colorbar(map1) 
+    ax1.set_ylim([0,1e6*rmax])
+    ax1.set_xlabel('p [mbar]'); ax1.set_ylabel('r [mum]'); ax1.set_title('Plasma tmax, entry')
+    fig1.colorbar(map1) 
     
-    # fig1.savefig('Plasma_tmax_entry.png', dpi = 600)
-    # if showplots: plt.show()
-    # # plt.close() 
+    fig1.savefig('Plasma_tmax_entry.png', dpi = 600)
+    if showplots: plt.show()
+    # plt.close() 
     
 
-    # fig1, ax1 = plt.subplots()
-    # map1 = ax1.pcolor(pressure_list_mbar, 1e6*rgrid_ref, plasma_tmax_pmap[:,:,kz_half+1].T, shading='auto', cmap='plasma')
+    fig1, ax1 = plt.subplots()
+    map1 = ax1.pcolor(pressure_list_mbar, I0_list ,plasma_tmax_pI0map[:,:,0,kz_half+1].T, shading='auto', cmap='plasma')
               
-    # ax1.set_ylim([0,1e6*rmax])
-    # ax1.set_xlabel('p [mbar]'); ax1.set_ylabel('r [mum]'); ax1.set_title('Plasma tmax, middle')
-    # fig1.colorbar(map1) 
+    ax1.set_ylim([0,1e6*rmax])
+    ax1.set_xlabel('p [mbar]'); ax1.set_ylabel('r [mum]'); ax1.set_title('Plasma tmax, middle')
+    fig1.colorbar(map1) 
     
-    # fig1.savefig('Plasma_tmax_middle.png', dpi = 600)
-    # if showplots: plt.show()
-    # # plt.close() 
+    fig1.savefig('Plasma_tmax_middle.png', dpi = 600)
+    if showplots: plt.show()
+    # plt.close() 
     
 
     # fig1, ax1 = plt.subplots()
@@ -478,27 +476,27 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
     
     
     
-    # fig1, ax1 = plt.subplots()
-    # map1 = ax1.pcolor(pressure_list_mbar, 1e3*zgrid_ref, plasma_tmax_pmap[:,k_w0,:].T, shading='auto', cmap='plasma')
+    fig1, ax1 = plt.subplots()
+    map1 = ax1.pcolor(pressure_list_mbar, I0_list, plasma_tmax_pI0map[:,:,k_w0,-1].T, shading='auto', cmap='plasma')
               
-    # # ax1.set_ylim([0,1e6*rmax])
-    # ax1.set_xlabel('p [mbar]'); ax1.set_ylabel('z [mm]'); ax1.set_title('Plasma tmax, w0')
-    # fig1.colorbar(map1) 
+    # ax1.set_ylim([0,1e6*rmax])
+    ax1.set_xlabel('p [mbar]'); ax1.set_ylabel('z [mm]'); ax1.set_title('Plasma tmax, w0')
+    fig1.colorbar(map1) 
     
-    # fig1.savefig('Plasma_tmax_w0.png', dpi = 600)
-    # if showplots: plt.show()
-    # # plt.close()  
+    fig1.savefig('Plasma_tmax_w0.png', dpi = 600)
+    if showplots: plt.show()
+    # plt.close()  
  
-    # fig1, ax1 = plt.subplots()
-    # map1 = ax1.pcolor(pressure_list_mbar, 1e3*zgrid_ref, plasma_tmax_pmap[:,k_w0//2,:].T, shading='auto', cmap='plasma')
+    fig1, ax1 = plt.subplots()
+    map1 = ax1.pcolor(pressure_list_mbar, I0_list, plasma_tmax_pI0map[:,:,k_w0//2,-1].T, shading='auto', cmap='plasma')
               
-    # # ax1.set_ylim([0,1e6*rmax])
-    # ax1.set_xlabel('p [mbar]'); ax1.set_ylabel('z [mm]'); ax1.set_title('Plasma tmax, w0/2')
-    # fig1.colorbar(map1) 
+    # ax1.set_ylim([0,1e6*rmax])
+    ax1.set_xlabel('p [mbar]'); ax1.set_ylabel('z [mm]'); ax1.set_title('Plasma tmax, w0/2')
+    fig1.colorbar(map1) 
     
-    # fig1.savefig('Plasma_tmax_w0_half.png', dpi = 600)
-    # if showplots: plt.show()
-    # # plt.close()           
+    fig1.savefig('Plasma_tmax_w0_half.png', dpi = 600)
+    if showplots: plt.show()
+    # plt.close()           
     
     
     
