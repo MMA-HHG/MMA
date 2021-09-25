@@ -215,7 +215,7 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
             Intens = mn.FieldToIntensitySI(abs(E_trz_cmplx_envel))
             
             k_press = np.where(pressure_list_mbar == res.pressure_mbar)[0][0] #pressure_list.index(res.pressure_mbar)
-            k_I0 = np.where(pressure_list_mbar == res.Intensity_Gaussian_focus)[0][0]
+            k_I0 = np.where(I0_list == res.Intensity_Gaussian_focus)[0][0]
             
             
             

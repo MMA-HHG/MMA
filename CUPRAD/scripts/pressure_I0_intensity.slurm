@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH -J pressure-intensity-scan
+#SBATCH -J pressure-I0-scan
 #SBATCH --nodes=1
 #SBATCH --constraint=[HSW24|BDW28]
 #SBATCH --ntasks=1
