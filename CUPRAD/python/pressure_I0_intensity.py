@@ -432,7 +432,7 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
     # ax1.plot(1e3*res.zgrid, 1e6*radius_RMS, '--', linewidth=1, color = 'k')
     # ax1.plot(1e3*res.zgrid, 1e6*radius_inv_e2, ':', linewidth=1, color = 'k')
     
-    ax1.set_xlabel('p [mbar]'); ax1.set_ylabel('I0 [SI]'); ax1.set_title('Plasma tmax, cutoff, exit')
+    ax1.set_xlabel('p [mbar]'); ax1.set_ylabel('I0 [SI]'); ax1.set_title('Plasma tmax, exit')
     fig1.colorbar(map1) 
     fig1.savefig('Plasma_tmax_exit.png', dpi = 600)
     if showplots: plt.show()
@@ -491,7 +491,17 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
     
     fig1.savefig('Plasma_tmax_w0_half.png', dpi = 600)
     if showplots: plt.show()
-    # plt.close()           
+    # plt.close()         
+    
+    # save data
+    dset = OutFile.create_dataset('Intensity_tmax_SI_p_I0_r_z', data = Intens_tmax_pI0map)
+    dset = OutFile.create_dataset('plasma_end_pulse', data = plasma_end_pI0map)
+    dset = OutFile.create_dataset('Intensity_tmax', data = plasma_tmax_pI0map)
+    dset = OutFile.create_dataset('p_grid', data = pressure_list_mbar)
+    dset = OutFile.create_dataset('I0_grid', data = I0_list)
+    dset = OutFile.create_dataset('z_grid', data = zgrid_ref)
+    dset = OutFile.create_dataset('r_grid', data = rgrid_ref)
+
     
     
     
