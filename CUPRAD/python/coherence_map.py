@@ -119,6 +119,8 @@ except:
 
 tlim2 = [-20,5]
 
+map_scale = 'nipy_spectral'
+
 fix_saturation = True
 
 full_resolution = False
@@ -318,12 +320,12 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
                 fig8.savefig('abs_dPhi_dz_t'+str(k1)+'_H'+str(q)+'_sim'+str(k_sim)+'.png', dpi = 600)
                 
                 fig5, ax5 = plt.subplots()
-                dum = abs( 1.0/ (q*(grad_z_phase[k1,:,:] + res.k0_wave*(nXUV[k2]-1))+grad_z_phase_FSPA[k2][k1,:,:] ) )
+                dum = abs( np.pi / (q*(grad_z_phase[k1,:,:] + res.k0_wave*(nXUV[k2]-1))+grad_z_phase_FSPA[k2][k1,:,:] ) )
                 masked = np.ma.masked_where(np.isnan(H_mask), abs( 1.0/ (q*(grad_z_phase[k1,:,:] + res.k0_wave*(nXUV[k2]-1))+grad_z_phase_FSPA[k2][k1,:,:] ) ))
                 if ((np.max(dum) > Lcoh_saturation) or fix_saturation):
-                    map1 = ax5.pcolor(1e3*res.zgrid, 1e6*res.rgrid, masked, shading='auto', vmax=Lcoh_saturation)
+                    map1 = ax5.pcolor(1e3*res.zgrid, 1e6*res.rgrid, masked, shading='auto', vmax=Lcoh_saturation, cmap = map_scale)
                 else:
-                    map1 = ax5.pcolor(1e3*res.zgrid, 1e6*res.rgrid, masked, shading='auto')
+                    map1 = ax5.pcolor(1e3*res.zgrid, 1e6*res.rgrid, masked, shading='auto', cmap = map_scale)
                 
                 ax5.set_xlabel('z [mm]'); ax5.set_ylabel('r [mum]'); ax5.set_title('Lcoh, H'+str(q)+title_string+t_string )         
                 fig5.colorbar(map1)
