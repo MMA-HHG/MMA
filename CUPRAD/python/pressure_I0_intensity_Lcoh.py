@@ -131,7 +131,7 @@ full_resolution = False
 
 invoke_garbage_collector = True
 
-OutPath = 'outputs_pressureI0_scan'
+OutPath = 'outputs_pressureI0_Lcoh_scan'
 
 # Get FSPA 
 with h5py.File(os.path.join(cwd,'FSPA_tables_Krypton_test.h5'),'r') as h5_FSPA_tables:
