@@ -282,10 +282,10 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
                 grad_z_phase_FSPA_tmax.append(FSPA_alphas_tmax[k1]*grad_z_I_tmax /units.INTENSITYau)
                 
                 Lcoh_tmax.append(
-                                abs( np.pi / (q*(grad_z_phase_tmax + res.k0_wave*(nXUV[k2]-1))+grad_z_phase_FSPA_tmax[k2] ) )
+                                abs( np.pi / (q*(grad_z_phase_tmax + res.k0_wave*(nXUV[k1]-1))+grad_z_phase_FSPA_tmax[k1] ) )
                     )
                 Lcoh_tmax_no_FSPA.append(
-                                abs( np.pi / (q*(grad_z_phase_tmax + res.k0_wave*(nXUV[k2]-1))) )
+                                abs( np.pi / (q*(grad_z_phase_tmax + res.k0_wave*(nXUV[k1]-1))) )
                     )
                 
                 

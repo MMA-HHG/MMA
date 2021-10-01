@@ -4,7 +4,7 @@
 #SBATCH --constraint=[HSW24|BDW28]
 #SBATCH --ntasks=1
 #SBATCH --time=20:00:00
-#SBATCH --output pressure-I0-scan-%J.output
+#SBATCH --output p-I0-Lcoh-scan-%J.output
 
 module purge
 module load intelpython3/2019.3
