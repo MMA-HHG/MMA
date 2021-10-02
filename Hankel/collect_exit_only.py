@@ -32,7 +32,7 @@ for fname in files:
         dset_list = list(inpgrp.keys())
         dset_list.remove('Spectrum_on_screen_cummulative')
         for dset in dset_list:
-            inpgrp.cop(dset,outgrp)
+            inpgrp.copy(dset,outgrp)
 
 
 
