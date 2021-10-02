@@ -332,6 +332,18 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
         
         plot_p_I0_map(Lcoh_tmax_pI0map[k1][:,:,0,-1], 'Lcoh H'+str(q)+', exit', 'Lcoh_H'+str(q)+'_exit.png')
         plot_p_I0_map(Lcoh_tmax_no_FSPA_pI0map[k1][:,:,0,-1], 'Lcoh H'+str(q)+', exit, no FSPA', 'Lcoh_H'+str(q)+'_no_FSPA_exit.png')
+        
+        plot_p_I0_map(Lcoh_tmax_pI0map[k1][:,:,0,0], 'Lcoh H'+str(q)+', entry', 'Lcoh_H'+str(q)+'_entry.png')
+        plot_p_I0_map(Lcoh_tmax_no_FSPA_pI0map[k1][:,:,0,0], 'Lcoh H'+str(q)+', entry, no FSPA', 'Lcoh_H'+str(q)+'_no_FSPA_entry.png')
+        
+        plot_p_I0_map(Lcoh_tmax_pI0map[k1][:,:,0,kz_half+1], 'Lcoh H'+str(q)+', middle', 'Lcoh_H'+str(q)+'_middle.png')
+        plot_p_I0_map(Lcoh_tmax_no_FSPA_pI0map[k1][:,:,0,kz_half+1], 'Lcoh H'+str(q)+', middle, no FSPA', 'Lcoh_H'+str(q)+'_no_FSPA_middle.png')
+        
+        plot_p_I0_map(Lcoh_tmax_pI0map[k1][:,:,k_w0,-1], 'Lcoh H'+str(q)+', w0', 'Lcoh_H'+str(q)+'_w0.png')
+        plot_p_I0_map(Lcoh_tmax_no_FSPA_pI0map[k1][:,:,k_w0,-1], 'Lcoh H'+str(q)+', w0, no FSPA', 'Lcoh_H'+str(q)+'_no_FSPA_w0.png')
+        
+        plot_p_I0_map(Lcoh_tmax_pI0map[k1][:,:,k_w0//2,-1], 'Lcoh H'+str(q)+', w0/2', 'Lcoh_H'+str(q)+'_w0_half.png')
+        plot_p_I0_map(Lcoh_tmax_no_FSPA_pI0map[k1][:,:,k_w0//2,-1], 'Lcoh H'+str(q)+', w0/2, no FSPA', 'Lcoh_H'+str(q)+'_no_FSPA_w0_half.png')
 
     ## Print intensities
     ######################
@@ -571,6 +583,15 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
     dset = OutFile.create_dataset('I0_grid', data = I0_list)
     dset = OutFile.create_dataset('z_grid', data = zgrid_ref)
     dset = OutFile.create_dataset('r_grid', data = rgrid_ref)
+
+
+    dset = OutFile.create_dataset('Lcoh', data = np.asarray(Lcoh_tmax_pI0map))
+    dset = OutFile.create_dataset('Lcoh_no_FSPA', data = np.asarray(Lcoh_tmax_no_FSPA_pI0map))
+    dset = OutFile.create_dataset('Lcoh_Hgrid', data = np.asarray(Horders))
+    
+    # grp = OutFile.create_group('Lcoh')
+    # for k1 in range(NH):
+    # q = Horders[k1]
 
     
     

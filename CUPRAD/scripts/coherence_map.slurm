@@ -10,3 +10,6 @@ module purge
 module load intelpython3/2019.3
 
 python $CUPRAD_PYTHON/coherence_map.py -here -nodisplay
+
+cd outputs
+$CUPRAD_SCRIPTS/organise_outputs1.sh
