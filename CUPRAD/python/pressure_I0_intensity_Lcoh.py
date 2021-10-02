@@ -578,7 +578,7 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
     # save data
     dset = OutFile.create_dataset('Intensity_tmax_SI_p_I0_r_z', data = Intens_tmax_pI0map)
     dset = OutFile.create_dataset('plasma_end_pulse', data = plasma_end_pI0map)
-    dset = OutFile.create_dataset('Intensity_tmax', data = plasma_tmax_pI0map)
+    dset = OutFile.create_dataset('plasma_tmax', data = plasma_tmax_pI0map)
     dset = OutFile.create_dataset('p_grid', data = pressure_list_mbar)
     dset = OutFile.create_dataset('I0_grid', data = I0_list)
     dset = OutFile.create_dataset('z_grid', data = zgrid_ref)
