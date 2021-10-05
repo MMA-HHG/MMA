@@ -68,8 +68,8 @@ for fname in files: # Here we loop over all result files in the destiantion fold
        # Phases_onax = InputArchive['XUV/Phase_on_axis'][:] #/np.pi
        # Phases_first = InputArchive['XUV/Phase_first_plane'][:]
        
-       FField_FF = InputArchive['XUV/Spectrum_on_screen'][:,:,0] + \
-                   1j*InputArchive['XUV/Spectrum_on_screen'][:,:,1]
+       FField_FF = p_value*(InputArchive['XUV/Spectrum_on_screen'][:,:,0] + \
+                   1j*InputArchive['XUV/Spectrum_on_screen'][:,:,1])
        
        
        zgrid_integration = InputArchive['XUV/zgrid_integration'][:]; Nz = len(zgrid_integration)
@@ -183,7 +183,7 @@ plt.show()
 kp = 4
 kpre = 0
 
-kp_kpre = [[2,0],[2,1],[4,0],[4,1]]
+kp_kpre = [[0,0],[0,1],[2,0],[2,1],[4,0],[4,1]]
 
 for k1 in range(len(kp_kpre)):
     fig, ax = plt.subplots()   

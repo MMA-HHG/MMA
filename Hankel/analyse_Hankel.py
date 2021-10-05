@@ -30,11 +30,16 @@ import matplotlib.pyplot as plt
 
 # filename = 'PoIs/Hankel_all_cummulative1.h5'
 
-filename = 'TDSEs/Hankel_all_cummulative_noabs.h5'
+
+results_path = os.path.join("D:\data", "Discharges", "TDSE","scan1")
+
+filename = 'Hankel_all_cummulative_20_8.h5'
 
 FF_orders_plot = 4
+
+filename_path = os.path.join(results_path,filename)
          
-with h5py.File(filename, 'r') as InputArchive:
+with h5py.File(filename_path, 'r') as InputArchive:
     # load data
    data_group = InputArchive['XUV']
    available_data = list(data_group.keys())

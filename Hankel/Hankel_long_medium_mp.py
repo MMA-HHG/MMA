@@ -302,8 +302,11 @@ for k1 in range(Workers):
        
    for k2 in range(len(Hgrid_I_study)):
        for k3 in range(len(zgrid_macro[kz_start:kz_end])):
-           source_maxima[k2][k3] = np.max([source_maxima[k2][k3],results[k1][2][k2][k3]])
-           
+           source_maxima[k2][k3] = rho0_init * np.max([source_maxima[k2][k3],results[k1][2][k2][k3]])
+
+# adjust density of emitters
+cummulative_field = rho0_init * cummulative_field           
+FField_FF_integrated = rho0_init * FField_FF_integrated
            
 # Diagnostics on the phase           
 Hgrid_select = Hgrid[H_indices[0]:H_indices[1]:ko_step]
