@@ -27,6 +27,12 @@ class get_data:
         # self.E_trz = InputArchive['/outputs/output_field'][:,0:Nr_max:kr_step,:Nz] # Arrays may be over-allocated by CUPRAD
         
         self.E_trz = InputArchive['/outputs/output_field'][:Nz,:,0:Nr_max:kr_step] # Arrays may be over-allocated by CUPRAD
+        
+        # hot-fix case of underallocated array, happens rarely
+        if (self.E_trz.shape[0] < Nz):
+            Nz = self.E_trz.shape[0]
+            self.zgrid = self.zgrid[:Nz]
+        
         print('oldshape', self.E_trz.shape)
         self.E_trz = self.E_trz.transpose(1,2,0) # hot-fix rearangement due to CUPRAD output
         print('newshape', self.E_trz.shape)
