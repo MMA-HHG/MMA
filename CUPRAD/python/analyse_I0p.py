@@ -56,14 +56,14 @@ def plot_p_I0_map(data_map, title, fname, cmap='plasma',vmax=None):
           
     # ax1.set_ylim([0,1e6*rmax])
     ax1.set_xlabel('p [mbar]'); ax1.set_ylabel('I0 [SI]');
-    # ax1.set_title(title)
+    ax1.set_title(title)
     cbar = fig1.colorbar(map1) 
-    cbar.set_label(r'$L_{coh}$ $\alpha \sum \int$')
+    cbar.set_label(r'$L_{coh}$ [mm]')
     
     # fig1.savefig(fname, dpi = 600)
     if showplots: plt.show()
                
-plot_p_I0_map(1e3*Lcoh_map[1,:,:,0,-1], r'$L_{coh}$ [mm]', 'test.png',vmax=60, cmap = 'plasma')
+plot_p_I0_map(1e3*Lcoh_map[1,:,:,0,-1], 'H17', 'test.png',vmax=60, cmap = 'plasma')
 
 
 
@@ -128,6 +128,30 @@ ax.set_ylabel("Intensity [W/m2]")
 plt.show()
 
 
+
+# intensity map
+
+
+contours = 1e3*np.asarray([15, 17, 19])
+def plot_p_I0_map(data_map, title, fname, cmap='plasma',vmax=None):
+    fig1, ax1 = plt.subplots()
+    map1 = ax1.pcolor(p_grid, I0_grid, data_map.T, shading='auto', cmap=cmap, vmax=vmax)  
+    
+    map2 = ax1.contour(p_grid, I0_grid, data_map.T, contours, colors = "black")
+    
+    # ax1.set_xlim(left = 10)
+    # ['solid', 'dashed', 'dashdot', 'dotted' ]
+          
+    # ax1.set_ylim([0,1e6*rmax])
+    ax1.set_xlabel('p [mbar]'); ax1.set_ylabel('I0 [SI]');
+    # ax1.set_title(title)
+    cbar = fig1.colorbar(map1) 
+    cbar.set_label(r'$I$ [cutoff]')
+    
+    # fig1.savefig(fname, dpi = 600)
+    if showplots: plt.show()
+               
+plot_p_I0_map(1e3*Intens_map[:,:,0,-1], 'H17', 'test.png',vmax=None, cmap = 'plasma')
 
 # fig, ax = plt.subplots()     
 # ax.plot(zgrid, Intens_map[0,0,0,:], color="tab:orange", linewidth=3, label="5 mbar")
