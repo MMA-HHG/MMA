@@ -362,6 +362,10 @@ with h5py.File(out_h5name,'w') as OutFile:
             grp.create_dataset('Spectrum_on_screen_cummulative',
                                           data = np.stack((cummulative_field.real, cummulative_field.imag),axis=-1)
                                           )
+            
+    grp.create_dataset('r_grid_integration',
+                                          data = rgrid_macro[0:Nr_max:kr_step]
+                                          )
     
 # # vmin = np.max(np.log(Gaborr))-6.
 # fig, ax = plt.subplots()   
