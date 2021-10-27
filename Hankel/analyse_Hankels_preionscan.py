@@ -130,7 +130,7 @@ for k1 in range(NH_study):
     
     fig, ax = plt.subplots()     
     plt.plot(preion_grid, XUV_energy_pp[0,:,k1])
-    ax.set_xlabel('p [mbar]'); ax.set_ylabel('E [arb. u.]');
+    ax.set_xlabel('preion [%]'); ax.set_ylabel('E [arb. u.]');
     ax.set_title('Energy , H'+str(Hgrid_study[k1]))
     fig.savefig('Energy_H'+str(Hgrid_study[k1])+'.png', dpi = 600)
     plt.show()
