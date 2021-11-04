@@ -25,7 +25,7 @@ arguments = sys.argv
 if ('-here' in arguments):
     results_path = os.getcwd()
 else:
-    results_path = os.path.join("D:\data", "Discharges", "TDSE","scan1","exit")
+    results_path = os.path.join("D:\data", "Discharges", "TDSE","scan_mix2","exit")
 
 cwd = os.getcwd()
 os.chdir(results_path)
@@ -68,7 +68,7 @@ for fname in files: # Here we loop over all result files in the destiantion fold
        # Phases_onax = InputArchive['XUV/Phase_on_axis'][:] #/np.pi
        # Phases_first = InputArchive['XUV/Phase_first_plane'][:]
        
-       FField_FF = p_value*(InputArchive['XUV/Spectrum_on_screen'][:,:,0] + \
+       FField_FF = (InputArchive['XUV/Spectrum_on_screen'][:,:,0] + \
                    1j*InputArchive['XUV/Spectrum_on_screen'][:,:,1])
        
        
@@ -139,7 +139,7 @@ for k1 in range(NH_study):
     
     fig, ax = plt.subplots()     
     plt.plot(p_grid, XUV_energy_pp[:,1,k1]/XUV_energy_pp[:,0,k1])
-    ax.set_xlabel('p [mbar]'); ax.set_ylabel('E8/E0 [-]');
+    ax.set_xlabel('p [mbar]'); ax.set_ylabel('E (end) /E0 [-]');
     ax.set_title('Amplification, H'+str(Hgrid_study[k1]))
     fig.savefig('Amplification_H'+str(Hgrid_study[k1])+'.png', dpi = 600)
     plt.show()

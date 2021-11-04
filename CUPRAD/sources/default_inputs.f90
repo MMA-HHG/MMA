@@ -70,14 +70,41 @@ integer         :: switch_ionisation, switch_atom
 
 
     select case(switch_atom)
+
     ! ionization potentials https://en.wikipedia.org/wiki/Ionization_energies_of_the_elements_(data_page)
+
+    !----------------------------------------------------------------------------------------------------------------------
+    ! Kerr effect:
+    ! There are various sources of the Kerr effect constants, some of them are an overview is in 
+
+    ! [*]: C. Bree, A. Demircan and G. Steinmeyer, "Method for Computing the Nonlinear Refractive Index via Keldysh Theory," 
+    ! in IEEE Journal of Quantum Electronics, vol. 46, no. 4, pp. 433-437, April 2010, doi: 10.1109/JQE.2009.2031599.
+
+    ! The following table contains optimised values for 800-nm field in 1e-19 cm2/W
+    
+    !     Keldysh | ref [8]   | ESHG  |
+    ! He    0.034 |   0.041   | 0.037 |
+    ! Ne    0.085 |   0.074   | 0.094 |
+    ! Ar    0.796 |   1.04    | 1.09  |
+    ! Kr    1.89  |   2.94    | 2.47  |
+    ! Xe    5.48  |   9.35    | 6.39  |
+
+    ! ref [8] is H.J.Lehmeier, W.Leupacher and A.Penzkofer, https://doi.org/10.1016/0030-4018(85)90069-0
+    ! ESHG is compiled from various sorces referred in [*]
+    ! [*] also provide the formula (12) for scaling for different wave-lengths
+
+    ! We use ESHG values as pre-set values
+    !----------------------------------------------------------------------------------------------------------------------
+
+    
+
     case (1) ! Argon
         Ui_eV_phys =            15.75962D0 ! ionisation potential (eV)
         angular_momentum  =     1 ! (-)
         residue_charge =        1.0D0 ! (-)
 
         switch_dispersion =     3
-        n2_phys =               1.d-19 ! Kerr as in n_2*I (cm2/W)
+        n2_phys =               1.09d-19 ! Kerr as in n_2*I (cm2/W)
 
 
     case (2) ! Neon
@@ -86,7 +113,7 @@ integer         :: switch_ionisation, switch_atom
         residue_charge =        1.0D0 ! (-)
 
         switch_dispersion =     7
-        n2_phys =               1.d-19 ! Kerr as in n_2*I (cm2/W)
+        n2_phys =               0.094d-19 ! Kerr as in n_2*I (cm2/W)
 
     case (3) ! Xenon
         Ui_eV_phys =            12.1298D0 ! ionisation potential (eV)
@@ -94,7 +121,7 @@ integer         :: switch_ionisation, switch_atom
         residue_charge =        1.0D0 ! (-)
 
         switch_dispersion =     6
-        n2_phys =               1.d-19 ! Kerr as in n_2*I (cm2/W)
+        n2_phys =               6.39d-19 ! Kerr as in n_2*I (cm2/W)
 
     case (4) ! Krypton
         Ui_eV_phys =            13.99961D0 ! ionisation potential (eV)
@@ -102,7 +129,7 @@ integer         :: switch_ionisation, switch_atom
         residue_charge =        1.0D0 ! (-)
 
         switch_dispersion =     9
-        n2_phys =               1.d-19 ! Kerr as in n_2*I (cm2/W)
+        n2_phys =               2.47d-19 ! Kerr as in n_2*I (cm2/W)
     end select
 
 
