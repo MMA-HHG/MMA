@@ -93,7 +93,7 @@ integer         :: switch_ionisation, switch_atom
     ! ESHG is compiled from various sorces referred in [*]
     ! [*] also provide the formula (12) for scaling for different wave-lengths
 
-    ! We use ESHG values as pre-set values
+    ! We use ref [8] values as pre-set values
     !----------------------------------------------------------------------------------------------------------------------
 
     
