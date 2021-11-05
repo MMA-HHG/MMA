@@ -75,7 +75,7 @@ integer         :: switch_ionisation, switch_atom
 
     !----------------------------------------------------------------------------------------------------------------------
     ! Kerr effect:
-    ! There are various sources of the Kerr effect constants, some of them are an overview is in 
+    ! There are various sources of the Kerr effect constants, some of them are overviewed in 
 
     ! [*]: C. Bree, A. Demircan and G. Steinmeyer, "Method for Computing the Nonlinear Refractive Index via Keldysh Theory," 
     ! in IEEE Journal of Quantum Electronics, vol. 46, no. 4, pp. 433-437, April 2010, doi: 10.1109/JQE.2009.2031599.
