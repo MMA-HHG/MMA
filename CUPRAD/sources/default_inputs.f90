@@ -104,7 +104,7 @@ integer         :: switch_ionisation, switch_atom
         residue_charge =        1.0D0 ! (-)
 
         switch_dispersion =     3
-        n2_phys =               1.09d-19 ! Kerr as in n_2*I (cm2/W)
+        n2_phys =               1.04d-19 ! Kerr as in n_2*I (cm2/W)
 
 
     case (2) ! Neon
@@ -113,7 +113,7 @@ integer         :: switch_ionisation, switch_atom
         residue_charge =        1.0D0 ! (-)
 
         switch_dispersion =     7
-        n2_phys =               0.094d-19 ! Kerr as in n_2*I (cm2/W)
+        n2_phys =               0.074d-19 ! Kerr as in n_2*I (cm2/W)
 
     case (3) ! Xenon
         Ui_eV_phys =            12.1298D0 ! ionisation potential (eV)
@@ -121,7 +121,7 @@ integer         :: switch_ionisation, switch_atom
         residue_charge =        1.0D0 ! (-)
 
         switch_dispersion =     6
-        n2_phys =               6.39d-19 ! Kerr as in n_2*I (cm2/W)
+        n2_phys =               9.35d-19 ! Kerr as in n_2*I (cm2/W)
 
     case (4) ! Krypton
         Ui_eV_phys =            13.99961D0 ! ionisation potential (eV)
@@ -129,7 +129,7 @@ integer         :: switch_ionisation, switch_atom
         residue_charge =        1.0D0 ! (-)
 
         switch_dispersion =     9
-        n2_phys =               2.47d-19 ! Kerr as in n_2*I (cm2/W)
+        n2_phys =               2.94d-19 ! Kerr as in n_2*I (cm2/W)
     end select
 
 
