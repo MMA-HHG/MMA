@@ -27,11 +27,13 @@ files = glob.glob(inpath+'*')
 cwd = os.getcwd()
 for file in files:
     # get name and create directory
-    ind1 = file.find('mbar_') + len('mbar_')
-    ind2 = file.find('.inp')
+    print(file)
+    print('t1')
+    ind1 = file.rfind('mbar_') + len('mbar_')
+    ind2 = file.rfind('.inp')
     specification = file[ind1:ind2]
-    ind1 = file.find('TDSE_') + len('TDSE_')
-    ind2 = file.find('mbar')
+    ind1 = file.rfind('TDSE_') + len('TDSE_')
+    ind2 = file.rfind('mbar')
     pressure = file[ind1:ind2]
     os.mkdir(pressure+'_'+specification)
     
@@ -41,7 +43,9 @@ for file in files:
                 '-i', file,
                 '-ohdf5', results_file,
                 '-g', 'inputs']
-    subprocess.run(run_args)
+    subprocess.run(os.environ['MULTISCALE_SCRIPTS']+'/run_multiscale.sh')
+    
+    # subprocess.run(program_path)
     # submit all jobs
     
     os.chdir(cwd)

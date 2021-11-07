@@ -1,12 +1,16 @@
 #!/bin/bash
 
 # Submit the pre-processor
-JOBPREPROC=$(sbatch --parsable $CUPRAD_SCRIPTS/pre_processor.slurm)
+JOBONE=$(sbatch --parsable $CUPRAD_SCRIPTS/pre_processor.slurm)
+touch 1.test
 
 # Submit the main job when the pre-processor is finished
-JOBMAIN=$(sbatch --dependency=afterok:$JOBPREPROC $CUPRAD_SCRIPTS/CUPRAD.slurm)
+JOBTWO=$(sbatch --dependency=afterok:$JOBONE $CUPRAD_SCRIPTS/CUPRAD.slurm)
 
-# Create folder for TDSE
+# Create folder for TDSE & prepare input
+mkdir TDSEs
+cd TDSEs
+touch 2.test
 
 # Run TDSE
 
