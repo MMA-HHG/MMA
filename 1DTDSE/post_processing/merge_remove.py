@@ -76,5 +76,7 @@ with h5py.File(outfname,'w') as outf:
                 firstrun = False
             nsim_tot = nsim_tot + print_ouput_file(f, outf, dset_list) # here is the printing
 
+        shutil.move(fname, 'temp/'+fname) #moving files
+
 print("total number of TDSE's merged:",nsim_tot)
 print('Done')

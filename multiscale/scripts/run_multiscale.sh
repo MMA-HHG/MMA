@@ -2,7 +2,7 @@
 
 # Submit the pre-processor
 JOB1=$(sbatch --parsable $CUPRAD_SCRIPTS/pre_processor.slurm)
-touch 1.test
+# touch 1.test
 
 # Submit the main job when the pre-processor is finished
 JOB2=$(sbatch --parsable --dependency=afterok:$JOB1 $CUPRAD_SCRIPTS/CUPRAD.slurm)
@@ -10,17 +10,17 @@ JOB2=$(sbatch --parsable --dependency=afterok:$JOB1 $CUPRAD_SCRIPTS/CUPRAD.slurm
 # Create folder for TDSE & prepare input
 mkdir TDSEs
 cd TDSEs
-touch 2.test
-JOB3=$(sbatch --parsable --dependency=afterok:$JOB2 $CUPRAD_SCRIPTS/prepare_TDSE.slurm)
+# touch 2.test
+JOB3=$(sbatch --parsable --dependency=afterok:$JOB2 $TDSE_1D_SCRIPTS/prepare_TDSE.slurm)
 
 # Run TDSE
-JOB4=$(sbatch --parsable --dependency=afterok:$JOB3 $CUPRAD_SCRIPTS/scale3_v5-24h.slurm)
+JOB4=$(sbatch --parsable --dependency=afterok:$JOB3 $TDSE_1D_HOME/slurm/scale3_v5-24h.slurm)
 
 # Collect & merge data
 mkdir temp
 JOB5=$(sbatch --parsable --dependency=afterok:$JOB4 $TDSE_1D_SCRIPTS/merge_all_move.slurm)
 
-JOB6=$(sbatch --parsable --dependency=afterok:$JOB5 $TDSE_1D_SCRIPTS/remove_temp.slurm)
+JOB6=$(sbatch --dependency=afterok:$JOB5 $TDSE_1D_SCRIPTS/remove_temp.slurm)
 
 # Run Hankels
 python3 $UNIV_INPUT_PATH/create_universal_HDF5.py -i $HANKEL_HOME/process_files/Hankel_Inputs_mp_large_all_cummulative.inp -ohdf5 inputs_Hankel_all_cummulative.h5 -g inputs
