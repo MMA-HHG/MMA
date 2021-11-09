@@ -43,6 +43,9 @@ for file in files:
                 '-i', file,
                 '-ohdf5', results_file,
                 '-g', 'inputs']
+    
+    subprocess.run(run_args)
+    
     subprocess.run(os.environ['MULTISCALE_SCRIPTS']+'/run_multiscale.sh')
     
     # subprocess.run(program_path)
