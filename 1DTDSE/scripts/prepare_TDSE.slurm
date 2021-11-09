@@ -3,7 +3,7 @@
 #SBATCH --nodes=1
 #SBATCH --constraint=[HSW24|BDW28]
 #SBATCH --ntasks=1
-#SBATCH --time=00:00:30
+#SBATCH --time=00:15:00
 #SBATCH --output TDSE_prepare-%J.output
 
 module purge
