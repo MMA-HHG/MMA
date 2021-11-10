@@ -46,7 +46,7 @@ def IXUV(eta):
 
 etagrid = np.linspace(0, 0.2, 200)
 
-eta_optimal = (omegaSI**2 * units.eps0*units.elmass/(units.elcharge**2)) * delta_susc
+eta_optimal = (omegaSI**2 * units.eps0*units.elmass/(units.elcharge**2)) * 3.9e-29#delta_susc
 
 print(eta_optimal)
 
