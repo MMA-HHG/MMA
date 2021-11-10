@@ -32,8 +32,9 @@ import matplotlib.pyplot as plt
 
 
 results_path = os.path.join("D:\data", "Discharges", "TDSE","scan1")
+results_path = os.path.join("D:\data", "coupled", "test2")
 
-filename = 'Hankel_all_cummulative_20_8.h5'
+filename = 'Hankel_all_cummulative.h5'
 
 FF_orders_plot = 4
 

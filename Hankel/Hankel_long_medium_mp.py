@@ -271,6 +271,7 @@ print('collecting results')
 
 FField_FF_integrated = np.empty((len(ogrid_select_SI),Nr_FF), dtype=np.cdouble)
 source_maxima=[np.zeros(len(zgrid_macro[kz_start:kz_end])) for k1 in range(len(Hgrid_I_study))]
+source_maxima_norm=[np.zeros(len(zgrid_macro[kz_start:kz_end])) for k1 in range(len(Hgrid_I_study))]
 sim_ind = [result[0] for result in results]
 
 if store_cummulative_result:
@@ -299,12 +300,14 @@ for k1 in range(Workers):
                    rgrid_indices[sim_ind[k1]]:rgrid_indices[sim_ind[k1]+1]
                    ] = results[k1][3]     
        
-       
+   
+   gas_constant = 2.7e25
    for k2 in range(len(Hgrid_I_study)):
        for k3 in range(len(zgrid_macro[kz_start:kz_end])):
            source_maxima[k2][k3] = rho0_init * np.max([source_maxima[k2][k3],results[k1][2][k2][k3]])
+           source_maxima_norm[k2][k3] = (rho0_init/gas_constant) * np.max([source_maxima_norm[k2][k3],results[k1][2][k2][k3]]) # avoid overflows caused by rho0_init 
 
-# adjust density of emitters
+# adjust density of emitters !!! rho0_init is large, overflows may occur !!!
 cummulative_field = rho0_init * cummulative_field           
 FField_FF_integrated = rho0_init * FField_FF_integrated
            
@@ -335,6 +338,9 @@ with h5py.File(out_h5name,'w') as OutFile:
                                           )
     grp.create_dataset('Maxima_of_planes',
                                           data = np.asarray(source_maxima)
+                                          )
+    grp.create_dataset('Maxima_of_planes_norm',
+                                          data = np.asarray(source_maxima_norm)
                                           )
     
     grp.create_dataset('Maxima_Hgrid',
