@@ -5,7 +5,7 @@ laser_pulse_duration_in_FWHM_Intensity  35  R   fs
 # laser_focal_length_in_the_medium_cm 0.0 R   cm
 
 # play with Kerr
-# Kerr_nonlinear_refractive_index_kerr_coefficient	4.0e-19	R	SI
+Kerr_nonlinear_refractive_index_kerr_coefficient	4.0e-19	R	SI
 
 # Atom + medium
 gas_preset  Kr_PPT  S  -
