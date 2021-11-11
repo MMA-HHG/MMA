@@ -1,15 +1,3 @@
-####################################################################################
-# Jan Vabek - ELI-Beamlines, CELIA, CTU in Prague (FNSPE) (2020)
-#
-# The purpose of this code is to merge outputs generated from 1DTDSE. It uses a general
-# procedure for assigning indices based on keys, it thus can be easily generalised for more
-# dimensions.
-
-
-
-# finding mn from external location
-# https://stackoverflow.com/questions/17198319/how-to-configure-custom-pythonpath-with-vm-and-pycharm
-
 import numpy as np
 import os
 import math
