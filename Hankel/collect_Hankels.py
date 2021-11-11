@@ -21,7 +21,7 @@ for folder in folders:
     Hankels = glob.glob(os.path.join(folder, 'TDSEs','Hankel_all*.h5'))
     print(Hankels)
     for Hankel in Hankels:
-        print(os.path.basename(Hankel).replace('.h5'),folder+'.h5')
+        print(os.path.basename(Hankel).replace('.h5',folder+'.h5'))
 
 # for fname in files:
 #     with h5py.File(fname,'r') as inpf, h5py.File(os.path.join(results_path,fname),'w') as outf:
