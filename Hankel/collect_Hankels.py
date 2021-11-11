@@ -18,7 +18,7 @@ results_path = 'Hankels'
 
 for folder in folders:
     # path = os.path.join(folder, 'TDSEs')
-    Hankels = glob.glob(os.path.join(folder, 'TDSEs','*'))
+    Hankels = glob.glob(os.path.join(folder, 'TDSEs','Hankel_all*.h5'))
     print(Hankels)
 
 # for fname in files:
