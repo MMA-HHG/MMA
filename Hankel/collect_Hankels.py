@@ -13,8 +13,13 @@ folders = glob.glob('*_end') + glob.glob('*_half') + glob.glob('*_no') # filter 
 
 print(folders)
 
-# results_path = 'exit'
+results_path = 'Hankels'
 
+
+for folder in folders:
+    # path = os.path.join(folder, 'TDSEs')
+    Hankels = glob.glob(path = os.path.join(folder, 'TDSEs','*'))
+    print(Hankels)
 
 # for fname in files:
 #     with h5py.File(fname,'r') as inpf, h5py.File(os.path.join(results_path,fname),'w') as outf:
