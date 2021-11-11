@@ -282,10 +282,10 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
             # sys.exit()
 
             
-        # if invoke_garbage_collector:
-        #     del res
-        #     gc.collect()
-        #     plt.close('all')
+        if invoke_garbage_collector:
+            del res
+            gc.collect()
+            plt.close('all')
         
 
 os.chdir(cwd)
