@@ -23,7 +23,7 @@ for folder in folders:
     for Hankel in Hankels:
         print(os.path.basename(Hankel).replace('.h5','_'+folder+'.h5'))
         new_name = os.path.basename(Hankel).replace('.h5','_'+folder+'.h5')
-        shutil.move(Hankel, os.path.join(results_path, new_name))
+        shutil.copyfile(Hankel, os.path.join(results_path, new_name))
 
 # for fname in files:
 #     with h5py.File(fname,'r') as inpf, h5py.File(os.path.join(results_path,fname),'w') as outf:
