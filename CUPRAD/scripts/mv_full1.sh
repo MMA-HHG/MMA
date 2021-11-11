@@ -1,3 +1,3 @@
 #!/bin/bash
 
-mv scan5 /work/vabekjan/discharges/TDSE/
+mv scan4 /work/vabekjan/discharges/TDSE/
