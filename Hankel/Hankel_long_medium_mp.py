@@ -199,6 +199,9 @@ def dispersion_function_def(omega):
     phase_velocity_XUV  = units.c_light / nXUV
     return ((1./group_velocity_IR) - (1./phase_velocity_XUV))
 
+def dispersion_function_vacuum_def(omega):
+    return ((1./group_velocity_IR) - (1./units.c_light))
+
 def absorption_function_def(omega):
     f2_value    = f2_funct(mn.ConvertPhoton(omega, 'omegaSI', 'eV'))
     lambdaSI    = mn.ConvertPhoton(omega, 'omegaSI', 'lambdaSI')
@@ -212,7 +215,7 @@ def L_abs(omega):
     return 1.0 / (2.0 * rho0_init * units.r_electron_classical * lambdaSI * f2_value) 
 
 if ('dispersion' in apply_diffraction): dispersion_function = dispersion_function_def
-else: dispersion_function = None
+else: dispersion_function = dispersion_function_vacuum_def
 
 if ('absorption' in apply_diffraction): absorption_function = absorption_function_def
 else: absorption_function = None
