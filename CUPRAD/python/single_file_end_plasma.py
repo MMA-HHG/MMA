@@ -41,8 +41,8 @@ print(available_points)
 for fname in results:
     for extension in preion_extensions:
         if ('_'+extension) in fname: break
-    # else:
-    #     raise ValueError('wrong fname-extension match')
+    else:
+        ValueError('wrong fname-extension match')
     
     print(fname)
     with h5py.File(fname, 'r') as InputArchive:
