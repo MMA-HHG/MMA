@@ -32,17 +32,9 @@ os.chdir(results_path)
 files = glob.glob('Hankel_all_cummulative*.h5')
 os.chdir(cwd)
 
-def contains_specifiers(string,specifiers):
-    for specifier in specifiers:
-        if specifier in string:
-            return True
-    return False
-
 # filtered = filter(lambda file: not(contains_specifiers(file,['noabs','nodispersion'])), files)
 # list(filtered)
-files = list(filter(lambda file: not(contains_specifiers(file,['noabs','nodispersion'])), files))
-
-
+files = list(filter(lambda file: not(mn.contains_substrings(file,['noabs','nodispersion'])), files))
 
 # sys.exit()
 
