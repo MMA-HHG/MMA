@@ -17,17 +17,23 @@ import IR_refractive_index as IR_index
 
 
 # files management
-preion_extensions = ['no','half','end']
+preion_extensions = ['half','end']
 results = glob.glob(os.path.join('*','results_*.h5'))
+
+available_points = {}
+for extension in preion_extensions:
+    available_points['extension'] = []
 
 p_grid = []
 
 for fname in results:
     numbers = re.findall(r'\d+',  os.path.basename(fname))
     p_grid.append(float(numbers[0]))
+p_grid = np.unique(p_grid)
 
 print(results)
 print(p_grid)
+print(available_points)
 
 # load data
 
