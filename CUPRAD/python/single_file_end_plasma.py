@@ -85,10 +85,12 @@ for fname in results:
 out_h5name = 'ionisations.h5'
 
 with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analyses
-    mn.adddataset(OutFile,'p_grid',p_grid,'mbar')
+    mn.adddataset(OutFile,'p_grid',p_grid,'[mbar]')
     
     for extension in preion_extensions:
-        mn.adddataset(OutFile,'ionisation_'+extension+'_init',ionisation_init[extension],'%')
-        mn.adddataset(OutFile,'ionisation_'+extension+'_tmax',ionisation_tmax[extension],'%')
-        mn.adddataset(OutFile,'ionisation_'+extension+'_end_pulse',ionisation_end_pulse[extension],'%')
+        mn.adddataset(OutFile,'ionisation_'+extension+'_init',ionisation_init[extension],'[%]')
+        mn.adddataset(OutFile,'ionisation_'+extension+'_tmax',ionisation_tmax[extension],'[%]')
+        mn.adddataset(OutFile,'ionisation_'+extension+'_end_pulse',ionisation_end_pulse[extension],'[%]')
 
+
+print('done')
