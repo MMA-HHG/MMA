@@ -48,7 +48,7 @@ for fname in results:
     numbers = re.findall(r'\d+',  os.path.basename(fname)); p_value = float(numbers[0])
     k_press = np.where(p_grid == p_value)[0][0]
     
-
+    print(fname)
     with h5py.File(fname, 'r') as InputArchive:
 
         pressure_mbar = 1e3*InputArchive['/inputs/medium_pressure_in_bar'][()]
@@ -70,6 +70,7 @@ for fname in results:
         E_slice_envel = rem_fast_oscillations*mn.complexify_fft(E_slice)
         Intens_slice = mn.FieldToIntensitySI(abs(E_slice_envel))
         index_of_max = np.argmax(Intens_slice)
+        print(tgrid[index_of_max])
         plasma_tmax = 100.*plasma_slice[index_of_max]/rho0_init
         
         
