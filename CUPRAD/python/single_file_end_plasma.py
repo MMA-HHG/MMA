@@ -41,10 +41,12 @@ print(available_points)
 for fname in results:
     for extension in preion_extensions:
         if ('_'+extension) in fname: break
-    else:
-        raise ValueError('wrong fname-extension match')
+    # else:
+    #     raise ValueError('wrong fname-extension match')
     
+    print(fname)
     with h5py.File(fname, 'r') as InputArchive:
+        print(1e3*InputArchive['/inputs/medium_pressure_in_bar'][()])
     
     
 # pressure_mbar = 1e3*InputArchive['/inputs/medium_pressure_in_bar'][()]
