@@ -43,10 +43,21 @@ for fname in results:
         if ('_'+extension) in fname: break
     else:
         ValueError('wrong fname-extension match')
+    numbers = re.findall(r'\d+',  os.path.basename(fname)); p_value = float(numbers[0])
+    k_press = np.where(p_grid == p_value)[0][0]
     
     print(fname)
     with h5py.File(fname, 'r') as InputArchive:
         print(1e3*InputArchive['/inputs/medium_pressure_in_bar'][()])
+        pressure_mbar = 1e3*InputArchive['/inputs/medium_pressure_in_bar'][()]
+        omega0 = mn.ConvertPhoton(1e-2*mn.readscalardataset(InputArchive,'/inputs/laser_wavelength','N'),'lambdaSI','omegaSI')
+        rho0_init = 1e6 * mn.readscalardataset(InputArchive, '/inputs/calculated/medium_effective_density_of_neutral_molecules','N')
+        
+        Nz = len(InputArchive['/outputs/zgrid'][:]) 
+        
+        preion = InputArchive['/pre_ionised/initial_electrons_ratio'][()]
+        
+        print(preion)
     
     
 # pressure_mbar = 1e3*InputArchive['/inputs/medium_pressure_in_bar'][()]
