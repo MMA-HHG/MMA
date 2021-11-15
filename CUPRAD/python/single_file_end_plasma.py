@@ -22,7 +22,7 @@ results = glob.glob(os.path.join('*','results_*.h5'))
 
 available_points = {}
 for extension in preion_extensions:
-    available_points['extension'] = []
+    available_points[extension] = []
 
 p_grid = []
 
