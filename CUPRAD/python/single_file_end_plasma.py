@@ -97,6 +97,12 @@ out_h5name = 'temp.h5'
 with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analyses
     OutFile.create_dataset('p_grid', data = p_grid)
     
+    for extension in preion_extensions:
+        OutFile.create_dataset('ionisation_'+extension+'_init', data = ionisation_init[extension])
+        OutFile.create_dataset('ionisation_'+extension+'_tmax', data = ionisation_tmax[extension])
+        OutFile.create_dataset('ionisation_'+extension+'_end_pulse', data = ionisation_end_pulse[extension])
+    
+    
 # pressure_mbar = 1e3*InputArchive['/inputs/medium_pressure_in_bar'][()]
 # omega0 = mn.ConvertPhoton(1e-2*mn.readscalardataset(InputArchive,'/inputs/laser_wavelength','N'),'lambdaSI','omegaSI')
 # rho0_init = 1e6 * mn.readscalardataset(InputArchive, '/inputs/calculated/medium_effective_density_of_neutral_molecules','N')
