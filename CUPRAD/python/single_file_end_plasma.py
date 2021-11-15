@@ -58,6 +58,22 @@ for fname in results:
         preion = InputArchive['/pre_ionised/initial_electrons_ratio'][()]
         
         print(preion)
+        
+        E_slice = InputArchive['/outputs/output_field'][Nz-1,:,0]
+        plasma_slice = InputArchive['/outputs/output_plasma'][Nz-1,:,0]
+        tgrid = InputArchive['/outputs/tgrid'][:]; Nt = len(tgrid)
+        
+        rem_fast_oscillations = np.exp(-1j*omega0*tgrid)
+                    
+        
+        E_slice_envel = rem_fast_oscillations*mn.complexify_fft(E_slice)
+        Intens_slice = mn.FieldToIntensitySI(abs(E_slice_envel))
+        index_of_max = np.argmax(Intens_slice)
+        plasma_tmax = 100.*plasma_slice[index_of_max]/rho0_init
+        
+        print(plasma_tmax)
+        print(100.*plasma_slice[-1]/rho0_init)
+        
     
     
 # pressure_mbar = 1e3*InputArchive['/inputs/medium_pressure_in_bar'][()]
