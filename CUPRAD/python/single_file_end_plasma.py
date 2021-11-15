@@ -78,6 +78,7 @@ for fname in results:
         index_of_max = np.argmax(Intens_slice)
         plasma_tmax = 100.*plasma_slice[index_of_max]/rho0_init
         
+        print(Intens_slice[index_of_max])
         print(plasma_tmax)
         print(100.*plasma_slice[-1]/rho0_init)
         
