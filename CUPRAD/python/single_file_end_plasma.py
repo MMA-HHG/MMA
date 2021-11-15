@@ -62,12 +62,12 @@ for fname in results:
         
         Nz = len(InputArchive['/outputs/zgrid'][:]) 
         
-        preion = InputArchive['/pre_ionised/initial_electrons_ratio'][()]
+        preion = 100.*InputArchive['/pre_ionised/initial_electrons_ratio'][()]
         
         print(preion)
         
-        E_slice = InputArchive['/outputs/output_field'][0,:,0]
-        plasma_slice = InputArchive['/outputs/output_plasma'][0,:,0]
+        E_slice = InputArchive['/outputs/output_field'][Nz-1,:,0]
+        plasma_slice = InputArchive['/outputs/output_plasma'][Nz-1,:,0]
         tgrid = InputArchive['/outputs/tgrid'][:]; Nt = len(tgrid)
         
         rem_fast_oscillations = np.exp(-1j*omega0*tgrid)
@@ -82,7 +82,14 @@ for fname in results:
         print(plasma_tmax)
         print(100.*plasma_slice[-1]/rho0_init)
         
-    
+        ionisation_init[extension][k_press] = preion
+        ionisation_tmax[extension][k_press] = plasma_tmax
+        ionisation_end_pulse[extension][k_press] = 100.*plasma_slice[-1]/rho0_init
+        
+
+print(ionisation_init)
+print(ionisation_tmax)
+print(ionisation_end_pulse)    
     
 # pressure_mbar = 1e3*InputArchive['/inputs/medium_pressure_in_bar'][()]
 # omega0 = mn.ConvertPhoton(1e-2*mn.readscalardataset(InputArchive,'/inputs/laser_wavelength','N'),'lambdaSI','omegaSI')
