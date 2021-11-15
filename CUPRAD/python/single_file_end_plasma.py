@@ -10,6 +10,7 @@ import HHG
 import matplotlib.pyplot as plt
 import re
 import glob
+import copy
 import XUV_refractive_index as XUV_index
 import IR_refractive_index as IR_index
 # from contextlib import ExitStack
@@ -22,20 +23,26 @@ preion_extensions = ['half','end']
 N_extensions = len(preion_extensions)
 results = glob.glob(os.path.join('*','results_*.h5'))
 
-available_points = {}
+ionisation_init = {}
 for extension in preion_extensions:
-    available_points[extension] = []
+    ionisation_init[extension] = []
+ionisation_tmax = copy.deepcopy(ionisation_init); ionisation_end_pulse = copy.deepcopy(ionisation_init)
 
 p_grid = []
 
 for fname in results:
     numbers = re.findall(r'\d+',  os.path.basename(fname))
     p_grid.append(float(numbers[0]))
-p_grid = np.unique(p_grid)
+    
+p_grid = np.unique(p_grid); Np = len(p_grid)
+ionisation_init = {}
+for extension in preion_extensions:
+    ionisation_init[extension] = np.zeros((Np,))
+ionisation_tmax = copy.deepcopy(ionisation_init); ionisation_end_pulse = copy.deepcopy(ionisation_init)
 
 print(results)
 print(p_grid)
-print(available_points)
+print(ionisation_init)
 
 # load data
 for fname in results:
