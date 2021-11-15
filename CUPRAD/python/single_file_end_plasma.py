@@ -37,6 +37,7 @@ ionisation_init = {}
 for extension in preion_extensions:
     ionisation_init[extension] = np.zeros((Np,))
 ionisation_tmax = copy.deepcopy(ionisation_init); ionisation_end_pulse = copy.deepcopy(ionisation_init)
+tmax_list = copy.deepcopy(ionisation_init); Intens_max_list = copy.deepcopy(ionisation_init);
 
 # load data
 for fname in results:
@@ -48,7 +49,7 @@ for fname in results:
     numbers = re.findall(r'\d+',  os.path.basename(fname)); p_value = float(numbers[0])
     k_press = np.where(p_grid == p_value)[0][0]
     
-    print(fname)
+    # print(fname)
     with h5py.File(fname, 'r') as InputArchive:
 
         pressure_mbar = 1e3*InputArchive['/inputs/medium_pressure_in_bar'][()]
@@ -60,8 +61,8 @@ for fname in results:
         preion = 100.*InputArchive['/pre_ionised/initial_electrons_ratio'][()]
         
         # find maximal intensity and tmax
-        E_slice = InputArchive['/outputs/output_field'][0,:,0] # Nz-1
-        plasma_slice = InputArchive['/outputs/output_plasma'][0,:,0]
+        E_slice = InputArchive['/outputs/output_field'][Nz-1,:,0]
+        plasma_slice = InputArchive['/outputs/output_plasma'][Nz-1,:,0]
         tgrid = InputArchive['/outputs/tgrid'][:]; Nt = len(tgrid)
         
         rem_fast_oscillations = np.exp(-1j*omega0*tgrid)
@@ -70,13 +71,15 @@ for fname in results:
         E_slice_envel = rem_fast_oscillations*mn.complexify_fft(E_slice)
         Intens_slice = mn.FieldToIntensitySI(abs(E_slice_envel))
         index_of_max = np.argmax(Intens_slice)
-        print(tgrid[index_of_max+1])
+
         plasma_tmax = 100.*plasma_slice[index_of_max]/rho0_init
         
         
         ionisation_init[extension][k_press] = preion
         ionisation_tmax[extension][k_press] = plasma_tmax
         ionisation_end_pulse[extension][k_press] = 100.*plasma_slice[-1]/rho0_init
+        tmax_list[extension][k_press] = tgrid[index_of_max]
+        Intens_max_list[extension][k_press] = Intens_slice[index_of_max]
         
 
 
@@ -92,6 +95,8 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
         mn.adddataset(OutFile,'ionisation_'+extension+'_init',ionisation_init[extension],'[%]')
         mn.adddataset(OutFile,'ionisation_'+extension+'_tmax',ionisation_tmax[extension],'[%]')
         mn.adddataset(OutFile,'ionisation_'+extension+'_end_pulse',ionisation_end_pulse[extension],'[%]')
+        mn.adddataset(OutFile,'tmax_'+extension,tmax_list[extension],'[SI]')
+        mn.adddataset(OutFile,'Intens_max_'+extension,Intens_max_list[extension],'[SI]')
 
 
 print('done')
