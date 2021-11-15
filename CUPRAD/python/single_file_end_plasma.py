@@ -70,7 +70,7 @@ for fname in results:
         E_slice_envel = rem_fast_oscillations*mn.complexify_fft(E_slice)
         Intens_slice = mn.FieldToIntensitySI(abs(E_slice_envel))
         index_of_max = np.argmax(Intens_slice)
-        print(tgrid[index_of_max])
+        print(tgrid[index_of_max+1])
         plasma_tmax = 100.*plasma_slice[index_of_max]/rho0_init
         
         
