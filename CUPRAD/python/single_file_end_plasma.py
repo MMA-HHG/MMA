@@ -90,6 +90,12 @@ for fname in results:
 print(ionisation_init)
 print(ionisation_tmax)
 print(ionisation_end_pulse)    
+
+
+out_h5name = 'temp.h5'
+
+with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analyses
+    OutFile.create_dataset('p_grid', data = p_grid)
     
 # pressure_mbar = 1e3*InputArchive['/inputs/medium_pressure_in_bar'][()]
 # omega0 = mn.ConvertPhoton(1e-2*mn.readscalardataset(InputArchive,'/inputs/laser_wavelength','N'),'lambdaSI','omegaSI')
