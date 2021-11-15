@@ -92,15 +92,20 @@ print(ionisation_tmax)
 print(ionisation_end_pulse)    
 
 
-out_h5name = 'temp.h5'
+
+# svae results
+out_h5name = 'ionisations.h5'
 
 with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analyses
     OutFile.create_dataset('p_grid', data = p_grid)
     
     for extension in preion_extensions:
-        OutFile.create_dataset('ionisation_'+extension+'_init', data = ionisation_init[extension])
-        OutFile.create_dataset('ionisation_'+extension+'_tmax', data = ionisation_tmax[extension])
-        OutFile.create_dataset('ionisation_'+extension+'_end_pulse', data = ionisation_end_pulse[extension])
+        mn.adddataset(OutFile,'ionisation_'+extension+'_init',ionisation_init[extension],'%')
+        mn.adddataset(OutFile,'ionisation_'+extension+'_tmax',ionisation_tmax[extension],'%')
+        mn.adddataset(OutFile,'ionisation_'+extension+'_end_pulse',ionisation_end_pulse[extension],'%')
+        # OutFile.create_dataset('ionisation_'+extension+'_init', data = ionisation_init[extension])
+        # OutFile.create_dataset('ionisation_'+extension+'_tmax', data = ionisation_tmax[extension])
+        # OutFile.create_dataset('ionisation_'+extension+'_end_pulse', data = ionisation_end_pulse[extension])
     
     
 # pressure_mbar = 1e3*InputArchive['/inputs/medium_pressure_in_bar'][()]
@@ -127,4 +132,3 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
 
 # ionisations at tmax
 
-# svae results
