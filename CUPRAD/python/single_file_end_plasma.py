@@ -18,6 +18,8 @@ import IR_refractive_index as IR_index
 
 # files management
 preion_extensions = ['half','end']
+
+N_extensions = len(preion_extensions)
 results = glob.glob(os.path.join('*','results_*.h5'))
 
 available_points = {}
@@ -36,7 +38,15 @@ print(p_grid)
 print(available_points)
 
 # load data
-
+for fname in results:
+    for extension in preion_extensions:
+        if ('_'+extension) in fname: break
+    else:
+        raise ValueError('wrong fname-extension match')
+    
+    with h5py.File(fname, 'r') as InputArchive:
+    
+    
 # pressure_mbar = 1e3*InputArchive['/inputs/medium_pressure_in_bar'][()]
 # omega0 = mn.ConvertPhoton(1e-2*mn.readscalardataset(InputArchive,'/inputs/laser_wavelength','N'),'lambdaSI','omegaSI')
 # rho0_init = 1e6 * mn.readscalardataset(InputArchive, '/inputs/calculated/medium_effective_density_of_neutral_molecules','N')
