@@ -60,8 +60,8 @@ for fname in results:
         preion = 100.*InputArchive['/pre_ionised/initial_electrons_ratio'][()]
         
         # find maximal intensity and tmax
-        E_slice = InputArchive['/outputs/output_field'][Nz-1,:,0]
-        plasma_slice = InputArchive['/outputs/output_plasma'][Nz-1,:,0]
+        E_slice = InputArchive['/outputs/output_field'][0,:,0] # Nz-1
+        plasma_slice = InputArchive['/outputs/output_plasma'][0,:,0]
         tgrid = InputArchive['/outputs/tgrid'][:]; Nt = len(tgrid)
         
         rem_fast_oscillations = np.exp(-1j*omega0*tgrid)
