@@ -6,13 +6,11 @@ import h5py
 import sys
 import units
 import mynumerics as mn
-import HHG
 import matplotlib.pyplot as plt
 import re
 import glob
 import copy
-import XUV_refractive_index as XUV_index
-import IR_refractive_index as IR_index
+
 # from contextlib import ExitStack
 # import dataformat_CUPRAD as dfC
 
@@ -40,22 +38,19 @@ for extension in preion_extensions:
     ionisation_init[extension] = np.zeros((Np,))
 ionisation_tmax = copy.deepcopy(ionisation_init); ionisation_end_pulse = copy.deepcopy(ionisation_init)
 
-print(results)
-print(p_grid)
-print(ionisation_init)
-
 # load data
 for fname in results:
     for extension in preion_extensions:
         if ('_'+extension) in fname: break
     else:
         ValueError('wrong fname-extension match')
+        
     numbers = re.findall(r'\d+',  os.path.basename(fname)); p_value = float(numbers[0])
     k_press = np.where(p_grid == p_value)[0][0]
     
-    print(fname)
+
     with h5py.File(fname, 'r') as InputArchive:
-        print(1e3*InputArchive['/inputs/medium_pressure_in_bar'][()])
+
         pressure_mbar = 1e3*InputArchive['/inputs/medium_pressure_in_bar'][()]
         omega0 = mn.ConvertPhoton(1e-2*mn.readscalardataset(InputArchive,'/inputs/laser_wavelength','N'),'lambdaSI','omegaSI')
         rho0_init = 1e6 * mn.readscalardataset(InputArchive, '/inputs/calculated/medium_effective_density_of_neutral_molecules','N')
@@ -64,8 +59,7 @@ for fname in results:
         
         preion = 100.*InputArchive['/pre_ionised/initial_electrons_ratio'][()]
         
-        print(preion)
-        
+        # find maximal intensity and tmax
         E_slice = InputArchive['/outputs/output_field'][Nz-1,:,0]
         plasma_slice = InputArchive['/outputs/output_plasma'][Nz-1,:,0]
         tgrid = InputArchive['/outputs/tgrid'][:]; Nt = len(tgrid)
@@ -78,18 +72,12 @@ for fname in results:
         index_of_max = np.argmax(Intens_slice)
         plasma_tmax = 100.*plasma_slice[index_of_max]/rho0_init
         
-        print(Intens_slice[index_of_max])
-        print(plasma_tmax)
-        print(100.*plasma_slice[-1]/rho0_init)
         
         ionisation_init[extension][k_press] = preion
         ionisation_tmax[extension][k_press] = plasma_tmax
         ionisation_end_pulse[extension][k_press] = 100.*plasma_slice[-1]/rho0_init
         
 
-print(ionisation_init)
-print(ionisation_tmax)
-print(ionisation_end_pulse)    
 
 
 
@@ -97,38 +85,10 @@ print(ionisation_end_pulse)
 out_h5name = 'ionisations.h5'
 
 with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analyses
-    OutFile.create_dataset('p_grid', data = p_grid)
+    mn.adddataset(OutFile,'p_grid',p_grid,'mbar')
     
     for extension in preion_extensions:
         mn.adddataset(OutFile,'ionisation_'+extension+'_init',ionisation_init[extension],'%')
         mn.adddataset(OutFile,'ionisation_'+extension+'_tmax',ionisation_tmax[extension],'%')
         mn.adddataset(OutFile,'ionisation_'+extension+'_end_pulse',ionisation_end_pulse[extension],'%')
-        # OutFile.create_dataset('ionisation_'+extension+'_init', data = ionisation_init[extension])
-        # OutFile.create_dataset('ionisation_'+extension+'_tmax', data = ionisation_tmax[extension])
-        # OutFile.create_dataset('ionisation_'+extension+'_end_pulse', data = ionisation_end_pulse[extension])
-    
-    
-# pressure_mbar = 1e3*InputArchive['/inputs/medium_pressure_in_bar'][()]
-# omega0 = mn.ConvertPhoton(1e-2*mn.readscalardataset(InputArchive,'/inputs/laser_wavelength','N'),'lambdaSI','omegaSI')
-# rho0_init = 1e6 * mn.readscalardataset(InputArchive, '/inputs/calculated/medium_effective_density_of_neutral_molecules','N')
-
-# Nz = len(InputArchive['/outputs/zgrid'][:]) 
-
-# preion = InputArchive['/pre_ionised/initial_electrons_ratio'][()]
-
-# E_slice = InputArchive['/outputs/output_field'][Nz-1,:,0]
-# plasma_slice = InputArchive['/outputs/output_plasma'][Nz-1,:,0]
-# tgrid = InputArchive['/outputs/tgrid'][:]; Nt = len(tgrid)
-
-# rem_fast_oscillations = np.exp(-1j*omega0*tgrid)
-            
-
-# E_slice_envel = rem_fast_oscillations*mn.complexify_fft(E_slice)
-# Intens_slice = mn.FieldToIntensitySI(abs(E_slice_envel))
-# plasma_tmax = 100.*plasma_slice[index_of_max]/rho0_init
-                
-                
-# find maximal intensity and tmax
-
-# ionisations at tmax
 
