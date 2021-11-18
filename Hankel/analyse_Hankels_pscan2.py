@@ -35,6 +35,7 @@ os.chdir(cwd)
 # filtered = filter(lambda file: not(contains_specifiers(file,['noabs','nodispersion'])), files)
 # list(filtered)
 files = list(filter(lambda file: not(mn.contains_substrings(file,['noabs','nodispersion'])), files))
+# files = list(filter(lambda file: mn.contains_substrings(file,['nodispersion']), files))
 
 # sys.exit()
 
@@ -42,6 +43,7 @@ FF_orders_plot = 4
 
 p_grid = [];
 preion_extensions = ['no','half','end']
+# preion_extensions = ['no.','half','end']
 for fname in files:
     numbers = re.findall(r'\d+', fname)
     p_grid.append(float(numbers[0]))
@@ -50,6 +52,15 @@ p_grid = np.unique(p_grid)
 N_press = len(p_grid); N_preion = len(preion_extensions)
  
 # sys.exit()
+
+# load ionisations
+with h5py.File(os.path.join(results_path,'ionisations.h5'), 'r') as InputArchive:
+    ionisations={
+                'half_init': InputArchive['ionisation_half_init'][:],
+                'end_init': InputArchive['ionisation_end_init'][:],
+                'half': InputArchive['ionisation_half_tmax'][:],  
+                'end': InputArchive['ionisation_end_tmax'][:]
+                }
 
 Firstrun = True
 for fname in files: # Here we loop over all result files in the destiantion folder.    
@@ -139,18 +150,32 @@ os.chdir(OutPath)
 for k1 in range(NH_study):
     
     fig, ax = plt.subplots()     
-    plt.plot(p_grid, XUV_energy_pp[:,0,k1])
-    plt.plot(p_grid, XUV_energy_pp[:,1,k1])
-    plt.plot(p_grid, XUV_energy_pp[:,2,k1])
-    ax.set_xlabel('p [mbar]'); ax.set_ylabel('E [arb. u.]');
+    plt.plot(p_grid, XUV_energy_pp[:,0,k1],'k',label = 'no preion')
+    plt.plot(p_grid, XUV_energy_pp[:,1,k1],'b',label = 'T_discharge/2')
+    plt.plot(p_grid, XUV_energy_pp[:,2,k1],'r',label = 'T_discharge')
+    
+    
+    
+    ax2 = ax.twinx()
+    ax2.plot(p_grid, ionisations['half_init'], 'b:', label = 'by discharge') # 'b-'
+    ax2.plot(p_grid, ionisations['half'], 'b--', label = 'by discharge + transient') # 'b-'
+    ax2.plot(p_grid, ionisations['end_init'], 'r:') # 'b-'
+    ax2.plot(p_grid, ionisations['end'], 'r--') # 'b-'
+    
+    ax.legend(loc='upper right')
+    ax2.legend(loc='upper left')
+    
+    ax2.set_ylabel('ionisation [%]')
+    ax.set_xlabel('p [mbar]'); ax.set_ylabel('E_XUV [arb. u.]');
     ax.set_title('Energy , H'+str(Hgrid_study[k1]))
     fig.savefig('Energy_H'+str(Hgrid_study[k1])+'.png', dpi = 600)
     plt.show()
     
     
     fig, ax = plt.subplots()     
-    plt.plot(p_grid, XUV_energy_pp[:,1,k1]/XUV_energy_pp[:,0,k1])
-    plt.plot(p_grid, XUV_energy_pp[:,2,k1]/XUV_energy_pp[:,0,k1])
+    plt.plot(p_grid, XUV_energy_pp[:,1,k1]/XUV_energy_pp[:,0,k1],label = 'T_discharge/2')
+    plt.plot(p_grid, XUV_energy_pp[:,2,k1]/XUV_energy_pp[:,0,k1],label = 'T_discharge')    
+    ax.legend()
     ax.set_xlabel('p [mbar]'); ax.set_ylabel('E (end) /E0 [-]');
     ax.set_title('Amplification, H'+str(Hgrid_study[k1]))
     fig.savefig('Amplification_H'+str(Hgrid_study[k1])+'.png', dpi = 600)
@@ -169,9 +194,10 @@ for k1 in range(NH_study):
 # kp = 4
 for kp in range(N_press):
     fig, ax = plt.subplots()     
-    plt.plot(Hgrid, dE_dH[kp,0,:])
-    plt.plot(Hgrid, dE_dH[kp,1,:])
-    plt.plot(Hgrid, dE_dH[kp,2,:])
+    plt.plot(Hgrid, dE_dH[kp,0,:],'k',label = 'no preion')
+    plt.plot(Hgrid, dE_dH[kp,1,:],'b',label = 'T_discharge/2')
+    plt.plot(Hgrid, dE_dH[kp,2,:],'r',label = 'T_discharge/2')
+    ax.legend()
     ax.set_xlabel('H [-]'); ax.set_ylabel('dE/dH [arb. u.]');
     ax.set_title('dE/dH, p = '+str(p_grid[kp])+' mbar')
     fig.savefig('dE_dH_p_'+str(p_grid[kp])+'.png', dpi = 600)

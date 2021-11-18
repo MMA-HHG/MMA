@@ -22,7 +22,7 @@ showplots = not('-nodisplay' in arguments)
 
 
 # results_path = os.path.join("D:\data", "Discharges", "I0_p","preion_8")
-results_path = os.path.join("D:\data", "Discharges", "I0_p","preion_8")
+results_path = os.path.join("D:\data", "Discharges", "I0_p","scan1")
 
 filename = 'analyses.h5'
 
