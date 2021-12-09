@@ -25,7 +25,7 @@ arguments = sys.argv
 if ('-here' in arguments):
     results_path = os.getcwd()
 else:
-    results_path = os.path.join("D:\data", "Discharges", "TDSE","scan3")
+    results_path = os.path.join("D:\data", "Discharges", "TDSE","scan4")
 
 cwd = os.getcwd()
 os.chdir(results_path)
@@ -147,6 +147,25 @@ os.chdir(OutPath)
 
 
 
+fig, ax = plt.subplots()     
+plt.plot(p_grid, XUV_energy_pp[:,0,1],'k',label = 'no preion')
+plt.plot(p_grid, XUV_energy_pp[:,1,1],'b',label = '40A')
+
+
+ax2 = ax.twinx()
+ax2.plot(p_grid, ionisations['half_init'], 'b:', label = 'by discharge') # 'b-'
+ax2.plot(p_grid, ionisations['half'], 'b--', label = 'by discharge + transient') # 'b-'
+
+ax.legend(loc='upper right')
+ax2.legend(loc='upper left')
+
+ax2.set_ylabel('ionisation [%]')
+ax.set_xlabel('p [mbar]'); ax.set_ylabel('E_XUV [arb. u.]');
+ax.set_title('Energy , H'+str(Hgrid_study[1]))
+fig.savefig('Energy_H'+str(Hgrid_study[1])+'_partial.png', dpi = 600)
+plt.show()
+
+
 for k1 in range(NH_study):
     
     fig, ax = plt.subplots()     
@@ -222,7 +241,7 @@ plt.show()
 kp = 4
 kpre = 0
 
-kp_kpre = [] # [[0,0],[0,1],[2,0],[2,1],[4,0],[4,1]]
+kp_kpre = [[0,0]] # [[0,0],[0,1],[2,0],[2,1],[4,0],[4,1]]
 
 for k1 in range(len(kp_kpre)):
     fig, ax = plt.subplots()   
@@ -258,7 +277,7 @@ for k1 in range(len(kp_kpre)):
 
 out_h5name = 'XUV_gains.h5'
 with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analyses
-    OutFile.create_dataset('XUV_energy_pp',
+    OutFile.create_dataset('XUV_FField',
                                            data = np.stack((FField_FF_pp.real, FField_FF_pp.imag),axis=-1)
                            )
     OutFile.create_dataset('Hgrid', data = Hgrid)
@@ -266,7 +285,7 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
     OutFile.create_dataset('rgrid_FF', data = rgrid_FF)
     OutFile.create_dataset('pressure_grid', data = p_grid)
     # OutFile.create_dataset('preionisation_grid', data = preion_grid)
-    OutFile.create_dataset('XUV_energy', data = XUV_energy_pp)
+    OutFile.create_dataset('XUV_energy_integrated', data = XUV_energy_pp)
     OutFile.create_dataset('dE_dH', data = dE_dH)
     
 os.chdir(cwd)

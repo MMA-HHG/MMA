@@ -30,7 +30,7 @@ def sigma(omega):
     return 2.0 * units.r_electron_classical * lambdaSI * f2_value
 
 
-susc_IR = IR_index.getsusc('Ar', mn.ConvertPhoton(omegaSI,'omegaSI','lambdaSI'))
+susc_IR = IR_index.getsusc(gas_type, mn.ConvertPhoton(omegaSI,'omegaSI','lambdaSI'))
 
 N_atm = 2.7e19 * 1e6
 # N_atm = 2.6867774e25
@@ -58,3 +58,4 @@ fig, ax = plt.subplots()
 plt.plot(etagrid,IXUV_res)
 plt.show()
    
+nIR = np.sqrt(1.+IR_index.getsusc(gas_type, 800e-9))
