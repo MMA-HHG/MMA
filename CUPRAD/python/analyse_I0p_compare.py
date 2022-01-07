@@ -25,7 +25,7 @@ showplots = not('-nodisplay' in arguments)
 
 
 # results_path = os.path.join("D:\data", "Discharges", "I0_p","preion_8")
-results_path = os.path.join("D:\data", "Discharges", "I0_p","scan2")
+results_path = os.path.join("D:\data", "Discharges", "I0_p","scan1")
 
 filename = 'analyses.h5'
 
@@ -193,7 +193,7 @@ I0s_leg = [str(I0_round)+' W/m2' for I0_round in I0s_round]
 fig, ax = plt.subplots()    
 for k1 in range(len(I0_indices)):
     for k2 in range(len(p_indices)):
-        ax.plot(1e3*zgrid, 1e-3*np.pi/Lcoh_map[1,p_indices[k2],I0_indices[k1],0,:],
+        ax.plot(1e3*zgrid, 1e-3*np.pi/Lcoh_map[1,p_indices[k2],I0_indices[k1],0,:] / p_grid[p_indices[k2]],
                 color=colors[k1],
                 linestyle=linestyles[k2],
                 linewidth=3)    
@@ -220,7 +220,7 @@ ax.legend(custom_lines, [I0s_leg[0],
 ax.set_title("H17")
 ax.set_xlabel('z [mm]')
 ax.tick_params(axis="both")
-ax.set_ylabel("|$\Delta$ k| [1/m]")
+ax.set_ylabel("|$\Delta$ k|/p [1/mm.mbar]")
 # ax.set_ylim([0,500])
 
 plt.show()
