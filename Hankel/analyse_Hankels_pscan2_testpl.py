@@ -21,12 +21,59 @@ import matplotlib.pyplot as plt
 import plot_presets as pp
   
 
+import XUV_refractive_index as XUV_index
+import IR_refractive_index as IR_index
+  
+
+
+omegaSI = mn.ConvertPhoton(800e-9, 'lambdaSI', 'omegaSI') 
+Horder = 17
+
+
+gas_type = 'Kr'
+XUV_table_type_absorption = 'Henke' # {Henke, NIST}    
+XUV_table_type_dispersion = 'NIST'
+def f2_funct(E):
+    return XUV_index.getf2(gas_type + '_' + XUV_table_type_absorption, E)
+
+def sigma(omega):
+    f2_value    = f2_funct(mn.ConvertPhoton(omega, 'omegaSI', 'eV'))
+    lambdaSI    = mn.ConvertPhoton(omega, 'omegaSI', 'lambdaSI')
+    return 2.0 * units.r_electron_classical * lambdaSI * f2_value
+
+
+susc_IR = IR_index.getsusc(gas_type, mn.ConvertPhoton(omegaSI,'omegaSI','lambdaSI'))
+
+N_atm = 2.7e19 * 1e6
+# N_atm = 2.6867774e25
+f1 = XUV_index.getf1(gas_type+'_'+XUV_table_type_dispersion, mn.ConvertPhoton(Horder*omegaSI, 'omegaSI', 'eV'))
+nXUV_atm = 1.0 - N_atm*units.r_electron_classical*(mn.ConvertPhoton(Horder*omegaSI,'omegaSI','lambdaSI')**2)*f1/(2.0*np.pi)
+susc_XUV = nXUV_atm**2 - 1
+
+delta_susc = (susc_IR - susc_XUV) /N_atm
+
+def ionisation_ratio(A,I,q,omega):
+    x1 = (q*omega/units.c_light)**2
+    x2 = units.elcharge**2/((omega**2)*units.eps0*units.elmass)
+    
+    return ( (delta_susc - np.sqrt( ( (4.*A/I) - (sigma(q*omega))**2)/x1 ) )/x2 ,
+             (delta_susc + np.sqrt( ( (4.*A/I) - (sigma(q*omega))**2)/x1 ) )/x2  )
+
+ionisation_ratio_optimal = (omegaSI**2) *units.eps0*units.elmass*delta_susc/(units.elcharge**2)
+
+def A_norm(I0,q,omega):
+    return I0*((sigma(q*omega))**2 + (q*omega*delta_susc/units.c_light)**2)/4.      
+
+def IntensXUV(eta,q,omega,A):
+    return 4.*A/ ((sigma(q*omega))**2 + (q*omega*(delta_susc - eta * units.elcharge**2 /((omega**2)*units.eps0*units.elmass) )/units.c_light)**2)
+
+
 
 arguments = sys.argv
 if ('-here' in arguments):
     results_path = os.getcwd()
 else:
-    results_path = os.path.join("D:\data", "Discharges", "TDSE","scan4")
+    results_path = os.path.join("D:\data", "Discharges", "TDSE","scan3")
 
 cwd = os.getcwd()
 os.chdir(results_path)
@@ -193,20 +240,34 @@ for k1 in range(NH_study):
     
     # preset plot
     image = pp.figure_driver()    
-    image.sf = [pp.plotter() for k1 in range(7)]
+    image.sf = [pp.plotter() for k2 in range(11)]
     
-    image.sf[0].args = [p_grid, XUV_energy_pp[:,0,k1],'k']; image.sf[0].kwargs = {'label' : 'no_preion'}    
-    image.sf[1].args = [p_grid, XUV_energy_pp[:,1,k1],'b']; image.sf[1].kwargs = {'label' : 'T_discharge/2'}
-    image.sf[2].args = [p_grid, XUV_energy_pp[:,2,k1],'r']; image.sf[2].kwargs = {'label' : 'T_discharge'}
     
-    for k2 in range(3,7): image.sf[k2].axis_location = 'right'
+    
+    image.sf[0].args = [p_grid, XUV_energy_pp[:,0,k1]/np.max(XUV_energy_pp[:,0,k1]),'k']; image.sf[0].kwargs = {'label' : 'no_preion'}    
+    image.sf[1].args = [p_grid, XUV_energy_pp[:,1,k1]/np.max(XUV_energy_pp[:,0,k1]),'b']; image.sf[1].kwargs = {'label' : 'T_discharge/2'}
+    image.sf[2].args = [p_grid, XUV_energy_pp[:,2,k1]/np.max(XUV_energy_pp[:,0,k1]),'r']; image.sf[2].kwargs = {'label' : 'T_discharge'}
+    
+    A0 = A_norm(np.max(XUV_energy_pp[:,0,1]),17,omegaSI)
+    
+    image.sf[9].args = [p_grid, IntensXUV(1e-2*ionisations['half_init'],17,omegaSI,A0)/np.max(XUV_energy_pp[:,0,k1]),'c--'];
+    
+    for k2 in range(3,9): image.sf[k2].axis_location = 'right'
     image.sf[3].args = [p_grid, ionisations['half_init'], 'b:']; image.sf[3].kwargs = {'label' : 'by discharge'}   
     image.sf[4].args = [p_grid, ionisations['half'], 'b--']; image.sf[4].kwargs = {'label' : 'by discharge + transient'}   
     image.sf[5].args = [p_grid, ionisations['end_init'], 'r:']; # image.sf[5].kwargs = {'label' : 'by discharge'}   
-    image.sf[6].args = [p_grid, ionisations['end'], 'r--']; # image.sf[6].kwargs = {'label' : 'by discharge'}   
+    image.sf[6].args = [p_grid, ionisations['end'], 'r--']; # image.sf[6].kwargs = {'label' : 'by discharge'}  
+    
+
+    
+
+    preions = ionisation_ratio(A0,XUV_energy_pp[:,1,1],17,omegaSI)
+    image.sf[7].args = [p_grid, 100*preions[0][:], 'g--'];
+    image.sf[8].args = [p_grid, 100*preions[1][:], 'g--'];
+
     
     
-    image.legend_kwargs = {'loc':'upper right'}; image.right_legend_kwargs = {'loc':'upper left'} 
+    image.legend_kwargs = {'loc':'upper right'}; image.right_axis_legend_kwargs = {'loc':'upper left'} 
     image.xlabel = 'p [mbar]'; image.ylabel = 'E_XUV [arb. u.]'; image.right_ylabel = 'ionisation [%]'
     image.title = 'Energy , H'+str(Hgrid_study[k1])
     
@@ -248,9 +309,9 @@ for kp in range(N_press):
     image = pp.figure_driver()    
     # image.sf.append(pp.plotter())
     image.sf = [pp.plotter() for k1 in range(3)]
-    image.sf[0].args = [Hgrid, dE_dH[kp,0,:],'k']; image.sf[0].kwargs = {'label' : 'no_preion'}    
-    image.sf[1].args = [Hgrid, dE_dH[kp,1,:],'b']; image.sf[1].kwargs = {'label' : 'T_discharge/2'}
-    image.sf[2].args = [Hgrid, dE_dH[kp,2,:],'r']; image.sf[2].kwargs = {'label' : 'T_discharge'}
+    image.sf[0].args = [Hgrid, dE_dH[kp,0,:]/np.max(dE_dH[kp,0,:]),'k']; image.sf[0].kwargs = {'label' : 'no_preion'}    
+    image.sf[1].args = [Hgrid, dE_dH[kp,1,:]/np.max(dE_dH[kp,0,:]),'b']; image.sf[1].kwargs = {'label' : 'T_discharge/2'}
+    image.sf[2].args = [Hgrid, dE_dH[kp,2,:]/np.max(dE_dH[kp,0,:]),'r']; image.sf[2].kwargs = {'label' : 'T_discharge'}
     
     image.xlabel = 'H [-]'; image.ylabel = 'dE/dH [arb. u.]'
     image.title = 'dE/dH, p = '+str(p_grid[kp])+' mbar v2'
