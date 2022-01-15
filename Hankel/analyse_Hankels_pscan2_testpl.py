@@ -248,9 +248,10 @@ for k1 in range(NH_study):
     image.sf[1].args = [p_grid, XUV_energy_pp[:,1,k1]/np.max(XUV_energy_pp[:,0,k1]),'b']; image.sf[1].kwargs = {'label' : 'T_discharge/2'}
     image.sf[2].args = [p_grid, XUV_energy_pp[:,2,k1]/np.max(XUV_energy_pp[:,0,k1]),'r']; image.sf[2].kwargs = {'label' : 'T_discharge'}
     
-    A0 = A_norm(np.max(XUV_energy_pp[:,0,1]),17,omegaSI)
+    A0 = A_norm(np.mean(XUV_energy_pp[:,0,k1]),Hgrid_study[k1],omegaSI)
     
-    image.sf[9].args = [p_grid, IntensXUV(1e-2*ionisations['half_init'],17,omegaSI,A0)/np.max(XUV_energy_pp[:,0,k1]),'c--'];
+    image.sf[9].args = [p_grid, IntensXUV(1e-2*ionisations['half_init'],17,omegaSI,A0)/np.max(XUV_energy_pp[:,0,k1]),'g--'];
+    image.sf[9].kwargs = {'label' : 'T_discharge/2 from analytical estimate'}    
     
     for k2 in range(3,9): image.sf[k2].axis_location = 'right'
     image.sf[3].args = [p_grid, ionisations['half_init'], 'b:']; image.sf[3].kwargs = {'label' : 'by discharge'}   
@@ -261,9 +262,11 @@ for k1 in range(NH_study):
 
     
 
-    preions = ionisation_ratio(A0,XUV_energy_pp[:,1,1],17,omegaSI)
-    image.sf[7].args = [p_grid, 100*preions[0][:], 'g--'];
-    image.sf[8].args = [p_grid, 100*preions[1][:], 'g--'];
+    preions = ionisation_ratio(A0,XUV_energy_pp[:,1,k1],Hgrid_study[k1],omegaSI)
+    image.sf[7].args = [p_grid, 100*preions[0][:], 'c--'];
+    image.sf[8].args = [p_grid, 100*preions[1][:], 'c--'];
+    # image.sf[7].method = None
+    # image.sf[8].method = None
 
     
     
