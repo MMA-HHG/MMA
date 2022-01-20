@@ -18,6 +18,7 @@ import matplotlib
 import plot_presets as pp
 
 import matplotlib.pyplot as plt
+from matplotlib.lines import Line2D
 
 arguments = sys.argv
 
@@ -29,6 +30,8 @@ showplots = not('-nodisplay' in arguments)
 
 results_paths = [os.path.join("D:\data", "Discharges", "I0_p","scan1"),
                  os.path.join("D:\data", "Discharges", "I0_p","scan2")]
+
+preions = np.asarray([0,0.08])
 
 filename = 'analyses.h5'
 
@@ -312,17 +315,115 @@ cbar = fig1.colorbar(map1,label = r'$L_{coh}$ [mm]')
 if showplots: plt.show()
 
 
+## (p,I0) space
+
+choices = [[0],[1]]
+
+
+contours = 1e3*np.asarray([0.0075, 0.015, 0.03, 0.0595])
+Lcoh_saturation = 60.
+
+for choice1 in choices:
+    # coherence map
+    image = pp.figure_driver()    
+    image.sf = [pp.plotter() for k1 in range(2)]
+    
+    image.sf[0].method = plt.pcolor    
+    image.sf[0].args = [p_grid, I0_grid,(1e3*Lcoh_map[choice1[0]][1,:,:,0,-1]).T]    
+    image.sf[0].kwargs = {'shading' : 'auto', 'cmap' : 'plasma'}  
+    if (np.max((1e3*Lcoh_map[choice1[0]][1,:,:,0,-1]).T) > Lcoh_saturation): image.sf[0].kwargs['vmax']=Lcoh_saturation
+    
+    image.sf[0].colorbar.show = True  
+    
+    image.sf[1].method = plt.contour
+    
+    image.sf[1].args = image.sf[0].args + [contours]
+    image.sf[1].kwargs = {'colors' : "black"} #'linestyles' : ['dashdot','dotted','dashed','solid']}
+    image.sf[1].colorbar.show_contours = True    
+      
+    image.xlabel = r'$p$ [mbar]'; image.ylabel = r'$I_0$ [SI]'
+    
+    myfig = pp.plot_preset(image)
+
+
+    # ionisations
+    image = pp.figure_driver()    
+    image.sf = [pp.plotter() for k1 in range(2)]
+    
+    image.sf[0].method = plt.pcolor    
+    image.sf[0].args = [p_grid, I0_grid,(plasma_map[choice1[0]][:,:,0,-1]).T]    
+    image.sf[0].kwargs = {'shading' : 'auto', 'cmap' : 'plasma'}  
+    
+    image.sf[0].colorbar.show = True  
+    
+    # image.sf[1].method = plt.contour
+    
+    # image.sf[1].args = image.sf[0].args + [contours]
+    # image.sf[1].kwargs = {'colors' : "black"} #'linestyles' : ['dashdot','dotted','dashed','solid']}
+    # image.sf[1].colorbar.show_contours = True    
+      
+    image.xlabel = r'$p$ [mbar]'; image.ylabel = r'$I_0$ [SI]'
+    
+    pp.plot_preset(image)
+    
+    # intensity
+    image = pp.figure_driver()    
+    image.sf = [pp.plotter() for k1 in range(2)]
+    
+    image.sf[0].method = plt.pcolor    
+    image.sf[0].args = [p_grid, I0_grid,(Cutoff_map[choice1[0]][:,:,0,-1]).T]    
+    image.sf[0].kwargs = {'shading' : 'auto', 'cmap' : 'plasma'}  
+    
+    image.sf[0].colorbar.show = True  
+    
+    # image.sf[1].method = plt.contour
+    
+    # image.sf[1].args = image.sf[0].args + [contours]
+    # image.sf[1].kwargs = {'colors' : "black"} #'linestyles' : ['dashdot','dotted','dashed','solid']}
+    # image.sf[1].colorbar.show_contours = True    
+      
+    image.xlabel = r'$p$ [mbar]'; image.ylabel = r'$I_0$ [SI]'
+    
+    pp.plot_preset(image)
+
+
+
+# ionisation difference
+image = pp.figure_driver()    
+image.sf = [pp.plotter()]
+image.sf[0].method = plt.pcolor    
+image.sf[0].args = [p_grid, I0_grid,abs((plasma_map[1][:,:,0,-1]).T - (plasma_map[0][:,:,0,-1]).T -8. )]    
+image.sf[0].kwargs = {'shading' : 'auto', 'cmap' : 'plasma'}  
+image.sf[0].colorbar.show = True   
+image.xlabel = r'$p$ [mbar]'; image.ylabel = r'$I_0$ [SI]'
+pp.plot_preset(image)
+
+#intensity difference
+image = pp.figure_driver()    
+image.sf = [pp.plotter()]
+image.sf[0].method = plt.pcolor    
+image.sf[0].args = [p_grid, I0_grid,abs((Intens_map[1][:,:,0,-1]).T - (Intens_map[0][:,:,0,-1]).T)/np.max((Intens_map[0][:,:,0,-1]).T)]    
+image.sf[0].kwargs = {'shading' : 'auto', 'cmap' : 'plasma'}  
+image.sf[0].colorbar.show = True   
+image.xlabel = r'$p$ [mbar]'; image.ylabel = r'$I_0$ [SI]'
+pp.plot_preset(image)
+
+
+
 
 ## (r,z) Cut-offs & ionisations
-choices = [(0,13,5),(1,13,5),
-           (0,13,17),(1,13,17),
-           (0,5,5),(1,5,5),
-           (0,18,17),(1,18,17)]
+choices = []
+
+# choices = [(0,13,5),(1,13,5),
+#             (0,13,17),(1,13,17),
+#             (0,5,5),(1,5,5),
+#             (0,18,17),(1,18,17)]
 
 for choice1 in choices:
    
-    local_title = 'I0='+'{:.2e}'.format(1e-4*I0_grid[choice1[2]]) + ' W/cm2, ' +\
-                  'p='+'{:.0f}'.format(p_grid[choice1[1]]) + ' mbar' 
+    local_title = r'$I_0$='+'{:.2e}'.format(1e-4*I0_grid[choice1[2]]) + ' W/cm2, ' +\
+                  r'$p$='+'{:.0f}'.format(p_grid[choice1[1]]) + ' mbar, '+\
+                  r'$\eta_0$='+ '{:.0f}'.format(100*preions[choice1[0]]) + ' %'
    
     image = pp.figure_driver()    
     image.sf = [pp.plotter() for k1 in range(2)]
@@ -334,7 +435,7 @@ for choice1 in choices:
     image.sf[0].kwargs = {'shading' : 'auto', 'cmap' : 'plasma'}    
     
     image.sf[0].colorbar.show = True    
-    image.xlabel = 'z [mm]'; image.ylabel = r'r [$\mu$m]'
+    image.xlabel = r'$z$ [mm]'; image.ylabel = r'$\rho$ [$\mu$m]'
     
     image.sf[0].colorbar.show = True
     image.sf[0].colorbar.kwargs = {'label': r'Cutoff [-]'}   
@@ -363,7 +464,7 @@ for choice1 in choices:
     image.sf[0].kwargs = {'shading' : 'auto', 'cmap' : 'plasma'}    
     
     image.sf[0].colorbar.show = True    
-    image.xlabel = 'z [mm]'; image.ylabel = r'r [$\mu$m]'
+    image.xlabel = r'$z$ [mm]'; image.ylabel = r'$\rho$ [$\mu$m]'
     
     image.sf[0].colorbar.show = True
     image.sf[0].colorbar.kwargs = {'label': r'Ionisation [%]'}
@@ -374,3 +475,85 @@ for choice1 in choices:
 
 
 
+
+
+############## intensity curves
+
+I0_indices = [4,13,19]
+p_indices = [4,13,19]
+colors = ["tab:orange","tab:blue","tab:green"]
+linestyles = ['-','--',':']
+
+image = pp.figure_driver()   
+image.sf = [] 
+
+pressures_round = np.round(p_grid[p_indices])
+I0s_round = 1e18*np.round(1e-18*np.asarray(I0_grid[p_indices]),decimals=1)
+
+pressures_leg = [str(pressure_round)+' mbar' for pressure_round in pressures_round]
+I0s_leg = [str(I0_round)+' W/m2' for I0_round in I0s_round]
+
+for k1 in range(len(I0_indices)):
+    for k2 in range(len(p_indices)):
+        image.sf.append(pp.plotter())
+        image.sf[-1].args =[1e3*zgrid, Intens_map[0][p_indices[k2],I0_indices[k1],0,:]]
+        image.sf[-1].kwargs = {'color' : colors[k1], 'linestyle' : linestyles[k2]}
+        
+        # ax.plot(1e3*zgrid, Intens_map[0][p_indices[k2],I0_indices[k1],0,:],
+        #         color=colors[k1],
+        #         linestyle=linestyles[k2],
+        #         linewidth=3)    
+        
+        
+# custom_lines = [Line2D([1], [0], color="k"),
+#                 Line2D([0], [0], color="tab:grey", linestyle="--"),
+#                 Line2D([0], [0], color="b"),
+#                 Line2D([0], [0], color="tab:grey", linestyle=":"),
+#                 Line2D([0], [0], color="r"),                
+#                 Line2D([0], [0], color="g", linestyle="--")]
+
+# ax.legend(custom_lines, [I0s_leg[0],
+#                          pressures_leg[0],
+#                          I0s_leg[1],
+#                          pressures_leg[1],
+#                          I0s_leg[2],
+#                          pressures_leg[2]],
+#           loc=1, ncol=3)
+
+custom_lines = [Line2D([1], [0], color="tab:orange", lw=3),
+                Line2D([0], [0], color="tab:grey", lw=3, linestyle="-"),
+                Line2D([0], [0], color="tab:blue", lw=3),
+                Line2D([0], [0], color="tab:grey", lw=3, linestyle="--"),
+                Line2D([0], [0], color="tab:green", lw=3),                
+                Line2D([0], [0], color="tab:grey", lw=3, linestyle=":")]
+
+legend_entries = [I0s_leg[0],
+                  pressures_leg[0],
+                  I0s_leg[1],
+                  pressures_leg[1],
+                  I0s_leg[2],
+                  pressures_leg[2]]
+
+image.legend_args = [custom_lines,legend_entries]
+image.legend_kwargs = {'loc': 1, 'ncol': 3}
+ 
+
+# ax.set_ylabel("Intensity [W/m2]")
+# ax.legend(loc=1, ncol=3)
+
+
+
+# ax.legend(custom_lines, [I0s_leg[0],
+#                          pressures_leg[0],
+#                          I0s_leg[1],
+#                          pressures_leg[1],
+#                          I0s_leg[2],
+#                          pressures_leg[2]],
+#           loc=1, ncol=3)
+
+image.title = r"On-axis intensity"
+image.xlabel = r'$z$ [mm]'
+# ax.tick_params(axis="both")
+image.ylabel = "Intensity [W/m2]"
+
+pp.plot_preset(image)
