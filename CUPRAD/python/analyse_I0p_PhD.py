@@ -7,6 +7,7 @@ import h5py
 import sys
 import units
 import mynumerics as mn
+import HHG
 
 
 import warnings
@@ -24,28 +25,42 @@ showplots = not('-nodisplay' in arguments)
 
 
 # results_path = os.path.join("D:\data", "Discharges", "I0_p","preion_8")
-results_path = os.path.join("D:\data", "Discharges", "I0_p","scan2")
+# results_path = os.path.join("D:\data", "Discharges", "I0_p","scan2")
+
+results_paths = [os.path.join("D:\data", "Discharges", "I0_p","scan1"),
+                 os.path.join("D:\data", "Discharges", "I0_p","scan2")]
 
 filename = 'analyses.h5'
 
 FF_orders_plot = 4
 
-filename_path = os.path.join(results_path,filename)
- 
-        
-with h5py.File(filename_path, 'r') as InputArchive:
-    # load data
-   available_data = list(InputArchive.keys())
-   
-   Intens_map = InputArchive['Intensity_tmax_SI_p_I0_r_z'][:]
-   Lcoh_map = InputArchive['Lcoh'][:]
-   Lcoh_no_FSPA_map = InputArchive['Lcoh_no_FSPA'][:]
-   zgrid = InputArchive['z_grid'][:]
-   rgrid = InputArchive['r_grid'][:]
-   I0_grid = InputArchive['I0_grid'][:]
-   p_grid = InputArchive['p_grid'][:]
-   Hgrid = InputArchive['Lcoh_Hgrid'][:]
-   plasma_map = InputArchive['plasma_tmax'][:]
+Ip_eV = 13.99961
+lambdaSI = 792e-9
+
+
+Intens_map = []; plasma_map = []; Lcoh_map = []; Lcoh_no_FSPA_map = []; Cutoff_map = []
+for results_path in results_paths:
+    filename_path = os.path.join(results_path,filename)
+     
+            
+    with h5py.File(filename_path, 'r') as InputArchive:
+        # load data
+       available_data = list(InputArchive.keys())
+       
+       Intens_map.append(InputArchive['Intensity_tmax_SI_p_I0_r_z'][:])
+       Lcoh_map.append(InputArchive['Lcoh'][:])
+       Lcoh_no_FSPA_map.append(InputArchive['Lcoh_no_FSPA'][:])
+       zgrid = InputArchive['z_grid'][:] # assumed shared
+       rgrid = InputArchive['r_grid'][:]
+       I0_grid = InputArchive['I0_grid'][:]
+       p_grid = InputArchive['p_grid'][:]
+       Hgrid = InputArchive['Lcoh_Hgrid'][:]
+       plasma_map.append(InputArchive['plasma_tmax'][:])
+       
+       Cutoff_map.append(HHG.ComputeCutoff(Intens_map[-1]/units.INTENSITYau,
+                                       mn.ConvertPhoton(lambdaSI,'lambdaSI','omegaau'),
+                                       mn.ConvertPhoton(Ip_eV,'eV','omegaau')
+                                       )[1])
 
 
 contours = 1e3*np.asarray([0.0075, 0.015, 0.03, 0.06])
@@ -67,7 +82,7 @@ def plot_p_I0_map(data_map, title, fname, cmap='plasma',vmax=None):
     # fig1.savefig(fname, dpi = 600)
     if showplots: plt.show()
                
-plot_p_I0_map(1e3*Lcoh_map[1,:,:,0,-1], 'H17', 'test.png',vmax=60, cmap = 'plasma')
+plot_p_I0_map(1e3*Lcoh_map[0][1,:,:,0,-1], 'H17', 'test.png',vmax=60, cmap = 'plasma')
 
 
 
@@ -89,7 +104,7 @@ I0s_leg = [str(I0_round)+' W/m2' for I0_round in I0s_round]
 fig, ax = plt.subplots()    
 for k1 in range(len(I0_indices)):
     for k2 in range(len(p_indices)):
-        ax.plot(1e3*zgrid, Intens_map[p_indices[k2],I0_indices[k1],0,:],
+        ax.plot(1e3*zgrid, Intens_map[0][p_indices[k2],I0_indices[k1],0,:],
                 color=colors[k1],
                 linestyle=linestyles[k2],
                 linewidth=3)    
@@ -151,7 +166,7 @@ I0s_leg = [str(I0_round)+' W/m2' for I0_round in I0s_round]
 fig, ax = plt.subplots()    
 for k1 in range(len(I0_indices)):
     for k2 in range(len(p_indices)):
-        ax.plot(1e3*zgrid, np.pi/Lcoh_map[1,p_indices[k2],I0_indices[k1],0,:],
+        ax.plot(1e3*zgrid, np.pi/Lcoh_map[0][1,p_indices[k2],I0_indices[k1],0,:],
                 color=colors[k1],
                 linestyle=linestyles[k2],
                 linewidth=3)    
@@ -200,7 +215,7 @@ I0s_leg = [str(I0_round)+' W/m2' for I0_round in I0s_round]
 fig, ax = plt.subplots()    
 for k1 in range(len(I0_indices)):
     for k2 in range(len(p_indices)):
-        ax.plot(1e3*zgrid, np.pi/Lcoh_no_FSPA_map[1,p_indices[k2],I0_indices[k1],0,:],
+        ax.plot(1e3*zgrid, np.pi/Lcoh_no_FSPA_map[0][1,p_indices[k2],I0_indices[k1],0,:],
                 color=colors[k1],
                 linestyle=linestyles[k2],
                 linewidth=3)    
@@ -254,7 +269,7 @@ def plot_p_I0_map(data_map, title, fname, cmap='plasma',vmax=None):
     # fig1.savefig(fname, dpi = 600)
     if showplots: plt.show()
                
-plot_p_I0_map(1e3*Intens_map[:,:,0,-1], 'H17', 'test.png',vmax=None, cmap = 'plasma')
+plot_p_I0_map(1e3*Intens_map[0][:,:,0,-1], 'H17', 'test.png',vmax=None, cmap = 'plasma')
 
 
 ## Lcoh map at given time
@@ -264,7 +279,7 @@ print(p_grid[choice[1]])
 print(I0_grid[choice[2]]) 
 
 fig1, ax1 = plt.subplots()
-map1 = ax1.pcolor(1e3*zgrid, 1e6*rgrid, 1e3*Lcoh_map[
+map1 = ax1.pcolor(1e3*zgrid, 1e6*rgrid, 1e3*Lcoh_map[0][
                                         choice[0],choice[1],choice[2],
                                         :,:], shading='auto', cmap='plasma', vmax=30)  
 
@@ -275,7 +290,7 @@ cbar.set_label(r'$L_{coh}$ [mm]')
 if showplots: plt.show()
 
 fig1, ax1 = plt.subplots()
-map1 = ax1.pcolor(1e3*zgrid, 1e6*rgrid, plasma_map[
+map1 = ax1.pcolor(1e3*zgrid, 1e6*rgrid, plasma_map[0][
                                         choice[1],choice[2],
                                         :,:], shading='auto', cmap='plasma')
 
@@ -286,7 +301,7 @@ cbar.set_label(r'$L_{coh}$ [mm]')
 if showplots: plt.show()
 
 fig1, ax1 = plt.subplots()
-map1 = ax1.pcolor(1e3*zgrid, 1e6*rgrid, Intens_map[
+map1 = ax1.pcolor(1e3*zgrid, 1e6*rgrid, Intens_map[0][
                                         choice[1],choice[2],
                                         :,:], shading='auto', cmap='plasma')
 
@@ -303,7 +318,7 @@ image.sf = [pp.plotter()]
 
 image.sf[0].method = plt.pcolor
 
-image.sf[0].args = [1e3*zgrid, 1e6*rgrid, Intens_map[
+image.sf[0].args = [1e3*zgrid, 1e6*rgrid, Intens_map[0][
                                         choice[1],choice[2],
                                         :,:]]
 
@@ -320,6 +335,33 @@ image.xlabel = 'z [mm]'; image.ylabel = r'r [$\mu$m]'
 
 image.sf[0].colorbar.show = True
 image.sf[0].colorbar.kwargs = {'label': r'$L_{coh}$ [mm]'}
+
+
+pp.plot_preset(image)
+
+
+image = pp.figure_driver()    
+image.sf = [pp.plotter()]
+
+image.sf[0].method = plt.pcolor
+
+image.sf[0].args = [1e3*zgrid, 1e6*rgrid, Cutoff_map[0][
+                                        choice[1],choice[2],
+                                        :,:]]
+
+image.sf[0].kwargs = {'shading' : 'auto', 'cmap' : 'plasma'}    
+
+image.sf[0].colorbar.show = True
+
+image.xlabel = 'z [mm]'; image.ylabel = r'r [$\mu$m]'
+
+
+# image.title = 'xxx'
+
+# image.sf[0].colorbar=True
+
+image.sf[0].colorbar.show = True
+image.sf[0].colorbar.kwargs = {'label': r'Cutoff [-]'}
 
 
 pp.plot_preset(image)
