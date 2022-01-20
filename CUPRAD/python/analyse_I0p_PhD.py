@@ -273,55 +273,63 @@ image.legend_kwargs = {'loc': 1, 'ncol': 3}
 image.title = r"On-axis intensity"
 image.xlabel = r'$z$ [mm]'
 # ax.tick_params(axis="both")
-image.ylabel = "Intensity [W/m2]"
+image.ylabel = r'Cutoff [-]'
+
+image.xlim_args = [[0,15]]
 
 pp.plot_preset(image)
 
 
 # Delta k
-k3 = 0
-for k1 in range(len(I0_indices)):
-    for k2 in range(len(p_indices)):
-        image.sf[k3].args =[1e3*zgrid, np.pi/Lcoh_map[0][1,p_indices[k2],I0_indices[k1],0,:]] # np.pi/Lcoh_map[0][1,p_indices[k2],I0_indices[k1],0,:]
-        k3+=1
+choiceHs = [1]
+choice_preions = [0,1]
+
+ylims1 = [[[0,5.5],[0,0.4]]]
+ylims2 = [[[0,0.12],[0,0.03]]]
+
+k_H = -1; k_preion = -1
+for choiceH in choiceHs:
+    k_H += 1
+    for choice_preion in choice_preions:
+        k_preion += 1
+        k3 = 0
+        for k1 in range(len(I0_indices)):
+            for k2 in range(len(p_indices)):
+                image.sf[k3].args =[1e3*zgrid, 1e-3*np.pi/Lcoh_map[choice_preion][choiceH,p_indices[k2],I0_indices[k1],0,:]] # np.pi/Lcoh_map[0][1,p_indices[k2],I0_indices[k1],0,:]
+                k3+=1
+                
+                
+        
+        image.title = r"On-axis intensity"
+        image.xlabel = r'$z$ [mm]'
+        # ax.tick_params(axis="both")
+        image.ylabel = r'$\Delta k$ [1/mm]'
+        image.title = r'H'+str(Hgrid[choiceH])
+        
+        image.ylim_args = [ylims1[k_H][k_preion]]
+        
+        pp.plot_preset(image)
         
         
-
-image.title = r"On-axis intensity"
-image.xlabel = r'$z$ [mm]'
-# ax.tick_params(axis="both")
-image.ylabel = "Intensity [W/m2]"
-
-pp.plot_preset(image)
-
-# # ionisation curves 1
-# k3 = 0
-# for k1 in range(len(I0_indices)):
-#     for k2 in range(len(p_indices)):
-#         image.sf[k3].args =[1e3*zgrid, plasma_map[0][p_indices[k2],I0_indices[k1],0,:]]
-#         k3+=1
+        # scaled
+        k3 = 0
+        for k1 in range(len(I0_indices)):
+            for k2 in range(len(p_indices)):
+                image.sf[k3].args =[1e3*zgrid,
+                                    1e-3*np.pi/(p_grid[p_indices[k2]]*Lcoh_map[choice_preion][choiceH,p_indices[k2],I0_indices[k1],0,:])
+                                    ] # np.pi/Lcoh_map[0][1,p_indices[k2],I0_indices[k1],0,:]
+                k3+=1
+                
+                
         
+        image.title = r"On-axis intensity"
+        image.xlabel = r'$z$ [mm]'
+        # ax.tick_params(axis="both")
+        image.ylabel = r'$\Delta k / p$ [1/mm$\cdot$mbar]'
+        image.title = r'H'+str(Hgrid[choiceH])
         
-
-# image.title = r"On-axis intensity"
-# image.xlabel = r'$z$ [mm]'
-# # ax.tick_params(axis="both")
-# image.ylabel = "Intensity [W/m2]"
-
-# pp.plot_preset(image)
-
-# # ionisation curves 2
-# k3 = 0
-# for k1 in range(len(I0_indices)):
-#     for k2 in range(len(p_indices)):
-#         image.sf[k3].args =[1e3*zgrid, plasma_map[1][p_indices[k2],I0_indices[k1],0,:]]
-#         k3+=1
+        image.ylim_args = [ylims2[k_H][k_preion]]
         
-        
+        pp.plot_preset(image)
 
-# image.title = r"On-axis intensity"
-# image.xlabel = r'$z$ [mm]'
-# # ax.tick_params(axis="both")
-# image.ylabel = "Intensity [W/m2]"
 
-# pp.plot_preset(image)
