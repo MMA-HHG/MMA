@@ -33,6 +33,14 @@ results_paths = [os.path.join("D:\data", "Discharges", "I0_p","scan1"),
 
 preions = np.asarray([0,0.08])
 
+
+OutPath = 'outputs_PhD' 
+if os.path.exists(OutPath) and os.path.isdir(OutPath):
+  shutil.rmtree(OutPath)
+  print('deleted previous results')
+os.mkdir(OutPath)
+
+
 filename = 'analyses.h5'
 
 FF_orders_plot = 4
@@ -78,6 +86,9 @@ contours = 1e3*np.asarray([0.0075, 0.015, 0.03, 0.0595])
 Lcoh_saturation = 60.
 
 for choice1 in choices:
+
+    local_title = r'$\eta_0$='+ '{:.0f}'.format(100*preions[choice1[0]]) + ' %'
+                  
     # coherence map
     image = pp.figure_driver()    
     image.sf = [pp.plotter() for k1 in range(2)]
@@ -88,6 +99,7 @@ for choice1 in choices:
     if (np.max((1e3*Lcoh_map[choice1[0]][1,:,:,0,-1]).T) > Lcoh_saturation): image.sf[0].kwargs['vmax']=Lcoh_saturation
     
     image.sf[0].colorbar.show = True  
+    image.sf[0].colorbar.kwargs = {'label': r'$L_{coh}$ [mm]'}
     
     image.sf[1].method = plt.contour
     
@@ -97,7 +109,14 @@ for choice1 in choices:
       
     image.xlabel = r'$p$ [mbar]'; image.ylabel = r'$I_0$ [SI]'
     
-    myfig = pp.plot_preset(image)
+    image.title = 'H'+str(Hgrid[choice1[1]])+', '+local_title
+
+    image.savefig_args = [os.path.join(OutPath,
+                         'Lcoh_pI0_eta'+'{:.0f}'.format(100*preions[choice1[0]])+'_H'+str(Hgrid[choice1[1]])+'.pdf'
+                         )]
+    image.savefig_kwargs = {'dpi' : 600}
+    
+    pp.plot_preset(image)
 
 
     # ionisations
@@ -108,7 +127,8 @@ for choice1 in choices:
     image.sf[0].args = [p_grid, I0_grid,(plasma_map[choice1[0]][:,:,0,-1]).T]    
     image.sf[0].kwargs = {'shading' : 'auto', 'cmap' : 'plasma'}  
     
-    image.sf[0].colorbar.show = True  
+    image.sf[0].colorbar.show = True
+    image.sf[0].colorbar.kwargs = {'label': r'Ionisation [%]'}
     
     # image.sf[1].method = plt.contour
     
@@ -117,6 +137,11 @@ for choice1 in choices:
     # image.sf[1].colorbar.show_contours = True    
       
     image.xlabel = r'$p$ [mbar]'; image.ylabel = r'$I_0$ [SI]'
+    
+    image.title = local_title
+    
+    image.savefig_args = [os.path.join(OutPath,'Ionisation_pI0_eta'+'{:.0f}'.format(100*preions[choice1[0]])+'.pdf')]
+    image.savefig_kwargs = {'dpi' : 600}
     
     pp.plot_preset(image)
     
@@ -129,6 +154,7 @@ for choice1 in choices:
     image.sf[0].kwargs = {'shading' : 'auto', 'cmap' : 'plasma'}  
     
     image.sf[0].colorbar.show = True  
+    image.sf[0].colorbar.kwargs = {'label': r'Cutoff [-]'}  
     
     # image.sf[1].method = plt.contour
     
@@ -137,6 +163,11 @@ for choice1 in choices:
     # image.sf[1].colorbar.show_contours = True    
       
     image.xlabel = r'$p$ [mbar]'; image.ylabel = r'$I_0$ [SI]'
+    
+    image.title = local_title
+    
+    image.savefig_args = [os.path.join(OutPath,'Cutoff_pI0_eta'+'{:.0f}'.format(100*preions[choice1[0]])+'.pdf')]
+    image.savefig_kwargs = {'dpi' : 600}
     
     pp.plot_preset(image)
 
@@ -150,6 +181,8 @@ image.sf[0].args = [p_grid, I0_grid,abs((plasma_map[1][:,:,0,-1]).T - (plasma_ma
 image.sf[0].kwargs = {'shading' : 'auto', 'cmap' : 'plasma'}  
 image.sf[0].colorbar.show = True   
 image.xlabel = r'$p$ [mbar]'; image.ylabel = r'$I_0$ [SI]'
+# image.savefig_args = [os.path.join(OutPath,'figure1.pdf')]
+# image.savefig_kwargs = {'dpi' : 600}
 pp.plot_preset(image)
 
 #intensity difference
