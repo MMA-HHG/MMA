@@ -313,58 +313,64 @@ if showplots: plt.show()
 
 
 
-image = pp.figure_driver()    
-image.sf = [pp.plotter()]
+## (r,z) Cut-offs & ionisations
+choices = [(0,13,5),(1,13,5),
+           (0,13,17),(1,13,17),
+           (0,5,5),(1,5,5),
+           (0,18,17),(1,18,17)]
 
-image.sf[0].method = plt.pcolor
-
-image.sf[0].args = [1e3*zgrid, 1e6*rgrid, Intens_map[0][
-                                        choice[1],choice[2],
-                                        :,:]]
-
-image.sf[0].kwargs = {'shading' : 'auto', 'cmap' : 'plasma'}    
-
-image.sf[0].colorbar.show = True
-
-image.xlabel = 'z [mm]'; image.ylabel = r'r [$\mu$m]'
-
-
-# image.title = 'xxx'
-
-# image.sf[0].colorbar=True
-
-image.sf[0].colorbar.show = True
-image.sf[0].colorbar.kwargs = {'label': r'$L_{coh}$ [mm]'}
-
-
-pp.plot_preset(image)
-
-
-image = pp.figure_driver()    
-image.sf = [pp.plotter()]
-
-image.sf[0].method = plt.pcolor
-
-image.sf[0].args = [1e3*zgrid, 1e6*rgrid, Cutoff_map[0][
-                                        choice[1],choice[2],
-                                        :,:]]
-
-image.sf[0].kwargs = {'shading' : 'auto', 'cmap' : 'plasma'}    
-
-image.sf[0].colorbar.show = True
-
-image.xlabel = 'z [mm]'; image.ylabel = r'r [$\mu$m]'
-
-
-# image.title = 'xxx'
-
-# image.sf[0].colorbar=True
-
-image.sf[0].colorbar.show = True
-image.sf[0].colorbar.kwargs = {'label': r'Cutoff [-]'}
-
-
-pp.plot_preset(image)
+for choice1 in choices:
+   
+    local_title = 'I0='+'{:.2e}'.format(1e-4*I0_grid[choice1[2]]) + ' W/cm2, ' +\
+                  'p='+'{:.0f}'.format(p_grid[choice1[1]]) + ' mbar' 
+   
+    image = pp.figure_driver()    
+    image.sf = [pp.plotter() for k1 in range(2)]
+    
+    image.sf[0].method = plt.pcolor    
+    image.sf[0].args = [1e3*zgrid, 1e6*rgrid, Cutoff_map[choice1[0]][
+                                            choice1[1],choice1[2],
+                                            :,:]]    
+    image.sf[0].kwargs = {'shading' : 'auto', 'cmap' : 'plasma'}    
+    
+    image.sf[0].colorbar.show = True    
+    image.xlabel = 'z [mm]'; image.ylabel = r'r [$\mu$m]'
+    
+    image.sf[0].colorbar.show = True
+    image.sf[0].colorbar.kwargs = {'label': r'Cutoff [-]'}   
+    
+    image.sf[1].method = plt.contour
+    contours = np.asarray([15,17,19,21,23])
+    image.sf[1].args = image.sf[0].args + [contours]
+    image.sf[1].kwargs = {'colors' : "black"} #'linestyles' : ['dashdot','dotted','dashed','solid']}
+    image.sf[1].colorbar.show_contours = True    
+    
+    
+    image.title = local_title
+                  
+    
+    pp.plot_preset(image)
+    
+    ####
+    
+    image = pp.figure_driver()    
+    image.sf = [pp.plotter()]
+    
+    image.sf[0].method = plt.pcolor    
+    image.sf[0].args = [1e3*zgrid, 1e6*rgrid, plasma_map[choice1[0]][
+                                            choice1[1],choice1[2],
+                                            :,:]]    
+    image.sf[0].kwargs = {'shading' : 'auto', 'cmap' : 'plasma'}    
+    
+    image.sf[0].colorbar.show = True    
+    image.xlabel = 'z [mm]'; image.ylabel = r'r [$\mu$m]'
+    
+    image.sf[0].colorbar.show = True
+    image.sf[0].colorbar.kwargs = {'label': r'Ionisation [%]'}
+    
+    image.title = local_title
+    
+    pp.plot_preset(image)
 
 
 
