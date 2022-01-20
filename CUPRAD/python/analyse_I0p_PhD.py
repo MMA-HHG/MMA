@@ -66,258 +66,12 @@ for results_path in results_paths:
                                        )[1])
 
 
-contours = 1e3*np.asarray([0.0075, 0.015, 0.03, 0.06])
-def plot_p_I0_map(data_map, title, fname, cmap='plasma',vmax=None):
-    fig1, ax1 = plt.subplots()
-    map1 = ax1.pcolor(p_grid, I0_grid, data_map.T, shading='auto', cmap=cmap, vmax=vmax)  
-    
-    map2 = ax1.contour(p_grid, I0_grid, data_map.T, contours, colors = "black", linestyles = ['dashdot','dotted','dashed','solid'])
-    
-    # ax1.set_xlim(left = 10)
-    # ['solid', 'dashed', 'dashdot', 'dotted' ]
-          
-    # ax1.set_ylim([0,1e6*rmax])
-    ax1.set_xlabel('p [mbar]'); ax1.set_ylabel('I0 [SI]');
-    ax1.set_title(title)
-    cbar = fig1.colorbar(map1) 
-    cbar.set_label(r'$L_{coh}$ [mm]')
-    
-    # fig1.savefig(fname, dpi = 600)
-    if showplots: plt.show()
-               
-plot_p_I0_map(1e3*Lcoh_map[0][1,:,:,0,-1], 'H17', 'test.png',vmax=60, cmap = 'plasma')
 
-
-
-
-
-############## plot intensity curves ############################
-
-I0_indices = [4,13,19]
-p_indices = [4,13,19]
-colors = ["tab:orange","tab:blue","tab:green"]
-linestyles = ['-','--',':']
-
-pressures_round = np.round(p_grid[p_indices])
-I0s_round = 1e18*np.round(1e-18*np.asarray(I0_grid[p_indices]),decimals=1)
-
-pressures_leg = [str(pressure_round)+' mbar' for pressure_round in pressures_round]
-I0s_leg = [str(I0_round)+' W/m2' for I0_round in I0s_round]
-
-fig, ax = plt.subplots()    
-for k1 in range(len(I0_indices)):
-    for k2 in range(len(p_indices)):
-        ax.plot(1e3*zgrid, Intens_map[0][p_indices[k2],I0_indices[k1],0,:],
-                color=colors[k1],
-                linestyle=linestyles[k2],
-                linewidth=3)    
-        
-        
-
- 
-# ax.plot(1e3*zgrid, Intens_map[0,0,0,:], color="tab:orange", linewidth=3)
-# ax.plot(1e3*zgrid, Intens_map[0,9,0,:], color="tab:blue", linewidth=3)
-# ax.plot(1e3*zgrid, Intens_map[0,4,0,:], color="tab:green", linewidth=3)
-
-# ax.plot(1e3*zgrid, Intens_map[4,0,0,:], color="tab:orange", linewidth=3, linestyle="--")
-# ax.plot(1e3*zgrid, Intens_map[4,9,0,:], color="tab:blue", linewidth=3, linestyle="--")
-# ax.plot(1e3*zgrid, Intens_map[4,4,0,:], color="tab:green", linewidth=3, linestyle="--")
-
-# ax.plot(1e3*zgrid, Intens_map[9,0,0,:], color="tab:orange", linewidth=3, linestyle=":")
-# ax.plot(1e3*zgrid, Intens_map[9,9,0,:], color="tab:blue", linewidth=3, linestyle=":")
-# ax.plot(1e3*zgrid, Intens_map[9,4,0,:], color="tab:green", linewidth=3, linestyle=":")
-
-# ax.set_ylabel("Intensity [W/m2]")
-# ax.legend(loc=1, ncol=3)
-from matplotlib.lines import Line2D
-custom_lines = [Line2D([1], [0], color="tab:orange", lw=3),
-                Line2D([0], [0], color="tab:grey", lw=3, linestyle="-"),
-                Line2D([0], [0], color="tab:blue", lw=3),
-                Line2D([0], [0], color="tab:grey", lw=3, linestyle="--"),
-                Line2D([0], [0], color="tab:green", lw=3),                
-                Line2D([0], [0], color="tab:grey", lw=3, linestyle=":")]
-
-ax.legend(custom_lines, [I0s_leg[0],
-                         pressures_leg[0],
-                         I0s_leg[1],
-                         pressures_leg[1],
-                         I0s_leg[2],
-                         pressures_leg[2]],
-          loc=1, ncol=3)
-
-ax.set_title("On-axis defocusing")
-ax.set_xlabel('z [mm]')
-ax.tick_params(axis="both")
-ax.set_ylabel("Intensity [W/m2]")
-
-plt.show()
-
-
-############## plot \Delta k curves ############################
-
-I0_indices = [4,13,19]
-p_indices = [4,13,19]
-colors = ["tab:orange","tab:blue","tab:green"]
-linestyles = ['-','--',':']
-
-pressures_round = np.round(p_grid[p_indices])
-I0s_round = 1e18*np.round(1e-18*np.asarray(I0_grid[p_indices]),decimals=1)
-
-pressures_leg = [str(pressure_round)+' mbar' for pressure_round in pressures_round]
-I0s_leg = [str(I0_round)+' W/m2' for I0_round in I0s_round]
-
-fig, ax = plt.subplots()    
-for k1 in range(len(I0_indices)):
-    for k2 in range(len(p_indices)):
-        ax.plot(1e3*zgrid, np.pi/Lcoh_map[0][1,p_indices[k2],I0_indices[k1],0,:],
-                color=colors[k1],
-                linestyle=linestyles[k2],
-                linewidth=3)    
-
-
-
-# ax.legend(loc=1, ncol=3)
-from matplotlib.lines import Line2D
-custom_lines = [Line2D([1], [0], color="tab:orange", lw=3),
-                Line2D([0], [0], color="tab:grey", lw=3, linestyle="-"),
-                Line2D([0], [0], color="tab:blue", lw=3),
-                Line2D([0], [0], color="tab:grey", lw=3, linestyle="--"),
-                Line2D([0], [0], color="tab:green", lw=3),                
-                Line2D([0], [0], color="tab:grey", lw=3, linestyle=":")]
-
-ax.legend(custom_lines, [I0s_leg[0],
-                         pressures_leg[0],
-                         I0s_leg[1],
-                         pressures_leg[1],
-                         I0s_leg[2],
-                         pressures_leg[2]],
-          loc=1, ncol=3)
-
-ax.set_title("H17")
-ax.set_xlabel('z [mm]')
-ax.tick_params(axis="both")
-ax.set_ylabel("|$\Delta$ k| [1/m]")
-ax.set_ylim([0,500])
-
-plt.show()
-
-
-############## plot \Delta k curves ############################
-
-I0_indices = [4,13,19]
-p_indices = [4,13,19]
-colors = ["tab:orange","tab:blue","tab:green"]
-linestyles = ['-','--',':']
-
-pressures_round = np.round(p_grid[p_indices])
-I0s_round = 1e18*np.round(1e-18*np.asarray(I0_grid[p_indices]),decimals=1)
-
-pressures_leg = [str(pressure_round)+' mbar' for pressure_round in pressures_round]
-I0s_leg = [str(I0_round)+' W/m2' for I0_round in I0s_round]
-
-fig, ax = plt.subplots()    
-for k1 in range(len(I0_indices)):
-    for k2 in range(len(p_indices)):
-        ax.plot(1e3*zgrid, np.pi/Lcoh_no_FSPA_map[0][1,p_indices[k2],I0_indices[k1],0,:],
-                color=colors[k1],
-                linestyle=linestyles[k2],
-                linewidth=3)    
-
-
-
-# ax.legend(loc=1, ncol=3)
-from matplotlib.lines import Line2D
-custom_lines = [Line2D([1], [0], color="tab:orange", lw=3),
-                Line2D([0], [0], color="tab:grey", lw=3, linestyle="-"),
-                Line2D([0], [0], color="tab:blue", lw=3),
-                Line2D([0], [0], color="tab:grey", lw=3, linestyle="--"),
-                Line2D([0], [0], color="tab:green", lw=3),                
-                Line2D([0], [0], color="tab:grey", lw=3, linestyle=":")]
-
-ax.legend(custom_lines, [I0s_leg[0],
-                         pressures_leg[0],
-                         I0s_leg[1],
-                         pressures_leg[1],
-                         I0s_leg[2],
-                         pressures_leg[2]],
-          loc=1, ncol=3)
-
-ax.set_title("H17, no FSPA")
-ax.set_xlabel('z [mm]')
-ax.tick_params(axis="both")
-ax.set_ylabel("|$\Delta$ k| [1/m]")
-ax.set_ylim([0,500])
-
-plt.show()
-
-# intensity map
-
-
-contours = 1e3*np.asarray([15, 17, 19])
-def plot_p_I0_map(data_map, title, fname, cmap='plasma',vmax=None):
-    fig1, ax1 = plt.subplots()
-    map1 = ax1.pcolor(p_grid, I0_grid, data_map.T, shading='auto', cmap=cmap, vmax=vmax)  
-    
-    map2 = ax1.contour(p_grid, I0_grid, data_map.T, contours, colors = "black")
-    
-    # ax1.set_xlim(left = 10)
-    # ['solid', 'dashed', 'dashdot', 'dotted' ]
-          
-    # ax1.set_ylim([0,1e6*rmax])
-    ax1.set_xlabel('p [mbar]'); ax1.set_ylabel('I0 [SI]');
-    # ax1.set_title(title)
-    cbar = fig1.colorbar(map1) 
-    cbar.set_label(r'$I$ [cutoff]')
-    
-    # fig1.savefig(fname, dpi = 600)
-    if showplots: plt.show()
-               
-plot_p_I0_map(1e3*Intens_map[0][:,:,0,-1], 'H17', 'test.png',vmax=None, cmap = 'plasma')
-
-
-## Lcoh map at given time
-
-choice = (1,13,5)
-print(p_grid[choice[1]])
-print(I0_grid[choice[2]]) 
-
-fig1, ax1 = plt.subplots()
-map1 = ax1.pcolor(1e3*zgrid, 1e6*rgrid, 1e3*Lcoh_map[0][
-                                        choice[0],choice[1],choice[2],
-                                        :,:], shading='auto', cmap='plasma', vmax=30)  
-
-ax1.set_xlabel('z [mm]'); ax1.set_ylabel(r'r [$\mu$m]');
-cbar = fig1.colorbar(map1) 
-cbar.set_label(r'$L_{coh}$ [mm]')
-
-if showplots: plt.show()
-
-fig1, ax1 = plt.subplots()
-map1 = ax1.pcolor(1e3*zgrid, 1e6*rgrid, plasma_map[0][
-                                        choice[1],choice[2],
-                                        :,:], shading='auto', cmap='plasma')
-
-ax1.set_xlabel('z [mm]'); ax1.set_ylabel(r'r [$\mu$m]');
-cbar = fig1.colorbar(map1) 
-cbar.set_label(r'$L_{coh}$ [mm]')
-
-if showplots: plt.show()
-
-fig1, ax1 = plt.subplots()
-map1 = ax1.pcolor(1e3*zgrid, 1e6*rgrid, Intens_map[0][
-                                        choice[1],choice[2],
-                                        :,:], shading='auto', cmap='plasma')
-
-ax1.set_xlabel('z [mm]'); ax1.set_ylabel(r'r [$\mu$m]');
-cbar = fig1.colorbar(map1,label = r'$L_{coh}$ [mm]') 
-# cbar.set_label(r'$L_{coh}$ [mm]')
-
-if showplots: plt.show()
 
 
 ## (p,I0) space
 
-choices = [[0],[1]]
+choices = [[0,1],[1,1]]
 
 
 contours = 1e3*np.asarray([0.0075, 0.015, 0.03, 0.0595])
@@ -329,7 +83,7 @@ for choice1 in choices:
     image.sf = [pp.plotter() for k1 in range(2)]
     
     image.sf[0].method = plt.pcolor    
-    image.sf[0].args = [p_grid, I0_grid,(1e3*Lcoh_map[choice1[0]][1,:,:,0,-1]).T]    
+    image.sf[0].args = [p_grid, I0_grid,(1e3*Lcoh_map[choice1[0]][choice1[1],:,:,0,-1]).T]    
     image.sf[0].kwargs = {'shading' : 'auto', 'cmap' : 'plasma'}  
     if (np.max((1e3*Lcoh_map[choice1[0]][1,:,:,0,-1]).T) > Lcoh_saturation): image.sf[0].kwargs['vmax']=Lcoh_saturation
     
@@ -538,7 +292,7 @@ image.xlabel = r'$z$ [mm]'
 # ax.tick_params(axis="both")
 image.ylabel = "Intensity [W/m2]"
 
-# pp.plot_preset(image)
+pp.plot_preset(image)
 
 # # ionisation curves 1
 # k3 = 0
