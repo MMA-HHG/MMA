@@ -477,11 +477,11 @@ for choice1 in choices:
 
 
 
-############## intensity curves
+# intensity curves
 
 I0_indices = [4,13,19]
 p_indices = [4,13,19]
-colors = ["tab:orange","tab:blue","tab:green"]
+colors = ["k","b","r"]
 linestyles = ['-','--',':']
 
 image = pp.figure_driver()   
@@ -496,35 +496,14 @@ I0s_leg = [str(I0_round)+' W/m2' for I0_round in I0s_round]
 for k1 in range(len(I0_indices)):
     for k2 in range(len(p_indices)):
         image.sf.append(pp.plotter())
-        image.sf[-1].args =[1e3*zgrid, Intens_map[0][p_indices[k2],I0_indices[k1],0,:]]
+        image.sf[-1].args =[1e3*zgrid, Cutoff_map[0][p_indices[k2],I0_indices[k1],0,:]]
         image.sf[-1].kwargs = {'color' : colors[k1], 'linestyle' : linestyles[k2]}
         
-        # ax.plot(1e3*zgrid, Intens_map[0][p_indices[k2],I0_indices[k1],0,:],
-        #         color=colors[k1],
-        #         linestyle=linestyles[k2],
-        #         linewidth=3)    
-        
-        
-# custom_lines = [Line2D([1], [0], color="k"),
-#                 Line2D([0], [0], color="tab:grey", linestyle="--"),
-#                 Line2D([0], [0], color="b"),
-#                 Line2D([0], [0], color="tab:grey", linestyle=":"),
-#                 Line2D([0], [0], color="r"),                
-#                 Line2D([0], [0], color="g", linestyle="--")]
-
-# ax.legend(custom_lines, [I0s_leg[0],
-#                          pressures_leg[0],
-#                          I0s_leg[1],
-#                          pressures_leg[1],
-#                          I0s_leg[2],
-#                          pressures_leg[2]],
-#           loc=1, ncol=3)
-
-custom_lines = [Line2D([1], [0], color="tab:orange", lw=3),
+custom_lines = [Line2D([1], [0], color="k", lw=3),
                 Line2D([0], [0], color="tab:grey", lw=3, linestyle="-"),
-                Line2D([0], [0], color="tab:blue", lw=3),
+                Line2D([0], [0], color="b", lw=3),
                 Line2D([0], [0], color="tab:grey", lw=3, linestyle="--"),
-                Line2D([0], [0], color="tab:green", lw=3),                
+                Line2D([0], [0], color="r", lw=3),                
                 Line2D([0], [0], color="tab:grey", lw=3, linestyle=":")]
 
 legend_entries = [I0s_leg[0],
@@ -536,20 +515,6 @@ legend_entries = [I0s_leg[0],
 
 image.legend_args = [custom_lines,legend_entries]
 image.legend_kwargs = {'loc': 1, 'ncol': 3}
- 
-
-# ax.set_ylabel("Intensity [W/m2]")
-# ax.legend(loc=1, ncol=3)
-
-
-
-# ax.legend(custom_lines, [I0s_leg[0],
-#                          pressures_leg[0],
-#                          I0s_leg[1],
-#                          pressures_leg[1],
-#                          I0s_leg[2],
-#                          pressures_leg[2]],
-#           loc=1, ncol=3)
 
 image.title = r"On-axis intensity"
 image.xlabel = r'$z$ [mm]'
@@ -557,3 +522,52 @@ image.xlabel = r'$z$ [mm]'
 image.ylabel = "Intensity [W/m2]"
 
 pp.plot_preset(image)
+
+
+# Delta k
+k3 = 0
+for k1 in range(len(I0_indices)):
+    for k2 in range(len(p_indices)):
+        image.sf[k3].args =[1e3*zgrid, np.pi/Lcoh_map[0][1,p_indices[k2],I0_indices[k1],0,:]] # np.pi/Lcoh_map[0][1,p_indices[k2],I0_indices[k1],0,:]
+        k3+=1
+        
+        
+
+image.title = r"On-axis intensity"
+image.xlabel = r'$z$ [mm]'
+# ax.tick_params(axis="both")
+image.ylabel = "Intensity [W/m2]"
+
+# pp.plot_preset(image)
+
+# # ionisation curves 1
+# k3 = 0
+# for k1 in range(len(I0_indices)):
+#     for k2 in range(len(p_indices)):
+#         image.sf[k3].args =[1e3*zgrid, plasma_map[0][p_indices[k2],I0_indices[k1],0,:]]
+#         k3+=1
+        
+        
+
+# image.title = r"On-axis intensity"
+# image.xlabel = r'$z$ [mm]'
+# # ax.tick_params(axis="both")
+# image.ylabel = "Intensity [W/m2]"
+
+# pp.plot_preset(image)
+
+# # ionisation curves 2
+# k3 = 0
+# for k1 in range(len(I0_indices)):
+#     for k2 in range(len(p_indices)):
+#         image.sf[k3].args =[1e3*zgrid, plasma_map[1][p_indices[k2],I0_indices[k1],0,:]]
+#         k3+=1
+        
+        
+
+# image.title = r"On-axis intensity"
+# image.xlabel = r'$z$ [mm]'
+# # ax.tick_params(axis="both")
+# image.ylabel = "Intensity [W/m2]"
+
+# pp.plot_preset(image)
