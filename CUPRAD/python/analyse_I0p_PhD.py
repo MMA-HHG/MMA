@@ -8,6 +8,7 @@ import sys
 import units
 import mynumerics as mn
 import HHG
+import XUV_refractive_index as XUV_index
 
 
 import warnings
@@ -75,7 +76,24 @@ for results_path in results_paths:
 
 
 
+N_atm = 2.7e19 * 1e6
+XUV_table_type_diffraction = 'NIST' # {Henke, NIST}
+XUV_table_type_absorption = 'Henke' # {Henke, NIST} 
+gas_type = 'Kr'
 
+def f2_funct(E):
+    return XUV_index.getf2(gas_type + '_' + XUV_table_type_absorption, E)
+
+def sigma(omega):
+    f2_value    = f2_funct(mn.ConvertPhoton(omega, 'omegaSI', 'eV'))
+    lambdaSI    = mn.ConvertPhoton(omega, 'omegaSI', 'lambdaSI')
+    return 2.0 * units.r_electron_classical * lambdaSI * f2_value
+
+def L_abs(omega,pressure):
+    f2_value    = f2_funct(mn.ConvertPhoton(omega, 'omegaSI', 'eV'))
+    lambdaSI    = mn.ConvertPhoton(omega, 'omegaSI', 'lambdaSI')
+    rho0 = pressure*N_atm
+    return 1.0 / (2.0 * rho0 * units.r_electron_classical * lambdaSI * f2_value) 
 
 ## (p,I0) space
 
@@ -83,6 +101,7 @@ choices = [[0,1],[1,1]]
 
 
 contours = 1e3*np.asarray([0.0075, 0.015, 0.03, 0.0595])
+contours_signal = np.asarray([0.5,0.75,0.9])
 Lcoh_saturation = 60.
 
 for choice1 in choices:
@@ -114,11 +133,46 @@ for choice1 in choices:
     image.savefig_args = [os.path.join(OutPath,
                          'Lcoh_pI0_eta'+'{:.0f}'.format(100*preions[choice1[0]])+'_H'+str(Hgrid[choice1[1]])+'.pdf'
                          )]
-    image.savefig_kwargs = {'dpi' : 600}
+    image.savefig_kwargs = {'bbox_inches' : 'tight','dpi' : 600}
     
     pp.plot_preset(image)
 
+    # Delta k
+    Lcoh_temp = 1.*(Lcoh_map[choice1[0]][choice1[1],:,:,0,-1]).T
 
+
+    image.sf[0].args = [p_grid, I0_grid, np.pi/Lcoh_temp]
+    image.sf[0].kwargs = {'shading' : 'auto', 'cmap' : 'plasma'} 
+    # image.sf[1].args = image.sf[0].args + [contours_signal]
+    image.sf[0].colorbar.kwargs = {'label': r'$\Delta k_q$ [arb. u.]'}
+    
+    image.savefig_args = [os.path.join(OutPath,
+                         'Delta_k_pI0_eta'+'{:.0f}'.format(100*preions[choice1[0]])+'_H'+str(Hgrid[choice1[1]])+'.pdf'
+                         )]
+    image.savefig_kwargs = {'bbox_inches' : 'tight','dpi' : 600}
+    pp.plot_preset(image)
+    
+    # rescale to XUV signal
+    Lcoh_temp = 1.*(Lcoh_map[choice1[0]][choice1[1],:,:,0,-1]).T
+    XUV_signal = np.zeros(Lcoh_temp.shape)
+    
+    for k1 in range(len(p_grid)):
+      L_abs_temp = L_abs(Hgrid[choice1[1]]*mn.ConvertPhoton(lambdaSI,'lambdaSI','omegaSI'),1e-3*p_grid[k1])
+      for k2 in range(len(I0_grid)):
+        XUV_signal[k2,k1] = 1.0/(1+4.*(np.pi**2) * (L_abs_temp/Lcoh_temp[k2,k1])**2) 
+
+    image.sf[0].args = [p_grid, I0_grid,XUV_signal]
+    image.sf[0].kwargs = {'shading' : 'auto', 'cmap' : 'plasma'} 
+    image.sf[1].args = image.sf[0].args + [contours_signal]
+    image.sf[0].colorbar.kwargs = {'label': r'$I_q$ [arb. u.]'}
+    
+    image.savefig_args = [os.path.join(OutPath,
+                         'XUV_signal_pI0_eta'+'{:.0f}'.format(100*preions[choice1[0]])+'_H'+str(Hgrid[choice1[1]])+'.pdf'
+                         )]
+    image.savefig_kwargs = {'bbox_inches' : 'tight','dpi' : 600}
+    pp.plot_preset(image)
+    
+    
     # ionisations
     image = pp.figure_driver()    
     image.sf = [pp.plotter() for k1 in range(2)]
@@ -141,7 +195,7 @@ for choice1 in choices:
     image.title = local_title
     
     image.savefig_args = [os.path.join(OutPath,'Ionisation_pI0_eta'+'{:.0f}'.format(100*preions[choice1[0]])+'.pdf')]
-    image.savefig_kwargs = {'dpi' : 600}
+    image.savefig_kwargs = {'bbox_inches' : 'tight','dpi' : 600}
     
     pp.plot_preset(image)
     
@@ -167,7 +221,7 @@ for choice1 in choices:
     image.title = local_title
     
     image.savefig_args = [os.path.join(OutPath,'Cutoff_pI0_eta'+'{:.0f}'.format(100*preions[choice1[0]])+'.pdf')]
-    image.savefig_kwargs = {'dpi' : 600}
+    image.savefig_kwargs = {'bbox_inches' : 'tight','dpi' : 600}
     
     pp.plot_preset(image)
 
@@ -199,18 +253,20 @@ pp.plot_preset(image)
 
 
 ## (r,z) Cut-offs & ionisations
-choices = []
+# choices = []
 
-# choices = [(0,13,5),(1,13,5),
-#             (0,13,17),(1,13,17),
-#             (0,5,5),(1,5,5),
-#             (0,18,17),(1,18,17)]
+choices = [(0,13,5),(1,13,5),
+            (0,13,17),(1,13,17),
+            (0,5,5),(1,5,5),
+            (0,18,17),(1,18,17)]
 
 for choice1 in choices:
    
-    local_title = r'$I_0$='+'{:.2e}'.format(1e-4*I0_grid[choice1[2]]) + ' W/cm2, ' +\
+    local_title = r'$I_0$='+'{:.2e}'.format(1e-4*I0_grid[choice1[2]]) + r' W/cm$^2$, ' +\
                   r'$p$='+'{:.0f}'.format(p_grid[choice1[1]]) + ' mbar, '+\
                   r'$\eta_0$='+ '{:.0f}'.format(100*preions[choice1[0]]) + ' %'
+                  
+    fname_string = 'I0_'+str(choice1[2])+'_p'+str(choice1[1])+'_eta'+str(choice1[0])
    
     image = pp.figure_driver()    
     image.sf = [pp.plotter() for k1 in range(2)]
@@ -236,7 +292,8 @@ for choice1 in choices:
     
     image.title = local_title
                   
-    
+    image.savefig_args = [os.path.join(OutPath,'Cutoff_rz_'+fname_string+'.pdf')]
+    image.savefig_kwargs = {'bbox_inches' : 'tight'}
     pp.plot_preset(image)
     
     ####
@@ -258,6 +315,8 @@ for choice1 in choices:
     
     image.title = local_title
     
+    image.savefig_args = [os.path.join(OutPath,'Ionisation_rz_'+fname_string+'.pdf')]
+    image.savefig_kwargs = {'bbox_inches' : 'tight'}
     pp.plot_preset(image)
 
 
@@ -303,13 +362,15 @@ legend_entries = [I0s_leg[0],
 image.legend_args = [custom_lines,legend_entries]
 image.legend_kwargs = {'loc': 1, 'ncol': 3}
 
-image.title = r"On-axis intensity"
+image.title = r"On-axis cutoff"
 image.xlabel = r'$z$ [mm]'
 # ax.tick_params(axis="both")
 image.ylabel = r'Cutoff [-]'
 
 image.xlim_args = [[0,15]]
 
+image.savefig_args = [os.path.join(OutPath,'Cutoff_onaxis.pdf')]
+image.savefig_kwargs = {'bbox_inches' : 'tight'}
 pp.plot_preset(image)
 
 
@@ -326,14 +387,13 @@ for choiceH in choiceHs:
     for choice_preion in choice_preions:
         k_preion += 1
         k3 = 0
+        fname_string = '_eta'+str(k_preion)
         for k1 in range(len(I0_indices)):
             for k2 in range(len(p_indices)):
                 image.sf[k3].args =[1e3*zgrid, 1e-3*np.pi/Lcoh_map[choice_preion][choiceH,p_indices[k2],I0_indices[k1],0,:]] # np.pi/Lcoh_map[0][1,p_indices[k2],I0_indices[k1],0,:]
                 k3+=1
                 
                 
-        
-        image.title = r"On-axis intensity"
         image.xlabel = r'$z$ [mm]'
         # ax.tick_params(axis="both")
         image.ylabel = r'$\Delta k$ [1/mm]'
@@ -341,6 +401,8 @@ for choiceH in choiceHs:
         
         image.ylim_args = [ylims1[k_H][k_preion]]
         
+        image.savefig_args = [os.path.join(OutPath,'Lcoh_onaxis_'+fname_string+'.pdf')]
+        image.savefig_kwargs = {'bbox_inches' : 'tight'}
         pp.plot_preset(image)
         
         
@@ -353,9 +415,7 @@ for choiceH in choiceHs:
                                     ] # np.pi/Lcoh_map[0][1,p_indices[k2],I0_indices[k1],0,:]
                 k3+=1
                 
-                
-        
-        image.title = r"On-axis intensity"
+
         image.xlabel = r'$z$ [mm]'
         # ax.tick_params(axis="both")
         image.ylabel = r'$\Delta k / p$ [1/mm$\cdot$mbar]'
@@ -363,6 +423,8 @@ for choiceH in choiceHs:
         
         image.ylim_args = [ylims2[k_H][k_preion]]
         
+        image.savefig_args = [os.path.join(OutPath,'Lcoh_onaxis_scaled_'+fname_string+'.pdf')]
+        image.savefig_kwargs = {'bbox_inches' : 'tight'}
         pp.plot_preset(image)
 
 
