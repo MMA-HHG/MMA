@@ -101,7 +101,7 @@ choices = [[0,1],[1,1]]
 
 
 contours = 1e3*np.asarray([0.0075, 0.015, 0.03, 0.0595])
-contours_signal = np.asarray([0.5,0.75,0.9])
+contours_signal = np.asarray([0.5,0.75,0.9,0.99])
 Lcoh_saturation = 60.
 
 for choice1 in choices:
@@ -144,7 +144,7 @@ for choice1 in choices:
     image.sf[0].args = [p_grid, I0_grid, np.pi/Lcoh_temp]
     image.sf[0].kwargs = {'shading' : 'auto', 'cmap' : 'plasma'} 
     # image.sf[1].args = image.sf[0].args + [contours_signal]
-    image.sf[0].colorbar.kwargs = {'label': r'$\Delta k_q$ [arb. u.]'}
+    image.sf[0].colorbar.kwargs = {'label': r'$|\Delta k_q|$ [arb. u.]'}
     
     image.savefig_args = [os.path.join(OutPath,
                          'Delta_k_pI0_eta'+'{:.0f}'.format(100*preions[choice1[0]])+'_H'+str(Hgrid[choice1[1]])+'.pdf'
@@ -375,7 +375,7 @@ pp.plot_preset(image)
 
 
 # Delta k
-choiceHs = [1]
+choiceHs = [2]
 choice_preions = [0,1]
 
 ylims1 = [[[0,5.5],[0,0.4]]]
@@ -396,8 +396,8 @@ for choiceH in choiceHs:
                 
         image.xlabel = r'$z$ [mm]'
         # ax.tick_params(axis="both")
-        image.ylabel = r'$\Delta k$ [1/mm]'
-        image.title = r'H'+str(Hgrid[choiceH])
+        image.ylabel = r'$|\Delta k|$ [1/mm]'
+        image.title = r'H'+str(Hgrid[choiceH]) + r', $\eta_0$='+ '{:.0f}'.format(100*preions[choice_preion]) + ' %'
         
         image.ylim_args = [ylims1[k_H][k_preion]]
         
@@ -418,8 +418,8 @@ for choiceH in choiceHs:
 
         image.xlabel = r'$z$ [mm]'
         # ax.tick_params(axis="both")
-        image.ylabel = r'$\Delta k / p$ [1/mm$\cdot$mbar]'
-        image.title = r'H'+str(Hgrid[choiceH])
+        image.ylabel = r'$|\Delta k / p|$ [1/mm$\cdot$mbar]'
+        image.title = r'H'+str(Hgrid[choiceH]) + r', $\eta_0$='+ '{:.0f}'.format(100*preions[choice_preion]) + ' %'
         
         image.ylim_args = [ylims2[k_H][k_preion]]
         

@@ -220,7 +220,6 @@ os.mkdir(OutPath)
 os.chdir(OutPath)
 
 
-
 ## plot H17 + ionisations
 k1 = 1 # index to access given harmonic plot
 
@@ -703,6 +702,80 @@ image.ylabel = 'ionisation [%]'
 # image.savefig_kwargs = {'dpi' : 600}
 
 pp.plot_preset(image)
+
+
+
+
+############# PLOT SPECTRA ETC.
+
+## plot dE/dH
+image = pp.figure_driver()    
+image.sf = [pp.plotter() for k2 in range(2)]
+image.sf[0].args = [Hgrid, dE_dH[0][1,0,:]/np.max(dE_dH[0][1,0,:])]; image.sf[0].kwargs = {'label' : 'no_preion'}    
+image.sf[1].args = [Hgrid, dE_dH[0][1,1,:]/np.max(dE_dH[0][1,0,:])]; image.sf[1].kwargs = {'label' : 'T_discharge/2'}
+
+pp.plot_preset(image)
+
+
+
+# spectra in logscale
+
+choices = [[0,0,0],[0,0,1],[0,2,0],[0,2,1],[0,4,0],[0,4,1]]   #  [[0,0]] # # organisation [scan, pressure, preionT]
+
+choices = [[0,0,0],[0,0,1],[0,1,1],[0,2,1],[0,3,1],[0,4,1],[0,5,1]]   #  [[0,0]] # # organisation [scan, pressure, preionT]
+
+# choices = [[0,0,0],[0,1,0],[0,2,0],[0,3,0],[0,4,0],[0,5,0]]   #  [[0,0]] # # organisation [scan, pressure, preionT]
+
+apply_global_norm = True
+global_norm_log = np.max(np.log10(abs(FField_FF_pp[choices[0][0]][choices[0][1],choices[0][2],:,:].T)**2))
+global_norm_lin = np.max(abs(FField_FF_pp[choices[0][0]][choices[0][1],choices[0][2],:,:].T)**2)
+
+plot_scale = 'lin'
+
+for k1 in range(len(choices)):
+    FF_spectrum_logscale = np.log10(abs(FField_FF_pp[choices[k1][0]][choices[k1][1],choices[k1][2],:,:].T)**2)
+    FF_spectrum_linscale = abs(FField_FF_pp[choices[k1][0]][choices[k1][1],choices[k1][2],:,:].T)**2
+    
+    if apply_global_norm: FF_spectrum_logscale = FF_spectrum_logscale -  global_norm_log # normalise
+    else: FF_spectrum_logscale = FF_spectrum_logscale -  np.max(FF_spectrum_logscale[:])# normalise
+    vmin = np.max(FF_spectrum_logscale)-FF_orders_plot
+        
+    
+    if (choices[k1][2] == 0): eta0 = 0
+    elif (choices[k1][2] == 1): eta0 = ionisations[choices[k1][0]]['half_init'][choices[k1][1]]
+    elif (choices[k1][2] == 2): eta0 = ionisations[choices[k1][0]]['end_init'][choices[k1][1]]
+    
+    local_title = r'$p$='+ '{:.1f}'.format(p_grid[choices[k1][1]]) + ' mbar, ' + \
+                  r'$\eta_0$='+ '{:.1f}'.format(eta0) + ' %'
+    
+    image = pp.figure_driver()    
+    # image.sf.append(pp.plotter())
+    image.sf.append(pp.plotter())
+    image.sf[0].method = plt.pcolor
+    
+    if (plot_scale == 'log'):
+        image.sf[0].args = [Hgrid,rgrid_FF,FF_spectrum_logscale];
+        image.sf[0].kwargs = {'shading': 'auto', 'vmin': vmin, 'cmap' : 'plasma'}  
+    if (plot_scale == 'lin'):
+      if apply_global_norm:
+        image.sf[0].args = [Hgrid,rgrid_FF,FF_spectrum_linscale/global_norm_lin]
+      else:
+        image.sf[0].args = [Hgrid,rgrid_FF,FF_spectrum_linscale/np.max(FF_spectrum_linscale)]  
+      image.sf[0].kwargs = {'shading': 'auto', 'cmap' : 'plasma'}         
+        
+    image.sf[0].colorbar.show = True
+    
+    image.xlabel = 'H [-]'; image.ylabel = 'r [m]'
+    # image.title = 'Far-field spectrum, log'
+    image.title = local_title
+    
+    image.sf[0].colorbar.kwargs = {'label': r'Logarithmic spectrum [arb. u.]'}
+    
+    pp.plot_preset(image)
+    
+    # if showplots: plt.show()
+    # plt.close(fig)
+    # # sys.exit()
 
 # os.chdir(cwd)
 # sys.exit()
