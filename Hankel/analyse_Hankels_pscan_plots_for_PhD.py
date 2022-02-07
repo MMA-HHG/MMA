@@ -181,6 +181,14 @@ OutPath = 'outputs_XUV_gain'
  
 # zgrid_integration_midpoints = 0.5*(zgrid_integration[1:]+zgrid_integration[:-1])
 
+def choice_to_label(choice_foo):
+    if (choice_foo[k1][2] == 0): eta0 = 0
+    elif (choice_foo[k1][2] == 1): eta0 = ionisations[choices[k1][0]]['half_init'][choices[k1][1]]
+    elif (choice_foo[k1][2] == 2): eta0 = ionisations[choices[k1][0]]['end_init'][choices[k1][1]]
+    
+    local_title = r'$p$='+ '{:.1f}'.format(p_grid[choices[k1][1]]) + ' mbar, ' + \
+                  r'$\eta_0$='+ '{:.1f}'.format(eta0) + ' %'
+    return local_title
 
 # Compute integrated spectrum
 dE_dH = []
@@ -732,6 +740,18 @@ global_norm_lin = np.max(abs(FField_FF_pp[choices[0][0]][choices[0][1],choices[0
 
 plot_scale = 'lin'
 
+
+
+
+    
+
+# image = pp.figure_driver()    
+# image.sf = [pp.plotter() for k2 in range(len(choices))]
+# for k1 in range(len(choices)):
+    
+# pp.plot_preset(image)
+    
+
 for k1 in range(len(choices)):
     FF_spectrum_logscale = np.log10(abs(FField_FF_pp[choices[k1][0]][choices[k1][1],choices[k1][2],:,:].T)**2)
     FF_spectrum_linscale = abs(FField_FF_pp[choices[k1][0]][choices[k1][1],choices[k1][2],:,:].T)**2
@@ -747,6 +767,8 @@ for k1 in range(len(choices)):
     
     local_title = r'$p$='+ '{:.1f}'.format(p_grid[choices[k1][1]]) + ' mbar, ' + \
                   r'$\eta_0$='+ '{:.1f}'.format(eta0) + ' %'
+                  
+    
     
     image = pp.figure_driver()    
     # image.sf.append(pp.plotter())
@@ -773,6 +795,10 @@ for k1 in range(len(choices)):
     
     pp.plot_preset(image)
     
+    
+    
+
+
     # if showplots: plt.show()
     # plt.close(fig)
     # # sys.exit()
