@@ -182,11 +182,11 @@ OutPath = 'outputs_XUV_gain'
 # zgrid_integration_midpoints = 0.5*(zgrid_integration[1:]+zgrid_integration[:-1])
 
 def choice_to_label(choice_foo):
-    if (choice_foo[k1][2] == 0): eta0 = 0
-    elif (choice_foo[k1][2] == 1): eta0 = ionisations[choices[k1][0]]['half_init'][choices[k1][1]]
-    elif (choice_foo[k1][2] == 2): eta0 = ionisations[choices[k1][0]]['end_init'][choices[k1][1]]
+    if (choice_foo[2] == 0): eta0 = 0
+    elif (choice_foo[2] == 1): eta0 = ionisations[choice_foo[0]]['half_init'][choice_foo[1]]
+    elif (choice_foo[2] == 2): eta0 = ionisations[choice_foo[0]]['end_init'][choice_foo[1]]
     
-    local_title = r'$p$='+ '{:.1f}'.format(p_grid[choices[k1][1]]) + ' mbar, ' + \
+    local_title = r'$p$='+ '{:.1f}'.format(p_grid[choice_foo[1]]) + ' mbar, ' + \
                   r'$\eta_0$='+ '{:.1f}'.format(eta0) + ' %'
     return local_title
 
@@ -297,7 +297,7 @@ custom_lines = [Line2D([1], [0], color="k"),
 #                          pressures_leg[2]],
 #           loc=1, ncol=3)
 
-image.legend_args = [custom_lines,['no preion', 'by discharge', '40 A', 'by disch. + opt.','50 A', 'optimal']]
+image.legend_args = [custom_lines,['no preion', r'\eta_0', '40 A', r'\eta_{las.}','50 A', '\eta_{opt.}']]
 image.legend_kwargs = {'loc': 1, 'ncol': 3}
 
 # image.legend_kwargs = {'loc':'upper right'}; image.right_axis_legend_kwargs = {'loc':'upper left'} 
@@ -306,7 +306,7 @@ image.xlabel = 'p [mbar]'; image.ylabel = 'I_XUV [arb. u.]'; image.right_ylabel 
 image.title = 'H'+str(Hgrid_study[k1]) + ', T_discharge/2'
 
 image.savefig_args = ['compare1.pdf']
-image.savefig_kwargs = {'dpi' : 600}
+image.savefig_kwargs = {'dpi' : 600,'bbox_inches' : 'tight'}
 
 pp.plot_preset(image)
 
@@ -388,7 +388,7 @@ custom_lines = [Line2D([1], [0], color="k"),
 #                          pressures_leg[2]],
 #           loc=1, ncol=3)
 
-image.legend_args = [custom_lines,['no preion', 'by discharge', '40 A', 'by disch. + opt.','50 A', 'optimal']]
+image.legend_args = [custom_lines,['no preion', r'\eta_0', '40 A', r'\eta_{las.}','50 A', '\eta_{opt.}']] 
 image.legend_kwargs = {'loc': 1, 'ncol': 3}
 
 # image.legend_kwargs = {'loc':'upper right'}; image.right_axis_legend_kwargs = {'loc':'upper left'} 
@@ -398,7 +398,7 @@ image.xlabel = 'p [mbar]'; image.ylabel = 'I_XUV [arb. u.]'; image.right_ylabel 
 image.title = 'H'+str(Hgrid_study[k1]) + ', T_discharge/2'
 
 image.savefig_args = ['compare2.pdf']
-image.savefig_kwargs = {'dpi' : 600}
+image.savefig_kwargs = {'dpi' : 600,'bbox_inches' : 'tight'}
 
 pp.plot_preset(image)
 
@@ -470,7 +470,7 @@ image.xlabel = 'p [mbar]'; image.ylabel = 'I_XUV [arb. u.]'; image.right_ylabel 
 image.title = 'H'+str(Hgrid_study[k1]) + ', 40 A, analytic benchmark'
 
 image.savefig_args = ['compare3.pdf']
-image.savefig_kwargs = {'dpi' : 600}
+image.savefig_kwargs = {'dpi' : 600,'bbox_inches' : 'tight'}
 
 pp.plot_preset(image)
 
@@ -540,7 +540,7 @@ image.xlabel = 'p [mbar]'; image.ylabel = 'I_XUV [arb. u.]'; image.right_ylabel 
 image.title = 'H'+str(Hgrid_study[k1]) + ', 50 A, analytic benchmark'
 
 image.savefig_args = ['compare4.pdf']
-image.savefig_kwargs = {'dpi' : 600}
+image.savefig_kwargs = {'dpi' : 600,'bbox_inches' : 'tight'}
 
 pp.plot_preset(image)
 
@@ -618,7 +618,7 @@ custom_lines = [Line2D([1], [0], color="k"),
 #                          pressures_leg[2]],
 #           loc=1, ncol=3)
 
-image.legend_args = [custom_lines,['no preion', 'by discharge', '40 A', 'by disch. + opt.','50 A', 'optimal']]
+image.legend_args = [custom_lines,['no preion', r'\eta_0', '40 A', r'\eta_{las.}','50 A', '\eta_{opt.}']]
 image.legend_kwargs = {'loc': 1, 'ncol': 3}
 
 # image.legend_kwargs = {'loc':'upper right'}; image.right_axis_legend_kwargs = {'loc':'upper left'} 
@@ -628,7 +628,7 @@ image.xlabel = 'p [mbar]'; image.ylabel = 'I_XUV [arb. u.]'; image.right_ylabel 
 image.title = 'H'+str(Hgrid_study[k1]) + ', T_discharge'
 
 image.savefig_args = ['compare5.pdf']
-image.savefig_kwargs = {'dpi' : 600}
+image.savefig_kwargs = {'dpi' : 600,'bbox_inches' : 'tight'}
 
 pp.plot_preset(image)
 
@@ -695,7 +695,7 @@ image.sf[7].args = [p_grid, ionisations[1]['half'], 'c--']; # image.sf[4].kwargs
 #                          pressures_leg[2]],
 #           loc=1, ncol=3)
 
-image.legend_args = [custom_lines,['no preion', 'by discharge', '40 A', 'by disch. + opt.','50 A', 'optimal']]
+image.legend_args = [custom_lines,['no preion', r'\eta_0', '40 A', r'\eta_{las.}','50 A', '\eta_{opt.}']]
 image.legend_kwargs = {'loc': 1, 'ncol': 3}
 
 # image.legend_kwargs = {'loc':'upper right'}; image.right_axis_legend_kwargs = {'loc':'upper left'} 
@@ -728,28 +728,61 @@ pp.plot_preset(image)
 
 # spectra in logscale
 
-choices = [[0,0,0],[0,0,1],[0,2,0],[0,2,1],[0,4,0],[0,4,1]]   #  [[0,0]] # # organisation [scan, pressure, preionT]
+# choices = [[0,0,0],[0,0,1],[0,2,0],[0,2,1],[0,4,0],[0,4,1]]   #  [[0,0]] # # organisation [scan, pressure, preionT]
 
-choices = [[0,0,0],[0,0,1],[0,1,1],[0,2,1],[0,3,1],[0,4,1],[0,5,1]]   #  [[0,0]] # # organisation [scan, pressure, preionT]
+# choices = [[0,0,0],[0,0,1],[0,1,1],[0,2,1],[0,3,1],[0,4,1],[0,5,1]]   #  [[0,0]] # # organisation [scan, pressure, preionT]
 
 # choices = [[0,0,0],[0,1,0],[0,2,0],[0,3,0],[0,4,0],[0,5,0]]   #  [[0,0]] # # organisation [scan, pressure, preionT]
+
+# choices = [[1,1,2],[1,2,2],[1,3,2],[1,4,2],[1,5,2]]
+
+# choices = [[0,1,0],[0,2,0],[0,3,0],[0,4,0],[0,5,0]]
+
+choices = [[0,0,0],[0,2,0],[0,4,0]]
 
 apply_global_norm = True
 global_norm_log = np.max(np.log10(abs(FField_FF_pp[choices[0][0]][choices[0][1],choices[0][2],:,:].T)**2))
 global_norm_lin = np.max(abs(FField_FF_pp[choices[0][0]][choices[0][1],choices[0][2],:,:].T)**2)
 
-plot_scale = 'lin'
+plot_scale = 'log'
+include_average_dE_dH = False
 
 
 
+# plot all linear averaged spectra
 
+
+dE_dH_avrg = 1.*dE_dH[0][0,0,:]
+for k1 in range(1,len(p_grid)):
+    dE_dH_avrg += dE_dH[0][k1,0,:]
+dE_dH_avrg = dE_dH_avrg/len(p_grid)
+
+if include_average_dE_dH: k_start_k_end = [1,len(choices)+1]
+else: k_start_k_end = [0,len(choices)]
+
+
+image = pp.figure_driver()    
+image.sf = [pp.plotter() for k2 in range(k_start_k_end[1])]
+if include_average_dE_dH:
+    norm = np.max(dE_dH_avrg)
+    image.sf[0].args = [Hgrid, dE_dH_avrg/norm]
+    image.sf[0].kwargs = {'label' : 'average'}
+else: norm = np.max(dE_dH[choices[0][0]][choices[0][1],choices[0][2],:])    
+
+k2 = 0    
+for k1 in range(*k_start_k_end):
+    # norm = np.max(dE_dH[choices[0][0]][choices[0][1],choices[0][2],:])
+    image.sf[k1].args = [Hgrid, dE_dH[choices[k2][0]][choices[k2][1],choices[k2][2],:]/norm]
+    image.sf[k1].kwargs = {'label' : choice_to_label(choices[k2])}
+    k2 += 1
+
+image.xlabel = 'H [-]'
+image.ylabel = '$\mathrm{d}E/\mathrm{d}H$ [arb. u.]'
+
+image.savefigs_args = [['dEdH.pdf'],['dEdH.png']]
+image.savefigs_kwargs = [{'bbox_inches' : 'tight'} for k1 in range(2)]
     
-
-# image = pp.figure_driver()    
-# image.sf = [pp.plotter() for k2 in range(len(choices))]
-# for k1 in range(len(choices)):
-    
-# pp.plot_preset(image)
+pp.plot_preset(image)
     
 
 for k1 in range(len(choices)):
@@ -761,13 +794,14 @@ for k1 in range(len(choices)):
     vmin = np.max(FF_spectrum_logscale)-FF_orders_plot
         
     
-    if (choices[k1][2] == 0): eta0 = 0
-    elif (choices[k1][2] == 1): eta0 = ionisations[choices[k1][0]]['half_init'][choices[k1][1]]
-    elif (choices[k1][2] == 2): eta0 = ionisations[choices[k1][0]]['end_init'][choices[k1][1]]
+    # if (choices[k1][2] == 0): eta0 = 0
+    # elif (choices[k1][2] == 1): eta0 = ionisations[choices[k1][0]]['half_init'][choices[k1][1]]
+    # elif (choices[k1][2] == 2): eta0 = ionisations[choices[k1][0]]['end_init'][choices[k1][1]]
     
-    local_title = r'$p$='+ '{:.1f}'.format(p_grid[choices[k1][1]]) + ' mbar, ' + \
-                  r'$\eta_0$='+ '{:.1f}'.format(eta0) + ' %'
-                  
+    # local_title = r'$p$='+ '{:.1f}'.format(p_grid[choices[k1][1]]) + ' mbar, ' + \
+    #               r'$\eta_0$='+ '{:.1f}'.format(eta0) + ' %'
+     
+    # local_title = choice_to_label(choices[k1])              
     
     
     image = pp.figure_driver()    
@@ -789,9 +823,16 @@ for k1 in range(len(choices)):
     
     image.xlabel = 'H [-]'; image.ylabel = 'r [m]'
     # image.title = 'Far-field spectrum, log'
-    image.title = local_title
+    image.title = choice_to_label(choices[k1])
     
     image.sf[0].colorbar.kwargs = {'label': r'Logarithmic spectrum [arb. u.]'}
+    
+    fname = 'Spectrum_sim' + str(choices[k1][0]) + \
+            '_press_' + str(choices[k1][1]) + \
+            '_preion_' + str(choices[k1][2])
+                
+    image.savefigs_args = [[fname+'.pdf'],[fname+'.png']]
+    image.savefigs_kwargs = [{'bbox_inches' : 'tight'} for k2 in range(2)]
     
     pp.plot_preset(image)
     
