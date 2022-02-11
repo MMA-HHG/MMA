@@ -192,16 +192,30 @@ def choice_to_label(choice_foo):
     return local_title
 
 # Compute integrated spectrum
-dE_dH = []
-XUV_energy_pp = []
+FField_FF_pp_filtered = copy.deepcopy(FField_FF_pp)
+kHs = [0,*mn.FindInterval(Hgrid,
+                     mn.get_divisible_interior_points([Hgrid[0],Hgrid[-1]],2)),
+       len(Hgrid)-1]
+
 for k_1 in range(len(files)):
-    dE_dH.append(np.zeros((N_press, N_preion, NH)))
-    XUV_energy_pp.append(np.empty((N_press, N_preion, NH_study)))
+  for k1 in range(N_press):
+    for k2 in range(N_preion):
+      for k3 in range(len(kHs)-1):
+        if not(kHs[k3] == kHs[k3+1]):
+          FField_FF_pp_filtered[k_1][k1,k2,kHs[k3]:kHs[k3+1],:] = mn.clamp_array(FField_FF_pp_filtered[k_1][k1,k2,kHs[k3]:kHs[k3+1],:],
+                                                                              'low_abs2_cut',0.05)
+          
+dE_dH = []; dE_dH_filtered = []
+XUV_energy_pp = []; XUV_energy_pp_filtered = []
+for k_1 in range(len(files)):
+    dE_dH.append(np.zeros((N_press, N_preion, NH))); dE_dH_filtered.append(np.zeros((N_press, N_preion, NH)));
+    XUV_energy_pp.append(np.empty((N_press, N_preion, NH_study))); XUV_energy_pp_filtered.append(np.empty((N_press, N_preion, NH_study)))
     
     for k1 in range(N_press):
       for k2 in range(N_preion):
         for k3 in range(NH):
           dE_dH[k_1][k1,k2,k3] = np.trapz(rgrid_FF*np.abs(FField_FF_pp[k_1][k1,k2,k3,:])**2)
+          dE_dH_filtered[k_1][k1,k2,k3] = np.trapz(rgrid_FF*np.abs(FField_FF_pp_filtered[k_1][k1,k2,k3,:])**2)
 
 
     # sys.exit()
@@ -216,25 +230,13 @@ for k_1 in range(len(files)):
                                      [Hgrid_study[k3]-0.5 , Hgrid_study[k3]+0.5]
                                      # [Hgrid_study[k3]-0.98 , Hgrid_study[k3]+0.98]
                                      )
+          XUV_energy_pp_filtered[k_1][k1,k2,k3] = mn.integrate_subinterval(
+                                     dE_dH_filtered[k_1][k1,k2,:],
+                                     Hgrid,
+                                     [Hgrid_study[k3]-0.5 , Hgrid_study[k3]+0.5]
+                                     # [Hgrid_study[k3]-0.98 , Hgrid_study[k3]+0.98]
+                                     )
 
-FField_FF_pp_filtered = copy.deepcopy(FField_FF_pp)
-# dE_dH_filtered = []
-# XUV_energy_pp_filtered = []
-kHs = [0,*mn.FindInterval(Hgrid,
-                     mn.get_divisible_interior_points([Hgrid[0],Hgrid[-1]],2)),
-       len(Hgrid)-1]
-
-for k_1 in range(len(files)):
-  for k1 in range(N_press):
-    for k2 in range(N_preion):
-      for k3 in range(len(kHs)-1):
-        if not(kHs[k3] == kHs[k3+1]):
-          xxx = FField_FF_pp_filtered[k_1][k1,k2,kHs[k3]:kHs[k3+1],:]
-          yyy = mn.clamp_array(1.0*FField_FF_pp_filtered[k_1][k1,k2,kHs[k3]:kHs[k3+1],:],
-                                                                              'low_abs2_cut',0.05)
-          # sys.exit()
-          FField_FF_pp_filtered[k_1][k1,k2,kHs[k3]:kHs[k3+1],:] = mn.clamp_array(FField_FF_pp_filtered[k_1][k1,k2,kHs[k3]:kHs[k3+1],:],
-                                                                              'low_abs2_cut',0.05)
       
 # sys.exit()  
 
@@ -794,7 +796,7 @@ else: norm = np.max(dE_dH[choices[0][0]][choices[0][1],choices[0][2],:])
 k2 = 0    
 for k1 in range(*k_start_k_end):
     # norm = np.max(dE_dH[choices[0][0]][choices[0][1],choices[0][2],:])
-    image.sf[k1].args = [Hgrid, dE_dH[choices[k2][0]][choices[k2][1],choices[k2][2],:]/norm]
+    image.sf[k1].args = [Hgrid, dE_dH_filtered[choices[k2][0]][choices[k2][1],choices[k2][2],:]/norm]
     image.sf[k1].kwargs = {'label' : choice_to_label(choices[k2])}
     k2 += 1
 
@@ -808,7 +810,7 @@ pp.plot_preset(image)
     
 
 for k1 in range(len(choices)):
-    FF_spectrum_logscale = np.log10(abs(FField_FF_pp_filtered[choices[k1][0]][choices[k1][1],choices[k1][2],:,:].T)**2)
+    FF_spectrum_logscale = np.log10(abs(FField_FF_pp[choices[k1][0]][choices[k1][1],choices[k1][2],:,:].T)**2)
     FF_spectrum_linscale = abs(FField_FF_pp[choices[k1][0]][choices[k1][1],choices[k1][2],:,:].T)**2
     
     if apply_global_norm: FF_spectrum_logscale = FF_spectrum_logscale -  global_norm_log # normalise

@@ -3,9 +3,9 @@ Nr_max	235	I	-
 kr_step	2	I	-
 ko_step	2	I	-
 
-rmax_FF	10e-4	R	m
+rmax_FF	0.015	R	m
 Nr_FF	300	I	-
-distance_FF	0.3	R	m
+distance_FF	5	R	m
 
 # Nz_max_sum	240	I	-
 # Nz_first	500	I	-
