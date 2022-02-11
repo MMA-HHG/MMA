@@ -102,7 +102,12 @@ choices = [[0,1],[1,1]]
 
 contours = 1e3*np.asarray([0.0075, 0.015, 0.03, 0.0595])
 contours_signal = np.asarray([0.5,0.75,0.9,0.99])
-Lcoh_saturation = 60.
+Lcoh_saturation = 20. # 60.
+
+delta_k_lims = {'vmin' : 0.0, 'vmax': 0.5}
+# delta_k_lims = {'vmin' : 0.0, 'vmax': 0.5}
+
+
 
 for choice1 in choices:
 
@@ -138,13 +143,15 @@ for choice1 in choices:
     pp.plot_preset(image)
 
     # Delta k
-    Lcoh_temp = 1.*(Lcoh_map[choice1[0]][choice1[1],:,:,0,-1]).T
+    Lcoh_temp = 1e3*(Lcoh_map[choice1[0]][choice1[1],:,:,0,-1]).T
 
+    # reverse map
+    orig_map=plt.cm.get_cmap('plasma')
 
     image.sf[0].args = [p_grid, I0_grid, np.pi/Lcoh_temp]
-    image.sf[0].kwargs = {'shading' : 'auto', 'cmap' : 'plasma'} 
+    image.sf[0].kwargs = {'shading' : 'auto', 'cmap' : orig_map.reversed(), **delta_k_lims} 
     # image.sf[1].args = image.sf[0].args + [contours_signal]
-    image.sf[0].colorbar.kwargs = {'label': r'$|\Delta k_q|$ [arb. u.]'}
+    image.sf[0].colorbar.kwargs = {'label': r'$|\Delta k_'+str(Hgrid[choice1[1]])+'|$ [1/mm]'}
     
     image.savefig_args = [os.path.join(OutPath,
                          'Delta_k_pI0_eta'+'{:.0f}'.format(100*preions[choice1[0]])+'_H'+str(Hgrid[choice1[1]])+'.pdf'
@@ -164,7 +171,7 @@ for choice1 in choices:
     image.sf[0].args = [p_grid, I0_grid,XUV_signal]
     image.sf[0].kwargs = {'shading' : 'auto', 'cmap' : 'plasma'} 
     image.sf[1].args = image.sf[0].args + [contours_signal]
-    image.sf[0].colorbar.kwargs = {'label': r'$I_q$ [arb. u.]'}
+    image.sf[0].colorbar.kwargs = {'label': r'$I_'+str(Hgrid[choice1[1]])+'$ [arb. u.]'}
     
     image.savefig_args = [os.path.join(OutPath,
                          'XUV_signal_pI0_eta'+'{:.0f}'.format(100*preions[choice1[0]])+'_H'+str(Hgrid[choice1[1]])+'.pdf'
@@ -226,6 +233,7 @@ for choice1 in choices:
     pp.plot_preset(image)
 
 
+sys.exit()
 
 # ionisation difference
 image = pp.figure_driver()    

@@ -1,6 +1,7 @@
 import numpy as np
 import os
 import time
+import copy
 # import multiprocessing as mp
 import shutil
 import h5py
@@ -28,7 +29,7 @@ from matplotlib.lines import Line2D
   
 
 
-omegaSI = mn.ConvertPhoton(800e-9, 'lambdaSI', 'omegaSI') 
+omegaSI = mn.ConvertPhoton(792e-9, 'lambdaSI', 'omegaSI') 
 # Horder = 17
 
 
@@ -200,7 +201,7 @@ for k_1 in range(len(files)):
     for k1 in range(N_press):
       for k2 in range(N_preion):
         for k3 in range(NH):
-          dE_dH[k_1][k1,k2,k3] = np.trapz(np.abs(FField_FF_pp[k_1][k1,k2,k3,:])**2)
+          dE_dH[k_1][k1,k2,k3] = np.trapz(rgrid_FF*np.abs(FField_FF_pp[k_1][k1,k2,k3,:])**2)
 
 
     # sys.exit()
@@ -216,7 +217,25 @@ for k_1 in range(len(files)):
                                      # [Hgrid_study[k3]-0.98 , Hgrid_study[k3]+0.98]
                                      )
 
+FField_FF_pp_filtered = copy.deepcopy(FField_FF_pp)
+# dE_dH_filtered = []
+# XUV_energy_pp_filtered = []
+kHs = [0,*mn.FindInterval(Hgrid,
+                     mn.get_divisible_interior_points([Hgrid[0],Hgrid[-1]],2)),
+       len(Hgrid)-1]
 
+for k_1 in range(len(files)):
+  for k1 in range(N_press):
+    for k2 in range(N_preion):
+      for k3 in range(len(kHs)-1):
+        if not(kHs[k3] == kHs[k3+1]):
+          xxx = FField_FF_pp_filtered[k_1][k1,k2,kHs[k3]:kHs[k3+1],:]
+          yyy = mn.clamp_array(1.0*FField_FF_pp_filtered[k_1][k1,k2,kHs[k3]:kHs[k3+1],:],
+                                                                              'low_abs2_cut',0.05)
+          # sys.exit()
+          FField_FF_pp_filtered[k_1][k1,k2,kHs[k3]:kHs[k3+1],:] = mn.clamp_array(FField_FF_pp_filtered[k_1][k1,k2,kHs[k3]:kHs[k3+1],:],
+                                                                              'low_abs2_cut',0.05)
+      
 # sys.exit()  
 
 # store results
@@ -297,7 +316,7 @@ custom_lines = [Line2D([1], [0], color="k"),
 #                          pressures_leg[2]],
 #           loc=1, ncol=3)
 
-image.legend_args = [custom_lines,['no preion', r'\eta_0', '40 A', r'\eta_{las.}','50 A', '\eta_{opt.}']]
+image.legend_args = [custom_lines,['no preion', r'$\eta_0$', '40 A', r'$\eta_{las.}$','50 A', '$\eta_{opt.}$']]
 image.legend_kwargs = {'loc': 1, 'ncol': 3}
 
 # image.legend_kwargs = {'loc':'upper right'}; image.right_axis_legend_kwargs = {'loc':'upper left'} 
@@ -388,7 +407,7 @@ custom_lines = [Line2D([1], [0], color="k"),
 #                          pressures_leg[2]],
 #           loc=1, ncol=3)
 
-image.legend_args = [custom_lines,['no preion', r'\eta_0', '40 A', r'\eta_{las.}','50 A', '\eta_{opt.}']] 
+image.legend_args = [custom_lines,['no preion', r'$\eta_0$', '40 A', r'$\eta_{las.}$','50 A', '$\eta_{opt.}$']] 
 image.legend_kwargs = {'loc': 1, 'ncol': 3}
 
 # image.legend_kwargs = {'loc':'upper right'}; image.right_axis_legend_kwargs = {'loc':'upper left'} 
@@ -618,7 +637,7 @@ custom_lines = [Line2D([1], [0], color="k"),
 #                          pressures_leg[2]],
 #           loc=1, ncol=3)
 
-image.legend_args = [custom_lines,['no preion', r'\eta_0', '40 A', r'\eta_{las.}','50 A', '\eta_{opt.}']]
+image.legend_args = [custom_lines,['no preion', r'$\eta_0$', '40 A', r'$\eta_{las.}$','50 A', '$\eta_{opt.}$']]
 image.legend_kwargs = {'loc': 1, 'ncol': 3}
 
 # image.legend_kwargs = {'loc':'upper right'}; image.right_axis_legend_kwargs = {'loc':'upper left'} 
@@ -695,7 +714,7 @@ image.sf[7].args = [p_grid, ionisations[1]['half'], 'c--']; # image.sf[4].kwargs
 #                          pressures_leg[2]],
 #           loc=1, ncol=3)
 
-image.legend_args = [custom_lines,['no preion', r'\eta_0', '40 A', r'\eta_{las.}','50 A', '\eta_{opt.}']]
+image.legend_args = [custom_lines,['no preion', r'$\eta_0$', '40 A', r'$\eta_{las.}$','50 A', '$\eta_{opt.}$']]
 image.legend_kwargs = {'loc': 1, 'ncol': 3}
 
 # image.legend_kwargs = {'loc':'upper right'}; image.right_axis_legend_kwargs = {'loc':'upper left'} 
@@ -738,24 +757,27 @@ pp.plot_preset(image)
 
 # choices = [[0,1,0],[0,2,0],[0,3,0],[0,4,0],[0,5,0]]
 
-choices = [[0,0,0],[0,2,0],[0,4,0]]
+# choices = [[0,0,0],[0,2,0],[0,4,0]]
+
+choices = [[0,0,1],[0,0,1],[0,0,2],[1,0,1],[1,0,1],[1,0,2]]
 
 apply_global_norm = True
 global_norm_log = np.max(np.log10(abs(FField_FF_pp[choices[0][0]][choices[0][1],choices[0][2],:,:].T)**2))
 global_norm_lin = np.max(abs(FField_FF_pp[choices[0][0]][choices[0][1],choices[0][2],:,:].T)**2)
 
 plot_scale = 'log'
-include_average_dE_dH = False
+include_average_dE_dH = True
 
 
 
 # plot all linear averaged spectra
 
 
-dE_dH_avrg = 1.*dE_dH[0][0,0,:]
-for k1 in range(1,len(p_grid)):
-    dE_dH_avrg += dE_dH[0][k1,0,:]
-dE_dH_avrg = dE_dH_avrg/len(p_grid)
+# dE_dH_avrg = 1.*dE_dH[0][0,0,:]
+# for k1 in range(1,len(p_grid)):
+#     dE_dH_avrg += dE_dH[0][k1,0,:]
+# dE_dH_avrg = dE_dH_avrg/len(p_grid)
+dE_dH_avrg = np.mean(dE_dH[0][:,0,:], axis = 0)
 
 if include_average_dE_dH: k_start_k_end = [1,len(choices)+1]
 else: k_start_k_end = [0,len(choices)]
@@ -786,7 +808,7 @@ pp.plot_preset(image)
     
 
 for k1 in range(len(choices)):
-    FF_spectrum_logscale = np.log10(abs(FField_FF_pp[choices[k1][0]][choices[k1][1],choices[k1][2],:,:].T)**2)
+    FF_spectrum_logscale = np.log10(abs(FField_FF_pp_filtered[choices[k1][0]][choices[k1][1],choices[k1][2],:,:].T)**2)
     FF_spectrum_linscale = abs(FField_FF_pp[choices[k1][0]][choices[k1][1],choices[k1][2],:,:].T)**2
     
     if apply_global_norm: FF_spectrum_logscale = FF_spectrum_logscale -  global_norm_log # normalise
@@ -811,8 +833,8 @@ for k1 in range(len(choices)):
     
     if (plot_scale == 'log'):
         image.sf[0].args = [Hgrid,rgrid_FF,FF_spectrum_logscale];
-        image.sf[0].kwargs = {'shading': 'auto', 'vmin': vmin, 'cmap' : 'plasma'}  
-    if (plot_scale == 'lin'):
+        image.sf[0].kwargs = {'shading': 'auto', 'vmin': vmin, 'cmap' : 'plasma', 'rasterized' : True}          
+    elif (plot_scale == 'lin'):
       if apply_global_norm:
         image.sf[0].args = [Hgrid,rgrid_FF,FF_spectrum_linscale/global_norm_lin]
       else:
@@ -825,7 +847,7 @@ for k1 in range(len(choices)):
     # image.title = 'Far-field spectrum, log'
     image.title = choice_to_label(choices[k1])
     
-    image.sf[0].colorbar.kwargs = {'label': r'Logarithmic spectrum [arb. u.]'}
+    image.sf[0].colorbar.kwargs = {'label': r'$\mathrm{log}|\mathcal{E}(\omega,\rho)|^2$ [arb. u.]'}
     
     fname = 'Spectrum_sim' + str(choices[k1][0]) + \
             '_press_' + str(choices[k1][1]) + \

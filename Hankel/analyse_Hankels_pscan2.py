@@ -122,7 +122,7 @@ XUV_energy_pp = np.empty((N_press, N_preion, NH_study))
 for k1 in range(N_press):
   for k2 in range(N_preion):
     for k3 in range(NH):
-      dE_dH[k1,k2,k3] = np.trapz(np.abs(FField_FF_pp[k1,k2,k3,:])**2)
+      dE_dH[k1,k2,k3] = np.trapz(rgrid_FF*np.abs(FField_FF_pp[k1,k2,k3,:])**2)
 
 # sys.exit()
 
