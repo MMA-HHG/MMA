@@ -84,6 +84,8 @@ arguments = sys.argv
 
 
 # compare more results at once, we assume all parmaters to match (# of pressures, ...), so there are only one master p_grid, etc.
+# results_paths = [os.path.join("D:\data", "Discharges", "TDSE","FF1","scan3"),
+#                  os.path.join("D:\data", "Discharges", "TDSE","FF1","scan4")]
 results_paths = [os.path.join("D:\data", "Discharges", "TDSE","scan3"),
                  os.path.join("D:\data", "Discharges", "TDSE","scan4")]
 
@@ -102,8 +104,15 @@ for k1 in range(len(files)):
 # files = list(filter(lambda file: mn.contains_substrings(file,['nodispersion']), files))
 
 # sys.exit()
-
+filter_value = 0.1
 FF_orders_plot = 4
+
+filter_field_type = None #'low_abs2_cut'
+filter_field_value = 0.05
+
+filter_integral_type = None
+filter_integral_value = 0.05
+
 
 p_grid = [];
 preion_extensions = ['no','half','end']
@@ -203,7 +212,7 @@ for k_1 in range(len(files)):
       for k3 in range(len(kHs)-1):
         if not(kHs[k3] == kHs[k3+1]):
           FField_FF_pp_filtered[k_1][k1,k2,kHs[k3]:kHs[k3+1],:] = mn.clamp_array(FField_FF_pp_filtered[k_1][k1,k2,kHs[k3]:kHs[k3+1],:],
-                                                                              'low_abs2_cut',0.05)
+                                                                              filter_field_type,filter_field_value)
           
 dE_dH = []; dE_dH_filtered = []
 XUV_energy_pp = []; XUV_energy_pp_filtered = []
@@ -215,7 +224,14 @@ for k_1 in range(len(files)):
       for k2 in range(N_preion):
         for k3 in range(NH):
           dE_dH[k_1][k1,k2,k3] = np.trapz(rgrid_FF*np.abs(FField_FF_pp[k_1][k1,k2,k3,:])**2)
-          dE_dH_filtered[k_1][k1,k2,k3] = np.trapz(rgrid_FF*np.abs(FField_FF_pp_filtered[k_1][k1,k2,k3,:])**2)
+          dE_dH_filtered[k_1][k1,k2,k3] = np.trapz(mn.clamp_array(
+                                          rgrid_FF*np.abs(FField_FF_pp_filtered[k_1][k1,k2,k3,:])**2,
+                                          filter_integral_type,filter_integral_value))
+              
+
+                                                                              
+                                                   
+                                                   
 
 
     # sys.exit()
@@ -231,7 +247,7 @@ for k_1 in range(len(files)):
                                      # [Hgrid_study[k3]-0.98 , Hgrid_study[k3]+0.98]
                                      )
           XUV_energy_pp_filtered[k_1][k1,k2,k3] = mn.integrate_subinterval(
-                                     dE_dH_filtered[k_1][k1,k2,:],
+                                     1.0*dE_dH_filtered[k_1][k1,k2,:],
                                      Hgrid,
                                      [Hgrid_study[k3]-0.5 , Hgrid_study[k3]+0.5]
                                      # [Hgrid_study[k3]-0.98 , Hgrid_study[k3]+0.98]
@@ -751,17 +767,20 @@ pp.plot_preset(image)
 
 # choices = [[0,0,0],[0,0,1],[0,2,0],[0,2,1],[0,4,0],[0,4,1]]   #  [[0,0]] # # organisation [scan, pressure, preionT]
 
+### !!! The run showing evolution with ionisation
 # choices = [[0,0,0],[0,0,1],[0,1,1],[0,2,1],[0,3,1],[0,4,1],[0,5,1]]   #  [[0,0]] # # organisation [scan, pressure, preionT]
 
 # choices = [[0,0,0],[0,1,0],[0,2,0],[0,3,0],[0,4,0],[0,5,0]]   #  [[0,0]] # # organisation [scan, pressure, preionT]
 
 # choices = [[1,1,2],[1,2,2],[1,3,2],[1,4,2],[1,5,2]]
 
-# choices = [[0,1,0],[0,2,0],[0,3,0],[0,4,0],[0,5,0]]
+choices = [[0,0,0],[0,1,0],[0,2,0],[0,3,0],[0,4,0],[0,5,0]]
 
 # choices = [[0,0,0],[0,2,0],[0,4,0]]
 
-choices = [[0,0,1],[0,0,1],[0,0,2],[1,0,1],[1,0,1],[1,0,2]]
+# choices = [[0,0,1],[0,0,1],[0,0,2],[1,0,1],[1,0,1],[1,0,2]]
+
+
 
 apply_global_norm = True
 global_norm_log = np.max(np.log10(abs(FField_FF_pp[choices[0][0]][choices[0][1],choices[0][2],:,:].T)**2))
@@ -769,6 +788,7 @@ global_norm_lin = np.max(abs(FField_FF_pp[choices[0][0]][choices[0][1],choices[0
 
 plot_scale = 'log'
 include_average_dE_dH = True
+include_first_in_dE_dH_plot = True
 
 
 
@@ -780,6 +800,7 @@ include_average_dE_dH = True
 #     dE_dH_avrg += dE_dH[0][k1,0,:]
 # dE_dH_avrg = dE_dH_avrg/len(p_grid)
 dE_dH_avrg = np.mean(dE_dH[0][:,0,:], axis = 0)
+dE_dH_filtered_avrg = np.mean(dE_dH_filtered[0][:,0,:], axis = 0)
 
 if include_average_dE_dH: k_start_k_end = [1,len(choices)+1]
 else: k_start_k_end = [0,len(choices)]
@@ -788,8 +809,8 @@ else: k_start_k_end = [0,len(choices)]
 image = pp.figure_driver()    
 image.sf = [pp.plotter() for k2 in range(k_start_k_end[1])]
 if include_average_dE_dH:
-    norm = np.max(dE_dH_avrg)
-    image.sf[0].args = [Hgrid, dE_dH_avrg/norm]
+    norm = np.max(dE_dH_filtered_avrg)
+    image.sf[0].args = [Hgrid, dE_dH_filtered_avrg/norm]
     image.sf[0].kwargs = {'label' : 'average'}
 else: norm = np.max(dE_dH[choices[0][0]][choices[0][1],choices[0][2],:])    
 
@@ -798,6 +819,7 @@ for k1 in range(*k_start_k_end):
     # norm = np.max(dE_dH[choices[0][0]][choices[0][1],choices[0][2],:])
     image.sf[k1].args = [Hgrid, dE_dH_filtered[choices[k2][0]][choices[k2][1],choices[k2][2],:]/norm]
     image.sf[k1].kwargs = {'label' : choice_to_label(choices[k2])}
+    if ((k2==0) and not(include_first_in_dE_dH_plot)): image.sf[k1].method = None
     k2 += 1
 
 image.xlabel = 'H [-]'
@@ -841,7 +863,7 @@ for k1 in range(len(choices)):
         image.sf[0].args = [Hgrid,rgrid_FF,FF_spectrum_linscale/global_norm_lin]
       else:
         image.sf[0].args = [Hgrid,rgrid_FF,FF_spectrum_linscale/np.max(FF_spectrum_linscale)]  
-      image.sf[0].kwargs = {'shading': 'auto', 'cmap' : 'plasma'}         
+      image.sf[0].kwargs = {'shading': 'auto', 'cmap' : 'plasma', 'rasterized' : True}           
         
     image.sf[0].colorbar.show = True
     

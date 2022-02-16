@@ -233,7 +233,7 @@ for choice1 in choices:
     pp.plot_preset(image)
 
 
-sys.exit()
+# sys.exit()
 
 # ionisation difference
 image = pp.figure_driver()    
