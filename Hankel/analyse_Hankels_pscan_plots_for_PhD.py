@@ -774,11 +774,15 @@ pp.plot_preset(image)
 
 # choices = [[1,1,2],[1,2,2],[1,3,2],[1,4,2],[1,5,2]]
 
-choices = [[0,0,0],[0,1,0],[0,2,0],[0,3,0],[0,4,0],[0,5,0]]
+### !!! The run showing evolution with pressure without pre-ionisation
+# choices = [[0,0,0],[0,1,0],[0,2,0],[0,3,0],[0,4,0],[0,5,0]]
 
 # choices = [[0,0,0],[0,2,0],[0,4,0]]
 
 # choices = [[0,0,1],[0,0,1],[0,0,2],[1,0,1],[1,0,1],[1,0,2]]
+
+
+choices = [[0,1,0],[0,1,1]]
 
 
 
@@ -871,8 +875,11 @@ for k1 in range(len(choices)):
     # image.title = 'Far-field spectrum, log'
     image.title = choice_to_label(choices[k1])
     
-    image.sf[0].colorbar.kwargs = {'label': r'$\mathrm{log}|\mathcal{E}(\omega,\rho)|^2$ [arb. u.]'}
-    
+    if (plot_scale == 'log'):
+        image.sf[0].colorbar.kwargs = {'label': r'$\mathrm{log}_{10}|\mathcal{E}(\omega,\rho)|^2$ [arb. u.]'}
+    elif (plot_scale == 'lin'):
+        image.sf[0].colorbar.kwargs = {'label': r'$|\mathcal{E}(\omega,\rho)|^2$ [arb. u.]'}
+        
     fname = 'Spectrum_sim' + str(choices[k1][0]) + \
             '_press_' + str(choices[k1][1]) + \
             '_preion_' + str(choices[k1][2])

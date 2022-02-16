@@ -135,10 +135,11 @@ for choice1 in choices:
     
     image.title = 'H'+str(Hgrid[choice1[1]])+', '+local_title
 
-    image.savefig_args = [os.path.join(OutPath,
-                         'Lcoh_pI0_eta'+'{:.0f}'.format(100*preions[choice1[0]])+'_H'+str(Hgrid[choice1[1]])+'.pdf'
-                         )]
-    image.savefig_kwargs = {'bbox_inches' : 'tight','dpi' : 600}
+    outfpath = os.path.join(OutPath,
+                         'Lcoh_pI0_eta'+'{:.0f}'.format(100*preions[choice1[0]])+'_H'+str(Hgrid[choice1[1]])
+                         )
+    image.savefigs_args = [[outfpath + '.pdf'], [outfpath + '.png']]
+    image.savefigs_kwargs = [{'bbox_inches' : 'tight'} for k1 in range(2)]
     
     pp.plot_preset(image)
 
@@ -151,12 +152,15 @@ for choice1 in choices:
     image.sf[0].args = [p_grid, I0_grid, np.pi/Lcoh_temp]
     image.sf[0].kwargs = {'shading' : 'auto', 'cmap' : orig_map.reversed(), **delta_k_lims} 
     # image.sf[1].args = image.sf[0].args + [contours_signal]
-    image.sf[0].colorbar.kwargs = {'label': r'$|\Delta k_'+str(Hgrid[choice1[1]])+'|$ [1/mm]'}
+    image.sf[0].colorbar.kwargs = {'label': r'$|\Delta k_{'+str(Hgrid[choice1[1]])+'}|$ [1/mm]'}
     
-    image.savefig_args = [os.path.join(OutPath,
-                         'Delta_k_pI0_eta'+'{:.0f}'.format(100*preions[choice1[0]])+'_H'+str(Hgrid[choice1[1]])+'.pdf'
-                         )]
-    image.savefig_kwargs = {'bbox_inches' : 'tight','dpi' : 600}
+    
+    outfpath = os.path.join(OutPath,
+                         'Delta_k_pI0_eta'+'{:.0f}'.format(100*preions[choice1[0]])+'_H'+str(Hgrid[choice1[1]])
+                         )
+    image.savefigs_args = [[outfpath + '.pdf'], [outfpath + '.png']]
+    image.savefigs_kwargs = [{'bbox_inches' : 'tight'} for k1 in range(2)]
+    
     pp.plot_preset(image)
     
     # rescale to XUV signal
@@ -171,12 +175,15 @@ for choice1 in choices:
     image.sf[0].args = [p_grid, I0_grid,XUV_signal]
     image.sf[0].kwargs = {'shading' : 'auto', 'cmap' : 'plasma'} 
     image.sf[1].args = image.sf[0].args + [contours_signal]
-    image.sf[0].colorbar.kwargs = {'label': r'$I_'+str(Hgrid[choice1[1]])+'$ [arb. u.]'}
+    image.sf[0].colorbar.kwargs = {'label': r'$I_{'+str(Hgrid[choice1[1]])+'}$ [arb. u.]'}
     
-    image.savefig_args = [os.path.join(OutPath,
-                         'XUV_signal_pI0_eta'+'{:.0f}'.format(100*preions[choice1[0]])+'_H'+str(Hgrid[choice1[1]])+'.pdf'
-                         )]
-    image.savefig_kwargs = {'bbox_inches' : 'tight','dpi' : 600}
+   
+    outfpath = os.path.join(OutPath,
+                         'XUV_signal_pI0_eta'+'{:.0f}'.format(100*preions[choice1[0]])+'_H'+str(Hgrid[choice1[1]])
+                         )
+    image.savefigs_args = [[outfpath + '.pdf'], [outfpath + '.png']]
+    image.savefigs_kwargs = [{'bbox_inches' : 'tight'} for k1 in range(2)]
+    
     pp.plot_preset(image)
     
     
@@ -201,8 +208,10 @@ for choice1 in choices:
     
     image.title = local_title
     
-    image.savefig_args = [os.path.join(OutPath,'Ionisation_pI0_eta'+'{:.0f}'.format(100*preions[choice1[0]])+'.pdf')]
-    image.savefig_kwargs = {'bbox_inches' : 'tight','dpi' : 600}
+    outfpath = os.path.join(OutPath,'Ionisation_pI0_eta'+'{:.0f}'.format(100*preions[choice1[0]]))
+    image.savefigs_args = [[outfpath + '.pdf'], [outfpath + '.png']]
+    image.savefigs_kwargs = [{'bbox_inches' : 'tight'} for k1 in range(2)]
+    
     
     pp.plot_preset(image)
     
@@ -227,8 +236,9 @@ for choice1 in choices:
     
     image.title = local_title
     
-    image.savefig_args = [os.path.join(OutPath,'Cutoff_pI0_eta'+'{:.0f}'.format(100*preions[choice1[0]])+'.pdf')]
-    image.savefig_kwargs = {'bbox_inches' : 'tight','dpi' : 600}
+    outfpath = os.path.join(OutPath,'Cutoff_pI0_eta'+'{:.0f}'.format(100*preions[choice1[0]]))
+    image.savefigs_args = [[outfpath + '.pdf'], [outfpath + '.png']]
+    image.savefigs_kwargs = [{'bbox_inches' : 'tight'} for k1 in range(2)]
     
     pp.plot_preset(image)
 
@@ -268,6 +278,11 @@ choices = [(0,13,5),(1,13,5),
             (0,5,5),(1,5,5),
             (0,18,17),(1,18,17)]
 
+# choices = [(0,0,0),(1,0,0),
+#             (0,0,19),(1,0,19),
+#             (0,19,0),(1,19,0),
+#             (0,19,19),(1,19,19)]
+
 for choice1 in choices:
    
     local_title = r'$I_0$='+'{:.2e}'.format(1e-4*I0_grid[choice1[2]]) + r' W/cm$^2$, ' +\
@@ -300,8 +315,9 @@ for choice1 in choices:
     
     image.title = local_title
                   
-    image.savefig_args = [os.path.join(OutPath,'Cutoff_rz_'+fname_string+'.pdf')]
-    image.savefig_kwargs = {'bbox_inches' : 'tight'}
+    outfpath = os.path.join(OutPath,'Cutoff_rz_'+fname_string)
+    image.savefigs_args = [[outfpath + '.pdf'], [outfpath + '.png']]
+    image.savefigs_kwargs = [{'bbox_inches' : 'tight'} for k1 in range(2)]
     pp.plot_preset(image)
     
     ####
@@ -323,8 +339,11 @@ for choice1 in choices:
     
     image.title = local_title
     
-    image.savefig_args = [os.path.join(OutPath,'Ionisation_rz_'+fname_string+'.pdf')]
-    image.savefig_kwargs = {'bbox_inches' : 'tight'}
+    
+    outfpath =os.path.join(OutPath,'Ionisation_rz_'+fname_string)
+    image.savefigs_args = [[outfpath + '.pdf'], [outfpath + '.png']]
+    image.savefigs_kwargs = [{'bbox_inches' : 'tight'} for k1 in range(2)]
+    
     pp.plot_preset(image)
 
 
@@ -370,6 +389,17 @@ legend_entries = [I0s_leg[0],
 image.legend_args = [custom_lines,legend_entries]
 image.legend_kwargs = {'loc': 1, 'ncol': 3}
 
+
+image.right_ylim_args = [16.345521723472736, 27.996160718565243]
+image.add_right_y_axis = True
+# image.right_ylim_args = [0, 1]
+
+image.right_ylim_args = list(units.INTENSITYau*HHG.ComputeInvCutoff(np.asarray(image.right_ylim_args),
+                                       mn.ConvertPhoton(lambdaSI,'lambdaSI','omegaau'),
+                                       mn.ConvertPhoton(Ip_eV,'eV','omegaau')
+                                       ))
+image.right_ylabel =  r'$I$ [SI]'
+
 image.title = r"On-axis cutoff"
 image.xlabel = r'$z$ [mm]'
 # ax.tick_params(axis="both")
@@ -377,9 +407,13 @@ image.ylabel = r'Cutoff [-]'
 
 image.xlim_args = [[0,15]]
 
-image.savefig_args = [os.path.join(OutPath,'Cutoff_onaxis.pdf')]
-image.savefig_kwargs = {'bbox_inches' : 'tight'}
+
+outfpath = os.path.join(OutPath,'Cutoff_onaxis')
+image.savefigs_args = [[outfpath + '.pdf'], [outfpath + '.png']]
+image.savefigs_kwargs = [{'bbox_inches' : 'tight'} for k1 in range(2)]
+    
 pp.plot_preset(image)
+image.add_right_y_axis = False; image.right_ylim_args = []; del image.right_ylabel
 
 
 # Delta k
@@ -409,8 +443,10 @@ for choiceH in choiceHs:
         
         image.ylim_args = [ylims1[k_H][k_preion]]
         
-        image.savefig_args = [os.path.join(OutPath,'Lcoh_onaxis_'+fname_string+'.pdf')]
-        image.savefig_kwargs = {'bbox_inches' : 'tight'}
+        outfpath = os.path.join(OutPath,'Lcoh_onaxis_'+fname_string)
+        image.savefigs_args = [[outfpath + '.pdf'], [outfpath + '.png']]
+        image.savefigs_kwargs = [{'bbox_inches' : 'tight'} for k1 in range(2)]
+        
         pp.plot_preset(image)
         
         
@@ -431,8 +467,11 @@ for choiceH in choiceHs:
         
         image.ylim_args = [ylims2[k_H][k_preion]]
         
-        image.savefig_args = [os.path.join(OutPath,'Lcoh_onaxis_scaled_'+fname_string+'.pdf')]
-        image.savefig_kwargs = {'bbox_inches' : 'tight'}
+        
+        outfpath = os.path.join(OutPath,'Lcoh_onaxis_scaled_'+fname_string)
+        image.savefigs_args = [[outfpath + '.pdf'], [outfpath + '.png']]
+        image.savefigs_kwargs = [{'bbox_inches' : 'tight'} for k1 in range(2)]
+        
         pp.plot_preset(image)
 
 
