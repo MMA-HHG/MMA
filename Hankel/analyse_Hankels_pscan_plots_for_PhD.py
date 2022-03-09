@@ -781,8 +781,11 @@ pp.plot_preset(image)
 
 # choices = [[0,0,1],[0,0,1],[0,0,2],[1,0,1],[1,0,1],[1,0,2]]
 
+### !!! show two cases for 20 mbar
+# choices = [[0,1,0],[0,1,1]]
 
-choices = [[0,1,0],[0,1,1]]
+### !!! show two cases for 20 mbar
+choices = [[0,1,0],[0,1,1],[0,1,2],[1,1,1],[1,1,2]]
 
 
 
@@ -793,6 +796,9 @@ global_norm_lin = np.max(abs(FField_FF_pp[choices[0][0]][choices[0][1],choices[0
 plot_scale = 'log'
 include_average_dE_dH = True
 include_first_in_dE_dH_plot = True
+
+plot_zoom = True
+zoom_xlim = [15,17]; zoom_ylim = [0,0.004];
 
 
 
@@ -888,6 +894,13 @@ for k1 in range(len(choices)):
     image.savefigs_kwargs = [{'bbox_inches' : 'tight'} for k2 in range(2)]
     
     pp.plot_preset(image)
+    
+    if plot_zoom:
+        image.xlim_args = [zoom_xlim]
+        image.ylim_args = [zoom_ylim]
+        fname2 = fname + '_zoom'
+        image.savefigs_args = [[fname2+'.pdf'],[fname2+'.png']]  
+        pp.plot_preset(image)        
     
     
     

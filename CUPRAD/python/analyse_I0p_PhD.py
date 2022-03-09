@@ -273,11 +273,10 @@ pp.plot_preset(image)
 ## (r,z) Cut-offs & ionisations
 # choices = []
 
-choices = [(0,13,5),(1,13,5),
-            (0,13,17),(1,13,17),
-            (0,5,5),(1,5,5),
-            (0,18,17),(1,18,17)]
-
+choices = [(0,13,5,1),(1,13,5,1),
+            (0,13,17,1),(1,13,17,1),
+            (0,5,5,1),(1,5,5,1),
+            (0,18,17,1),(1,18,17,1)]
 # choices = [(0,0,0),(1,0,0),
 #             (0,0,19),(1,0,19),
 #             (0,19,0),(1,19,0),
@@ -341,6 +340,34 @@ for choice1 in choices:
     
     
     outfpath =os.path.join(OutPath,'Ionisation_rz_'+fname_string)
+    image.savefigs_args = [[outfpath + '.pdf'], [outfpath + '.png']]
+    image.savefigs_kwargs = [{'bbox_inches' : 'tight'} for k1 in range(2)]
+    
+    pp.plot_preset(image)
+    
+    ## Coherence maps
+    image = pp.figure_driver()    
+    image.sf = [pp.plotter()]
+    
+    image.sf[0].method = plt.pcolor    
+    Lcoh_tmp = 1e3*Lcoh_map[choice1[0]][
+                                            choice1[3],choice1[1],choice1[2],
+                                            :,:]
+    image.sf[0].args = [1e3*zgrid, 1e6*rgrid, Lcoh_tmp]    
+    image.sf[0].kwargs = {'shading' : 'auto', 'cmap' : 'plasma'}   
+    if (np.max(Lcoh_tmp) > Lcoh_saturation): image.sf[0].kwargs['vmax']=Lcoh_saturation
+    
+    image.sf[0].colorbar.show = True    
+    image.xlabel = r'$z$ [mm]'; image.ylabel = r'$\rho$ [$\mu$m]'
+    
+    image.sf[0].colorbar.show = True
+    image.sf[0].colorbar.kwargs = {'label': r'$L_{coh}$ [mm]'}
+    
+    image.title = 'H' + str(Hgrid[choice1[3]]) + ', ' + local_title
+    
+    
+    fname_string = fname_string + '_H' + str(Hgrid[choice1[3]])
+    outfpath =os.path.join(OutPath,'Lcoh_rz_'+fname_string)
     image.savefigs_args = [[outfpath + '.pdf'], [outfpath + '.png']]
     image.savefigs_kwargs = [{'bbox_inches' : 'tight'} for k1 in range(2)]
     
@@ -417,7 +444,7 @@ image.add_right_y_axis = False; image.right_ylim_args = []; del image.right_ylab
 
 
 # Delta k
-choiceHs = [2]
+choiceHs = [1]
 choice_preions = [0,1]
 
 ylims1 = [[[0,5.5],[0,0.4]]]
@@ -443,7 +470,7 @@ for choiceH in choiceHs:
         
         image.ylim_args = [ylims1[k_H][k_preion]]
         
-        outfpath = os.path.join(OutPath,'Lcoh_onaxis_'+fname_string)
+        outfpath = os.path.join(OutPath,'Lcoh_onaxis_'+'H'+str(Hgrid[choiceH])+fname_string)
         image.savefigs_args = [[outfpath + '.pdf'], [outfpath + '.png']]
         image.savefigs_kwargs = [{'bbox_inches' : 'tight'} for k1 in range(2)]
         
@@ -468,7 +495,7 @@ for choiceH in choiceHs:
         image.ylim_args = [ylims2[k_H][k_preion]]
         
         
-        outfpath = os.path.join(OutPath,'Lcoh_onaxis_scaled_'+fname_string)
+        outfpath = os.path.join(OutPath,'Lcoh_onaxis_scaled_'+'H'+str(Hgrid[choiceH])+fname_string)
         image.savefigs_args = [[outfpath + '.pdf'], [outfpath + '.png']]
         image.savefigs_kwargs = [{'bbox_inches' : 'tight'} for k1 in range(2)]
         
