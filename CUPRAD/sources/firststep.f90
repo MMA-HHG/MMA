@@ -1,4 +1,4 @@
-  ! There are preparatory subroutines called before the main propagation
+! There are preparatory subroutines called before the main propagation
 !
 ! "calc_propagator" computes the matrix representation of propagation 
 ! operators according to various models (and is accessed if step-size changed)
