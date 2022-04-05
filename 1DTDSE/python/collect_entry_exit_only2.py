@@ -42,6 +42,7 @@ with h5py.File(fname1,'r') as inpf, h5py.File(fname2,'r') as inpf2, h5py.File(ou
         inpf2.copy(dataset,outgrp)
     
     # omega domain
+    print([0,Nz-1])
     dum = inpf2['FSourceTerm'][:,[0,Nz-1],:,:]
     outgrp.create_dataset('FSourceTerm', data = dum)
     
