@@ -38,6 +38,7 @@ with h5py.File(fname1,'r') as inpf, h5py.File(fname2,'r') as inpf2, h5py.File(ou
     
     outgrp = outf.create_group('TDSE')
     zgrid = ['zgrid_coarse']; Nz = len(zgrid)
+    print(zgrid)
     for dataset in ['tgrid','omegagrid','rgrid_coarse', 'ground_state', 'xgrid_micro']:
         inpf2.copy(dataset,outgrp)
     
