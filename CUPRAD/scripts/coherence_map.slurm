@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH -J coherence-maps
 #SBATCH --nodes=1
-#SBATCH --constraint=[HSW24|BDW28]
+#SBATCH --constraint=BDW28
 #SBATCH --ntasks=1
 #SBATCH --time=20:00:00
 #SBATCH --output coherence-maps-%J.output
