@@ -37,13 +37,11 @@ with h5py.File(fname1,'r') as inpf, h5py.File(fname2,'r') as inpf2, h5py.File(ou
     inpgrp.copy('tgrid',outgrp)
     
     outgrp = outf.create_group('TDSE')
-    zgrid = ['zgrid_coarse']; Nz = len(zgrid)
-    print(zgrid)
+    zgrid = inpf2['zgrid_coarse']; Nz = len(zgrid)
     for dataset in ['tgrid','omegagrid','rgrid_coarse', 'ground_state', 'xgrid_micro']:
         inpf2.copy(dataset,outgrp)
     
     # omega domain
-    print([0,Nz-1])
     dum = inpf2['FSourceTerm'][:,[0,Nz-1],:,:]
     outgrp.create_dataset('FSourceTerm', data = dum)
     
@@ -51,6 +49,8 @@ with h5py.File(fname1,'r') as inpf, h5py.File(fname2,'r') as inpf2, h5py.File(ou
     for dataset in ['PopInt','PopTot','expval_x']:
         dum = inpf2[dataset][:,[0,Nz-1],:]
         outgrp.create_dataset(dataset, data = dum)
+        
+    outgrp.create_dataset('zgrid', data = zgrid[[0,Nz-1]])
     
         
         # inpgrp.copy
