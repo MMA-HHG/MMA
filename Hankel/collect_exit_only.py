@@ -12,6 +12,7 @@ import glob
 files = glob.glob('*.h5') # filter all available files
 results_path = 'exit'
 
+precision = 'd'
 
 for fname in files:
     with h5py.File(fname,'r') as inpf, h5py.File(os.path.join(results_path,fname),'w') as outf:
