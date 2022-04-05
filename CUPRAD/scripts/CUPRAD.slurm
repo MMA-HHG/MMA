@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH -J CUPRAD
 #SBATCH --nodes=2
-#SBATCH --constraint=[HSW24|BDW28]
+#SBATCH --constraint=BDW28
 #SBATCH --ntasks=32
 #SBATCH --ntasks-per-node=16
 #SBATCH --time=06:00:00
