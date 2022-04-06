@@ -308,6 +308,8 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
                 ax4.set_xlabel('z [mm]'); ax4.set_ylabel('r [mum]'); ax4.set_title('dPhi/dz, full, H'+str(q)+title_string+t_string ) 
                 fig4.colorbar(map1)
                 fig4.savefig('dPhi_dz_t'+str(k1)+'_H'+str(q)+'_sim'+str(k_sim)+'.png', dpi = 600)
+                plt.close(fig4)
+                gc.collect()
                 
                 fig8, ax8 = plt.subplots()
                 
@@ -318,6 +320,8 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
                 ax8.set_xlabel('z [mm]'); ax8.set_ylabel('r [mum]'); ax8.set_title('|dPhi/dz|, full, H'+str(q)+title_string+t_string ) 
                 fig8.colorbar(map1)
                 fig8.savefig('abs_dPhi_dz_t'+str(k1)+'_H'+str(q)+'_sim'+str(k_sim)+'.png', dpi = 600)
+                plt.close(fig8)
+                gc.collect()
                 
                 fig5, ax5 = plt.subplots()
                 dum = abs( np.pi / (q*(grad_z_phase[k1,:,:] + res.k0_wave*(nXUV[k2]-1))+grad_z_phase_FSPA[k2][k1,:,:] ) )
@@ -329,7 +333,9 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
                 
                 ax5.set_xlabel('z [mm]'); ax5.set_ylabel('r [mum]'); ax5.set_title('Lcoh, H'+str(q)+title_string+t_string )         
                 fig5.colorbar(map1)
-                fig5.savefig('Lcoh_t'+str(k1)+'_H'+str(q)+'_sim'+str(k_sim)+'.png', dpi = 600)
+                fig5.savefig('Lcoh_t'+str(k1)+'_H'+str(q)+'_sim'+str(k_sim)+'.png', dpi = 600)                
+                plt.close(fig5)
+                gc.collect()
                 
              
             ax1.set_xlabel('z [mm]'); ax1.set_ylabel('dPhi/dz [1/m]'); ax1.set_title('beam phase'+title_string)   
@@ -345,6 +351,9 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
             fig3.savefig('phase_onax_full_sim'+str(k_sim)+'.png', dpi = 600)
             fig14.savefig('phase_in_rads'+str(k_sim)+'.png', dpi = 600)
             
+            plt.close(fig1); plt.close(fig2); plt.close(fig3); plt.close(fig14)
+            gc.collect()
+            
             
             # Intnesity shape
             fig9, ax9 = plt.subplots()
@@ -355,6 +364,7 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
             ax9.legend(loc='best')
             ax9.set_xlabel('t [fs]'); ax9.set_ylabel('I [cutoff]'); ax9.set_title('onaxis intensity'+title_string)   
             fig9.savefig('Intens_onax_sim'+str(k_sim)+'.png', dpi = 600)
+            plt.close(fig9); gc.collect()
             
             
             # Field onax
@@ -366,6 +376,7 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
             ax9.legend(loc='best')
             ax9.set_xlabel('t [fs]'); ax9.set_ylabel('E [SI]'); ax9.set_title('Efield'+title_string)   
             fig9.savefig('Efield_onax_sim'+str(k_sim)+'.png', dpi = 600)
+            plt.close(fig9); gc.collect()
             
             # # Field onax - compare
             # fig9, ax9 = plt.subplots()
