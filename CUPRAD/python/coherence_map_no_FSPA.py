@@ -119,7 +119,7 @@ except:
 
 tlim2 = [-20,5]
 
-map_scale = 'nipy_spectral'
+map_scale = 'plasma'
 
 fix_saturation = True
 
@@ -351,7 +351,7 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
             fig3.savefig('phase_onax_full_sim'+str(k_sim)+'.png', dpi = 600)
             fig14.savefig('phase_in_rads'+str(k_sim)+'.png', dpi = 600)
             
-            plt.close(fig1); plt.close(fig2); plt.close(fig3); plt.close(fig14)
+            plt.close('all');
             gc.collect()
             
             
