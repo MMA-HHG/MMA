@@ -8,11 +8,13 @@ import sys
 import os
 import shutil
 
-gases = ['Ar_Henke', 'Kr_Henke', 'Kr_NIST']
+gases = ['Ar_Henke', 'Kr_Henke', 'Kr_NIST', 'Ne_Henke', 'Ne_NIST']
 filenames = {
     'Ar_Henke' : ['ar.nff'],
     'Kr_Henke' : ['kr.nff'],
-    'Kr_NIST' : ['kr_f1_NIST.txt', 'kr_f2_NIST.txt']
+    'Kr_NIST' : ['kr_f1_NIST.txt', 'kr_f2_NIST.txt'],
+    'Ne_Henke' : ['ne.nff'],
+    'Ne_NIST' : ['kr_f1_NIST.txt', 'kr_f2_NIST.txt']
 }
 tables_path = 'XUV_tables'
 target_archive = 'XUV_refractive_index_tables.h5'
