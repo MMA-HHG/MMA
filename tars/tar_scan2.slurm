@@ -9,6 +9,6 @@
 module purge
 module load intelpython3/2019.3
 
-./tar_scan1.sh
+./tar_scan2.sh
 
 echo "Job finished" 
