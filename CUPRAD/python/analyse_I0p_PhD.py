@@ -114,7 +114,8 @@ for choice1 in choices:
     local_title = r'$\eta_0$='+ '{:.0f}'.format(100*preions[choice1[0]]) + ' %'
                   
     # coherence map
-    image = pp.figure_driver()    
+    image = pp.figure_driver()  
+    image.set_fontsizes = 'triplet' 
     image.sf = [pp.plotter() for k1 in range(2)]
     
     image.sf[0].method = plt.pcolor    
@@ -141,6 +142,10 @@ for choice1 in choices:
     image.savefigs_args = [[outfpath + '.pdf'], [outfpath + '.png']]
     image.savefigs_kwargs = [{'bbox_inches' : 'tight'} for k1 in range(2)]
     
+    image.annotation = [['(b)'],
+                    {'xy' : (0.025, .9),
+                     'xycoords' : 'axes fraction',
+                     'color' : 'w'}]   
     pp.plot_preset(image)
 
     # Delta k
@@ -161,6 +166,10 @@ for choice1 in choices:
     image.savefigs_args = [[outfpath + '.pdf'], [outfpath + '.png']]
     image.savefigs_kwargs = [{'bbox_inches' : 'tight'} for k1 in range(2)]
     
+    image.annotation = [['(a)'],
+                    {'xy' : (0.025, .9),
+                     'xycoords' : 'axes fraction',
+                     'color' : 'w'}]        
     pp.plot_preset(image)
     
     # rescale to XUV signal
@@ -184,11 +193,15 @@ for choice1 in choices:
     image.savefigs_args = [[outfpath + '.pdf'], [outfpath + '.png']]
     image.savefigs_kwargs = [{'bbox_inches' : 'tight'} for k1 in range(2)]
     
+    image.annotation = [['(c)'],
+                    {'xy' : (0.875, .9),
+                     'xycoords' : 'axes fraction'}]   
     pp.plot_preset(image)
     
     
     # ionisations
-    image = pp.figure_driver()    
+    image = pp.figure_driver()
+    image.set_fontsizes = 'doublet+'     
     image.sf = [pp.plotter() for k1 in range(2)]
     
     image.sf[0].method = plt.pcolor    
@@ -216,7 +229,8 @@ for choice1 in choices:
     pp.plot_preset(image)
     
     # intensity
-    image = pp.figure_driver()    
+    image = pp.figure_driver() 
+    image.set_fontsizes = 'doublet+' 
     image.sf = [pp.plotter() for k1 in range(2)]
     
     image.sf[0].method = plt.pcolor    
@@ -246,7 +260,8 @@ for choice1 in choices:
 # sys.exit()
 
 # ionisation difference
-image = pp.figure_driver()    
+image = pp.figure_driver()
+image.set_fontsizes = 'doublet+'     
 image.sf = [pp.plotter()]
 image.sf[0].method = plt.pcolor    
 image.sf[0].args = [p_grid, I0_grid,abs((plasma_map[1][:,:,0,-1]).T - (plasma_map[0][:,:,0,-1]).T -8. )]    
@@ -258,7 +273,8 @@ image.xlabel = r'$p$ [mbar]'; image.ylabel = r'$I_0$ [SI]'
 pp.plot_preset(image)
 
 #intensity difference
-image = pp.figure_driver()    
+image = pp.figure_driver() 
+image.set_fontsizes = 'doublet+'    
 image.sf = [pp.plotter()]
 image.sf[0].method = plt.pcolor    
 image.sf[0].args = [p_grid, I0_grid,abs((Intens_map[1][:,:,0,-1]).T - (Intens_map[0][:,:,0,-1]).T)/np.max((Intens_map[0][:,:,0,-1]).T)]    
@@ -277,10 +293,13 @@ choices = [(0,13,5,1),(1,13,5,1),
             (0,13,17,1),(1,13,17,1),
             (0,5,5,1),(1,5,5,1),
             (0,18,17,1),(1,18,17,1)]
-# choices = [(0,0,0),(1,0,0),
-#             (0,0,19),(1,0,19),
-#             (0,19,0),(1,19,0),
-#             (0,19,19),(1,19,19)]
+
+# choices = [(0,0,0,1),(1,0,0,1),
+#             (0,0,19,1),(1,0,19,1),
+#             (0,19,0,1),(1,19,0,1),
+#             (0,19,19,1),(1,19,19,1)]
+
+annotation_text = '(b)'
 
 for choice1 in choices:
    
@@ -290,7 +309,13 @@ for choice1 in choices:
                   
     fname_string = 'I0_'+str(choice1[2])+'_p'+str(choice1[1])+'_eta'+str(choice1[0])
    
-    image = pp.figure_driver()    
+    image = pp.figure_driver() 
+    image.annotation = [[annotation_text],
+                    {'xy' : (0.025, .9),
+                     'xycoords' : 'axes fraction',
+                     'color' : 'w'}]
+    
+    image.set_fontsizes = 'doublet+' 
     image.sf = [pp.plotter() for k1 in range(2)]
     
     image.sf[0].method = plt.pcolor    
@@ -321,7 +346,12 @@ for choice1 in choices:
     
     ####
     
-    image = pp.figure_driver()    
+    image = pp.figure_driver()
+    image.annotation = [[annotation_text],
+                    {'xy' : (0.025, .9),
+                     'xycoords' : 'axes fraction',
+                     'color' : 'w'}]    
+    image.set_fontsizes = 'doublet+' 
     image.sf = [pp.plotter()]
     
     image.sf[0].method = plt.pcolor    
@@ -346,7 +376,12 @@ for choice1 in choices:
     pp.plot_preset(image)
     
     ## Coherence maps
-    image = pp.figure_driver()    
+    image = pp.figure_driver()
+    image.annotation = [[annotation_text],
+                    {'xy' : (0.025, .9),
+                     'xycoords' : 'axes fraction',
+                     'color' : 'w'}]    
+    image.set_fontsizes = 'doublet+' 
     image.sf = [pp.plotter()]
     
     image.sf[0].method = plt.pcolor    
@@ -384,7 +419,14 @@ p_indices = [4,13,19]
 colors = ["k","b","r"]
 linestyles = ['-','--',':']
 
-image = pp.figure_driver()   
+annotation_text = '(c)'
+
+image = pp.figure_driver()  
+image.annotation = [[annotation_text],
+                    {'xy' : (0.05, .9), # 0.15 0.05
+                     'xycoords' : 'axes fraction'}]
+
+image.set_fontsizes = 'doublet+'  
 image.sf = [] 
 
 pressures_round = np.round(p_grid[p_indices])
@@ -399,22 +441,39 @@ for k1 in range(len(I0_indices)):
         image.sf[-1].args =[1e3*zgrid, Cutoff_map[0][p_indices[k2],I0_indices[k1],0,:]]
         image.sf[-1].kwargs = {'color' : colors[k1], 'linestyle' : linestyles[k2]}
         
+# custom_lines = [Line2D([1], [0], color="k", lw=3),
+#                 Line2D([0], [0], color="tab:grey", lw=3, linestyle="-"),
+#                 Line2D([0], [0], color="b", lw=3),
+#                 Line2D([0], [0], color="tab:grey", lw=3, linestyle="--"),
+#                 Line2D([0], [0], color="r", lw=3),                
+#                 Line2D([0], [0], color="tab:grey", lw=3, linestyle=":")]
+
 custom_lines = [Line2D([1], [0], color="k", lw=3),
-                Line2D([0], [0], color="tab:grey", lw=3, linestyle="-"),
+                Line2D([0], [0], color="r", lw=3), 
                 Line2D([0], [0], color="b", lw=3),
                 Line2D([0], [0], color="tab:grey", lw=3, linestyle="--"),
-                Line2D([0], [0], color="r", lw=3),                
+                Line2D([0], [0], color="tab:grey", lw=3, linestyle="-"),                               
                 Line2D([0], [0], color="tab:grey", lw=3, linestyle=":")]
 
+# legend_entries = [I0s_leg[0],
+#                   pressures_leg[0],
+#                   I0s_leg[1],
+#                   pressures_leg[1],
+#                   I0s_leg[2],
+#                   pressures_leg[2]]
+
 legend_entries = [I0s_leg[0],
-                  pressures_leg[0],
                   I0s_leg[1],
-                  pressures_leg[1],
                   I0s_leg[2],
+                  pressures_leg[0],                  
+                  pressures_leg[1],                  
                   pressures_leg[2]]
 
 image.legend_args = [custom_lines,legend_entries]
-image.legend_kwargs = {'loc': 1, 'ncol': 3}
+# image.legend_kwargs = {'loc': 1, 'ncol': 2}
+image.legend_kwargs = {'ncol': 2}
+# image.legend_set_in_layout = False
+# image.legend_kwargs = {'ncol': 3}
 
 
 image.right_ylim_args = [16.345521723472736, 27.996160718565243]
@@ -422,9 +481,9 @@ image.add_right_y_axis = True
 # image.right_ylim_args = [0, 1]
 
 image.right_ylim_args = list(units.INTENSITYau*HHG.ComputeInvCutoff(np.asarray(image.right_ylim_args),
-                                       mn.ConvertPhoton(lambdaSI,'lambdaSI','omegaau'),
-                                       mn.ConvertPhoton(Ip_eV,'eV','omegaau')
-                                       ))
+                                        mn.ConvertPhoton(lambdaSI,'lambdaSI','omegaau'),
+                                        mn.ConvertPhoton(Ip_eV,'eV','omegaau')
+                                        ))
 image.right_ylabel =  r'$I$ [SI]'
 
 image.title = r"On-axis cutoff"

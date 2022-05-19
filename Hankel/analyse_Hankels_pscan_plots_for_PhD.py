@@ -334,16 +334,18 @@ custom_lines = [Line2D([1], [0], color="k"),
 #                          pressures_leg[2]],
 #           loc=1, ncol=3)
 
-image.legend_args = [custom_lines,['no preion', r'$\eta_0$', '40 A', r'$\eta_{las.}$','50 A', '$\eta_{opt.}$']]
+image.legend_args = [custom_lines,['no preion.', r'$\eta_0$', '40 A', r'$\eta_{las.}$','50 A', '$\eta_{opt.}$']]
 image.legend_kwargs = {'loc': 1, 'ncol': 3}
 
 # image.legend_kwargs = {'loc':'upper right'}; image.right_axis_legend_kwargs = {'loc':'upper left'} 
-image.xlabel = 'p [mbar]'; image.ylabel = 'I_XUV [arb. u.]'; image.right_ylabel = 'ionisation [%]'
+image.xlabel = r'$p$ [mbar]'; image.ylabel = r'$I_{\mathrm{XUV}}$ [arb. u.]'; image.right_ylabel = 'ionisation [%]'
 
-image.title = 'H'+str(Hgrid_study[k1]) + ', T_discharge/2'
+image.title = r'$H_{'+str(Hgrid_study[k1]) + r'}$, $T_{\mathrm{discharge}}/2$'
 
 image.savefig_args = ['compare1.pdf']
 image.savefig_kwargs = {'dpi' : 600,'bbox_inches' : 'tight'}
+
+image.set_fontsizes = 'doublet+'
 
 pp.plot_preset(image)
 
@@ -425,18 +427,19 @@ custom_lines = [Line2D([1], [0], color="k"),
 #                          pressures_leg[2]],
 #           loc=1, ncol=3)
 
-image.legend_args = [custom_lines,['no preion', r'$\eta_0$', '40 A', r'$\eta_{las.}$','50 A', '$\eta_{opt.}$']] 
+image.legend_args = [custom_lines,['no preion.', r'$\eta_0$', '40 A', r'$\eta_{las.}$','50 A', '$\eta_{opt.}$']] 
 image.legend_kwargs = {'loc': 1, 'ncol': 3}
 
 # image.legend_kwargs = {'loc':'upper right'}; image.right_axis_legend_kwargs = {'loc':'upper left'} 
-image.xlabel = 'p [mbar]'; image.ylabel = 'I_XUV [arb. u.]'; image.right_ylabel = 'ionisation [%]'
+image.xlabel = r'$p$ [mbar]'; image.ylabel = r'$I_{\mathrm{XUV}}$ [arb. u.]'; image.right_ylabel = 'ionisation [%]'
 
 
-image.title = 'H'+str(Hgrid_study[k1]) + ', T_discharge/2'
+image.title = r'$H_{'+str(Hgrid_study[k1]) + r'}$, $T_{\mathrm{discharge}}/2$'
 
 image.savefig_args = ['compare2.pdf']
 image.savefig_kwargs = {'dpi' : 600,'bbox_inches' : 'tight'}
 
+image.set_fontsizes = 'doublet+'
 pp.plot_preset(image)
 
 
@@ -456,7 +459,7 @@ image.sf = [pp.plotter() for k2 in range(11)]
 
 
 image.sf[0].args = [p_grid, XUV_energy_pp[0][:,0,k1]/np.mean(XUV_energy_pp[0][:,0,k1]),'k']; image.sf[0].kwargs = {'label' : 'no_preion'}    
-image.sf[1].args = [p_grid, XUV_energy_pp[0][:,1,k1]/np.mean(XUV_energy_pp[0][:,0,k1]),'b']; image.sf[1].kwargs = {'label' : 'T_discharge/2'}
+image.sf[1].args = [p_grid, XUV_energy_pp[0][:,1,k1]/np.mean(XUV_energy_pp[0][:,0,k1]),'b']; image.sf[1].kwargs = {'label' : r'$T_{\mathrm{discharge}}/2$'}
 
 # image.sf[2].args = [p_grid, XUV_energy_pp[1][:,1,k1]/np.mean(XUV_energy_pp[1][:,0,k1]),'r']; image.sf[2].kwargs = {'label' : 'T_discharge/2'}
 # image.sf[3].args = [p_grid, XUV_energy_pp[1][:,1,k1]/np.max(XUV_energy_pp[1][:,0,k1]),'b']; image.sf[1].kwargs = {'label' : 'T_discharge/2'}
@@ -501,14 +504,15 @@ image.legend_args = [custom_lines,['reference', 'numerical', 'estimate', 'num. i
 image.legend_kwargs = {'loc': 1, 'ncol': 2}
 
 # image.legend_kwargs = {'loc':'upper right'}; image.right_axis_legend_kwargs = {'loc':'upper left'} 
-image.xlabel = 'p [mbar]'; image.ylabel = 'I_XUV [arb. u.]'; image.right_ylabel = 'ionisation [%]'
+image.xlabel = r'$p$ [mbar]'; image.ylabel = r'$I_{\mathrm{XUV}}$ [arb. u.]'; image.right_ylabel = 'ionisation [%]'
 
 
-image.title = 'H'+str(Hgrid_study[k1]) + ', 40 A, analytic benchmark'
+image.title = r'$H_{'+str(Hgrid_study[k1]) + r'}$, 40 A, analytic benchmark'
 
 image.savefig_args = ['compare3.pdf']
 image.savefig_kwargs = {'dpi' : 600,'bbox_inches' : 'tight'}
 
+image.set_fontsizes = 'doublet+'
 pp.plot_preset(image)
 
 
@@ -526,7 +530,7 @@ image.sf = [pp.plotter() for k2 in range(11)]
 
 
 image.sf[0].args = [p_grid, XUV_energy_pp[1][:,0,k1]/np.mean(XUV_energy_pp[1][:,0,k1]),'k']; image.sf[0].kwargs = {'label' : 'no_preion'}    
-image.sf[1].args = [p_grid, XUV_energy_pp[1][:,1,k1]/np.mean(XUV_energy_pp[1][:,0,k1]),'b']; image.sf[1].kwargs = {'label' : 'T_discharge/2'}
+image.sf[1].args = [p_grid, XUV_energy_pp[1][:,1,k1]/np.mean(XUV_energy_pp[1][:,0,k1]),'b']; image.sf[1].kwargs = {'label' : r'$T_{\mathrm{discharge}}/2$'}
 
 # image.sf[2].args = [p_grid, XUV_energy_pp[1][:,1,k1]/np.mean(XUV_energy_pp[1][:,0,k1]),'r']; image.sf[2].kwargs = {'label' : 'T_discharge/2'}
 # image.sf[3].args = [p_grid, XUV_energy_pp[1][:,1,k1]/np.max(XUV_energy_pp[1][:,0,k1]),'b']; image.sf[1].kwargs = {'label' : 'T_discharge/2'}
@@ -571,14 +575,15 @@ image.legend_args = [custom_lines,['reference', 'numerical', 'estimate', 'num. i
 image.legend_kwargs = {'loc': 1, 'ncol': 2}
 
 # image.legend_kwargs = {'loc':'upper right'}; image.right_axis_legend_kwargs = {'loc':'upper left'} 
-image.xlabel = 'p [mbar]'; image.ylabel = 'I_XUV [arb. u.]'; image.right_ylabel = 'ionisation [%]'
+image.xlabel = r'$p$ [mbar]'; image.ylabel = r'$I_{\mathrm{XUV}}$ [arb. u.]'; image.right_ylabel = 'ionisation [%]'
 
 
-image.title = 'H'+str(Hgrid_study[k1]) + ', 50 A, analytic benchmark'
+image.title = r'$H_{'+str(Hgrid_study[k1]) + r'}$, 50 A, analytic benchmark'
 
 image.savefig_args = ['compare4.pdf']
 image.savefig_kwargs = {'dpi' : 600,'bbox_inches' : 'tight'}
 
+image.set_fontsizes = 'doublet+'
 pp.plot_preset(image)
 
 ###################################################################################################################
@@ -596,9 +601,9 @@ image.sf = [pp.plotter() for k2 in range(11)]
 
 
 image.sf[0].args = [p_grid, XUV_energy_pp[0][:,0,k1]/np.mean(XUV_energy_pp[0][:,0,k1]),'k']; image.sf[0].kwargs = {'label' : 'no_preion'}    
-image.sf[1].args = [p_grid, XUV_energy_pp[0][:,2,k1]/np.mean(XUV_energy_pp[0][:,0,k1]),'b']; image.sf[1].kwargs = {'label' : 'T_discharge/2'}
+image.sf[1].args = [p_grid, XUV_energy_pp[0][:,2,k1]/np.mean(XUV_energy_pp[0][:,0,k1]),'b']; image.sf[1].kwargs = {'label' : r'$T_{\mathrm{discharge}}/2$'}
 
-image.sf[2].args = [p_grid, XUV_energy_pp[1][:,2,k1]/np.mean(XUV_energy_pp[1][:,0,k1]),'r']; image.sf[2].kwargs = {'label' : 'T_discharge/2'}
+image.sf[2].args = [p_grid, XUV_energy_pp[1][:,2,k1]/np.mean(XUV_energy_pp[1][:,0,k1]),'r']; image.sf[2].kwargs = {'label' : r'$T_{\mathrm{discharge}}/2$'}
 # image.sf[3].args = [p_grid, XUV_energy_pp[1][:,1,k1]/np.max(XUV_energy_pp[1][:,0,k1]),'b']; image.sf[1].kwargs = {'label' : 'T_discharge/2'}
 
 
@@ -659,14 +664,15 @@ image.legend_args = [custom_lines,['no preion', r'$\eta_0$', '40 A', r'$\eta_{la
 image.legend_kwargs = {'loc': 1, 'ncol': 3}
 
 # image.legend_kwargs = {'loc':'upper right'}; image.right_axis_legend_kwargs = {'loc':'upper left'} 
-image.xlabel = 'p [mbar]'; image.ylabel = 'I_XUV [arb. u.]'; image.right_ylabel = 'ionisation [%]'
+image.xlabel = r'$p$ [mbar]'; image.ylabel = r'$I_{\mathrm{XUV}}$ [arb. u.]'; image.right_ylabel = 'ionisation [%]'
 
 
-image.title = 'H'+str(Hgrid_study[k1]) + ', T_discharge'
+image.title = r'$H_{'+str(Hgrid_study[k1]) + r'}$, $T_{\mathrm{discharge}}$'
 
 image.savefig_args = ['compare5.pdf']
 image.savefig_kwargs = {'dpi' : 600,'bbox_inches' : 'tight'}
 
+image.set_fontsizes = 'doublet+'
 pp.plot_preset(image)
 
 
@@ -736,7 +742,7 @@ image.legend_args = [custom_lines,['no preion', r'$\eta_0$', '40 A', r'$\eta_{la
 image.legend_kwargs = {'loc': 1, 'ncol': 3}
 
 # image.legend_kwargs = {'loc':'upper right'}; image.right_axis_legend_kwargs = {'loc':'upper left'} 
-image.xlabel = 'p [mbar]';
+image.xlabel = r'$p$ [mbar]';
 image.ylabel = 'ionisation [%]'
 # image.right_ylabel = 'ionisation [%]'
 
@@ -745,7 +751,7 @@ image.ylabel = 'ionisation [%]'
 
 # image.savefig_args = ['compare5.pdf']
 # image.savefig_kwargs = {'dpi' : 600}
-
+image.set_fontsizes = 'doublet+'
 pp.plot_preset(image)
 
 
@@ -757,8 +763,9 @@ pp.plot_preset(image)
 image = pp.figure_driver()    
 image.sf = [pp.plotter() for k2 in range(2)]
 image.sf[0].args = [Hgrid, dE_dH[0][1,0,:]/np.max(dE_dH[0][1,0,:])]; image.sf[0].kwargs = {'label' : 'no_preion'}    
-image.sf[1].args = [Hgrid, dE_dH[0][1,1,:]/np.max(dE_dH[0][1,0,:])]; image.sf[1].kwargs = {'label' : 'T_discharge/2'}
+image.sf[1].args = [Hgrid, dE_dH[0][1,1,:]/np.max(dE_dH[0][1,0,:])]; image.sf[1].kwargs = {'label' : r'$T_{\mathrm{discharge}}/2$'}
 
+image.set_fontsizes = 'doublet+'
 pp.plot_preset(image)
 
 
@@ -793,12 +800,14 @@ apply_global_norm = True
 global_norm_log = np.max(np.log10(abs(FField_FF_pp[choices[0][0]][choices[0][1],choices[0][2],:,:].T)**2))
 global_norm_lin = np.max(abs(FField_FF_pp[choices[0][0]][choices[0][1],choices[0][2],:,:].T)**2)
 
-plot_scale = 'log'
+plot_scale = 'log' # log
 include_average_dE_dH = True
 include_first_in_dE_dH_plot = True
 
 plot_zoom = True
 zoom_xlim = [15,17]; zoom_ylim = [0,0.004];
+
+fig_annotation = 'b)'
 
 
 
@@ -832,12 +841,20 @@ for k1 in range(*k_start_k_end):
     if ((k2==0) and not(include_first_in_dE_dH_plot)): image.sf[k1].method = None
     k2 += 1
 
-image.xlabel = 'H [-]'
+image.xlabel = r'$H$ [-]'
 image.ylabel = '$\mathrm{d}E/\mathrm{d}H$ [arb. u.]'
 
 image.savefigs_args = [['dEdH.pdf'],['dEdH.png']]
 image.savefigs_kwargs = [{'bbox_inches' : 'tight'} for k1 in range(2)]
-    
+
+if not(fig_annotation is None):
+    image.sf.append(pp.plotter())
+    image.sf[-1].method = plt.annotate
+    image.sf[-1].args = [fig_annotation]
+    image.sf[-1].kwargs = {'xy' : (0.025, .9),
+                          'xycoords' : 'axes fraction'}
+
+image.set_fontsizes = 'doublet+'    
 pp.plot_preset(image)
     
 
@@ -866,20 +883,21 @@ for k1 in range(len(choices)):
     image.sf[0].method = plt.pcolor
     
     if (plot_scale == 'log'):
-        image.sf[0].args = [Hgrid,rgrid_FF,FF_spectrum_logscale];
+        image.sf[0].args = [Hgrid,1e3*rgrid_FF,FF_spectrum_logscale];
         image.sf[0].kwargs = {'shading': 'auto', 'vmin': vmin, 'cmap' : 'plasma', 'rasterized' : True}          
     elif (plot_scale == 'lin'):
       if apply_global_norm:
-        image.sf[0].args = [Hgrid,rgrid_FF,FF_spectrum_linscale/global_norm_lin]
+        image.sf[0].args = [Hgrid,1e3*rgrid_FF,FF_spectrum_linscale/global_norm_lin]
       else:
-        image.sf[0].args = [Hgrid,rgrid_FF,FF_spectrum_linscale/np.max(FF_spectrum_linscale)]  
+        image.sf[0].args = [Hgrid,1e3*rgrid_FF,FF_spectrum_linscale/np.max(FF_spectrum_linscale)]  
       image.sf[0].kwargs = {'shading': 'auto', 'cmap' : 'plasma', 'rasterized' : True}           
         
     image.sf[0].colorbar.show = True
     
-    image.xlabel = 'H [-]'; image.ylabel = 'r [m]'
+    image.xlabel = r'$H$ [-]'; image.ylabel = r'$r$ [mm]'
     # image.title = 'Far-field spectrum, log'
-    image.title = choice_to_label(choices[k1])
+    
+    # image.title = choice_to_label(choices[k1])
     
     if (plot_scale == 'log'):
         image.sf[0].colorbar.kwargs = {'label': r'$\mathrm{log}_{10}|\mathcal{E}(\omega,\rho)|^2$ [arb. u.]'}
@@ -893,6 +911,12 @@ for k1 in range(len(choices)):
     image.savefigs_args = [[fname+'.pdf'],[fname+'.png']]
     image.savefigs_kwargs = [{'bbox_inches' : 'tight'} for k2 in range(2)]
     
+    image.set_fontsizes = 'largefonts' # 'largefonts' # 'doublet+'
+    image.annotation = [['(b)'],
+                    {'xy' : (0.025, .9),
+                      'xycoords' : 'axes fraction',
+                      'color' : 'w'}]  
+    image.sf[0].colorbar.kwargs['location'] = 'top'
     pp.plot_preset(image)
     
     if plot_zoom:
@@ -900,6 +924,8 @@ for k1 in range(len(choices)):
         image.ylim_args = [zoom_ylim]
         fname2 = fname + '_zoom'
         image.savefigs_args = [[fname2+'.pdf'],[fname2+'.png']]  
+        
+        image.set_fontsizes = 'doublet+'
         pp.plot_preset(image)        
     
     
