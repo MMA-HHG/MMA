@@ -19,6 +19,7 @@ import IR_refractive_index as IR_index
 import subprocess
 import dataformat_CUPRAD as dfC
 import plot_presets as pp
+import string
 
 import gc
 
@@ -27,6 +28,8 @@ try:
 except:
     univ_input_path = os.path.join("D:\git", "universal_input")
         
+
+alphabet_list = list(string.ascii_lowercase)
 
 print('path:', univ_input_path)
 print('test1')
@@ -253,6 +256,11 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
             image.savefigs_args = [[outfpath + '.pdf'], [outfpath + '.png']]
             image.savefigs_kwargs = [{'bbox_inches' : 'tight'} for k1 in range(2)]
             
+            image.annotation = [['(d)'],
+                {'xy' : (0.05, .9),
+                  'xycoords' : 'axes fraction',
+                  'color' : 'w'}]  
+            # image.sf[0].colorbar.kwargs['location'] = 'top'
             
             pp.plot_preset(image)
             
@@ -284,6 +292,10 @@ with h5py.File(out_h5name,'w') as OutFile: # this file contains numerical analys
                 image.savefigs_args = [[outfpath + '.pdf'], [outfpath + '.png']]
                 image.savefigs_kwargs = [{'bbox_inches' : 'tight'} for k1 in range(2)]
                 
+                image.annotation = [['('+alphabet_list[k1]+')'],
+                {'xy' : (0.05, .9),
+                  'xycoords' : 'axes fraction',
+                  'color' : 'w'}]
                 
                 pp.plot_preset(image)
             
