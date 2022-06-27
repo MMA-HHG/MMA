@@ -124,7 +124,7 @@ fix_saturation = True
 
 full_resolution = False
 
-invoke_garbage_collector = True
+invoke_garbage_collector = False
 
 OutPath = 'Cutoff_maps_PhD'
 
