@@ -44,6 +44,7 @@ int main(int argc, char *argv[])
 	// vars:
 
 	const char filename_stub[] = "hdf5_temp_";
+    const char fields_group[] = "fields";
 	char local_filename[50];
 
 	// dummy
@@ -80,48 +81,54 @@ int main(int argc, char *argv[])
 	// create parameters & load initial data
 	file_id = H5Fopen ("results.h5", H5F_ACC_RDONLY, H5P_DEFAULT); // the file is opened for read only by all the processes independently, every process then has its own copy of variables.
 	ReadInputs(file_id, "TDSE_inputs/", &h5error, &inputs);
+
 	inputs.Print = Set_prints_from_HDF5(file_id, "TDSE_inputs/", &h5error);
-	dims = get_dimensions_h5(file_id, "outputs/output_field", &h5error, &ndims, &datatype);
-	dims_input = get_dimensions_h5(file_id, "outputs/output_field", &h5error, &ndims, &datatype);
+
+
+	dims = get_dimensions_h5(file_id, strcat(fields_group,"fields_list"), &h5error, &ndims, &datatype);
+
+    int Ntot = dims[0]
+
+	// dims_input = get_dimensions_h5(file_id, "outputs/output_field", &h5error, &ndims, &datatype);
 
     // *dims = malloc((*ndims)*sizeof(hsize_t))
 
-	hsize_t dim_t = *get_dimensions_h5(file_id, "outputs/tgrid", &h5error, &ndims, &datatype), \
-            dim_r = *get_dimensions_h5(file_id, "outputs/rgrid", &h5error, &ndims, &datatype), \
-            dim_z = *get_dimensions_h5(file_id, "outputs/zgrid", &h5error, &ndims, &datatype); // label the dims by physical axes	
+	hsize_t dim_t = *get_dimensions_h5(file_id, strcat(fields_group,"tgrid"), &h5error, &ndims, &datatype);
+    //         dim_r = *get_dimensions_h5(file_id, "outputs/rgrid", &h5error, &ndims, &datatype), \
+    //         dim_z = *get_dimensions_h5(file_id, "outputs/zgrid", &h5error, &ndims, &datatype); // label the dims by physical axes	
 
-    dims[0] = dim_t; dims[1] = dim_r; dims[2] = dim_z;
-	dims_input[0] = dim_z; dims_input[1] = dim_t; dims_input[2] = dim_r;
+    // dims[0] = dim_t; dims[1] = dim_r; dims[2] = dim_z;
+	// dims_input[0] = dim_z; dims_input[1] = dim_t; dims_input[2] = dim_r;
 
 	// create space for the fields & load the tgrid
-	inputs.Efield.Field = malloc(((int)dims[0])*sizeof(double));
+	inputs.Efield.Field = malloc(((int)dims[1])*sizeof(double));
 	inputs.Efield.tgrid =  readreal1Darray_fort(file_id, "outputs/tgrid",&h5error,&inputs.Efield.Nt); // tgrid is not changed when program runs
 	
-    // coarsing procedure
-    int kz_step, Nz_max, kr_step, Nr_max;
-    readint(file_id, "TDSE_inputs/kz_step", &h5error, &kz_step);
-    readint(file_id, "TDSE_inputs/Nz_max", &h5error, &Nz_max);
-    readint(file_id, "TDSE_inputs/kr_step", &h5error, &kr_step);
-    readint(file_id, "TDSE_inputs/Nr_max", &h5error, &Nr_max);
+    // // coarsing procedure
+    // int kz_step, Nz_max, kr_step, Nr_max;
+    // readint(file_id, "TDSE_inputs/kz_step", &h5error, &kz_step);
+    // readint(file_id, "TDSE_inputs/Nz_max", &h5error, &Nz_max);
+    // readint(file_id, "TDSE_inputs/kr_step", &h5error, &kr_step);
+    // readint(file_id, "TDSE_inputs/Nr_max", &h5error, &Nr_max);
 
-    // redefine dimensions, t-not affected
-    dim_z = Nz_max/kz_step; dim_r = Nr_max/kr_step;
-    dims[0] = dim_z; dims[1] = dim_t; dims[2] = dim_r;
+    // // redefine dimensions, t-not affected
+    // dim_z = Nz_max/kz_step; dim_r = Nr_max/kr_step;
+    // dims[0] = dim_z; dims[1] = dim_t; dims[2] = dim_r;
     
     
     h5error = H5Fclose(file_id);
-    // convert units
-	for(k1 = 0 ; k1 < inputs.Efield.Nt; k1++){inputs.Efield.tgrid[k1] = inputs.Efield.tgrid[k1]/TIMEau; /*inputs.Efield.Field[k1] = inputs.Efield.Field[k1]/EFIELDau;*/} // convert to atomic units (fs->a.u.), (GV/m->a.u.)
+    // // convert units
+	// for(k1 = 0 ; k1 < inputs.Efield.Nt; k1++){inputs.Efield.tgrid[k1] = inputs.Efield.tgrid[k1]/TIMEau; /*inputs.Efield.Field[k1] = inputs.Efield.Field[k1]/EFIELDau;*/} // convert to atomic units (fs->a.u.), (GV/m->a.u.)
 
 	if (( comment_operation == 1 ) && ( myrank == 0 ) ){printf("Proc %i uses dx = %e \n",myrank,inputs.dx);}
-	if ( ( comment_operation == 1 ) && ( myrank == 0 ) ){printf("Fields dimensions (t,r,z) = (%i,%i,%i)\n",dims[0],dims[1],dims[2]);
-														 printf("Fields dimensions (z,t,r) = (%i,%i,%i)\n",dims_input[0],dims_input[1],dims_input[2]);}
+	// if ( ( comment_operation == 1 ) && ( myrank == 0 ) ){printf("Fields dimensions (t,r,z) = (%i,%i,%i)\n",dims[0],dims[1],dims[2]);
+	// 													 printf("Fields dimensions (z,t,r) = (%i,%i,%i)\n",dims_input[0],dims_input[1],dims_input[2]);}
 
 
 	// Prepare the ground state (it's the state of the atom before the interaction)
 	Initialise_grid_and_ground_state(&inputs);
 
-	int Ntot = dim_r*dim_z; // counter (queue length)	
+	// int Ntot = dim_r*dim_z; // counter (queue length)	
 
 
 	//////////////////////////
