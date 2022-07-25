@@ -6,7 +6,7 @@ void rw_real_full2Dhyperslab_nd_h5(hid_t, char *, herr_t *, int, hsize_t *, int 
 void print_nd_array_h5(hid_t, char *, herr_t *, int, hsize_t *, void *, hid_t);
 void create_nd_array_h5(hid_t, char *, herr_t *, int, hsize_t *, hid_t);
 
-double * readreal1Darray(hid_t, char *, herr_t *, int *);
+// double * readreal1Darray(hid_t, char *, herr_t *, int *);
 double * readreal1Darray_fort(hid_t, char *, herr_t *, int *);
 hsize_t * get_dimensions_h5(hid_t, char *, herr_t *, int *, hid_t *);
 // int linkexists(hid_t, char *, herr_t *, double *);
