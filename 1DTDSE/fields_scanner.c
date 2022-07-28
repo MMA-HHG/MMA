@@ -19,7 +19,7 @@ The input is a file with
     * shared inputs
     * list of input fields
     * lists of parameters
-        * Variable number of lists amlogical to multiparameteric studies
+        * Variable number of lists analogical to multiparameteric studies
 The code just computes the ouputs and store them in a linear array, reshaping will be done in Python, either virutally or by a specific procedure
 */
 //////////////////////////////////////////
@@ -146,8 +146,11 @@ int main(int argc, char *argv[])
 
 		// find proper simulation & load the field
 		file_id = H5Fopen ("results.h5", H5F_ACC_RDONLY, H5P_DEFAULT);
+
+		
 		kr = Nsim % dim_r; kz = Nsim - kr;  kz = kz / dim_r; // compute offsets in each dimension
 		dum3int[0]=kz_step*kz; dum3int[1]=-1; dum3int[2]=kr_step*kr;	// coarsen the access	
+		
 		rw_real_fullhyperslab_nd_h5(file_id,"outputs/output_field",&h5error,3,dims_input,dum3int,inputs.Efield.Field,"r");
 
 		int Nz_CUPRAD, Nr_CUPRAD;
