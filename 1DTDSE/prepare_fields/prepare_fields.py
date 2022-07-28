@@ -64,14 +64,16 @@ omega0 = mn.ConvertPhoton(lambdaSI, 'lambdaSI', 'omegaau')
 
 with h5py.File(out_h5name,'w') as OutFile:
     shape = [N,Nt]
-    dset = OutFile.create_dataset('Fields_list', shape, precision)
+    dset = OutFile.create_dataset('fields_list', shape, precision)
     dset.attrs['units'] = np.string_('[a.u.]')
     
     for k1 in range(N):
         MultInd = np.unravel_index(k1,param_dims)
         dset[k1,:] = sin2pulse(tgrid,omega0,omegac,param_grids[1][MultInd[1]],param_grids[0][MultInd[0]])
 
-    OutFile.create_dataset('param_list',data=np.string_(param_list))  
+    OutFile.create_dataset('param_list',data=np.string_(param_list)) 
+    
+    mn.adddataset(OutFile, 'tgrid', tgrid , '[a.u.]' )
     
     # store grids
     for k1 in range(len(param_list)):

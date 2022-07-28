@@ -44,11 +44,11 @@ int main(int argc, char *argv[])
 	// vars:
 
 	const char filename_stub[] = "hdf5_temp_";
-    const char fields_group[] = "fields";
+    const char fields_group[] = "fields/";
 	char local_filename[50];
 
 	// dummy
-	int dum3int[3];
+	int dum2int[2];
 	hsize_t * dims, * dims_input; int ndims; hid_t datatype; // ! hot-fixed to have input dimension different
 	char dumchar1[50], dumchar2[50];
 	// Processing the queue
@@ -94,6 +94,8 @@ int main(int argc, char *argv[])
     // *dims = malloc((*ndims)*sizeof(hsize_t))
 
 	hsize_t dim_t = *get_dimensions_h5(file_id, strcat(fields_group,"tgrid"), &h5error, &ndims, &datatype);
+
+
     //         dim_r = *get_dimensions_h5(file_id, "outputs/rgrid", &h5error, &ndims, &datatype), \
     //         dim_z = *get_dimensions_h5(file_id, "outputs/zgrid", &h5error, &ndims, &datatype); // label the dims by physical axes	
 
@@ -102,7 +104,7 @@ int main(int argc, char *argv[])
 
 	// create space for the fields & load the tgrid
 	inputs.Efield.Field = malloc(((int)dims[1])*sizeof(double));
-	inputs.Efield.tgrid =  readreal1Darray_fort(file_id, "outputs/tgrid",&h5error,&inputs.Efield.Nt); // tgrid is not changed when program runs
+	inputs.Efield.tgrid =  readreal1Darray_fort(file_id, strcat(fields_group,"tgrid") ,&h5error,&inputs.Efield.Nt); // tgrid is not changed when program runs
 	
     // // coarsing procedure
     // int kz_step, Nz_max, kr_step, Nr_max;
@@ -147,22 +149,23 @@ int main(int argc, char *argv[])
 		// find proper simulation & load the field
 		file_id = H5Fopen ("results.h5", H5F_ACC_RDONLY, H5P_DEFAULT);
 
-		
-		kr = Nsim % dim_r; kz = Nsim - kr;  kz = kz / dim_r; // compute offsets in each dimension
-		dum3int[0]=kz_step*kz; dum3int[1]=-1; dum3int[2]=kr_step*kr;	// coarsen the access	
-		
-		rw_real_fullhyperslab_nd_h5(file_id,"outputs/output_field",&h5error,3,dims_input,dum3int,inputs.Efield.Field,"r");
 
-		int Nz_CUPRAD, Nr_CUPRAD;
+		// kr = Nsim % dim_r; kz = Nsim - kr;  kz = kz / dim_r; // compute offsets in each dimension
+		// dum3int[0]=kz_step*kz; dum3int[1]=-1; dum3int[2]=kr_step*kr;	// coarsen the access	
+
+		dum2int[0] = Nsim; dum2int[1] = -1;		
+		rw_real_fullhyperslab_nd_h5(file_id, strcat(fields_group,"fields_list") ,&h5error,2,dims,dum2int,inputs.Efield.Field,"r");
+
+		// int Nz_CUPRAD, Nr_CUPRAD;
 		// double *rgrid_CUPRAD, *zgrid_CUPRAD;
-		rgrid_CUPRAD = readreal1Darray_fort(file_id, "outputs/rgrid", &h5error, &Nr_CUPRAD);
-		zgrid_CUPRAD = readreal1Darray_fort(file_id, "outputs/zgrid", &h5error, &Nz_CUPRAD);
+		// rgrid_CUPRAD = readreal1Darray_fort(file_id, "outputs/rgrid", &h5error, &Nr_CUPRAD);
+		// zgrid_CUPRAD = readreal1Darray_fort(file_id, "outputs/zgrid", &h5error, &Nz_CUPRAD);
 
 
 		h5error = H5Fclose(file_id);
 
-		// convert units
-		for(k1 = 0 ; k1 < inputs.Efield.Nt; k1++){inputs.Efield.Field[k1] = inputs.Efield.Field[k1]/EFIELDau;}
+		// // convert units
+		// for(k1 = 0 ; k1 < inputs.Efield.Nt; k1++){inputs.Efield.Field[k1] = inputs.Efield.Field[k1]/EFIELDau;}
 
 		// do the calculation
 		outputs = call1DTDSE(inputs); // THE TDSE
@@ -170,9 +173,9 @@ int main(int argc, char *argv[])
 		// resize grids
 		// double *rgrid_coarse, *zgrid_coarse;
 
-		int Nr_coarse, Nz_coarse;
-		coarsen_grid_real(rgrid_CUPRAD, Nr_CUPRAD, &rgrid_coarse, &Nr_coarse, kr_step, Nr_max);
-		coarsen_grid_real(zgrid_CUPRAD, Nz_CUPRAD, &zgrid_coarse, &Nz_coarse, kz_step, Nz_max);
+		// int Nr_coarse, Nz_coarse;
+		// coarsen_grid_real(rgrid_CUPRAD, Nr_CUPRAD, &rgrid_coarse, &Nr_coarse, kr_step, Nr_max);
+		// coarsen_grid_real(zgrid_CUPRAD, Nz_CUPRAD, &zgrid_coarse, &Nz_coarse, kz_step, Nz_max);
 
 
 		// create local output file
@@ -182,12 +185,12 @@ int main(int argc, char *argv[])
 		prepare_local_output_fixed_print_grids_h5(file_id, "", &h5error, &inputs, &outputs, Ntot/nprocs + 1, dims);
 		print_local_output_fixed_h5(file_id,"", &h5error, &inputs, &outputs, Ntot/nprocs + 1, Nsim, Nsim_loc);
 
-		// print coarser grids
-		hsize_t output_dims[2];
-		output_dims[0] = Nr_coarse;
-		print_nd_array_h5(file_id, "rgrid_coarse", &h5error, 1, output_dims, rgrid_coarse, H5T_NATIVE_DOUBLE);
-		output_dims[0] = Nz_coarse;
-		print_nd_array_h5(file_id, "zgrid_coarse", &h5error, 1, output_dims, zgrid_coarse, H5T_NATIVE_DOUBLE);
+		// // print coarser grids
+		// hsize_t output_dims[2];
+		// output_dims[0] = Nr_coarse;
+		// print_nd_array_h5(file_id, "rgrid_coarse", &h5error, 1, output_dims, rgrid_coarse, H5T_NATIVE_DOUBLE);
+		// output_dims[0] = Nz_coarse;
+		// print_nd_array_h5(file_id, "zgrid_coarse", &h5error, 1, output_dims, zgrid_coarse, H5T_NATIVE_DOUBLE);
 
 		// print GS etc.
 		output_dims[0] = inputs.num_r + 1; output_dims[1] = 2;
@@ -198,8 +201,8 @@ int main(int argc, char *argv[])
 		h5error = H5Fclose(file_id); // file
 		outputs_destructor(&outputs); // clean ouputs
 
-		free(rgrid_coarse); free(zgrid_coarse);
-		free(rgrid_CUPRAD); free(zgrid_CUPRAD);
+		// free(rgrid_coarse); free(zgrid_coarse);
+		// free(rgrid_CUPRAD); free(zgrid_CUPRAD);
 		
 	}
 	t_mpi[2] = MPI_Wtime(); 
@@ -212,21 +215,23 @@ int main(int argc, char *argv[])
 	//printf("Proc %i, reached the point 2  : %f sec\n",myrank,t_mpi[7]-t_mpi[0]);
 	while (Nsim < Ntot){ // run till queue is not treated
 		t_mpi[3] = MPI_Wtime(); 
-		kr = Nsim % dim_r; kz = Nsim - kr;  kz = kz / dim_r; // compute offsets in each dimension
+		// kr = Nsim % dim_r; kz = Nsim - kr;  kz = kz / dim_r; // compute offsets in each dimension
 
 		// prepare the part in the arrray to r/w
 		// dum3int[0]=-1; dum3int[1]=kr; dum3int[2]=kz; // set offset as inputs for hdf5-procedures
- 		dum3int[0]=kz_step*kz; dum3int[1]=-1; dum3int[2]=kr_step*kr;	// coarsen the access
+ 		// dum3int[0]=kz_step*kz; dum3int[1]=-1; dum3int[2]=kr_step*kr;	// coarsen the access
 
-		dims_input[0] = dim_t;
+		// dims_input[0] = dim_t;
+
+		dum3int[0] = Nsim; dum3int[1]=-1;
 
 		// read the HDF5 file
 		file_id = H5Fopen ("results.h5", H5F_ACC_RDONLY, H5P_DEFAULT);
-		rw_real_fullhyperslab_nd_h5(file_id,"outputs/output_field",&h5error,3,dims_input,dum3int,inputs.Efield.Field,"r");
+		rw_real_fullhyperslab_nd_h5(file_id,"outputs/output_field",&h5error,2,dims,dum2int,inputs.Efield.Field,"r");
 		h5error = H5Fclose(file_id);
 
 		// convert units
-		for(k1 = 0 ; k1 < inputs.Efield.Nt; k1++){inputs.Efield.Field[k1] = inputs.Efield.Field[k1]/EFIELDau;}
+		// for(k1 = 0 ; k1 < inputs.Efield.Nt; k1++){inputs.Efield.Field[k1] = inputs.Efield.Field[k1]/EFIELDau;}
 
 		// do the calculation
 		// t_mpi[3] = MPI_Wtime(); finish3_main = clock();
