@@ -23,7 +23,7 @@ precision = 'd'
 
 
 param_list = ['phi0','Intensity']
-parameters = {param_list[0]: [0,0.5*np.pi,0, '[rad]'],
+parameters = {param_list[0]: [0,0.5*np.pi, -1, '[rad]'],
               param_list[1]: [0,E0_max,NE, '[a.u.]']}
 
 # grid of input values
@@ -31,7 +31,9 @@ N = 1; param_grids = []; param_dims = []
 for k1 in range(len(param_list)): # ensure ordering according to 
     param = param_list[k1]
     N_points = parameters[param][2] + 2
-    if (parameters[param][2] == -1): param_grids.append(parameters[param][1])
+    if (parameters[param][2] == -1): param_grids.append(
+                                                np.asarray([parameters[param][1]])
+                                                )
     else: param_grids.append( np.linspace( *parameters[param][:2], N_points ) )
     N *= N_points; param_dims.append(N_points)    
 param_dims = np.asarray(param_dims) 
