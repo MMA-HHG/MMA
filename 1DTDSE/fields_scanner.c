@@ -46,7 +46,7 @@ int main(int argc, char *argv[])
 	const char filename_stub[] = "hdf5_temp_";
     const char fields_group[] = "fields/";
 	char local_filename[50];
-	char path[50]
+	char path[50];
 
 	// dummy
 	int dum2int[2];
@@ -89,7 +89,7 @@ int main(int argc, char *argv[])
 	path[0] = '\0';	strcat(strcat(path,fields_group),"fields_list");
 	dims = get_dimensions_h5(file_id, path, &h5error, &ndims, &datatype);
 
-    int Ntot = dims[0]
+    int Ntot = dims[0];
 
 	// dims_input = get_dimensions_h5(file_id, "outputs/output_field", &h5error, &ndims, &datatype);
 
@@ -198,6 +198,7 @@ int main(int argc, char *argv[])
 		// print_nd_array_h5(file_id, "zgrid_coarse", &h5error, 1, output_dims, zgrid_coarse, H5T_NATIVE_DOUBLE);
 
 		// print GS etc.
+		hsize_t output_dims[2];
 		output_dims[0] = inputs.num_r + 1; output_dims[1] = 2;
 		print_nd_array_h5(file_id, "xgrid_micro", &h5error, 1, output_dims, inputs.x, H5T_NATIVE_DOUBLE);
 		print_nd_array_h5(file_id, "ground_state", &h5error, 2, output_dims, inputs.psi0, H5T_NATIVE_DOUBLE);
@@ -228,7 +229,7 @@ int main(int argc, char *argv[])
 
 		// dims_input[0] = dim_t;
 
-		dum3int[0] = Nsim; dum3int[1]=-1;
+		dum2int[0] = Nsim; dum2int[1]=-1;
 
 		// read the HDF5 file
 		file_id = H5Fopen ("results.h5", H5F_ACC_RDONLY, H5P_DEFAULT);
