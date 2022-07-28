@@ -46,6 +46,7 @@ int main(int argc, char *argv[])
 	const char filename_stub[] = "hdf5_temp_";
     const char fields_group[] = "fields/";
 	char local_filename[50];
+	char path[50]
 
 	// dummy
 	int dum2int[2];
@@ -85,7 +86,8 @@ int main(int argc, char *argv[])
 	inputs.Print = Set_prints_from_HDF5(file_id, "TDSE_inputs/", &h5error);
 
 
-	dims = get_dimensions_h5(file_id, strcat(fields_group,"fields_list"), &h5error, &ndims, &datatype);
+	path[0] = '\0';	strcat(strcat(path,fields_group),"fields_list");
+	dims = get_dimensions_h5(file_id, path, &h5error, &ndims, &datatype);
 
     int Ntot = dims[0]
 
@@ -93,7 +95,8 @@ int main(int argc, char *argv[])
 
     // *dims = malloc((*ndims)*sizeof(hsize_t))
 
-	hsize_t dim_t = *get_dimensions_h5(file_id, strcat(fields_group,"tgrid"), &h5error, &ndims, &datatype);
+	path[0] = '\0';	strcat(strcat(path,fields_group),"tgrid");
+	hsize_t dim_t = *get_dimensions_h5(file_id, path, &h5error, &ndims, &datatype);
 
 
     //         dim_r = *get_dimensions_h5(file_id, "outputs/rgrid", &h5error, &ndims, &datatype), \
@@ -104,7 +107,8 @@ int main(int argc, char *argv[])
 
 	// create space for the fields & load the tgrid
 	inputs.Efield.Field = malloc(((int)dims[1])*sizeof(double));
-	inputs.Efield.tgrid =  readreal1Darray_fort(file_id, strcat(fields_group,"tgrid") ,&h5error,&inputs.Efield.Nt); // tgrid is not changed when program runs
+	path[0] = '\0';	strcat(strcat(path,fields_group),"tgrid");
+	inputs.Efield.tgrid =  readreal1Darray_fort(file_id, path ,&h5error,&inputs.Efield.Nt); // tgrid is not changed when program runs
 	
     // // coarsing procedure
     // int kz_step, Nz_max, kr_step, Nr_max;
@@ -153,8 +157,9 @@ int main(int argc, char *argv[])
 		// kr = Nsim % dim_r; kz = Nsim - kr;  kz = kz / dim_r; // compute offsets in each dimension
 		// dum3int[0]=kz_step*kz; dum3int[1]=-1; dum3int[2]=kr_step*kr;	// coarsen the access	
 
-		dum2int[0] = Nsim; dum2int[1] = -1;		
-		rw_real_fullhyperslab_nd_h5(file_id, strcat(fields_group,"fields_list") ,&h5error,2,dims,dum2int,inputs.Efield.Field,"r");
+		dum2int[0] = Nsim; dum2int[1] = -1;	
+		path[0] = '\0';	strcat(strcat(path,fields_group),"fields_list");	
+		rw_real_fullhyperslab_nd_h5(file_id, path ,&h5error,2,dims,dum2int,inputs.Efield.Field,"r");
 
 		// int Nz_CUPRAD, Nr_CUPRAD;
 		// double *rgrid_CUPRAD, *zgrid_CUPRAD;
