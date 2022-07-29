@@ -132,6 +132,7 @@ integer         :: switch_ionisation, switch_atom
         n2_phys =               2.94d-19 ! Kerr as in n_2*I (cm2/W)
     end select
 
+    ! Helium 24.58738D0
 
 
     ! shared default values

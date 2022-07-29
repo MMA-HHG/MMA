@@ -1,0 +1,9 @@
+$fixed
+lambdaSI	800e-9	R	m
+T_FWHM		30e-15	R	s
+
+
+# ordering is important, it defines the shape of the final multi-dimensional field
+$varying
+phi0 list_constructor	R	rad	0.0	0.0	-1
+E0   list_constructor	R	a.u.	0.0	0.053380268083853495	8

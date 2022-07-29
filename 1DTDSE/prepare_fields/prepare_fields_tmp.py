@@ -21,16 +21,10 @@ NE = 100
 Nt = 1000;
 precision = 'd'
 
-# read parameters
 
-constants_list
-
-# param_list = ['phi0','Intensity']
-# parameters = {param_list[0]: [0,0.5*np.pi, -1, '[rad]'],
-#               param_list[1]: [0,E0_max,NE, '[a.u.]']}
-
-
-
+param_list = ['phi0','Intensity']
+parameters = {param_list[0]: [0,0.5*np.pi, -1, '[rad]'],
+              param_list[1]: [0,E0_max,NE, '[a.u.]']}
 
 # grid of input values
 N = 1; param_grids = []; param_dims = []
@@ -52,15 +46,6 @@ def sin2pulse(t,omega0,omegac,E0,phi0):
     return (t>=0) * (t<=np.pi/omegac) * E0*((np.sin(omegac*t))**2) *  np.cos(omega0*t + phi_central + phi0)
 
 
-def inputs_wrapper(k):
-    MultInd = np.unravel_index(k, param_dims)
-    inputs = []
-    if ('omega0' in constants_list): inputs.append(omega0)
-    elif ('omega0' in param_list):
-        k1 = param_list.index('omega0')
-        inputs.append(param_grids[k1][MultInd[k1]])
-        
-    
 
 
 ## testplot
