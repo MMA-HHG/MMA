@@ -1,5 +1,6 @@
 $fixed
-lambdaSI	800e-9	R	m
+pulse_type	sin2	S	-
+lambda		800e-9	R	m
 T_FWHM		30e-15	R	s
 
 
