@@ -48,6 +48,7 @@ for line in lines:
           fixed_list.append(sep_line[0])
           if (sep_line[2] == 'R'): fixed[sep_line[0]] = float(sep_line[1])
           elif (sep_line[2] == 'I'): fixed[sep_line[0]] = int(sep_line[1])
+          elif (sep_line[2] == 'S'): fixed[sep_line[0]] = sep_line[1]
           else: raise TypeError('line:' + line + '\n Specify datatype by R or I.')
       elif processing_varying_inputs: 
           varying_list.append(sep_line[0]) 
@@ -95,7 +96,8 @@ class pulse_types:
                 phi_central = - (np.pi * omega0) / (2.0*omegac) # use the peak of the pulse as the reference for the cosine pulse
                 return (t>=0) * (t<=np.pi/omegac) * E0*((np.sin(omegac*t))**2) *  np.cos(omega0*t + phi_central + phi0)
             self.pulse = sin2pulse
-            self.inputs_list = ['omega0', 'omegac', 'E0', 'phi0']
+            self.inputs_list_direct = ['omega0', 'omegac', 'E0', 'phi0']
+            self.inputs_list = ['lambda', 'T_FWHM', 'E0', 'phi0']
             
             def inputs_converter(lambdaSI,tFWHM,E0,phi0):
                 omega0 = mn.ConvertPhoton(lambdaSI, 'lambdaSI', 'omegaau')
@@ -112,7 +114,7 @@ class pulse_types:
         else: raise NotImplementedError('The input fiel must follow the $fixed - $varying structure now')
 
 
-
+dp = pulse_types(fixed['pulse_type'])
 
 def inputs_wrapper(k, inputs_list):    
     MultInd = np.unravel_index(k, param_dims)

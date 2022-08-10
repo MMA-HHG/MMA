@@ -1,7 +1,7 @@
 $fixed
 pulse_type	sin2	S	-
-lambda		800e-9	R	m
-T_FWHM		30e-15	R	s
+omega0		0.056954190639159845	R	a.u.
+T_FWHM		1240.2412005397605	R	a.u.
 
 
 # ordering is important, it defines the shape of the final multi-dimensional field
