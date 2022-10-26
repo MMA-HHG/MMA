@@ -9,41 +9,49 @@ Several Python procedures require modules from various places. The actual approa
 - The path should also contain `shared_python` from the root of this repository
 - There is an example of the paths added into the environment. The environment variables are used in some Python scripts, so they shall be added into `.bashrc` to ensure compatibility:
 ``` bash
-export UNIV_INPUT_PATH=/home/vabekjan/git/universal_input
+export GIT_PATH=/users/k2255939/git
 
-export PYTHONPATH=$PYTHONPATH:/home/vabekjan/git/python_modules:/home/vabekjan/git/CUPRAD_TDSE_Hankel/shared_python
+export UNIV_INPUT_PATH=$GIT_PATH/universal_input
 
-export CUPRAD_HOME=/home/vabekjan/git/CUPRAD_TDSE_Hankel/CUPRAD
+export MSM_PATH=$GIT_PATH/CUPRAD_TDSE_Hankel
 
-export CUPRAD_BINARY=/home/vabekjan/git/CUPRAD_TDSE_Hankel/CUPRAD/binary
+# # export TESTPATH=/home/vabekjan/git/CUPRAD_DEVELOP/testing/job_scheduler/inps
 
-export CUPRAD_SCRIPTS=/home/vabekjan/git/CUPRAD_TDSE_Hankel/CUPRAD/scripts
+export PYTHONPATH=$PYTHONPATH:$GIT_PATH/python_modules:$MSM_PATH/shared_python
 
-export CUPRAD_INPUTS=/home/vabekjan/git/CUPRAD_TDSE_Hankel/CUPRAD/testing
+export CUPRAD_HOME=$MSM_PATH/CUPRAD
 
-export CUPRAD_PYTHON=/home/vabekjan/git/CUPRAD_TDSE_Hankel/CUPRAD/python
+export CUPRAD_BINARY=$MSM_PATH/CUPRAD/binary
 
-export TDSE_1D_SOURCE=/home/vabekjan/git/CUPRAD_TDSE_Hankel/1DTDSE/
+export CUPRAD_SCRIPTS=$MSM_PATH/CUPRAD/scripts
 
-export TDSE_1D_POST_PROCESSING=/home/vabekjan/git/CUPRAD_TDSE_Hankel/1DTDSE/post_processing
+export CUPRAD_INPUTS=$MSM_PATH/CUPRAD/testing
 
-export TDSE_1D_SCRIPTS=/home/vabekjan/git/CUPRAD_TDSE_Hankel/1DTDSE/scripts
+export CUPRAD_PYTHON=$MSM_PATH/CUPRAD/python
 
-export TDSE_1D_SLURM=/home/vabekjan/git/CUPRAD_TDSE_Hankel/1DTDSE/slurm
+export TDSE_1D_SOURCE=$MSM_PATH/1DTDSE/
 
-export TDSE_1D_BINARY=/home/vabekjan/git/CUPRAD_TDSE_Hankel/1DTDSE/binary
+export TDSE_1D_POST_PROCESSING=$MSM_PATH/1DTDSE/post_processing
 
-export HANKEL_HOME=/home/vabekjan/git/CUPRAD_TDSE_Hankel/Hankel
+export TDSE_1D_SCRIPTS=$MSM_PATH/1DTDSE/scripts
 
-export TDSE_1D_HOME=/home/vabekjan/git/CUPRAD_TDSE_Hankel/1DTDSE
+export TDSE_1D_SLURM=$MSM_PATH/1DTDSE/slurm
 
-export MULTISCALE_HOME=/home/vabekjan/git/CUPRAD_TDSE_Hankel
+export TDSE_1D_BINARY=$MSM_PATH/1DTDSE/binary
 
-export MULTISCALE_SCRIPTS=/home/vabekjan/git/CUPRAD_TDSE_Hankel/multiscale/scripts
+export HANKEL_HOME=$MSM_PATH/Hankel
+
+export TDSE_1D_HOME=$MSM_PATH/1DTDSE
+
+export MULTISCALE_HOME=$MSM_PATH
+
+export MULTISCALE_SCRIPTS=$MSM_PATH/multiscale/scripts
+
+# # export PYTHON_CUPRAD=/home/vabekjan/git/CUPRAD_DEVELOP/python
 
 export PYTHONPATH=$PYTHONPATH:$CUPRAD_PYTHON
 ```
-- The part of the path `/home/vabekjan/git/` should be replaced by the paths you actually use.
+
 
 
 
