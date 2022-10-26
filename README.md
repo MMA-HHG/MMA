@@ -11,6 +11,8 @@ Several Python procedures require modules from various places. The actual approa
 ``` bash
 export GIT_PATH=/users/k2255939/git
 
+# export GIT_PATH=/gpfs/home/jvabek/git
+
 export UNIV_INPUT_PATH=$GIT_PATH/universal_input
 
 export MSM_PATH=$GIT_PATH/CUPRAD_TDSE_Hankel
@@ -50,6 +52,13 @@ export MULTISCALE_SCRIPTS=$MSM_PATH/multiscale/scripts
 # # export PYTHON_CUPRAD=/home/vabekjan/git/CUPRAD_DEVELOP/python
 
 export PYTHONPATH=$PYTHONPATH:$CUPRAD_PYTHON
+```
+
+These aliases may be separated from `.bashrc` by including them in `.bash_aliases` via
+``` bash
+if [ -f ~/.bash_aliases ]; then
+    . ~/.bash_aliases
+fi
 ```
 
 
