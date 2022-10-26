@@ -19,7 +19,7 @@ module load GCC/6.1.0 OpenMPI/1.10.2-GCC-6.1.0-psm-dbg HDF5/1.8.13-OpenMPI-1.10.
 which h5pcc 
 # export HDF5_USE_SHLIB=yes # default static lib fore h5pcc
 h5pcc  -c $TDSE_1D_HOME/constants.c $TDSE_1D_HOME/tools_hdf5.c $TDSE_1D_HOME/tridiag.c $TDSE_1D_HOME/tools.c $TDSE_1D_HOME/tools_fftw3.c $TDSE_1D_HOME/tools_algorithmic.c $TDSE_1D_HOME/prop.c $TDSE_1D_HOME/singleTDSE.c $TDSE_1D_HOME/single_caller.c -L$HDF5_LIBDIR -lhdf5 -lhdf5_hl -lfftw3 -g
-h5pcc --echo  *.o -L$HDF5_LIBDIR -lhdf5 -lhdf5_hl -lm -lfftw3 -g -o test_s1.e
+h5pcc  *.o -L$HDF5_LIBDIR -lhdf5 -lhdf5_hl -lm -lfftw3 -g -o test_s1.e
 # rm *.o
 
 
