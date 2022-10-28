@@ -1,3 +1,49 @@
+# Maker fringes  project
+
+## Parameters
+
+- argon
+    - $I = 1 \times 10^{14}~\mathrm{W/cm^2}$
+    - $w_0 = 25~\mathrm{\mu m}$
+    - $\lambda = 800~\mathrm{nm}$
+    - $\tau_{\text{FWHM}} = 30~\mathrm{fs}$
+    - Gaussian mode (TEM00)
+    - $p = 0.1~\mathrm{bar}$
+    - $L_{\text{med}} = 50~\mathrm{\mu m}$
+    - focusing: $\pm 100~\mathrm{\mu m}$ w.r.t. the focus
+    - $z_{FF} = 50~\mathrm{cm}$
+
+- xenon
+    - $I = 7 \times 10^{13}~\mathrm{W/cm^2}$
+    - $w_0 = 10~\mathrm{\mu m}$
+    - $\lambda = 1030~\mathrm{nm}$
+    - $\tau_{\text{FWHM}} = 200~\mathrm{fs}$
+    - Gaussian mode (TEM00)
+    - $p = 0.1~\mathrm{bar}$
+    - $L_{\text{med}} = 50~\mathrm{\mu m}$
+    - focusing: $\pm 100~\mathrm{\mu m}$ w.r.t. the focus
+    - $z_{FF} = 50~\mathrm{cm}$
+
+<!-- - xenon
+30 fs - 800 nm
+200 fs - 1030 nm
+
+Conditions are:
+No envelop temporally
+Integration on 1 optical cycle
+Trajectory selection (Lewenstein model)
+I0=1e14 W/cm2 // future 7e13
+w0=25 microns // future 10
+Lambda0=800 nm // future 1030 nm
+Spatial mode= TEM00 gaussian
+Pressure=0.1 bar
+Atom: argon// future xenon
+Absorption=1cm response
+Length of medium= 50 micron
+Position of target= @ focus and before z=-100 micron and after z=+100
+Calculation plan: @ farfield this 50 cm from medium output -->
+
+
 # Development notes
 The development of the coupled model
 
