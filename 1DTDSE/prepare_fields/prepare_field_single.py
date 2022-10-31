@@ -93,8 +93,7 @@ fixed = {}
 
 class pulse_types:
     def __init__(self, pulse_type):
-        if (pulse_type == 'sin2'):
-        # sin^2 - envelope
+        if (pulse_type == 'sin2'): # sin^2 - envelope
             def sin2pulse(t,omega0,omegac,E0,phi0):
                 phi_central = - (np.pi * omega0) / (2.0*omegac) # use the peak of the pulse as the reference for the cosine pulse
                 return (t>=0) * (t<=np.pi/omegac) * E0*((np.sin(omegac*t))**2) *  np.cos(omega0*t + phi_central + phi0)
@@ -102,7 +101,7 @@ class pulse_types:
             self.inputs_list_direct = ['omega0', 'omegac', 'E0', 'phi0']
             self.inputs_list = ['lambda', 'T_FWHM', 'E0', 'phi0']
             
-            def inputs_converter(lambdaSI,tFWHM,E0,phi0):
+            def inputs_converter(lambdaSI,tFWHMSI,E0,phi0):
                 omega0 = mn.ConvertPhoton(lambdaSI, 'lambdaSI', 'omegaau')
                 omegac = 2.0*np.arccos(2**(-0.25))/(tFWHMSI/units.TIMEau)
                 return omega0, omegac, E0, phi0
@@ -113,6 +112,36 @@ class pulse_types:
                 tgrid = np.linspace(0,np.pi/omegac,Nt)
                 return tgrid
             self.construct_tgrid = construct_tgrid
+            
+            def make_field(Nt,**kwargs):
+                tgrid = construct_tgrid(Nt, **kwargs)
+                Efield = sin2pulse(tgrid,*inputs_converter(**kwargs))
+                return tgrid, Efield
+            self.make_field = make_field
+
+        elif (pulse_type == 'Gaussian'): # sin^2 - envelope
+            def Gaussian_pulse(t,omega0,tFWHM,E0,phi0):
+                return E0* np.exp(-(2.0*np.log(2.0)*t/tFWHM)**2)*  np.cos(omega0*t + phi0)
+            self.pulse = Gaussian_pulse
+            self.inputs_list_direct = ['omega0', 'T_FWHM', 'E0', 'phi0']
+            self.inputs_list = ['lambda', 'T_FWHM', 'E0', 'phi0']
+            
+            def inputs_converter(lambdaSI,tFWHMSI,E0,phi0):
+                omega0 = mn.ConvertPhoton(lambdaSI, 'lambdaSI', 'omegaau')
+                return omega0, tFWHMSI/units.TIMEau, E0, phi0
+            self.inputs_converter = inputs_converter
+            
+            def construct_tgrid(Nt, **kwargs):
+                tmax = kwargs['t_expand'] * kwargs['tFWHMSI']/units.TIMEau
+                tgrid = np.linspace(-0.5*tmax, 0.5*tmax,Nt)
+                return tgrid
+            self.construct_tgrid = construct_tgrid
+            
+            def make_field(Nt,**kwargs):
+                tgrid = construct_tgrid(Nt, **kwargs)
+                Efield = sin2pulse(tgrid,*inputs_converter(**kwargs))
+                return tgrid, Efield
+            self.make_field = make_field
                 
         else: raise NotImplementedError('The input fiel must follow the $fixed - $varying structure now')
 
