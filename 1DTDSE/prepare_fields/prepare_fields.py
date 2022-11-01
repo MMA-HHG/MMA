@@ -201,26 +201,67 @@ class pulse_types:
                 phi_central = - (np.pi * omega0) / (2.0*omegac) # use the peak of the pulse as the reference for the cosine pulse
                 return (t>=0) * (t<=np.pi/omegac) * E0*((np.sin(omegac*t))**2) *  np.cos(omega0*t + phi_central + phi0)
             self.pulse = sin2pulse
-            self.inputs_list_direct = ['omega0', 'omegac', 'E0', 'phi0']
-            self.inputs_list = ['lambda', 'T_FWHM', 'E0', 'phi0']
+            # self.inputs_list_direct = ['omega0', 'omegac', 'E0', 'phi0']
+            # self.inputs_list = ['lambda', 'T_FWHM', 'E0', 'phi0']
             
-            def inputs_converter(lambdaSI,tFWHMSI,E0,phi0):
+            def inputs_converter1(lambdaSI,tFWHMSI,E0,phi0):
                 omega0 = mn.ConvertPhoton(lambdaSI, 'lambdaSI', 'omegaau')
                 omegac = 2.0*np.arccos(2**(-0.25))/(tFWHMSI/units.TIMEau)
                 return omega0, omegac, E0, phi0
-            self.inputs_converter = inputs_converter
+            self.inputs_converter1 = inputs_converter1
             
-            def construct_tgrid(Nt, **kwargs):
-                omegac = 2.0*np.arccos(2**(-0.25))/(kwargs['tFWHMSI']/units.TIMEau)
-                tgrid = np.linspace(0,np.pi/omegac,Nt)
-                return tgrid
-            self.construct_tgrid = construct_tgrid
+            # def construct_tgrid(Nt, **kwargs):
+            #     omegac = 2.0*np.arccos(2**(-0.25))/(kwargs['tFWHMSI']/units.TIMEau)
+            #     tgrid = np.linspace(0,np.pi/omegac,Nt)
+            #     return tgrid
+            # self.construct_tgrid = construct_tgrid
             
             def make_field(Nt,**kwargs):
                 tgrid = construct_tgrid(Nt, **kwargs)
                 Efield = sin2pulse(tgrid,*inputs_converter(**kwargs))
                 return tgrid, Efield
             self.make_field = make_field
+            
+            def inputs_converter(*args,given_inps=['omega0','omegac','E0','phi0']):
+                
+                # omega0
+                if ('omega0' in given_inps): omega0 = args[given_inps.index('omega0')]
+                elif ('lambda0' in given_inps): omega0 = mn.ConvertPhoton(args[given_inps.index('lambda0')], 'lambdaau', 'omegaau') 
+                else: raise NotImplementedError("omega0 doesn't have input")
+                
+                # omegac
+                if ('omegac' in given_inps): omegac = args[given_inps.index('omegac')]
+                elif ('T_FWHM' in given_inps):
+                    omegac = 2.0*np.arccos(2.0**(-0.25))/args[given_inps.index('T_FWHM')]
+                elif ('Ncyc' in given_inps):
+                    omegac = omega0/(2.0*args[given_inps.index('Ncyc')])
+                else: raise NotImplementedError("omegac doesn't have input")
+                
+                # E0
+                if ('E0' in given_inps): E0 = args[given_inps.index('E0')]
+                else: raise NotImplementedError("E0 doesn't have input")
+                
+                # phi0
+                if ('phi0' in given_inps): phi0 = args[given_inps.index('phi0')]
+                else: raise NotImplementedError("phi0 doesn't have input")
+                
+                return omega0, omegac, E0, phi0
+            self.inputs_converter = inputs_converter
+            
+            def construct_tgrid(Nt, *args, duration_definition='T_FWHM'):
+                
+                if (duration_definition=='T_FWHM'):
+                    omegac = 2.0*np.arccos(2.0**(-0.25))/args[0]
+                elif (duration_definition=='omegac'):
+                    omegac = args[0]
+                elif (duration_definition=='Ncyc'):
+                    omegac = args[0]/(2.0*args[1])
+                else: raise NotImplementedError("srongly sepcified 'duration_definition'")
+                
+                tgrid = np.linspace(0,np.pi/omegac,Nt)
+                return tgrid
+            self.construct_tgrid = construct_tgrid
+            
 
         elif (pulse_type == 'Gaussian'): # sin^2 - envelope
             def Gaussian_pulse(t,omega0,tFWHM,E0,phi0):
@@ -263,20 +304,28 @@ class pulse_types:
 
 mypulse = pulse_types('sin2')        
     
-tgrid = mypulse.construct_tgrid(1000, tFWHMSI=tFWHMSI)
-Efield = mypulse.pulse(tgrid,*mypulse.inputs_converter(lambdaSI, tFWHMSI, E0_max, 0.0))
+tgrid = mypulse.construct_tgrid(1000, tFWHMSI/units.TIMEau)
+# Efield = mypulse.pulse(tgrid,*mypulse.inputs_converter(lambdaSI, tFWHMSI, E0_max, 0.0))
 
+
+Efield = mypulse.pulse(tgrid,
+                       # *mypulse.inputs_converter(lambdaSI, tFWHMSI, E0_max, 0.0)
+                       *mypulse.inputs_converter(lambdaSI/units.LENGTHau, tFWHMSI/units.TIMEau, E0_max, 0.0, 
+                                         given_inps=['lambda0','T_FWHM','E0','phi0'])
+                       )
 
 ## testplot
 if showplots:
-    pass
-    # image = pp.figure_driver()    
-    # image.sf = [pp.plotter() for k1 in range(1)]
-    # image.sf[0].args = [tgrid, Efield]
-    # pp.plot_preset(image)   
+    # pass
+    image = pp.figure_driver()    
+    image.sf = [pp.plotter() for k1 in range(1)]
+    image.sf[0].args = [tgrid, Efield]
+    pp.plot_preset(image)   
 
 myparams3 = parameters_selector(*multiparameters_lines2dict(lines))
 
+for k1 in range(myparams3.N_combinations):
+    print(myparams3.ret(k1))
 ## store
 
 
