@@ -174,9 +174,9 @@ class pulse_types:
                     omegac = args[1]/(2.0*args[2])
                 else: raise NotImplementedError("srongly sepcified 'duration_definition'")
                 
-                if (duration_definition=='dt'):
+                if (N_points_control=='dt'):
                     tgrid = np.arange(0, (np.pi/omegac)+args[0], args[0])
-                elif (duration_definition=='Nt'):
+                elif (N_points_control=='Nt'):
                     tgrid = np.linspace(0,np.pi/omegac,args[0])
                 else: raise NotImplementedError("srongly sepcified 'N_points_control'")
                 return tgrid
@@ -224,7 +224,7 @@ class pulse_types:
 
 mypulse = pulse_types('sin2')        
     
-tgrid = mypulse.construct_tgrid(1000, tFWHMSI/units.TIMEau)
+tgrid = mypulse.construct_tgrid(0.5, tFWHMSI/units.TIMEau)
 # Efield = mypulse.pulse(tgrid,*mypulse.inputs_converter(lambdaSI, tFWHMSI, E0_max, 0.0))
 
 
@@ -253,6 +253,29 @@ for k1 in range(myparams3.N_combinations):
 ## store
 
 
+## list of fields
+Efields = []
+for k1 in range(myparams3.N_combinations):
+    Efields.append(
+        mypulse.pulse(tgrid,
+                      *mypulse.inputs_converter(
+                                                *myparams3.ret(k1), 
+                                                given_inps=myparams3.assumed_output_order
+                                                )                
+                      )
+                    )
+
+
+## testplot
+if showplots:
+    # pass
+    image = pp.figure_driver()    
+    image.sf = [pp.plotter() for k1 in range(myparams3.N_combinations)]
+    for k1 in range(myparams3.N_combinations):
+        image.sf[k1].args = [tgrid, Efields[k1]]
+    pp.plot_preset(image)  
+    
+    
 out_h5name = 'field_input.h5'
 omega0 = mn.ConvertPhoton(lambdaSI, 'lambdaSI', 'omegaau')
 
