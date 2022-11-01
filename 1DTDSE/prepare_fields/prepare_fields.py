@@ -33,6 +33,7 @@ precision = 'd'
 def multiparameters_lines2dict(lines):
     processing_fixed_inputs = False;  processing_varying_inputs = False
     varying_params = []; fixed_params = []; params_dict = {}
+    params_dict['_units']={}
     for line in lines:
         sep_line = line.split()  # separate the line
         
@@ -49,10 +50,12 @@ def multiparameters_lines2dict(lines):
               elif (sep_line[2] == 'I'): params_dict[sep_line[0]] = int(sep_line[1])
               elif (sep_line[2] == 'S'): params_dict[sep_line[0]] = sep_line[1]
               else: raise TypeError('line:' + line + '\n Specify datatype by R or I.')
+              params_dict['_units'][sep_line[0]] = sep_line[3]
           elif processing_varying_inputs: 
               varying_params.append(sep_line[0]) 
               params_dict[sep_line[0]] = [float(sep_line[2]), float(sep_line[3]),
                                           int(sep_line[4])]
+              params_dict['_units'][sep_line[0]] = sep_line[1]
           else: raise NotImplementedError('The input file must follow the $fixed - $varying structure now')
           
     return varying_params, fixed_params, params_dict
@@ -96,6 +99,8 @@ class parameters_selector:
                                      if (assumed_output_order is None) 
                                      else list(assumed_output_order))
         
+        if ('_units' in params_constructor.keys()): self.units = params_constructor['_units']
+        
         
     def ret(self,N,variables=None):
         MultInd = np.unravel_index(N, self.varying_params_lengths)
@@ -107,6 +112,9 @@ class parameters_selector:
         for var in variables:
             ouput_required.append(all_possible_ouputs[var])
         return ouput_required
+    
+    def store_to_h5(self,h_path):
+        pass
         
     
 
@@ -288,11 +296,19 @@ with h5py.File(out_h5name,'w') as OutFile:
     ## store params
     grp = OutFile.create_group('params')
     for k1 in range(myparams3.N_varying):
-        grp.create_dataset('param_'+str(k1),data=myparams3.param_grids[myparams3.varying_params[k1]])      
+        # grp.create_dataset('param_'+str(k1),data=myparams3.param_grids[myparams3.varying_params[k1]]) 
+        try:
+            mn.adddataset(grp, 'param_'+str(k1) , myparams3.param_grids[myparams3.varying_params[k1]] , '['+myparams3.units[myparams3.varying_params[k1]] +']' )
+        except:
+            mn.adddataset(grp, 'param_'+str(k1) , myparams3.param_grids[myparams3.varying_params[k1]] , '[?]' )
     grp.create_dataset('varying_params',data=np.string_(myparams3.varying_params))
     
     for k1 in range(myparams3.N_fixed):
-        grp.create_dataset(myparams3.fixed_params[k1], data=myparams3.param_grids[myparams3.fixed_params[k1]])
+        # grp.create_dataset(myparams3.fixed_params[k1], data=myparams3.param_grids[myparams3.fixed_params[k1]])
+        try:
+            mn.adddataset(grp, myparams3.fixed_params[k1] , myparams3.param_grids[myparams3.fixed_params[k1]] , '['+myparams3.units[myparams3.fixed_params[k1]] +']' )
+        except:
+            mn.adddataset(grp, myparams3.fixed_params[k1] , myparams3.param_grids[myparams3.fixed_params[k1]] , '[?]' )
     grp.create_dataset('fixed_params',data=np.string_(myparams3.fixed_params))
     
     mn.adddataset(grp, 'test', ['a','aaa'] , '[a.u.]' )
