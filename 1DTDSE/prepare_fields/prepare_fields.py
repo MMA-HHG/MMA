@@ -68,7 +68,7 @@ class parameters_selector:
         self.varying_params = varying_params
         self.fixed_params = fixed_params
         param_grids = {}
-        self.N_combinations = 1; self.N_fixed = len(varying_params); self.N_varying = len(varying_params)
+        self.N_combinations = 1; self.N_fixed = len(fixed_params); self.N_varying = len(varying_params)
         self.varying_params_lengths = []
         
         # param = varying_list[k1]
@@ -114,7 +114,19 @@ class parameters_selector:
         return ouput_required
     
     def store_to_h5(self,h_path):
-        pass
+        for k1 in range(self.N_varying):
+            try:
+                mn.adddataset(h_path, 'param_'+str(k1) , self.param_grids[self.varying_params[k1]] , '['+self.units[self.varying_params[k1]] +']' )
+            except:
+                mn.adddataset(h_path, 'param_'+str(k1) , self.param_grids[self.varying_params[k1]] , '[?]' )
+        h_path.create_dataset('varying_params',data=np.string_(self.varying_params))
+        
+        for k1 in range(self.N_fixed):
+            try:
+                mn.adddataset(h_path, self.fixed_params[k1] , self.param_grids[self.fixed_params[k1]] , '['+self.units[self.fixed_params[k1]] +']' )
+            except:
+                mn.adddataset(h_path, self.fixed_params[k1] , self.param_grids[self.fixed_params[k1]] , '[?]' )
+        h_path.create_dataset('fixed_params',data=np.string_(self.fixed_params))
         
     
 
@@ -292,11 +304,18 @@ with h5py.File(out_h5name,'w') as OutFile:
     mn.adddataset(OutFile, 'IRField/Field', Efield , '[a.u.]' )
     mn.adddataset(OutFile, 'IRField/Eields', np.asarray(Efields) , '[a.u.]' )
     
+    dset=OutFile.create_dataset('IRField/Eields_w',(myparams3.N_combinations,len(tgrid)), 'd')
+    for k1 in range(myparams3.N_combinations):
+        dset[k1,:] = mypulse.pulse(tgrid,
+                                   *mypulse.inputs_converter(
+                                             *myparams3.ret(k1), 
+                                             given_inps=myparams3.assumed_output_order
+                                             )                
+                               )
     
     ## store params
     grp = OutFile.create_group('params')
     for k1 in range(myparams3.N_varying):
-        # grp.create_dataset('param_'+str(k1),data=myparams3.param_grids[myparams3.varying_params[k1]]) 
         try:
             mn.adddataset(grp, 'param_'+str(k1) , myparams3.param_grids[myparams3.varying_params[k1]] , '['+myparams3.units[myparams3.varying_params[k1]] +']' )
         except:
@@ -304,7 +323,6 @@ with h5py.File(out_h5name,'w') as OutFile:
     grp.create_dataset('varying_params',data=np.string_(myparams3.varying_params))
     
     for k1 in range(myparams3.N_fixed):
-        # grp.create_dataset(myparams3.fixed_params[k1], data=myparams3.param_grids[myparams3.fixed_params[k1]])
         try:
             mn.adddataset(grp, myparams3.fixed_params[k1] , myparams3.param_grids[myparams3.fixed_params[k1]] , '['+myparams3.units[myparams3.fixed_params[k1]] +']' )
         except:
@@ -314,6 +332,9 @@ with h5py.File(out_h5name,'w') as OutFile:
     mn.adddataset(grp, 'test', ['a','aaa'] , '[a.u.]' )
     mn.adddataset(grp, 'test2', np.string_(['a','aaa']) , '[a.u.]' )
     mn.adddataset(grp, 'test3', 3.0, '[a.u.]' )
+    
+    grp = OutFile.create_group('params2')
+    myparams3.store_to_h5(grp)
     # Store param grid
 
 
