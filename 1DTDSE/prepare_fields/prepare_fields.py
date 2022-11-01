@@ -108,91 +108,7 @@ class parameters_selector:
             ouput_required.append(all_possible_ouputs[var])
         return ouput_required
         
-        
-myparams = parameters_selector(['phi0','E0'],['pulse_type','omega0','T_FWHM'],
-                               {'phi0': [0,0,-1],
-                                'E0': [0.0, 0.053380268083853495, 8],
-                                'pulse_type': 'sin2',
-                                'omega0' : 0.056954190639159845,
-                                'T_FWHM' : 1240.2412005397605})
-   
-myparams.ret(0) 
-
-myparams2 = parameters_selector(['phi0','E0'],['pulse_type','omega0','T_FWHM'],
-                               {'phi0': [0,np.pi,1],
-                                'E0': [0.0, 0.053380268083853495, 8],
-                                'pulse_type': 'sin2',
-                                'omega0' : 0.056954190639159845,
-                                'T_FWHM' : 1240.2412005397605})
-   
-myparams.ret(0)          
     
-
-# read parameters
-inputfilename = 'TDSE_create_fields.inp'
-with open(inputfilename, 'r') as InputMP:
-    lines = InputMP.readlines()
-    
-fixed_params = []
-varying_list = []
-parameters = {}
-fixed = {}
-
-
-
-processing_fixed_inputs = False;  processing_varying_inputs = False
-for line in lines:
-    sep_line = line.split()  # separate the line
-    if ((len(sep_line) == 0) or (sep_line[0] == '#') or (sep_line[0] == '##')):
-        pass  # print('empty or commented line')
-    else:
-      if (sep_line[0] == '$fixed'):
-          processing_fixed_inputs = True; processing_varying_inputs = False
-      elif (sep_line[0] == '$varying'):
-          processing_fixed_inputs = False; processing_varying_inputs = True
-      elif processing_fixed_inputs: 
-          fixed_params.append(sep_line[0])
-          if (sep_line[2] == 'R'): fixed[sep_line[0]] = float(sep_line[1])
-          elif (sep_line[2] == 'I'): fixed[sep_line[0]] = int(sep_line[1])
-          elif (sep_line[2] == 'S'): fixed[sep_line[0]] = sep_line[1]
-          else: raise TypeError('line:' + line + '\n Specify datatype by R or I.')
-      elif processing_varying_inputs: 
-          varying_list.append(sep_line[0]) 
-          parameters[sep_line[0]] = [float(sep_line[2]), float(sep_line[3]),
-                                      int(sep_line[4]), sep_line[1]]
-      else: raise NotImplementedError('The input fiel must follow the $fixed - $varying structure now')
-        # n_params = n_params + 1
-        # names = names + sep_line[0] + '\t'
-        # if grouped: groups = groups + sep_line[1] + '\t'
-        # dtypes = dtypes + sep_line[shift+1] + '\t'
-        # units = units + sep_line[shift+2] + '\t'
-        # if firstline:
-        #     content = sep_line[shift+3] + '\t' + sep_line[shift+4] + '\t' + sep_line[shift+5]
-        #     firstline = False
-        # else:
-        #     content = content + '\n' + sep_line[shift+3] + '\t' + sep_line[shift+4] + '\t' + sep_line[shift+5]
-
-
-# varying_list = ['phi0','Intensity']
-# parameters = {varying_list[0]: [0,0.5*np.pi, -1, '[rad]'],
-#               varying_list[1]: [0,E0_max,NE, '[a.u.]']}
-
-
-
-
-# grid of input values
-N = 1; param_grids = []; param_dims = []
-for k1 in range(len(varying_list)): # ensure ordering according to 
-    param = varying_list[k1]
-    N_points = parameters[param][2] + 2
-    if (parameters[param][2] == -1): param_grids.append(
-                                                np.asarray([parameters[param][1]])
-                                                )
-    else: param_grids.append( np.linspace( *parameters[param][:2], N_points ) )
-    N *= N_points; param_dims.append(N_points)    
-param_dims = np.asarray(param_dims) 
-
-
 
 class pulse_types:
     def __init__(self, pulse_type):
@@ -248,44 +164,48 @@ class pulse_types:
                 return omega0, omegac, E0, phi0
             self.inputs_converter = inputs_converter
             
-            def construct_tgrid(Nt, *args, duration_definition='T_FWHM'):
+            def construct_tgrid(*args, N_points_control='dt', duration_definition='T_FWHM'):
                 
                 if (duration_definition=='T_FWHM'):
-                    omegac = 2.0*np.arccos(2.0**(-0.25))/args[0]
+                    omegac = 2.0*np.arccos(2.0**(-0.25))/args[1]
                 elif (duration_definition=='omegac'):
-                    omegac = args[0]
+                    omegac = args[1]
                 elif (duration_definition=='Ncyc'):
-                    omegac = args[0]/(2.0*args[1])
+                    omegac = args[1]/(2.0*args[2])
                 else: raise NotImplementedError("srongly sepcified 'duration_definition'")
                 
-                tgrid = np.linspace(0,np.pi/omegac,Nt)
+                if (duration_definition=='dt'):
+                    tgrid = np.arange(0, (np.pi/omegac)+args[0], args[0])
+                elif (duration_definition=='Nt'):
+                    tgrid = np.linspace(0,np.pi/omegac,args[0])
+                else: raise NotImplementedError("srongly sepcified 'N_points_control'")
                 return tgrid
             self.construct_tgrid = construct_tgrid
             
 
-        elif (pulse_type == 'Gaussian'): # sin^2 - envelope
-            def Gaussian_pulse(t,omega0,tFWHM,E0,phi0):
-                return E0* np.exp(-(2.0*np.log(2.0)*t/tFWHM)**2)*  np.cos(omega0*t + phi0)
-            self.pulse = Gaussian_pulse
-            self.inputs_list_direct = ['omega0', 'T_FWHM', 'E0', 'phi0']
-            self.inputs_list = ['lambda', 'T_FWHM', 'E0', 'phi0']
+        # elif (pulse_type == 'Gaussian'): # sin^2 - envelope
+        #     def Gaussian_pulse(t,omega0,tFWHM,E0,phi0):
+        #         return E0* np.exp(-(2.0*np.log(2.0)*t/tFWHM)**2)*  np.cos(omega0*t + phi0)
+        #     self.pulse = Gaussian_pulse
+        #     self.inputs_list_direct = ['omega0', 'T_FWHM', 'E0', 'phi0']
+        #     self.inputs_list = ['lambda', 'T_FWHM', 'E0', 'phi0']
             
-            def inputs_converter(lambdaSI,tFWHMSI,E0,phi0):
-                omega0 = mn.ConvertPhoton(lambdaSI, 'lambdaSI', 'omegaau')
-                return omega0, tFWHMSI/units.TIMEau, E0, phi0
-            self.inputs_converter = inputs_converter
+        #     def inputs_converter(lambdaSI,tFWHMSI,E0,phi0):
+        #         omega0 = mn.ConvertPhoton(lambdaSI, 'lambdaSI', 'omegaau')
+        #         return omega0, tFWHMSI/units.TIMEau, E0, phi0
+        #     self.inputs_converter = inputs_converter
             
-            def construct_tgrid(Nt, **kwargs):
-                tmax = kwargs['t_expand'] * kwargs['tFWHMSI']/units.TIMEau
-                tgrid = np.linspace(-0.5*tmax, 0.5*tmax,Nt)
-                return tgrid
-            self.construct_tgrid = construct_tgrid
+        #     def construct_tgrid(Nt, **kwargs):
+        #         tmax = kwargs['t_expand'] * kwargs['tFWHMSI']/units.TIMEau
+        #         tgrid = np.linspace(-0.5*tmax, 0.5*tmax,Nt)
+        #         return tgrid
+        #     self.construct_tgrid = construct_tgrid
             
-            def make_field(Nt,**kwargs):
-                tgrid = construct_tgrid(Nt, **kwargs)
-                Efield = sin2pulse(tgrid,*inputs_converter(**kwargs))
-                return tgrid, Efield
-            self.make_field = make_field
+        #     def make_field(Nt,**kwargs):
+        #         tgrid = construct_tgrid(Nt, **kwargs)
+        #         Efield = sin2pulse(tgrid,*inputs_converter(**kwargs))
+        #         return tgrid, Efield
+        #     self.make_field = make_field
                 
         else: raise NotImplementedError('The input fiel must follow the $fixed - $varying structure now')
 
@@ -322,7 +242,11 @@ if showplots:
     image.sf[0].args = [tgrid, Efield]
     pp.plot_preset(image)   
 
-myparams3 = parameters_selector(*multiparameters_lines2dict(lines))
+
+# read parameters
+inputfilename = 'TDSE_create_fields.inp'
+with open(inputfilename, 'r') as InputMP:
+    myparams3 = parameters_selector(*multiparameters_lines2dict( InputMP.readlines() ))
 
 for k1 in range(myparams3.N_combinations):
     print(myparams3.ret(k1))
