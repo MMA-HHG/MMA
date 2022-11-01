@@ -24,11 +24,38 @@ NE = 100
 Nt = 1000;
 precision = 'd'
 
-# read parameters
-inputfilename = 'TDSE_create_fields.inp'
-with open(inputfilename, 'r') as InputMP:
-    lines = InputMP.readlines()
+# # read parameters
+# inputfilename = 'TDSE_create_fields.inp'
+# with open(inputfilename, 'r') as InputMP:
+#     lines = InputMP.readlines()
     
+
+def multiparameters_lines2dict(lines):
+    processing_fixed_inputs = False;  processing_varying_inputs = False
+    varying_params = []; fixed_params = []; params_dict = {}
+    for line in lines:
+        sep_line = line.split()  # separate the line
+        
+        if ((len(sep_line) == 0) or (sep_line[0] == '#') or (sep_line[0] == '##')):
+            pass  # print('empty or commented line')
+        else:
+          if (sep_line[0] == '$fixed'):
+              processing_fixed_inputs = True; processing_varying_inputs = False
+          elif (sep_line[0] == '$varying'):
+              processing_fixed_inputs = False; processing_varying_inputs = True
+          elif processing_fixed_inputs: 
+              fixed_params.append(sep_line[0])
+              if (sep_line[2] == 'R'): params_dict[sep_line[0]] = float(sep_line[1])
+              elif (sep_line[2] == 'I'): params_dict[sep_line[0]] = int(sep_line[1])
+              elif (sep_line[2] == 'S'): params_dict[sep_line[0]] = sep_line[1]
+              else: raise TypeError('line:' + line + '\n Specify datatype by R or I.')
+          elif processing_varying_inputs: 
+              varying_params.append(sep_line[0]) 
+              params_dict[sep_line[0]] = [float(sep_line[2]), float(sep_line[3]),
+                                          int(sep_line[4])]
+          else: raise NotImplementedError('The input file must follow the $fixed - $varying structure now')
+          
+    return varying_params, fixed_params, params_dict
 
 
 class parameters_selector:
@@ -67,7 +94,7 @@ class parameters_selector:
 
         self.assumed_output_order = (list(varying_params+fixed_params)
                                      if (assumed_output_order is None) 
-                                     else assumed_output_order)
+                                     else list(assumed_output_order))
         
         
     def ret(self,N,variables=None):
@@ -99,6 +126,12 @@ myparams2 = parameters_selector(['phi0','E0'],['pulse_type','omega0','T_FWHM'],
                                 'T_FWHM' : 1240.2412005397605})
    
 myparams.ret(0)          
+    
+
+# read parameters
+inputfilename = 'TDSE_create_fields.inp'
+with open(inputfilename, 'r') as InputMP:
+    lines = InputMP.readlines()
     
 fixed_params = []
 varying_list = []
@@ -242,6 +275,7 @@ if showplots:
     # image.sf[0].args = [tgrid, Efield]
     # pp.plot_preset(image)   
 
+myparams3 = parameters_selector(*multiparameters_lines2dict(lines))
 
 ## store
 
