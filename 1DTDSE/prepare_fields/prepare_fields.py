@@ -282,6 +282,23 @@ omega0 = mn.ConvertPhoton(lambdaSI, 'lambdaSI', 'omegaau')
 with h5py.File(out_h5name,'w') as OutFile:
     mn.adddataset(OutFile, 'IRField/tgrid', tgrid , '[a.u.]' )
     mn.adddataset(OutFile, 'IRField/Field', Efield , '[a.u.]' )
+    mn.adddataset(OutFile, 'IRField/Eields', np.asarray(Efields) , '[a.u.]' )
+    
+    
+    ## store params
+    grp = OutFile.create_group('params')
+    for k1 in range(myparams3.N_varying):
+        grp.create_dataset('param_'+str(k1),data=myparams3.param_grids[myparams3.varying_params[k1]])      
+    grp.create_dataset('varying_params',data=np.string_(myparams3.varying_params))
+    
+    for k1 in range(myparams3.N_fixed):
+        grp.create_dataset(myparams3.fixed_params[k1], data=myparams3.param_grids[myparams3.fixed_params[k1]])
+    grp.create_dataset('fixed_params',data=np.string_(myparams3.fixed_params))
+    
+    mn.adddataset(grp, 'test', ['a','aaa'] , '[a.u.]' )
+    mn.adddataset(grp, 'test2', np.string_(['a','aaa']) , '[a.u.]' )
+    mn.adddataset(grp, 'test3', 3.0, '[a.u.]' )
+    # Store param grid
 
 
 # ## testplot
