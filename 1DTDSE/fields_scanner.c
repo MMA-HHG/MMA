@@ -143,15 +143,15 @@ int main(int argc, char *argv[])
 
 
     // convert units
-	switch (tgrid_units)
-	{
-	case 1:
-		for(k1 = 0 ; k1 < inputs.Efield.Nt; k1++){inputs.Efield.tgrid[k1] = inputs.Efield.tgrid[k1]/TIMEau;}
-		break;
-	case 2:
-		for(k1 = 0 ; k1 < inputs.Efield.Nt; k1++){inputs.Efield.tgrid[k1] = inputs.Efield.tgrid[k1]*(1e-15/TIMEau);}
-		break;
-	}	
+	// switch (tgrid_units)
+	// {
+	// case 1:
+	// 	for(k1 = 0 ; k1 < inputs.Efield.Nt; k1++){inputs.Efield.tgrid[k1] = inputs.Efield.tgrid[k1]/TIMEau;}
+	// 	break;
+	// case 2:
+	// 	for(k1 = 0 ; k1 < inputs.Efield.Nt; k1++){inputs.Efield.tgrid[k1] = inputs.Efield.tgrid[k1]*(1e-15/TIMEau);}
+	// 	break;
+	// }	
 
 
 	// first simulation prepares the outputfile (we keep it for the purpose of possible generalisations for parallel output)
@@ -183,7 +183,7 @@ int main(int argc, char *argv[])
 		h5error = H5Fclose(file_id);
 
 		// // convert units
-		if (Efield_units == 1){for(k1 = 0 ; k1 < inputs.Efield.Nt; k1++){inputs.Efield.Field[k1] = inputs.Efield.Field[k1]/EFIELDau;}}
+		// if (Efield_units == 1){for(k1 = 0 ; k1 < inputs.Efield.Nt; k1++){inputs.Efield.Field[k1] = inputs.Efield.Field[k1]/EFIELDau;}}
 
 		// do the calculation
 		outputs = call1DTDSE(inputs); // THE TDSE

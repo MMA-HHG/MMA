@@ -16,60 +16,43 @@ showplots = not('-nodisplay' in arguments)
 
 
 
+groupname = arguments[arguments.index("-g")+1] if ("-g" in arguments) else 'fields_list'
+out_h5name = arguments[arguments.index("-ohdf5")+1] if ("-ohdf5" in arguments) else 'field_input.h5'
+inputfilename = arguments[arguments.index("-i")+1] if ("-i" in arguments) else 'TDSE_create_fields.inp'
+groupname_params = arguments[arguments.index("-g_params")+1] if ("-g_params" in arguments) else 'grids_for_scan'
 
-mypulse = mn.pulse_types('sin2')        
     
-
-## testplot
-if showplots:
-    pass
-    # image = pp.figure_driver()    
-    # image.sf = [pp.plotter() for k1 in range(1)]
-    # image.sf[0].args = [tgrid, Efield]
-    # pp.plot_preset(image)   
 
 
 # read parameters
-inputfilename = 'TDSE_create_fields.inp'
+
 with open(inputfilename, 'r') as InputMP:
     myparams3 = mn.parameters_selector(*mn.multiparameters_lines2dict( InputMP.readlines() ))
 
-# for k1 in range(myparams3.N_combinations):
-#     print(myparams3.ret(k1))
-## store
+mypulse = mn.pulse_types(myparams3.param_grids['pulse_type'])    
 
 tgrid = mypulse.construct_tgrid(myparams3.param_grids['dt'],
                                 myparams3.param_grids['T_FWHM'])
 
-## list of fields
-Efields = []
-for k1 in range(myparams3.N_combinations):
-    Efields.append(
-        mypulse.pulse(tgrid,
-                      *mypulse.inputs_converter(
-                                                *myparams3.ret(k1), 
-                                                given_inps=myparams3.assumed_output_order
-                                                )                
-                      )
-                    )
-
-
-# ## testplot
-# if showplots:
-#     # pass
-#     image = pp.figure_driver()    
-#     image.sf = [pp.plotter() for k1 in range(myparams3.N_combinations)]
-#     for k1 in range(myparams3.N_combinations):
-#         image.sf[k1].args = [tgrid, Efields[k1]]
-#     pp.plot_preset(image)  
+# ## list of fields
+# Efields = []
+# for k1 in range(myparams3.N_combinations):
+#     Efields.append(
+#         mypulse.pulse(tgrid,
+#                       *mypulse.inputs_converter(
+#                                                 *myparams3.ret(k1), 
+#                                                 given_inps=myparams3.assumed_output_order
+#                                                 )                
+#                       )
+#                     )
+  
     
     
-out_h5name = 'field_input.h5'
-# omega0 = mn.ConvertPhoton(lambdaSI, 'lambdaSI', 'omegaau')
+
 
 with h5py.File(out_h5name,'w') as OutFile:
-    mn.adddataset(OutFile, 'IRField/tgrid', tgrid , '[a.u.]' )    
-    dset=OutFile.create_dataset('IRField/Eields_table',(myparams3.N_combinations,len(tgrid)), 'd')
+    mn.adddataset(OutFile, groupname+'/tgrid', tgrid , '[a.u.]' )    
+    dset=OutFile.create_dataset(groupname+'/Eields_table',(myparams3.N_combinations,len(tgrid)), 'd')
     dset.attrs['units']=np.string_('[a.u.]')
     for k1 in range(myparams3.N_combinations):
         dset[k1,:] = mypulse.pulse(tgrid,
@@ -79,53 +62,10 @@ with h5py.File(out_h5name,'w') as OutFile:
                                              )                
                                )
     
-    grp = OutFile.create_group('params')
-    
+    grp = OutFile.create_group(groupname_params)    
     myparams3.store_to_h5(grp)
     
-    # image = pp.figure_driver()    
-    # image.sf = [pp.plotter() for k1 in range(5)]
 
-    # image.sf[0].args = [tgrid, OutFile['IRField/Eields_table'][5,:]]
-    # image.sf[1].args = [tgrid, OutFile['IRField/Eields_table'][6,:]]
-    # image.sf[3].args = [tgrid, OutFile['IRField/Eields_table'][7,:]]
-    # image.sf[4].args = [tgrid, OutFile['IRField/Eields_table'][9500,:]]
-    # pp.plot_preset(image)
-    # Store param grid
-
-
-# ## testplot
-# omegac = 2.0*np.arccos(2**(-0.25))/(tFWHMSI/units.TIMEau)
-# tgrid = np.linspace(0,np.pi/omegac,Nt)
-
-# image = pp.figure_driver()    
-# image.sf = [pp.plotter() for k1 in range(1)]
-# image.sf[0].args = [tgrid, sin2pulse(tgrid,mn.ConvertPhoton(lambdaSI, 'lambdaSI', 'omegaau'),omegac,E0_max,0.0)]
-# pp.plot_preset(image)   
-
-
-
-# out_h5name = 'fields_table.h5'
-# omega0 = mn.ConvertPhoton(lambdaSI, 'lambdaSI', 'omegaau')
-
-# with h5py.File(out_h5name,'w') as OutFile:
-#     shape = [N,Nt]
-#     dset = OutFile.create_dataset('fields_list', shape, precision)
-#     dset.attrs['units'] = np.string_('[a.u.]')
-    
-#     for k1 in range(N):
-#         MultInd = np.unravel_index(k1,param_dims)
-#         dset[k1,:] = sin2pulse(tgrid,omega0,omegac,param_grids[1][MultInd[1]],param_grids[0][MultInd[0]])
-
-#     OutFile.create_dataset('param_list',data=np.string_(varying_list)) 
-    
-#     mn.adddataset(OutFile, 'tgrid', tgrid , '[a.u.]' )
-    
-#     # store grids
-#     for k1 in range(len(varying_list)):
-#         # OutFile.create_dataset('param_'+str(k1), data=param_grids[k1] )
-#         mn.adddataset(OutFile, 'param_'+str(k1), param_grids[k1] , parameters[varying_list[k1]][3] )
-#         # .create_dataset('param_'+str(k1), data=param_grids[k1] )
 
 print('done')
 

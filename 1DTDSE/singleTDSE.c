@@ -164,9 +164,9 @@ struct outputs_def call1DTDSE(struct inputs_def inputs) // this is a wrapper tha
 	// do the calculation
 	start = clock();
 
-	printf("bprop \n"); fflush(NULL);	
+	// printf("bprop \n"); fflush(NULL);	
 	psi = propagation(trg,Efield,tmin,Nt,num_t,dt,num_r,num_exp,dx,psi0,psi,x,timef,timef2,ton,toff,timet,dipole,gauge,transformgauge,x_int,analy,outputs);
-	printf("TDSE done \n"); fflush(NULL);	
+	// printf("TDSE done \n"); fflush(NULL);	
 	//printf("efield out    : %e, %e, %e \n",outputs.Efield[0],outputs.Efield[1],outputs.Efield[2]);
 
 
