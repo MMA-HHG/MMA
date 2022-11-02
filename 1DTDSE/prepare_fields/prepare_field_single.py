@@ -16,7 +16,7 @@ showplots = not('-nodisplay' in arguments)
 
 I0_max = 1e18 # SI
 lambdaSI = 800e-9
-tFWHMSI = 30e-15
+tFWHMSI = 10e-15
 
 E0_max = np.sqrt(I0_max/units.INTENSITYau)
 NE = 100

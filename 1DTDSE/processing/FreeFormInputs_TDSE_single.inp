@@ -22,7 +22,7 @@ CV_criterion_of_GS  1e-25   R   -
 gauge_type  0   I   -
 
 InterpByDTorNT	0	I	-	# refine resolution only for numerical fields (0 - by dt, 1 - by number of points)
-dt	0.125	R	a.u.	# resolution in time 0.0625
+dt	5.0	R	a.u.	# resolution in time 0.0625
 Ntinterp	1	I	-	# number of intermediate points
 textend	200	R	a.u.	# extension of the calculation after the last fields ends !!! NOW ONLY FOR ANALYTICAL FIELD //700
 
