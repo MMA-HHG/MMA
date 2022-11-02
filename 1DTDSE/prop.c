@@ -141,11 +141,11 @@ double* propagation(struct trg_def trg, struct Efield_var Efield, double tmin, i
 	for(k = 0 ; k < Nt ; k++)
 	{
 
-		//printf("tcycle %i \n",k); fflush(NULL);	
+		printf("tcycle %i \n",k); fflush(NULL);	
 		if( k%num_t == 0 )
 		{
 		start = clock();	
-		// printf("Cycle number : %i ; size of the box : %i ; progress %i/%i \n",(k/num_t)+1,num_r,k,Nt); fflush(NULL);
+		printf("Cycle number : %i ; size of the box : %i ; progress %i/%i \n",(k/num_t)+1,num_r,k,Nt); fflush(NULL);
 		}
 
 
@@ -305,10 +305,10 @@ double* propagation(struct trg_def trg, struct Efield_var Efield, double tmin, i
 
 		if (ip == (int)floor(num_t/20.))
 		{
-		// printf("*/"); fflush(stdout);
-		ip = 0;
+			// printf("*/"); fflush(stdout);
+			ip = 0;
 		}
-			ip++;
+		ip++;
 
 
 	if( ( k%num_t == num_t-1) && ( k != 0 ) )
