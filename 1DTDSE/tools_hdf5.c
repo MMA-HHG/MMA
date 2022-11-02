@@ -163,7 +163,8 @@ void Read_1_field_and_grid(hid_t file_id, char *inpath, herr_t *h5error, struct 
   path[0] = '\0';	strcat(strcat(path,inpath),"tgrid");
 	(*in).Efield.tgrid =  readreal1Darray_fort(file_id, path, h5error, &(*in).Efield.Nt); // tgrid is not changed when program runs
   path[0] = '\0';	strcat(strcat(path,inpath),"Field");
-	(*in).Efield.Field =  readreal1Darray_fort(file_id, path, h5error, &(*in).Efield.Nt); // tgrid is not changed when program runs  
+	(*in).Efield.Field =  readreal1Darray_fort(file_id, path, h5error, &(*in).Efield.Nt); // tgrid is not changed when program runs 
+  printf("read 1d done\n"); fflush(NULL); 
 }
 
 
