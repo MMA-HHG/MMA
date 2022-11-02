@@ -56,6 +56,7 @@ int main()
 	/////////////////////////
 
 	// calling the TDSE
+	printf("call TDSE\n"); fflush(NULL);
 	outputs = call1DTDSE(inputs); // THE TDSE
 	printf("TDSE done, in the caller\n"); fflush(NULL);
 
