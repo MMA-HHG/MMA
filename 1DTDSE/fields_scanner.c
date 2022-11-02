@@ -46,7 +46,7 @@ int main(int argc, char *argv[])
 	// vars:
 
 	const char filename_stub[] = "hdf5_temp_";
-    const char fields_group[] = "fields/";
+    const char fields_group[] = "fields_list/";
 	char local_filename[50];
 	char path[50];
 
@@ -88,7 +88,7 @@ int main(int argc, char *argv[])
 	inputs.Print = Set_prints_from_HDF5(file_id, "TDSE_inputs/", &h5error);
 
 
-	path[0] = '\0';	strcat(strcat(path,fields_group),"fields_list");
+	path[0] = '\0';	strcat(strcat(path,fields_group),"Eields_table");
 	dims = get_dimensions_h5(file_id, path, &h5error, &ndims, &datatype);
 
     int Ntot = dims[0];
