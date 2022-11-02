@@ -275,8 +275,8 @@ double Einitialise(struct trg_def trg, double *psi0,double *dinf,double *d,doubl
 	  test = sqrt((Energy-Eold)*(Energy-Eold));
 	  Eold = Energy;
 
-	  //printf("cv : %e",test);
-	  //printf(" Energy : %e\n",Eold);
+	  printf("cv : %e",test);
+	  printf(" Energy : %e\n",Eold);
 	
 	}
 	while(test > CV);
