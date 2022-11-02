@@ -8,7 +8,7 @@ print_GS_population             1   I   -
 print_integrated_population     1   I   -
 print_Efield                    0   I   -
 print_F_Efield                  0   I   -
-print_Source_Term               0   I   -
+print_Source_Term               1   I   -
 print_F_Source_Term             1   I   -
 print_x_expectation_value       1   I   -
 print_GS                        1   I   -

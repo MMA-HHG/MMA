@@ -88,7 +88,7 @@ int main(int argc, char *argv[])
 	inputs.Print = Set_prints_from_HDF5(file_id, "TDSE_inputs/", &h5error);
 
 
-	path[0] = '\0';	strcat(strcat(path,fields_group),"Eields_table");
+	path[0] = '\0';	strcat(strcat(path,fields_group),"Efields_table");
 	dims = get_dimensions_h5(file_id, path, &h5error, &ndims, &datatype);
 
     int Ntot = dims[0];
