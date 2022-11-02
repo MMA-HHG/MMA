@@ -89,6 +89,7 @@ int main(int argc, char *argv[])
 
 
 	path[0] = '\0';	strcat(strcat(path,fields_group),"Efields_table");
+	printf("Proc %i of %i started the program\n",myrank, nprocs);
 	dims = get_dimensions_h5(file_id, path, &h5error, &ndims, &datatype);
 
     int Ntot = dims[0];
