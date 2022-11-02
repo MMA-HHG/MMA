@@ -1,5 +1,6 @@
 #include<time.h> 
 #include<stdio.h>
+#include<string.h> 
 #include <mpi.h>
 #include<stdlib.h>
 #include<malloc.h>
@@ -250,7 +251,7 @@ int main(int argc, char *argv[])
 		h5error = H5Fclose(file_id);
 
 		// convert units
-		if (Efield_units == 1){for(k1 = 0 ; k1 < inputs.Efield.Nt; k1++){inputs.Efield.Field[k1] = inputs.Efield.Field[k1]/EFIELDau;}}	
+		// if (Efield_units == 1){for(k1 = 0 ; k1 < inputs.Efield.Nt; k1++){inputs.Efield.Field[k1] = inputs.Efield.Field[k1]/EFIELDau;}}	
 
 		// do the calculation
 		// t_mpi[3] = MPI_Wtime(); finish3_main = clock();
