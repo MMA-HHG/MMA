@@ -27,7 +27,7 @@ Ntinterp	1	I	-	# number of intermediate points
 textend	200	R	a.u.	# extension of the calculation after the last fields ends !!! NOW ONLY FOR ANALYTICAL FIELD //700
 
 ## target definition
-trg_a	1.1893	R	a.u. # |Krypton Ip = 0.5144761644747101 a.u. a = 1.3677 | # 0.6015 ???
+trg_a	1.3677	R	a.u. # |Krypton Ip = 0.5144761644747101 a.u. a = 1.3677 | # 0.6015 ???
 
 ## Analyses
 analy_writewft	0	I	-
