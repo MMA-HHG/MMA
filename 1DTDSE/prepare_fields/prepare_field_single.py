@@ -179,7 +179,7 @@ out_h5name = 'field_input.h5'
 omega0 = mn.ConvertPhoton(lambdaSI, 'lambdaSI', 'omegaau')
 
 with h5py.File(out_h5name,'w') as OutFile:
-    mn.adddataset(OutFile, 'IRField/tgrid', tgrid , '[a.u.]' )
+    mn.adddataset(OutFile, 'IRField/tgrid', units.TIMEau*tgrid , '[SI]' )
     mn.adddataset(OutFile, 'IRField/Field', Efield , '[a.u.]' )
 
 
