@@ -89,7 +89,7 @@ int main(int argc, char *argv[])
 
 
 	path[0] = '\0';	strcat(strcat(path,fields_group),"Efields_table");
-	printf(path);
+	// printf(path);
 	dims = get_dimensions_h5(file_id, path, &h5error, &ndims, &datatype);
 
     int Ntot = dims[0];
@@ -174,7 +174,7 @@ int main(int argc, char *argv[])
 		// dum3int[0]=kz_step*kz; dum3int[1]=-1; dum3int[2]=kr_step*kr;	// coarsen the access	
 
 		dum2int[0] = Nsim; dum2int[1] = -1;	
-		path[0] = '\0';	strcat(strcat(path,fields_group),"fields_list");	
+		path[0] = '\0';	strcat(strcat(path,fields_group),"Efields_table");	
 		rw_real_fullhyperslab_nd_h5(file_id, path ,&h5error,2,dims,dum2int,inputs.Efield.Field,"r");
 
 		// int Nz_CUPRAD, Nr_CUPRAD;
@@ -249,7 +249,10 @@ int main(int argc, char *argv[])
 
 		// read the HDF5 file
 		file_id = H5Fopen ("results.h5", H5F_ACC_RDONLY, H5P_DEFAULT);
-		rw_real_fullhyperslab_nd_h5(file_id,"outputs/output_field",&h5error,2,dims,dum2int,inputs.Efield.Field,"r");
+
+		path[0] = '\0';	strcat(strcat(path,fields_group),"Efields_table");
+
+		rw_real_fullhyperslab_nd_h5(file_id,path,&h5error,2,dims,dum2int,inputs.Efield.Field,"r");
 		h5error = H5Fclose(file_id);
 
 		// convert units
