@@ -52,7 +52,7 @@ tgrid = mypulse.construct_tgrid(myparams3.param_grids['dt'],
 
 with h5py.File(out_h5name,'w') as OutFile:
     mn.adddataset(OutFile, groupname+'/tgrid', tgrid , '[a.u.]' )    
-    dset=OutFile.create_dataset(groupname+'/Eields_table',(myparams3.N_combinations,len(tgrid)), 'd')
+    dset=OutFile.create_dataset(groupname+'/Efields_table',(myparams3.N_combinations,len(tgrid)), 'd')
     dset.attrs['units']=np.string_('[a.u.]')
     for k1 in range(myparams3.N_combinations):
         dset[k1,:] = mypulse.pulse(tgrid,
