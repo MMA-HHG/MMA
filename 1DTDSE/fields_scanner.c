@@ -5,7 +5,8 @@
 #include<stdlib.h>
 #include<malloc.h>
 #include<math.h>
-#include "hdf5.h"
+#include<hdf5.h>
+#include<fftw3.h> // for finalising the plans
 
 #include "numerical_constants.h"
 #include "util.h"
