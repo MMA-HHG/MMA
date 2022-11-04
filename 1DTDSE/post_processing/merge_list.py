@@ -78,7 +78,7 @@ with h5py.File(outfname,'w') as outf:
         with h5py.File(fname,'r') as f:
             dset_list = list(f.keys())
             if firstrun:
-                prepare_ouput_file(f, outf, dset_list)
+                prepare_ouput_file(f, outf, dset_list, nsim_tot)
                 firstrun = False
             nsim_tot = nsim_tot + print_ouput_file(f, outf, dset_list) # here is the printing
 
