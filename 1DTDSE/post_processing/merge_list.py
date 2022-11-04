@@ -84,5 +84,13 @@ with h5py.File(outfname,'w') as outf:
 
         # shutil.move(fname, 'temp/'+fname) #moving files
 
+    # add parameters
+    with h5py.File('results.h5','r') as f:
+        f.copy('TDSE_inputs',outf)
+        f.copy('grids_for_scans',outf)
+        f.copy('fields_list',outf)
+        
+
+
 print("total number of TDSE's merged:",nsim_tot)
 print('Done')
