@@ -1,0 +1,182 @@
+import numpy as np
+import os
+import time
+import copy
+# import multiprocessing as mp
+import shutil
+import h5py
+import sys
+import units
+import mynumerics as mn
+import re
+import glob
+
+import warnings
+
+
+import matplotlib.pyplot as plt
+import plot_presets as pp  
+
+# import XUV_refractive_index as XUV_index
+# import IR_refractive_index as IR_index
+
+from matplotlib.lines import Line2D
+  
+
+
+arguments = sys.argv
+
+
+
+# results_path = [os.path.join("D:\data", "Discharges", "TDSE","scan3"),
+#                  os.path.join("D:\data", "Discharges", "TDSE","scan4")]
+
+results_path = os.path.join("D:\data", "TDSE_list", "convergence1")
+
+
+
+
+
+### load results
+results_fname = os.path.join("ref", "results_merged.h5")
+
+fname= os.path.join(results_path, results_fname)
+
+with h5py.File(fname,'r') as f:
+    tgrid = f['tgrid'][:]
+    ogrid = f['omegagrid'][:]
+    SourceTerm = f['SourceTerm'][:,:]
+    FSourceTerm = f['FSourceTerm'][:,:,0] + 1j*f['FSourceTerm'][:,:,1]
+    
+    omega0 = f['grids_for_scans/omega0'][()]
+
+
+
+Hgrid = ogrid/omega0
+# source = ST
+
+
+image = pp.figure_driver()    
+image.sf = [pp.plotter() for k1 in range(4)]
+
+image.sf[0].args = [SourceTerm[0,:]]
+image.sf[0].method = plt.plot
+
+image.sf[1].args = [SourceTerm[3,:]]
+image.sf[1].method = plt.plot
+
+image.sf[2].args = [SourceTerm[15,:]]
+image.sf[2].method = plt.plot
+
+pp.plot_preset(image)
+
+
+image = pp.figure_driver()    
+image.sf = [pp.plotter() for k1 in range(4)]
+
+image.sf[0].args = [Hgrid, abs(FSourceTerm[0,:])]
+image.sf[0].method = plt.semilogy
+
+image.sf[1].args = [Hgrid, abs(FSourceTerm[3,:])]
+image.sf[1].method = plt.semilogy
+
+image.sf[2].args = [Hgrid, abs(FSourceTerm[15,:])]
+image.sf[2].method = plt.semilogy
+
+pp.plot_preset(image)
+
+
+# # store results
+# if os.path.exists(OutPath) and os.path.isdir(OutPath):
+#   shutil.rmtree(OutPath)
+#   print('deleted previous results')
+# os.mkdir(OutPath)
+
+# os.chdir(OutPath)
+
+
+# ## plot H17 + ionisations
+# k1 = 1 # index to access given harmonic plot
+
+
+# image = pp.figure_driver()    
+# image.sf = [pp.plotter() for k2 in range(11)]
+
+
+
+# image.sf[0].args = [p_grid, XUV_energy_pp[0][:,0,k1]/np.mean(XUV_energy_pp[0][:,0,k1]),'k']; image.sf[0].kwargs = {'label' : 'no_preion'}    
+# image.sf[1].args = [p_grid, XUV_energy_pp[0][:,1,k1]/np.mean(XUV_energy_pp[0][:,0,k1]),'b']; image.sf[1].kwargs = {'label' : 'T_discharge/2'}
+
+# image.sf[2].args = [p_grid, XUV_energy_pp[1][:,1,k1]/np.mean(XUV_energy_pp[1][:,0,k1]),'r']; image.sf[2].kwargs = {'label' : 'T_discharge/2'}
+# # image.sf[3].args = [p_grid, XUV_energy_pp[1][:,1,k1]/np.max(XUV_energy_pp[1][:,0,k1]),'b']; image.sf[1].kwargs = {'label' : 'T_discharge/2'}
+
+
+
+# # A0 = A_norm(np.mean(XUV_energy_pp[0][:,0,k1]),Hgrid_study[k1],omegaSI)
+
+# # image.sf[2].args = [p_grid, XUV_energy_pp[:,2,k1]/np.max(XUV_energy_pp[:,0,k1]),'r']; image.sf[2].kwargs = {'label' : 'T_discharge'}
+
+
+
+# # image.sf[9].args = [p_grid, IntensXUV(1e-2*ionisations['half_init'],17,omegaSI,A0)/np.max(XUV_energy_pp[:,0,k1]),'g--'];
+# # image.sf[9].kwargs = {'label' : 'T_discharge/2 from analytical estimate'}    
+
+# for k2 in range(3,8): image.sf[k2].axis_location = 'right'
+# image.sf[3].args = [p_grid, ionisations[0]['half_init'], 'b:']; # image.sf[3].kwargs = {'label' : 'by discharge'}   
+# image.sf[4].args = [p_grid, ionisations[0]['half'], 'b--']; # image.sf[4].kwargs = {'label' : 'by discharge + transient'} 
+# image.sf[5].args = [p_grid, ionisations[1]['half_init'], 'r:']; # image.sf[3].kwargs = {'label' : 'by discharge'}   
+# image.sf[6].args = [p_grid, ionisations[1]['half'], 'r--']; # image.sf[4].kwargs = {'label' : 'by discharge + transient'} 
+
+# image.sf[7].args = [p_grid, 100*ionisation_ratio_optimal(Hgrid_study[k1])*np.ones(len(p_grid)), 'g--']
+  
+# # # image.sf[5].args = [p_grid, ionisations['end_init'], 'r:']; # image.sf[5].kwargs = {'label' : 'by discharge'}   
+# # # image.sf[6].args = [p_grid, ionisations['end'], 'r--']; # image.sf[6].kwargs = {'label' : 'by discharge'}  
+
+
+
+
+# # preions = ionisation_ratio(A0,XUV_energy_pp[0][:,1,k1],Hgrid_study[k1],omegaSI)
+# # image.sf[7].args = [p_grid, 100*preions[0][:], 'c--'];
+# # image.sf[8].args = [p_grid, 100*preions[1][:], 'c--'];
+# # image.sf[7].method = None
+# # image.sf[8].method = None
+
+# ## custom legend
+# # custom_lines = [Line2D([1], [0], color="tab:orange", lw=3),
+# #                 Line2D([0], [0], color="tab:grey", lw=3, linestyle="-"),
+# #                 Line2D([0], [0], color="tab:blue", lw=3),
+# #                 Line2D([0], [0], color="tab:grey", lw=3, linestyle="--"),
+# #                 Line2D([0], [0], color="tab:green", lw=3),                
+# #                 Line2D([0], [0], color="tab:grey", lw=3, linestyle=":")]
+
+# custom_lines = [Line2D([1], [0], color="k"),
+#                 Line2D([0], [0], color="tab:grey", linestyle=":"),
+#                 Line2D([0], [0], color="b"),
+#                 Line2D([0], [0], color="tab:grey", linestyle="--"),
+#                 Line2D([0], [0], color="r"),                
+#                 Line2D([0], [0], color="g", linestyle="--")]
+
+# # ax.legend(custom_lines, [I0s_leg[0],
+# #                          pressures_leg[0],
+# #                          I0s_leg[1],
+# #                          pressures_leg[1],
+# #                          I0s_leg[2],
+# #                          pressures_leg[2]],
+# #           loc=1, ncol=3)
+
+# image.legend_args = [custom_lines,['no preion.', r'$\eta_0$', '40 A', r'$\eta_{las.}$','50 A', '$\eta_{opt.}$']]
+# image.legend_kwargs = {'loc': 1, 'ncol': 3}
+
+# # image.legend_kwargs = {'loc':'upper right'}; image.right_axis_legend_kwargs = {'loc':'upper left'} 
+# image.xlabel = r'$p$ [mbar]'; image.ylabel = r'$I_{\mathrm{XUV}}$ [arb. u.]'; image.right_ylabel = 'ionisation [%]'
+
+# image.title = r'$H_{'+str(Hgrid_study[k1]) + r'}$, $T_{\mathrm{discharge}}/2$'
+
+# image.savefig_args = ['compare1.pdf']
+# image.savefig_kwargs = {'dpi' : 600,'bbox_inches' : 'tight'}
+
+# image.set_fontsizes = 'doublet+'
+
+# pp.plot_preset(image)
+
+
