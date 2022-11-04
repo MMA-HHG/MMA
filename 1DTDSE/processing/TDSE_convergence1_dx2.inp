@@ -17,7 +17,7 @@ print_F_Source_Term_M2          0   I   -
 
 ## Numerical and starting parameters
 
-Eguess	0.5792	R	a.u.	# Energy of the initial state (guess)
+Eguess	-0.5792	R	a.u.	# Energy of the initial state (guess)
 N_r_grid	16000	I	-	# Number of points of the initial spatial grid 16000 /128000
 N_r_grid_exp	0	I	-	# Number of points of the spatial grid for the expansion
 dx	0.1	R	R	a.u.	# resolution for the grid
