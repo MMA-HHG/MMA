@@ -71,7 +71,7 @@ for fname in files:
     with h5py.File(fname,'r') as f:
         nsim_tot += mn.readscalardataset(f, 'number_of_local_simulations', 'N')[0]
             
-# nsim_tot = 0
+nsim_tot = 0
 with h5py.File(outfname,'w') as outf:
     firstrun = True;
     for fname in files:
