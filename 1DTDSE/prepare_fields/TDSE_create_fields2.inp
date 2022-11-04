@@ -8,4 +8,4 @@ dt		0.5	R	a.u.
 # ordering is important, it defines the shape of the final multi-dimensional field
 $varying
 phi0 rad	0.0	0.0	-1
-E0   a.u.	0.0	0.053380268083853495	46
+E0   a.u.	0.0	0.053380268083853495	94
