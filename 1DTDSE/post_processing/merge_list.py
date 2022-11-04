@@ -71,8 +71,11 @@ for fname in files:
     with h5py.File(fname,'r') as f:
         nsim_tot += mn.readscalardataset(f, 'number_of_local_simulations', 'N')[0]
             
-nsim_tot = 0
+nsim_tot2 = 0
 with h5py.File(outfname,'w') as outf:
+    
+
+        
     firstrun = True;
     for fname in files:
         with h5py.File(fname,'r') as f:
@@ -80,9 +83,9 @@ with h5py.File(outfname,'w') as outf:
             if firstrun:
                 prepare_ouput_file(f, outf, dset_list, nsim_tot)
                 firstrun = False
-            nsim_tot = nsim_tot + print_ouput_file(f, outf, dset_list) # here is the printing
+            nsim_tot2 = nsim_tot + print_ouput_file(f, outf, dset_list) # here is the printing
 
-        # shutil.move(fname, 'temp/'+fname) #moving files
+    #     # shutil.move(fname, 'temp/'+fname) #moving files
 
     # add parameters
     with h5py.File('results.h5','r') as f:
