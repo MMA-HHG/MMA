@@ -1,5 +1,5 @@
 #!/bin/bash  
-#SBATCH --account=jvabek-acc1
+#SBATCH --account=vabek-acc1
 #SBATCH --partition=queue12h
 #SBATCH -N 1 # number of nodes 
 #SBATCH --clusters=eclipse
