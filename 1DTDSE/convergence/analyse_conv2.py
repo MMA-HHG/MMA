@@ -40,165 +40,169 @@ results_path = os.path.join("D:\data", "TDSE_list", "convergence1")
 
 
 ### load results
-results_fname = os.path.join("ref", "results_merged.h5")
+results_fnames = [os.path.join("ref", "results_merged.h5"),
+                  os.path.join("dx2", "results_merged.h5")]
 
-fname= os.path.join(results_path, results_fname)
-
-with h5py.File(fname,'r') as f:
-    tgrid = f['tgrid'][:]
-    ogrid = f['omegagrid'][:]
-    SourceTerm = f['SourceTerm'][:,:]
-    FSourceTerm = f['FSourceTerm'][:,:,0] + 1j*f['FSourceTerm'][:,:,1]
-    expval_x= f['expval_x'][:]
-    PopTot= f['PopTot'][:]
-    PopInt= f['PopInt'][:]
-    Efields= f['Efield'][:]
-    xgrid_m= f['xgrid_micro'][:]
-    ground_state= f['ground_state'][:,0]+1j*f['ground_state'][:,1]
-    
-    omega0 = f['grids_for_scans/omega0'][()]
-    
-    E0s = f['grids_for_scans/param_1'][:]
+# fname = os.path.join(results_path, results_fname)
+tgrid=[]; ogrid=[]; SourceTerm=[]; FSourceTerm=[]; expval_x=[]; PopTot=[];
+PopInt=[]; Efields=[]; xgrid_m=[]; ground_state=[]; omega0=[]; E0s=[]
+for k1 in range(len(results_fnames)):
+    fname = os.path.join(results_path, results_fnames[k1]) 
+    with h5py.File(fname,'r') as f:
+        tgrid.append(f['tgrid'][:])
+        ogrid.append(f['omegagrid'][:])
+        SourceTerm.append(f['SourceTerm'][:,:])
+        FSourceTerm.append(f['FSourceTerm'][:,:,0] + 1j*f['FSourceTerm'][:,:,1])
+        expval_x.append(f['expval_x'][:])
+        PopTot.append(f['PopTot'][:])
+        PopInt.append(f['PopInt'][:])
+        Efields.append(f['Efield'][:])
+        xgrid_m.append(f['xgrid_micro'][:])
+        ground_state.append(f['ground_state'][:,0]+1j*f['ground_state'][:,1])
+        
+        omega0.append(f['grids_for_scans/omega0'][()])
+        
+        E0s.append(f['grids_for_scans/param_1'][:])
 
 Ip = 0.5792
 
 
 
 
-print(HHG.ComputeCutoff(E0s[0]**2, omega0, Ip))
+# print(HHG.ComputeCutoff(E0s[0]**2, omega0, Ip))
 
-print(HHG.ComputeCutoff(E0s[3]**2, omega0, Ip))
+# print(HHG.ComputeCutoff(E0s[3]**2, omega0, Ip))
 
-print(HHG.ComputeCutoff(E0s[15]**2, omega0, Ip))
-
-
-Hgrid = ogrid/omega0
-# source = ST
-
-image = pp.figure_driver()    
-image.sf = [pp.plotter() for k1 in range(4)]
-
-image.sf[0].args = [xgrid_m, abs(ground_state)]
-image.sf[0].method = plt.plot
-
-pp.plot_preset(image)
+# print(HHG.ComputeCutoff(E0s[15]**2, omega0, Ip))
 
 
+# Hgrid = ogrid/omega0
+# # source = ST
 
-image = pp.figure_driver()    
-image.sf = [pp.plotter() for k1 in range(4)]
+# image = pp.figure_driver()    
+# image.sf = [pp.plotter() for k1 in range(4)]
 
-image.sf[0].args = [SourceTerm[0,:]]
-image.sf[0].method = plt.plot
+# image.sf[0].args = [xgrid_m, abs(ground_state)]
+# image.sf[0].method = plt.plot
 
-image.sf[1].args = [SourceTerm[3,:]]
-image.sf[1].method = plt.plot
-
-image.sf[2].args = [SourceTerm[15,:]]
-image.sf[2].method = plt.plot
-
-pp.plot_preset(image)
+# pp.plot_preset(image)
 
 
-image = pp.figure_driver()    
-image.sf = [pp.plotter() for k1 in range(16)]
 
-image.sf[0].args = [Hgrid, abs(FSourceTerm[0,:])]
-image.sf[0].method = plt.semilogy
+# image = pp.figure_driver()    
+# image.sf = [pp.plotter() for k1 in range(4)]
 
-image.sf[1].args = [Hgrid, abs(FSourceTerm[1,:])]
-image.sf[1].method = plt.semilogy
+# image.sf[0].args = [SourceTerm[0,:]]
+# image.sf[0].method = plt.plot
 
-image.sf[2].args = [Hgrid, abs(FSourceTerm[2,:])]
-image.sf[2].method = plt.semilogy
+# image.sf[1].args = [SourceTerm[3,:]]
+# image.sf[1].method = plt.plot
 
-image.sf[3].args = [Hgrid, abs(FSourceTerm[12,:])]
-image.sf[3].method = plt.semilogy
+# image.sf[2].args = [SourceTerm[15,:]]
+# image.sf[2].method = plt.plot
 
-image.sf[4].args = [Hgrid, abs(FSourceTerm[13,:])]
-image.sf[4].method = plt.plot
-
-image.sf[5].args = [Hgrid, abs(FSourceTerm[14,:])]
-image.sf[5].method = plt.plot
-
-image.sf[6].args = [Hgrid, abs(FSourceTerm[15,:])]
-image.sf[6].method = plt.plot
-
-pp.plot_preset(image)
+# pp.plot_preset(image)
 
 
-image = pp.figure_driver()    
-image.sf = [pp.plotter() for k1 in range(4)]
+# image = pp.figure_driver()    
+# image.sf = [pp.plotter() for k1 in range(16)]
 
-image.sf[0].args = [tgrid, PopTot[0,:]]
-image.sf[0].method = plt.plot
+# image.sf[0].args = [Hgrid, abs(FSourceTerm[0,:])]
+# image.sf[0].method = plt.semilogy
 
-image.sf[1].args = [tgrid, PopTot[3,:]]
-image.sf[1].method = plt.plot
+# image.sf[1].args = [Hgrid, abs(FSourceTerm[1,:])]
+# image.sf[1].method = plt.semilogy
 
-image.sf[2].args = [tgrid, PopTot[15,:]]
-image.sf[2].method = plt.plot
+# image.sf[2].args = [Hgrid, abs(FSourceTerm[2,:])]
+# image.sf[2].method = plt.semilogy
 
-pp.plot_preset(image)
+# image.sf[3].args = [Hgrid, abs(FSourceTerm[12,:])]
+# image.sf[3].method = plt.semilogy
 
+# image.sf[4].args = [Hgrid, abs(FSourceTerm[13,:])]
+# image.sf[4].method = plt.plot
 
-image = pp.figure_driver()    
-image.sf = [pp.plotter() for k1 in range(16)]
+# image.sf[5].args = [Hgrid, abs(FSourceTerm[14,:])]
+# image.sf[5].method = plt.plot
 
-image.sf[0].args = [tgrid, expval_x[0,:]]
-image.sf[0].method = plt.plot
+# image.sf[6].args = [Hgrid, abs(FSourceTerm[15,:])]
+# image.sf[6].method = plt.plot
 
-image.sf[1].args = [tgrid, expval_x[3,:]]
-image.sf[1].method = plt.plot
-
-image.sf[2].args = [tgrid, expval_x[13,:]]
-image.sf[2].method = plt.plot
-
-image.sf[3].args = [tgrid, expval_x[14,:]]
-image.sf[3].method = plt.plot
-
-image.sf[4].args = [tgrid, expval_x[15,:]]
-image.sf[4].method = plt.plot
-
-pp.plot_preset(image)
-
-image = pp.figure_driver()    
-image.sf = [pp.plotter() for k1 in range(7)]
-
-image.sf[0].args = [tgrid, PopInt[0,:]]
-image.sf[0].method = plt.plot
-
-image.sf[1].args = [tgrid, PopInt[3,:]]
-image.sf[1].method = plt.plot
-
-image.sf[2].args = [tgrid, PopInt[15,:]]
-image.sf[2].method = plt.plot
-
-image.sf[3].args = [tgrid, PopTot[0,:],'--']
-image.sf[3].method = plt.plot
-
-image.sf[4].args = [tgrid, PopTot[3,:],'--']
-image.sf[4].method = plt.plot
-
-image.sf[5].args = [tgrid, PopTot[15,:],'--']
-image.sf[5].method = plt.plot
-
-pp.plot_preset(image)
+# pp.plot_preset(image)
 
 
-image = pp.figure_driver()    
-image.sf = [pp.plotter() for k1 in range(4)]
+# image = pp.figure_driver()    
+# image.sf = [pp.plotter() for k1 in range(4)]
 
-image.sf[0].args = [tgrid, Efields[0,:]]
-image.sf[0].method = plt.plot
+# image.sf[0].args = [tgrid, PopTot[0,:]]
+# image.sf[0].method = plt.plot
 
-image.sf[1].args = [tgrid, Efields[3,:]]
-image.sf[1].method = plt.plot
+# image.sf[1].args = [tgrid, PopTot[3,:]]
+# image.sf[1].method = plt.plot
 
-image.sf[2].args = [tgrid, Efields[15,:]]
-image.sf[2].method = plt.plot
+# image.sf[2].args = [tgrid, PopTot[15,:]]
+# image.sf[2].method = plt.plot
 
-pp.plot_preset(image)
+# pp.plot_preset(image)
+
+
+# image = pp.figure_driver()    
+# image.sf = [pp.plotter() for k1 in range(16)]
+
+# image.sf[0].args = [tgrid, expval_x[0,:]]
+# image.sf[0].method = plt.plot
+
+# image.sf[1].args = [tgrid, expval_x[3,:]]
+# image.sf[1].method = plt.plot
+
+# image.sf[2].args = [tgrid, expval_x[13,:]]
+# image.sf[2].method = plt.plot
+
+# image.sf[3].args = [tgrid, expval_x[14,:]]
+# image.sf[3].method = plt.plot
+
+# image.sf[4].args = [tgrid, expval_x[15,:]]
+# image.sf[4].method = plt.plot
+
+# pp.plot_preset(image)
+
+# image = pp.figure_driver()    
+# image.sf = [pp.plotter() for k1 in range(7)]
+
+# image.sf[0].args = [tgrid, PopInt[0,:]]
+# image.sf[0].method = plt.plot
+
+# image.sf[1].args = [tgrid, PopInt[3,:]]
+# image.sf[1].method = plt.plot
+
+# image.sf[2].args = [tgrid, PopInt[15,:]]
+# image.sf[2].method = plt.plot
+
+# image.sf[3].args = [tgrid, PopTot[0,:],'--']
+# image.sf[3].method = plt.plot
+
+# image.sf[4].args = [tgrid, PopTot[3,:],'--']
+# image.sf[4].method = plt.plot
+
+# image.sf[5].args = [tgrid, PopTot[15,:],'--']
+# image.sf[5].method = plt.plot
+
+# pp.plot_preset(image)
+
+
+# image = pp.figure_driver()    
+# image.sf = [pp.plotter() for k1 in range(4)]
+
+# image.sf[0].args = [tgrid, Efields[0,:]]
+# image.sf[0].method = plt.plot
+
+# image.sf[1].args = [tgrid, Efields[3,:]]
+# image.sf[1].method = plt.plot
+
+# image.sf[2].args = [tgrid, Efields[15,:]]
+# image.sf[2].method = plt.plot
+
+# pp.plot_preset(image)
 
 
 
