@@ -41,16 +41,20 @@ results_path = os.path.join("D:\data", "TDSE_list", "convergence1")
 
 ### load results
 results_fnames = [os.path.join("ref", "results_merged.h5"),
-                  os.path.join("dx2", "results_merged.h5")]
+                  os.path.join("dx2", "results_merged.h5"),
+                  os.path.join("dt2", "results_merged.h5"),
+                  os.path.join("2Nx", "results_merged.h5")]
 
 # fname = os.path.join(results_path, results_fname)
 tgrid=[]; ogrid=[]; SourceTerm=[]; FSourceTerm=[]; expval_x=[]; PopTot=[];
-PopInt=[]; Efields=[]; xgrid_m=[]; ground_state=[]; omega0=[]; E0s=[]
+PopInt=[]; Efields=[]; xgrid_m=[]; ground_state=[]; omega0=[]; E0s=[];
+Hgrid=[]
 for k1 in range(len(results_fnames)):
     fname = os.path.join(results_path, results_fnames[k1]) 
     with h5py.File(fname,'r') as f:
+        omega0.append(f['grids_for_scans/omega0'][()])
         tgrid.append(f['tgrid'][:])
-        ogrid.append(f['omegagrid'][:])
+        ogrid.append(f['omegagrid'][:]); Hgrid.append(ogrid[k1]/omega0[k1])
         SourceTerm.append(f['SourceTerm'][:,:])
         FSourceTerm.append(f['FSourceTerm'][:,:,0] + 1j*f['FSourceTerm'][:,:,1])
         expval_x.append(f['expval_x'][:])
@@ -60,11 +64,49 @@ for k1 in range(len(results_fnames)):
         xgrid_m.append(f['xgrid_micro'][:])
         ground_state.append(f['ground_state'][:,0]+1j*f['ground_state'][:,1])
         
-        omega0.append(f['grids_for_scans/omega0'][()])
+        
         
         E0s.append(f['grids_for_scans/param_1'][:])
 
 Ip = 0.5792
+
+
+
+
+image = pp.figure_driver()    
+image.sf = [pp.plotter() for k1 in range(16)]
+
+image.sf[0].args = [Hgrid[0], abs(FSourceTerm[0][15,:])]
+image.sf[0].method = plt.semilogy
+
+image.sf[1].args = [Hgrid[1], abs(FSourceTerm[1][15,:])]
+image.sf[1].method = plt.semilogy
+
+image.sf[2].args = [Hgrid[2], abs(FSourceTerm[2][15,:])]
+image.sf[2].method = plt.semilogy
+
+# image.sf[3].args = [Hgrid[3], abs(FSourceTerm[3][15,:])]
+# image.sf[3].method = plt.semilogy
+
+# image.sf[1].args = [Hgrid, abs(FSourceTerm[1,:])]
+# image.sf[1].method = plt.semilogy
+
+# image.sf[2].args = [Hgrid, abs(FSourceTerm[2,:])]
+# image.sf[2].method = plt.semilogy
+
+# image.sf[3].args = [Hgrid, abs(FSourceTerm[12,:])]
+# image.sf[3].method = plt.semilogy
+
+# image.sf[4].args = [Hgrid, abs(FSourceTerm[13,:])]
+# image.sf[4].method = plt.plot
+
+# image.sf[5].args = [Hgrid, abs(FSourceTerm[14,:])]
+# image.sf[5].method = plt.plot
+
+# image.sf[6].args = [Hgrid, abs(FSourceTerm[15,:])]
+# image.sf[6].method = plt.plot
+
+pp.plot_preset(image)
 
 
 
