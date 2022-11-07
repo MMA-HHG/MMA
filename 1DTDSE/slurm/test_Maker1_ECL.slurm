@@ -17,7 +17,7 @@ module purge
 module load GCC/6.1.0 OpenMPI/1.10.2-GCC-6.1.0-psm-dbg HDF5/1.8.13-OpenMPI-1.10.2-GCC-6.1.0-psm FFTW/3.3.5-OpenMPI-1.10.2-GCC-6.1.0-psm-dbg
 
 
-mpirun -n 16 $TDSE_1D_HOME/processing/TDSEs_list_compilation1.e
+mpirun -n 160 $TDSE_1D_HOME/processing/TDSEs_list_compilation1.e
 
 
 echo "Done"
