@@ -43,7 +43,10 @@ results_path = os.path.join("D:\data", "TDSE_list", "convergence1")
 results_fnames = [os.path.join("ref", "results_merged.h5"),
                   os.path.join("dx2", "results_merged.h5"),
                   os.path.join("dt2", "results_merged.h5"),
-                  os.path.join("2Nx", "results_merged.h5")]
+                  os.path.join("2Nx", "results_merged.h5"),
+                  os.path.join("2Nxdx2", "results_merged.h5"),
+                  os.path.join("2Nxdt2", "results_merged.h5"),
+                  os.path.join("4Nx", "results_merged.h5")]
 
 # fname = os.path.join(results_path, results_fname)
 tgrid=[]; ogrid=[]; SourceTerm=[]; FSourceTerm=[]; expval_x=[]; PopTot=[];
@@ -76,14 +79,24 @@ Ip = 0.5792
 image = pp.figure_driver()    
 image.sf = [pp.plotter() for k1 in range(16)]
 
-image.sf[0].args = [Hgrid[0], abs(FSourceTerm[0][15,:])]
+image.sf[0].args = [Hgrid[3], abs(FSourceTerm[3][15,:])]
 image.sf[0].method = plt.semilogy
 
-image.sf[1].args = [Hgrid[1], abs(FSourceTerm[1][15,:])]
+image.sf[1].args = [Hgrid[4], abs(FSourceTerm[4][15,:])]
 image.sf[1].method = plt.semilogy
 
-image.sf[2].args = [Hgrid[2], abs(FSourceTerm[2][15,:])]
+image.sf[2].args = [Hgrid[5], abs(FSourceTerm[5][15,:])]
 image.sf[2].method = plt.semilogy
+
+image.sf[3].args = [Hgrid[6], abs(FSourceTerm[6][15,:])]
+image.sf[3].method = plt.semilogy
+
+image.sf[4].args = [Hgrid[6], abs(FSourceTerm[6][1,:])]
+image.sf[4].method = plt.semilogy
+
+image.sf[5].args = [Hgrid[5], abs(FSourceTerm[5][0,:])]
+image.sf[5].method = plt.semilogy
+
 
 # image.sf[3].args = [Hgrid[3], abs(FSourceTerm[3][15,:])]
 # image.sf[3].method = plt.semilogy
