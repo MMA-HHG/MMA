@@ -33,7 +33,7 @@ def HankelTransform(ogrid, rgrid, FField, distance, rgrid_FF, integrator = integ
     rgrid : array_like
         grid of FField in the radial coordinate [SI]
     FField : 2D array
-        The source terms on ogrid and rgrid.        
+        The source terms on ogrid and rgrid. (FField[omega,r])       
     distance : scalar
        The distance of the generating plane from the observational screen
     rgrid_FF : array_like
