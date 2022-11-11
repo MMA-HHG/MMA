@@ -142,7 +142,7 @@ Hlimit = [10, 36]
 
 
 
-## construct fields
+## construct sources
 
 domega = ogrid[1]-ogrid[0]
 dE0 = E0_grid[1]-E0_grid[0]
@@ -154,6 +154,47 @@ No_sel = len(ogrid_sel)
 
 FSourceTerm_sel = FSourceTerm[:,k_omega_sel[0]:k_omega_sel[1]]
 FSourceTerm_interpE0 = interpolate.interp1d( E0_grid, FSourceTerm_sel ,axis=0)
+
+
+# the sources
+FSource_interp = FSourceTerm_interpE0( 0.75*np.sqrt(I0_grid[-1]) * Gaussian_E_r(rgrid) )
+
+
+rgrid_FF = np.linspace(0,0.01,50)
+## Hankel
+distance = 1.0
+omega_convert = mn.ConvertPhoton(1.0, 'omegaau', 'omegaSI')
+
+
+image = pp.figure_driver()    
+image.sf = [pp.plotter() for k1 in range(16)]
+
+image.sf[0].args = [rgrid ,ogrid_sel/omega0, np.log(np.abs(FSource_interp.T)) ]
+image.sf[0].method = plt.pcolormesh
+
+pp.plot_preset(image)
+
+HHG_onscreen = Hfn2.HankelTransform(omega_convert * ogrid_sel, rgrid, FSource_interp.T, distance, rgrid_FF)
+
+
+## reference plots
+
+image = pp.figure_driver()    
+image.sf = [pp.plotter() for k1 in range(16)]
+
+image.sf[0].args = [ogrid_sel/omega0, rgrid_FF, np.log(np.abs(HHG_onscreen.T)) ]
+image.sf[0].method = plt.pcolormesh
+
+
+# image.sf[1].args = [Hgrid[4], abs(FSourceTerm[7][15,:])]
+# image.sf[1].method = plt.semilogy
+
+
+pp.plot_preset(image)
+
+
+
+
 
 
 image = pp.figure_driver()    
