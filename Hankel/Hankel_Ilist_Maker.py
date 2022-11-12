@@ -9,6 +9,7 @@ import units
 import mynumerics as mn
 import Hfn
 import Hfn2
+import HHG
 
 # import mynumerics as mn
 import matplotlib.pyplot as plt
@@ -128,16 +129,17 @@ print('data loaded:')
 ## Laser
 NI0 = 3
 I0_grid = np.linspace(0,E0_grid[-1]**2,NI0)
-w0 = 25e-6
+w0 = 120e-6 #25e-6
 
 Gaussian_E_r = lambda r : np.exp(-(r/w0)**2)
 
-Nr = 100
-rgrid = np.linspace(0, 1.5*w0, Nr)
+Nr = 200
+rgrid = np.linspace(0, 1.2*w0, Nr)
 
 
 Hlimit = [10, 36]
 # Hlimit = [24, 26]
+Hlimit = [15, 26]
 
 
 
@@ -157,12 +159,14 @@ FSourceTerm_interpE0 = interpolate.interp1d( E0_grid, FSourceTerm_sel ,axis=0)
 
 
 # the sources
-FSource_interp = FSourceTerm_interpE0( 0.75*np.sqrt(I0_grid[-1]) * Gaussian_E_r(rgrid) )
+# FSource_interp = FSourceTerm_interpE0( 0.75*np.sqrt(I0_grid[-1]) * Gaussian_E_r(rgrid) )
+# FSource_interp = FSourceTerm_interpE0( np.sqrt(((2e18/units.INTENSITYau))) * Gaussian_E_r(rgrid) )
+FSource_interp = FSourceTerm_interpE0( np.sqrt(I0_grid[-1]) * Gaussian_E_r(rgrid) )
 
 
-rgrid_FF = np.linspace(0,0.01,50)
+rgrid_FF = np.linspace(0,0.01,100)
 ## Hankel
-distance = 1.0
+distance = 3.0 # 1.0
 omega_convert = mn.ConvertPhoton(1.0, 'omegaau', 'omegaSI')
 
 
@@ -170,6 +174,14 @@ image = pp.figure_driver()
 image.sf = [pp.plotter() for k1 in range(16)]
 
 image.sf[0].args = [rgrid ,ogrid_sel/omega0, np.log(np.abs(FSource_interp.T)) ]
+image.sf[0].method = plt.pcolormesh
+
+pp.plot_preset(image)
+
+image = pp.figure_driver()    
+image.sf = [pp.plotter() for k1 in range(16)]
+
+image.sf[0].args = [rgrid ,ogrid_sel/omega0, np.abs(FSource_interp.T) ]
 image.sf[0].method = plt.pcolormesh
 
 pp.plot_preset(image)
@@ -192,6 +204,19 @@ image.sf[0].method = plt.pcolormesh
 
 pp.plot_preset(image)
 
+
+image = pp.figure_driver()    
+image.sf = [pp.plotter() for k1 in range(16)]
+
+image.sf[0].args = [ogrid_sel/omega0, rgrid_FF, np.abs(HHG_onscreen.T) ]
+image.sf[0].method = plt.pcolormesh
+
+
+# image.sf[1].args = [Hgrid[4], abs(FSourceTerm[7][15,:])]
+# image.sf[1].method = plt.semilogy
+
+
+pp.plot_preset(image)
 
 
 
