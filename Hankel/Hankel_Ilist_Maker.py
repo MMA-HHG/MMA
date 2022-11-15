@@ -96,7 +96,7 @@ else:
 
 
 
-results_TDSE = os.path.join("D:\data", "TDSE_list", "Maker")
+results_TDSE = os.path.join("D:\data", "TDSE_list", "Maker2")
 file_TDSE = 'results_merged.h5'
 
 file_TDSE = os.path.join(results_TDSE,file_TDSE)
@@ -133,7 +133,7 @@ w0 = 120e-6 #25e-6
 
 Gaussian_E_r = lambda r : np.exp(-(r/w0)**2)
 
-Nr = 200
+Nr = 400
 rgrid = np.linspace(0, 1.2*w0, Nr)
 
 
@@ -160,8 +160,8 @@ FSourceTerm_interpE0 = interpolate.interp1d( E0_grid, FSourceTerm_sel ,axis=0)
 
 # the sources
 # FSource_interp = FSourceTerm_interpE0( 0.75*np.sqrt(I0_grid[-1]) * Gaussian_E_r(rgrid) )
-# FSource_interp = FSourceTerm_interpE0( np.sqrt(((2e18/units.INTENSITYau))) * Gaussian_E_r(rgrid) )
-FSource_interp = FSourceTerm_interpE0( np.sqrt(I0_grid[-1]) * Gaussian_E_r(rgrid) )
+FSource_interp = FSourceTerm_interpE0( np.sqrt(((2e18/units.INTENSITYau))) * Gaussian_E_r(rgrid) )
+# FSource_interp = FSourceTerm_interpE0( np.sqrt(I0_grid[-1]) * Gaussian_E_r(rgrid) )
 
 
 rgrid_FF = np.linspace(0,0.01,100)
@@ -237,6 +237,22 @@ image.sf[2].method = plt.semilogy
 # image.sf[1].args = [Hgrid[4], abs(FSourceTerm[7][15,:])]
 # image.sf[1].method = plt.semilogy
 
+
+pp.plot_preset(image)
+
+
+
+image = pp.figure_driver()    
+image.sf = [pp.plotter() for k1 in range(16)]
+
+image.sf[0].args = [Hgrid, abs(FSourceTerm[-1,:])]
+image.sf[0].method = plt.semilogy
+
+image.sf[1].args = [Hgrid, abs(FSourceTerm[-2,:])]
+image.sf[1].method = plt.semilogy
+
+image.sf[2].args = [Hgrid, abs(FSourceTerm[-100,:])]
+image.sf[2].method = plt.semilogy
 
 pp.plot_preset(image)
 

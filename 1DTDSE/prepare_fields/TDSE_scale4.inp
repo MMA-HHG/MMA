@@ -1,0 +1,11 @@
+$fixed
+pulse_type	sin2	S	-
+omega0		0.056954190639159845	R	a.u.
+T_FWHM		1240.2412005397605	R	a.u.
+dt		0.5	R	a.u.
+
+
+# ordering is important, it defines the shape of the final multi-dimensional field
+$varying
+phi0 rad	0.0	0.0	-1
+E0   a.u.	0.0	0.1	20158
