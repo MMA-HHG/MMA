@@ -96,7 +96,7 @@ else:
 
 
 
-results_TDSE = os.path.join("D:\data", "TDSE_list", "Maker4")
+results_TDSE = os.path.join("D:\data", "TDSE_list", "Maker2")
 file_TDSE = 'results_merged.h5'
 
 file_TDSE = os.path.join(results_TDSE,file_TDSE)
@@ -127,22 +127,19 @@ with h5py.File(file_TDSE, 'r') as InputArchiveTDSE:
 print('data loaded:')
 
 ## Laser
-NI0 = 300
-I0_start = 5e17/units.INTENSITYau
-I0_end = 35e17/units.INTENSITYau#E0_grid[-1]**2
-I0_grid = np.linspace(I0_start,E0_grid[-1]**2,NI0)
+NI0 = 3
+I0_grid = np.linspace(0,E0_grid[-1]**2,NI0)
 w0 = 120e-6 #25e-6
 
 Gaussian_E_r = lambda r : np.exp(-(r/w0)**2)
 
-Nr = 200
+Nr = 400
 rgrid = np.linspace(0, 1.2*w0, Nr)
 
 
 Hlimit = [10, 36]
 # Hlimit = [24, 26]
 Hlimit = [15, 26]
-Hlimit = [16, 18]
 
 
 
@@ -166,10 +163,8 @@ FSourceTerm_interpE0 = interpolate.interp1d( E0_grid, FSourceTerm_sel ,axis=0)
 FSource_interp = FSourceTerm_interpE0( np.sqrt(((2e18/units.INTENSITYau))) * Gaussian_E_r(rgrid) )
 # FSource_interp = FSourceTerm_interpE0( np.sqrt(I0_grid[-1]) * Gaussian_E_r(rgrid) )
 
-Nr_FF = 100
-rmax_FF = 0.012
 
-rgrid_FF = np.linspace(0,rmax_FF,Nr_FF)
+rgrid_FF = np.linspace(0,0.01,100)
 ## Hankel
 distance = 3.0 # 1.0
 omega_convert = mn.ConvertPhoton(1.0, 'omegaau', 'omegaSI')
@@ -191,103 +186,76 @@ image.sf[0].method = plt.pcolormesh
 
 pp.plot_preset(image)
 
-HHG_onscreen = []
-for k1 in range(len(I0_grid)):
-    FSource_interp = FSourceTerm_interpE0( np.sqrt(I0_grid[k1]) * Gaussian_E_r(rgrid) )
-    HHG_onscreen.append(
-        Hfn2.HankelTransform(omega_convert * ogrid_sel, rgrid, FSource_interp.T, distance, rgrid_FF)
-        )
+HHG_onscreen = Hfn2.HankelTransform(omega_convert * ogrid_sel, rgrid, FSource_interp.T, distance, rgrid_FF)
 
-HHG_onscreen = np.asarray(HHG_onscreen)
+
 ## reference plots
 
-# for k1 in range(len(I0_grid)):
-#     image = pp.figure_driver()    
-#     image.sf = [pp.plotter() for k1 in range(16)]
+image = pp.figure_driver()    
+image.sf = [pp.plotter() for k1 in range(16)]
 
-#     image.sf[0].args = [ogrid_sel/omega0, rgrid_FF, np.log(np.abs(HHG_onscreen[k1,:,:].T)) ]
-#     image.sf[0].method = plt.pcolormesh
-
-
-#     # image.sf[1].args = [Hgrid[4], abs(FSourceTerm[7][15,:])]
-#     # image.sf[1].method = plt.semilogy
+image.sf[0].args = [ogrid_sel/omega0, rgrid_FF, np.log(np.abs(HHG_onscreen.T)) ]
+image.sf[0].method = plt.pcolormesh
 
 
-#     pp.plot_preset(image)
+# image.sf[1].args = [Hgrid[4], abs(FSourceTerm[7][15,:])]
+# image.sf[1].method = plt.semilogy
 
 
-k1 = mn.FindInterval(ogrid_sel/omega0, 17.0)
+pp.plot_preset(image)
+
 
 image = pp.figure_driver()    
 image.sf = [pp.plotter() for k1 in range(16)]
 
-image.sf[0].args = [units.INTENSITYau*I0_grid, rgrid_FF, np.log(np.abs(HHG_onscreen[:,k1,:].T)) ]
+image.sf[0].args = [ogrid_sel/omega0, rgrid_FF, np.abs(HHG_onscreen.T) ]
 image.sf[0].method = plt.pcolormesh
 
+
+# image.sf[1].args = [Hgrid[4], abs(FSourceTerm[7][15,:])]
+# image.sf[1].method = plt.semilogy
+
+
 pp.plot_preset(image)
+
+
+
+
 
 image = pp.figure_driver()    
 image.sf = [pp.plotter() for k1 in range(16)]
 
-image.sf[0].args = [units.INTENSITYau*I0_grid, rgrid_FF, np.abs(HHG_onscreen[:,k1,:].T) ]
-image.sf[0].method = plt.pcolormesh
+image.sf[0].args = [ogrid_sel/omega0, np.real(FSourceTerm_sel[2500,:])]
+image.sf[0].method = plt.semilogy
+
+image.sf[1].args = [ogrid_sel/omega0, np.real(FSourceTerm_sel[2501,:])]
+image.sf[1].method = plt.semilogy
+
+image.sf[2].args = [ogrid_sel/omega0, np.real(FSourceTerm_interpE0(E0_grid[2500]+dE0/2.0))]
+image.sf[2].method = plt.semilogy
+
+# image.sf[1].args = [Hgrid[4], abs(FSourceTerm[7][15,:])]
+# image.sf[1].method = plt.semilogy
+
 
 pp.plot_preset(image)
 
-# image = pp.figure_driver()    
-# image.sf = [pp.plotter() for k1 in range(16)]
-
-# image.sf[0].args = [ogrid_sel/omega0, rgrid_FF, np.abs(HHG_onscreen.T) ]
-# image.sf[0].method = plt.pcolormesh
 
 
-# # image.sf[1].args = [Hgrid[4], abs(FSourceTerm[7][15,:])]
-# # image.sf[1].method = plt.semilogy
+image = pp.figure_driver()    
+image.sf = [pp.plotter() for k1 in range(16)]
 
+image.sf[0].args = [Hgrid, abs(FSourceTerm[-1,:])]
+image.sf[0].method = plt.semilogy
 
-# pp.plot_preset(image)
+image.sf[1].args = [Hgrid, abs(FSourceTerm[-2,:])]
+image.sf[1].method = plt.semilogy
 
+image.sf[2].args = [Hgrid, abs(FSourceTerm[-100,:])]
+image.sf[2].method = plt.semilogy
 
+pp.plot_preset(image)
 
-
-
-# image = pp.figure_driver()    
-# image.sf = [pp.plotter() for k1 in range(16)]
-
-# image.sf[0].args = [ogrid_sel/omega0, np.real(FSourceTerm_sel[2500,:])]
-# image.sf[0].method = plt.semilogy
-
-# image.sf[1].args = [ogrid_sel/omega0, np.real(FSourceTerm_sel[2501,:])]
-# image.sf[1].method = plt.semilogy
-
-# image.sf[2].args = [ogrid_sel/omega0, np.real(FSourceTerm_interpE0(E0_grid[2500]+dE0/2.0))]
-# image.sf[2].method = plt.semilogy
-
-# # image.sf[1].args = [Hgrid[4], abs(FSourceTerm[7][15,:])]
-# # image.sf[1].method = plt.semilogy
-
-
-# pp.plot_preset(image)
-
-
-
-# image = pp.figure_driver()    
-# image.sf = [pp.plotter() for k1 in range(16)]
-
-# image.sf[0].args = [Hgrid, abs(FSourceTerm[-1,:])]
-# image.sf[0].method = plt.semilogy
-
-# image.sf[1].args = [Hgrid, abs(FSourceTerm[-2,:])]
-# image.sf[1].method = plt.semilogy
-
-# image.sf[2].args = [Hgrid, abs(FSourceTerm[-100,:])]
-# image.sf[2].method = plt.semilogy
-
-# pp.plot_preset(image)
-
-#######################################
-#######################################
-#######################################
 
 # def Efield_r(r):
 #     E0_r = Gaussian_E_r(r) # corresponding peak intensity
