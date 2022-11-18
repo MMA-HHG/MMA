@@ -143,6 +143,7 @@ Hlimit = [10, 36]
 # Hlimit = [24, 26]
 Hlimit = [15, 26]
 Hlimit = [16, 18]
+Hlimit = [14, 20]
 
 
 
@@ -199,6 +200,26 @@ for k1 in range(len(I0_grid)):
         )
 
 HHG_onscreen = np.asarray(HHG_onscreen)
+
+
+print('before save')
+# Save the data
+out_h5name='Hankel_M2.h5'
+with h5py.File(out_h5name,'w') as OutFile:
+    grp = OutFile.create_group('XUV')
+    grp.create_dataset('Spectrum_on_screen',
+                                          data = np.stack((HHG_onscreen.real, HHG_onscreen.imag),axis=-1)
+                                          )
+    grp.create_dataset('Hgrid_sel',
+                                          data = ogrid_sel/omega0
+                                          )
+    grp.create_dataset('rgrid_FF',
+                                          data = rgrid_FF
+                                          )    
+    grp.create_dataset('I0_grid',
+                                          data = I0_grid
+                                          )    
+    
 ## reference plots
 
 # for k1 in range(len(I0_grid)):
