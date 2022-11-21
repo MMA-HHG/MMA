@@ -127,17 +127,18 @@ with h5py.File(file_TDSE, 'r') as InputArchiveTDSE:
 print('data loaded:')
 
 ## Laser
-N_I0 = 10 #300
+N_I0 = 300
 I0_start = 5e17/units.INTENSITYau
 I0_end = 35e17/units.INTENSITYau#E0_grid[-1]**2
 I0_grid = np.linspace(I0_start,E0_grid[-1]**2,N_I0)
-w0 = 120e-6 # 120e-6 #25e-6
+w0 = 120e-6 #25e-6
 
 Gaussian_E_r = lambda r : np.exp(-(r/w0)**2)
-zR = np.pi*(w0**2)/mn.ConvertPhoton(omega0, 'omegaau', 'lambdaSI')
-w_z = lambda z: w0*np.sqrt(1+z/zR)
 
 
+
+Nr = 200
+rgrid = np.linspace(0, 1.2*w0, Nr)
 
 
 Hlimit = [10, 36]
@@ -146,18 +147,8 @@ Hlimit = [15, 26]
 Hlimit = [16, 18]
 # Hlimit = [14, 20]
 
-# Moving jet
-z0_grid = np.array([-0.5*zR,0,0.5*zR])  # np.array([-100e-6,0,100e-6])
-N_z0 = len(z0_grid)
 
-Gaussian_Iz_profile = True
-Gaussian_wz_profile = True
 
-# Integration
-dr = 3e-6
-rmax_scale = 1.2
-Nr = 50 #200
-rgrid = np.ogrid[0:(w0*rmax_scale):dr] #np.linspace(0, 1.2*w0, Nr)
 
 ## construct sources
 
@@ -206,30 +197,10 @@ pp.plot_preset(image)
 
 HHG_onscreen = []
 for k1 in range(len(I0_grid)):
-    HHG_onscreen.append([])
-    for k2 in range(len(z0_grid)):
-        
-        # compute w(z):
-        if Gaussian_wz_profile: wz0 = w_z(z0_grid[k2])
-        else: wz0 = w0
-        
-        # compute intensity:
-        if Gaussian_Iz_profile: I0z0 = np.sqrt(I0_grid[k1]) * (w0/w_z(z0_grid[k2]))
-        else: I0z0 = np.sqrt(I0_grid[k1])
-        
-        # integration grid
-        rgrid = np.ogrid[0:(wz0*rmax_scale):dr]
-        
-        # 
-        # FSource_interp = FSourceTerm_interpE0( np.sqrt(I0_grid[k1]) * Gaussian_E_r(rgrid) )
-        HHG_onscreen[k1].append(
-                                Hfn2.HankelTransform(
-                                omega_convert * ogrid_sel,
-                                rgrid,
-                                (FSourceTerm_interpE0( np.sqrt(I0_grid[k1]) * Gaussian_E_r(rgrid) )).T, # FSource_interp.T,
-                                distance,
-                                rgrid_FF)
-            )
+    FSource_interp = FSourceTerm_interpE0( np.sqrt(I0_grid[k1]) * Gaussian_E_r(rgrid) )
+    HHG_onscreen.append(
+        Hfn2.HankelTransform(omega_convert * ogrid_sel, rgrid, FSource_interp.T, distance, rgrid_FF)
+        )
 
 HHG_onscreen = np.asarray(HHG_onscreen)
 
@@ -274,7 +245,7 @@ k1 = mn.FindInterval(ogrid_sel/omega0, 17.0)
 image = pp.figure_driver()    
 image.sf = [pp.plotter() for k1 in range(16)]
 
-image.sf[0].args = [units.INTENSITYau*I0_grid, rgrid_FF, np.log(np.abs(HHG_onscreen[:,1,k1,:].T)) ]
+image.sf[0].args = [units.INTENSITYau*I0_grid, rgrid_FF, np.log(np.abs(HHG_onscreen[:,k1,:].T)) ]
 image.sf[0].method = plt.pcolormesh
 
 pp.plot_preset(image)
@@ -282,7 +253,7 @@ pp.plot_preset(image)
 image = pp.figure_driver()    
 image.sf = [pp.plotter() for k1 in range(16)]
 
-image.sf[0].args = [units.INTENSITYau*I0_grid, rgrid_FF, np.abs(HHG_onscreen[:,1,k1,:].T) ]
+image.sf[0].args = [units.INTENSITYau*I0_grid, rgrid_FF, np.abs(HHG_onscreen[:,k1,:].T) ]
 image.sf[0].method = plt.pcolormesh
 
 pp.plot_preset(image)

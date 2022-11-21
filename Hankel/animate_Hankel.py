@@ -81,11 +81,13 @@ image.sf = [pp.plotter() for k2 in range(16)]
 image.sf[0].args = [units.INTENSITYau*I0_grid, rgrid_FF, np.abs(HHG_onscreen[:,k1,:].T) ]
 image.sf[0].method = plt.pcolormesh
 
+image.sf[0].colorbar.show = True
 pp.plot_preset(image)
 
 
 fig, ax = plt.subplots()
-cax = ax.pcolormesh(Hgrid, rgrid_FF, np.abs(HHG_onscreen[0,:,:].T)) #, vmin=-1, vmax=1, cmap='Blues')
+# cax = ax.pcolormesh(Hgrid, rgrid_FF, np.abs(HHG_onscreen[0,:,:].T)) #, vmin=-1, vmax=1, cmap='Blues')
+cax = ax.pcolormesh(Hgrid, rgrid_FF, np.abs(HHG_onscreen[0,:,:].T), vmax=0.6e-9)
 # ax.set_title(str(I0_grid[-1]))
 ax.set_title("{:.2E}".format(1e-4*units.INTENSITYau*I0_grid[0]) + ' W/cm2')
 fig.colorbar(cax)
@@ -95,6 +97,7 @@ def animate(i):
     # ax.set_title(str(I0_grid[i]))
     # ax.set_title("{:10.4f}".format(units.INTENSITYau*I0_grid[i]))
     ax.set_title("{:.2E}".format(1e-4*units.INTENSITYau*I0_grid[i]) + ' W/cm2')
+    # fig.colorbar(cf, cax=cax)
     # fig.colorbar(cax)
     # fig.colorbar(fig, cax=cax)
    
