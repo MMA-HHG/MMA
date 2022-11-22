@@ -152,6 +152,7 @@ N_z0 = len(z0_grid)
 
 Gaussian_Iz_profile = True
 Gaussian_wz_profile = True
+Gaussian_curvature = True
 
 # Integration
 dr = 3e-6
@@ -204,6 +205,14 @@ image.sf[0].method = plt.pcolormesh
 
 pp.plot_preset(image)
 
+phase = mn.GaussianBeamCurvaturePhase(
+            0.5*w_z(zR),zR,2.0*np.pi/mn.ConvertPhoton(omega0, 'omegaau', 'lambdaSI'),zR)
+delay = phase/omega0
+
+print(phase,delay,delay*units.TIMEau)
+
+sys.exit(0)
+
 HHG_onscreen = []
 for k1 in range(len(I0_grid)):
     HHG_onscreen.append([])
@@ -220,13 +229,22 @@ for k1 in range(len(I0_grid)):
         # integration grid
         rgrid = np.ogrid[0:(wz0*rmax_scale):dr]
         
+        # include curvature:
+        if Gaussian_curvature:
+            phi_r = mn.GaussianBeamCurvaturePhase(
+                        rgrid,z0_grid[k2],mn.ConvertPhoton(omega0, 'omeagaau', 'lambdaSI'),zR)
+            curv_fact = np.exp(1j*np.outer((ogrid_sel/omega0),phi_r))
+        else: curv_fact = 1.0
+        
+
+        
         # 
         # FSource_interp = FSourceTerm_interpE0( np.sqrt(I0_grid[k1]) * Gaussian_E_r(rgrid) )
         HHG_onscreen[k1].append(
                                 Hfn2.HankelTransform(
                                 omega_convert * ogrid_sel,
                                 rgrid,
-                                (FSourceTerm_interpE0( np.sqrt(I0_grid[k1]) * Gaussian_E_r(rgrid) )).T, # FSource_interp.T,
+                                curv_fact * (FSourceTerm_interpE0( I0z0 * Gaussian_E_r(rgrid) )).T, # FSource_interp.T,
                                 distance,
                                 rgrid_FF)
             )
