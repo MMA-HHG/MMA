@@ -131,11 +131,12 @@ N_I0 = 10 #300
 I0_start = 5e17/units.INTENSITYau
 I0_end = 35e17/units.INTENSITYau#E0_grid[-1]**2
 I0_grid = np.linspace(I0_start,E0_grid[-1]**2,N_I0)
+
 w0 = 120e-6 # 120e-6 #25e-6
 
 Gaussian_E_r = lambda r : np.exp(-(r/w0)**2)
 zR = np.pi*(w0**2)/mn.ConvertPhoton(omega0, 'omegaau', 'lambdaSI')
-w_z = lambda z: w0*np.sqrt(1+z/zR)
+w_z = lambda z: w0*np.sqrt(1+(z/zR)**2)
 
 
 
@@ -211,7 +212,7 @@ delay = phase/omega0
 
 print(phase,delay,delay*units.TIMEau)
 
-sys.exit(0)
+# sys.exit(0)
 
 HHG_onscreen = []
 for k1 in range(len(I0_grid)):
@@ -232,9 +233,11 @@ for k1 in range(len(I0_grid)):
         # include curvature:
         if Gaussian_curvature:
             phi_r = mn.GaussianBeamCurvaturePhase(
-                        rgrid,z0_grid[k2],mn.ConvertPhoton(omega0, 'omeagaau', 'lambdaSI'),zR)
+                        rgrid,z0_grid[k2],2.0*np.pi/mn.ConvertPhoton(omega0, 'omegaau', 'lambdaSI'),zR)
             curv_fact = np.exp(1j*np.outer((ogrid_sel/omega0),phi_r))
         else: curv_fact = 1.0
+        
+        # sys.exit(0)
         
 
         
@@ -256,19 +259,38 @@ print('before save')
 # Save the data
 out_h5name='Hankel_M2.h5'
 with h5py.File(out_h5name,'w') as OutFile:
+    # data and grids
     grp = OutFile.create_group('XUV')
-    grp.create_dataset('Spectrum_on_screen',
-                                          data = np.stack((HHG_onscreen.real, HHG_onscreen.imag),axis=-1)
-                                          )
-    grp.create_dataset('Hgrid_sel',
-                                          data = ogrid_sel/omega0
-                                          )
-    grp.create_dataset('rgrid_FF',
-                                          data = rgrid_FF
-                                          )    
-    grp.create_dataset('I0_grid',
-                                          data = I0_grid
-                                          )    
+    mn.adddataset(grp, 'Spectrum_on_screen', np.stack((HHG_onscreen.real, HHG_onscreen.imag),axis=-1), '[arb.u.]')
+    mn.adddataset(grp, 'Hgrid_sel', ogrid_sel/omega0, '[-]')
+    mn.adddataset(grp, 'rgrid_FF', rgrid_FF, '[m]')
+    mn.adddataset(grp, 'I0_grid', I0_grid, '[a.u.]')
+    mn.adddataset(grp, 'z0_grid', z0_grid, '[m]')
+    
+    # beam specifications
+    mn.adddataset(grp, 'Gaussian_curvature', int(Gaussian_curvature), '[bool]')
+    mn.adddataset(grp, 'Gaussian_wz_profile', int(Gaussian_wz_profile), '[bool]')
+    mn.adddataset(grp, 'Gaussian_Iz_profile', int(Gaussian_Iz_profile), '[bool]')
+    
+    # parameters
+    grp_param = grp.create_group('numerical_parameters')
+    mn.adddataset(grp_param, 'w0', w0, '[m]')
+    mn.adddataset(grp_param, 'dr', dr, '[m]')
+    mn.adddataset(grp_param, 'rmax_scale', rmax_scale, '[-] scaled to w(z0)')
+    
+    
+    # grp.create_dataset('Spectrum_on_screen',
+    #                                       data = np.stack((HHG_onscreen.real, HHG_onscreen.imag),axis=-1)
+    #                                       )
+    # grp.create_dataset('Hgrid_sel',
+    #                                       data = ogrid_sel/omega0
+    #                                       )
+    # grp.create_dataset('rgrid_FF',
+    #                                       data = rgrid_FF
+    #                                       )    
+    # grp.create_dataset('I0_grid',
+    #                                       data = I0_grid
+    #                                       )    
     
 ## reference plots
 
@@ -301,6 +323,23 @@ image = pp.figure_driver()
 image.sf = [pp.plotter() for k1 in range(16)]
 
 image.sf[0].args = [units.INTENSITYau*I0_grid, rgrid_FF, np.abs(HHG_onscreen[:,1,k1,:].T) ]
+image.sf[0].method = plt.pcolormesh
+
+pp.plot_preset(image)
+
+
+image = pp.figure_driver()    
+image.sf = [pp.plotter() for k1 in range(16)]
+
+image.sf[0].args = [units.INTENSITYau*I0_grid, rgrid_FF, np.abs(HHG_onscreen[:,0,k1,:].T) ]
+image.sf[0].method = plt.pcolormesh
+
+pp.plot_preset(image)
+
+image = pp.figure_driver()    
+image.sf = [pp.plotter() for k1 in range(16)]
+
+image.sf[0].args = [units.INTENSITYau*I0_grid, rgrid_FF, np.abs(HHG_onscreen[:,2,k1,:].T) ]
 image.sf[0].method = plt.pcolormesh
 
 pp.plot_preset(image)
