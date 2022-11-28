@@ -127,9 +127,9 @@ with h5py.File(file_TDSE, 'r') as InputArchiveTDSE:
 print('data loaded:')
 
 ## Laser
-N_I0 = 10 #300
-I0_start = 5e17/units.INTENSITYau
-I0_end = 35e17/units.INTENSITYau#E0_grid[-1]**2
+N_I0 = 3 # 10 #300
+I0_start = 12.5e17/units.INTENSITYau
+I0_end = 37.5e17/units.INTENSITYau#E0_grid[-1]**2
 I0_grid = np.linspace(I0_start,E0_grid[-1]**2,N_I0)
 
 w0 = 120e-6 # 120e-6 #25e-6
@@ -145,18 +145,22 @@ Hlimit = [10, 36]
 # Hlimit = [24, 26]
 Hlimit = [15, 26]
 Hlimit = [16, 18]
-# Hlimit = [14, 20]
+Hlimit = [14, 20]
+
+Hlimit = [0, 36]
 
 # Moving jet
-z0_grid = np.array([-0.5*zR,0,0.5*zR])  # np.array([-100e-6,0,100e-6])
-N_z0 = len(z0_grid)
+# z0_grid = np.array([-0.5*zR,0,0.5*zR])  # np.array([-100e-6,0,100e-6])
+# N_z0 = len(z0_grid)
+N_z0 = 3
+z0_grid = np.linspace(-zR,zR,N_z0)
 
-Gaussian_Iz_profile = True
-Gaussian_wz_profile = True
+Gaussian_Iz_profile = False
+Gaussian_wz_profile = False
 Gaussian_curvature = True
 
 # Integration
-dr = 3e-6
+dr = 3e-6/4
 rmax_scale = 1.2
 Nr = 50 #200
 rgrid = np.ogrid[0:(w0*rmax_scale):dr] #np.linspace(0, 1.2*w0, Nr)
@@ -216,9 +220,10 @@ print(phase,delay,delay*units.TIMEau)
 
 HHG_onscreen = []
 for k1 in range(len(I0_grid)):
+    print('Intens step: ', k1, '/', len(I0_grid))
     HHG_onscreen.append([])
     for k2 in range(len(z0_grid)):
-        
+        print('z0 step: ', k2, '/', len(z0_grid))
         # compute w(z):
         if Gaussian_wz_profile: wz0 = w_z(z0_grid[k2])
         else: wz0 = w0
@@ -257,7 +262,7 @@ HHG_onscreen = np.asarray(HHG_onscreen)
 
 print('before save')
 # Save the data
-out_h5name='Hankel_M2.h5'
+out_h5name='Hankel_M7.h5'
 with h5py.File(out_h5name,'w') as OutFile:
     # data and grids
     grp = OutFile.create_group('XUV')
