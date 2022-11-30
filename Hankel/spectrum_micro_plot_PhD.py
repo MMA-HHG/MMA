@@ -24,6 +24,10 @@ from scipy import interpolate
 
 
 
+results_TDSE = os.path.join("D:\data", "TDSE_list", "Maker4")
+file_TDSE = 'results_merged.h5'
+file_TDSE = os.path.join(results_TDSE,file_TDSE)
+
 
 
 file_Hankel = 'Hankel_M6.h5'
@@ -31,12 +35,28 @@ file_Hankel = 'Hankel_M6.h5'
 
 # load data
           
-with h5py.File(file_Hankel, 'r') as Hankel_results:
+with h5py.File(file_Hankel, 'r') as Hankel_results, h5py.File(file_TDSE, 'r') as TDSE_results:
     HHG_onscreen = Hankel_results['XUV/Spectrum_on_screen'][:,:,:,:,0] + 1j*Hankel_results['XUV/Spectrum_on_screen'][:,:,:,:,1]
     I0_grid = Hankel_results['XUV/I0_grid'][:]
     rgrid_FF = Hankel_results['XUV/rgrid_FF'][:]
     Hgrid = Hankel_results['XUV/Hgrid_sel'][:]
     z0_grid = Hankel_results['XUV/z0_grid'][:]
+    
+    
+    FSourceTerm = TDSE_results['FSourceTerm'][:,:,0] + \
+                       1j*TDSE_results['FSourceTerm'][:,:,1]
+   
+    dum = TDSE_results['grids_for_scans/varying_params'][:]; Np = len(dum)
+    varying_params = []
+    for k1 in range(Np): varying_params.append(dum[k1].decode())
+    
+    E0_grid = TDSE_results[ 'grids_for_scans/param_'+str(varying_params.index('E0')) ][:]
+             
+    # E0grid =  InputArchiveTDSE['grids_for_scans'][:]
+   
+    ogrid_TDSE = TDSE_results['omegagrid'][:]
+    omega0 = TDSE_results['grids_for_scans/omega0'][()]
+    Hgrid_TDSE = ogrid_TDSE/omega0
    
     # FSourceTerm = InputArchiveTDSE['FSourceTerm'][:,:,0] + \
     #                    1j*InputArchiveTDSE['FSourceTerm'][:,:,1]
@@ -69,33 +89,42 @@ H_Ip = HHG.Ip_list['Ar']/mn.ConvertPhoton(lambdaSI, 'lambdaSI', 'omegaau')
 
 # fig, ax = plt.subplots()
 
+k_I0_TDSE = mn.FindInterval(E0_grid, np.sqrt(I0_grid[k_I0]))
 
 image = pp.figure_driver()    
 image.sf = [pp.plotter() for k1 in range(16)]
 
-arr_plot = np.concatenate((np.flip( HHG_onscreen[k_I0,k_z0,:,1:].T, axis=0),
-               HHG_onscreen[k_I0,k_z0,:,:].T
-               ),axis=0)
-norm_arr = np.max(np.abs(arr_plot))
+# arr_plot = np.concatenate((np.flip( HHG_onscreen[k_I0,k_z0,:,1:].T, axis=0),
+#                HHG_onscreen[k_I0,k_z0,:,:].T
+#                ),axis=0)
+# norm_arr = np.max(np.abs(arr_plot))
 
-rgrid_plot = np.concatenate((-np.flip(rgrid_FF[1:]), rgrid_FF))
-image.sf[0].args = [Hgrid,
-                    1e3*rgrid_plot,
-                    np.abs(arr_plot)/norm_arr]
-image.sf[0].kwargs = {'vmax': 7.5e-2,
-                      'cmap': 'plasma'}
+# rgrid_plot = np.concatenate((-np.flip(rgrid_FF[1:]), rgrid_FF))
+spectrum_plot = np.abs(FSourceTerm[k_I0_TDSE,:])
+norm_plot = np.max(np.abs(spectrum_plot))
+image.sf[0].args = [Hgrid_TDSE, spectrum_plot/norm_plot]
+# image.sf[0].kwargs = {'vmax': 7.5e-2,
+#                       'cmap': 'plasma'}
 
-image.sf[0].method = plt.pcolormesh
+image.sf[0].method = plt.semilogy
 
 # vlines
 image.sf[1].method = plt.vlines
-image.sf[1].args = [(H_Ip, H_cutoff), -10, 10]
-image.sf[1].kwargs = {'colors': ('w','w'),
+image.sf[1].args = [(H_Ip, H_cutoff), 0, 1]
+image.sf[1].kwargs = {'colors': ('k','k'),
                       'linestyles': '--'}
 
+image.sf[2].method = plt.vlines
+image.sf[2].args = [list(range(1,39,2)), 0, 1]
+image.sf[2].kwargs = {'colors': ('0.8'),
+                      'linestyles': ':'}
+
+
 image.xlabel = 'H [-]'
-image.ylabel = 'r [mm]'
-image.ylim_args = (-5,5)
+image.ylabel = 'Spectrum [arb.u.]'
+
+image.xlim_args = (0,40)
+image.ylim_args = (1e-5,1)
 
 image.set_fontsizes = 'largefonts'
 
@@ -106,37 +135,81 @@ image.set_size_inches_args = [10,5]
 # image.savefigs_args = [['FF_spectrum.pdf'], ['FF_spectrum.png']]
 # image.savefigs_kwargs = [{'bbox_inches' : 'tight'} for k1 in range(2)]   
 
-image.savefigs_args = [['FF_spectrum.png']]
+image.savefigs_args = [['micro_spectrum.png']]
 image.savefigs_kwargs = [{'bbox_inches' : 'tight'}]  
 
 pp.plot_preset(image)
 
-image.set_asppect_args = ['equal']
+
+# image = pp.figure_driver()    
+# image.sf = [pp.plotter() for k1 in range(16)]
+
+# arr_plot = np.concatenate((np.flip( HHG_onscreen[k_I0,k_z0,:,1:].T, axis=0),
+#                HHG_onscreen[k_I0,k_z0,:,:].T
+#                ),axis=0)
+# norm_arr = np.max(np.abs(arr_plot))
+
+# rgrid_plot = np.concatenate((-np.flip(rgrid_FF[1:]), rgrid_FF))
+# image.sf[0].args = [Hgrid,
+#                     1e3*rgrid_plot,
+#                     np.abs(arr_plot)/norm_arr]
+# image.sf[0].kwargs = {'vmax': 7.5e-2,
+#                       'cmap': 'plasma'}
+
+# image.sf[0].method = plt.pcolormesh
+
+# # vlines
+# image.sf[1].method = plt.vlines
+# image.sf[1].args = [(H_Ip, H_cutoff), -10, 10]
+# image.sf[1].kwargs = {'colors': ('w','w'),
+#                       'linestyles': '--'}
+
+# image.xlabel = 'H [-]'
+# image.ylabel = 'r [mm]'
+# image.ylim_args = (-5,5)
+
+# image.set_fontsizes = 'largefonts'
+
+# # image.set_asppect_args = [3.0]
+
+# image.set_size_inches_args = [10,5]
 
 # # image.savefigs_args = [['FF_spectrum.pdf'], ['FF_spectrum.png']]
 # # image.savefigs_kwargs = [{'bbox_inches' : 'tight'} for k1 in range(2)]   
 
-# image.savefigs_args = [['FF_spectrum2.png']]
+# image.savefigs_args = [['FF_spectrum.png']]
 # image.savefigs_kwargs = [{'bbox_inches' : 'tight'}]  
 
 # pp.plot_preset(image)
 
+################################################################################
+
+# image.set_asppect_args = ['equal']
+
+# # # image.savefigs_args = [['FF_spectrum.pdf'], ['FF_spectrum.png']]
+# # # image.savefigs_kwargs = [{'bbox_inches' : 'tight'} for k1 in range(2)]   
+
+# # image.savefigs_args = [['FF_spectrum2.png']]
+# # image.savefigs_kwargs = [{'bbox_inches' : 'tight'}]  
+
+# # pp.plot_preset(image)
 
 
 
-k_H = mn.FindInterval(Hgrid, 17.0)
+
+# k_H = mn.FindInterval(Hgrid, 17.0)
 
 
-image = pp.figure_driver()    
-image.sf = [pp.plotter() for k2 in range(16)]
+# image = pp.figure_driver()    
+# image.sf = [pp.plotter() for k2 in range(16)]
 
-image.sf[0].args = [units.INTENSITYau*I0_grid, rgrid_FF, np.abs(HHG_onscreen[:,k_z0,k_H,:].T) ]
-image.sf[0].method = plt.pcolormesh
+# image.sf[0].args = [units.INTENSITYau*I0_grid, rgrid_FF, np.abs(HHG_onscreen[:,k_z0,k_H,:].T) ]
+# image.sf[0].method = plt.pcolormesh
 
-image.sf[0].colorbar.show = True
+# image.sf[0].colorbar.show = True
 
 
-pp.plot_preset(image)
+# pp.plot_preset(image)
 
 
 
