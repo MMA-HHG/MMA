@@ -67,6 +67,7 @@ k_I0 = 2
 # anim_name = 'anim_full_Gauss3.mp4'
 # anim_name = 'anim_intens_fixed3.mp4'
 anim_name = 'anim_intens_fixed_rad_fixed3.mp4'
+anim_name = 'anim_tmp.mp4'
 anim_vmax = 0.6e-9
 
 

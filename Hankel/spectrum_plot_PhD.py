@@ -1,5 +1,6 @@
 import numpy as np
 import os
+import copy
 import time
 # import multiprocessing as mp
 import shutil
@@ -86,12 +87,23 @@ image.sf[0].kwargs = {'vmax': 7.5e-2,
                       'cmap': 'plasma'}
 
 image.sf[0].method = plt.pcolormesh
+image.sf[0].colorbar.show = True
 
 # vlines
 image.sf[1].method = plt.vlines
 image.sf[1].args = [(H_Ip, H_cutoff), -10, 10]
 image.sf[1].kwargs = {'colors': ('w','w'),
                       'linestyles': '--'}
+
+
+image.sf[3].method = plt.text
+image.sf[3].args = [H_Ip + 0.25, -3.3, r'$I_p$']
+image.sf[3].kwargs = {'rotation' : 'vertical',
+                      'color': 'w'}
+
+image.sf[4] = copy.deepcopy(image.sf[3])
+image.sf[4].args = [H_cutoff + 0.25, -4.1, r'cutoff']
+
 
 image.xlabel = 'H [-]'
 image.ylabel = 'r [mm]'

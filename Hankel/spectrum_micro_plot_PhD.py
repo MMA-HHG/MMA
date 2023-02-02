@@ -1,5 +1,6 @@
 import numpy as np
 import os
+import copy
 import time
 # import multiprocessing as mp
 import shutil
@@ -119,6 +120,12 @@ image.sf[2].args = [list(range(1,39,2)), 0, 1]
 image.sf[2].kwargs = {'colors': ('0.8'),
                       'linestyles': ':'}
 
+image.sf[3].method = plt.text
+image.sf[3].args = [H_Ip + 0.25, 2e-4, r'$I_p$']
+image.sf[3].kwargs = {'rotation' : 'vertical'}
+
+image.sf[4] = copy.deepcopy(image.sf[3])
+image.sf[4].args = [H_cutoff + 0.25, 7e-5, r'cutoff']
 
 image.xlabel = 'H [-]'
 image.ylabel = 'Spectrum [arb.u.]'
