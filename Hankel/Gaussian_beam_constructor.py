@@ -68,10 +68,18 @@ rgr = np.linspace(0.,1.5*w0,1000)
 zm, rm = np.meshgrid(zgr,rgr)
 
 
+
+included_eff ={'incl_Gouy' : True,
+               'incl_curv' : False,
+               'incl_lin'  :True}
+
+
 phase_map = Gaussian_phase_map(zm,rm,w0,mn.ConvertPhoton(omega0,'omegaau','lambdaSI'),
-                               incl_Gouy=True,
-                               incl_curv=False,
-                               incl_lin=True)
+                               **included_eff)
+
+phase_map_ref = Gaussian_phase_map(zm,rm,w0,mn.ConvertPhoton(omega0,'omegaau','lambdaSI'),
+                               n = n_IR,
+                               **included_eff)
 
 
 image = pp.figure_driver()    
@@ -85,8 +93,22 @@ image.sf[1].args = [phase_map[:,-1]]
 pp.plot_preset(image)
 
 
+# image = pp.figure_driver()    
+# image.sf = [pp.plotter() for k2 in range(16)]
+# image.sf[0].args = [phase_map[:,0]]
+# image.sf[1].args = [phase_map_ref[:,0]]
+# pp.plot_preset(image)
+
+
 image = pp.figure_driver()    
 image.sf = [pp.plotter() for k2 in range(16)]
 image.sf[0].args = [zgr,phase_map[0,:]]
 image.sf[1].args = [zgr,phase_map[-1,:]]
+pp.plot_preset(image)
+
+
+image = pp.figure_driver()    
+image.sf = [pp.plotter() for k2 in range(16)]
+image.sf[0].args = [zgr,phase_map[0,:]]
+image.sf[1].args = [zgr,phase_map_ref[0,:]]
 pp.plot_preset(image)
