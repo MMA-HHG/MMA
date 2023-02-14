@@ -22,16 +22,20 @@ from scipy import interpolate
 
 
 
-def Gaussian_phase_map(z,r,w0,lambd,n=1.0,vacuum_frame=True):
+def Gaussian_phase_map(z,r,w0,lambd,n=1.0,vacuum_frame=True,
+                       incl_curv = True, incl_Gouy = True,
+                       incl_lin = True):
     k = 2.0*np.pi*n/(lambd)
     zR = np.pi*(w0**2)*n/lambd
     inv_curv_radius = z/(zR**2+z**2)
     phi_G = np.arctan(z/zR)
-    if vacuum_frame:
-        k_corr = 2.0*np.pi*(n-1.0)/(lambd)
-        phase = k_corr*z + 0.5*k*(r**2)*inv_curv_radius - phi_G
-    else:
-        phase = k*z + 0.5*k*(r**2)*inv_curv_radius - phi_G
+    if vacuum_frame: k_corr = 2.0*np.pi*(n-1.0)/(lambd)
+    else: k_corr = k
+        
+    phase = 0.
+    if incl_lin: phase += k_corr*z
+    if incl_curv: phase += 0.5*k*(r**2)*inv_curv_radius 
+    if incl_Gouy: phase += -phi_G
     
     return phase
 
@@ -58,9 +62,31 @@ pressure = 100e-3
 susc_IR = IR_index.getsusc(gas_type, mn.ConvertPhoton(omega0,'omegaau','lambdaSI'))
 n_IR = np.sqrt(1.+pressure * susc_IR)
 
-zgr = np.linspace(-0.1,0.1,3)
-rgr = np.linspace(0.,w0,2)
+zgr = np.linspace(-1e-3,1e-3,2000)
+rgr = np.linspace(0.,1.5*w0,1000)
 
 zm, rm = np.meshgrid(zgr,rgr)
 
-phase_map = Gaussian_phase_map(zm,rm,w0,mn.ConvertPhoton(omega0,'omegaau','lambdaSI'))
+
+phase_map = Gaussian_phase_map(zm,rm,w0,mn.ConvertPhoton(omega0,'omegaau','lambdaSI'),
+                               incl_Gouy=True,
+                               incl_curv=False,
+                               incl_lin=True)
+
+
+image = pp.figure_driver()    
+image.sf = [pp.plotter() for k2 in range(16)]
+
+image.sf[0].args = [phase_map[:,0]]
+image.sf[1].args = [phase_map[:,-1]]
+# image.sf[0].method = plt.pcolormesh
+
+# image.sf[0].colorbar.show = True
+pp.plot_preset(image)
+
+
+image = pp.figure_driver()    
+image.sf = [pp.plotter() for k2 in range(16)]
+image.sf[0].args = [zgr,phase_map[0,:]]
+image.sf[1].args = [zgr,phase_map[-1,:]]
+pp.plot_preset(image)
