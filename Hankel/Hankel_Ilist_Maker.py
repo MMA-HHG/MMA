@@ -262,7 +262,7 @@ HHG_onscreen = np.asarray(HHG_onscreen)
 
 print('before save')
 # Save the data
-out_h5name='Hankel_M7.h5'
+out_h5name='Hankel_MX.h5'
 with h5py.File(out_h5name,'w') as OutFile:
     # data and grids
     grp = OutFile.create_group('XUV')
