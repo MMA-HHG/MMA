@@ -59,19 +59,24 @@ w0 = 120e-6 # 120e-6 #25e-6
 gas_type = 'Ar'
 pressure = 100e-3
 
+
+zR = np.pi*(w0**2)/mn.ConvertPhoton(omega0, 'omegaau', 'lambdaSI')
+
 susc_IR = IR_index.getsusc(gas_type, mn.ConvertPhoton(omega0,'omegaau','lambdaSI'))
 n_IR = np.sqrt(1.+pressure * susc_IR)
 
-zgr = np.linspace(-1e-3,1e-3,2000)
+zgr = np.linspace(-zR,zR,2000)
 rgr = np.linspace(0.,1.5*w0,1000)
 
 zm, rm = np.meshgrid(zgr,rgr)
 
 
 
-included_eff ={'incl_Gouy' : True,
-               'incl_curv' : False,
-               'incl_lin'  :True}
+
+
+included_eff = {'incl_Gouy' : True,
+                'incl_curv' : True,
+                'incl_lin'  :True}
 
 
 phase_map = Gaussian_phase_map(zm,rm,w0,mn.ConvertPhoton(omega0,'omegaau','lambdaSI'),
@@ -111,4 +116,14 @@ image = pp.figure_driver()
 image.sf = [pp.plotter() for k2 in range(16)]
 image.sf[0].args = [zgr,phase_map[0,:]]
 image.sf[1].args = [zgr,phase_map_ref[0,:]]
+pp.plot_preset(image)
+
+
+image = pp.figure_driver()   
+image.sf = [pp.plotter() for k2 in range(16)]
+image.sf[0].args = [phase_map[:,:]]
+
+image.sf[0].method = plt.pcolormesh
+
+image.sf[0].colorbar.show = True
 pp.plot_preset(image)
