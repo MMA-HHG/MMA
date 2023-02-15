@@ -156,3 +156,22 @@ image.sf[0].method = plt.pcolormesh
 
 image.sf[0].colorbar.show = True
 pp.plot_preset(image)
+
+image = pp.figure_driver()   
+image.sf = [pp.plotter() for k2 in range(16)]
+image.sf[0].args = [Gaussian_E0_map(zm,rm,w0,E0,mn.ConvertPhoton(omega0,'omegaau','lambdaSI'),incl_z_profile=False)]
+
+image.sf[0].method = plt.pcolormesh
+
+image.sf[0].colorbar.show = True
+pp.plot_preset(image)
+
+
+image = pp.figure_driver()   
+image.sf = [pp.plotter() for k2 in range(16)]
+image.sf[0].args = [Gaussian_E0_map(zm,rm,w0,E0,mn.ConvertPhoton(omega0,'omegaau','lambdaSI'),incl_radial_wz_profile=False)]
+
+image.sf[0].method = plt.pcolormesh
+
+image.sf[0].colorbar.show = True
+pp.plot_preset(image)
