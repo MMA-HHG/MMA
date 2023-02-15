@@ -40,23 +40,23 @@ def Gaussian_phase_map(z,r,w0,lambd,n=1.0,vacuum_frame=True,
     return phase
 
 
-def Gaussian_E0_map(z,r,w0,lambd,n=1.0,vacuum_frame=True,
-                       incl_curv = True, incl_Gouy = True,
-                       incl_lin = True):
-    k = 2.0*np.pi*n/(lambd)
-    zR = np.pi*(w0**2)*n/lambd
-    inv_curv_radius = z/(zR**2+z**2)
-    phi_G = np.arctan(z/zR)
-    if vacuum_frame: k_corr = 2.0*np.pi*(n-1.0)/(lambd)
-    else: k_corr = k
-        
-    phase = 0.
-    if incl_lin: phase += k_corr*z
-    if incl_curv: phase += 0.5*k*(r**2)*inv_curv_radius 
-    if incl_Gouy: phase += -phi_G
+def Gaussian_E0_map(z,r,w0,E0,lambd,n=1.0,
+                        incl_z_profile = True,
+                        incl_radial_wz_profile = True):
     
-    return phase
+    zR = np.pi*(w0**2)*n/lambd
+    w_z = lambda z: w0*np.sqrt(1+(z/zR)**2)
+        
+    E0_rz = E0
+    if incl_z_profile: E0_rz *= (w0/w_z(z))
+    
+    if incl_radial_wz_profile: E0_rz *= np.exp(-(r/w_z(z))**2)
+    else: E0_rz *= np.exp(-(r/w0)**2)
+    
+    return E0_rz
 
+
+# fun = lambda x : np.ones(x.shape)
 
 results_TDSE = os.path.join("D:\data", "TDSE_list", "Maker4")
 file_TDSE = 'results_merged.h5'
@@ -76,6 +76,7 @@ with h5py.File(file_TDSE, 'r') as InputArchiveTDSE:
 w0 = 120e-6 # 120e-6 #25e-6
 gas_type = 'Ar'
 pressure = 100e-3
+E0 = 1.
 
 
 zR = np.pi*(w0**2)/mn.ConvertPhoton(omega0, 'omegaau', 'lambdaSI')
@@ -140,6 +141,16 @@ pp.plot_preset(image)
 image = pp.figure_driver()   
 image.sf = [pp.plotter() for k2 in range(16)]
 image.sf[0].args = [phase_map[:,:]]
+
+image.sf[0].method = plt.pcolormesh
+
+image.sf[0].colorbar.show = True
+pp.plot_preset(image)
+
+
+image = pp.figure_driver()   
+image.sf = [pp.plotter() for k2 in range(16)]
+image.sf[0].args = [Gaussian_E0_map(zm,rm,w0,E0,mn.ConvertPhoton(omega0,'omegaau','lambdaSI'))]
 
 image.sf[0].method = plt.pcolormesh
 
