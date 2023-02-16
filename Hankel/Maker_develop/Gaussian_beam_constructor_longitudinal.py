@@ -140,7 +140,7 @@ pp.plot_preset(image)
 
 image = pp.figure_driver()   
 image.sf = [pp.plotter() for k2 in range(16)]
-image.sf[0].args = [phase_map[:,:]]
+image.sf[0].args = [zgr,rgr,phase_map[:,:]]
 
 image.sf[0].method = plt.pcolormesh
 
