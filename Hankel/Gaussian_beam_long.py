@@ -100,7 +100,7 @@ zR = np.pi*(w0**2)/mn.ConvertPhoton(omega0, 'omegaau', 'lambdaSI')
 susc_IR = IR_index.getsusc(gas_type, mn.ConvertPhoton(omega0,'omegaau','lambdaSI'))
 n_IR = np.sqrt(1.+pressure * susc_IR)
 
-zgr = np.linspace(0,zR,10000)
+zgr = np.linspace(0,0.1*zR,1000)
 rgr = np.linspace(0.,1.5*w0,1000)
 
 
@@ -173,16 +173,31 @@ pp.plot_preset(image)
 
 sig2 = Signal_cum_integrator(ogrid, zgr, (factor_e.T) * FSource)
 
+
+
 image = pp.figure_driver()    
 image.sf = [pp.plotter() for k2 in range(16)]
-image.sf[0].args = [np.abs(sig[0,:])**2]
-image.sf[1].args = [np.abs(sig2[0,:])**2]
+image.sf[0].args = [zgr,np.abs(sig[0,:])**2]
+image.sf[1].args = [zgr,np.abs(sig2[0,:])**2]
 pp.plot_preset(image)
 
 
+sig_anal = XUV_sig.compute_S1_abs(pressure, 0.0, 0.0, zgr, 17,
+                                  {'omegaSI': ogrid[0],
+                                   'XUV_table_type_absorption': XUV_table_type_absorption,
+                                   'XUV_table_type_dispersion': XUV_table_type_dispersion,
+                                   'gas_type': gas_type,
+                                   'Aq': 1.},
+                                  include_absorption=False)
+
+print('Lcoh', sig_anal[2])
 
 
-
+image = pp.figure_driver()    
+image.sf = [pp.plotter() for k2 in range(16)]
+# image.sf[0].args = [np.abs(sig2[0,:])**2]
+image.sf[1].args = [zgr,np.abs(sig_anal[0])**2]
+pp.plot_preset(image)
 
 ### old stuff 
 # included_eff = {'incl_Gouy' : True,
