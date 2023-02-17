@@ -182,6 +182,8 @@ dispersion_factor = np.empty(No)
 for k1 in range(No):
     dispersion_factor[k1] = ogrid[k1]*dispersion_function(ogrid[k1])   
 
+print('Lcoh num', np.pi/dispersion_factor[0])
+
 factor_e = np.exp(1j*np.outer(zgr,dispersion_factor))
 
 foo = (factor_e.T) * FSource
@@ -208,7 +210,7 @@ sig_anal = XUV_sig.compute_S1_abs(pressure, 0.0, 0.0, zgr, 17,
                                    'XUV_table_type_dispersion': XUV_table_type_dispersion,
                                    'gas_type': gas_type,
                                    'Aq': 1.},
-                                  include_absorption=False)
+                                   include_absorption=False)
 
 print('Lcoh', sig_anal[2])
 
@@ -225,7 +227,7 @@ dispersion_function = dispersion_function2_def
 No = len(ogrid)
 dispersion_factor = np.empty(No)
 for k1 in range(No):
-    dispersion_factor[k1] = ogrid[k1]*dispersion_function(ogrid[k1])   
+    dispersion_factor[k1] = np.pi/2.1777380065358176e-07 # ogrid[k1]*dispersion_function(ogrid[k1])   
 
 factor_e = np.exp(1j*np.outer(zgr,dispersion_factor))
 sig3 = pressure*Signal_cum_integrator(ogrid, zgr, (factor_e.T) * FSource)
@@ -247,6 +249,12 @@ image.sf[0].args = [zgr,np.abs(sig_anal[0])**2/np.max(np.abs(sig_anal[0])**2)]
 image.sf[1].args = [zgr,np.abs(sig3[0,:])**2/np.max(np.abs(sig3[0,:])**2)]
 pp.plot_preset(image)
 
+
+image = pp.figure_driver()    
+image.sf = [pp.plotter() for k2 in range(16)]
+image.sf[0].args = [zgr,np.abs(sig_anal[0])**2/np.max(np.abs(sig_anal[0])**2)]
+image.sf[1].args = [zgr,np.abs(sig3[0,:])**2/np.max(np.abs(sig3[0,:])**2),'--']
+pp.plot_preset(image)
 
 
 ### old stuff 
