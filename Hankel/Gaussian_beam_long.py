@@ -58,8 +58,16 @@ def Gaussian_E0_map(z,r,w0,E0,lambd,n=1.0,
     
     return E0_rz
 
+def mytrap(y,x):
+    Nx = len(x)
+    res = []
+    dum = 0
+    for k1 in range(Nx-1):
+        dum += 0.5*(y[k1]+y[k1+1])*(x[k1+1]-x[k1])
+        res.append(dum)
+    return np.asarray(res)
+
 def Signal_cum_integrator(ogrid, zgrid, FSourceTerm,
-                         dispersion_function = None,
                          integrator = integrate.cumulative_trapezoid):
     
     No = len(ogrid); Nz = len(zgrid)
@@ -151,9 +159,21 @@ def dispersion_function_def(omega):
     lambdaSI = mn.ConvertPhoton(omega, 'omegaSI', 'lambdaSI')
     nXUV     = 1.0 - pressure*N_atm*units.r_electron_classical * ((lambdaSI**2)*f1_value/(2.0*np.pi))           
     phase_velocity_XUV  = units.c_light / nXUV
-    # print(phase_velocity_XUV)
-    # print(((1./units.c_light) - (1./phase_velocity_XUV)))
+    print(phase_velocity_XUV)
+    print(((1./units.c_light) - (1./phase_velocity_XUV)))
     return ((1./units.c_light) - (1./phase_velocity_XUV))
+
+
+def dispersion_function2_def(omega):
+    f1_value = f1_funct(mn.ConvertPhoton(omega, 'omegaSI', 'eV'))    
+    lambdaSI = mn.ConvertPhoton(omega, 'omegaSI', 'lambdaSI')
+    nXUV     = 1.0 - pressure*N_atm*units.r_electron_classical * ((lambdaSI**2)*f1_value/(2.0*np.pi))           
+    phase_velocity_XUV  = units.c_light / nXUV
+    
+    phase_velocity_IR = units.c_light / n_IR
+    print(phase_velocity_XUV)
+    print(((1./units.c_light) - (1./phase_velocity_XUV)))
+    return ((1./phase_velocity_IR) - (1./phase_velocity_XUV))
 
 
 dispersion_function = dispersion_function_def
@@ -195,9 +215,39 @@ print('Lcoh', sig_anal[2])
 
 image = pp.figure_driver()    
 image.sf = [pp.plotter() for k2 in range(16)]
-# image.sf[0].args = [np.abs(sig2[0,:])**2]
-image.sf[1].args = [zgr,np.abs(sig_anal[0])**2]
+image.sf[0].args = [zgr, np.abs(sig2[0,:])**2]
+image.sf[1].args = [zgr, np.abs(sig_anal[0])**2]
 pp.plot_preset(image)
+
+
+
+dispersion_function = dispersion_function2_def
+No = len(ogrid)
+dispersion_factor = np.empty(No)
+for k1 in range(No):
+    dispersion_factor[k1] = ogrid[k1]*dispersion_function(ogrid[k1])   
+
+factor_e = np.exp(1j*np.outer(zgr,dispersion_factor))
+sig3 = pressure*Signal_cum_integrator(ogrid, zgr, (factor_e.T) * FSource)
+
+sig4 = pressure*Signal_cum_integrator(ogrid, zgr, (factor_e.T) * FSource,
+                                      integrator = mytrap)
+
+image = pp.figure_driver()    
+image.sf = [pp.plotter() for k2 in range(16)]
+image.sf[0].args = [zgr,np.abs(sig_anal[0])**2]
+image.sf[1].args = [zgr,np.abs(sig3[0,:])**2]
+image.sf[2].args = [zgr,np.abs(sig4[0,:])**2,'--']
+pp.plot_preset(image)
+
+
+image = pp.figure_driver()    
+image.sf = [pp.plotter() for k2 in range(16)]
+image.sf[0].args = [zgr,np.abs(sig_anal[0])**2/np.max(np.abs(sig_anal[0])**2)]
+image.sf[1].args = [zgr,np.abs(sig3[0,:])**2/np.max(np.abs(sig3[0,:])**2)]
+pp.plot_preset(image)
+
+
 
 ### old stuff 
 # included_eff = {'incl_Gouy' : True,
