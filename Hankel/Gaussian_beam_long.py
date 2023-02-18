@@ -106,6 +106,7 @@ E0 = 1.
 zR = np.pi*(w0**2)/mn.ConvertPhoton(omega0, 'omegaau', 'lambdaSI')
 
 susc_IR = IR_index.getsusc(gas_type, mn.ConvertPhoton(omega0,'omegaau','lambdaSI'))
+print('susIR code:', susc_IR)
 n_IR = np.sqrt(1.+pressure * susc_IR)
 
 zgr = np.linspace(0,0.1*zR,1000)
@@ -173,6 +174,7 @@ def dispersion_function2_def(omega):
     phase_velocity_IR = units.c_light / n_IR
     print(phase_velocity_XUV)
     print(((1./units.c_light) - (1./phase_velocity_XUV)))
+    print('nXUV, nIR, code:', nXUV, n_IR)
     return ((1./phase_velocity_IR) - (1./phase_velocity_XUV))
 
 
@@ -205,7 +207,7 @@ pp.plot_preset(image)
 
 
 sig_anal = XUV_sig.compute_S1_abs(pressure, 0.0, 0.0, zgr, 17,
-                                  {'omegaSI': ogrid[0],
+                                  {'omegaSI': omega0SI, #ogrid[0],
                                    'XUV_table_type_absorption': XUV_table_type_absorption,
                                    'XUV_table_type_dispersion': XUV_table_type_dispersion,
                                    'gas_type': gas_type,
@@ -227,6 +229,7 @@ dispersion_function = dispersion_function2_def
 No = len(ogrid)
 dispersion_factor = np.empty(No)
 for k1 in range(No):
+    dispersion_factor[k1] = ogrid[k1]*dispersion_function(ogrid[k1])   
     dispersion_factor[k1] = np.pi/2.1777380065358176e-07 # ogrid[k1]*dispersion_function(ogrid[k1])   
 
 factor_e = np.exp(1j*np.outer(zgr,dispersion_factor))

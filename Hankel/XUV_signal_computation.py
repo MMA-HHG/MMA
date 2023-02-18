@@ -88,7 +88,11 @@ def compute_S1_abs(pressure, zeta, ionisation_ratio, l1, Horder, parameters, inc
     
     # polarisability IR
     susc_IR_atm = IR_index.getsusc(gas_type, mn.ConvertPhoton(omegaSI,'omegaSI','lambdaSI'))
+    print('susIR anal:', susc_IR_atm)
     polarisability_IR = susc_IR_atm/N_atm
+    
+    print('nXUV anal:', np.sqrt(1.+ pressure*N_atm*polarisability_XUV(Horder)))
+    print('nIR anal:', np.sqrt(1.+ pressure*N_atm*polarisability_IR))
     
     
     # other parameters
