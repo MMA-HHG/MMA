@@ -199,11 +199,11 @@ sig2 = Signal_cum_integrator(ogrid, zgr, (factor_e.T) * FSource)
 
 
 
-image = pp.figure_driver()    
-image.sf = [pp.plotter() for k2 in range(16)]
-image.sf[0].args = [zgr,np.abs(sig[0,:])**2]
-image.sf[1].args = [zgr,np.abs(sig2[0,:])**2]
-pp.plot_preset(image)
+# image = pp.figure_driver()    
+# image.sf = [pp.plotter() for k2 in range(16)]
+# image.sf[0].args = [zgr,np.abs(sig[0,:])**2]
+# image.sf[1].args = [zgr,np.abs(sig2[0,:])**2]
+# pp.plot_preset(image)
 
 
 sig_anal = XUV_sig.compute_S1_abs(pressure, 0.0, 0.0, zgr, 17,
@@ -217,11 +217,11 @@ sig_anal = XUV_sig.compute_S1_abs(pressure, 0.0, 0.0, zgr, 17,
 print('Lcoh', sig_anal[2])
 
 
-image = pp.figure_driver()    
-image.sf = [pp.plotter() for k2 in range(16)]
-image.sf[0].args = [zgr, np.abs(sig2[0,:])**2]
-image.sf[1].args = [zgr, np.abs(sig_anal[0])**2]
-pp.plot_preset(image)
+# image = pp.figure_driver()    
+# image.sf = [pp.plotter() for k2 in range(16)]
+# image.sf[0].args = [zgr, np.abs(sig2[0,:])**2]
+# image.sf[1].args = [zgr, np.abs(sig_anal[0])**2]
+# pp.plot_preset(image)
 
 
 
@@ -230,7 +230,7 @@ No = len(ogrid)
 dispersion_factor = np.empty(No)
 for k1 in range(No):
     dispersion_factor[k1] = ogrid[k1]*dispersion_function(ogrid[k1])   
-    dispersion_factor[k1] = np.pi/2.1777380065358176e-07 # ogrid[k1]*dispersion_function(ogrid[k1])   
+    # dispersion_factor[k1] = np.pi/2.1777380065358176e-07 # ogrid[k1]*dispersion_function(ogrid[k1])   
 
 factor_e = np.exp(1j*np.outer(zgr,dispersion_factor))
 sig3 = pressure*Signal_cum_integrator(ogrid, zgr, (factor_e.T) * FSource)
@@ -240,24 +240,14 @@ sig4 = pressure*Signal_cum_integrator(ogrid, zgr, (factor_e.T) * FSource,
 
 image = pp.figure_driver()    
 image.sf = [pp.plotter() for k2 in range(16)]
+image.title = 'numerical vs. analytic'
 image.sf[0].args = [zgr,np.abs(sig_anal[0])**2]
-image.sf[1].args = [zgr,np.abs(sig3[0,:])**2]
-image.sf[2].args = [zgr,np.abs(sig4[0,:])**2,'--']
+image.sf[1].args = [zgr,np.abs(sig3[0,:])**2,'--']
+image.sf[2].args = [zgr,np.abs(sig4[0,:])**2,':']
 pp.plot_preset(image)
 
 
-image = pp.figure_driver()    
-image.sf = [pp.plotter() for k2 in range(16)]
-image.sf[0].args = [zgr,np.abs(sig_anal[0])**2/np.max(np.abs(sig_anal[0])**2)]
-image.sf[1].args = [zgr,np.abs(sig3[0,:])**2/np.max(np.abs(sig3[0,:])**2)]
-pp.plot_preset(image)
 
-
-image = pp.figure_driver()    
-image.sf = [pp.plotter() for k2 in range(16)]
-image.sf[0].args = [zgr,np.abs(sig_anal[0])**2/np.max(np.abs(sig_anal[0])**2)]
-image.sf[1].args = [zgr,np.abs(sig3[0,:])**2/np.max(np.abs(sig3[0,:])**2),'--']
-pp.plot_preset(image)
 
 
 ### old stuff 
