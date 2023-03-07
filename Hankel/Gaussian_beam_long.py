@@ -58,14 +58,6 @@ def Gaussian_E0_map(z,r,w0,E0,lambd,n=1.0,
     
     return E0_rz
 
-def mytrap(y,x):
-    Nx = len(x)
-    res = []
-    dum = 0
-    for k1 in range(Nx-1):
-        dum += 0.5*(y[k1]+y[k1+1])*(x[k1+1]-x[k1])
-        res.append(dum)
-    return np.asarray(res)
 
 def Signal_cum_integrator(ogrid, zgrid, FSourceTerm,
                          integrator = integrate.cumulative_trapezoid):
@@ -99,7 +91,7 @@ XUV_table_type_dispersion = 'NIST'
 
 w0 = 120e-6 # 120e-6 #25e-6
 gas_type = 'Ar'
-pressure = 100e-3
+pressure = 10e-3
 E0 = 1.
 
 
@@ -109,7 +101,9 @@ susc_IR = IR_index.getsusc(gas_type, mn.ConvertPhoton(omega0,'omegaau','lambdaSI
 print('susIR code:', susc_IR)
 n_IR = np.sqrt(1.+pressure * susc_IR)
 
-zgr = np.linspace(0,0.1*zR,1000)
+# zgr = np.linspace(0,0.1*zR,1000)
+# zgr = np.linspace(0,zR,10000)
+zgr = np.linspace(-zR,zR,20000)
 rgr = np.linspace(0.,1.5*w0,1000)
 
 
@@ -155,77 +149,36 @@ N_atm = 2.7e19 * 1e6
 def f1_funct(E):
     return XUV_index.getf1(gas_type+'_' + XUV_table_type_dispersion, E)
 
-def dispersion_function_def(omega):
+def dispersion_function_vac_def(omega):
     f1_value = f1_funct(mn.ConvertPhoton(omega, 'omegaSI', 'eV'))    
     lambdaSI = mn.ConvertPhoton(omega, 'omegaSI', 'lambdaSI')
     nXUV     = 1.0 - pressure*N_atm*units.r_electron_classical * ((lambdaSI**2)*f1_value/(2.0*np.pi))           
     phase_velocity_XUV  = units.c_light / nXUV
-    print(phase_velocity_XUV)
-    print(((1./units.c_light) - (1./phase_velocity_XUV)))
+    # print(phase_velocity_XUV)
+    # print(((1./units.c_light) - (1./phase_velocity_XUV)))
     return ((1./units.c_light) - (1./phase_velocity_XUV))
 
 
-def dispersion_function2_def(omega):
+
+
+def dispersion_function_disp_def(omega):
     f1_value = f1_funct(mn.ConvertPhoton(omega, 'omegaSI', 'eV'))    
     lambdaSI = mn.ConvertPhoton(omega, 'omegaSI', 'lambdaSI')
     nXUV     = 1.0 - pressure*N_atm*units.r_electron_classical * ((lambdaSI**2)*f1_value/(2.0*np.pi))           
     phase_velocity_XUV  = units.c_light / nXUV
     
     phase_velocity_IR = units.c_light / n_IR
-    print(phase_velocity_XUV)
-    print(((1./units.c_light) - (1./phase_velocity_XUV)))
-    print('nXUV, nIR, code:', nXUV, n_IR)
+    # print(phase_velocity_XUV)
+    # print(((1./units.c_light) - (1./phase_velocity_XUV)))
+    # print('nXUV, nIR, code:', nXUV, n_IR)
     return ((1./phase_velocity_IR) - (1./phase_velocity_XUV))
 
 
-dispersion_function = dispersion_function_def
-No = len(ogrid)
-dispersion_factor = np.empty(No)
-for k1 in range(No):
-    dispersion_factor[k1] = ogrid[k1]*dispersion_function(ogrid[k1])   
-
-print('Lcoh num', np.pi/dispersion_factor[0])
-
-factor_e = np.exp(1j*np.outer(zgr,dispersion_factor))
-
-foo = (factor_e.T) * FSource
-image = pp.figure_driver()    
-image.sf = [pp.plotter() for k2 in range(16)]
-image.sf[0].args = [zgr,foo[0,:].real]
-image.sf[1].args = [zgr,foo[0,:].imag]
-pp.plot_preset(image)
-
-sig2 = Signal_cum_integrator(ogrid, zgr, (factor_e.T) * FSource)
 
 
 
-image = pp.figure_driver()    
-image.sf = [pp.plotter() for k2 in range(16)]
-image.sf[0].args = [zgr,np.abs(sig[0,:])**2]
-image.sf[1].args = [zgr,np.abs(sig2[0,:])**2]
-pp.plot_preset(image)
 
-
-sig_anal = XUV_sig.compute_S1_abs(pressure, 0.0, 0.0, zgr, 17,
-                                  {'omegaSI': omega0SI, #ogrid[0],
-                                   'XUV_table_type_absorption': XUV_table_type_absorption,
-                                   'XUV_table_type_dispersion': XUV_table_type_dispersion,
-                                   'gas_type': gas_type,
-                                   'Aq': 1.},
-                                   include_absorption=False)
-
-print('Lcoh', sig_anal[2])
-
-
-# image = pp.figure_driver()    
-# image.sf = [pp.plotter() for k2 in range(16)]
-# image.sf[0].args = [zgr, np.abs(sig2[0,:])**2]
-# image.sf[1].args = [zgr, np.abs(sig_anal[0])**2]
-# pp.plot_preset(image)
-
-
-
-dispersion_function = dispersion_function2_def
+dispersion_function = dispersion_function_vac_def
 No = len(ogrid)
 dispersion_factor = np.empty(No)
 for k1 in range(No):
@@ -235,16 +188,72 @@ for k1 in range(No):
 factor_e = np.exp(1j*np.outer(zgr,dispersion_factor))
 sig3 = pressure*Signal_cum_integrator(ogrid, zgr, (factor_e.T) * FSource)
 
-sig4 = pressure*Signal_cum_integrator(ogrid, zgr, (factor_e.T) * FSource,
-                                      integrator = mytrap)
+
+
+image = pp.figure_driver()    
+image.sf = [pp.plotter() for k2 in range(16)]
+image.title = 'numerical vs. analytic'
+image.sf[1].args = [zgr,np.abs(sig3[0,:])**2,'--']
+pp.plot_preset(image)
+
+
+
+Fsource_IR_mod = np.exp(1j*(ogrid/omega0SI)*Gaussian_phase_map(
+                        zgr,0,w0,mn.ConvertPhoton(omega0SI, 'omegaSI', 'lambdaSI'),
+                        n=n_IR,
+                        vacuum_frame=True, incl_curv = False, incl_Gouy = False, incl_lin = True))
+
+Fsource_IR_mod2 = np.exp(1j*(ogrid/omega0SI)*Gaussian_phase_map(
+                        zgr,0,w0,mn.ConvertPhoton(omega0SI, 'omegaSI', 'lambdaSI'),
+                        n=n_IR,
+                        vacuum_frame=True, incl_curv = False, incl_Gouy = True, incl_lin = True))
+
+
+
+image = pp.figure_driver()    
+image.sf = [pp.plotter() for k2 in range(16)]
+image.title = 'phase 1'
+image.sf[1].args = [zgr,np.angle(Fsource_IR_mod)]
+image.sf[1].args = [zgr,np.angle(Fsource_IR_mod2)]
+pp.plot_preset(image)
+
+
+
+
+
+sig_anal = XUV_sig.compute_S1_abs(pressure, 0.0, 0.0, zgr - zgr[0], 17,
+                                  {'omegaSI': omega0SI, #ogrid[0],
+                                   'XUV_table_type_absorption': XUV_table_type_absorption,
+                                   'XUV_table_type_dispersion': XUV_table_type_dispersion,
+                                   'gas_type': gas_type,
+                                   'Aq': 1.},
+                                   include_absorption=False)
+
+
+
+sig_comp = pressure*Signal_cum_integrator(ogrid, zgr, (factor_e.T) * Fsource_IR_mod)
+sig_comp2 = pressure*Signal_cum_integrator(ogrid, zgr, (factor_e.T) * Fsource_IR_mod2)
+
+image = pp.figure_driver()    
+image.sf = [pp.plotter() for k2 in range(16)]
+image.title = 'phase fast'
+image.sf[1].args = [zgr,np.angle( ((factor_e.T) * Fsource_IR_mod))[0,:] ]
+image.sf[2].args = [zgr,np.angle( ((factor_e.T) * Fsource_IR_mod2))[0,:] ]
+pp.plot_preset(image)
+
 
 image = pp.figure_driver()    
 image.sf = [pp.plotter() for k2 in range(16)]
 image.title = 'numerical vs. analytic'
 image.sf[0].args = [zgr,np.abs(sig_anal[0])**2]
-image.sf[1].args = [zgr,np.abs(sig3[0,:])**2,'--']
-image.sf[2].args = [zgr,np.abs(sig4[0,:])**2,':']
+image.sf[1].args = [zgr,np.abs(sig_comp[0,:])**2,'--']
+image.sf[2].args = [zgr,np.abs(sig_comp2[0,:])**2,':']
 pp.plot_preset(image)
+
+
+
+
+
 
 
 
