@@ -208,6 +208,10 @@ Fsource_IR_mod2 = np.exp(1j*(ogrid/omega0SI)*Gaussian_phase_map(
                         n=n_IR,
                         vacuum_frame=True, incl_curv = False, incl_Gouy = True, incl_lin = True))
 
+Fsource_IR_mod3 = np.exp(1j*(ogrid/omega0SI)*Gaussian_phase_map(
+                        zgr,0,w0,mn.ConvertPhoton(omega0SI, 'omegaSI', 'lambdaSI'),
+                        n=1.0,
+                        vacuum_frame=True, incl_curv = False, incl_Gouy = True, incl_lin = True))
 
 
 image = pp.figure_driver()    
@@ -233,6 +237,7 @@ sig_anal = XUV_sig.compute_S1_abs(pressure, 0.0, 0.0, zgr - zgr[0], 17,
 
 sig_comp = pressure*Signal_cum_integrator(ogrid, zgr, (factor_e.T) * Fsource_IR_mod)
 sig_comp2 = pressure*Signal_cum_integrator(ogrid, zgr, (factor_e.T) * Fsource_IR_mod2)
+sig_comp3 = pressure*Signal_cum_integrator(ogrid, zgr, np.reshape(Fsource_IR_mod3,(1,len(Fsource_IR_mod3))))
 
 image = pp.figure_driver()    
 image.sf = [pp.plotter() for k2 in range(16)]
@@ -248,11 +253,20 @@ image.title = 'numerical vs. analytic'
 image.sf[0].args = [zgr,np.abs(sig_anal[0])**2]
 image.sf[1].args = [zgr,np.abs(sig_comp[0,:])**2,'--']
 image.sf[2].args = [zgr,np.abs(sig_comp2[0,:])**2,':']
+# image.sf[3].args = [zgr,np.abs(sig_comp3[0,:])**2,'-.']
 pp.plot_preset(image)
 
 
 
+I0_start = 12.5e17/units.INTENSITYau
+I0_end = 37.5e17/units.INTENSITYau#E0_grid[-1]**2
+# I0_grid = np.linspace(I0_start,E0_grid[-1]**2,N_I0)
 
+I0_grid = E0_grid**2
+
+Fsource_long =  FSourceTerm_interpE0( np.sqrt((0.5*(I0_grid[0]+I0_grid[-1]))) * np.ones((Nz,)) )
+
+sig_long = pressure*Signal_cum_integrator(ogrid_sel, zgr, Fsource_long.T)
 
 
 
