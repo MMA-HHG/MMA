@@ -85,6 +85,8 @@ with h5py.File(file_TDSE, 'r') as InputArchiveTDSE:
     ogrid = InputArchiveTDSE['omegagrid'][:]
     omega0 = InputArchiveTDSE['grids_for_scans/omega0'][()]; omega0SI = mn.ConvertPhoton(omega0, 'omegaau', 'omegaSI')
     Hgrid = ogrid/omega0
+    
+    Ip_TDSE_au = -InputArchiveTDSE['Energy_of_the_ground_state'][()]
 
 XUV_table_type_absorption = 'Henke' # {Henke, NIST}    
 XUV_table_type_dispersion = 'NIST'
@@ -118,6 +120,8 @@ dE0 = E0_grid[1]-E0_grid[0]
 k_omega_sel = list(mn.FindInterval(Hgrid,Hlimit))
 ogrid_sel = ogrid[k_omega_sel[0]:k_omega_sel[1]]
 No_sel = len(ogrid_sel)
+
+Hgrid_sel = ogrid_sel/omega0
 
 FSourceTerm_sel = FSourceTerm[:,k_omega_sel[0]:k_omega_sel[1]]
 FSourceTerm_interpE0 = interpolate.interp1d( E0_grid, FSourceTerm_sel ,axis=0)
@@ -264,13 +268,87 @@ I0_end = 37.5e17/units.INTENSITYau#E0_grid[-1]**2
 
 I0_grid = E0_grid**2
 
-Fsource_long =  FSourceTerm_interpE0( np.sqrt((0.5*(I0_grid[0]+I0_grid[-1]))) * np.ones((Nz,)) )
+H_test = 17
+
+I0_comp = HHG.ComputeInvCutoff(H_test, omega0, Ip_TDSE_au)
+
+# E0_sel = np.sqrt((0.75*(I0_grid[0]+I0_grid[-1])))
+E0_sel = np.sqrt(I0_comp)
+
+
+print('sel cutoff', HHG.ComputeCutoff(E0_sel**2, omega0, Ip_TDSE_au)[1])
+Fsource_long =  FSourceTerm_interpE0( E0_sel * np.ones((Nz,)) )
+Fsource_long_prof =  FSourceTerm_interpE0( E0_sel * 
+                                          Gaussian_E0_map(zgr,np.asarray([0]),w0,1.0,
+                                                          mn.ConvertPhoton(omega0SI, 'omegaSI', 'lambdaSI'),
+                                                          n=1.0,
+                                                          incl_z_profile = True,
+                                                          incl_radial_wz_profile = True))
+
+
+image = pp.figure_driver()    
+image.sf = [pp.plotter() for k2 in range(16)]
+image.title = 'profile'
+image.sf[0].args = [zgr,Gaussian_E0_map(zgr,np.asarray([0]),w0,1.0,
+                mn.ConvertPhoton(omega0SI, 'omegaSI', 'lambdaSI'),
+                n=1.0,
+                incl_z_profile = True,
+                incl_radial_wz_profile = True)]
+pp.plot_preset(image)
+
+image = pp.figure_driver()    
+image.sf = [pp.plotter() for k2 in range(16)]
+image.title = 'sources'
+image.sf[0].args = [HHG.ComputeCutoff(E0_grid**2, omega0, Ip_TDSE_au)[1], np.abs(FSourceTerm[:,mn.FindInterval(Hgrid, 21)]) ]
+pp.plot_preset(image)
+
+
+
 
 sig_long = pressure*Signal_cum_integrator(ogrid_sel, zgr, Fsource_long.T)
+sig_long_prof = pressure*Signal_cum_integrator(ogrid_sel, zgr, Fsource_long_prof.T)
+
+sig_long_prof_phase = pressure*Signal_cum_integrator(ogrid_sel, zgr, Fsource_long_prof.T/np.abs(Fsource_long_prof.T))
+sig_long_prof_ampl = pressure*Signal_cum_integrator(ogrid_sel, zgr, np.abs(Fsource_long_prof.T))
+
+
+k_Hsel = mn.FindInterval(Hgrid_sel, H_test)
+
+image = pp.figure_driver()    
+image.sf = [pp.plotter() for k2 in range(16)]
+image.title = 'integrands'
+image.sf[0].args = [zgr,np.abs(Fsource_long.T[k_Hsel,:])]
+image.sf[1].args = [zgr,np.abs(Fsource_long_prof.T[k_Hsel,:])]
+image.sf[2].args = [zgr,np.abs(np.abs(Fsource_long_prof.T)[k_Hsel,:])]
+pp.plot_preset(image)
+
+
+image = pp.figure_driver()    
+image.sf = [pp.plotter() for k2 in range(16)]
+image.title = 'integrands phase'
+image.sf[0].args = [zgr,np.angle(Fsource_long.T[k_Hsel,:])]
+image.sf[1].args = [zgr,np.angle(Fsource_long_prof.T[k_Hsel,:])]
+image.sf[2].args = [zgr,np.angle(np.abs(Fsource_long_prof.T)[k_Hsel,:])]
+pp.plot_preset(image)
 
 
 
 
+
+image = pp.figure_driver()    
+image.sf = [pp.plotter() for k2 in range(16)]
+image.title = 'from TDSE'
+image.sf[0].args = [zgr,np.abs(sig_long[k_Hsel,:])**2]
+image.sf[1].args = [zgr,np.abs(sig_long_prof[k_Hsel,:])**2]
+image.sf[2].args = [zgr,np.abs(sig_long_prof_ampl[k_Hsel,:])**2]
+pp.plot_preset(image)
+
+
+image = pp.figure_driver()    
+image.sf = [pp.plotter() for k2 in range(16)]
+image.title = 'from TDSE phase'
+image.sf[0].args = [zgr,np.abs(sig_long_prof_phase[k_Hsel,:])**2]
+pp.plot_preset(image)
 
 
 ### old stuff 
