@@ -268,9 +268,9 @@ I0_end = 37.5e17/units.INTENSITYau#E0_grid[-1]**2
 
 I0_grid = E0_grid**2
 
-H_test = 17
+H_intens = 21
 
-I0_comp = HHG.ComputeInvCutoff(H_test, omega0, Ip_TDSE_au)
+I0_comp = HHG.ComputeInvCutoff(H_intens, omega0, Ip_TDSE_au)
 
 # E0_sel = np.sqrt((0.75*(I0_grid[0]+I0_grid[-1])))
 E0_sel = np.sqrt(I0_comp)
@@ -312,7 +312,7 @@ sig_long_prof_phase = pressure*Signal_cum_integrator(ogrid_sel, zgr, Fsource_lon
 sig_long_prof_ampl = pressure*Signal_cum_integrator(ogrid_sel, zgr, np.abs(Fsource_long_prof.T))
 
 
-k_Hsel = mn.FindInterval(Hgrid_sel, H_test)
+k_Hsel = mn.FindInterval(Hgrid_sel, 17)
 
 image = pp.figure_driver()    
 image.sf = [pp.plotter() for k2 in range(16)]
