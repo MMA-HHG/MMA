@@ -3,7 +3,6 @@ import os
 import time
 # import multiprocessing as mp
 import shutil
-import functools
 import h5py
 import sys
 import units
@@ -155,15 +154,28 @@ N_atm = 2.7e19 * 1e6
 def f1_funct(E):
     return XUV_index.getf1(gas_type+'_' + XUV_table_type_dispersion, E)
 
-
-
-
-def dispersion_function_def(omega, nIR_=1.):
+def dispersion_function_vac_def(omega):
     f1_value = f1_funct(mn.ConvertPhoton(omega, 'omegaSI', 'eV'))    
     lambdaSI = mn.ConvertPhoton(omega, 'omegaSI', 'lambdaSI')
     nXUV     = 1.0 - pressure*N_atm*units.r_electron_classical * ((lambdaSI**2)*f1_value/(2.0*np.pi))           
-    phase_velocity_XUV  = units.c_light / nXUV    
-    phase_velocity_IR = units.c_light / nIR_
+    phase_velocity_XUV  = units.c_light / nXUV
+    # print(phase_velocity_XUV)
+    # print(((1./units.c_light) - (1./phase_velocity_XUV)))
+    return ((1./units.c_light) - (1./phase_velocity_XUV))
+
+
+
+
+def dispersion_function_disp_def(omega):
+    f1_value = f1_funct(mn.ConvertPhoton(omega, 'omegaSI', 'eV'))    
+    lambdaSI = mn.ConvertPhoton(omega, 'omegaSI', 'lambdaSI')
+    nXUV     = 1.0 - pressure*N_atm*units.r_electron_classical * ((lambdaSI**2)*f1_value/(2.0*np.pi))           
+    phase_velocity_XUV  = units.c_light / nXUV
+    
+    phase_velocity_IR = units.c_light / n_IR
+    # print(phase_velocity_XUV)
+    # print(((1./units.c_light) - (1./phase_velocity_XUV)))
+    # print('nXUV, nIR, code:', nXUV, n_IR)
     return ((1./phase_velocity_IR) - (1./phase_velocity_XUV))
 
 
@@ -171,7 +183,83 @@ def dispersion_function_def(omega, nIR_=1.):
 
 
 
+dispersion_function = dispersion_function_vac_def
+No = len(ogrid)
+dispersion_factor = np.empty(No)
+for k1 in range(No):
+    dispersion_factor[k1] = ogrid[k1]*dispersion_function(ogrid[k1])   
+    # dispersion_factor[k1] = np.pi/2.1777380065358176e-07 # ogrid[k1]*dispersion_function(ogrid[k1])   
 
+factor_e = np.exp(1j*np.outer(zgr,dispersion_factor))
+sig3 = pressure*Signal_cum_integrator(ogrid, zgr, (factor_e.T) * FSource)
+
+
+
+image = pp.figure_driver()    
+image.sf = [pp.plotter() for k2 in range(16)]
+image.title = 'numerical vs. analytic'
+image.sf[1].args = [zgr,np.abs(sig3[0,:])**2,'--']
+pp.plot_preset(image)
+
+
+
+Fsource_IR_mod = np.exp(1j*(ogrid/omega0SI)*Gaussian_phase_map(
+                        zgr,0,w0,mn.ConvertPhoton(omega0SI, 'omegaSI', 'lambdaSI'),
+                        n=n_IR,
+                        vacuum_frame=True, incl_curv = False, incl_Gouy = False, incl_lin = True))
+
+Fsource_IR_mod2 = np.exp(1j*(ogrid/omega0SI)*Gaussian_phase_map(
+                        zgr,0,w0,mn.ConvertPhoton(omega0SI, 'omegaSI', 'lambdaSI'),
+                        n=n_IR,
+                        vacuum_frame=True, incl_curv = False, incl_Gouy = True, incl_lin = True))
+
+Fsource_IR_mod3 = np.exp(1j*(ogrid/omega0SI)*Gaussian_phase_map(
+                        zgr,0,w0,mn.ConvertPhoton(omega0SI, 'omegaSI', 'lambdaSI'),
+                        n=1.0,
+                        vacuum_frame=True, incl_curv = False, incl_Gouy = True, incl_lin = True))
+
+
+image = pp.figure_driver()    
+image.sf = [pp.plotter() for k2 in range(16)]
+image.title = 'phase 1'
+image.sf[1].args = [zgr,np.angle(Fsource_IR_mod)]
+image.sf[1].args = [zgr,np.angle(Fsource_IR_mod2)]
+pp.plot_preset(image)
+
+
+
+
+
+sig_anal = XUV_sig.compute_S1_abs(pressure, 0.0, 0.0, zgr - zgr[0], 17,
+                                  {'omegaSI': omega0SI, #ogrid[0],
+                                   'XUV_table_type_absorption': XUV_table_type_absorption,
+                                   'XUV_table_type_dispersion': XUV_table_type_dispersion,
+                                   'gas_type': gas_type,
+                                   'Aq': 1.},
+                                   include_absorption=False)
+
+
+
+sig_comp = pressure*Signal_cum_integrator(ogrid, zgr, (factor_e.T) * Fsource_IR_mod)
+sig_comp2 = pressure*Signal_cum_integrator(ogrid, zgr, (factor_e.T) * Fsource_IR_mod2)
+sig_comp3 = pressure*Signal_cum_integrator(ogrid, zgr, np.reshape(Fsource_IR_mod3,(1,len(Fsource_IR_mod3))))
+
+image = pp.figure_driver()    
+image.sf = [pp.plotter() for k2 in range(16)]
+image.title = 'phase fast'
+image.sf[1].args = [zgr,np.angle( ((factor_e.T) * Fsource_IR_mod))[0,:] ]
+image.sf[2].args = [zgr,np.angle( ((factor_e.T) * Fsource_IR_mod2))[0,:] ]
+pp.plot_preset(image)
+
+
+image = pp.figure_driver()    
+image.sf = [pp.plotter() for k2 in range(16)]
+image.title = 'numerical vs. analytic'
+image.sf[0].args = [zgr,np.abs(sig_anal[0])**2]
+image.sf[1].args = [zgr,np.abs(sig_comp[0,:])**2,'--']
+image.sf[2].args = [zgr,np.abs(sig_comp2[0,:])**2,':']
+# image.sf[3].args = [zgr,np.abs(sig_comp3[0,:])**2,'-.']
+pp.plot_preset(image)
 
 
 
@@ -189,8 +277,46 @@ I0_comp = HHG.ComputeInvCutoff(H_intens, omega0, Ip_TDSE_au)
 E0_sel = np.sqrt(I0_comp)
 
 
+print('sel cutoff', HHG.ComputeCutoff(E0_sel**2, omega0, Ip_TDSE_au)[1])
+Fsource_long =  FSourceTerm_interpE0( E0_sel * np.ones((Nz,)) )
+Fsource_long_prof =  FSourceTerm_interpE0( E0_sel * 
+                                          Gaussian_E0_map(zgr,np.asarray([0]),w0,1.0,
+                                                          mn.ConvertPhoton(omega0SI, 'omegaSI', 'lambdaSI'),
+                                                          n=1.0,
+                                                          incl_z_profile = True,
+                                                          incl_radial_wz_profile = True))
+
+
+
+
+image = pp.figure_driver()    
+image.sf = [pp.plotter() for k2 in range(16)]
+image.title = 'profile'
+image.sf[0].args = [zgr,Gaussian_E0_map(zgr,np.asarray([0]),w0,1.0,
+                mn.ConvertPhoton(omega0SI, 'omegaSI', 'lambdaSI'),
+                n=1.0,
+                incl_z_profile = True,
+                incl_radial_wz_profile = True)]
+pp.plot_preset(image)
+
+image = pp.figure_driver()    
+image.sf = [pp.plotter() for k2 in range(16)]
+image.title = 'sources'
+image.sf[0].args = [HHG.ComputeCutoff(E0_grid**2, omega0, Ip_TDSE_au)[1], np.abs(FSourceTerm[:,mn.FindInterval(Hgrid, 17)]) ]
+pp.plot_preset(image)
+
+
+image = pp.figure_driver()    
+image.sf = [pp.plotter() for k2 in range(16)]
+image.title = 'sources phase'
+image.sf[0].args = [HHG.ComputeCutoff(E0_grid**2, omega0, Ip_TDSE_au)[1], np.unwrap(np.angle(FSourceTerm[:,mn.FindInterval(Hgrid, 17)])) ]
+pp.plot_preset(image)
+
+
+
+
 ## signal including IR phase from the phase factor
-dispersion_function = functools.partial(dispersion_function_def, nIR_=n_IR)#dispersion_function_disp_def
+dispersion_function = dispersion_function_disp_def
 No = len(ogrid_sel)
 dispersion_factor = np.empty(No)
 for k1 in range(No):
@@ -211,7 +337,7 @@ sig_long_prof_disp1 = pressure*Signal_cum_integrator(ogrid_sel, zgr, (factor_e1 
 
 
 ## signal including IR phase from the Gaussian beam constructor
-dispersion_function = dispersion_function_def
+dispersion_function = dispersion_function_vac_def
 No = len(ogrid_sel)
 dispersion_factor = np.empty(No)
 for k1 in range(No):
@@ -268,6 +394,50 @@ pp.plot_preset(image)
 
 
 
+sig_long = pressure*Signal_cum_integrator(ogrid_sel, zgr, Fsource_long.T)
+sig_long_prof = pressure*Signal_cum_integrator(ogrid_sel, zgr, Fsource_long_prof.T)
+
+sig_long_prof_phase = pressure*Signal_cum_integrator(ogrid_sel, zgr, Fsource_long_prof.T/np.abs(Fsource_long_prof.T))
+sig_long_prof_ampl = pressure*Signal_cum_integrator(ogrid_sel, zgr, np.abs(Fsource_long_prof.T))
+
+
+k_Hsel = mn.FindInterval(Hgrid_sel, 17)
+
+image = pp.figure_driver()    
+image.sf = [pp.plotter() for k2 in range(16)]
+image.title = 'integrands'
+image.sf[0].args = [zgr,np.abs(Fsource_long.T[k_Hsel,:])]
+image.sf[1].args = [zgr,np.abs(Fsource_long_prof.T[k_Hsel,:])]
+image.sf[2].args = [zgr,np.abs(np.abs(Fsource_long_prof.T)[k_Hsel,:])]
+pp.plot_preset(image)
+
+
+image = pp.figure_driver()    
+image.sf = [pp.plotter() for k2 in range(16)]
+image.title = 'integrands phase'
+image.sf[0].args = [zgr,np.angle(Fsource_long.T[k_Hsel,:])]
+image.sf[1].args = [zgr,np.angle(Fsource_long_prof.T[k_Hsel,:])]
+image.sf[2].args = [zgr,np.angle(np.abs(Fsource_long_prof.T)[k_Hsel,:])]
+pp.plot_preset(image)
+
+
+
+
+
+image = pp.figure_driver()    
+image.sf = [pp.plotter() for k2 in range(16)]
+image.title = 'from TDSE'
+image.sf[0].args = [zgr,np.abs(sig_long[k_Hsel,:])**2]
+image.sf[1].args = [zgr,np.abs(sig_long_prof[k_Hsel,:])**2]
+image.sf[2].args = [zgr,np.abs(sig_long_prof_ampl[k_Hsel,:])**2]
+pp.plot_preset(image)
+
+
+image = pp.figure_driver()    
+image.sf = [pp.plotter() for k2 in range(16)]
+image.title = 'from TDSE phase'
+image.sf[0].args = [zgr,np.abs(sig_long_prof_phase[k_Hsel,:])**2]
+pp.plot_preset(image)
 
 
 image = pp.figure_driver()    
