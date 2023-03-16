@@ -333,7 +333,7 @@ Fsource_long_prof_disp1 =  FSourceTerm_interpE0( E0_sel *
                                                           incl_z_profile = True,
                                                           incl_radial_wz_profile = True))
 
-sig_long_prof_disp1 = pressure*Signal_cum_integrator(ogrid_sel, zgr, (factor_e1 * Fsource_long_prof_disp1).T)
+sig_long_prof_disp1 = pressure*Signal_cum_integrator(ogrid_sel, zgr, (factor_e1 * np.conj(Fsource_long_prof_disp1)).T)
 
 
 ## signal including IR phase from the Gaussian beam constructor
@@ -362,9 +362,22 @@ factor_e_Gauss = np.exp(1j*np.outer((ogrid_sel_SI/omega0SI),
                                     ).T
                         )
 
+factor_e_Gauss_geom = np.exp(1j*np.outer((ogrid_sel_SI/omega0SI),
+                                    Gaussian_phase_map(
+                                        zgr,0,w0,mn.ConvertPhoton(omega0SI, 'omegaSI', 'lambdaSI'),
+                                        n=n_IR,
+                                        vacuum_frame=True, incl_curv = False, incl_Gouy = True, incl_lin = True)
+                                    ).T
+                        )
+
+
+
 factor_e2 = factor_e_vac * factor_e_Gauss
+factor_e3 = factor_e_vac * factor_e_Gauss_geom
 
 sig_long_prof_disp2 = pressure*Signal_cum_integrator(ogrid_sel, zgr, (factor_e2 * Fsource_long_prof_disp2).T)
+sig_long_prof_disp3 = pressure*Signal_cum_integrator(ogrid_sel, zgr, (factor_e3 * Fsource_long_prof_disp2).T)
+
 
 
 
@@ -434,6 +447,7 @@ image.title = 'from TDSE incl. all'
 # image.sf[1].args = [zgr,np.abs(sig_long_prof[k_Hsel,:])**2]
 image.sf[2].args = [zgr,np.abs(sig_long_prof_disp1[k_Hsel,:])**2, '-']
 image.sf[3].args = [zgr,np.abs(sig_long_prof_disp2[k_Hsel,:])**2, '-.']
+image.sf[4].args = [zgr,np.abs(sig_long_prof_disp3[k_Hsel,:])**2, ':']
 pp.plot_preset(image)
 
 
