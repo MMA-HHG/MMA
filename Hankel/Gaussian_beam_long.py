@@ -268,7 +268,7 @@ I0_end = 37.5e17/units.INTENSITYau#E0_grid[-1]**2
 
 I0_grid = E0_grid**2
 
-H_intens = 21
+H_intens = 25
 
 I0_comp = HHG.ComputeInvCutoff(H_intens, omega0, Ip_TDSE_au)
 
@@ -299,7 +299,14 @@ pp.plot_preset(image)
 image = pp.figure_driver()    
 image.sf = [pp.plotter() for k2 in range(16)]
 image.title = 'sources'
-image.sf[0].args = [HHG.ComputeCutoff(E0_grid**2, omega0, Ip_TDSE_au)[1], np.abs(FSourceTerm[:,mn.FindInterval(Hgrid, 21)]) ]
+image.sf[0].args = [HHG.ComputeCutoff(E0_grid**2, omega0, Ip_TDSE_au)[1], np.abs(FSourceTerm[:,mn.FindInterval(Hgrid, 17)]) ]
+pp.plot_preset(image)
+
+
+image = pp.figure_driver()    
+image.sf = [pp.plotter() for k2 in range(16)]
+image.title = 'sources phase'
+image.sf[0].args = [HHG.ComputeCutoff(E0_grid**2, omega0, Ip_TDSE_au)[1], np.unwrap(np.angle(FSourceTerm[:,mn.FindInterval(Hgrid, 17)])) ]
 pp.plot_preset(image)
 
 
@@ -349,6 +356,20 @@ image.sf = [pp.plotter() for k2 in range(16)]
 image.title = 'from TDSE phase'
 image.sf[0].args = [zgr,np.abs(sig_long_prof_phase[k_Hsel,:])**2]
 pp.plot_preset(image)
+
+
+
+
+
+
+# image = pp.figure_driver()    
+# image.sf = [pp.plotter() for k1 in range(16)]
+
+# image.sf[0].args = [HHG.ComputeCutoff(E0_grid**2, omega0, Ip_TDSE_au)[1],
+#                     Hgrid, np.abs(FSourceTerm).T ]
+# image.sf[0].method = plt.pcolormesh
+
+# pp.plot_preset(image)
 
 
 ### old stuff 
