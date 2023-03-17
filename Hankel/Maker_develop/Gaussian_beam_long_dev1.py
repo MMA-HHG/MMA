@@ -7,6 +7,7 @@ import h5py
 import sys
 import units
 import mynumerics as mn
+sys.path.append("..")
 import Hfn
 import Hfn2
 import HHG
@@ -257,9 +258,18 @@ image.sf = [pp.plotter() for k2 in range(16)]
 image.title = 'numerical vs. analytic'
 image.sf[0].args = [zgr,np.abs(sig_anal[0])**2]
 image.sf[1].args = [zgr,np.abs(sig_comp[0,:])**2,'--']
-image.sf[2].args = [zgr,np.abs(sig_comp2[0,:])**2,':']
+# image.sf[2].args = [zgr,np.abs(sig_comp2[0,:])**2,':']
 # image.sf[3].args = [zgr,np.abs(sig_comp3[0,:])**2,'-.']
 pp.plot_preset(image)
+
+# image = pp.figure_driver()    
+# image.sf = [pp.plotter() for k2 in range(16)]
+# image.title = 'error'
+# image.sf[0].args = [zgr,(np.abs(sig_anal[0]) - np.abs(sig_comp[0,:]))/np.max(np.abs(sig_anal[0]))]
+# # image.sf[1].args = [zgr,np.abs(sig_comp[0,:])**2,'--']
+# # image.sf[2].args = [zgr,np.abs(sig_comp2[0,:])**2,':']
+# # image.sf[3].args = [zgr,np.abs(sig_comp3[0,:])**2,'-.']
+# pp.plot_preset(image)
 
 
 

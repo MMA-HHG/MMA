@@ -25,3 +25,6 @@ susc_funct = {
 
 def getsusc(g,lambd):
     return susc_funct[g](1e10*lambd)
+
+def getpol(g,lambd,N_atm=2.7e19*1e6):
+    return getsusc(g,lambd)/N_atm

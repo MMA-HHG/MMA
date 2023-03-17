@@ -26,49 +26,9 @@ import XUV_signal_computation as XUV_sig
 
 
 
-def Gaussian_phase_map(z,r,w0,lambd,n=1.0,vacuum_frame=True,
-                       incl_curv = True, incl_Gouy = True,
-                       incl_lin = True):
-    k = 2.0*np.pi*n/(lambd)
-    zR = np.pi*(w0**2)*n/lambd
-    inv_curv_radius = z/(zR**2+z**2)
-    phi_G = np.arctan(z/zR)
-    if vacuum_frame: k_corr = 2.0*np.pi*(n-1.0)/(lambd)
-    else: k_corr = k
-        
-    phase = 0.
-    if incl_lin: phase += k_corr*z
-    if incl_curv: phase += 0.5*k*(r**2)*inv_curv_radius 
-    if incl_Gouy: phase += -phi_G
-    
-    return phase
 
 
-def Gaussian_E0_map(z,r,w0,E0,lambd,n=1.0,
-                        incl_z_profile = True,
-                        incl_radial_wz_profile = True):
-    
-    zR = np.pi*(w0**2)*n/lambd
-    w_z = lambda z: w0*np.sqrt(1+(z/zR)**2)
-        
-    E0_rz = E0
-    if incl_z_profile: E0_rz *= (w0/w_z(z))
-    
-    if incl_radial_wz_profile: E0_rz *= np.exp(-(r/w_z(z))**2)
-    else: E0_rz *= np.exp(-(r/w0)**2)
-    
-    return E0_rz
 
-
-def Signal_cum_integrator(ogrid, zgrid, FSourceTerm,
-                         integrator = integrate.cumulative_trapezoid):
-    
-    No = len(ogrid); Nz = len(zgrid)
-    signal = np.zeros((No,Nz), dtype=np.cdouble)
-    integrand = FSourceTerm
-    for k1 in range(No):
-        signal[k1,1:] = integrator(integrand[k1,:],zgrid)
-    return signal
 
 # fun = lambda x : np.ones(x.shape)
 
@@ -101,7 +61,7 @@ E0 = 1.
 zR = np.pi*(w0**2)/mn.ConvertPhoton(omega0, 'omegaau', 'lambdaSI')
 
 susc_IR = IR_index.getsusc(gas_type, mn.ConvertPhoton(omega0,'omegaau','lambdaSI'))
-print('susIR code:', susc_IR)
+
 n_IR = np.sqrt(1.+pressure * susc_IR)
 
 # zgr = np.linspace(0,0.1*zR,1000)
@@ -140,7 +100,7 @@ ogrid = [17*omega0SI]
 
 FSource = np.ones((1,Nz))
 
-sig = Signal_cum_integrator(ogrid, zgr, FSource)
+sig = Hfn2.Signal_cum_integrator(ogrid, zgr, FSource)
 
 sig_abs = np.abs(sig)**2
 
@@ -149,23 +109,6 @@ image.sf = [pp.plotter() for k2 in range(16)]
 image.sf[0].args = [sig_abs[0,:]]
 # image.sf[1].args = [zgr,phase_map_ref[0,:]]
 pp.plot_preset(image)
-
-
-N_atm = 2.7e19 * 1e6
-def f1_funct(E):
-    return XUV_index.getf1(gas_type+'_' + XUV_table_type_dispersion, E)
-
-
-
-
-def dispersion_function_def(omega, nIR_=1.):
-    f1_value = f1_funct(mn.ConvertPhoton(omega, 'omegaSI', 'eV'))    
-    lambdaSI = mn.ConvertPhoton(omega, 'omegaSI', 'lambdaSI')
-    nXUV     = 1.0 - pressure*N_atm*units.r_electron_classical * ((lambdaSI**2)*f1_value/(2.0*np.pi))           
-    phase_velocity_XUV  = units.c_light / nXUV    
-    phase_velocity_IR = units.c_light / nIR_
-    return ((1./phase_velocity_IR) - (1./phase_velocity_XUV))
-
 
 
 
@@ -190,28 +133,34 @@ E0_sel = np.sqrt(I0_comp)
 
 
 ## signal including IR phase from the phase factor
-dispersion_function = functools.partial(dispersion_function_def, nIR_=n_IR)#dispersion_function_disp_def
+def dispersion_function(omega):
+    return XUV_index.dispersion_function(omega, pressure, gas_type+'_' + XUV_table_type_dispersion, n_IR=n_IR)
+# dispersion_function = functools.partial(XUV_index.dispersion_function, pressure, gas_type+'_' + XUV_table_type_dispersion, n_IR=n_IR) #dispersion_function_disp_def
 No = len(ogrid_sel)
 dispersion_factor = np.empty(No)
 for k1 in range(No):
     dispersion_factor[k1] = ogrid_sel_SI[k1]*dispersion_function(ogrid_sel_SI[k1])   
     # dispersion_factor[k1] = np.pi/2.1777380065358176e-07 # ogrid[k1]*dispersion_function(ogrid[k1])   
 
-factor_e1 = np.exp(1j*np.outer(zgr,dispersion_factor))
+factor_e1 = pressure*np.exp(1j*np.outer(zgr,dispersion_factor))
 
 
 Fsource_long_prof_disp1 =  FSourceTerm_interpE0( E0_sel * 
-                                          Gaussian_E0_map(zgr,np.asarray([0]),w0,1.0,
+                                          mn.Gaussian_E0_map(zgr,np.asarray([0]),w0,1.0,
                                                           mn.ConvertPhoton(omega0SI, 'omegaSI', 'lambdaSI'),
                                                           n=n_IR,
                                                           incl_z_profile = True,
                                                           incl_radial_wz_profile = True))
 
-sig_long_prof_disp1 = pressure*Signal_cum_integrator(ogrid_sel, zgr, (factor_e1 * np.conj(Fsource_long_prof_disp1)).T)
+sig_long_prof_disp1 = Hfn2.Signal_cum_integrator(ogrid_sel, zgr, (factor_e1 * np.conj(Fsource_long_prof_disp1)).T)
 
 
 ## signal including IR phase from the Gaussian beam constructor
-dispersion_function = dispersion_function_def
+# dispersion_function = dispersion_function_def
+# dispersion_function = functools.partial(XUV_index.dispersion_function, pressure, gas_type+'_' + XUV_table_type_dispersion)
+def dispersion_function(omega):
+    return XUV_index.dispersion_function(omega, pressure, gas_type+'_' + XUV_table_type_dispersion)
+
 No = len(ogrid_sel)
 dispersion_factor = np.empty(No)
 for k1 in range(No):
@@ -222,14 +171,14 @@ factor_e_vac = np.exp(1j*np.outer(zgr,dispersion_factor))
 
 
 Fsource_long_prof_disp2 =  FSourceTerm_interpE0( E0_sel * 
-                                          Gaussian_E0_map(zgr,np.asarray([0]),w0,1.0,
+                                          mn.Gaussian_E0_map(zgr,np.asarray([0]),w0,1.0,
                                                           mn.ConvertPhoton(omega0SI, 'omegaSI', 'lambdaSI'),
                                                           n=n_IR,
                                                           incl_z_profile = True,
                                                           incl_radial_wz_profile = True))
 
 factor_e_Gauss = np.exp(1j*np.outer((ogrid_sel_SI/omega0SI),
-                                    Gaussian_phase_map(
+                                    mn.Gaussian_phase_map(
                                         zgr,0,w0,mn.ConvertPhoton(omega0SI, 'omegaSI', 'lambdaSI'),
                                         n=n_IR,
                                         vacuum_frame=True, incl_curv = False, incl_Gouy = False, incl_lin = True)
@@ -237,7 +186,7 @@ factor_e_Gauss = np.exp(1j*np.outer((ogrid_sel_SI/omega0SI),
                         )
 
 factor_e_Gauss_geom = np.exp(1j*np.outer((ogrid_sel_SI/omega0SI),
-                                    Gaussian_phase_map(
+                                    mn.Gaussian_phase_map(
                                         zgr,0,w0,mn.ConvertPhoton(omega0SI, 'omegaSI', 'lambdaSI'),
                                         n=n_IR,
                                         vacuum_frame=True, incl_curv = False, incl_Gouy = True, incl_lin = True)
@@ -246,11 +195,11 @@ factor_e_Gauss_geom = np.exp(1j*np.outer((ogrid_sel_SI/omega0SI),
 
 
 
-factor_e2 = factor_e_vac * factor_e_Gauss
-factor_e3 = factor_e_vac * factor_e_Gauss_geom
+factor_e2 = pressure*factor_e_vac * factor_e_Gauss
+factor_e3 = pressure*factor_e_vac * factor_e_Gauss_geom
 
-sig_long_prof_disp2 = pressure*Signal_cum_integrator(ogrid_sel, zgr, (factor_e2 * Fsource_long_prof_disp2).T)
-sig_long_prof_disp3 = pressure*Signal_cum_integrator(ogrid_sel, zgr, (factor_e3 * Fsource_long_prof_disp2).T)
+sig_long_prof_disp2 = Hfn2.Signal_cum_integrator(ogrid_sel, zgr, (factor_e2 * Fsource_long_prof_disp2).T)
+sig_long_prof_disp3 = Hfn2.Signal_cum_integrator(ogrid_sel, zgr, (factor_e3 * Fsource_long_prof_disp2).T)
 
 
 
