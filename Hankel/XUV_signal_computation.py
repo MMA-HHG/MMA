@@ -1,9 +1,19 @@
 """
-This module xxx.
+This module implements the computation of a harmonic signal from a periodic
+medium driven by a Bessel-Gauss beams. The main function is:   
+    'periodic_medium_signal'  
+Furthermore, there are several functions to find optimal parameters of the
+generation scheme ('eta_opt', 'zeta_single_segment_pm', 'xi_chain_pm',
+'zeta_chain_pm') and some other related functions.
 
+-------
+The corresponding theory is described in 'XXX'.
 
+-------
+The fixed parameters of the scheme are specified by
 
-parameters = {'XUV_table_type_dispersion': 'Henke' or 'NIST',
+parameters = {
+              'XUV_table_type_dispersion': 'Henke' or 'NIST',
               'XUV_table_type_absorption': 'Henke' or 'NIST',
               'gas_type': available gases 'He', 'Ne', 'Ar', 'Kr', 'Xe'  
               'omegaSI': fundamental laser frequency [rad/s],

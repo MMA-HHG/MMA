@@ -48,7 +48,7 @@ def getsusc(g,lambd):
     Parameters
     ----------
     g : string
-        available gases: He, Ne, Ar, Kr, Xe  
+        available gases: 'He', 'Ne', 'Ar', 'Kr', 'Xe'  
     lambd : laser wavelength [m]
 
     Returns
@@ -63,10 +63,9 @@ def getpol(g,lambd,N_atm=2.7e19*1e6):
     """
     Parameters
     ----------
-    g : TYPE
-        DESCRIPTION.
-    lambd : TYPE
-        DESCRIPTION.
+    g : string
+        available gases: 'He', 'Ne', 'Ar', 'Kr', 'Xe'  
+    lambd : laser wavelength [m]   
     N_atm : float, optional
         Number density [m-3] at atmospheric pressure. The default is 2.7e15.
         (https://en.wikipedia.org/wiki/Loschmidt_constant)
