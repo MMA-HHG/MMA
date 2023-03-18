@@ -1,127 +1,101 @@
 """
 This module xxx.
+
+-------
+Jan Vabek - ELI ERIC (2023)
 """
 import numpy as np
-import os
-import time
-# import multiprocessing as mp
-import shutil
-import h5py
-import sys
 import units
 import mynumerics as mn
-# import mynumerics as mn
-import matplotlib.pyplot as plt
-
 import XUV_refractive_index as XUV_index
 import IR_refractive_index as IR_index
 
 
 
-
-
-## Parameters
-
-# # gas
-# gas_type = 'He'
-# XUV_table_type_absorption = 'Henke' # {Henke, NIST}    
-# XUV_table_type_dispersion = 'NIST'
-
-# # laser  
-# omegaSI = mn.ConvertPhoton(800e-9, 'lambdaSI', 'omegaSI') 
-# Horder_init = 95
-
-
-# control
-# l1 = 1.5e-3
-# xi = 1.0
-# pressure = 42e-3
-# ionisation_ratio = 0.03
-# zeta = 1.8e-6
-
-## Calculation
-
-N_atm = XUV_index.N_atm_default #2.7e19 * 1e6
-# N_atm = 2.6867774e25
-
+N_atm = XUV_index.N_atm_default # gas number density (atmospheric pressure)
 
 def Phi_2pi_decider(Phi, tol = 8.*np.finfo(float).eps):
+    """
+    Auxilliary function to decide phase giving singular absorption-free &
+    perfectly phase-matched generation. (Some analytic expressions are singular
+    and need special treatment).
+
+    Parameters
+    ----------
+    Phi : complex phase [rad]
+    tol : float, optional
+        The tolerance for considering phase giving absorption-free & perfectly
+        phase matched. The default is 8.*np.finfo(float).eps (doubled for the
+        real part mod 2*pi).
+
+    Returns
+    -------
+    boolean
+    """
     return ((np.imag(Phi) <= tol ) and
-            (
-            ((np.real(Phi) % (2.0*np.pi)) <= 2.*tol)
-            or
-            ( abs( (np.real(Phi) % (2.0*np.pi)) - 2.0*np.pi) <= 2.*tol)
+                (
+                ((np.real(Phi) % (2.0*np.pi)) <= 2.*tol)
+              or
+                ( abs( (np.real(Phi) % (2.0*np.pi)) - 2.0*np.pi) <= 2.*tol)
             ))
 
 
-def compute_S1_abs(pressure, zeta, ionisation_ratio, l1, Horder, parameters, include_absorption = True):
-    
+def single_period_S1(pressure, zeta, ionisation_ratio, l1, Horder, parameters, include_absorption = True):
+    """
+    Compute the sig
+
+    Parameters
+    ----------
+    pressure : TYPE
+        DESCRIPTION.
+    zeta : TYPE
+        DESCRIPTION.
+    ionisation_ratio : TYPE
+        DESCRIPTION.
+    l1 : TYPE
+        DESCRIPTION.
+    Horder : TYPE
+        DESCRIPTION.
+    parameters : dict (see documentation of the module)    
+    include_absorption : TYPE, optional
+        DESCRIPTION. The default is True.
+
+    Returns
+    -------
+    S1 : TYPE
+        DESCRIPTION.
+    delta_k1 : TYPE
+        DESCRIPTION.
+    L_coh : TYPE
+        DESCRIPTION.
+    L_abs : TYPE
+        DESCRIPTION.
+
+    """
     gas_type = parameters['gas_type']
     XUV_table_type_absorption = parameters['XUV_table_type_absorption']
     XUV_table_type_dispersion = parameters['XUV_table_type_dispersion']
     omegaSI = parameters['omegaSI']
     
-    plasma_constant = units.elcharge**2 / (units.eps0 * units.elmass * omegaSI**2)
-    
-    # # polarisability XUV (including absorption)
-    # def polarisability_XUV(Horder_foo):
-    #     f1 = XUV_index.getf1(gas_type+'_'+XUV_table_type_dispersion, mn.ConvertPhoton(Horder_foo*omegaSI, 'omegaSI', 'eV'))
-    #     nXUV_atm = 1.0 - N_atm*units.r_electron_classical*(mn.ConvertPhoton(Horder_foo*omegaSI,'omegaSI','lambdaSI')**2)*f1/(2.0*np.pi)
-    #     susc_XUV_atm = nXUV_atm**2 - 1
-    #     pol_XUV = susc_XUV_atm/N_atm
-    #     return pol_XUV
-    
-    # def f2_funct(E):
-    #     return XUV_index.getf2(gas_type + '_' + XUV_table_type_absorption, E)
-
-    # def beta_factor_atm(Horder_foo):
-    #     omegaXUV    = Horder_foo*omegaSI
-    #     f2_value    = f2_funct(mn.ConvertPhoton(omegaXUV, 'omegaSI', 'eV'))
-    #     lambdaXUV    = mn.ConvertPhoton(omegaXUV, 'omegaSI', 'lambdaSI')
-    #     beta_factor = N_atm*units.r_electron_classical * \
-    #                   ((lambdaXUV**2)*f2_value/(2.0*np.pi))
-    #     return beta_factor
-
-    # def L_abs(Horder_foo):
-    #     omegaXUV    = Horder_foo*omegaSI
-    #     f2_value    = f2_funct(mn.ConvertPhoton(omegaXUV, 'omegaSI', 'eV'))
-    #     lambdaXUV    = mn.ConvertPhoton(omegaXUV, 'omegaSI', 'lambdaSI')
-    #     return 1.0 / (2.0 * pressure * N_atm * units.r_electron_classical * lambdaXUV * f2_value) 
-    
-    # # polarisability IR
-    # susc_IR_atm = IR_index.getsusc(gas_type, mn.ConvertPhoton(omegaSI,'omegaSI','lambdaSI'))
-    # # print('susIR anal:', susc_IR_atm)
-    # polarisability_IR = susc_IR_atm/N_atm
-    
-    # # print('nXUV anal:', np.sqrt(1.+ pressure*N_atm*polarisability_XUV(Horder)))
-    # # print('nIR anal:', np.sqrt(1.+ pressure*N_atm*polarisability_IR)) 
-    
-    # susc_IR_atm = IR_index.susc_atm(gas_type, mn.ConvertPhoton(omegaSI,'omegaSI','lambdaSI'))
-    # susc_XUV_atm = XUV_index.susc_atm(Horder*omegaSI, gas_type+'_'+XUV_table_type_dispersion) 
+    k0 = omegaSI /units.c_light
+    plasma_constant = units.elcharge**2 / (units.eps0 * units.elmass * omegaSI**2)    
     
     polarisability_IR = IR_index.polarisability(gas_type, mn.ConvertPhoton(omegaSI,'omegaSI','lambdaSI'))
-    polarisability_XUV = XUV_index.polarisability(Horder*omegaSI, gas_type+'_'+XUV_table_type_dispersion) 
+    polarisability_XUV = XUV_index.polarisability(Horder*omegaSI, gas_type+'_'+XUV_table_type_dispersion)    
     
-    
-    # other parameters
-    k0 = omegaSI /units.c_light
-    
-    ## delta k1
     delta_k1 = Horder * k0 * (0.5*pressure*N_atm*( (polarisability_IR - polarisability_XUV) - ionisation_ratio*plasma_constant) - zeta )
-    
-    # not working for vectorised inputs
-    # if (abs(delta_k1)<=np.finfo(float).eps): L_coh = float('inf')
-    # else: L_coh = np.abs(np.pi/delta_k1)
-    
     L_coh = np.abs(np.pi/delta_k1) 
-    
+       
     # add absorption
     if include_absorption:
         beta_factor_atm = XUV_index.beta_factor_atm(Horder*omegaSI, gas_type + '_' + XUV_table_type_absorption)
         delta_k1 = delta_k1 + 1j*Horder*k0 * pressure * beta_factor_atm
     
-    ## field from 1 segment
-    # deal with listed inputs, quite tedius, just need to decide which variable makes it a list
+    ## Here we compute the generated field after the distance l1, it is given by
+    #         Aq* 1j * (np.exp(1j * delta_k1 * l1)-1.0) / delta_k1)
+    # all the tedious construction is here to deal with singular absorption-free 
+    # perfecly-phase-matched cases for vectorised inputs.
+    
     if hasattr(delta_k1 * l1, "__len__"):
         phase = delta_k1 * l1; S1 = []
         l1_list = hasattr(l1, "__len__")
@@ -148,58 +122,29 @@ def compute_S1_abs(pressure, zeta, ionisation_ratio, l1, Horder, parameters, inc
         else:
             S1 = pressure * parameters['Aq'] * 1j * (np.exp(1j * delta_k1 * l1)-1.0) / delta_k1
     
-    if include_absorption:
-        return S1, delta_k1, L_coh, XUV_index.L_abs(Horder*omegaSI, pressure, gas_type + '_' + XUV_table_type_absorption)#L_abs(Horder)
-    else:
-        return S1, delta_k1, L_coh
+    # compute L_abs
+    if include_absorption: L_abs = XUV_index.L_abs(Horder*omegaSI, pressure, gas_type + '_' + XUV_table_type_absorption)
+    else: L_abs = np.inf
+        
+    return S1, delta_k1, L_coh, L_abs
 
 
+# compute_S1_abs = single_period_S1
 
 
-
-
-
-def compute_Phi_abs(pressure, zeta, l1, xi, ionisation_ratio, Horder, parameters, include_absorption = True):
+def compute_Phi(pressure, zeta, l1, xi, ionisation_ratio, Horder, parameters, include_absorption = True):
     
     gas_type = parameters['gas_type']
     XUV_table_type_absorption = parameters['XUV_table_type_absorption']
     XUV_table_type_dispersion = parameters['XUV_table_type_dispersion']
     omegaSI = parameters['omegaSI']
     
+    k0 = omegaSI /units.c_light
     plasma_constant = units.elcharge**2 / (units.eps0 * units.elmass * omegaSI**2)
     
-    # # polarisability XUV
-    # def polarisability_XUV(Horder_foo):
-    #     f1 = XUV_index.getf1(gas_type+'_'+XUV_table_type_dispersion, mn.ConvertPhoton(Horder_foo*omegaSI, 'omegaSI', 'eV'))
-    #     nXUV_atm = 1.0 - N_atm*units.r_electron_classical*(mn.ConvertPhoton(Horder_foo*omegaSI,'omegaSI','lambdaSI')**2)*f1/(2.0*np.pi)
-    #     susc_XUV_atm = nXUV_atm**2 - 1
-    #     pol_XUV = susc_XUV_atm/N_atm
-    #     return pol_XUV
- 
-    # def f2_funct(E):
-    #     return XUV_index.getf2(gas_type + '_' + XUV_table_type_absorption, E)
-
-    # def beta_factor_atm(Horder_foo):
-    #     omegaXUV    = Horder_foo*omegaSI
-    #     f2_value    = f2_funct(mn.ConvertPhoton(omegaXUV, 'omegaSI', 'eV'))
-    #     lambdaXUV    = mn.ConvertPhoton(omegaXUV, 'omegaSI', 'lambdaSI')
-    #     beta_factor = N_atm*units.r_electron_classical * \
-    #                   ((lambdaXUV**2)*f2_value/(2.0*np.pi))
-    #     return beta_factor
-
-
-    # # polarisability IR
-    # susc_IR_atm = IR_index.getsusc(gas_type, mn.ConvertPhoton(omegaSI,'omegaSI','lambdaSI'))
-    # polarisability_IR = susc_IR_atm/N_atm
-
-
     polarisability_IR = IR_index.polarisability(gas_type, mn.ConvertPhoton(omegaSI,'omegaSI','lambdaSI'))
     polarisability_XUV = XUV_index.polarisability(Horder*omegaSI, gas_type+'_'+XUV_table_type_dispersion) 
-    
-    # other parameters
-    k0 = omegaSI /units.c_light
-    # plasma_constant = units.elcharge**2 / (units.eps0 * units.elmass * omegaSI**2)
-    # Aq = 1.0 # normalised XUV gain   
+ 
     
     Phi = Horder*l1*k0*(
                     0.5*pressure*N_atm*( (polarisability_IR - polarisability_XUV) - ionisation_ratio*plasma_constant) -
@@ -215,12 +160,13 @@ def compute_Phi_abs(pressure, zeta, l1, xi, ionisation_ratio, Horder, parameters
     return Phi
 
 
-def compute_sum_abs(pressure, zeta, l1, xi, ionisation_ratio, Horder, m_max, parameters, include_absorption = True):
+# def compute_sum_abs(pressure, zeta, l1, xi, ionisation_ratio, Horder, m_max, parameters, include_absorption = True):
+def periodic_medium_sum(pressure, zeta, l1, xi, ionisation_ratio, Horder, m_max, parameters, include_absorption = True):
     
-    Phi = compute_Phi_abs(pressure, zeta, l1, xi, ionisation_ratio, Horder, parameters, include_absorption=include_absorption)
+    Phi = compute_Phi(pressure, zeta, l1, xi, ionisation_ratio, Horder, parameters, include_absorption=include_absorption)
     
    
-    # singular case when we have almost perfect phase matching
+    # Deal with singular vectorised cases, see the comment inside 'single_period_S1'
     if hasattr(Phi, "__len__"):
         signal = []
         for k1 in range(len(Phi)):
@@ -238,17 +184,21 @@ def compute_sum_abs(pressure, zeta, l1, xi, ionisation_ratio, Horder, m_max, par
         else:
             return (np.exp(1j*Phi*(m_max+1)) - 1.0)/ (np.exp(1j*Phi) - 1.0), Phi
 
+# compute_sum_abs = periodic_medium_sum
 
-
-def compute_chain_abs(pressure, zeta, l1, xi, ionisation_ratio, Horder, m_max, parameters, include_absorption = True):
+def periodic_medium_signal(pressure, zeta, l1, xi, ionisation_ratio, Horder, m_max, parameters, include_absorption = True):
       
-    S1 = compute_S1_abs(pressure, zeta, ionisation_ratio, l1, Horder, parameters, include_absorption=include_absorption)
-    chain = compute_sum_abs(pressure, zeta, l1, xi, ionisation_ratio, Horder, m_max, parameters, include_absorption=include_absorption)
-    signal = S1[0]*chain[0]
+    S1 = single_period_S1(pressure, zeta, ionisation_ratio, l1, Horder, parameters, include_absorption=include_absorption)
+    chain = periodic_medium_sum(pressure, zeta, l1, xi, ionisation_ratio, Horder, m_max, parameters, include_absorption=include_absorption)
+    
+    signal = S1[0]*chain[0] # This is already the required signal    
     
     
+    ## In the second part, we analytically compute the |·|^2 of the signal using
+    # analytic expression.
     
-    # singular case of perfect phase-matching in one segment
+    # Deal with singular vectorised cases for a single segmant applied for |·|^2.
+    # See the comment inside 'single_period_S1'
     phase = l1*S1[1]
     if hasattr(phase, "__len__"):
         l1_list = hasattr(l1, "__len__")
@@ -275,11 +225,10 @@ def compute_chain_abs(pressure, zeta, l1, xi, ionisation_ratio, Horder, m_max, p
             k1r = np.real(S1[1])
             k1i = np.imag(S1[1])
             abs_S1_2 = np.exp(-k1i*l1) * ( (np.sinh(k1i*l1))**2 + (np.sin(k1r*l1))**2) / (k1r**2 + k1i**2)
- 
-        
- 
+            
     
-    # singular case of perfect phase-matching
+    # Deal with singular vectorised cases for the chain applied for |·|^2.
+    # See the comment inside 'single_period_S1'
     phase = chain[1]
     if hasattr(phase, "__len__"):
         abs_chain_2 = []
@@ -303,126 +252,95 @@ def compute_chain_abs(pressure, zeta, l1, xi, ionisation_ratio, Horder, m_max, p
             abs_chain_2 = np.exp(-(m_max-1) * Phii) *(((np.sinh(0.5*m_max*Phii))**2 + (np.sin(0.5*m_max*Phir))**2)/
                                                   ((np.sinh(0.5*Phii))**2 + (np.sin(0.5*Phir))**2))
     
+    # Computte |·|^2 of the signal.
     signal2 = (pressure * parameters['Aq'])**2 * abs_S1_2 * abs_chain_2 
     
     return signal, signal2
 
+# compute_chain_abs = periodic_medium_signal
 
 
-def zeta_calc(delta_phi, pressure, l1, xi, ionisation_ratio, Horder, parameters):
-    
-    gas_type = parameters['gas_type']
-    XUV_table_type_dispersion = parameters['XUV_table_type_dispersion']
-    omegaSI = parameters['omegaSI']    
-    plasma_constant = units.elcharge**2 / (units.eps0 * units.elmass * omegaSI**2)
-    
-    # # polarisability XUV
-    # def polarisability_XUV(Horder_foo):
-    #     f1 = XUV_index.getf1(gas_type+'_'+XUV_table_type_dispersion, mn.ConvertPhoton(Horder_foo*omegaSI, 'omegaSI', 'eV'))
-    #     nXUV_atm = 1.0 - N_atm*units.r_electron_classical*(mn.ConvertPhoton(Horder_foo*omegaSI,'omegaSI','lambdaSI')**2)*f1/(2.0*np.pi)
-    #     susc_XUV_atm = nXUV_atm**2 - 1
-    #     pol_XUV = susc_XUV_atm/N_atm
-    #     return pol_XUV
-
-    # # polarisability IR
-    # susc_IR_atm = IR_index.getsusc(gas_type, mn.ConvertPhoton(omegaSI,'omegaSI','lambdaSI'))
-    # polarisability_IR = susc_IR_atm/N_atm    
-
-
-    polarisability_IR = IR_index.polarisability(gas_type, mn.ConvertPhoton(omegaSI,'omegaSI','lambdaSI'))
-    polarisability_XUV = XUV_index.polarisability(Horder*omegaSI, gas_type+'_'+XUV_table_type_dispersion) 
-    
-    # other parameters
-    k0 = omegaSI /units.c_light
-    
-    
-    zeta = (1.0/(1.0+xi)) * (
-            0.5 * pressure * N_atm * ( (polarisability_IR - polarisability_XUV) - ionisation_ratio*plasma_constant) -
-            2.0 * delta_phi/ (k0*l1))
-    
-    return zeta
-
-
+## Functions to find optimising parameters of the scheme.
 
 def eta_opt(Horder, parameters):
-    
+    """
+    Compute the optimal ionisation degree for phase matching.
+    (It compensates the dispersion of both IR and XUV.)
+
+    Parameters
+    ----------
+    Horder : harmonic order [-]  
+    parameters : dict (see documentation of the module)
+
+    Returns
+    -------
+    optimal ionisation degree [-]
+    """
     gas_type = parameters['gas_type']
     XUV_table_type_dispersion = parameters['XUV_table_type_dispersion']
-    omegaSI = parameters['omegaSI']   
-
-    # susc_IR = IR_index.getsusc(gas_type, mn.ConvertPhoton(omegaSI,'omegaSI','lambdaSI'))
-
-
-
-    # # N_atm = 2.6867774e25
-    # def susc_XUV(omega_in_SI):
-    #     f1 = XUV_index.getf1(gas_type+'_'+XUV_table_type_dispersion, mn.ConvertPhoton(omega_in_SI, 'omegaSI', 'eV'))
-    #     nXUV_atm = 1.0 - N_atm*units.r_electron_classical*(mn.ConvertPhoton(omega_in_SI,'omegaSI','lambdaSI')**2)*f1/(2.0*np.pi)
-    #     return nXUV_atm**2 - 1
-    #     # susc_XUV = nXUV_atm**2 - 1
-        
-    # def delta_susc(omega_in_SI):
-    #     return (susc_IR - susc_XUV(omega_in_SI)) /N_atm
+    omegaSI = parameters['omegaSI']
         
     delta_polarisability = IR_index.polarisability(gas_type, mn.ConvertPhoton(omegaSI,'omegaSI','lambdaSI')) - \
                            XUV_index.polarisability(Horder*omegaSI, gas_type+'_'+XUV_table_type_dispersion)
-    
 
     return (omegaSI**2) *units.eps0*units.elmass*delta_polarisability/(units.elcharge**2)
 
 
+def zeta_single_segment_pm(pressure, Horder, ionisation_ratio, parameters):
+    """
+    Compute the geometrical phase 'zeta' for perfect phase matching within
+    the gas.
 
-def zeta_single_segment(pressure, Horder, ionisation_ratio, parameters):
+    Parameters
+    ----------
+    pressure : pressure [bar]      
+    Horder : harmonic order [-]  
+    ionisation_ratio : ionisation degree [-]  
+    parameters : dict (see documentation of the module)
+
+    Returns
+    -------
+    zeta [-]
+    """
     
     gas_type = parameters['gas_type']
     XUV_table_type_dispersion = parameters['XUV_table_type_dispersion']
-    omegaSI = parameters['omegaSI']   
-
-    # susc_IR = IR_index.getsusc(gas_type, mn.ConvertPhoton(omegaSI,'omegaSI','lambdaSI'))
+    omegaSI = parameters['omegaSI']
     plasma_constant = units.elcharge**2 / (units.eps0 * units.elmass * omegaSI**2)
 
-
-
-    # # N_atm = 2.6867774e25
-    # def susc_XUV(omega_in_SI):
-    #     f1 = XUV_index.getf1(gas_type+'_'+XUV_table_type_dispersion, mn.ConvertPhoton(omega_in_SI, 'omegaSI', 'eV'))
-    #     nXUV_atm = 1.0 - N_atm*units.r_electron_classical*(mn.ConvertPhoton(omega_in_SI,'omegaSI','lambdaSI')**2)*f1/(2.0*np.pi)
-    #     return nXUV_atm**2 - 1
-    #     # susc_XUV = nXUV_atm**2 - 1
-        
-    # def delta_susc(omega_in_SI):
-    #     return (susc_IR - susc_XUV(omega_in_SI)) /N_atm
-
     delta_polarisability = IR_index.polarisability(gas_type, mn.ConvertPhoton(omegaSI,'omegaSI','lambdaSI')) - \
-                           XUV_index.polarisability(Horder*omegaSI, gas_type+'_'+XUV_table_type_dispersion)        
-    
+                           XUV_index.polarisability(Horder*omegaSI, gas_type+'_'+XUV_table_type_dispersion)   
 
     zeta =  0.5 * pressure * N_atm * ( delta_polarisability - ionisation_ratio*plasma_constant) 
     
     return zeta
 
-def xi_calc_pm(delta_phi, pressure, l1, zeta, ionisation_ratio, Horder, parameters):
-    
+
+def xi_chain_pm(delta_phi, pressure, l1, zeta, ionisation_ratio, Horder, parameters):
+    """
+    Compute the stride characterised by 'xi' to ensure the phase jump by
+    'delta_phi' within one elementary segment. The optimal value to select
+    'Horder' is delta_phi = pi/(Horder*n); n = -1, -2, -3, ...
+
+    Parameters
+    ----------
+    delta_phi : requred phase jump [rad]  
+    pressure : pressure [bar]  
+    l1 : length of one gas-medium [m]  
+    zeta : geometrical phase factor [-]   
+    ionisation_ratio : ionisation degree [-]   
+    Horder : harmonic order [-]   
+    parameters : dict (see documentation of the module)  
+
+    Returns
+    -------
+    xi [-]
+    """
     gas_type = parameters['gas_type']
     XUV_table_type_dispersion = parameters['XUV_table_type_dispersion']
     omegaSI = parameters['omegaSI']    
     plasma_constant = units.elcharge**2 / (units.eps0 * units.elmass * omegaSI**2)
-    
-    # # polarisability IR
-    # # susc_IR_atm = IR_index.getsusc(gas_type, mn.ConvertPhoton(omegaSI,'omegaSI','lambdaSI'))
-    # # polarisability_IR = susc_IR_atm/N_atm    
-    # susc_IR = IR_index.getsusc(gas_type, mn.ConvertPhoton(omegaSI,'omegaSI','lambdaSI'))
-    
-    # # N_atm = 2.6867774e25
-    # def susc_XUV(omega_in_SI):
-    #     f1 = XUV_index.getf1(gas_type+'_'+XUV_table_type_dispersion, mn.ConvertPhoton(omega_in_SI, 'omegaSI', 'eV'))
-    #     nXUV_atm = 1.0 - N_atm*units.r_electron_classical*(mn.ConvertPhoton(omega_in_SI,'omegaSI','lambdaSI')**2)*f1/(2.0*np.pi)
-    #     return nXUV_atm**2 - 1
-    #     # susc_XUV = nXUV_atm**2 - 1
         
-    # def delta_susc(omega_in_SI):
-    #     return (susc_IR - susc_XUV(omega_in_SI)) /N_atm
-    
 
     delta_polarisability = IR_index.polarisability(gas_type, mn.ConvertPhoton(omegaSI,'omegaSI','lambdaSI')) - \
                            XUV_index.polarisability(Horder*omegaSI, gas_type+'_'+XUV_table_type_dispersion)        
@@ -435,12 +353,52 @@ def xi_calc_pm(delta_phi, pressure, l1, zeta, ionisation_ratio, Horder, paramete
                      2.0 * delta_phi / (k0*l1)
                      ) - 1.0
     
-    
-            # (1.0/(1.0+xi)) * (
-            # 0.5 * pressure * N_atm * ( (polarisability_IR - polarisability_XUV(Horder)) - ionisation_ratio*plasma_constant) -
-            # 2.0 * delta_phi/ (k0*l1))
-    
     return xi
 
+
+def zeta_chain_pm(delta_phi, pressure, l1, xi, ionisation_ratio, Horder, parameters):
+    """
+    Compute the geometrical phase 'zeta' to ensure the phase jump by
+    'delta_phi' within one elementary segment. The optimal value to select
+    'Horder' is delta_phi = pi/(Horder*n); n = -1, -2, -3, ...
+
+    Parameters
+    ----------
+    delta_phi : requred phase jump [rad]    
+    pressure : pressure [bar]    
+    l1 : length of one gas-medium [m]    
+    xi : ratio l2/l1 (vacuum/gas) [-]    
+    ionisation_ratio : ionisation degree [-]    
+    Horder : harmonic order [-]    
+    parameters : dict (see documentation of the module)
+
+    Returns
+    -------
+    zeta [-]
+    """
+    
+    gas_type = parameters['gas_type']
+    XUV_table_type_dispersion = parameters['XUV_table_type_dispersion']
+    omegaSI = parameters['omegaSI']  
+    k0 = omegaSI /units.c_light
+    plasma_constant = units.elcharge**2 / (units.eps0 * units.elmass * omegaSI**2)
+    
+    polarisability_IR = IR_index.polarisability(gas_type, mn.ConvertPhoton(omegaSI,'omegaSI','lambdaSI'))
+    polarisability_XUV = XUV_index.polarisability(Horder*omegaSI, gas_type+'_'+XUV_table_type_dispersion) 
+
+    zeta = (1.0/(1.0+xi)) * (
+            0.5 * pressure * N_atm * ( (polarisability_IR - polarisability_XUV) - ionisation_ratio*plasma_constant) -
+            2.0 * delta_phi/ (k0*l1))
+    
+    return zeta
+
+
+## Transformations of the stride characterised by 'xi' or 'r'
 xi2r = lambda xi : 1.0/(1.0 + xi)
 r2xi = lambda r : (1.0-r)/r
+
+
+## back compatibility, kept for instant
+zeta_calc = zeta_chain_pm 
+xi_calc_pm = xi_chain_pm
+zeta_single_segment = zeta_single_segment_pm
