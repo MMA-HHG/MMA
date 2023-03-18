@@ -6,17 +6,18 @@ h5-file (see detaild in the h5-file constructor). These functions are:
     getf, getf1, getf2
     
 Next, there are other functions to access directly polarisabilities, susceptibilities,
-absorption lengths, ... (see their descriptions) The functions are:
+absorption lengths, ... (see their descriptions).  
+The functions are:
     
     dispersion_function, beta_factor_atm, L_abs, susc_atm, polarisability
     
-Note: THe reference is provided in 'atmospheric pressure' characterised by the
+Note: The reference is provided in 'atmospheric pressure' characterised by the
 Loschmidt constant (https://en.wikipedia.org/wiki/Loschmidt_constant),
 the default value is N_atm = 2.7e25 m-3.
 
 -------
-Jan Vabek
-ELI-Beamlines, CELIA, CTU in Prague (FNSPE) (2021 - 2022)
+Jan Vabek   
+ELI-Beamlines, CELIA, CTU in Prague (FNSPE) (2021 - 2022)   
 ELI ERIC (2023)
 """
 

@@ -1,6 +1,14 @@
 """
 This module xxx.
 
+
+
+parameters = {'XUV_table_type_dispersion': 'Henke' or 'NIST',
+              'XUV_table_type_absorption': 'Henke' or 'NIST',
+              'gas_type': available gases 'He', 'Ne', 'Ar', 'Kr', 'Xe'  
+              'omegaSI': fundamental laser frequency [rad/s],
+              'Aq' : Amplitude of the harmonic response}
+
 -------
 Jan Vabek - ELI ERIC (2023)
 """
@@ -42,36 +50,28 @@ def Phi_2pi_decider(Phi, tol = 8.*np.finfo(float).eps):
 
 def single_period_S1(pressure, zeta, ionisation_ratio, l1, Horder, parameters, include_absorption = True):
     """
-    Compute the sig
+    Compute the signal from a gas cell. The legth of the cell is l1, it includes
+    dispersion, absorption, geometrical (linear) phase and plasma due to ionisation.
 
     Parameters
     ----------
-    pressure : TYPE
-        DESCRIPTION.
-    zeta : TYPE
-        DESCRIPTION.
-    ionisation_ratio : TYPE
-        DESCRIPTION.
-    l1 : TYPE
-        DESCRIPTION.
-    Horder : TYPE
-        DESCRIPTION.
-    parameters : dict (see documentation of the module)    
-    include_absorption : TYPE, optional
-        DESCRIPTION. The default is True.
+    pressure : pressure [bar]   
+    zeta : geometrical phase factor [-]   
+    ionisation_ratio : ionisation degree [-]   
+    l1 : length of one gas-medium [m]   
+    Horder : harmonic order [-]   
+    parameters : dict (see documentation of the module)     
+    include_absorption : boolean, optional.  The default is True.  
 
     Returns
     -------
-    S1 : TYPE
-        DESCRIPTION.
-    delta_k1 : TYPE
-        DESCRIPTION.
-    L_coh : TYPE
-        DESCRIPTION.
-    L_abs : TYPE
-        DESCRIPTION.
-
+    S1 : output signal (complexified field)  
+    delta_k1 : wavenumer mismatch (possibly complex)  
+    L_coh : coherence length [m]  
+    L_abs : absorption length [m]
+        np.inf for absorption-free medium
     """
+    
     gas_type = parameters['gas_type']
     XUV_table_type_absorption = parameters['XUV_table_type_absorption']
     XUV_table_type_dispersion = parameters['XUV_table_type_dispersion']
@@ -129,10 +129,27 @@ def single_period_S1(pressure, zeta, ionisation_ratio, l1, Horder, parameters, i
     return S1, delta_k1, L_coh, L_abs
 
 
-# compute_S1_abs = single_period_S1
-
-
 def compute_Phi(pressure, zeta, l1, xi, ionisation_ratio, Horder, parameters, include_absorption = True):
+    """
+    The complex phase characterising the geometry (see Section III).
+
+    Parameters
+    ----------
+    pressure : pressure [bar]   
+    zeta : geometrical phase factor [-]   
+    l1 : length of one gas-medium [m]   
+    xi : ratio l2/l1 (vacuum/gas) [-]    
+    ionisation_ratio : ionisation degree [-]   
+    Horder : harmonic order [-]   
+    parameters : dict (see documentation of the module)  
+    include_absorption : boolean, optional. The default is True.  
+    
+    Returns
+    -------
+    Phi : The (complex) phase characterising the chain of the media.
+        See Eq. (12c).
+
+    """
     
     gas_type = parameters['gas_type']
     XUV_table_type_absorption = parameters['XUV_table_type_absorption']
@@ -160,8 +177,32 @@ def compute_Phi(pressure, zeta, l1, xi, ionisation_ratio, Horder, parameters, in
     return Phi
 
 
-# def compute_sum_abs(pressure, zeta, l1, xi, ionisation_ratio, Horder, m_max, parameters, include_absorption = True):
 def periodic_medium_sum(pressure, zeta, l1, xi, ionisation_ratio, Horder, m_max, parameters, include_absorption = True):
+    """
+    Compute the sum (not including the single emitter) that modulates the signal
+    from the chain of peridically repating gas-media.
+    
+    Parameters
+    ----------
+    pressure : pressure [bar]   
+    zeta : geometrical phase factor [-]   
+    l1 : length of one gas-medium [m]   
+    xi : ratio l2/l1 (vacuum/gas) [-]    
+    ionisation_ratio : ionisation degree [-]   
+    Horder : harmonic order [-]   
+    m_max : the number of periods gas-vacuum (integer)  
+    parameters : dict (see documentation of the module)  
+    include_absorption : boolean, optional. The default is True.  
+
+    Returns
+    -------
+    output signal (complexified)  
+        The signal from a chain of media.
+    Phi : phase characterising the periodic medium
+        See function 'compute_Phi'.
+        
+    """
+    
     
     Phi = compute_Phi(pressure, zeta, l1, xi, ionisation_ratio, Horder, parameters, include_absorption=include_absorption)
     
@@ -184,9 +225,36 @@ def periodic_medium_sum(pressure, zeta, l1, xi, ionisation_ratio, Horder, m_max,
         else:
             return (np.exp(1j*Phi*(m_max+1)) - 1.0)/ (np.exp(1j*Phi) - 1.0), Phi
 
-# compute_sum_abs = periodic_medium_sum
 
 def periodic_medium_signal(pressure, zeta, l1, xi, ionisation_ratio, Horder, m_max, parameters, include_absorption = True):
+    """
+    The main computation routine provide the total signal from the pariodic medium.
+    The total signal is given as the product of the signal from a single period
+    modulated by the chain of media. In other words, it's the coherent sum of all
+    the periods. See Eqs. (8) and (14).
+
+    Parameters
+    ----------
+    pressure : pressure [bar]   
+    
+    zeta : geometrical phase factor [-]   
+    l1 : length of one gas-medium [m]   
+    xi : ratio l2/l1 (vacuum/gas) [-]    
+    ionisation_ratio : ionisation degree [-]   
+    Horder : harmonic order [-]   
+    m_max : the number of periods gas-vacuum (integer)  
+    parameters : dict (see documentation of the module)  
+    include_absorption : boolean, optional. The default is True.  
+
+    Returns
+    -------
+    signal : The total (complexified) signal from the periodic medium.
+    signal2 : |signal|^2
+        
+    Note
+    -------
+    The complexified signal and its |·|^2 are computed independetly by Eqs. (7) and (14).
+    """
       
     S1 = single_period_S1(pressure, zeta, ionisation_ratio, l1, Horder, parameters, include_absorption=include_absorption)
     chain = periodic_medium_sum(pressure, zeta, l1, xi, ionisation_ratio, Horder, m_max, parameters, include_absorption=include_absorption)
@@ -257,7 +325,6 @@ def periodic_medium_signal(pressure, zeta, l1, xi, ionisation_ratio, Horder, m_m
     
     return signal, signal2
 
-# compute_chain_abs = periodic_medium_signal
 
 
 ## Functions to find optimising parameters of the scheme.
@@ -270,7 +337,7 @@ def eta_opt(Horder, parameters):
     Parameters
     ----------
     Horder : harmonic order [-]  
-    parameters : dict (see documentation of the module)
+    parameters : dict (see documentation of the module)  
 
     Returns
     -------
@@ -295,7 +362,7 @@ def zeta_single_segment_pm(pressure, Horder, ionisation_ratio, parameters):
     ----------
     pressure : pressure [bar]      
     Horder : harmonic order [-]  
-    ionisation_ratio : ionisation degree [-]  
+    ionisation_ratio : ionisation degree [-]   
     parameters : dict (see documentation of the module)
 
     Returns
@@ -402,3 +469,7 @@ r2xi = lambda r : (1.0-r)/r
 zeta_calc = zeta_chain_pm 
 xi_calc_pm = xi_chain_pm
 zeta_single_segment = zeta_single_segment_pm
+
+compute_chain_abs = periodic_medium_signal
+compute_sum_abs = periodic_medium_sum
+compute_S1_abs = single_period_S1

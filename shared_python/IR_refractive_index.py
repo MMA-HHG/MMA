@@ -17,9 +17,9 @@ Loschmidt constant (https://en.wikipedia.org/wiki/Loschmidt_constant),
 the default value is N_atm = 2.7e25 m-3.
 
 -------
-Jan Vabek
-ELI-Beamlines, CELIA, CTU in Prague (FNSPE) (2021 - 2022)
-ELI ERIC (2023)
+Jan Vabek   
+ELI-Beamlines, CELIA, CTU in Prague (FNSPE) (2021 - 2022)   
+ELI ERIC (2023)  
 """
 ####################################################################################
 # Jan Vabek - ELI-Beamlines, CELIA, CTU in Prague (FNSPE) (2021)
