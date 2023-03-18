@@ -78,7 +78,7 @@ def susc_atm(omega, gas, N_atm=N_atm_default):
     nXUV_atm = 1.0 - N_atm*units.r_electron_classical*(mn.ConvertPhoton(omega,'omegaSI','lambdaSI')**2)*f1/(2.0*np.pi)
     return nXUV_atm**2 - 1
 
-def polarisability_atm(omega, gas, N_atm=N_atm_default):
+def polarisability(omega, gas, N_atm=N_atm_default):
     f1 = getf1(gas,mn.ConvertPhoton(omega, 'omegaSI', 'eV'))
     nXUV_atm = 1.0 - N_atm*units.r_electron_classical*(mn.ConvertPhoton(omega,'omegaSI','lambdaSI')**2)*f1/(2.0*np.pi)
     susc_XUV_atm = nXUV_atm**2 - 1
