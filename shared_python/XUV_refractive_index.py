@@ -21,9 +21,6 @@ ELI-Beamlines, CELIA, CTU in Prague (FNSPE) (2021 - 2022)
 ELI ERIC (2023)
 """
 
-# The functions are called by f1, f2 = XUV_refractive_index.getf(gas,Energy), Energy is in eV
-# alternatively, the full handle is XUV_refractive_index.index_funct[gas][f1/f2](Energy), Energy is in eV
-
 import numpy as np
 from scipy import interpolate
 import h5py
