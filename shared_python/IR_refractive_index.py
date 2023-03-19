@@ -21,12 +21,6 @@ Jan Vabek
 ELI-Beamlines, CELIA, CTU in Prague (FNSPE) (2021 - 2022)   
 ELI ERIC (2023)  
 """
-####################################################################################
-# Jan Vabek - ELI-Beamlines, CELIA, CTU in Prague (FNSPE) (2021)
-#
-
-# source: https://royalsocietypublishing.org/doi/epdf/10.1098/rspa.1960.0237
-
 susc_Ar = lambda x: (5.547e-4)*(1.0 + (5.15e5)/(x**2) + (4.19e11)/(x**4) + (4.09e17)/(x**6) + (4.32e23)/(x**8))
 susc_Kr = lambda x: (8.377e-4)*(1.0 + (6.7e5)/(x**2) + (8.84e11)/(x**4) + (1.49e18)/(x**6) + (2.74e24)/(x**8) + (5.1e30)/(x**10))
 susc_He = lambda x: (6.927e-5)*(1.0 + (2.24e5)/(x**2) + (5.94e10)/(x**4) + (1.72e16)/(x**6))
