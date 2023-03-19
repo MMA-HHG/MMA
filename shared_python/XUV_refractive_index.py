@@ -157,9 +157,11 @@ def dispersion_function(omega, pressure, gas, n_IR=1., N_atm=N_atm_default):
 
 def beta_factor_atm(omega, gas, N_atm=N_atm_default):
     """
-    It returns the imaginary poart 'beta' of the refractive index  
+    It returns the imaginary part 'beta' of the refractive index  
                  n = n0 + 1j*beta   
-    using tabulated scattering factors
+    at atmospúheric pressure using tabulated scattering factors. Usage for
+    arbitrary pressure:
+                 n = n0(p) + 1j*(p/p_atm)*beta_atm . 
 
     Parameters
     ----------
