@@ -12,7 +12,7 @@ absorption lengths, ... (see their descriptions) The functions are:
     
     dispersion_function, beta_factor_atm, L_abs, susc_atm, polarisability
     
-Note: THe reference is provided in 'atmospheric pressure' characterised by the
+Note: The reference is provided in 'atmospheric pressure' characterised by the
 Loschmidt constant (https://en.wikipedia.org/wiki/Loschmidt_constant),
 the default value is N_atm = 2.7e25 m-3.
 
@@ -61,6 +61,8 @@ susc_atm = getsusc
 
 def getpol(g,lambd,N_atm=2.7e19*1e6):
     """
+    Returns polarisability.
+    
     Parameters
     ----------
     g : string
