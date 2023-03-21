@@ -222,18 +222,34 @@ def periodic_medium_sum(pressure, zeta, l1, xi, ionisation_ratio, Horder, m_max,
         signal = []
         for k1 in range(len(Phi)):
             if Phi_2pi_decider(Phi[k1]):
-                signal.append(m_max+1)
+                signal.append(m_max)
             else:
-                signal.append(
-                    (np.exp(1j*Phi[k1]*(m_max+1)) - 1.0)/ (np.exp(1j*Phi[k1]) - 1.0)
-                    )
+                if (m_max == 1):
+                    signal.append(1.0)
+                else:
+                    signal.append(
+                        (np.exp(1j*Phi[k1]*(m_max+1)) - 1.0)/ (np.exp(1j*Phi[k1]) - 1.0)
+                        )
         signal = np.asarray(signal)
         return signal, Phi
     else:
         if Phi_2pi_decider(Phi): 
-            return (m_max+1), Phi
+            return (m_max), Phi
         else:
-            return (np.exp(1j*Phi*(m_max+1)) - 1.0)/ (np.exp(1j*Phi) - 1.0), Phi
+            if hasattr(m_max, "__len__"):
+                signal = []
+                for k1 in range(len(m_max)):
+                    if (m_max[k1] == 1):
+                        signal.append(1.0)
+                    else:
+                        signal.append((np.exp(1j*Phi*(m_max[k1])) - 1.0)/ (np.exp(1j*Phi) - 1.0))
+                signal = np.asarray(signal)
+                return signal, Phi
+            else:
+                if (m_max == 1):
+                    return 1., Phi
+                else:
+                    return (np.exp(1j*Phi*(m_max)) - 1.0)/ (np.exp(1j*Phi) - 1.0), Phi
 
 
 def periodic_medium_signal(pressure, zeta, l1, xi, ionisation_ratio, Horder, m_max, parameters, include_absorption = True):
@@ -291,9 +307,9 @@ def periodic_medium_signal(pressure, zeta, l1, xi, ionisation_ratio, Horder, m_m
                 abs_S1_2.append(l1**2)
             else:
               if l1_list:
-                abs_S1_2.append(np.exp(-k1i*l1[k1]) * ( (np.sinh(k1i*l1[k1]))**2 + (np.sin(k1r*l1[k1]))**2) / (k1r**2 + k1i**2))
+                abs_S1_2.append(np.exp(-k1i*l1[k1]) * ( (np.sinh(0.5*k1i*l1[k1]))**2 + (np.sin(0.5*k1r*l1[k1]))**2) / (k1r**2 + k1i**2))
               else:
-                abs_S1_2.append(np.exp(-k1i[k1]*l1) * ( (np.sinh(k1i[k1]*l1))**2 + (np.sin(k1r[k1]*l1))**2) / (k1r[k1]**2 + k1i[k1]**2))
+                abs_S1_2.append(np.exp(-k1i[k1]*l1) * ( (np.sinh(0.5*k1i[k1]*l1))**2 + (np.sin(0.5*[k1]*l1))**2) / (k1r[k1]**2 + k1i[k1]**2))
                 
         abs_S1_2 = np.asarray(abs_S1_2)
     else:
@@ -302,7 +318,7 @@ def periodic_medium_signal(pressure, zeta, l1, xi, ionisation_ratio, Horder, m_m
         else:
             k1r = np.real(S1[1])
             k1i = np.imag(S1[1])
-            abs_S1_2 = np.exp(-k1i*l1) * ( (np.sinh(k1i*l1))**2 + (np.sin(k1r*l1))**2) / (k1r**2 + k1i**2)
+            abs_S1_2 = np.exp(-k1i*l1) * ( (np.sinh(0.5*k1i*l1))**2 + (np.sin(0.5*k1r*l1))**2) / (k1r**2 + k1i**2)
             
     
     # Deal with singular vectorised cases for the chain applied for |·|^2.
@@ -331,7 +347,7 @@ def periodic_medium_signal(pressure, zeta, l1, xi, ionisation_ratio, Horder, m_m
                                                   ((np.sinh(0.5*Phii))**2 + (np.sin(0.5*Phir))**2))
     
     # Computte |·|^2 of the signal.
-    signal2 = (pressure * parameters['Aq'])**2 * abs_S1_2 * abs_chain_2 
+    signal2 = (pressure * parameters['Aq'])**2 * 4. * abs_S1_2 * abs_chain_2 
     
     return signal, signal2
 
