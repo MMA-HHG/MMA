@@ -26,8 +26,21 @@ from scipy import interpolate
 
 
 
-file_Hankel = 'Hankel_M5.h5'
+file_Hankel = os.path.join('Maker_res','Hankel_full_z0.h5')
 
+
+# plot given z0-evolution
+k_z0 = 2
+k_I0 = 0
+
+xlim = (14, 21)
+
+
+# anim_name = 'anim_full_Gauss3.mp4'
+# anim_name = 'anim_intens_fixed3.mp4'
+anim_name = 'anim_intens_fixed_rad_fixed3.mp4'
+anim_name = 'anim_z0_full_I0_1.mp4'
+anim_vmax = 0.6e-9
 
 # load data
           
@@ -59,16 +72,7 @@ print('data loaded:')
 
 
 
-# plot given z0-evolution
-k_z0 = 2
-k_I0 = 2
 
-
-# anim_name = 'anim_full_Gauss3.mp4'
-# anim_name = 'anim_intens_fixed3.mp4'
-anim_name = 'anim_intens_fixed_rad_fixed3.mp4'
-anim_name = 'anim_tmp.mp4'
-anim_vmax = 0.6e-9
 
 
 # fig, ax = plt.subplots()
@@ -100,14 +104,15 @@ pp.plot_preset(image)
 ### animate in z0
 fig, ax = plt.subplots()
 # cax = ax.pcolormesh(Hgrid, rgrid_FF, np.abs(HHG_onscreen[0,:,:].T)) #, vmin=-1, vmax=1, cmap='Blues')
-# cax = ax.pcolormesh(Hgrid, rgrid_FF, np.abs(HHG_onscreen[0,k_z0,:,:].T), vmax=0.6e-9)
-cax = ax.pcolormesh(Hgrid, 1e3*rgrid_FF, np.abs(HHG_onscreen[k_I0,0,:,:].T))
+cax = ax.pcolormesh(Hgrid, rgrid_FF, np.abs(HHG_onscreen[0,k_z0,:,:].T), vmax=0.6e-9)
+# cax = ax.pcolormesh(Hgrid, 1e3*rgrid_FF, np.abs(HHG_onscreen[k_I0,0,:,:].T))
 # ax.set_title(str(I0_grid[-1]))
 ax.set_title("{:.2E}".format(1e3*z0_grid[0]) + ' mm')
 
 ax.set_title("I0 = {:.2E}".format(1e-4*units.INTENSITYau*I0_grid[k_I0]) + " W/cm2, z0={:.2E}".format(1e3*z0_grid[0]) + ' mm')
 ax.set_xlabel("H [-]")
 ax.set_ylabel("r [mm]")
+if not(xlim is None): ax.set_xlim(xlim)
 
 fig.colorbar(cax)
 

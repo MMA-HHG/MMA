@@ -96,7 +96,7 @@ else:
 
 
 
-results_TDSE = os.path.join("D:\data", "TDSE_list", "Maker4")
+results_TDSE = os.path.join("C:\data", "TDSE_list", "Maker4")
 file_TDSE = 'results_merged.h5'
 
 file_TDSE = os.path.join(results_TDSE,file_TDSE)
@@ -127,14 +127,14 @@ with h5py.File(file_TDSE, 'r') as InputArchiveTDSE:
 print('data loaded:')
 
 ## Laser
-N_I0 = 3 # 10 #300
+N_I0 = 3 # 10 #300 #3
 I0_start = 12.5e17/units.INTENSITYau
 I0_end = 37.5e17/units.INTENSITYau#E0_grid[-1]**2
 I0_grid = np.linspace(I0_start,E0_grid[-1]**2,N_I0)
 
 w0 = 120e-6 # 120e-6 #25e-6
 
-Gaussian_E_r = lambda r : np.exp(-(r/w0)**2)
+Gaussian_E_r = lambda r, wz_ : np.exp(-(r/wz_)**2)
 zR = np.pi*(w0**2)/mn.ConvertPhoton(omega0, 'omegaau', 'lambdaSI')
 w_z = lambda z: w0*np.sqrt(1+(z/zR)**2)
 
@@ -152,15 +152,17 @@ Hlimit = [0, 36]
 # Moving jet
 # z0_grid = np.array([-0.5*zR,0,0.5*zR])  # np.array([-100e-6,0,100e-6])
 # N_z0 = len(z0_grid)
-N_z0 = 3
+N_z0 = 300 # 3
 z0_grid = np.linspace(-zR,zR,N_z0)
 
-Gaussian_Iz_profile = False
-Gaussian_wz_profile = False
-Gaussian_curvature = True
+Gaussian_Iz_profile = True
+Gaussian_wz_profile = True
+Gaussian_curvature = False
+
+out_h5name='Hankel_Izwz_z0.h5'
 
 # Integration
-dr = 3e-6/4
+dr = 3e-6
 rmax_scale = 1.2
 Nr = 50 #200
 rgrid = np.ogrid[0:(w0*rmax_scale):dr] #np.linspace(0, 1.2*w0, Nr)
@@ -182,7 +184,7 @@ FSourceTerm_interpE0 = interpolate.interp1d( E0_grid, FSourceTerm_sel ,axis=0)
 
 # the sources
 # FSource_interp = FSourceTerm_interpE0( 0.75*np.sqrt(I0_grid[-1]) * Gaussian_E_r(rgrid) )
-FSource_interp = FSourceTerm_interpE0( np.sqrt(((2e18/units.INTENSITYau))) * Gaussian_E_r(rgrid) )
+FSource_interp = FSourceTerm_interpE0( np.sqrt(((2e18/units.INTENSITYau))) * Gaussian_E_r(rgrid,w0) )
 # FSource_interp = FSourceTerm_interpE0( np.sqrt(I0_grid[-1]) * Gaussian_E_r(rgrid) )
 
 Nr_FF = 100
@@ -252,7 +254,7 @@ for k1 in range(len(I0_grid)):
                                 Hfn2.HankelTransform(
                                 omega_convert * ogrid_sel,
                                 rgrid,
-                                curv_fact * (FSourceTerm_interpE0( I0z0 * Gaussian_E_r(rgrid) )).T, # FSource_interp.T,
+                                curv_fact * (FSourceTerm_interpE0( I0z0 * Gaussian_E_r(rgrid,wz0) )).T, # FSource_interp.T,
                                 distance,
                                 rgrid_FF)
             )
@@ -262,8 +264,9 @@ HHG_onscreen = np.asarray(HHG_onscreen)
 
 print('before save')
 # Save the data
-out_h5name='Hankel_MX.h5'
-with h5py.File(out_h5name,'w') as OutFile:
+# out_h5name='Hankel_M1.h5'
+out_h5path = os.path.join('Maker_res2',out_h5name)
+with h5py.File(out_h5path,'w') as OutFile:
     # data and grids
     grp = OutFile.create_group('XUV')
     mn.adddataset(grp, 'Spectrum_on_screen', np.stack((HHG_onscreen.real, HHG_onscreen.imag),axis=-1), '[arb.u.]')
