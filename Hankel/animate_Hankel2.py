@@ -31,9 +31,11 @@ import subprocess
 
 
 
-file_Hankel = os.path.join('Maker_res2','Hankel_full_I0.h5')
-anim_name = 'anim_I0.mp4'
+file_Hankel = os.path.join('Maker_res2','Hankel_wz_I0.h5')
+anim_name = 'anim_I0_wz_z0_2.mp4'
 
+# plot given z0-evolution
+k_z0 = 2
 
 # load data
           
@@ -65,8 +67,7 @@ print('data loaded:')
 
 
 
-# plot given z0-evolution
-k_z0 = 2
+
 
 anim_vmax = 0.6e-9
 

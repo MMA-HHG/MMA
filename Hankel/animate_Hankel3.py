@@ -26,12 +26,12 @@ from scipy import interpolate
 
 
 
-file_Hankel = os.path.join('Maker_res','Hankel_full_z0.h5')
+file_Hankel = os.path.join('Maker_res2','Hankel_full_z0.h5')
 
 
 # plot given z0-evolution
 k_z0 = 2
-k_I0 = 0
+k_I0 = 2
 
 xlim = (14, 21)
 
@@ -39,7 +39,7 @@ xlim = (14, 21)
 # anim_name = 'anim_full_Gauss3.mp4'
 # anim_name = 'anim_intens_fixed3.mp4'
 anim_name = 'anim_intens_fixed_rad_fixed3.mp4'
-anim_name = 'anim_z0_full_I0_1.mp4'
+anim_name = 'anim_z0_full_I0_3.mp4'
 anim_vmax = 0.6e-9
 
 # load data
