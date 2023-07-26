@@ -28,14 +28,16 @@ PROGRAM make_start
     test_number = get_test_number(filename)
     filename = "results.h5"
     INQUIRE(FILE=filename, EXIST=dumlog)
-    IF (NOT(dumlog)) THEN
+    !IF (NOT(dumlog)) THEN
+    IF (.NOT.dumlog) THEN
       CALL h5fcreate_f(filename, H5F_ACC_TRUNC_F, file_id, error)   
     ELSE
       CALL h5fopen_f (filename, H5F_ACC_RDWR_F, file_id, error)
     ENDIF
 
     CALL h5lexists_f(file_id, 'inputs', dumlog, error)
-    IF (NOT(dumlog)) THEN
+    !IF (NOT(dumlog)) THEN
+    IF (.NOT.dumlog) THEN
       CALL h5gcreate_f(file_id, 'inputs', group_id, error)
       CALL h5gclose_f(group_id, error)   
     ENDIF
@@ -107,7 +109,8 @@ PROGRAM make_start
 
   CALL save_or_replace(file_id, 'inputs/numerics_type_of_input_beam', switch_start, error)
 
-  IF (NOT(ANY(available_beams == switch_start))) THEN
+  !IF (NOT(ANY(available_beams == switch_start))) THEN
+  IF (.NOT.ANY(available_beams == switch_start)) THEN
     write(6,*) 'You have selected a bad value for the type of input beamshape'
     write(6,*) ' You have to choose between 1 and 2'
     write(6,*) ' Continuation not implemented yet'
@@ -130,7 +133,8 @@ PROGRAM make_start
   CALL save_or_replace(file_id, 'inputs/numerics_physical_output_distance_for_plasma_and_Efield', outlength_m_phys, error)
 
   CALL h5lexists_f(file_id, 'inputs/numerics_physical_output_distance_for_Efield_only', out_Efield, error)
-  IF (out_Efield)  CALL save_or_replace(file_id, 'inputs/numerics_physical_output_distance_for_Efield_only', outlength_Efield_m_phys, error)
+  IF (out_Efield)  CALL save_or_replace(file_id, 'inputs/numerics_physical_output_distance_for_Efield_only', &
+                                        outlength_Efield_m_phys, error)
 
 
   !--------!
@@ -139,11 +143,13 @@ PROGRAM make_start
 
   CALL save_or_replace(file_id, 'inputs/medium_physical_distance_of_propagation', proplength_m_phys, error)
   CALL save_or_replace(file_id, 'inputs/medium_pressure_in_bar', pressure, error)
-  CALL save_or_replace(file_id, 'inputs/medium_effective_atmospheric_density_of_neutral_molecules', rhont_cm3_phys, error, units_in = '[1/cm3]')
+  CALL save_or_replace(file_id, 'inputs/medium_effective_atmospheric_density_of_neutral_molecules', rhont_cm3_phys, &
+                       error, units_in = '[1/cm3]')
   !CALL read_dset(file_id, 'inputs/effective_density_of_neutral_molecules', rhont_cm3_phys)
   !rhont_cm3_phys = 0.5
 
-  CALL save_or_replace(group_id, 'medium_effective_density_of_neutral_molecules', pressure*rhont_cm3_phys, error, units_in = '[1/cm3]')
+  CALL save_or_replace(group_id, 'medium_effective_density_of_neutral_molecules', pressure*rhont_cm3_phys, error, &
+                       units_in = '[1/cm3]')
 
 
   !--------------------------------!
@@ -152,7 +158,7 @@ PROGRAM make_start
 
   CALL save_or_replace(file_id, 'inputs/dispersion_type_of_dispersion_law', switch_dispersion, error)
   
-  IF (NOT(ANY(available_dispersions == switch_dispersion))) THEN
+  IF (.NOT.ANY(available_dispersions == switch_dispersion)) THEN
     write(6,*) 'You have selected a bad value for the dispersion law'
     !write(6,*) ' You have to choose in integer between 1 or 7'
     write(6,*) ' The code will be stopped'
@@ -198,7 +204,7 @@ PROGRAM make_start
 
  CALL save_or_replace(file_id, 'inputs/ionization_type_of_ionization_method', switch_rho, error, units_in = '[-]')
 
-  IF (NOT(ANY(available_ionisations == switch_rho))) THEN
+  IF (.NOT.ANY(available_ionisations == switch_rho)) THEN
     write(6,*) 'You have selected a bad value for the type ionization method'
     write(6,*) ' You have to choose in integer between 1 and 8'
     write(6,*) ' The code will be stopped'
@@ -206,20 +212,26 @@ PROGRAM make_start
   ENDIF
 
   IF (ANY( (/1, 2/) ==  switch_rho)) THEN
-    CALL save_or_replace(file_id, 'inputs/ionization_mpi_cross_section_for_method_1-2', sigmak_phys, error, units_in = '[s-1cm2K/WK]')
+    CALL save_or_replace(file_id, 'inputs/ionization_mpi_cross_section_for_method_1-2', sigmak_phys, error, &
+                         units_in = '[s-1cm2K/WK]')
   ELSEIF (3 == switch_rho) THEN
-    CALL save_or_replace(file_id, 'inputs/ionization_ionization_potential_of_neutral_molecules', Ui_eV_phys, error, units_in = '[eV]')
-    CALL save_or_replace(file_id, 'inputs/ionization_angular_momentum_for_method_3_7', angular_momentum, error, units_in = '[-]')
-    CALL save_or_replace(file_id, 'inputs/ionization_effective_residue_charge_for_method_3-4_7', residue_charge, error, units_in = '[-]')
+    CALL save_or_replace(file_id, 'inputs/ionization_ionization_potential_of_neutral_molecules', Ui_eV_phys, &
+                         error, units_in = '[eV]')
+    CALL save_or_replace(file_id, 'inputs/ionization_angular_momentum_for_method_3_7', angular_momentum, error, &
+                         units_in = '[-]')
+    CALL save_or_replace(file_id, 'inputs/ionization_effective_residue_charge_for_method_3-4_7', residue_charge, &
+                         error, units_in = '[-]')
   ENDIF
 
   
   CALL save_or_replace(file_id, 'inputs/plasma_initial_electron_density', rho0_phys, error, units_in = '[1/cm3]')
   CALL save_or_replace(file_id, 'inputs/plasma_electron_colision_time', tauc_fs_phys, error, units_in = '[fs]')
   CALL save_or_replace(file_id, 'inputs/plasma_linear_recombination_coefficient', alpha_fs_phys, error, units_in = '[fs-1]')
-  CALL save_or_replace(file_id, 'inputs/plasma_quadratic_recombination_(gasses)', alphaquad_fscm3_phys, error, units_in = '[fs-1cm3]')
+  CALL save_or_replace(file_id, 'inputs/plasma_quadratic_recombination_(gasses)', alphaquad_fscm3_phys, error, &
+                       units_in = '[fs-1cm3]')
   CALL save_or_replace(file_id, 'inputs/plasma_number_of_photons_involved_in_the_n-absorption', NN, error, units_in = '[-]')
-  CALL save_or_replace(file_id, 'inputs/plasma_the_n-photon_absoption_cross_section', sigman_phys, error, units_in = '[s-1cm2N/Wn]')
+  CALL save_or_replace(file_id, 'inputs/plasma_the_n-photon_absoption_cross_section', sigman_phys, error, &
+                       units_in = '[s-1cm2N/Wn]')
   CALL save_or_replace(file_id, 'inputs/plasma_density_of_absorbing_molecules', rhoabs_cm3_phys, error, units_in = '[1/cm3]?')
 
 
@@ -304,14 +316,20 @@ print *, Convert_pulse_duration(tp_fs_phys, '1/e', 'rms', type2_in = 'Efield', t
 !stop
 
 
-CALL save_or_replace(group_id, 'laser_pulse_duration_in_1_e_Efield', Convert_pulse_duration(tp_fs_phys, '1/e', '1/e', type2_in = 'Efield', type2_out = 'Efield'), error, units_in = '[fs]')
-CALL save_or_replace(group_id, 'laser_pulse_duration_in_rms_Efield', Convert_pulse_duration(tp_fs_phys, '1/e', 'rms', type2_in = 'Efield', type2_out = 'Efield'), error, units_in = '[fs]')
-CALL save_or_replace(group_id, 'laser_pulse_duration_in_FWHM_Efield', Convert_pulse_duration(tp_fs_phys, '1/e', 'FWHM', type2_in = 'Efield', type2_out = 'Efield'), error, units_in = '[fs]')
+CALL save_or_replace(group_id, 'laser_pulse_duration_in_1_e_Efield', Convert_pulse_duration(tp_fs_phys, '1/e', '1/e', &
+                     type2_in = 'Efield', type2_out = 'Efield'), error, units_in = '[fs]')
+CALL save_or_replace(group_id, 'laser_pulse_duration_in_rms_Efield', Convert_pulse_duration(tp_fs_phys, '1/e', 'rms', &
+                     type2_in = 'Efield', type2_out = 'Efield'), error, units_in = '[fs]')
+CALL save_or_replace(group_id, 'laser_pulse_duration_in_FWHM_Efield', Convert_pulse_duration(tp_fs_phys, '1/e', 'FWHM', &
+                     type2_in = 'Efield', type2_out = 'Efield'), error, units_in = '[fs]')
 
-CALL save_or_replace(group_id, 'laser_pulse_duration_in_1_e_Intensity', Convert_pulse_duration(tp_fs_phys, '1/e', '1/e', type2_in = 'Efield', type2_out = 'Intensity'), error, units_in = '[fs]')
+CALL save_or_replace(group_id, 'laser_pulse_duration_in_1_e_Intensity', Convert_pulse_duration(tp_fs_phys, '1/e', '1/e', &
+                     type2_in = 'Efield', type2_out = 'Intensity'), error, units_in = '[fs]')
 
-  CALL save_or_replace(group_id, 'laser_pulse_duration_in_rms_Intensity', Convert_pulse_duration(tp_fs_phys, '1/e', 'rms', type2_in = 'Efield', type2_out = 'Intensity'), error, units_in = '[fs]')
-  CALL save_or_replace(group_id, 'laser_pulse_duration_in_FWHM_Intensity', Convert_pulse_duration(tp_fs_phys, '1/e', 'FWHM', type2_in = 'Efield', type2_out = 'Intensity'), error, units_in = '[fs]')
+  CALL save_or_replace(group_id, 'laser_pulse_duration_in_rms_Intensity', Convert_pulse_duration(tp_fs_phys, '1/e', 'rms', &
+                       type2_in = 'Efield', type2_out = 'Intensity'), error, units_in = '[fs]')
+  CALL save_or_replace(group_id, 'laser_pulse_duration_in_FWHM_Intensity', Convert_pulse_duration(tp_fs_phys, '1/e', 'FWHM', &
+                       type2_in = 'Efield', type2_out = 'Intensity'), error, units_in = '[fs]')
 
 
   
@@ -350,7 +368,8 @@ CALL save_or_replace(group_id, 'laser_pulse_duration_in_1_e_Intensity', Convert_
     ELSE
       invCurvature_radius_entry = 1.D0 / Curvature_radius_entry
     ENDIF   
-    CALL Gaussian_entry2Gaussian_focus(Intensity_entry,w0_m_phys,invCurvature_radius_entry,Intensity_focus, waist_focus, focus_position, lambda0_cm_phys*1.D-2)
+    CALL Gaussian_entry2Gaussian_focus(Intensity_entry,w0_m_phys,invCurvature_radius_entry,Intensity_focus, waist_focus, &
+                                       focus_position, lambda0_cm_phys*1.D-2)
   
     ! Store the reference Gaussian beam
     CALL save_or_replace(group_id, 'laser_focus_beamwaist_Gaussian', waist_focus, error, units_in = '[SI]')
@@ -365,7 +384,8 @@ CALL save_or_replace(group_id, 'laser_pulse_duration_in_1_e_Intensity', Convert_
     CALL save_or_replace(file_id, 'inputs/laser_focus_position_Gaussian', focus_position, error) !!!!!!!!!!!!!!! CHECK SIGN
 
     ! Convert
-    CALL Gaussian_focus2Gaussian_entry(Intensity_focus,waist_focus,focus_position,Intensity_entry,w0_m_phys,Curvature_radius_entry,lambda0_cm_phys*1.D-2)
+    CALL Gaussian_focus2Gaussian_entry(Intensity_focus,waist_focus,focus_position,Intensity_entry,w0_m_phys,&
+                                       Curvature_radius_entry,lambda0_cm_phys*1.D-2)
     IF (Curvature_radius_entry == 0.D0) THEN ! cumbersome as the inverse of the radius is not used... For compatibility.
       f_cm_phys = 0.D0
     ELSE

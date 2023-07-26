@@ -235,7 +235,7 @@ subroutine interpolate2D_lin(x,y,fxy,xgrid,ygrid,fxygrid,Nx,Ny,kx_tip,ky_tip) !i
     
     if (present(kx_tip) .and. present(ky_tip)) then
         call findinterval_2D(k1,k2,x,y,xgrid,ygrid,Nx,Ny,kx_tip=kx_tip,ky_tip=ky_tip)
-    elseif (present(kx_tip) .and. not(present(ky_tip))) then
+    elseif (present(kx_tip) .and. .not.(present(ky_tip))) then
         call findinterval_2D(k1,k2,x,y,xgrid,ygrid,Nx,Ny,kx_tip=kx_tip)
     elseif (present(ky_tip)) then
         call findinterval_2D(k1,k2,x,y,xgrid,ygrid,Nx,Ny,ky_tip=ky_tip)

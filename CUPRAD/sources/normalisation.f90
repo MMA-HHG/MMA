@@ -511,7 +511,8 @@ CONTAINS
           k_t=8.D0*DATAN(1.D0)*REAL(j-dim_t/2-1)/lt
           omegachi(j) = c*2.D0*PI/lambda0_cm_phys+k_t/(tp_fs_phys*1.d-15)
           omegachi(j) = omegachi(j)/(c*2.D0*PI*1.d8)
-          chi(j) = 8.377d-4*(1.D0+6.70d5*omegachi(j)**2+8.84d11*omegachi(j)**4+1.49d18*omegachi(j)**6+2.74d24*omegachi(j)**8+5.10d30*omegachi(j)**10) !krypton, dalgarno and kingston
+          chi(j) = 8.377d-4*(1.D0+6.70d5*omegachi(j)**2+8.84d11*omegachi(j)**4+1.49d18*omegachi(j)**6+2.74d24*omegachi(j)**8+&
+                   5.10d30*omegachi(j)**10) !krypton, dalgarno and kingston
           chi(j) = 1.D0+chi(j)*pressure
           chi(j) = sqrt(chi(j))
        ENDDO
@@ -528,7 +529,8 @@ CONTAINS
           k_t=REAL(j,8)*2.D0*omega   ! k_t = w_adim - w0_adim
           omegachi(j) = c*2.D0*PI/lambda0_cm_phys+k_t/(tp_fs_phys*1.d-15)
           omegachi(j) = omegachi(j)/(c*2.D0*PI*1.d8)
-          chi(j) = 8.377d-4*(1.D0+6.70d5*omegachi(j)**2+8.84d11*omegachi(j)**4+1.49d18*omegachi(j)**6+2.74d24*omegachi(j)**8+5.10d30*omegachi(j)**10) !krypton, dalgarno and kingston
+          chi(j) = 8.377d-4*(1.D0+6.70d5*omegachi(j)**2+8.84d11*omegachi(j)**4+1.49d18*omegachi(j)**6+2.74d24*omegachi(j)**8+&
+                   5.10d30*omegachi(j)**10) !krypton, dalgarno and kingston
           chi(j) = 1.D0+chi(j)*pressure
           chi(j) = sqrt(chi(j))                ! chi = E(w) =  sqrt(1+X(w))
           komega(j) = (c*2.D0*PI/lambda0_cm_phys*tp_fs_phys*1.d-15+k_t)/(c*tp_fs_phys*1.d-15/(4*z_rayleigh_cm_phys))*chi(j)
@@ -540,7 +542,8 @@ CONTAINS
           k_t=8.D0*DATAN(1.D0)*REAL(j-dim_t/2-1)/lt+omega_uppe-omega
           omegachi(j) = c*2.D0*PI/lambda0_cm_phys+k_t/(tp_fs_phys*1.d-15)
           omegachi(j) = omegachi(j)/(c*2.D0*PI*1.d8)
-          chi(j) = 8.377d-4*(1.D0+6.70d5*omegachi(j)**2+8.84d11*omegachi(j)**4+1.49d18*omegachi(j)**6+2.74d24*omegachi(j)**8+5.10d30*omegachi(j)**10) !krypton, dalgarno and kingston
+          chi(j) = 8.377d-4*(1.D0+6.70d5*omegachi(j)**2+8.84d11*omegachi(j)**4+1.49d18*omegachi(j)**6+2.74d24*omegachi(j)**8+&
+                   5.10d30*omegachi(j)**10) !krypton, dalgarno and kingston
           chi(j) = 1.D0+chi(j)*pressure
           chi(j) = sqrt(chi(j))
        ENDDO

@@ -4,37 +4,52 @@
 #CINES correction   MPIF90 = mpif90
 #CINES commentaire : mpif90 est A utiliser avec openmpi
 #CINES commentaire : mpiifort est A utiliser avec intelmpi
-  MPIF90 = mpiifort
-#  MPIF90 = mpif90
-  F90    = ifort
-#  F90    = gfortran  
+#  MPIF90 = mpiifort
+	MPIF90 = mpif90
+#  F90    = ifort
+#	F90    = gfortran  
+	F90    = mpif90  
+# F90    = h5fc  
 #  H5 = h5pfc
-#  FFT     = -lfftw3_mpi -lfftw3
-  FFLAGS =  -check all -warn all -traceback -fpe0
+	### FFTW libraries for linking
+	FFT     = -lfftw3_mpi -lfftw3
+### Does not work on a Mac
+#  FFLAGS =  -check all -warn all -traceback -fpe0
+	#FFLAGS =  -fcheck=all -W -fbacktrace -ffpe-trap=zero -ffree-line-length-300
+
+	### Optional flags for compilation
+	FFLAGS = -fbacktrace -ffpe-trap=zero -ffree-line-length-250
 #  FFLAGS =  -Wall -O2 -ffree-line-length-none -fbacktrace -fcheck=all -v -g3 # -g[0-3] is for debuging
 #  FFLAGS =  -Wall -O0 -ffree-line-length-none -fbacktrace -fcheck=all -Wuninitialized -v -g -fbounds-check
 #  FFLAGS =  -O3 -ansi_alias 
-  LFLAGS = -lhdf5 -lhdf5_hl -lhdf5_fortran -lhdf5hl_fortran -lz 
+
+	### HDF5 library linking
+	LFLAGS = -lhdf5 -lhdf5_hl -lhdf5_fortran -lhdf5hl_fortran -lz -lm
+	#LFLAGS = -lhdf5 -lm
 #  LFLAGS = -lfftw3_mpi -lfftw3 -lhdf5 -lhdf5_hl -lhdf5_fortran -lhdf5hl_fortran -lz -lm
 #  LDLIBS = -lfftw3_mpi -lfftw3 -lhdf5 -lhdf5_hl -lhdf5_fortran -lhdf5hl_fortran -lz -lm
-  FFTPATH    = $(MKL_LIBS_MT)
+### What is the MKL_LIBS_MT variable???
+#  FFTPATH    = $(MKL_LIBS_MT)
 #  FFTPATH    = /gpfs/apps/tools/modulefiles/software/FFTW/3.3.5-OpenMPI-1.10.2-GCC-6.1.0-psm-dbg/lib/libfftw3.so
+
+	### Path to FFTW and HDF5 libraries and inclusion of corresponding files
+	FFTPATH = -I/usr/local/include -L/usr/local/lib
 #  H5INCLUDE  = /gpfs/apps/tools/modulefiles/software/HDF5/1.8.13-OpenMPI-1.10.2-GCC-6.1.0-psm/include
 #  H5LIBS = /gpfs/apps/tools/modulefiles/software/HDF5/1.8.13-OpenMPI-1.10.2-GCC-6.1.0-psm/lib
 #  FFT     = -lfftw3
-  PROPAGATION       = cuprad_occigen.e
-  S_PROPAGATION       = constants.f90 linked_list_module.f90 hdf5_helper_serial.f90 hdf5_helper.f90 array_helper.f90 \
-                        modules.f90 pre_ionised.f90 code_ionisation.f90 fft_rk.f90 finalize.f90 \
-                        firststep.f90 longstep_rk.f90 output.f90 cuprad.f90
-  MAKE_START	   = make_start_occigen.e
-  S_MAKE_START       = constants.f90 hdf5_helper_serial.f90 hdf5_helper.f90 write_start.f90 calc_start.f90 normalisation.f90 \
-                       write_listing.f90 default_inputs.f90 make_start.f90
-  CLEAN       = clean_occigen.e
-  S_CLEAN	= clean.f90
-  MERGE       = merge_occigen.e
-  S_MERGE	= merge.f90
-  CALC_FT	= calc_ft_occigen.e
-  S_CALC_FT	  = constants.f90 modules.f90 fft.f90 calc_ft.f90
+	PROPAGATION       = cuprad_occigen.e
+	S_PROPAGATION       = constants.f90 linked_list_module.f90 hdf5_helper_serial.f90 hdf5_helper.f90 array_helper.f90 \
+												modules.f90 pre_ionised.f90 code_ionisation.f90 fft_rk.f90 finalize.f90 \
+												firststep.f90 longstep_rk.f90 output.f90 cuprad.f90
+	MAKE_START	   = make_start_occigen.e
+	S_MAKE_START       = constants.f90 hdf5_helper_serial.f90 hdf5_helper.f90 write_start.f90 calc_start.f90 normalisation.f90 \
+											 write_listing.f90 default_inputs.f90 make_start.f90
+	CLEAN       = clean_occigen.e
+	S_CLEAN	= clean.f90
+	MERGE       = merge_occigen.e
+	S_MERGE	= merge.f90
+	CALC_FT	= calc_ft_occigen.e
+	S_CALC_FT	  = constants.f90 modules.f90 fft.f90 calc_ft.f90
 
 
 #
@@ -67,17 +82,20 @@ $(CALC_FT) : $(S_CALC_FT)
 #      Utilities
 #
 clean :
-	/bin/rm -f *.e
 	/bin/rm -f *.o
 	/bin/rm -f *.mod
+	/bin/rm -f *.e
 #
+
 binary :
-	/bin/mv *.e ../binary
+#	/bin/mv *.e ../binary
+	if [ ! -d "../binary" ]; then mkdir ../binary; fi;
+	/bin/mv -f *.e ../binary/
 #
 clean_preprocessor :
 	rm -f listing STOP *.DAT *.LOG
 #
-code : clean_preprocessor linked_list $(CALC_FT) $(MAKE_START) $(MAKE_START_4WM) $(PROPAGATION) $(PROPAGATION_DEFOK) $(PROPAGATION_MICKAEL) $(CLEAN) $(MERGE) binary # clean
+code : clean_preprocessor linked_list $(CALC_FT) $(MAKE_START) $(MAKE_START_4WM) $(PROPAGATION) $(PROPAGATION_DEFOK) $(PROPAGATION_MICKAEL) $(CLEAN) $(MERGE) binary clean
 #
 preprocessor : clean clean_preprocessor $(MAKE_START)
 #

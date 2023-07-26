@@ -12,6 +12,7 @@ PROGRAM CALC_FT
   COMPLEX(8), ALLOCATABLE :: ex(:),ey(:)
   CHARACTER(10) filename
   LOGICAL existence
+  !INTEGER ios
 
   CALL MPI_Init(ierr)
   CALL MPI_Comm_rank(MPI_COMM_WORLD,my_rank,ierr)
@@ -35,7 +36,7 @@ CONTAINS
   SUBROUTINE READPARA
     IMPLICIT NONE
 
-    INTEGER(4) j,i
+    INTEGER(4) j,i  
     REAL(8) lambda0_cm_phys,tp_fs_phys,c,k0_phys
     CHARACTER(50) dummy
 
@@ -64,9 +65,9 @@ CONTAINS
     ENDIF
     CALL MPI_BCAST(dim_t,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
     CALL MPI_BCAST(dim_r,1,MPI_INTEGER,0,MPI_COMM_WORLD,ierr)
-    CALL MPI_BCAST(lt,1,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
-    CALL MPI_BCAST(lr,1,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
-    CALL MPI_BCAST(omega_uppe,1,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
+    CALL MPI_BCAST(lt,1,MPI_DOUBLE,0,MPI_COMM_WORLD,ierr)
+    CALL MPI_BCAST(lr,1,MPI_DOUBLE,0,MPI_COMM_WORLD,ierr)
+    CALL MPI_BCAST(omega_uppe,1,MPI_DOUBLE,0,MPI_COMM_WORLD,ierr)
     ALLOCATE (cbuffer(dim_t,dim_r),r(dim_r),ex(2*dim_r),ey(2*dim_r))
     k_t=8.D0*DATAN(1.D0)/lt
     k_r=8.D0*DATAN(1.D0)/(2.D0*lr)
