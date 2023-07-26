@@ -6,18 +6,28 @@ enable_language(Fortran)
 
 # Set compiler flags
 set(CMAKE_Fortran_FLAGS "-fbacktrace -ffpe-trap=zero -ffree-line-length-250")
+set(HDF5_PREFER_PARALLEL TRUE)
+set(HDF5_USE_STATIC_LIBRARIES OFF)
 
 # Set compiler
-#set(MPI_Fortran_COMPILER "mpif90")
+#set(MPI_Fortran_COMPILER "mpifort")
 
 # Find FFTW and HDF5 libraries
 #find_package(FFTW3 REQUIRED)
-find_library(FFTW3 FFTW3 REQUIRED)
+#find_library(fftw3 fftw3 REQUIRED)
 #find_library(HDF5 HDF5 REQUIRED COMPONENTS Fortran HL)
 find_package(HDF5 REQUIRED COMPONENTS Fortran HL)
-include_directories(${HDF5_INCLUDE_DIRS})
+#include_directories(${HDF5_INCLUDE_DIRS})
+#target_link_libraries(
+#    ${HDF5_LIBRARIES} # This should list all libraries.
+#)
+#find_library(MPI MPI REQUIRED)
+#include_directories(/usr/local/Cellar/hdf5-mpi/1.14.1/include /usr/local/include)
+#include_directories()# /usr/local/include)
+#link_directories(/usr/local/Cellar/hdf5-mpi/1.14.1/lib /usr/local/lib)# /usr/local/lib)
+#link_directories(/usr/local/Cellar/hdf5-mpi/1.14.1/lib)# /usr/local/lib)
+link_directories(/usr/local/lib)
 #find_library(LIBRARY_HDF5 HDF5 REQUIRED)
-#find_package(MPI REQUIRED)
 #find_library(MPI REQUIRED)
 
 # Add executable targets
@@ -25,12 +35,17 @@ add_executable(cuprad_occigen.e sources/constants.f90 sources/linked_list_module
 #target_link_libraries(cuprad_occigen.e PRIVATE LIBRARY_FFTW3 LIBRARY_HDF5)
 #include_directories(sources)
 #target_link_libraries(cuprad_occigen.e LIBRARY_FFTW3 HDF5)
-target_link_libraries(cuprad_occigen.e FFTW3 ${HDF5_LIBRARIES})
+target_link_libraries(cuprad_occigen.e fftw3 fftw3_mpi ${HDF5_LIBRARIES})#hdf5 hdf5_hl hdf5_fortran hdf5hl_fortran)
+target_include_directories(cuprad_occigen.e PRIVATE /usr/local/Cellar/hdf5-mpi/1.14.1/include)
+#target_link_libraries(cuprad_occigen.e PUBLIC fftw3 fftw3_mpi HDF5)
 #target_link_libraries(make_start_occigen.e PRIVATE LIBRARY_FFTW3::FFTW3 HDF5::HDF5_Fortran)
 
 add_executable(make_start_occigen.e sources/constants.f90 sources/hdf5_helper_serial.f90 sources/hdf5_helper.f90 sources/write_start.f90 sources/calc_start.f90 sources/normalisation.f90 sources/write_listing.f90 sources/default_inputs.f90 sources/make_start.f90)
+target_include_directories(make_start_occigen.e PRIVATE /usr/local/Cellar/hdf5-mpi/1.14.1/include)
 #target_link_libraries(make_start_occigen.e FFTW3 HDF5)
-target_link_libraries(make_start_occigen.e FFTW3 ${HDF5_LIBRARIES})
+#target_link_libraries(make_start_occigen.e hdf5 hdf5_hl hdf5_fortran hdf5hl_fortran fftw3 fftw3_mpi)
+target_link_libraries(make_start_occigen.e ${HDF5_LIBRARIES} fftw3 fftw3_mpi)
+#target_link_libraries(make_start_occigen.e hdf5 fftw3 fftw3_mpi)
 #target_link_libraries(make_start_occigen.e PRIVATE LIBRARY_FFTW3 HDF5)
 
 add_executable(clean_occigen.e sources/clean.f90)
@@ -38,7 +53,7 @@ add_executable(clean_occigen.e sources/clean.f90)
 add_executable(merge_occigen.e sources/merge.f90)
 
 add_executable(calc_ft_occigen.e sources/constants.f90 sources/modules.f90 sources/fft.f90 sources/calc_ft.f90)
-target_link_libraries(calc_ft_occigen.e FFTW3)
+target_link_libraries(calc_ft_occigen.e fftw3 fftw3_mpi)
 #target_link_libraries(calc_ft_occigen.e PRIVATE LIBRARY_FFTW3)
 
 # Add custom commands
