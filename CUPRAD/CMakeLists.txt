@@ -27,7 +27,8 @@ set(S_PROPAGATION sources/constants.f90 sources/linked_list_module.f90
 set(MAKE_START make_start_occigen.e)
 set(S_MAKE_START sources/constants.f90 sources/hdf5_helper_serial.f90 
     sources/hdf5_helper.f90 sources/write_start.f90 sources/calc_start.f90 
-    sources/normalisation.f90 sources/write_listing.f90 sources/default_inputs.f90 sources/make_start.f90)
+    sources/normalisation.f90 sources/write_listing.f90 sources/default_inputs.f90 
+    sources/make_start.f90)
 
 set(CLEAN clean_occigen.e)
 set(S_CLEAN sources/clean.f90)
@@ -36,7 +37,8 @@ set(MERGE merge_occigen.e)
 set(S_MERGE sources/merge.f90)
 
 set(CALC_FT calc_ft_occigen.e)
-set(S_CALC_FT sources/constants.f90 sources/modules.f90 sources/fft.f90 sources/calc_ft.f90)
+set(S_CALC_FT sources/constants.f90 sources/linked_list_module.f90 
+    sources/modules.f90 sources/fft.f90 sources/calc_ft.f90)
 
 ### Executable targets
 ### ==================
@@ -60,12 +62,16 @@ add_executable(${MERGE} ${S_MERGE})
 add_executable(${CALC_FT} ${S_CALC_FT})
 target_link_libraries(${CALC_FT} fftw3 fftw3_mpi)
 
+### Linked list module
+#add_executable(linked_list.mod sources/linked_list_module.f90)
+
 
 ### Add custom commands
 #add_custom_target(mv_binary 
 #    COMMAND if [ ! -d "../binary" ]; then mkdir ../binary; fi
 #    COMMAND /bin/mv -f *.e ../binary/
 #)
+#add_custom_target(linked_list DEPENDS linked_list.mod)
 add_custom_target(clean_preprocessor COMMAND rm -f listing STOP *.DAT *.LOG)
 add_custom_target(code DEPENDS clean_preprocessor ${CALC_FT} ${MAKE_START} ${PROPAGATION} ${CLEAN} ${MERGE})
 add_custom_target(preprocessor DEPENDS clean_preprocessor ${MAKE_START})
