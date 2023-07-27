@@ -5,7 +5,7 @@ project(cuprad)
 enable_language(Fortran)      
 
 ### Set compiler flags
-set(CMAKE_Fortran_FLAGS "-fcheck=all -W -Wno-compare-reals -fbacktrace -ffpe-trap=zero -ffree-line-length-250")
+set(CMAKE_Fortran_FLAGS "-fcheck=all -W -Wno-compare-reals -fbacktrace -ffpe-trap=zero -ffree-line-length-250 -g")
 
 ### Find FFTW and HDF5 libraries and packages
 find_library(fftw3 fftw3)
