@@ -17,12 +17,12 @@ CONTAINS
     WRITE(100,'(a,t50,i5)') 'number of points in r',dim_r
     WRITE(100,'(a,t50,es12.4)') 'length of window for t, normalized to t_p',lt
     WRITE(100,'(a,t50,es12.4)') 'length of window for r, normalized to w_0',lr
-    WRITE(100,'(a,t50,es12.4,x,a)') 'step width in time',lt*tp_fs_phys/dim_t,'fs'
-    WRITE(100,'(a,t50,es12.4,x,a)') 'x-step width',lr*w0_cm_phys*10000/dim_r,'mum'
-    WRITE(100,'(a,t50,es12.4,x,a)') 'physical distance of propagation',proplength_m_phys,'m'
-    WRITE(100,'(a,t50,es12.4,x,a)') 'physical output distance for matlab files',outlength_m_phys,'m'
-    WRITE(100,'(a,t50,es12.4,x,a)') 'radius for diagnostics',rfil_mm_phys,'mm'
-    WRITE(100,'(a,t50,es12.4,x,a)') 'physical first stepwidth (code might reduce it)',delta_z_mm_phys,'mm'
+    WRITE(100,'(a,t50,es12.4, 1x,a)') 'step width in time',lt*tp_fs_phys/dim_t,'fs'
+    WRITE(100,'(a,t50,es12.4, 1x,a)') 'x-step width',lr*w0_cm_phys*10000/dim_r,'mum'
+    WRITE(100,'(a,t50,es12.4, 1x,a)') 'physical distance of propagation',proplength_m_phys,'m'
+    WRITE(100,'(a,t50,es12.4, 1x,a)') 'physical output distance for matlab files',outlength_m_phys,'m'
+    WRITE(100,'(a,t50,es12.4, 1x,a)') 'radius for diagnostics',rfil_mm_phys,'mm'
+    WRITE(100,'(a,t50,es12.4, 1x,a)') 'physical first stepwidth (code might reduce it)',delta_z_mm_phys,'mm'
     WRITE(100,'(a,t50,i3)') 'number of absorber points in time',absorb
     WRITE(100,'(a,t50,es12.4)') 'phase threshold for increasing delta_z',increase
     WRITE(100,'(a,t50,es12.4)') 'phase threshold for decreasing delta_z',decrease
@@ -30,28 +30,28 @@ CONTAINS
     WRITE(100,'(a,t50,es12.4/)') 'approx runtime in hours',time_limit
 
     WRITE(100,'(t5,a,t20,a/)') 'PHYSICAL PARAMETERS'
-    WRITE(100,'(a,t50,es12.4,x,a)') 'wavelenght lambda0',lambda0_cm_phys,'cm'
-    WRITE(100,'(a,t50,es12.4,x,a)') 'beamwaist',w0_cm_phys,'cm'
-    WRITE(100,'(a,t50,es12.4,x,a)') 'focal length in the medium (0 = no lense)',f_cm_phys,'cm'
+    WRITE(100,'(a,t50,es12.4, 1x,a)') 'wavelenght lambda0',lambda0_cm_phys,'cm'
+    WRITE(100,'(a,t50,es12.4, 1x,a)') 'beamwaist',w0_cm_phys,'cm'
+    WRITE(100,'(a,t50,es12.4, 1x,a)') 'focal length in the medium (0 = no lense)',f_cm_phys,'cm'
     WRITE(100,'(a,t50,es12.4)') 'lense parameter exp(-L((x/w0)^2+(y/w0)^2))',lense_factor
-    WRITE(100,'(a,t50,es12.4,x,a)') 'pulse duration',tp_fs_phys,'fs'
+    WRITE(100,'(a,t50,es12.4, 1x,a)') 'pulse duration',tp_fs_phys,'fs'
     SELECT CASE (switch_start)
     CASE(1) 
        WRITE(100,'(a,t50,es12.4)') 'chirp parameter exp(-C(t/t_p)^2)',chirp_factor
        WRITE(100,'(a,t50,es12.4)') 'ratio Pin/Pcr',numcrit
-       WRITE(100,'(a,t50,i4,x,a)') 'field noise spatial (amplitude)',int( noise_s * 100.d0),'%'
+       WRITE(100,'(a,t50,i4, 1x,a)') 'field noise spatial (amplitude)',int( noise_s * 100.d0),'%'
        WRITE(100,'(a,t50,i3)') 'SuperGaussian-in-space' ,super_N
-       WRITE(100,'(a,t50,i4,x,a)') 'field noise temporal (amplitude)',int( noise_t * 100.d0),'%'
+       WRITE(100,'(a,t50,i4, 1x,a)') 'field noise temporal (amplitude)',int( noise_t * 100.d0),'%'
        WRITE(100,'(a,t50,i3)') 'SuperGaussian-in-time' ,super_t
-       WRITE(100,'(a,t50,i4,x,a)') 'field noise (amplitude)',int( noise * 100.d0),'%'
+       WRITE(100,'(a,t50,i4, 1x,a)') 'field noise (amplitude)',int( noise * 100.d0),'%'
     CASE(2) 
        WRITE(100,'(a,t50,es12.4)') 'chirp parameter exp(-C(t/t_p)^2)',chirp_factor
        WRITE(100,'(a,t50,es12.4)') 'ratio Pin/Pcr',numcrit
-       WRITE(100,'(a,t50,i4,x,a)') 'field noise spatial (amplitude)',int( noise_s * 100.d0),'%'
+       WRITE(100,'(a,t50,i4, 1x,a)') 'field noise spatial (amplitude)',int( noise_s * 100.d0),'%'
        WRITE(100,'(a,t50,i3)') 'SuperGaussian-in-space' ,super_N
-       WRITE(100,'(a,t50,i4,x,a)') 'field noise temporal (amplitude)',int( noise_t * 100.d0),'%'
+       WRITE(100,'(a,t50,i4, 1x,a)') 'field noise temporal (amplitude)',int( noise_t * 100.d0),'%'
        WRITE(100, '(a,t50)') 'input temporal profile from file '//inputfilename_t
-       WRITE(100,'(a,t50,i4,x,a)') 'field noise (amplitude)',int( noise * 100.d0),'%'
+       WRITE(100,'(a,t50,i4, 1x,a)') 'field noise (amplitude)',int( noise * 100.d0),'%'
     CASE(3)
        WRITE(100, '(a,t50)') 'CONTINUATION!!!!!!!!!!!!'
        ! WRITE(100, '(a,t50)') 'initial condition from files '//inputfilename_c
@@ -61,17 +61,17 @@ CONTAINS
        ! WRITE(100, '(a,t50)') 'initial condition from files '//inputfilename_c
        WRITE(100,'(a,t50,es12.4)') 'amplitude factor for medium change',restartamp
     END SELECT
-    WRITE(100,'(a,t50,es12.4,x,a)') 'pressure',pressure,'bar'
+    WRITE(100,'(a,t50,es12.4, 1x,a)') 'pressure',pressure,'bar'
     WRITE(100,'(a,t50,es12.4)') 'refractive index at lambda0',n0
     SELECT CASE (switch_dispersion)
     CASE(1) 
        WRITE(100, '(a,t50)') 'Taylor expansion for the dispersion law'
-       WRITE(100,'(a,t50,es12.4,x,a)') 'First order dispersion term - n0/c', delta_k_p_fs_per_cm_phys, 'fs/cm'
-       WRITE(100,'(a,t50,es12.4,x,a)') 'First order dispersion term', k_p_fs_per_cm_phys, 'fs/cm'
-       WRITE(100,'(a,t50,es12.4,x,a)') 'Second order dispersion term', k_pp_fs2_per_cm_phys, 'fs2/cm'
-       WRITE(100,'(a,t50,es12.4,x,a)') 'Third order dispersion term',  k_ppp_fs3_per_cm_phys , 'fs3/cm'
-       WRITE(100,'(a,t50,es12.4,x,a)') 'Fourth order dispersion term', k_pppp_fs4_per_cm_phys, 'fs4/cm'
-       WRITE(100,'(a,t50,es12.4,x,a)') 'Fifth order dispersion term', k_ppppp_fs5_per_cm_phys, 'fs5/cm'
+       WRITE(100,'(a,t50,es12.4, 1x,a)') 'First order dispersion term - n0/c', delta_k_p_fs_per_cm_phys, 'fs/cm'
+       WRITE(100,'(a,t50,es12.4, 1x,a)') 'First order dispersion term', k_p_fs_per_cm_phys, 'fs/cm'
+       WRITE(100,'(a,t50,es12.4, 1x,a)') 'Second order dispersion term', k_pp_fs2_per_cm_phys, 'fs2/cm'
+       WRITE(100,'(a,t50,es12.4, 1x,a)') 'Third order dispersion term',  k_ppp_fs3_per_cm_phys , 'fs3/cm'
+       WRITE(100,'(a,t50,es12.4, 1x,a)') 'Fourth order dispersion term', k_pppp_fs4_per_cm_phys, 'fs4/cm'
+       WRITE(100,'(a,t50,es12.4, 1x,a)') 'Fifth order dispersion term', k_ppppp_fs5_per_cm_phys, 'fs5/cm'
     CASE(2)
        WRITE(100, '(a,t50)') 'Sellmeier formula for silica, Agrawal' 
     CASE(3)
@@ -87,26 +87,26 @@ CONTAINS
     CASE(8)
        WRITE(100, '(a,t50)') 'dispersion for KDPo, Handbook of Optics' 
     END SELECT
-    WRITE(100,'(a,t50,es12.4,x,a)') 'Kerr coefficient',n2_phys,'cm2/W'
+    WRITE(100,'(a,t50,es12.4, 1x,a)') 'Kerr coefficient',n2_phys,'cm2/W'
     SELECT CASE (switch_dKerr)
     CASE(1)
        WRITE(100, '(a,t50)') 'Only instantaneous Kerr response'
     CASE(2)
        WRITE(100, '(a,t50)') 'Delayed Kerr response in exp[(T-t)/tk]'
        WRITE(100,'(a,t50,es12.4)') 'ratio delayed kerr /instantaneous kerr',xdk
-       WRITE(100,'(a,t50,es12.4,x,a)') 'time delayed kerr coefficient tk',tdk_fs_phys,'fs'
+       WRITE(100,'(a,t50,es12.4, 1x,a)') 'time delayed kerr coefficient tk',tdk_fs_phys,'fs'
     CASE(3)
        WRITE(100, '(a,t50)') 'Delayed Kerr response in exp[(T-t)/tk]*sin[wr(T-t)]'
        WRITE(100,'(a,t50,es12.4)') 'ratio delayed kerr / instantaneous kerr',xdk
-       WRITE(100,'(a,t50,es12.4,x,a)') 'time delayed kerr coefficient tk',tdk_fs_phys,'fs'
-       WRITE(100,'(a,t50,es12.4,x,a)') 'frequency in raman response wr',raman_phys,'fs-1'
+       WRITE(100,'(a,t50,es12.4, 1x,a)') 'time delayed kerr coefficient tk',tdk_fs_phys,'fs'
+       WRITE(100,'(a,t50,es12.4, 1x,a)') 'frequency in raman response wr',raman_phys,'fs-1'
     END SELECT
-    WRITE(100,'(a,t50,es12.4,x,a)') 'chi5 coefficient',n4_phys,'cm4/W2'
-    WRITE(100,'(a,t50,es12.4,x,a)') 'critical plasma density',rhoc_cm3_phys,'cm-3'
-    WRITE(100,'(a,t50,es12.4,x,a)') 'effective density of neutral molecules',rhont_cm3_phys,'cm-3'
-    WRITE(100,'(a,t50,es12.4,x,a)') 'physical initial electron density',rho0_phys,'cm-3'
-    WRITE(100,'(a,t50,es12.4,x,a)') 'gap potential for ionization of oxygen molecules',Ui_eV_phys,'eV'
-    WRITE(100,'(a,t50,es12.4,x,a)') 'gap potential for ionization of oxygen molecules',Ui_au_phys,'au'
+    WRITE(100,'(a,t50,es12.4, 1x,a)') 'chi5 coefficient',n4_phys,'cm4/W2'
+    WRITE(100,'(a,t50,es12.4, 1x,a)') 'critical plasma density',rhoc_cm3_phys,'cm-3'
+    WRITE(100,'(a,t50,es12.4, 1x,a)') 'effective density of neutral molecules',rhont_cm3_phys,'cm-3'
+    WRITE(100,'(a,t50,es12.4, 1x,a)') 'physical initial electron density',rho0_phys,'cm-3'
+    WRITE(100,'(a,t50,es12.4, 1x,a)') 'gap potential for ionization of oxygen molecules',Ui_eV_phys,'eV'
+    WRITE(100,'(a,t50,es12.4, 1x,a)') 'gap potential for ionization of oxygen molecules',Ui_au_phys,'au'
     SELECT CASE (switch_rho)
     CASE(8)
        WRITE(100,'(a,t50,i3)') 'CPR',switch_rho
@@ -114,13 +114,13 @@ CONTAINS
     CASE(1)
        WRITE(100,'(a,t50,i3)') 'Plasma equation solved with euler method',switch_rho
        WRITE(100,'(a,t50,i3)') 'number of photon needed to extract electrons',KK
-       WRITE(100,'(a,t50,es12.4,x,a)') 'coefficient for MPI',sigmak_phys,'s-1cm2K/W2'
-       WRITE(100,'(a,t50,es12.4,x,a)') 'coefficient of multiphoton absorption',betak_phys,'cm2K-3/WK-1'
+       WRITE(100,'(a,t50,es12.4, 1x,a)') 'coefficient for MPI',sigmak_phys,'s-1cm2K/W2'
+       WRITE(100,'(a,t50,es12.4, 1x,a)') 'coefficient of multiphoton absorption',betak_phys,'cm2K-3/WK-1'
     CASE(2)
        WRITE(100,'(a,t50,i3)') 'Plasma equation solved semi-analyticaly',switch_rho
        WRITE(100,'(a,t50,i3)') 'number of photon needed to extract electrons',KK
-       WRITE(100,'(a,t50,es12.4,x,a)') 'coefficient for MPI',sigmak_phys,'s-1cm2K/W2'
-       WRITE(100,'(a,t50,es12.4,x,a)') 'coefficient of multiphoton absorption',betak_phys,'cm2K-3/WK-1'
+       WRITE(100,'(a,t50,es12.4, 1x,a)') 'coefficient for MPI',sigmak_phys,'s-1cm2K/W2'
+       WRITE(100,'(a,t50,es12.4, 1x,a)') 'coefficient of multiphoton absorption',betak_phys,'cm2K-3/WK-1'
     CASE(3)
        WRITE(100,'(a,t50,i3)') 'PPT',switch_rho
        WRITE(100,'(a,t50,es12.4)') 'residue charge', residue_charge
@@ -136,21 +136,21 @@ CONTAINS
     CASE(4)
        WRITE(100,'(a,t50)') 'UPPE terms without harmonics included'
     END SELECT
-    WRITE(100,'(a,t50,es12.4,x,a)') 'electron collision time',tauc_fs_phys,'fs'
-    WRITE(100,'(a,t50,es12.4,x,a)') 'cross section for inverse bremsstrahlung',sigma_cm2_phys,'cm2'
-    WRITE(100,'(a,t50,es12.4,x,a)') 'rec. coefficient (linear) for MPI e',alpha_fs_phys,'fs-1'
+    WRITE(100,'(a,t50,es12.4, 1x,a)') 'electron collision time',tauc_fs_phys,'fs'
+    WRITE(100,'(a,t50,es12.4, 1x,a)') 'cross section for inverse bremsstrahlung',sigma_cm2_phys,'cm2'
+    WRITE(100,'(a,t50,es12.4, 1x,a)') 'rec. coefficient (linear) for MPI e',alpha_fs_phys,'fs-1'
 
 
-    WRITE(100,'(a,t50,es12.4,x,a)') 'recombination coefficent (quadratic)',alphaquad_fscm3_phys,'fs-1cm3'
-    WRITE(100,'(a,t50,es12.4,x,a)') 'photon energy',photon_energy_au_phys,'au'
+    WRITE(100,'(a,t50,es12.4, 1x,a)') 'recombination coefficent (quadratic)',alphaquad_fscm3_phys,'fs-1cm3'
+    WRITE(100,'(a,t50,es12.4, 1x,a)') 'photon energy',photon_energy_au_phys,'au'
     WRITE(100,'(a,t50,i3)') 'Number of photons for n-photon absoprtion',NN
-    WRITE(100,'(a,t50,es12.4,x,a)')'The n-photon absorption cross-section', sigman_phys, 's-1cm2N/WN'
-    WRITE(100,'(a,t50,es12.4,x,a/)')'Density of absorbent molecules', rhoabs_cm3_phys, 'cm-3'
+    WRITE(100,'(a,t50,es12.4, 1x,a)')'The n-photon absorption cross-section', sigman_phys, 's-1cm2N/WN'
+    WRITE(100,'(a,t50,es12.4, 1x,a/)')'Density of absorbent molecules', rhoabs_cm3_phys, 'cm-3'
 
     WRITE(100,'(t5,a,t20,a/)') 'CARACTERISTIC VALUES'
-    WRITE(100,'(a,t50,es12.4,x,a)') 'Rayleigh length',z_rayleigh_cm_phys,'cm'
-    WRITE(100,'(a,t50,es12.4,x,a)') 'critical power',Pcr_phys,'W'
-    WRITE(100,'(a,t50,es12.4,x,a/)') 'central wave number in vacuum',k0_phys,'cm-1'
+    WRITE(100,'(a,t50,es12.4, 1x,a)') 'Rayleigh length',z_rayleigh_cm_phys,'cm'
+    WRITE(100,'(a,t50,es12.4, 1x,a)') 'critical power',Pcr_phys,'W'
+    WRITE(100,'(a,t50,es12.4,1x,a/)') 'central wave number in vacuum',k0_phys,'cm-1'
 
     WRITE(100,'(t5,a,t20,a/)') 'ADIMMENSIONNED COEFFICIENTS'
     WRITE(100,'(a,t50,es12.4)') 'adimmensionned distance of propagation',proplength

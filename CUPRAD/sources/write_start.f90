@@ -154,7 +154,7 @@ CONTAINS
       DO k1=1, dim_t
         DO k2=1, dim_r
            real_e(k1,k2) = REAL( REAL( (efield_factor*efield_osc(k1)*e_full(k1,k2)) ) , 8 )
-           imag_e(k1,k2) = REAL( IMAG( (efield_factor*efield_osc(k1)*e_full(k1,k2)) ) , 8 )
+           imag_e(k1,k2) = REAL( AIMAG( (efield_factor*efield_osc(k1)*e_full(k1,k2)) ) , 8 )
            !real_e(k2,k1) = REAL( REAL( (e_full(k1,k2)) ) , 8 )
            !imag_e(k2,k1) = REAL( IMAG( (e_full(k1,k2)) ) , 8 )
         ENDDO

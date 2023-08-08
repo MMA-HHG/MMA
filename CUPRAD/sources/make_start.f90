@@ -10,6 +10,7 @@ PROGRAM make_start
   logical :: testingmode=.FALSE., exists_h5_refractive_index, dumlog
   integer :: test_number = 1
   real(8) :: Energy
+  real(8) :: dumreal
 
   integer, parameter :: available_dispersions(6) = (/1, 3, 4, 6, 7, 9/), available_ionisations(4) = (/1, 2, 3, 8/), &
                         available_beams(2) = (/1, 2/)
@@ -28,7 +29,7 @@ PROGRAM make_start
     test_number = get_test_number(filename)
     filename = "results.h5"
     INQUIRE(FILE=filename, EXIST=dumlog)
-    !IF (NOT(dumlog)) THEN
+    
     IF (.NOT.dumlog) THEN
       CALL h5fcreate_f(filename, H5F_ACC_TRUNC_F, file_id, error)   
     ELSE
@@ -36,7 +37,7 @@ PROGRAM make_start
     ENDIF
 
     CALL h5lexists_f(file_id, 'inputs', dumlog, error)
-    !IF (NOT(dumlog)) THEN
+    
     IF (.NOT.dumlog) THEN
       CALL h5gcreate_f(file_id, 'inputs', group_id, error)
       CALL h5gclose_f(group_id, error)   
@@ -303,28 +304,33 @@ PROGRAM make_start
     STOP "wrong pulse duration specification"
   END SELECT
 
-print *, 'Efield'
-print *, Convert_pulse_duration(tp_fs_phys, '1/e', '1/e', type2_in = 'Efield', type2_out = 'Efield')
-print *, Convert_pulse_duration(tp_fs_phys, '1/e', 'FWHM', type2_in = 'Efield', type2_out = 'Efield')
-print *, Convert_pulse_duration(tp_fs_phys, '1/e', 'rms', type2_in = 'Efield', type2_out = 'Efield')
+  print *, 'Efield'
+  dumreal = Convert_pulse_duration(tp_fs_phys, '1/e', '1/e', type2_in = 'Efield', type2_out = 'Efield')
+  print *, dumreal
+  dumreal = Convert_pulse_duration(tp_fs_phys, '1/e', 'FWHM', type2_in = 'Efield', type2_out = 'Efield')
+  print *, dumreal
+  dumreal = Convert_pulse_duration(tp_fs_phys, '1/e', 'rms', type2_in = 'Efield', type2_out = 'Efield')
+  print *, dumreal
 
-print *, 'Intensity'
-print *, Convert_pulse_duration(tp_fs_phys, '1/e', '1/e', type2_in = 'Efield', type2_out = 'Intensity')
-print *, Convert_pulse_duration(tp_fs_phys, '1/e', 'FWHM', type2_in = 'Efield', type2_out = 'Intensity')
-print *, Convert_pulse_duration(tp_fs_phys, '1/e', 'rms', type2_in = 'Efield', type2_out = 'Intensity')
+  print *, 'Intensity'
+  dumreal = Convert_pulse_duration(tp_fs_phys, '1/e', '1/e', type2_in = 'Efield', type2_out = 'Intensity')
+  print *, dumreal
+  dumreal = Convert_pulse_duration(tp_fs_phys, '1/e', 'FWHM', type2_in = 'Efield', type2_out = 'Intensity')
+  print *, dumreal
+  dumreal = Convert_pulse_duration(tp_fs_phys, '1/e', 'rms', type2_in = 'Efield', type2_out = 'Intensity')
+  print *, dumreal
+  !stop
 
-!stop
 
+  CALL save_or_replace(group_id, 'laser_pulse_duration_in_1_e_Efield', Convert_pulse_duration(tp_fs_phys, '1/e', '1/e', &
+                      type2_in = 'Efield', type2_out = 'Efield'), error, units_in = '[fs]')
+  CALL save_or_replace(group_id, 'laser_pulse_duration_in_rms_Efield', Convert_pulse_duration(tp_fs_phys, '1/e', 'rms', &
+                      type2_in = 'Efield', type2_out = 'Efield'), error, units_in = '[fs]')
+  CALL save_or_replace(group_id, 'laser_pulse_duration_in_FWHM_Efield', Convert_pulse_duration(tp_fs_phys, '1/e', 'FWHM', &
+                      type2_in = 'Efield', type2_out = 'Efield'), error, units_in = '[fs]')
 
-CALL save_or_replace(group_id, 'laser_pulse_duration_in_1_e_Efield', Convert_pulse_duration(tp_fs_phys, '1/e', '1/e', &
-                     type2_in = 'Efield', type2_out = 'Efield'), error, units_in = '[fs]')
-CALL save_or_replace(group_id, 'laser_pulse_duration_in_rms_Efield', Convert_pulse_duration(tp_fs_phys, '1/e', 'rms', &
-                     type2_in = 'Efield', type2_out = 'Efield'), error, units_in = '[fs]')
-CALL save_or_replace(group_id, 'laser_pulse_duration_in_FWHM_Efield', Convert_pulse_duration(tp_fs_phys, '1/e', 'FWHM', &
-                     type2_in = 'Efield', type2_out = 'Efield'), error, units_in = '[fs]')
-
-CALL save_or_replace(group_id, 'laser_pulse_duration_in_1_e_Intensity', Convert_pulse_duration(tp_fs_phys, '1/e', '1/e', &
-                     type2_in = 'Efield', type2_out = 'Intensity'), error, units_in = '[fs]')
+  CALL save_or_replace(group_id, 'laser_pulse_duration_in_1_e_Intensity', Convert_pulse_duration(tp_fs_phys, '1/e', '1/e', &
+                      type2_in = 'Efield', type2_out = 'Intensity'), error, units_in = '[fs]')
 
   CALL save_or_replace(group_id, 'laser_pulse_duration_in_rms_Intensity', Convert_pulse_duration(tp_fs_phys, '1/e', 'rms', &
                        type2_in = 'Efield', type2_out = 'Intensity'), error, units_in = '[fs]')

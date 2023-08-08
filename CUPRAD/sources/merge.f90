@@ -43,7 +43,7 @@ PROGRAM MERGE
      ENDDO
      CLOSE(11)
   ENDDO
-  zmax = MAX( buffer(1,2), 0.D0)
+  zmax = MAX( buffer(1,2), 0.)
   zcount = 1
   DO j = 3, dim_z+1
      IF( buffer(1,j).GT.zmax) THEN
@@ -91,7 +91,7 @@ PROGRAM MERGE
      ENDDO
      CLOSE(11)
   ENDDO
-  zmax = MAX( buffer(1,2), 0.D0)
+  zmax = MAX( buffer(1,2), 0.)
   zcount = 1
   DO j = 3, dim_z+1
      IF( buffer(1,j).GT.zmax) THEN
@@ -139,7 +139,7 @@ PROGRAM MERGE
      ENDDO
      CLOSE(11)
   ENDDO
-  zmax = MAX( buffer(1,2), 0.D0)
+  zmax = MAX( buffer(1,2), 0.)
   zcount = 1
   DO j = 3, dim_z+1
      IF( buffer(1,j).GT.zmax) THEN
@@ -187,7 +187,7 @@ PROGRAM MERGE
      ENDDO
      CLOSE(11)
   ENDDO
-  zmax = MAX( buffer(1,2), 0.D0)
+  zmax = MAX( buffer(1,2), 0.)
   zcount = 1
   DO j = 3, dim_z+1
      IF( buffer(1,j).GT.zmax) THEN
