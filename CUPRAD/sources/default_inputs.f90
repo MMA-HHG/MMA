@@ -375,7 +375,7 @@ subroutine preset_numerics_tests(test_number)
         num_proc = 32
         time_limit = 1.98d0 
     case(25,26,28:30)  
-        num_proc = 32
+        num_proc = 4
         time_limit = 23.95d0 
     case(27)  
         num_proc = 16
@@ -397,6 +397,7 @@ subroutine preset_numerics_tests(test_number)
         absorb = 16     
     case(31)
         lt = 12.d0
+        !dim_t = 2048 ! asymmetric
         dim_t = 16 ! asymmetric
         absorb = 16     
     end select
@@ -442,15 +443,15 @@ subroutine preset_numerics_tests(test_number)
     case(23)
         outlength_m_phys = 0.000001d0  
         outlength_Efield_m_phys = 0.075d0    
-    case(24:27,29,30)
+    case(24:27,29,30,31)
         outlength_m_phys = 0.000002d0  
         outlength_Efield_m_phys = 0.075d0 
     case(28)
         outlength_m_phys = 0.0005d0  
         outlength_Efield_m_phys = 0.075d0    
-    case(31)
-        outlength_m_phys = 0.000005d0  
-        outlength_Efield_m_phys = 0.00075d0    
+    !case(31)
+    !    outlength_m_phys = 0.000005d0  
+    !    outlength_Efield_m_phys = 0.00075d0    
     end select
     call save_or_replace(file_id, 'inputs/numerics_physical_output_distance_for_Efield_only', &
                          outlength_Efield_m_phys, error, units_in = '[m]')
@@ -507,7 +508,7 @@ subroutine preset_physics(test_number)
     case(30)
         proplength_m_phys = 0.0003d0
     case(31)
-        proplength_m_phys = 0.000003d0
+        proplength_m_phys = 0.0003d0
     end select   
 
 !---------------------------------------------------------------------------------------------------------------------!
