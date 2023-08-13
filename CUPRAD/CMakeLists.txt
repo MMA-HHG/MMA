@@ -73,11 +73,11 @@ set(S_CALC_FT sources/constants.f90 sources/linked_list_module.f90
 ### cuprad.e
 add_executable(${PROPAGATION} ${S_PROPAGATION})
 target_link_libraries(${PROPAGATION} fftw3 fftw3_mpi ${HDF5_LIBRARIES} ${MPI_Fortran_LIBRARIES})
-target_include_directories(${PROPAGATION} PRIVATE ${HDF5_INCLUDE_DIRS} ${MPI_Fortran_INCLUDE_PATH})
+target_include_directories(${PROPAGATION} PRIVATE ${HDF5_INCLUDE_DIRS} ${MPI_Fortran_INCLUDE_PATH} /usr/local/include)
 
 ### make_start.e
 add_executable(${MAKE_START} ${S_MAKE_START})
-target_include_directories(${MAKE_START} PRIVATE ${HDF5_INCLUDE_DIRS})# /usr/local/include)
+target_include_directories(${MAKE_START} PRIVATE ${HDF5_INCLUDE_DIRS} /usr/local/include)
 target_link_libraries(${MAKE_START} ${HDF5_LIBRARIES} fftw3 fftw3_mpi)# ${MPI_Fortran_LIBRARIES})
 
 ### clean.e
