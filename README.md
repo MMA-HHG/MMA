@@ -1,6 +1,19 @@
 # Development notes
-The development of the coupled model
+Here are notes to the development of the whole model. The development of the particular modules - ***CUPRAD***, ***1D-TDSE*** and ***Hankel*** - are in the `README.md`'s in their respective directories.
 
+The work on the publication is being done in an independet repo `XXX`.
+
+
+## To do list
+* *Make compilation smooth and easy on various machines (ongoing)*
+* Clean-up the code
+* Implement density modulation (CUPRAD + Hankel)
+* Enhance code + executables (compilation with a 'pedantic' compiler, valgrind)
+* Test cases & tutorials
+* CodeOcean capsule
+
+
+# General notes
 ## PYTHONPATH organisation
 
 Several Python procedures require modules from various places. The actual approach is to include all the locations in PYTHONPATH
