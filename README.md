@@ -8,6 +8,8 @@ The work on the publication is being done in an independet repo `XXX`.
 * *Make compilation smooth and easy on various machines (ongoing)*
 * Clean-up the code
 * Implement density modulation (CUPRAD + Hankel)
+* Organise Pythonic procedures (Hankel + various post-processings)
+    * THere is used the module `mynumerics`, this shall be cleaned & integrated in the multiscale model
 * Enhance code + executables (compilation with a 'pedantic' compiler, valgrind)
 * Test cases & tutorials
 * CodeOcean capsule
