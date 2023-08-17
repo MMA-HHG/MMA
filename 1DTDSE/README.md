@@ -1,3 +1,26 @@
+# Development
+
+## Goals
+TDSE is used as a part of the multi-scale model. It is also usefull itself for various solely microscopic studies. Furthemore, it might have more usages for the macroscopic studies: 1) to process numerical fields from CUPRADS, 2) to create a list of microscopic currents that are used to intepolate the HHG sources in a macroscopic medium.
+
+The code shall be well-organised for all these tasks: core-rutines are written only once and are called from different programs. The architecture is the following: the solver itselfs works as a function `inputs` $\to$ `outputs`. This is called from the driving programs for each task.
+
+We provide two opssible operations in the publication:
+* MPI processing of the numerical field
+* A single caller to treat microscopic problems
+
+## Improvements
+* The single caller is separated in `single_caller.c` and `prop.c`. The former just unpacks and packs I/O structures to feed the caller. I think this is a bit clumsy and might be improved.
+* The main part of the multi-scale model is the MPI scheduler. We need to comment and polish it.
+	* The scheduler now works in a strided regime: zeroth processors gets tasks $0,N_{\text{procs}},2N_{\text{procs}},\dots$, first processor $1,N_{\text{procs}}+1,2N_{\text{procs}}+1,\dots$, ... (See `strided_scheduler*.c`.)
+	* Current implementation uses a hdf5-output for each processor. Results are merged by Python code `post_processing/merge*.py`. We might use a collective access similarly to CUPRAD to store outputs directly.
+	* The opearation still doesn't seem optimal. Some processors end their work much later than the others (the tasks are similar & by repated runs for the same configurations, it were different processors). It seem some subtasks are locked for some time (but not deadlocked). This was difficult to trace, the scale of the task was also a possible issue.
+	* It seem to me that an elegant design would be to use a shared counter to assign tasks to idle processors. This functionality was introduced in the MPI3 standard as is provided as an example `NXTVAL` in the reference book[^1]. I was trying to implement it (see `hdf5+mpi_tuto/*`, `counting.c`, `counting2.c`), but it was unstable and problematic. We try to find someone experienced in MPI3 and discuss it.
+
+
+[^1]: Gropp, Hoefler, THakur, Lusk *Using Advanced MPI*
+
+
 # Minimalistic user-guide
 This folder cointais a collection of *.c codes and a Python script used for
 

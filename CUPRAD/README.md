@@ -1,18 +1,28 @@
 # CUPRAD
 
-This is a nutshell guide of the propagation code, it explains the basics of its operation and main ideas implemented in the code.
+## Development notes
+
+* The code is not written in a single style according to various contributors.
+    * I propose to keep a single style within each module, but to not unify it globally.
+    * The in-line commenting of the code shall be extended.
+* The use of the code requires a pre-processor.
+    * The pre-processor does a lot of tedious work: mainly the conversion from SI inputs to *computational units **[C.U.]***. It will require a lot of thesting and work to Pythonise the pre-processor/include conversion in the main code/... I propse to clean up the pre-processor for now.
+* Data treatment:
+    * The storing procedures need a better organisation. For example, the field is printed twice.
+* Overall functionality
+    * There are still some extensions of the code that shall be either commented or deprecated[^1] to provide a clear code.
+* Code continuation: it is now disallowed. THe purpose of it is to separate a long simulation into more jobs. It shall be easy to reintroduce: we just need to properly use the endplane as the input for the next run.
+
+[^1]: It might be reintroduced later.
 
 
-## NEWS
-Continuation is now disallowed as it requires special treatment for the HDF5 file.
+<!-- `module pre_ionised`: it allows to compute the pre-ionisation. It also encapsulates most of the work in the module and minimal changes are in the main code. Only firs-step changed slightly and on-the-fly calculations.
 
-`module pre_ionised`: it allows to compute the pre-ionisation. It also encapsulates most of the work in the module and minimal changes are in the main code. Only firs-step changed slightly and on-the-fly calculations.
-
-switch dispersion is applied only in the pre-processor to create the table
+switch dispersion is applied only in the pre-processor to create the table -->
 
 
 
-## Development
+<!-- ## Development
 Transformation of $1/e$ to FWHM has to be checked. 
 
 Should we keep all inputs in one hdf5-group, or use further hierarchisation?
@@ -22,17 +32,19 @@ I commented most of the code. I found that the less readable are firstep and lon
 `SUBROUTINE mult_phase`: it's not so clear to me what effects are included in the propagator and which are applied in time domain afterwards.
 
 ### printing procedure
-There are two procedures now,it should be rewritten and driven by an if-construct to select prints on demand. Solve naming problem by passing struct containing strings.
+There are two procedures now,it should be rewritten and driven by an if-construct to select prints on demand. Solve naming problem by passing struct containing strings. -->
 
+# Stub of documentation
+This is a nutshell guide of the propagation code, it explains the basics of its operation and main ideas implemented in the code.
 ## INPUT/OUTPUT
 
 The I/O are realised through a single HDF5-archive, currently called `results.h5`. One archive with all the inputs (except pre-computed tables) is used and all the ouputs of the code are also stored in this archive.
 
 The input archive can be easily prepared from a text list using a general-purpose procedure for preparing the input files: https://github.com/vabekjan/universal_input. The code then works in two stages:
 
-1) The pre-processor prepares inputs for the main code, the reason is that the code uses initial electric field, that has to be prepared according to the dimensions of grids. A second thing in the pre-processor is the conversion in the computational units (see later) of all the parameters. The starting fields are, however, stored in SI units. The reason is that we would like to simplify portability and allow to use any fields of user's interest.
+1. The pre-processor prepares inputs for the main code, the reason is that the code uses initial electric field, that has to be prepared according to the dimensions of grids. A second thing in the pre-processor is the conversion in the computational units (see later) of all the parameters. The starting fields are, however, stored in SI units. The reason is that we would like to simplify portability and allow to use any fields of user's interest.
 
-2) The main code that computes the propagates the electric pulse in the medium. Except the field, there are various characteristics stored in the archive. The outputs are converted always to SI units (DELETE THIS WHEN CHECKED), again to simplify portability and reduce the need of a post-processor.
+2. The main code that computes the propagates the electric pulse in the medium. Except the field, there are various characteristics stored in the archive. The outputs are converted always to SI units (DELETE THIS WHEN CHECKED), again to simplify portability and reduce the need of a post-processor.
 
 ### Pre-computed tables
 There are some other possible inputs from `calculated_tables.h5`. There are actually possible pre-computed ionisation tables (ionisation rate as a function of the electric-field amplitude).
