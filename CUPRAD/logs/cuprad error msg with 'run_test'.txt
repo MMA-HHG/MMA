@@ -1,0 +1,190 @@
+tadeasnemec@x86_64-apple-darwin13 build % mpirun -np 4 cuprad.e                         
+  1433268476        1000  2147483647
+  1433268476        1000  2147483647
+  1433268478        1000  2147483647
+  1433268479        1000  2147483647
+ init started 
+ results.h5                                                                                          
+ results.h5                                                                                          
+ results.h5                                                                                          
+ results.h5                                                                                          
+ lambdanm old:   793.63235126314282     
+ lambdanm new:   792.00000000000011     
+ old four_z_Rayleigh   15.866740493594452     
+ new four_z_Rayleigh   15.866740493594460     
+ PPT-fill-table is acessed, proc           1
+ PPT-fill-table is acessed, proc           2
+ PPT-fill-table is acessed, proc           3
+ PPT-fill-table is acessed, proc           0
+ subroutine initialize for proc 001 done
+ subroutine initialize for proc 003 done
+ subroutine initialize for proc 002 done
+ subroutine initialize for proc 000 done
+ HDF5 writting iteration:            1
+ finished           0 iteration+1           2
+ -------------------------------------------------------------------------------
+ printing number:           1 :
+ before printing:   7.0351999999999970E-002
+ before field conversion:   7.1235000000000048E-002
+ before plasma calculation:   7.1257000000000015E-002
+ before file openning:   7.2547999999999946E-002
+ before data write:   7.5307000000000013E-002
+ fields written:   7.6447999999999960E-002
+ file collectivelly closed:   7.8587999999999991E-002
+ second data write, file open, only 0th worker:   8.0841999999999969E-002
+ second data write, file close, only 0th worker:   8.2353000000000010E-002
+ after printing:   8.2382999999999984E-002
+At line 33 of file /Users/tadeasnemec/Programming/Git/CUPRAD_TDSE_Hankel/CUPRAD/sources/longstep_rk.f90
+Fortran runtime error: Index '2' of dimension 1 of array 'zz' above upper bound of 1
+
+Error termination. Backtrace:
+
+Could not print backtrace: executable file is not an executable
+
+Could not print backtrace: executable file is not an executable
+
+Could not print backtrace: executable file is not an executable
+
+Could not print backtrace: executable file is not an executable
+
+Could not print backtrace: executable file is not an executable
+
+Could not print backtrace: executable file is not an executable
+
+Could not print backtrace: executable file is not an executable
+
+Could not print backtrace: executable file is not an executable
+
+Could not print backtrace: executable file is not an executable
+
+Could not print backtrace: executable file is not an executable
+
+Could not print backtrace: executable file is not an executable
+
+Could not print backtrace: executable file is not an executable
+
+Could not print backtrace: executable file is not an executable
+
+Could not print backtrace: executable file is not an executable
+
+Could not print backtrace: executable file is not an executable
+
+Could not print backtrace: executable file is not an executable
+
+Could not print backtrace: executable file is not an executable
+
+Could not print backtrace: executable file is not an executable
+
+Could not print backtrace: executable file is not an executable
+
+Could not print backtrace: executable file is not an executable
+
+Could not print backtrace: executable file is not an executable
+
+Could not print backtrace: executable file is not an executable
+
+Could not print backtrace: executable file is not an executable
+
+Could not print backtrace: executable file is not an executable
+
+Could not print backtrace: executable file is not an executable
+
+Could not print backtrace: executable file is not an executable
+
+Could not print backtrace: executable file is not an executable
+
+Could not print backtrace: executable file is not an executable
+
+Could not print backtrace: executable file is not an executable
+
+Could not print backtrace: executable file is not an executable
+
+Could not print backtrace: executable file is not an executable
+
+Could not print backtrace: executable file is not an executable
+
+Could not print backtrace: executable file is not an executable
+
+Could not print backtrace: executable file is not an executable
+
+Could not print backtrace: executable file is not an executable
+
+Could not print backtrace: executable file is not an executable
+
+Could not print backtrace: executable file is not an executable
+
+Could not print backtrace: executable file is not an executable
+
+Could not print backtrace: executable file is not an executable
+
+Could not print backtrace: executable file is not an executable
+
+Could not print backtrace: executable file is not an executable
+
+Could not print backtrace: executable file is not an executable
+
+Could not print backtrace: executable file is not an executable
+
+Could not print backtrace: executable file is not an executable
+
+Could not print backtrace: executable file is not an executable
+
+Could not print backtrace: executable file is not an executable
+
+Could not print backtrace: executable file is not an executable
+
+Could not print backtrace: executable file is not an executable
+
+Could not print backtrace: executable file is not an executable
+
+Could not print backtrace: executable file is not an executable
+
+Could not print backtrace: executable file is not an executable
+
+Could not print backtrace: executable file is not an executable
+
+Could not print backtrace: executable file is not an executable
+
+Could not print backtrace: executable file is not an executable
+
+Could not print backtrace: executable file is not an executable
+
+Could not print backtrace: executable file is not an executable
+
+Could not print backtrace: executable file is not an executable
+
+Could not print backtrace: executable file is not an executable
+
+Could not print backtrace: executable file is not an executable
+
+Could not print backtrace: executable file is not an executable
+
+Could not print backtrace: executable file is not an executable
+
+Could not print backtrace: executable file is not an executable
+
+Could not print backtrace: executable file is not an executable
+
+Could not print backtrace: executable file is not an executable
+
+Could not print backtrace: executable file is not an executable
+#0  0x1016d6afe
+#1  0x1016d77f5
+#2  0x1016d7d65
+#3  0x100dda2f1
+#4  0x100db935f
+#5  0x100db7ff4
+#6  0x100defdc4
+#7  0x100df03d7
+--------------------------------------------------------------------------
+Primary job  terminated normally, but 1 process returned
+a non-zero exit code. Per user-direction, the job has been aborted.
+--------------------------------------------------------------------------
+--------------------------------------------------------------------------
+mpirun detected that one or more processes exited with non-zero status, thus causing
+the job to be terminated. The first process to do so was:
+
+  Process name: [[14971,1],0]
+  Exit code:    2
+--------------------------------------------------------------------------
+tadeasnemec@x86_64-apple-darwin13 build % 

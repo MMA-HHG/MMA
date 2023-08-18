@@ -1,0 +1,86 @@
+### CMake file for cuprad project
+cmake_minimum_required(VERSION 3.5)
+
+project(cuprad)
+enable_language(Fortran)      
+
+### Flags
+set(CMAKE_Fortran_FLAGS "-fcheck=all -W -Wno-compare-reals -fbacktrace -ffixed-line-length-none -ffree-line-length-none -g")
+
+### Find FFTW and HDF5 libraries and packages
+find_library(fftw3 fftw3)
+find_package(HDF5 COMPONENTS Fortran HL)
+if(NOT HDF5_FOUND)
+    set(HDF5_LIBRARIES /home/hyperion/nemectad/local/hdf5_fort/lib/libhdf5.so
+        /home/hyperion/nemectad/local/hdf5_fort/lib/libhdf5_hl.so
+        /home/hyperion/nemectad/local/hdf5_fort/lib/libhdf5_fortran.so
+	/home/hyperion/nemectad/local/hdf5_fort/lib/libhdf5hl_fortran.so)
+    set(HDF5_INCLUDE_DIRS /home/hyperion/nemectad/local/hdf5_fort/include)
+endif()
+find_package(MPI COMPONENTS Fortran)
+if(NOT MPI_Fortran_FOUND)
+    set(MPI_Fortran_LIBRARIES /usr/mpi/gcc/openmpi-4.1.4-hfi/lib64/libmpi.so
+        /usr/mpi/gcc/openmpi-4.1.4-hfi/lib64/libmpi_usempi.so
+        /usr/mpi/gcc/openmpi-4.1.4-hfi/lib64/libmpi_mpifh.so)
+    set(MPI_Fortran_INCLUDE_PATH /usr/mpi/gcc/openmpi-4.1.4-hfi/lib64)
+endif()
+
+### Link FFTW3 library
+set(FFTW3_LIBS /opt/m/fftw_3.3/lib64/libfftw3.so
+    /opt/m/fftw_3.3/lib64/libfftw3_mpi.so)
+
+### Define variables
+### ================
+### Main propagation
+set(PROPAGATION cuprad.e)
+set(S_PROPAGATION sources/constants.f90 sources/linked_list_module.f90 
+    sources/hdf5_helper_serial.f90 sources/hdf5_helper.f90 sources/array_helper.f90 
+    sources/modules.f90 sources/pre_ionised.f90 sources/code_ionisation.f90 
+    sources/fft_rk.f90 sources/finalize.f90 sources/firststep.f90 sources/longstep_rk.f90 
+    sources/output.f90 sources/cuprad.f90)
+
+set(MAKE_START make_start.e)
+set(S_MAKE_START sources/constants.f90 sources/hdf5_helper_serial.f90 
+    sources/hdf5_helper.f90 sources/write_start.f90 sources/calc_start.f90 
+    sources/normalisation.f90 sources/write_listing.f90 sources/default_inputs.f90 
+    sources/make_start.f90)
+
+set(CLEAN clean.e)
+set(S_CLEAN sources/clean.f90)
+
+set(MERGE merge.e)
+set(S_MERGE sources/merge.f90)
+
+set(CALC_FT calc_ft.e)
+set(S_CALC_FT sources/constants.f90 sources/linked_list_module.f90 
+    sources/modules.f90 sources/fft.f90 sources/calc_ft.f90)
+
+### Executable targets
+### ==================
+### cuprad.e
+add_executable(${PROPAGATION} ${S_PROPAGATION})
+target_link_libraries(${PROPAGATION} ${FFTW3_LIBS} ${HDF5_LIBRARIES} ${MPI_Fortran_LIBRARIES})
+target_include_directories(${PROPAGATION} PRIVATE ${HDF5_INCLUDE_DIRS} ${MPI_Fortran_INCLUDE_PATH})
+
+### make_start.e
+add_executable(${MAKE_START} ${S_MAKE_START})
+target_include_directories(${MAKE_START} PRIVATE ${HDF5_INCLUDE_DIRS})
+target_link_libraries(${MAKE_START} ${HDF5_LIBRARIES} ${FFTW3_LIBS})# ${MPI_Fortran_LIBRARIES})
+
+### clean.e
+add_executable(${CLEAN} ${S_CLEAN})
+
+### merge.e
+add_executable(${MERGE} ${S_MERGE})
+
+### calc_ft.e
+add_executable(${CALC_FT} ${S_CALC_FT})
+target_link_libraries(${CALC_FT} ${FFTW3_LIBS} ${MPI_Fortran_LIBRARIES}) #fftw3 fftw3_mpi
+target_include_directories(${CALC_FT} PRIVATE ${MPI_Fortran_INCLUDE_PATH})
+
+
+### Add custom commands
+add_custom_target(clean_preprocessor COMMAND rm -f listing STOP *.DAT *.LOG)
+add_custom_target(code DEPENDS clean_preprocessor ${CALC_FT} ${MAKE_START} ${PROPAGATION} ${CLEAN} ${MERGE})
+add_custom_target(preprocessor DEPENDS clean_preprocessor ${MAKE_START})
+add_custom_target(util DEPENDS ${CALC_FT} ${MAKE_START} ${CLEAN} ${MERGE})
