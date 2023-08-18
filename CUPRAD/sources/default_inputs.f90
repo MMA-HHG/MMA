@@ -405,8 +405,8 @@ subroutine preset_numerics_tests(test_number)
 
     ! space
     lr = 4.d0
-    !dim_r = 1024
-    dim_r = 8
+    dim_r = 1024
+    !dim_r = 8
     
 
     ! propagation & adaptive steps
