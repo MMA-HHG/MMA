@@ -63,10 +63,14 @@ General remarks & problems occured along the way
 * Invoking CMake with the following commands yields more information about linking
     cmake -D CMAKE_Fortran_COMPILER=mpifort -D CMAKE_EXPORT_COMPILE_COMMANDS:BOOL=ON -D CMAKE_VERBOSE_MAKEFILE:BOOL=TRUE ..
 
-* Local environment variables have to be set correctly otherwise it needs to be
+* **Local environment variables have to be set correctly** otherwise it needs to be
     set manually in CMakeLists. This is the case of the FFTW3 library. One way is
     to set explicitly 
         ```link_directories(/usr/local/lib)```
     or check that the environment variable LIBRARY_PATH is set to a location 
     of FFTW libs. This can be set as follows:
         ```export LIBRARY_PATH=/usr/local/lib```
+    To compile the C code, the CPATH has to be set at the following:
+        ```CPATH=/usr/local/include```
+
+* Header ```malloc.h``` is deprecated, it is sufficient to use ```stdlib.h```.
