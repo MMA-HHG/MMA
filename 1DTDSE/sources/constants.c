@@ -5,8 +5,7 @@
 
 const double Pi = M_PI;
 
-void Init_constants(void){
-    //double pi = acos(-1.0);
+void Init_constants(){
     Ip_HeV = 27.21138602;
     hbar = 1.054571800e-34;
     alpha_fine = 1/137.035999139;

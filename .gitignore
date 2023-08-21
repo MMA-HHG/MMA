@@ -4,3 +4,5 @@ Hankel/__pycache__/
 binary/
 run_test
 build/
+*.e
+*.o

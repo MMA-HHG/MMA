@@ -17,5 +17,8 @@ $(TDSE): $(SOURCE)
 	$(CC) $(CFLAGS) $(INCLUDE) -c $(SOURCE)
 	$(CC) $(CFLAGS) $(LIBS) -o $(TDSE) $(OBJ)
 
+clean_obj: *.o
+	rm -f *.o
+
 clean:
 	rm *.o $(TDSE)
