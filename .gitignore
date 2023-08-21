@@ -1,6 +1,6 @@
 SFA_FF/
 .DS_Store
-Hankel/__pycache__/
+__pycache__/
 binary/
 run_test
 build/
