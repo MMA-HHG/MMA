@@ -40,7 +40,6 @@ The plot of the code development:
 #include<stdio.h>
 #include <mpi.h>
 #include<stdlib.h>
-#include<malloc.h>
 #include<math.h>
 #include "hdf5.h"
 #include "util.h"

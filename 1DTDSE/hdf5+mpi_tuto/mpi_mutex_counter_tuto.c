@@ -10,7 +10,6 @@ mutexes will be there for writing, the counter will be used for assigning simula
 #include<stdio.h>
 #include <mpi.h>
 #include<stdlib.h>
-#include<malloc.h>
 #include<math.h>
 #include "hdf5.h"
 // #include "util.h"

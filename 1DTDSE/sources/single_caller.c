@@ -1,7 +1,6 @@
 #include<time.h> 
 #include<stdio.h>
 #include<stdlib.h>
-#include<malloc.h>
 #include<math.h>
 #include<hdf5.h>
 #include<fftw3.h> // for finalising the plans

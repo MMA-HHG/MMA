@@ -7,7 +7,6 @@ It implements the tuto for numerical computing pi. origin "Using MPI-2, chapter 
 #include<stdio.h>
 #include <mpi.h>
 #include<stdlib.h>
-#include<malloc.h>
 #include<math.h>
 #include "hdf5.h"
 #include "util.h"

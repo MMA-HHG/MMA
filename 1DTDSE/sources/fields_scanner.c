@@ -3,7 +3,6 @@
 #include<string.h> 
 #include <mpi.h>
 #include<stdlib.h>
-#include<malloc.h>
 #include<math.h>
 #include<hdf5.h>
 #include<fftw3.h> // for finalising the plans

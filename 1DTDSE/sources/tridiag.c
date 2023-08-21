@@ -1,6 +1,6 @@
 #include<math.h>
 #include<float.h>                // required for DBL_EPSILON
-#include<malloc.h>
+
 #include<stdlib.h>
 #include<stdio.h>
 

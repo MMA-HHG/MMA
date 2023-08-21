@@ -53,7 +53,6 @@ https://portal.hdfgroup.org/display/HDF5/Collective+Calling+Requirements+in+Para
 #include<stdio.h>
 #include <mpi.h>
 #include<stdlib.h>
-#include<malloc.h>
 #include<math.h>
 #include "hdf5.h"
 #include "util.h"

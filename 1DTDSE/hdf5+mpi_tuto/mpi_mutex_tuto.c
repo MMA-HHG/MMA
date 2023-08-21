@@ -5,7 +5,6 @@ We test MPI3-mutex here
 #include<stdio.h>
 #include <mpi.h>
 #include<stdlib.h>
-#include<malloc.h>
 #include<math.h>
 #include "hdf5.h"
 // #include "util.h"

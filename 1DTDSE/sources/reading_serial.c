@@ -5,7 +5,6 @@ This is for the locally the reading procedure.
 #include<time.h> 
 #include<stdio.h>
 #include<stdlib.h>
-#include<malloc.h>
 #include<math.h>
 // include "/usr/local/hdf5/include/hdf5.h"
 #include "hdf5.h"

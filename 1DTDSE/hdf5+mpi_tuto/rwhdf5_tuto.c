@@ -19,7 +19,6 @@ Possible extensions are discussed at the end of the file.
 #include<stdio.h>
 #include <mpi.h>
 #include<stdlib.h>
-#include<malloc.h>
 #include<math.h>
 #include "hdf5.h"
 #include "util.h"
