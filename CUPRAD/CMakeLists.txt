@@ -27,21 +27,12 @@ set(S_PROPAGATION sources/constants.f90 sources/linked_list_module.f90
     sources/fft_rk.f90 sources/finalize.f90 sources/firststep.f90 sources/longstep_rk.f90 
     sources/output.f90 sources/cuprad.f90)
 
+### Preprocessor - preparation of 'results.h5' file
 set(MAKE_START make_start.e)
 set(S_MAKE_START sources/constants.f90 sources/hdf5_helper_serial.f90 
     sources/hdf5_helper.f90 sources/write_start.f90 sources/calc_start.f90 
     sources/normalisation.f90 sources/write_listing.f90 sources/default_inputs.f90 
     sources/make_start.f90)
-
-set(CLEAN clean.e)
-set(S_CLEAN sources/clean.f90)
-
-set(MERGE merge.e)
-set(S_MERGE sources/merge.f90)
-
-set(CALC_FT calc_ft.e)
-set(S_CALC_FT sources/constants.f90 sources/linked_list_module.f90 
-    sources/modules.f90 sources/fft.f90 sources/calc_ft.f90)
 
 ### Executable targets
 ### ==================
@@ -55,21 +46,10 @@ add_executable(${MAKE_START} ${S_MAKE_START})
 target_include_directories(${MAKE_START} PRIVATE ${HDF5_INCLUDE_DIRS})# /usr/local/include)
 target_link_libraries(${MAKE_START} ${HDF5_LIBRARIES} fftw3 fftw3_mpi)# ${MPI_Fortran_LIBRARIES})
 
-### clean.e
-add_executable(${CLEAN} ${S_CLEAN})
-
-### merge.e
-add_executable(${MERGE} ${S_MERGE})
-
-### calc_ft.e
-add_executable(${CALC_FT} ${S_CALC_FT})
-target_link_libraries(${CALC_FT} fftw3 fftw3_mpi ${MPI_Fortran_LIBRARIES})
-target_include_directories(${CALC_FT} PRIVATE ${MPI_Fortran_INCLUDE_PATH})
-
 
 ### Add custom commands
 ### ===================
 add_custom_target(clean_preprocessor COMMAND rm -f listing STOP *.DAT *.LOG)
-add_custom_target(code DEPENDS clean_preprocessor ${CALC_FT} ${MAKE_START} ${PROPAGATION} ${CLEAN} ${MERGE})
+add_custom_target(clean_modules COMMAND rm -f *.mod)
+add_custom_target(code DEPENDS clean_preprocessor ${MAKE_START} ${PROPAGATION})
 add_custom_target(preprocessor DEPENDS clean_preprocessor ${MAKE_START})
-add_custom_target(util DEPENDS ${CALC_FT} ${MAKE_START} ${CLEAN} ${MERGE})
