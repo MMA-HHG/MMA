@@ -6,3 +6,7 @@ run_test
 build/
 *.e
 *.o
+*.ipynb
+results.h5
+hdf5_temp*
+TDSE.inp.tmp

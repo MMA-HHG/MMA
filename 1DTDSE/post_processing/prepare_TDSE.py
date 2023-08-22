@@ -13,7 +13,8 @@ import subprocess
 
 
 
-results_file = glob.glob('../results_*.h5')
+#results_file = glob.glob('../results_*.h5')
+results_file = glob.glob('../CUPRAD/build/results.h5')
 print(results_file[0])
 
 with h5py.File(results_file[0], 'r') as InputArchive:

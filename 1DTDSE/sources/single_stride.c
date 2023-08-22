@@ -90,12 +90,10 @@ int main(int argc, char *argv[])
     while (kr >= dims[1] || kr < 0) {
         printf("Set the index in the radial dimension: ");
         scanf("%d", &kr);
-        printf("/n");
     }
     while (kz >= dims[2] || kz < 0) {
         printf("Set the index in the propagation dimension: ");
-        scanf("%d", &kr);
-        printf("/n");
+        scanf("%d", &kz);
     }
 
 	dims_input[0] = dim_z; 
