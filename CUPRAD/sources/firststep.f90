@@ -414,6 +414,8 @@ CONTAINS
     ! CLOSE HDF5 interface (ionisation models will re-open again, but use also write, there are many readers above)
     CALL h5fclose_f(file_id, error)
 
+    CALL MPI_Barrier(MPI_COMM_WORLD)
+
     ! allocate loggroup in the outfile
     IF(my_rank.EQ.0) THEN
 
