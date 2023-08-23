@@ -21,9 +21,16 @@ mkdir 1DTDSE/build
 # CUPRAD build
 cd CUPRAD/build 
 cmake -D CMAKE_Fortran_COMPILER=${CMAKE_Fort_Comp} ..
+make
+
+# Move to parent directory
+cd ../../
 
 # TDSE build
 cd CUPRAD/build 
-cmake -D CMAKE_Fortran_COMPILER=${CMAKE_C_Comp} ..
+cmake -D CMAKE_C_COMPILER=${CMAKE_C_Comp} ..
+make
 
+# Move to parent directory
+cd ../../
 
