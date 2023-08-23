@@ -74,3 +74,10 @@ General remarks & problems occured along the way
         ```CPATH=/usr/local/include```
 
 * Header ```malloc.h``` is deprecated, it is sufficient to use ```stdlib.h```.
+
+* To run the TDSE part of the coupled model, one has to first preprocess the 
+  ```results.h5``` file. In the script ```1DTDSE/post_processing/prepare_TDSE.py```, 
+  the path to the ```results.h5``` has to be fixed. The Python script then 
+  makes a copy (<--- feature to be probably removed later) and writes necessary
+  input data information for the TDSE computation. The data is provided in form
+  of an ```.inp``` file located inside ```1DTDSE/processing/...```. Then the script ```prepare_TDSE.py``` calls some routines from the 'universal_input' python package provided on Git (it is convenient to include this package in PYTHONPATH env variable).
