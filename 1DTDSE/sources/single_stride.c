@@ -6,8 +6,7 @@
 #include "util.h"
 #include "util_hdf5.h"
 #include "singleTDSE.h"
-//#include "structures.h"
-//#include "util_mpi.h"
+#include "structures.h"
 
 // hdf5 operation:
 herr_t  h5error;

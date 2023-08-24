@@ -1,13 +1,5 @@
-#include<math.h>
-#include<float.h>                // required for DBL_EPSILON
-
-#include<stdlib.h>
-#include<stdio.h>
-
-#include "hdf5.h"
-#include"util.h"
-
-
+#include "tridiag.h"
+#include "structures.h"
 
 
 

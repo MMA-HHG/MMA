@@ -15,6 +15,8 @@
 #include "util.h"
 #include "util_hdf5.h"
 #include "structures.h"
+#include "tridiag.h"
+#include "tools_algorithmic.h"
 
 clock_t start, finish;
 clock_t start2, finish2;

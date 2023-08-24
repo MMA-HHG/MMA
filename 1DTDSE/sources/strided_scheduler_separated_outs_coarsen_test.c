@@ -11,6 +11,7 @@
 #include "util_hdf5.h"
 #include "util_mpi.h"
 #include "singleTDSE.h"
+#include "tools_algorithmic.h"
 
 // hdf5 operation:
 herr_t  h5error;

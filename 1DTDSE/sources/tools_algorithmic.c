@@ -1,12 +1,5 @@
-#include<math.h>
-
-#include<stdlib.h>
-#include<stdio.h>
-#include<time.h>
-
-
+#include "tools_algorithmic.h"
 #include "numerical_constants.h"
-#include "util.h"
 
 clock_t start, finish;
 clock_t start2, finish2;

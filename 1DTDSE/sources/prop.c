@@ -1,13 +1,9 @@
-#include<math.h>
-#include<stdlib.h>
-#include<stdio.h>
-#include<time.h>
-#include <mpi.h>
 #include "util_mpi.h"
 #include "numerical_constants.h"
 #include "util.h"
 #include "prop.h"
 #include "tools_fftw3.h"
+#include "tridiag.h"
 
 clock_t start, finish;
 clock_t start2, finish2;
