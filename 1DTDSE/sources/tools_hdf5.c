@@ -17,194 +17,207 @@ int one;
  * 
  * @param file_id HDF5 file.
  * @param dset_name Name of the dataset to write.
- * @param h5error 
- * @param units_value 
+ * @param h5error Status.
+ * @param units_value Name of the unit.
  */
 void add_units_1D_h5(hid_t file_id, char *dset_name, herr_t *h5error, char *units_value) {
-    hid_t dset_id = H5Dopen2 (file_id, dset_name, H5P_DEFAULT);
-    hsize_t dumh51D[1] = {1};
-    hid_t aspace_id = H5Screate_simple(1, dumh51D, dumh51D);
-    hid_t atype_id = H5Tcopy(H5T_C_S1);
-    *h5error = H5Tset_size(atype_id, (size_t) 10);
-    hid_t attr_id = H5Acreate2(dset_id, "units", atype_id, aspace_id, H5P_DEFAULT, H5P_DEFAULT);
-    *h5error = H5Awrite(attr_id, atype_id, units_value);
-    *h5error = H5Aclose(attr_id);
-    *h5error = H5Tclose(atype_id);
-    *h5error = H5Sclose(aspace_id);
-    *h5error = H5Dclose(dset_id);
+	hid_t dset_id = H5Dopen2 (file_id, dset_name, H5P_DEFAULT);
+	hsize_t dumh51D[1] = {1};
+	hid_t aspace_id = H5Screate_simple(1, dumh51D, dumh51D);
+	hid_t atype_id = H5Tcopy(H5T_C_S1);
+	*h5error = H5Tset_size(atype_id, (size_t) 10);
+	hid_t attr_id = H5Acreate2(dset_id, "units", atype_id, aspace_id, H5P_DEFAULT, H5P_DEFAULT);
+	*h5error = H5Awrite(attr_id, atype_id, units_value);
+	*h5error = H5Aclose(attr_id);
+	*h5error = H5Tclose(atype_id);
+	*h5error = H5Sclose(aspace_id);
+	*h5error = H5Dclose(dset_id);
 }
 
+/**
+ * @brief Shortcut to HDF5 datatypes.
+ * 
+ * @param foo Specifies the datatype, "d" = double, "s" = float, "i" = integer.
+ * @return hid_t Datatype
+ */
 hid_t dtype_h5(char *foo)
 {
-  if (strcmp(foo,"d")==0){
-    return H5T_NATIVE_DOUBLE;
-  } else if (strcmp(foo,"s")==0){
-    return H5T_NATIVE_FLOAT;
-  } else if (strcmp(foo,"i")==0){
-    return H5T_NATIVE_INT;
-  } else {
-    fprintf(stderr,"wrongly sepcified r/w: nothing done\n"); 
-    return H5T_ORDER_ERROR; // should choose better error, it's just a random valid error I've found.
-  }
+	if (strcmp(foo, "d") == 0){
+		return H5T_NATIVE_DOUBLE;
+	} else if (strcmp(foo, "s") == 0){
+		return H5T_NATIVE_FLOAT;
+	} else if (strcmp(foo, "i") == 0){
+		return H5T_NATIVE_INT;
+	} else {
+		fprintf(stderr, "Wrongly specified r/w: nothing done. \n"); 
+		return H5T_ORDER_ERROR; // should choose better error, it's just a random valid error I've found.
+	}
 }
 
-void ReadInputs(hid_t file_id, char *inpath, herr_t *h5error,  inputs_def *in)
+/**
+ * @brief Writes data from the HDF5 input into the ```inputs_def``` structure.
+ * 
+ * @param file_id HDF5 file.
+ * @param inpath Path to the input group.
+ * @param h5error Status.
+ * @param in Input structure.
+ */
+void ReadInputs(hid_t file_id, char *inpath, herr_t *h5error, inputs_def *in)
 {
+	// Dummy string with path to the input value
 	char path[50];
-	 // printf("t1 \n"); fflush(NULL);
+	// Energy of the initial state
+	path[0] = '\0';	strcat(strcat(path,inpath),"Eguess");
+	readreal(file_id, path, h5error,&(*in).Eguess); 
+	// Number of points of the initial spatial grid
+	path[0] = '\0';	strcat(strcat(path,inpath),"N_r_grid");
+	readint(file_id, path, h5error,&(*in).num_r); 
+	// Number of points of the spatial grid for the expansion
+	path[0] = '\0';	strcat(strcat(path,inpath),"N_r_grid_exp");
+	readint(file_id, path, h5error,&(*in).num_exp); 
+	// resolution for the grid
+	path[0] = '\0';	strcat(strcat(path,inpath),"dx");
+	readreal(file_id, path, h5error,&(*in).dx); 
+	// ??? Interpolation variables
+	path[0] = '\0';	strcat(strcat(path,inpath),"InterpByDTorNT");
+	readint(file_id, path, h5error,&(*in).InterpByDTorNT);
+	// Resolution in time
+	path[0] = '\0';	strcat(strcat(path,inpath),"dt");
+	readreal(file_id, path, h5error,&(*in).dt); 
+	// Number of points of the spatial grid for the expansion
+	path[0] = '\0';	strcat(strcat(path,inpath),"Ntinterp");
+	readint(file_id, path, h5error,&(*in).Ntinterp); 
+	// Extension of the calculation after the last fields ends !!! ONLY FOR ANALYTICAL FIELD
+	path[0] = '\0';	strcat(strcat(path,inpath),"textend");
+	readreal(file_id, path, h5error,&(*in).textend); 
+	// Write wavefunction (1-writing every tprint)
+	path[0] = '\0';	strcat(strcat(path,inpath),"analy_writewft");
+	readint(file_id, path, h5error,&(*in).analy.writewft); 
+	// Time spacing for writing the wavefunction	
+	path[0] = '\0';	strcat(strcat(path,inpath),"analy_tprint");
+	readreal(file_id, path, h5error,&(*in).analy.tprint); 
+	// the limit of the integral for the ionisation (works fine with the lenth gauge and strong fields)
+	path[0] = '\0';	strcat(strcat(path,inpath),"x_int");
+	readreal(file_id, path, h5error,&(*in).x_int);  
+	// print Gabor and partial spectra
+	path[0] = '\0';	strcat(strcat(path,inpath),"PrintGaborAndSpectrum");
+	readint(file_id, path, h5error,&(*in).PrintGaborAndSpectrum); 
+	// the parameter of the gabor window [a.u.]
+	path[0] = '\0';	strcat(strcat(path,inpath),"a_Gabor");
+	readreal(file_id, path, h5error,&(*in).a_Gabor); 
+	// maximal frequency in Gabor [a.u.]
+	path[0] = '\0';	strcat(strcat(path,inpath),"omegaMaxGabor");
+	readreal(file_id, path, h5error,&(*in).omegaMaxGabor); 
+	// spacing in Gabor
+	path[0] = '\0';	strcat(strcat(path,inpath),"dtGabor");
+	readreal(file_id, path, h5error,&(*in).dtGabor); 
+	// analyse 1st part of the dipole
+	path[0] = '\0';	strcat(strcat(path,inpath),"tmin1window");
+	readreal(file_id, path, h5error,&(*in).tmin1window); 
+	// analyse 1st part of the dipole
+	path[0] = '\0';	strcat(strcat(path,inpath),"tmax1window");
+	readreal(file_id, path, h5error,&(*in).tmax1window); 
+	// analyse 2nd part of the dipole
+	path[0] = '\0';	strcat(strcat(path,inpath),"tmin2window");
+	readreal(file_id, path, h5error,&(*in).tmin2window); 
+	// analyse 2nd part of the dipole
+	path[0] = '\0';	strcat(strcat(path,inpath),"tmax2window");
+	readreal(file_id, path, h5error,&(*in).tmax2window); 
+	// (0 - only text, 1 - only binaries, 2 - both)
+	path[0] = '\0';	strcat(strcat(path,inpath),"PrintOutputMethod");
+	readint(file_id, path, h5error,&(*in).PrintOutputMethod); 
+	// Target parameter
+	path[0] = '\0';	strcat(strcat(path,inpath),"trg_a");
+	readreal(file_id, path, h5error,&(*in).trg.a); 
 
-  path[0] = '\0';	strcat(strcat(path,inpath),"Eguess");
-  readreal(file_id, path, h5error,&(*in).Eguess); // Energy of the initial state
+	// *NOTE* CV criterion is added as an input 
+	// Load CV criterion
+	path[0] = '\0';	strcat(strcat(path,inpath),"CV_criterion_of_GS");
+	readreal(file_id, path, h5error,&(*in).CV);
+	// Gauge selection
+	path[0] = '\0';	strcat(strcat(path,inpath),"gauge_type");
+	readint(file_id, path, h5error,&(*in).gauge); // analyse 2nd part of the dipole
 
-  path[0] = '\0';	strcat(strcat(path,inpath),"N_r_grid");
-  readint(file_id, path, h5error,&(*in).num_r); // Number of points of the initial spatial grid 16000
-
-  path[0] = '\0';	strcat(strcat(path,inpath),"N_r_grid_exp");
-  readint(file_id, path, h5error,&(*in).num_exp); // Number of points of the spatial grid for the expansion
-
-  path[0] = '\0';	strcat(strcat(path,inpath),"dx");
-  readreal(file_id, path, h5error,&(*in).dx); // resolution for the grid
-
-  path[0] = '\0';	strcat(strcat(path,inpath),"InterpByDTorNT");
-  readint(file_id, path, h5error,&(*in).InterpByDTorNT);
-
-  path[0] = '\0';	strcat(strcat(path,inpath),"dt");
-  readreal(file_id, path, h5error,&(*in).dt); // resolution in time
-
-  path[0] = '\0';	strcat(strcat(path,inpath),"Ntinterp");
-  readint(file_id, path, h5error,&(*in).Ntinterp); // Number of points of the spatial grid for the expansion
-
-  path[0] = '\0';	strcat(strcat(path,inpath),"textend");
-  readreal(file_id, path, h5error,&(*in).textend); // extension of the calculation after the last fields ends !!! NOW ONLY FOR ANALYTICAL FIELD //700
-
-  path[0] = '\0';	strcat(strcat(path,inpath),"analy_writewft");
-  readint(file_id, path, h5error,&(*in).analy.writewft); // writewavefunction (1-writting every tprint)
-
-  path[0] = '\0';	strcat(strcat(path,inpath),"analy_tprint");
-  readreal(file_id, path, h5error,&(*in).analy.tprint); // time spacing for writing the wavefunction	
-
-  path[0] = '\0';	strcat(strcat(path,inpath),"x_int");
-  readreal(file_id, path, h5error,&(*in).x_int); // the limit of the integral for the ionisation //2 2 works fine with the lenth gauge and strong fields
-
-  path[0] = '\0';	strcat(strcat(path,inpath),"PrintGaborAndSpectrum");
-  readint(file_id, path, h5error,&(*in).PrintGaborAndSpectrum); // print Gabor and partial spectra (1-yes)
-
-  path[0] = '\0';	strcat(strcat(path,inpath),"a_Gabor");
-  readreal(file_id, path, h5error,&(*in).a_Gabor); // the parameter of the gabor window [a.u.]
-
-  path[0] = '\0';	strcat(strcat(path,inpath),"omegaMaxGabor");
-  readreal(file_id, path, h5error,&(*in).omegaMaxGabor); // maximal frequency in Gabor [a.u.]
-
-  path[0] = '\0';	strcat(strcat(path,inpath),"dtGabor");
-  readreal(file_id, path, h5error,&(*in).dtGabor); // spacing in Gabor
-
-  path[0] = '\0';	strcat(strcat(path,inpath),"tmin1window");
-  readreal(file_id, path, h5error,&(*in).tmin1window); // analyse 1st part of the dipole
-
-  path[0] = '\0';	strcat(strcat(path,inpath),"tmax1window");
-  readreal(file_id, path, h5error,&(*in).tmax1window); // analyse 1st part of the dipole
-
-  path[0] = '\0';	strcat(strcat(path,inpath),"tmin2window");
-  readreal(file_id, path, h5error,&(*in).tmin2window); // analyse 2nd part of the dipole
-
-  path[0] = '\0';	strcat(strcat(path,inpath),"tmax2window");
-  readreal(file_id, path, h5error,&(*in).tmax2window); // analyse 2nd part of the dipole
-
-  path[0] = '\0';	strcat(strcat(path,inpath),"PrintOutputMethod");
-  readint(file_id, path, h5error,&(*in).PrintOutputMethod); // (0 - only text, 1 - only binaries, 2 - both)
-
-  path[0] = '\0';	strcat(strcat(path,inpath),"trg_a");
-  readreal(file_id, path, h5error,&(*in).trg.a); // analyse 2nd part of the dipole
-
-  // CV criterion will be added as an input
-  // (*in).CV = 1E-20; 
-
-  path[0] = '\0';	strcat(strcat(path,inpath),"CV_criterion_of_GS");
-  readreal(file_id, path, h5error,&(*in).CV); // analyse 2nd part of the dipole
-
-
-  path[0] = '\0';	strcat(strcat(path,inpath),"gauge_type");
-  readint(file_id, path, h5error,&(*in).gauge); // analyse 2nd part of the dipole
-
-  strcpy((*in).precision,"d");
-
-	//(*in).Efield.tgrid =  readreal1Darray_fort(file_id, "IRField/tgrid",h5error,&(*in).Efield.Nt); // tgrid is not changed when program runs
-	//(*in).Efield.Field =  readreal1Darray_fort(file_id, "IRField/Field",h5error,&(*in).Efield.Nt); // tgrid is not changed when program runs  
-
-
-// these two aren't in this version waiting to reintroduce
-//	readint(file_id, "TDSE_inputs/IonisationFilterForTheSourceTerm"	,&h5error,&inputs.IonisationFilterForTheSourceTerm); // filter source term by high-ionisation components (1-yes)
-//	readreal(file_id, "TDSE_inputs/IonFilterThreshold"		,&h5error,&inputs.IonFilterThreshold); // threshold for the ionisation [-]
-
-
-// these are old ones
-	// readreal(file_id, "TDSE_inputs/Eguess"					,&h5error,&inputs.Eguess); // Energy of the initial state
-	// readint(file_id, "TDSE_inputs/N_r_grid"					,&h5error,&inputs.num_r); // Number of points of the initial spatial grid 16000
-	// readint(file_id, "TDSE_inputs/N_r_grid_exp"				,&h5error,&inputs.num_exp); // Number of points of the spatial grid for the expansion
-	// readreal(file_id, "TDSE_inputs/dx"						,&h5error,&inputs.dx); // resolution for the grid
-	// readint(file_id, "TDSE_inputs/InterpByDTorNT"			,&h5error,&inputs.InterpByDTorNT); 
-	// readreal(file_id, "TDSE_inputs/dt"						,&h5error,&inputs.dt); // resolution in time
-	// readint(file_id, "TDSE_inputs/Ntinterp"					,&h5error,&inputs.Ntinterp); // Number of points of the spatial grid for the expansion
-	// readreal(file_id, "TDSE_inputs/textend"					,&h5error,&inputs.textend); // extension of the calculation after the last fields ends !!! NOW ONLY FOR ANALYTICAL FIELD //700
-	// readint(file_id, "TDSE_inputs/analy_writewft"			,&h5error,&inputs.analy.writewft); // writewavefunction (1-writting every tprint)
-	// readreal(file_id, "TDSE_inputs/analy_tprint"			,&h5error,&inputs.analy.tprint); // time spacing for writing the wavefunction	
-	// readreal(file_id, "TDSE_inputs/x_int"					,&h5error,&inputs.x_int); // the limit of the integral for the ionisation //2 2 works fine with the lenth gauge and strong fields
-	// readint(file_id, "TDSE_inputs/PrintGaborAndSpectrum"	,&h5error,&inputs.PrintGaborAndSpectrum); // print Gabor and partial spectra (1-yes)
-	// readreal(file_id, "TDSE_inputs/a_Gabor"					,&h5error,&inputs.a_Gabor); // the parameter of the gabor window [a.u.]
-	// readreal(file_id, "TDSE_inputs/omegaMaxGabor"			,&h5error,&inputs.omegaMaxGabor); // maximal frequency in Gabor [a.u.]
-	// readreal(file_id, "TDSE_inputs/dtGabor"					,&h5error,&inputs.dtGabor); // spacing in Gabor
-	// readreal(file_id, "TDSE_inputs/tmin1window"				,&h5error,&inputs.tmin1window); // analyse 1st part of the dipole
-	// readreal(file_id, "TDSE_inputs/tmax1window"				,&h5error,&inputs.tmax1window); // analyse 1st part of the dipole
-	// readreal(file_id, "TDSE_inputs/tmin2window"				,&h5error,&inputs.tmin2window); // analyse 2nd part of the dipole
-	// readreal(file_id, "TDSE_inputs/tmax2window"				,&h5error,&inputs.tmax2window); // analyse 2nd part of the dipole
-	// readint(file_id, "TDSE_inputs/PrintOutputMethod"		,&h5error,&inputs.PrintOutputMethod); // (0 - only text, 1 - only binaries, 2 - both)
-
-	// readreal(file_id, "TDSE_inputs/trg_a"		,&h5error,&inputs.trg.a);
+	strcpy((*in).precision,"d");
 }
 
+/**
+ * @brief Reads electric field and time grid
+ * 
+ * @param file_id HDF5 file.
+ * @param inpath Path to input.
+ * @param h5error Status.
+ * @param in Input structure.
+ */
 void Read_1_field_and_grid(hid_t file_id, char *inpath, herr_t *h5error,  inputs_def *in)
 {
 	char path[50];
 	printf("read 1d\n"); fflush(NULL);
-
-  path[0] = '\0';	strcat(strcat(path,inpath),"tgrid");
-	(*in).Efield.tgrid =  readreal1Darray_fort(file_id, path, h5error, &(*in).Efield.Nt); // tgrid is not changed when program runs
-  path[0] = '\0';	strcat(strcat(path,inpath),"Field");
-	(*in).Efield.Field =  readreal1Darray_fort(file_id, path, h5error, &(*in).Efield.Nt); // tgrid is not changed when program runs 
-  // printf("read 1d done\n"); fflush(NULL); 
+	path[0] = '\0';	strcat(strcat(path,inpath),"tgrid");
+	(*in).Efield.tgrid =  readreal1Darray_fort(file_id, path, h5error, &(*in).Efield.Nt);
+	path[0] = '\0';	strcat(strcat(path,inpath),"Field");
+	(*in).Efield.Field =  readreal1Darray_fort(file_id, path, h5error, &(*in).Efield.Nt); 
 }
 
-
+/**
+ * @brief Creates dataset and writes an nd array into HDF5 file.
+ * 
+ * @param file_id HDF5 file.
+ * @param dset_name Name of the dataset.
+ * @param h5error Status.
+ * @param ndims Number of dimensions of the dataset.
+ * @param dimensions Dimensions of the dataset.
+ * @param array Array to write.
+ * @param datatype Datatype.
+ */
 void print_nd_array_h5(hid_t file_id, char *dset_name, herr_t *h5error, int ndims, hsize_t *dimensions, void * array, hid_t datatype)
 {
-  hid_t dspace_id = H5Screate_simple(ndims, dimensions, NULL);
-  hid_t dset_id = H5Dcreate2(file_id, dset_name, datatype, dspace_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
-  *h5error = H5Dwrite(dset_id, datatype, H5S_ALL, H5S_ALL, H5P_DEFAULT, array);
-  *h5error = H5Sclose(dspace_id);
-  *h5error = H5Dclose(dset_id);	
+	hid_t dspace_id = H5Screate_simple(ndims, dimensions, NULL);
+	hid_t dset_id = H5Dcreate2(file_id, dset_name, datatype, dspace_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+	*h5error = H5Dwrite(dset_id, datatype, H5S_ALL, H5S_ALL, H5P_DEFAULT, array);
+	*h5error = H5Sclose(dspace_id);
+	*h5error = H5Dclose(dset_id);	
 }
 
+/**
+ * @brief Creates dataset for an nd array into HDF5 file.
+ * 
+ * @param file_id HDF5 file.
+ * @param dset_name Name of the dataset.
+ * @param h5error Status.
+ * @param ndims Number of dimensions of the dataset.
+ * @param dimensions Dimensions of the dataset.
+ * @param datatype Datatype.
+ */
 void create_nd_array_h5(hid_t file_id, char *dset_name, herr_t *h5error, int ndims, hsize_t *dimensions, hid_t datatype)
 {
-  hid_t dspace_id = H5Screate_simple(ndims, dimensions, NULL);
-  hid_t dset_id = H5Dcreate2(file_id, dset_name, datatype, dspace_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
-  *h5error = H5Sclose(dspace_id);
-  *h5error = H5Dclose(dset_id);	
+	hid_t dspace_id = H5Screate_simple(ndims, dimensions, NULL);
+	hid_t dset_id = H5Dcreate2(file_id, dset_name, datatype, dspace_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+	*h5error = H5Sclose(dspace_id);
+	*h5error = H5Dclose(dset_id);	
 }
 
-
+/**
+ * @brief 
+ * 
+ * @param file_id 
+ * @param inpath 
+ * @param h5error 
+ * @param in 
+ * @param out 
+ */
 void PrintOutputs(hid_t file_id, char *inpath, herr_t *h5error,  inputs_def *in,  outputs_def *out)
 {
 	hsize_t output_dims[2]; // never exceeds 2 in this case, can be longer
 	char path[50];
 
-  // time domain
+  	// time domain
 	output_dims[0] = (*out).Nt; output_dims[1] = 0;
 	if ( (*in).Print.Efield == 1 )
-  {
+	{
 		path[0] = '\0';	strcat(strcat(path,inpath),"Efield");
 		print_nd_array_h5(file_id, path, h5error, 1, output_dims, (*out).Efield, H5T_NATIVE_DOUBLE);
-  }
+	}
 
   if ( (*in).Print.sourceterm == 1 )
   {
