@@ -1,6 +1,6 @@
 #include "tridiag.h"
 #include "structures.h"
-
+#include "tools.h"
 
 
 //                        Internally Defined Routines 
@@ -227,10 +227,9 @@ void Inv_Tridiagonal_Matrix_complex( double *a, double *b, double *c, double *r,
 
 double Einitialise( trg_def trg, double *psi0,double *dinf,double *d,double *dsup,double *x,double Eguess,double CV,int num_r)
 {
-    	double *res,*dnew,*diag,*dinfnew,*dsupnew;
+    double *res,*dnew,*diag,*dinfnew,*dsupnew;
 	double Energy,test,Eold,dx;
 	int i,size = 2*(num_r+1);
-	double sum;
 
 	res = (double *)calloc(size,sizeof(double));
 	dnew = (double *)calloc(size,sizeof(double));

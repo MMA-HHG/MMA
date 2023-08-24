@@ -3,10 +3,11 @@
 #include <stdlib.h>
 #include <math.h>
 #include "numerical_constants.h"
-#include "util.h"
 #include "tools_hdf5.h"
 #include "singleTDSE.h"
 #include "structures.h"
+#include "tools_algorithmic.h"
+#include "tools.h"
 
 // hdf5 operation:
 herr_t  h5error;
@@ -34,12 +35,11 @@ int main(int argc, char *argv[])
 	hsize_t * dims, * dims_input; 
     int ndims; 
     hid_t datatype; // ! hot-fixed to have input dimension different
-	char dumchar1[50], dumchar2[50];
+	char dumchar1[50];
 	// Processing the queue
-	int Nsim, Nsim_loc = -1, kr, kz; // counter of simulations, indices in the Field array
+	int kr, kz; // counter of simulations, indices in the Field array
 
 	int comment_operation = 1;
-	double t_mpi[10]; 
 
 	// hsize_t output_dims[4];
 
@@ -81,8 +81,8 @@ int main(int argc, char *argv[])
     dims[1] = dim_r; 
     dims[2] = dim_z;
 
-    printf("Radial (r) dimension: %i \n", dims[1]);
-    printf("Propagation (z) dimension: %i \n", dims[2]);
+    printf("Radial (r) dimension: %llu \n", dims[1]);
+    printf("Propagation (z) dimension: %llu \n", dims[2]);
 
     kr = dims[1];
     kz = dims[2];
@@ -125,12 +125,12 @@ int main(int argc, char *argv[])
         inputs.Efield.tgrid[k1] = inputs.Efield.tgrid[k1]/TIMEau; /*inputs.Efield.Field[k1] = inputs.Efield.Field[k1]/EFIELDau;*/
     } // convert to atomic units (fs->a.u.), (GV/m->a.u.)
 
-    if (( comment_operation == 1 ) ) {
+    if (comment_operation == 1) {
         printf("dx = %e \n",inputs.dx);
     }
-    if (( comment_operation == 1 ) ) {
-        printf("Fields dimensions (t,r,z) = (%i,%i,%i)\n",dims[0],dims[1],dims[2]);
-        printf("Fields dimensions (z,t,r) = (%i,%i,%i)\n",dims_input[0],dims_input[1],dims_input[2]);
+    if (comment_operation == 1) {
+        printf("Fields dimensions (t,r,z) = (%llu,%llu,%llu)\n",dims[0],dims[1],dims[2]);
+        printf("Fields dimensions (z,t,r) = (%llu,%llu,%llu)\n",dims_input[0],dims_input[1],dims_input[2]);
     }
 
 	// Prepare the ground state (it's the state of the atom before the interaction)

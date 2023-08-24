@@ -1,3 +1,13 @@
+/**
+ * @file tools_MPI-RMA.h
+ * @brief Header containing MPI routines. 
+ * 
+ * @copyright Copyright (c) 2023
+ * 
+ */
+#ifndef TOOLS_MPI_RMA_H
+#define TOOLS_MPI_RMA_H
+
 #include <time.h> 
 #include <stdio.h>
 #include <mpi.h>
@@ -11,4 +21,4 @@ int MPE_Mutex_release(MPI_Win, int, int);
 
 double t_mpi[10]; 
 
-
+#endif

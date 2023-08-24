@@ -4,6 +4,8 @@
 #include "tools_fftw3.h"
 #include "tridiag.h"
 #include "structures.h"
+#include "tools.h"
+#include "tools_algorithmic.h"
 
 clock_t start, finish;
 clock_t start2, finish2;
@@ -21,18 +23,17 @@ double* propagation( trg_def trg,  Efield_var Efield, double tmin, int Nt, int n
 	
 	double *res1,*dnew1,*dinfnew1,*dsupnew1,*psi_inter1;
 	double *res2,*dnew2,*dinfnew2,*dsupnew2,*psi_inter2;
-	double Field,tt,coef,Apot,atten,phiabs;
-	int i,j,save,comp,index,k,ip,shift,k1,k2,k3,k4,k5,k6;	
-	FILE *wf,*zplot,*phase,*wft,*testfile;
-	char name[20];
-	double cpot,c0re,c0im;
-	double dip,dip_re,dip_im,pop_re,pop_im;
-        double current, ion_prob2, ttrig; 
-	double av_x_re,av_px_re,av_x_im,av_px_im,derpsi_re,derpsi_im;
+	double Field,tt,coef,Apot,atten;
+	int j,save,comp,index,k,ip,k1,k2,k3,k4;	
+	
+	double cpot;
+	double dip;
+	double ion_prob2, ttrig; 
+	
 
 	double t_zero1,t_zero2;
 
-	double dum, dum2;
+	
 	
 	double *psi2;	
 

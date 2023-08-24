@@ -332,7 +332,7 @@ void projection_analysis_EV( trg_def trg, double dE,double Estep,double E_start,
 {
 
 
-	double prob,prob_re,prob_im,k,delta,CV,Eguess,E_previous,E,ps_re,ps_im;
+	double prob,CV,Eguess,E_previous,E,ps_re,ps_im;
 	double *psi_EV;
 	FILE *fel;
 	int i,j;
