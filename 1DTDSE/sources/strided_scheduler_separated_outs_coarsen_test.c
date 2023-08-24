@@ -10,14 +10,15 @@
 #include "util.h"
 #include "util_hdf5.h"
 #include "util_mpi.h"
+#include "singleTDSE.h"
 
 // hdf5 operation:
 herr_t  h5error;
 hid_t file_id; // file pointer
 hid_t filespace, dataspace_id, dataset_id, dset_id, dspace_id; // dataspace pointers
 
-struct inputs_def inputs;
-struct outputs_def outputs;
+inputs_def inputs;
+outputs_def outputs;
 
 int k1, k2, k3;
 int one = 1;

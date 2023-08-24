@@ -2,12 +2,12 @@
 #include<stdlib.h>
 #include<stdio.h>
 #include<time.h>
-
 #include <mpi.h>
 #include "util_mpi.h"
-
 #include "numerical_constants.h"
 #include "util.h"
+#include "prop.h"
+#include "tools_fftw3.h"
 
 clock_t start, finish;
 clock_t start2, finish2;
@@ -15,62 +15,12 @@ double MPI_clock_start, MPI_clock_finish;
 
 extern double* timet,dipole;
 
-// extern struct Efield_var;
+// extern  Efield_var;
 
 
-double norme(double *x,int Num_r)
-{
-	int i;
-	double sum = 0.;
-	for(i=0;i<=Num_r;i++){sum = sum + x[2*i]*x[2*i] + x[2*i+1]*x[2*i+1];}
-	return sum;
-}
-void normalise(double *x,int Num_r)
-{
-	int i;
-	double sum = 0.;
-	for(i=0;i<=Num_r;i++){sum = sum + x[2*i]*x[2*i] + x[2*i+1]*x[2*i+1];}
-	sum = sqrt(sum);
-	for(i=0;i<=Num_r;i++){x[2*i]/=sum;x[2*i+1]/=sum;}
-}
-
-
-
-
-double * extend_grid(double *pold,int size,int oldsize,int shift)
-{
-	int i;
-	double *pnew;
-
-	pnew = calloc(2*(size+oldsize+1),sizeof(double));
-
-	if ((shift >= 0) && (size >= shift))
-	{
-
-	 for(i=oldsize+1;i<=oldsize+size;i++) {pnew[2*i] = 0.; pnew[2*i+1] = 0.;}
-
-	 for(i=0;i<=oldsize;i++) 
-	 {
-		pnew[2*shift+2*(oldsize-i)] = pold[2*(oldsize-i)]; 
-		pnew[2*shift+2*(oldsize-i)+1] = pold[2*(oldsize-i)+1]; 
-	 }
-
-	for(i=0;i<shift;i++) {pnew[2*i] = 0.; pnew[2*i+1] = 0.;}
-
-	}
-	else
-	{printf("\nExpansion of the grid incorrect : shift <0 or size < shift \n\n");}
-	
-	free(pold);
-
-	return pnew;
-}
-
-
-
-double* propagation(struct trg_def trg, struct Efield_var Efield, double tmin, int Nt, int num_t,double dt,int num_r
+double* propagation( trg_def trg,  Efield_var Efield, double tmin, int Nt, int num_t,double dt,int num_r
 ,int num_exp,double dx,double *psi0,double *psi,double *x
-,FILE *timef,FILE *timef2,double ton,double toff, double *timet, double *dipole, int gauge, int transformgauge, double x_int, struct analy_def analy, struct outputs_def outputs)
+,FILE *timef,FILE *timef2,double ton,double toff, double *timet, double *dipole, int gauge, int transformgauge, double x_int,  analy_def analy,  outputs_def outputs)
 {	
 	
 	double *res1,*dnew1,*dinfnew1,*dsupnew1,*psi_inter1;
@@ -334,7 +284,7 @@ double* propagation(struct trg_def trg, struct Efield_var Efield, double tmin, i
 }
 
 
-void window_analysis(struct trg_def trg, double dE,double Estep,double E_start,int num_E,int num_r,double dx,double *psi,double *dinf,double *d,double *dsup,double *x)
+void window_analysis( trg_def trg, double dE,double Estep,double E_start,int num_E,int num_r,double dx,double *psi,double *dinf,double *d,double *dsup,double *x)
 {
 
 	
@@ -517,7 +467,7 @@ void projection_analysis(double Estep,double E_start,int num_E,int num_r,double 
 
 }
 
-void projection_analysis_EV(struct trg_def trg, double dE,double Estep,double E_start,int num_E,int num_r,double dx,double *psi,double *dinf,double *d,double *dsup,double *x) // inti procedure incompatible
+void projection_analysis_EV( trg_def trg, double dE,double Estep,double E_start,int num_E,int num_r,double dx,double *psi,double *dinf,double *d,double *dsup,double *x) // inti procedure incompatible
 {
 
 

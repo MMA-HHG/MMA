@@ -1,14 +1,7 @@
-#include<time.h> 
-#include<stdio.h>
-#include<string.h>
-#include<stdlib.h>
-
-#include<math.h>
-
-#include "hdf5.h"
+#include "util_hdf5.h"
 #include "numerical_constants.h"
 #include "util.h"
-#include "util_hdf5.h"
+//#include "structures.h"
 
 int one;
 
@@ -41,7 +34,7 @@ hid_t dtype_h5(char *foo)
   }
 }
 
-void ReadInputs(hid_t file_id, char *inpath, herr_t *h5error, struct inputs_def *in)
+void ReadInputs(hid_t file_id, char *inpath, herr_t *h5error,  inputs_def *in)
 {
 	char path[50];
 	 // printf("t1 \n"); fflush(NULL);
@@ -155,7 +148,7 @@ void ReadInputs(hid_t file_id, char *inpath, herr_t *h5error, struct inputs_def 
 	// readreal(file_id, "TDSE_inputs/trg_a"		,&h5error,&inputs.trg.a);
 }
 
-void Read_1_field_and_grid(hid_t file_id, char *inpath, herr_t *h5error, struct inputs_def *in)
+void Read_1_field_and_grid(hid_t file_id, char *inpath, herr_t *h5error,  inputs_def *in)
 {
 	char path[50];
 	printf("read 1d\n"); fflush(NULL);
@@ -186,7 +179,7 @@ void create_nd_array_h5(hid_t file_id, char *dset_name, herr_t *h5error, int ndi
 }
 
 
-void PrintOutputs(hid_t file_id, char *inpath, herr_t *h5error, struct inputs_def *in, struct outputs_def *out)
+void PrintOutputs(hid_t file_id, char *inpath, herr_t *h5error,  inputs_def *in,  outputs_def *out)
 {
 	hsize_t output_dims[2]; // never exceeds 2 in this case, can be longer
 	char path[50];
@@ -452,7 +445,7 @@ void addone(int *val ){*val=*val+1;} // to test pointers
 
 
 
-void prepare_local_output_fixed_print_grids_h5(hid_t file_id, char *inpath, herr_t *h5error, struct inputs_def *in, struct outputs_def *out, int nsimulations, hsize_t *dims)
+void prepare_local_output_fixed_print_grids_h5(hid_t file_id, char *inpath, herr_t *h5error,  inputs_def *in,  outputs_def *out, int nsimulations, hsize_t *dims)
 {
 	hsize_t output_dims[3]; // never exceeds 2 in this case, can be longer
 	char path[50];
@@ -566,7 +559,7 @@ void prepare_local_output_fixed_print_grids_h5(hid_t file_id, char *inpath, herr
 
 
 
-void print_local_output_fixed_h5(hid_t file_id, char *inpath, herr_t *h5error, struct inputs_def *in, struct outputs_def *out, int nsimulations, int Nsim, int Nsim_loc)
+void print_local_output_fixed_h5(hid_t file_id, char *inpath, herr_t *h5error,  inputs_def *in,  outputs_def *out, int nsimulations, int Nsim, int Nsim_loc)
 {
 	hsize_t output_dims[3]; // never exceeds 2 in this case, can be longer
   int offsets[3];

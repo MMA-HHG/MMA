@@ -10,3 +10,4 @@ build/
 results.h5
 hdf5_temp*
 TDSE.inp.tmp
+.vscode/

@@ -233,7 +233,7 @@ void Inv_Tridiagonal_Matrix_complex( double *a, double *b, double *c, double *r,
 }
 
 
-double Einitialise(struct trg_def trg, double *psi0,double *dinf,double *d,double *dsup,double *x,double Eguess,double CV,int num_r)
+double Einitialise( trg_def trg, double *psi0,double *dinf,double *d,double *dsup,double *x,double Eguess,double CV,int num_r)
 {
     	double *res,*dnew,*diag,*dinfnew,*dsupnew;
 	double Energy,test,Eold,dx;
@@ -357,7 +357,7 @@ double E_calculation(double *psi0,double *dinf,double *d,double *dsup,int num_r)
 }
 
 
-double E_calculation_numerov(struct trg_def trg, double *psi,double dx,double *x,int num_r)
+double E_calculation_numerov( trg_def trg, double *psi,double dx,double *x,int num_r)
 {
     int j;
 	double *psi_inter1,*psi_inter2;

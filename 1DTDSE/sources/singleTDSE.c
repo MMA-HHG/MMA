@@ -1,66 +1,32 @@
-#include<time.h>
-#include<stdio.h>
-#include<string.h> 
-#include<stdlib.h>
-#include<math.h>
-#include "hdf5.h"
-
 #include "numerical_constants.h"
-#include "util.h"
 #include "util_hdf5.h"
+#include "singleTDSE.h"
+#include "structures.h"
+#include "util.h"
+#include "tools_fftw3.h"
 
 
-struct Efield_var Efield;
-struct trg_def trg;
-struct analy_def analy;
-
-
-double *x;
-double *timet,*dipole;
-double dx,xmax,Eguess,Einit,phi,omega,E0,period,tfinal,alpha,v,mod1,mod2,dE,Estep,norm_gauss,x_int,textend;
-
-int gauge,transformgauge,fieldinau,input0,Ntinterp,InterpByDTorNT;
-
-double dt, tmax,tmin;
-int Nt;
-
-double dum,dum1,dum2;
-double *psi0,*psi,Einit2,ps_re,ps_im,*psi_rmv_gs;
-double E_start,ton,toff,dw;
-int num_E,num_exp,num_w,N_t,dumint;
-
-
-double a_Gabor, omegaMaxGabor, dtGabor, tmin1window, tmax1window, tmin2window, tmax2window, IonFilterThreshold;
-int PrintGaborAndSpectrum, IonisationFilterForTheSourceTerm;
-
-int PrintOutputMethod;
-
-
-double *test_expand;
-
-double *dinf,*dsup,*d,*u1,*res,*t;
-
-int i,j,k,l,m,num_r,num_t,err,max_iteration_count,size,nc,k1,k2,k2,k3,k5;
-clock_t start, finish;
-
-int size_exp,shift;
-
-FILE *newygrid,*eingenvaluef,*eingenvectorf,*timef,*timef2,*gaussianwp,*volkovwp,*param,*pot,*file1,*file3,*file2,*file4,*file5,*file6,*file7,*file8,*file9;
-
-
-
-
-struct outputs_def call1DTDSE(struct inputs_def inputs) // this is a wrapper that will by bypassed. It's here due to the design of the original code.
+/**
+ * @brief Wrapper for running TDSE tasks from the input structure. 
+ * 
+ * @details This wrapper is called within many binaries compiled in the 1D TDSE
+ * bundle. It is a function that takes input structure containing all the necessary 
+ * variables for running the TDSE code. The output then contains the computed 
+ * values. Which values will be written to the output structure depends on the 
+ * requirements set within the inputs file.
+ *  
+ * @param inputs Input structure.
+ * @return outputs_def 
+ */
+outputs_def call1DTDSE(inputs_def inputs)
 {
 	// declarations
-	struct outputs_def outputs;	
+	outputs_def outputs;	
 	double * dumptrs_real[2];
 
 	///////////////////////////////////////////////
 	// local copies of variables given by inputs //
 	///////////////////////////////////////////////
-
-	// (bypass ?)
 
 	// input in atomic units
 
@@ -84,8 +50,6 @@ struct outputs_def call1DTDSE(struct inputs_def inputs) // this is a wrapper tha
 	tmin2window = inputs.tmin2window; // analyse 2nd part of the dipole
 	tmax2window = inputs.tmax2window; // analyse 2nd part of the dipole
 	PrintOutputMethod = inputs.PrintOutputMethod; // (0 - only text, 1 - only binaries, 2 - both)
-	// IonisationFilterForTheSourceTerm = inputs.IonisationFilterForTheSourceTerm; // filter source term by high-ionisation components (1-yes)
-	// IonFilterThreshold = inputs.IonFilterThreshold; // threshold for the ionisation [-]
 	trg.a = inputs.trg.a; // the limit of the integral for the ionisation //2 2 works fine with the
  
 	Efield = inputs.Efield;
@@ -117,14 +81,8 @@ struct outputs_def call1DTDSE(struct inputs_def inputs) // this is a wrapper tha
 	// Efield.Field = dumptrs_real[0]; dumptrs_real[0] = NULL;
 
 	Nt = k1*Efield.Nt + 1; // not very nice to compute it, FourInterp should do it
-
-	// PRINT new field and its transform == assign to outputs
-	// file1 = fopen("inputs/InputField2.dat" , "w"); file2 = fopen("inputs/InputFField2.dat" , "w"); printFFTW3(file1, file2, Efield.Field, Nt, dt); fclose(file1); fclose(file2);
-
 	
 	num_t = floor((2*Pi)/(0.057*dt)); num_t++;  // the length of one cycle for 800 nm (i.e. omega=0.057) 
-	// printf("Efield.dt,  %e \n",Efield.dt);  fflush(NULL);
-	// printf("dt,  %e \n",dt);
 
 	size = 2*(num_r+1);// for complex number
 
@@ -158,360 +116,22 @@ struct outputs_def call1DTDSE(struct inputs_def inputs) // this is a wrapper tha
 
 	outputs.Nt = (Nt+1);
 
-
-
 	// do the calculation
 	start = clock();
 
 	// printf("bprop \n"); fflush(NULL);	
 	psi = propagation(trg,Efield,tmin,Nt,num_t,dt,num_r,num_exp,dx,psi0,psi,x,timef,timef2,ton,toff,timet,dipole,gauge,transformgauge,x_int,analy,outputs);
 	// printf("TDSE done \n"); fflush(NULL);	
-	//printf("efield out    : %e, %e, %e \n",outputs.Efield[0],outputs.Efield[1],outputs.Efield[2]);
-
-
 	
 	// SAVE THE RESULTS
-	// calc2FFTW3(outputs.Nt, dt, tmax, outputs.Efield, outputs.sourceterm, &outputs.tgrid_fftw, &outputs.omegagrid, &outputs.FEfield_data,
-	// 			&outputs.Fsourceterm_data, &outputs.FEfieldM2, &outputs.FsourcetermM2, &outputs.Nomega); //takes real signal speced by given "dt" and it computes and prints its FFTW3
-
 	calcFFTW3(outputs.Nt, dt, tmax, outputs.Efield, &(dumptrs_real[0]), &(dumptrs_real[1]), &outputs.FEfield_data, &outputs.FEfieldM2, &outputs.Nomega); free(dumptrs_real[0]); free(dumptrs_real[1]);
 	calcFFTW3(outputs.Nt, dt, tmax, outputs.sourceterm, &outputs.tgrid_fftw, &outputs.omegagrid, &outputs.Fsourceterm_data, &outputs.FsourcetermM2, &outputs.Nomega);
 
-	// printf("TDSE: FEfield: %e, %e, %e, %e \n",outputs.FEfield_data[0],outputs.FEfield_data[1],outputs.FEfield_data[2],outputs.FEfield_data[3]);
-
-	free(x); free(psi); free(psi0);
+	free(x); 
+	free(psi); 
+	free(psi0);
 	free(Efield.Field); // this is a tricky free. We pass the inputs "by value", this means that the memory in the original code is unaffected by reallocation. ! BUT it can be freed if coded badly...
-	// printf("fftw_computed in single\n");  fflush(NULL);
+	
 	return outputs;
 }
 
-
-
-
-
-
-
-
-
-
-/* SOME OLD PROCEDURES TO REINTRODUCE FOLOW */
-
-
-	// // TEST filtering for high ionisation // MORE EFFICIENT WOULD BE FILTER WHILE ASSIGNING VALUE
-	// if(IonisationFilterForTheSourceTerm == 1){
-	// 	outputs.sourcetermfiltered = calloc((Nt+1),sizeof(double));
-	// 	for(k1 = 0; k1 <= Nt; k1++){ outputs.sourcetermfiltered[k1] = outputs.sourceterm[k1];}
-	// 	for(k1 = 0; k1 <= Nt; k1++){
-	// 		if( outputs.PopTot[k1] < IonFilterThreshold){
-	// 			for(k2 = k1; k2 <= Nt; k2++){outputs.sourcetermfiltered[k2]=0.0;}
-	// 			break;
-	// 		}
-	// 	}
-	// }
-
-
-
-// 	// print Gabor and partial spectra
-// 	if (PrintGaborAndSpectrum == 1){
-// 	file1 = fopen("results/OmegaDipolewindow1.dat" , "w"); 
-// 	printlimitedFFTW3(file1, outputs.sourceterm, (Nt+1), dt, tmin1window, tmax1window);
-// 	fclose(file1);
-
-// 	file1 = fopen("results/OmegaDipolewindow2.dat" , "w"); 
-// 	printlimitedFFTW3(file1, outputs.sourceterm, (Nt+1), dt, tmin2window, tmax2window);
-// 	fclose(file1);
-
-// 	file1 = fopen("results/GaborDimensions.dat" , "w"); file2 = fopen("results/GaborDipole_tgrid.bin" , "wb"); file3 = fopen("results/GaborDipole_omegagrid.bin" , "wb"); file4 = fopen("results/GaborDipole.bin" , "wb");
-// 	printGaborFFTW3binary(file1, file2, file3, file4, outputs.sourceterm, (Nt+1), dt, dtGabor, a_Gabor, omegaMaxGabor);
-// 	fclose(file1); fclose(file2); fclose(file3); fclose(file4);
-// 	}
-
-
-// 	//  Remove the Ground state from Psi
-// 	// psi_rmv_gs = calloc(2*(num_r+1),sizeof(double));
-// 	// psi_rmv_gs = rmv_gs(psi0,psi,x,num_r);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-	// // PRINT field and source terms in both domains // ADD switch to do one of them or both of them
-	
-
-
-	// // case 1:
-	// // 	file1 = fopen("results/tgrid.bin","wb"); file2 = fopen("results/Efield.bin","wb"); file3 = fopen("results/SourceTerm.bin","wb");
-	// // 	file4 = fopen("results/omegagrid.bin","wb"); file5 = fopen("results/FEfield.bin","wb"); file6 = fopen("results/FSourceTerm.bin","wb");
-	// // 	file7 = fopen("results/Spectrum2Efield.bin","wb"); file8 = fopen("results/Spectrum2SourceTerm.bin","wb"); file9 = fopen("results/GridDimensionsForBinaries.dat","w");
-	
-	
-	// // 	print2FFTW3binary(file1, file2, file3, file4, file5, file6, file7, file8, file9, outputs.Efield, outputs.sourceterm, (Nt+1), dt, outputs.tgrid[Nt]);
-	// // 	fclose(file1); fclose(file2); fclose(file3); fclose(file4); fclose(file5); fclose(file6); fclose(file7); fclose(file8); fclose(file9);
-
-	// // 	file1 = fopen("results/GS_population.bin","wb");
-	// // 	fwrite(outputs.PopTot,sizeof(double),(Nt+1),file1);
-	// // 	fclose(file1);
-
-    // //             if(IonisationFilterForTheSourceTerm == 1){
-	// // 	file1 = fopen("results/tmp1.bin","wb"); file2 = fopen("results/tmp2.bin","wb"); file3 = fopen("results/SourceTermFiltered.bin","wb"); // We just use the function as it is and remove redundant files... not optimal
-	// // 	file4 = fopen("results/tmp3.bin","wb"); file5 = fopen("results/tmp4.bin","wb"); file6 = fopen("results/FSourceTermFiltered.bin","wb");
-	// // 	file7 = fopen("results/tmp5.bin","wb"); file8 = fopen("results/Spectrum2SourceTermFiltered.bin","wb"); file9 = fopen("results/tmp1.dat","w");
-	// // 	print2FFTW3binary(file1, file2, file3, file4, file5, file6, file7, file8, file9, outputs.Efield, outputs.sourcetermfiltered, (Nt+1), dt, outputs.tgrid[Nt]);
-	// // 	fclose(file1); fclose(file2); fclose(file3); fclose(file4); fclose(file5); fclose(file6); fclose(file7); fclose(file8); fclose(file9);
-	// // 	dumint=remove("results/tmp1.bin"); dumint=remove("results/tmp2.bin"); dumint=remove("results/tmp3.bin"); dumint=remove("results/tmp4.bin");
-	// // 	dumint=remove("results/tmp5.bin"); dumint=remove("results/tmp1.bin"); dumint=remove("results/tmp1.dat");
-	// // 	}
-
-	// // TO COMPARE
-	// 	file1 = fopen("results/TimeDomain.dat" , "w"); file2 = fopen("results/OmegaDomain.dat" , "w");
-	// 	print2FFTW3(file1, file2, outputs.Efield, outputs.sourceterm, (Nt+1), dt, outputs.tgrid[Nt]);
-	// 	fclose(file1); fclose(file2);
-	// 	file1 = fopen("results/GS_population.dat" , "w");
-	// 	for(k1 = 0; k1 <= Nt; k1++){fprintf(file1,"%e\t%e\n", outputs.tgrid[k1] , outputs.PopTot[k1]);}
-	// 	fclose(file1);
-
-    //             if(IonisationFilterForTheSourceTerm == 1){
-	// 	file1 = fopen("results/TimeDomainFiltered.dat" , "w"); file2 = fopen("results/OmegaDomainFiltered.dat" , "w");
-	// 	print2FFTW3(file1, file2, outputs.Efield, outputs.sourcetermfiltered, (Nt+1), dt, outputs.tgrid[Nt]);
-	// 	fclose(file1); fclose(file2);
-	// 	}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// 	finish = clock();
-
-
-	
-// 	//fclose(eingenvectorf);
-
-	
-// 	//printf("\n");
-// 	// printf("Duration of calculation %f sec\n",(double)(finish - start) / CLOCKS_PER_SEC);
-// 	//printf("\n");
- 
-//   //printf("%e \n",outputs.Efield[0]);
-//  // printf("address %p \n",outputs.Efield);
-	
-// 	//printf("Calculation terminated ; good analysis\n");
-
-	
-// return outputs;
-
-// /*
-// free(psi); free(psi_rmv_gs); free(psi0); free(x); free(off_diagonal);
-// free(diagonal); free(vector);
-// free(t); free(timet); free(dipole); 
-
-// fclose(eingenvaluef); fclose(eingenvectorf); fclose(pot); 
-// */
-
-
-
-
-// void Initialise(int num_r)
-// {
-//     double xmax = 0.5*num_r*dx;
-// 	x = calloc((num_r+1),sizeof(double));
-// 	off_diagonal = calloc(2*(num_r+1),sizeof(double));
-// 	diagonal = calloc(2*(num_r+1),sizeof(double));	
-
-// 	//Initialisation Matrix corresponding to D2
-// 	for(i=0;i<=num_r;i++)
-// 	{
-// 		x[i] = i*dx-xmax; 
-// 		off_diagonal[2*i] = -0.5/(dx*dx); off_diagonal[2*i + 1] = 0.;
-// 		diagonal[2*i] = 1./(dx*dx); diagonal[2*i + 1] = 0.;
-// 	}
-
-	
-// }
-
-
-
-
-
-
-// void gaussian(void)
-// {
-
-//  double phi1,phi2,phi3,mod1,mod2,psigaussian_re,psigaussian_im;
-
- 
-
-//  gaussianwp = fopen("results/gaussianwp.dat", "w" );
-
-// for(i=0;i<=num_r;i++)
-// {
-//   phi1 = v*x[i] - 0.5*v*v*tfinal;
-  
-//   phi2 = 0.125*tfinal*pow(pow(alpha,4)+tfinal*tfinal/4.,-1);
-//   phi2=phi2*(x[i]-v*tfinal)*(x[i]-v*tfinal);
-
-//   phi3 = -0.5*atan(0.5*tfinal/(alpha*alpha));
-
-//   mod1 = -0.25*alpha*alpha*pow(pow(alpha,4)+tfinal*tfinal/4.,-1);
-//   mod1 = mod1*pow(x[i]-v*tfinal,2);
-//   mod2 = -0.25*log(pow(alpha,4)+tfinal*tfinal/4);
-
-//   psigaussian_re = norm_gauss*sqrt(Pi)*exp(mod1+mod2)*cos(phi1+phi2+phi3);
-//   psigaussian_im = norm_gauss*sqrt(Pi)*exp(mod1+mod2)*sin(phi1+phi2+phi3);
-
-//   fprintf(gaussianwp,"%f\t%f\t%f\n",x[i],psigaussian_re,psigaussian_im);
-// }
-
-
-//  fclose(gaussianwp);
-
-// }
-
-
-
-// void volkov_state(void)
-// {
- 
-// double phi1,phi2,phi3,phi4,mod1,mod2,psivolkov_re,psivolkov_im;
-// double At,intA,intA2;
-// double beta_re,beta_im,num; 
-
-
-// volkovwp = fopen("volkovwp.dat", "w" );
-
-
-// At = E0/omega*(cos(omega*tfinal)-1);
-// intA = E0/omega*(sin(omega*tfinal)/omega-tfinal);
-// intA2 = (E0/omega)*(E0/omega)*(1.5*tfinal+0.25*sin(2*omega*tfinal)/omega-2*sin(omega*tfinal)/omega);
-
-
-// for(i=0;i<=num_r;i++)
-// {
-
-//   phi1 = -x[i]*At;
-  
-//   phi2 = -0.5*intA2;
-
-//   phi3 = -0.5*atan(0.5*tfinal/(alpha*alpha));
-
-//   beta_re = 2*alpha*alpha*v;
-//   beta_im = x[i]+intA;
-
-//   num = pow(alpha,4)+tfinal*tfinal/4.;	
-
-//   phi4 = 0.25*(2*alpha*alpha*beta_re*beta_im-0.5*tfinal*(beta_re*beta_re-beta_im*beta_im))/num;
-
-//   mod1 = 0.25*(alpha*alpha*(beta_re*beta_re-beta_im*beta_im)+tfinal*beta_im*beta_re)/num;
-
-//   mod2 = -0.25*log(num);
-
-//   psivolkov_re = norm_gauss*sqrt(Pi)*exp(mod1+mod2)*cos(phi1+phi2+phi3+phi4)*exp(-v*v*alpha*alpha);
-//   psivolkov_im = norm_gauss*sqrt(Pi)*exp(mod1+mod2)*sin(phi1+phi2+phi3+phi4)*exp(-v*v*alpha*alpha);
-
-//   fprintf(volkovwp,"%f\t%f\t%f\n",x[i],psivolkov_re,psivolkov_im);
-// }
-
-
-//  fclose(volkovwp);
-
-// }
-
-// void volkov_state_vg(void)
-// {
- 
-// double phi1,phi2,phi3,mod1,mod2,mod3,psivolkov_re,psivolkov_im,xp;
-// double intA;
-// double num; 
-
-
-// volkovwp = fopen("volkovwp_vg.dat", "w" );
-
-// printf("TIME FOR VOLKOV : %f \n",tfinal);
-
-// intA = E0/omega*(-cos(omega*tfinal)/omega+1./omega);
-
-// norm_gauss = pow(2*alpha/Pi,0.25);
-
-// for(i=0;i<=num_r;i++)
-// {
-//   xp = x[i] + intA;
-//   num = pow(alpha,4)+tfinal*tfinal/4.;	
-
-//   mod1 = (4*pow(alpha,4)*v*v - pow(xp,2.))*alpha*alpha;
-//   mod1 = 0.25*mod1/num;
-
-//   mod2 = 2*xp*alpha*alpha*tfinal*v;
-//   mod2 = 0.25*mod2/num;
-
-//   phi1 = 4*pow(alpha,4)*xp*v;
-//   phi1 = 0.25*phi1/num;
-
-//   phi2 = -0.5*tfinal*(4*pow(alpha,4)*v*v-xp*xp);
-//   phi2 = 0.25*phi2/num;
-
-//   mod3 = -0.25*log(num);	
-//   phi3 = -0.5*atan(0.5*tfinal/(alpha*alpha));
-
-//   psivolkov_re = norm_gauss*sqrt(Pi)*exp(mod1+mod2+mod3)*cos(phi1+phi2+phi3)*exp(-v*v*alpha*alpha);
-//   psivolkov_im = norm_gauss*sqrt(Pi)*exp(mod1+mod2+mod3)*sin(phi1+phi2+phi3)*exp(-v*v*alpha*alpha);
-
-
-//   psi0[2*i] = psivolkov_re;
-//   psi0[2*i + 1] = psivolkov_im;
-
-
-//   fprintf(volkovwp,"%f\t%f\t%f\n",x[i],psivolkov_re,psivolkov_im);
-// }
-
-//  fclose(volkovwp);
-
-// }
-
-
-// double* rmv_gs(double *psi0,double *psi, double *x, double num_r)
-// {
-
-//   double *psi_new;
-//   double c_gs_re,c_gs_im;
-//   int j;
-
-//   psi_new = calloc(2*(num_r+1),sizeof(double));  
-
-//   c_gs_re = 0.0; c_gs_im = 0.0;
-//   for(j = 0 ; j<= num_r ; j++) 
-//   {
-//      c_gs_re += psi[2*j]*psi0[2*j];
-//      c_gs_im += psi[2*j+1]*psi0[2*j];
-//   }
-
-//   for(j = 0 ; j<= num_r ; j++) 
-//   {
-//      psi_new[2*j] =  psi[2*j] - c_gs_re*psi0[2*j];
-//      psi_new[2*j+1] =  psi[2*j+1] - c_gs_im*psi0[2*j];
-//   }
-
-//   return psi_new;
-
-//   free(psi_new);
-
-// }

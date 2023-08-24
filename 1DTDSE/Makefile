@@ -5,19 +5,19 @@ CFLAGS=-Wall -std=c99 -O3
 LIBS=-L/usr/local/lib -lhdf5 -lhdf5_hl -lfftw3 -lm
 INCLUDE=-I/usr/local/include
 SOURCE=sources/constants.c sources/tools_algorithmic.c sources/tools_MPI-RMA.c \
-		sources/tools_hdf5.c sources/tridiag.c sources/tools_fftw3.c \
+		sources/tools_hdf5.c sources/tridiag.c sources/tools_fftw3.c sources/structures.c \
 		sources/tools.c sources/prop.c sources/singleTDSE.c \
 		sources/strided_scheduler_separated_outs_coarsen_test.c
 SOURCE_STRIDE=sources/constants.c sources/tools_algorithmic.c sources/tools_MPI-RMA.c \
-		sources/tools_hdf5.c sources/tridiag.c sources/tools_fftw3.c \
+		sources/tools_hdf5.c sources/tridiag.c sources/tools_fftw3.c sources/structures.c \
 		sources/tools.c sources/prop.c sources/singleTDSE.c \
 		sources/single_stride.c
 OBJ=constants.o tools_algorithmic.o tools_MPI-RMA.o \
-		tools_hdf5.o tridiag.o tools_fftw3.o \
+		tools_hdf5.o tridiag.o tools_fftw3.o structures.o \
 		tools.o prop.o singleTDSE.o \
 		strided_scheduler_separated_outs_coarsen_test.o
 OBJ_STRIDE=constants.o tools_algorithmic.o tools_MPI-RMA.o \
-		tools_hdf5.o tridiag.o tools_fftw3.o \
+		tools_hdf5.o tridiag.o tools_fftw3.o structures.o \
 		tools.o prop.o singleTDSE.o \
 		single_stride.o
 TDSE=TDSE.e

@@ -1,21 +1,36 @@
-#include<math.h>
-
-#include<string.h>
-#include<stdlib.h>
-#include<stdio.h>
-#include<time.h>
-
-#include "hdf5.h"
+/**
+ * @file tools.c
+ * @brief Contains functions for the core TDSE code.
+ * 
+ * @copyright Copyright (c) 2023
+ * 
+ */
+#include <math.h>
+#include <string.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <time.h>
+#include <hdf5.h>
 #include "numerical_constants.h"
 #include "util.h"
 #include "util_hdf5.h"
+#include "structures.h"
 
 clock_t start, finish;
 clock_t start2, finish2;
 
 extern double* timet,dipole;
 
-void Initialise_grid_and_ground_state(struct inputs_def *in)
+// void outputs_constructor( outputs_def *outputs, int Nt) 
+// {
+// 	(*outputs).tgrid = calloc((Nt+1),sizeof(double));
+// 	(*outputs).Efield = calloc((Nt+1),sizeof(double));
+// 	(*outputs).sourceterm = calloc((Nt+1),sizeof(double));
+// 	(*outputs).PopTot = calloc((Nt+1),sizeof(double));
+// 	(*outputs).Nt = Nt+1;
+// }
+
+void Initialise_grid_and_ground_state(inputs_def *in)
 {
 	/* 
 	Comment to the choice of the CV criterion:
@@ -33,148 +48,6 @@ void Initialise_grid_and_ground_state(struct inputs_def *in)
 	Initialise_grid_and_D2((*in).dx, (*in).num_r, &((*in).x), &diagonal, &off_diagonal); // !!!! dx has to be small enough, it doesn't converge otherwise
 	(*in).Einit = Einitialise((*in).trg, (*in).psi0, off_diagonal, diagonal, off_diagonal, (*in).x, (*in).Eguess, (*in).CV, (*in).num_r); // originally, some possibility to have also excited state
 	free(diagonal); free(off_diagonal);
-}
-
-
-
-struct output_print_def Initialise_Printing_struct(void)
-{
-	struct output_print_def res;
-
-	res.Efield = 0;
-	res.FEfield = 0;
-	res.sourceterm = 0;
-	res.Fsourceterm = 0;
-	res.FEfieldM2 = 0;
-	res.FsourceTermM2 = 0;
-	res.PopTot = 0;
-	res.tgrid = 0;
-	res.omegagrid = 0;
-	res.PopInt = 0;
-	res.expval_x = 0;
-
-	return res;
-}
-
-struct output_print_def Set_all_prints(void)
-{
-	struct output_print_def res;
-
-	res.Efield = 1;
-	res.FEfield = 1;
-	res.sourceterm = 1;
-	res.Fsourceterm = 1;
-	res.FEfieldM2 = 1;
-	res.FsourceTermM2 = 1;
-	res.PopTot = 1;
-	res.tgrid = 1;
-	res.omegagrid = 1;
-	res.PopInt = 1;
-	res.expval_x = 1;
-
-	return res;
-}
-
-struct output_print_def Set_prints_from_HDF5(hid_t file_id, char *inpath, herr_t *h5error)
-{
-	struct output_print_def res;
-	char path[50];
-	int dum_int;
-
-	res = Initialise_Printing_struct();
-	path[0] = '\0';	strcat(strcat(path,inpath),"print_Efield");
-	readint(file_id, path, h5error,&dum_int);
-	if(dum_int==1){res.Efield = 1;}
-
-	path[0] = '\0';	strcat(strcat(path,inpath),"print_Source_Term");
-	readint(file_id, path, h5error,&dum_int);
-	if(dum_int==1){res.sourceterm = 1;}
-
-	path[0] = '\0';	strcat(strcat(path,inpath),"print_F_Source_Term");
-	readint(file_id, path, h5error,&dum_int);
-	if(dum_int==1){res.Fsourceterm = 1;}
-
-	path[0] = '\0';	strcat(strcat(path,inpath),"print_F_Efield_M2");
-	readint(file_id, path, h5error,&dum_int);
-	if(dum_int==1){res.FEfieldM2 = 1;}
-
-	path[0] = '\0';	strcat(strcat(path,inpath),"print_F_Efield");
-	readint(file_id, path, h5error,&dum_int);
-	if(dum_int==1){res.FEfield = 1;}
-
-	path[0] = '\0';	strcat(strcat(path,inpath),"print_F_Source_Term_M2");
-	readint(file_id, path, h5error,&dum_int);
-	if(dum_int==1){res.FsourceTermM2 = 1;}
-
-	path[0] = '\0';	strcat(strcat(path,inpath),"print_GS_population");
-	readint(file_id, path, h5error,&dum_int);
-	if(dum_int==1){res.PopTot = 1;}
-
-	path[0] = '\0';	strcat(strcat(path,inpath),"print_integrated_population");
-	readint(file_id, path, h5error,&dum_int);
-	if(dum_int==1){res.PopInt = 1;}
-
-	path[0] = '\0';	strcat(strcat(path,inpath),"print_x_expectation_value");
-	readint(file_id, path, h5error,&dum_int);
-	if(dum_int==1){res.expval_x = 1;}
-
-	
-	// res.FEfield = 1;
-	// res.sourceterm = 1;
-	// res.Fsourceterm = 1;
-	// res.FEfieldM2 = 1;
-	// res.FsourceTermM2 = 1;
-	// res.PopTot = 1;
-
-	res.tgrid = 1; // not memory consuming
-	res.omegagrid = 1; // not memory consuming
-
-	// res.PopInt = 1;
-	// res.expval_x = 1;
-
-	return res;
-}
-
-// void outputs_constructor(struct outputs_def *outputs, int Nt) 
-// {
-// 	(*outputs).tgrid = calloc((Nt+1),sizeof(double));
-// 	(*outputs).Efield = calloc((Nt+1),sizeof(double));
-// 	(*outputs).sourceterm = calloc((Nt+1),sizeof(double));
-// 	(*outputs).PopTot = calloc((Nt+1),sizeof(double));
-// 	(*outputs).Nt = Nt+1;
-// }
-
-void outputs_destructor(struct outputs_def *outputs) // frees memory allocated for outputs
-{
-	free((*outputs).tgrid);
-	free((*outputs).omegagrid);
-	free((*outputs).tgrid_fftw);
-
-	free((*outputs).Efield);
-	free((*outputs).sourceterm);
-	free((*outputs).PopTot);
-
-	free((*outputs).FEfield_data);
-	free((*outputs).Fsourceterm_data);
-
-	free((*outputs).FEfieldM2);
-	free((*outputs).FsourcetermM2);
-
-	free((*outputs).PopInt);
-	free((*outputs).expval);
-
-	(*outputs).Nt = 0;
-	(*outputs).Nomega = 0;
-}
-
-void inputs_destructor(struct inputs_def *in) // frees memory allocated for inputs
-{
-	free((*in).psi0);
-	free((*in).x);
-	free((*in).timet);
-	free((*in).dipole);
-	free((*in).Efield.tgrid);
-	free((*in).Efield.Field);
 }
 
 void Initialise_grid_and_D2(double dx, int num_r, double **x, double **diagonal, double **off_diagonal) // Initialise ground-state
@@ -196,12 +69,7 @@ void Initialise_grid_and_D2(double dx, int num_r, double **x, double **diagonal,
 	}	
 }
 
-
-
-
-
-
-void compute_population(struct trg_def trg, struct Efield_var Efield, int k, double *psi, int num_r, double *psi0, double tt, double *x, double dx, double Field, double Apot, double x_int, double dip_pre, struct outputs_def outputs)
+void compute_population( trg_def trg,  Efield_var Efield, int k, double *psi, int num_r, double *psi0, double tt, double *x, double dx, double Field, double Apot, double x_int, double dip_pre,  outputs_def outputs)
 {
 	double dip,pop_re,pop_im,pop_tot,current,position,ion_prob2, dum;
 	int j,k1,k2,k3,k4;
@@ -260,7 +128,7 @@ void compute_population(struct trg_def trg, struct Efield_var Efield, int k, dou
 
 //// POTENTIAL SPECIFICATION
 
-double potential(double x, struct trg_def trg)
+double potential(double x,  trg_def trg)
 {
 	return -1.0/sqrt(trg.a*trg.a+x*x);
 
@@ -275,7 +143,7 @@ double potential(double x, struct trg_def trg)
 }
 
 
-double gradpot(double x, struct trg_def trg)
+double gradpot(double x,  trg_def trg)
 {
   
   return x*pow(trg.a*trg.a+x*x,-1.5);
@@ -291,4 +159,49 @@ double gradpot(double x, struct trg_def trg)
   //double q = 3.;
   //if ( x >= 0.){ return pow(abs(x),q-1) * pow((pow(trg.a,q)+pow(abs(x),q)), (1.+q)/q );}else{return -pow(abs(x),q-1) * pow((pow(trg.a,q)+pow(abs(x),q)), (1.+q)/q );}
 
+}
+
+double norme(double *x,int Num_r)
+{
+	int i;
+	double sum = 0.;
+	for(i=0;i<=Num_r;i++){sum = sum + x[2*i]*x[2*i] + x[2*i+1]*x[2*i+1];}
+	return sum;
+}
+void normalise(double *x,int Num_r)
+{
+	int i;
+	double sum = 0.;
+	for(i=0;i<=Num_r;i++){sum = sum + x[2*i]*x[2*i] + x[2*i+1]*x[2*i+1];}
+	sum = sqrt(sum);
+	for(i=0;i<=Num_r;i++){x[2*i]/=sum;x[2*i+1]/=sum;}
+}
+
+double * extend_grid(double *pold,int size,int oldsize,int shift)
+{
+	int i;
+	double *pnew;
+
+	pnew = calloc(2*(size+oldsize+1),sizeof(double));
+
+	if ((shift >= 0) && (size >= shift))
+	{
+
+	 for(i=oldsize+1;i<=oldsize+size;i++) {pnew[2*i] = 0.; pnew[2*i+1] = 0.;}
+
+	 for(i=0;i<=oldsize;i++) 
+	 {
+		pnew[2*shift+2*(oldsize-i)] = pold[2*(oldsize-i)]; 
+		pnew[2*shift+2*(oldsize-i)+1] = pold[2*(oldsize-i)+1]; 
+	 }
+
+	for(i=0;i<shift;i++) {pnew[2*i] = 0.; pnew[2*i+1] = 0.;}
+
+	}
+	else
+	{printf("\nExpansion of the grid incorrect : shift <0 or size < shift \n\n");}
+	
+	free(pold);
+
+	return pnew;
 }
