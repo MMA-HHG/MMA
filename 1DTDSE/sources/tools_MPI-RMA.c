@@ -1,4 +1,4 @@
-#include "util_mpi.h"
+#include "tools_MPI-RMA.h"
 
 int MPE_COUNTER_KEYVAL = MPI_KEYVAL_INVALID;
 extern int MPEi_CounterFree(MPI_Win counter_win, int keyval, void *attr_val, void *extra_state);

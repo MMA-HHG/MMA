@@ -1,6 +1,6 @@
 /**
  * @file tools_algorithmic.h
- * @brief Header containing interpolating tools
+ * @brief Header containing interpolating tools.
  * 
  * @copyright Copyright (c) 2023
  * 

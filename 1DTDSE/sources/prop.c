@@ -1,6 +1,5 @@
-#include "util_mpi.h"
+#include "tools_MPI-RMA.h"
 #include "numerical_constants.h"
-//#include "util.h"
 #include "prop.h"
 #include "tools_fftw3.h"
 #include "tridiag.h"

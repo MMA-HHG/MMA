@@ -55,6 +55,7 @@ typedef struct Efield_var {
 /**
  * @brief Microscopic target specification
  * 
+ * @param a (double) Parameter of the soft core potential.
  */
 typedef struct trg_def{
 	double a;

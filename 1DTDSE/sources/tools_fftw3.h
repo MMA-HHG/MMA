@@ -15,7 +15,6 @@ void print2FFTW3binary(FILE *, FILE *, FILE *, FILE *,FILE *, FILE *,FILE *, FIL
 void printGaborFFTW3(FILE *, FILE *, FILE *, FILE *, double *, int, double, double, double, double);
 void printlimitedFFTW3(FILE *, double *, int, double, double, double);
 void printGaborFFTW3binary(FILE *, FILE *, FILE *, FILE *, double *, int, double, double, double, double);
-
 void calc2FFTW3(int, double, double, double *, double *, double **, double **, double **, double **, double **, double **, int *);
 void calcFFTW3(int, double, double, double *, double **, double **, double **, double **, int *);
 

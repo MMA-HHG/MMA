@@ -13,7 +13,7 @@
 #include <hdf5.h>
 #include "numerical_constants.h"
 #include "util.h"
-#include "util_hdf5.h"
+#include "tools_hdf5.h"
 #include "structures.h"
 #include "tridiag.h"
 #include "tools_algorithmic.h"
@@ -23,15 +23,6 @@ clock_t start, finish;
 clock_t start2, finish2;
 
 extern double* timet,dipole;
-
-// void outputs_constructor( outputs_def *outputs, int Nt) 
-// {
-// 	(*outputs).tgrid = calloc((Nt+1),sizeof(double));
-// 	(*outputs).Efield = calloc((Nt+1),sizeof(double));
-// 	(*outputs).sourceterm = calloc((Nt+1),sizeof(double));
-// 	(*outputs).PopTot = calloc((Nt+1),sizeof(double));
-// 	(*outputs).Nt = Nt+1;
-// }
 
 void Initialise_grid_and_ground_state(inputs_def *in)
 {
@@ -76,6 +67,7 @@ void Initialise_grid_and_D2(double dx, int num_r, double **x, double **diagonal,
 
 double potential(double x,  trg_def trg)
 {
+	// Soft core potential
 	return -1.0/sqrt(trg.a*trg.a+x*x);
 
 	//return 0.025*x*x;

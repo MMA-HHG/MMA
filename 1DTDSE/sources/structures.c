@@ -6,8 +6,13 @@
  * 
  */
 #include "structures.h"
-#include "util_hdf5.h"
+#include "tools_hdf5.h"
 
+/**
+ * @brief Frees up the memory of the output struct.
+ * 
+ * @param outputs (outputs_def) Output structure.
+ */
 void outputs_destructor(outputs_def *outputs) // frees memory allocated for outputs
 {
 	free((*outputs).tgrid);
