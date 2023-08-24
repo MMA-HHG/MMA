@@ -21,8 +21,6 @@ double norme(double *,int);
 void normalise(double *,int);
 void Initialise_grid_and_D2(double, int, double **, double **, double **);
 void Initialise_grid_and_ground_state(inputs_def *);
-
-
 void window_analysis(trg_def,double,double,double,int,int,double,double*,double*,double*,double*,double*);
 void dipole_analysis(double,double,double*,double*,int,int);
 double* extend_grid(double *,int,int,int);

@@ -2,7 +2,7 @@
 #include "util_hdf5.h"
 #include "singleTDSE.h"
 #include "structures.h"
-#include "util.h"
+//#include "util.h"
 #include "tools_fftw3.h"
 
 

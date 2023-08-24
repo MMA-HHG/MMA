@@ -1,12 +1,17 @@
-#include<math.h>
-
-#include<stdlib.h>
-#include<stdio.h>
-#include<time.h>
-#include<fftw3.h>
-
+/**
+ * @file tools_fftw3.c
+ * @brief Contains functions employing spectral methods using FFTW3 library.
+ * 
+ * @copyright Copyright (c) 2023
+ * 
+ */
+#include <math.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <time.h>
+#include <fftw3.h>
 #include "numerical_constants.h"
-#include "util.h"
+//#include "util.h"
 #include "tools_fftw3.h"
 
 

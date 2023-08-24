@@ -1,7 +1,7 @@
 #include "util_hdf5.h"
 #include "numerical_constants.h"
-#include "util.h"
-//#include "structures.h"
+//#include "util.h"
+#include "structures.h"
 
 int one;
 

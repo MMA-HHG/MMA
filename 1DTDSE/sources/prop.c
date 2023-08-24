@@ -1,9 +1,10 @@
 #include "util_mpi.h"
 #include "numerical_constants.h"
-#include "util.h"
+//#include "util.h"
 #include "prop.h"
 #include "tools_fftw3.h"
 #include "tridiag.h"
+#include "structures.h"
 
 clock_t start, finish;
 clock_t start2, finish2;
@@ -279,246 +280,58 @@ double* propagation( trg_def trg,  Efield_var Efield, double tmin, int Nt, int n
 	return psi;
 }
 
-
-void window_analysis( trg_def trg, double dE,double Estep,double E_start,int num_E,int num_r,double dx,double *psi,double *dinf,double *d,double *dsup,double *x)
+void compute_population( trg_def trg,  Efield_var Efield, int k, double *psi, int num_r, double *psi0, double tt, double *x, double dx, double Field, double Apot, double x_int, double dip_pre,  outputs_def outputs)
 {
+	double dip,pop_re,pop_im,pop_tot,current,position,ion_prob2, dum;
+	int j,k1,k2,k3,k4;
 
-	
-	double *dnew,*dnew2,*dinfnew,*dsupnew,*res,*res2,*psi2;
-	double *dinfnew2,*dsupnew2;
-	double prob;
-	int i,j;
-	FILE *fel; 
-
-
-	dnew = calloc(2*(num_r+1),sizeof(double));
-	dnew2 = calloc(2*(num_r+1),sizeof(double)); 
-	dinfnew = calloc(2*(num_r+1),sizeof(double)); 
-	dsupnew = calloc(2*(num_r+1),sizeof(double));
-	dinfnew2 = calloc(2*(num_r+1),sizeof(double));
-	dsupnew2 = calloc(2*(num_r+1),sizeof(double));
-	res = calloc(2*(num_r+1),sizeof(double));
-	res2 = calloc(2*(num_r+1),sizeof(double));
-	psi2 = calloc(2*(num_r+1),sizeof(double));
+		// printf("test2,\t%i\n",k);
+		// the population in the ground state (gauge dependent)
+		 pop_re=0.; pop_im=0.;
+		for(j = 0 ; j <= num_r ; j++) {pop_re = pop_re + psi[2*j]*psi0[2*j] + psi[2*j+1]*psi0[2*j+1]; pop_im = pop_im + psi[2*j]*psi0[2*j+1] - psi[2*j+1]*psi0[2*j];}
+		pop_tot = pop_re*pop_re + pop_im*pop_im;
 
 
+		// the gauge independent probability of the electron being between -x_int and x_int
+		k1 = 0; k2 = 0; k3 = 0; k4 = 0;
+		findinterval(num_r, -x_int, x, &k1, &k2);
+		findinterval(num_r, x_int, x, &k3, &k4);
+		ion_prob2 = 0;
+		for(j=k1;j<=k4;j++){ion_prob2 = ion_prob2 + psi[2*j]*psi[2*j] + psi[2*j+1]*psi[2*j+1];}
 
-	fel = fopen("electron_spectrum.dat","w");
-	if(fel == NULL){ printf("Cannot open electron_spectrum.dat"); exit(1);} 
-	printf("Working on the bin 00000");
-
-
-
-	
-/*
-	for(j = 0 ; j<= num_r ; j++) 
-	{	
-			dinfnew[2*j] = -dinf[2*j]; dinfnew[2*j+1] = -dinf[2*j+1];
-			dsupnew[2*j] = -dsup[2*j]; dsupnew[2*j+1] = -dsup[2*j+1];
-	}
-*/
-
-
-
-
-
-	for(i=0; i<= num_E ; i++)
-	{
-	 		
-	  for(j = 0 ; j<= num_r ; j++) 
-	  {	
-			//dnew[2*j] = E_start+Estep*i-d[2*j]-potential(x[j],trg)-dE/sqrt(8); dnew[2*j+1] = -d[2*j+1]-dE/sqrt(8);
-			//dnew2[2*j] = E_start+Estep*i-d[2*j]-potential(x[j],trg)+dE/sqrt(8); dnew2[2*j+1] = -d[2*j+1]+dE/sqrt(8);
-
-		  dnew[2*j] = 10*(E_start+Estep*i-dE/sqrt(8)-potential(x[j],trg))/12. - d[2*j]; dnew[2*j+1] = -d[2*j+1]-10*dE/(12*sqrt(8));
-		  dnew2[2*j] = 10*(E_start+Estep*i+dE/sqrt(8)-potential(x[j],trg))/12. - d[2*j]; dnew2[2*j+1] = -d[2*j+1]+10*dE/(12*sqrt(8));
-		    
-		  dinfnew[2*j] = (E_start+Estep*i-dE/sqrt(8)-potential(x[j],trg))/12.-dinf[2*j]; dinfnew[2*j+1] = -dinf[2*j+1]-dE/(12*sqrt(8));
-		  dsupnew[2*j] = (E_start+Estep*i-dE/sqrt(8)-potential(x[j+1],trg))/12.-dsup[2*j]; dsupnew[2*j+1] = -dsup[2*j+1]-dE/(12*sqrt(8));	 
-
-		  dinfnew2[2*j] = (E_start+Estep*i+dE/sqrt(8)-potential(x[j],trg))/12.-dinf[2*j]; dinfnew2[2*j+1] = -dinf[2*j+1]+dE/(12*sqrt(8));
-		  dsupnew2[2*j] = (E_start+Estep*i+dE/sqrt(8)-potential(x[j+1],trg))/12.-dsup[2*j]; dsupnew2[2*j+1] = -dsup[2*j+1]+dE/(12*sqrt(8));
-
-	  }
-
-
-
-/*
-	  Inv_Tridiagonal_Matrix_complex(dinfnew,dnew,dsupnew,psi,res,num_r+1);
+		dip = dip_pre;
 		
-	  for(j=0; j<= num_r ; j++) {psi2[2*j] = res[2*j];psi2[2*j+1] = res[2*j+1];}
 
-	  Inv_Tridiagonal_Matrix_complex(dinfnew,dnew2,dsupnew,psi2,res2,num_r+1);
-*/
-
-
-
-
-	  Inv_Tridiagonal_Matrix_complex_Numerov(dinfnew,dnew,dsupnew,psi,res,num_r);
+		// calculation of <x> (gauge independent)
+		position=0.;
 		
-	  for(j=0; j<= num_r ; j++) {psi2[2*j] = res[2*j];psi2[2*j+1] = res[2*j+1];}
-
-	  Inv_Tridiagonal_Matrix_complex_Numerov(dinfnew2,dnew2,dsupnew2,psi2,res2,num_r);
-
-
-
-	  prob = norme(res2,num_r);
-      	  prob = prob*dx*pow(dE,4.);
-
-	  fprintf(fel,"%e\t%e\n",E_start+Estep*i,prob);
-	  
-	  printf("\b\b\b\b\b%5d", i); fflush(stdout); 
-
-	}
-
-	printf("\n");
-
-
-
-	free(dnew); free(dnew2); free(dinfnew);
-	free(res);free(dsupnew);
-	free(dinfnew2);free(dsupnew2);
-	free(res2);free(psi2); 
-	fclose(fel);
-
-}
-
-
-void dipole_analysis(double num_w,double dw,double *timet,double *dipole, int nc, int num_t)
-{
-
-	int i,j;
-	double FFT_re,FFT_im,omega;
-	FILE *fhhg;
-	
-	fhhg = fopen("HHG_spectrum.dat", "w" );
-	printf("Working on the bin 00000");
-
-	
-	omega = 0;
-	for (i = 0 ; i < num_w ; i++)
-	{
-		
-		FFT_re = 0; FFT_im = 0;
-		for( j = 0 ; j < nc*num_t ; j++)
+		for(j = 0 ; j <= num_r ; j++)
 		{
-			FFT_re += dipole[2*j]*cos(omega*timet[j])-dipole[2*j+1]*sin(omega*timet[j]);
-			FFT_im += dipole[2*j]*sin(omega*timet[j])+dipole[2*j+1]*cos(omega*timet[j]);
+			position = position + (psi[2*j]*psi[2*j] + psi[2*j+1]*psi[2*j+1])*x[j]; 
 		}
-	
-	   fprintf(fhhg,"%e\t%e\t%e\n",omega,FFT_re,FFT_im);
-	   printf("\b\b\b\b\b%5d", i); fflush(stdout);
-		
-	   omega += dw;
-	}
+	       	
 
-    printf("\n"); fclose(fhhg);
-
-}
-
-
-
-void projection_analysis(double Estep,double E_start,int num_E,int num_r,double dx,double *psi,double *x)
-{
-
-
-	double prob,prob_re,prob_im,k,delta;
-	FILE *fel;
-	int i,j,jmin,jmax;
-
-
-	fel = fopen("electron_spectrum.dat", "w" );
-	printf("Working on the bin 00000");
-
-	num_E = 1000;
-	Estep = 0.001;	jmin = 7000; jmax = 8000; delta = (double) jmax- (double) jmin;
-		
-	for(i=0; i<=  num_E ; i++)
-	{
-	 		
-	  k = sqrt(2.0*Estep*i); 
-	  prob_re = 0.0; prob_im = 0.0;
-          for(j = jmin ; j<= jmax ; j++) 
-	  {	
-		prob_re +=  psi[2*j]*cos(k*x[j])-psi[2*j+1]*sin(k*x[j]);  
-		prob_im +=  psi[2*j]*sin(k*x[j])+psi[2*j+1]*cos(k*x[j]);
-
-	  }
-
-	  prob_re *= dx/delta; prob_im *= dx/delta; 	
-
-
-	  prob = (prob_re*prob_re+prob_im*prob_im)/(2.0*Pi);
-
-
-	  fprintf(fel,"%e\t%e\n",Estep*i,prob);
-	  printf("\b\b\b\b\b%5d", i); fflush(stdout); 
-
-	}
-
-	printf("\n");
-
-	fclose(fel);
-
-
-}
-
-void projection_analysis_EV( trg_def trg, double dE,double Estep,double E_start,int num_E,int num_r,double dx,double *psi,double *dinf,double *d,double *dsup,double *x) // inti procedure incompatible
-{
-
-
-	double prob,prob_re,prob_im,k,delta,CV,Eguess,E_previous,E,ps_re,ps_im;
-	double *psi_EV;
-	FILE *fel;
-	int i,j;
-
-	psi_EV = calloc(2*(num_r+1),sizeof(double));
-
-
-	fel = fopen("electron_spectrum.dat", "w" );
-	printf("Working on the bin 00000");
-
-	num_E = 2000;
-	Estep = 0.001;	
-
-
-	CV = 1E-10; // CV criteria  
-	E_previous = 0;
-		
-	for(i=0; i<= num_E ; i++)
-	{
-
-		for(j=0;j<=num_r;j++) {psi_EV[2*j] = 1; psi_EV[2*j+1] = 0.;}
-		normalise(psi_EV,num_r); // Initialise psi_EV for Einitialise
-
-	 	Eguess = i*Estep; 
-		
-		E = Einitialise(trg,psi_EV,dinf,d,dsup,x,Eguess,CV,num_r);
-		printf("%e\t%e\n",Eguess,E);
-
-
-		ps_re = 0; ps_im = 0;
-		for(j=0;j<=num_r;j++)
+		current = 0.; // (gauge dependent, current+Apot is gauge-independent) 
+		for(j = 1 ; j<= num_r-1 ; j++) 
 		{
-			ps_re += (psi[2*j]*psi_EV[2*j]-psi[2*j+1]*psi_EV[2*j+1])*x[j];
-			ps_im += (psi[2*j]*psi_EV[2*j+1]+psi[2*j+1]*psi_EV[2*j])*x[j];
-			//fprintf(fel,"%e\t%e\t%e\n",x[j],psi_EV[2*j],psi_EV[2*j+1]);
+		current = current + psi[2*j]*(psi[2*(j+1)+1]-psi[2*(j-1)+1]) - psi[2*j+1]*(psi[2*(j+1)]-psi[2*(j-1)]);                 
 		}
-
-	 prob = ps_re*ps_re + ps_im*ps_im; 
-	 // if ( Eguess != E_previous)
-	  //{	
-	    fprintf(fel,"%e\t%e\n",E,prob); //E_previous = E;
-	  //}
-	  //printf("\b\b\b\b\b%5d", i); fflush(stdout); 
-
-	}
-
-	printf("\n");
-
-	fclose(fel); free(psi_EV);
+		current = current*0.5/dx;
 
 
+
+		dum = 0.; // test
+		for(j = 1 ; j<= num_r-1 ; j++) 
+		{
+		dum = dum + psi[2*j]*(psi[2*(j+1)+1]-psi[2*(j-1)+1]) + psi[2*j+1]*(psi[2*(j+1)]-psi[2*(j-1)]);                 
+		}
+		dum = dum*0.5/dx;
+
+	
+		// save to outputs
+		outputs.PopTot[k+1]=pop_tot;
+
+		outputs.expval[k+1]=position;
+		outputs.PopInt[k+1]=ion_prob2;	
 }
-
 

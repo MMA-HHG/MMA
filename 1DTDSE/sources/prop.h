@@ -5,8 +5,8 @@
  * @copyright Copyright (c) 2023
  * 
  */
-#ifndef PROP
-#define PROP
+#ifndef PROP_H
+#define PROP_H
 
 #include <math.h>
 #include <stdlib.h>
