@@ -1,3 +1,10 @@
+/**
+ * @file single_stride.c
+ * @brief Executes single TDSE computing on the output field from the CUPRAD code.
+ * 
+ * @copyright Copyright (c) 2023
+ * 
+ */
 #include <time.h> 
 #include <stdio.h>
 #include <stdlib.h>
@@ -9,19 +16,23 @@
 #include "tools_algorithmic.h"
 #include "tools.h"
 
-// hdf5 operation:
+// hdf5 operation
 herr_t  h5error;
-hid_t file_id; // file pointer
-hid_t filespace, dataspace_id, dataset_id, dset_id, dspace_id; // dataspace pointers
+// file pointer
+hid_t file_id; 
+// dataspace pointers
+hid_t filespace, dataspace_id, dataset_id, dset_id, dspace_id;
 
+// Input structure
 inputs_def inputs;
+// Output structure
 outputs_def outputs;
 
-int k1, k2, k3;
-int one = 1;
+// Iterable
+int k1;
 
-
-clock_t start_main, finish2_main, finish1_main, finish3_main, finish4_main;
+// Clock variables
+clock_t start_main, finish_main;
 
 
 int main(int argc, char *argv[]) 
@@ -37,36 +48,25 @@ int main(int argc, char *argv[])
     hid_t datatype; // ! hot-fixed to have input dimension different
 	char dumchar1[50];
 	// Processing the queue
-	int kr, kz; // counter of simulations, indices in the Field array
+	// counter of simulations, indices in the Field array
+    int kr, kz; 
 
 	int comment_operation = 1;
 
-	// hsize_t output_dims[4];
-
 	////////////////////////
-	// PREPARATION PAHASE //
+	// PREPARATION PHASE  //
 	////////////////////////
-
-	// Initialise MPI
-    /*
-	int myrank, nprocs;
-	MPI_Init(&argc,&argv);
-	MPI_Comm_size(MPI_COMM_WORLD,&nprocs);
-	MPI_Comm_rank(MPI_COMM_WORLD,&myrank);
-	nxtval_init(-nprocs+myrank,&Nsim);
-    */
 
 	// Initialise the code values
 	Init_constants();
 	inputs.Print = Initialise_Printing_struct();
 	inputs.Print = Set_all_prints();
 
-	//if (comment_operation == 1 ){printf("Proc %i of %i started the program\n",myrank, nprocs);}
-	//t_mpi[0] = MPI_Wtime();	
-    start_main = clock(); // the clock	
+    // Start the clock	
+    start_main = clock(); 
 
-	// create parameters & load initial data
-	file_id = H5Fopen ("results.h5", H5F_ACC_RDONLY, H5P_DEFAULT); // the file is opened for read only by all the processes independently, every process then has its own copy of variables.
+	// Create parameters & load initial data
+	file_id = H5Fopen("results.h5", H5F_ACC_RDONLY, H5P_DEFAULT); 
 	ReadInputs(file_id, "TDSE_inputs/", &h5error, &inputs);
 	inputs.Print = Set_prints_from_HDF5(file_id, "TDSE_inputs/", &h5error);
 	dims = get_dimensions_h5(file_id, "outputs/output_field", &h5error, &ndims, &datatype);
@@ -80,6 +80,9 @@ int main(int argc, char *argv[])
     dims[0] = dim_t; 
     dims[1] = dim_r; 
     dims[2] = dim_z;
+    dims_input[0] = dim_z; 
+    dims_input[1] = dim_t; 
+    dims_input[2] = dim_r;
 
     printf("Radial (r) dimension: %llu \n", dims[1]);
     printf("Propagation (z) dimension: %llu \n", dims[2]);
@@ -87,6 +90,7 @@ int main(int argc, char *argv[])
     kr = dims[1];
     kz = dims[2];
 
+    // Prompt the particular field from the output field array
     while (kr >= dims[1] || kr < 0) {
         printf("Set the index in the radial dimension: ");
         scanf("%d", &kr);
@@ -96,11 +100,7 @@ int main(int argc, char *argv[])
         scanf("%d", &kz);
     }
 
-	dims_input[0] = dim_z; 
-    dims_input[1] = dim_t; 
-    dims_input[2] = dim_r;
-
-	// create space for the fields & load the tgrid
+	// Allocate space for the fields & load the tgrid
 	inputs.Efield.Field = malloc(((int)dims[0])*sizeof(double));
 	inputs.Efield.tgrid =  readreal1Darray_fort(file_id, "outputs/tgrid",&h5error,&inputs.Efield.Nt); // tgrid is not changed when program runs
 	
@@ -118,13 +118,15 @@ int main(int argc, char *argv[])
     dims[1] = dim_t; 
     dims[2] = dim_r;
     
-    
+    // Close file access
     h5error = H5Fclose(file_id);
-    // convert units
-	for(k1 = 0 ; k1 < inputs.Efield.Nt; k1++) {
-        inputs.Efield.tgrid[k1] = inputs.Efield.tgrid[k1]/TIMEau; /*inputs.Efield.Field[k1] = inputs.Efield.Field[k1]/EFIELDau;*/
-    } // convert to atomic units (fs->a.u.), (GV/m->a.u.)
 
+    // convert units to atomic units
+	for(k1 = 0 ; k1 < inputs.Efield.Nt; k1++) {
+        inputs.Efield.tgrid[k1] = inputs.Efield.tgrid[k1]/TIMEau; 
+    } 
+
+    // Print information output
     if (comment_operation == 1) {
         printf("dx = %e \n",inputs.dx);
     }
@@ -135,46 +137,32 @@ int main(int argc, char *argv[])
 
 	// Prepare the ground state (it's the state of the atom before the interaction)
 	Initialise_grid_and_ground_state(&inputs);
-
-	//int Ntot = dim_r*dim_z; // counter (queue length)	
-
+    printf("Ground state found.\n");
 
 	//////////////////////////
-	// COMPUTATIONAL PAHASE //
+	// COMPUTATIONAL PHASE  //
 	//////////////////////////
 
-	// first simulation prepares the outputfile (we keep it for the purpose of possible generalisations for parallel output)
-	//nxtval_strided(nprocs,&Nsim); Nsim_loc++;
-	//t_mpi[1] = MPI_Wtime(); 
-
-	//if (Nsim < Ntot){
-
+    // Computational grids
     double *rgrid_coarse, *zgrid_coarse;
     double *rgrid_CUPRAD, *zgrid_CUPRAD;
 
     // find proper simulation & load the field
-    file_id = H5Fopen ("results.h5", H5F_ACC_RDONLY, H5P_DEFAULT);
-    /*
-    kr = Nsim % dim_r; 
-    kz = Nsim - kr;  
-    kz = kz / dim_r; // compute offsets in each dimension
-    */
-    /*
-    dum3int[0]=kz_step*kz; 
-    dum3int[1]=-1; 
-    dum3int[2]=kr_step*kr;	// coarsen the access	
-    */
-    dum3int[0]=kz; 
-    dum3int[1]=-1; 
-    dum3int[2]=kr;
+    file_id = H5Fopen("results.h5", H5F_ACC_RDONLY, H5P_DEFAULT);
+    
+    dum3int[0] = kz; 
+    dum3int[1] = -1; 
+    dum3int[2] = kr;
+
+    // Read the electric field from the hdf5 file with the indices
     rw_real_fullhyperslab_nd_h5(file_id,"outputs/output_field",&h5error,3,dims_input,dum3int,inputs.Efield.Field,"r");
 
+    // Number of points in the grid
     int Nz_CUPRAD, Nr_CUPRAD;
-    // double *rgrid_CUPRAD, *zgrid_CUPRAD;
     rgrid_CUPRAD = readreal1Darray_fort(file_id, "outputs/rgrid", &h5error, &Nr_CUPRAD);
     zgrid_CUPRAD = readreal1Darray_fort(file_id, "outputs/zgrid", &h5error, &Nz_CUPRAD);
 
-
+    // Close HDF5 file
     h5error = H5Fclose(file_id);
 
     // convert units
@@ -182,29 +170,25 @@ int main(int argc, char *argv[])
         inputs.Efield.Field[k1] = inputs.Efield.Field[k1]/EFIELDau;
     }
 
-    // do the calculation
+    // do the TDSE calculation
+    printf("Starting the computation.\n");
     outputs = call1DTDSE(inputs); // THE TDSE
 
     // resize grids
-    // double *rgrid_coarse, *zgrid_coarse;
-
     int Nr_coarse, Nz_coarse;
     coarsen_grid_real(rgrid_CUPRAD, Nr_CUPRAD, &rgrid_coarse, &Nr_coarse, kr_step, Nr_max);
     coarsen_grid_real(zgrid_CUPRAD, Nz_CUPRAD, &zgrid_coarse, &Nz_coarse, kz_step, Nz_max);
 
-
     // create local output .h5 file
     local_filename[0] = '\0'; 
     dumchar1[0] = '\0'; 
-    //sprintf(dumchar1, "%07d", myrank);
+    sprintf(dumchar1, "%07d", 0);
     strcat(local_filename,filename_stub); 
     strcat(local_filename,dumchar1); 
     strcat(local_filename,".h5");		
+
+    // Create a new temporary HDF5 file	
     file_id = H5Fcreate (local_filename, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
-    /*
-    prepare_local_output_fixed_print_grids_h5(file_id, "", &h5error, &inputs, &outputs, Ntot/nprocs + 1, dims);
-    print_local_output_fixed_h5(file_id,"", &h5error, &inputs, &outputs, Ntot/nprocs + 1, Nsim, Nsim_loc);
-    */
     prepare_local_output_fixed_print_grids_h5(file_id, "", &h5error, &inputs, &outputs, 1, dims);
     print_local_output_fixed_h5(file_id,"", &h5error, &inputs, &outputs, 1, 0, 0);
 
@@ -221,96 +205,20 @@ int main(int argc, char *argv[])
     print_nd_array_h5(file_id, "xgrid_micro", &h5error, 1, output_dims, inputs.x, H5T_NATIVE_DOUBLE);
     print_nd_array_h5(file_id, "ground_state", &h5error, 2, output_dims, inputs.psi0, H5T_NATIVE_DOUBLE);
 
+    // Close .h5 file
+    h5error = H5Fclose(file_id); 
+    // clean outputs
+    outputs_destructor(&outputs); 
 
-    h5error = H5Fclose(file_id); // file
-    outputs_destructor(&outputs); // clean ouputs
-
+    // Free memory
     free(rgrid_coarse); 
     free(zgrid_coarse);
     free(rgrid_CUPRAD); 
     free(zgrid_CUPRAD);
-		
-	//}
-	//t_mpi[2] = MPI_Wtime(); 
-
-
-	// process the MPI queue
-	//nxtval_strided(nprocs,&Nsim); Nsim_loc++;
-	/*if ( ( comment_operation == 1 ) ) { 
-        printf("Proc %i c %i; time %f sec \n",myrank,Nsim, t_mpi[2]- t_mpi[1]); 
-        fflush(NULL);
-    }*/
-	//t_mpi[7] = MPI_Wtime();
-	//printf("Proc %i, reached the point 2  : %f sec\n",myrank,t_mpi[7]-t_mpi[0]);
-	//while (Nsim < Ntot){ // run till queue is not treated
-
-    /*
-    t_mpi[3] = MPI_Wtime(); 
-    kr = Nsim % dim_r; 
-    kz = Nsim - kr;  
-    kz = kz / dim_r; // compute offsets in each dimension
-    */
-
-    // prepare the part in the arrray to r/w
-    // dum3int[0]=-1; dum3int[1]=kr; dum3int[2]=kz; // set offset as inputs for hdf5-procedures
-
-    /*
-    dum3int[0]=kz_step*kz; 
-    dum3int[1]=-1; 
-    dum3int[2]=kr_step*kr;	// coarsen the access
-    */
-
-    dims_input[0] = dim_t;
-
-    // read the HDF5 file
-    file_id = H5Fopen ("results.h5", H5F_ACC_RDONLY, H5P_DEFAULT);
-    rw_real_fullhyperslab_nd_h5(file_id,"outputs/output_field",&h5error,3,
-                                dims_input,dum3int,inputs.Efield.Field,"r");
-    h5error = H5Fclose(file_id);
-
-    // convert units
-    for(k1 = 0 ; k1 < inputs.Efield.Nt; k1++) {
-        inputs.Efield.Field[k1] = inputs.Efield.Field[k1]/EFIELDau;
-    }
-
-    // do the calculation
-    // t_mpi[3] = MPI_Wtime(); finish3_main = clock();
-    outputs = call1DTDSE(inputs); // THE TDSE  
-    // t_mpi[1] = MPI_Wtime(); finish1_main = clock();
-
-
-    file_id = H5Fopen (local_filename, H5F_ACC_RDWR, H5P_DEFAULT); // open file
-    //print_local_output_fixed_h5(file_id,"", &h5error, &inputs, &outputs, Ntot/nprocs + 1, Nsim, Nsim_loc);
-    print_local_output_fixed_h5(file_id,"", &h5error, &inputs, &outputs, 1, 0, 0);
-
-    h5error = H5Fclose(file_id); // file
-
-    
-    // outputs_destructor(outputs); // free memory
-    outputs_destructor(&outputs);
-    //nxtval_strided(nprocs,&Nsim); Nsim_loc++;
-    // printf("Proc %i c %i\n",myrank,Nsim); fflush(NULL);
-    //t_mpi[4] = MPI_Wtime();
-    /*
-    if ( ( comment_operation == 1 ) ) { 
-        printf("Time %f sec, from start %f sec \n",myrank,Nsim, t_mpi[4]- t_mpi[3], t_mpi[4]- t_mpi[1]); fflush(NULL);}
-    */
-    
-    //t_mpi[5] = MPI_Wtime();
-	//}
-	//h5error = H5Sclose(memspace_id);
-
 	free(dims);
  
-
-	//t_mpi[6] = MPI_Wtime();
-	//if ( ( comment_operation == 1 )){ printf("Proc %i is going to finish., Total time %f sec.\n",myrank,t_mpi[6]-t_mpi[0]); fflush(NULL);}
+    finish_main = clock();
     printf("Computation finished.\n");
-    fflush(NULL);
-	//MPI_Finalize();
+    printf("Program took %f s to complete. \n", (double)(finish_main - start_main)/CLOCKS_PER_SEC);
 	return 0;	
 }
-
-
-
-/* to check if exists use printf("link exists 1: %i\n",H5Lexists(file_id, "outputs/lambda", H5P_DEFAULT)); */

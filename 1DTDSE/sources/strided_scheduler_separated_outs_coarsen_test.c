@@ -19,7 +19,7 @@
 #include "singleTDSE.h"
 #include "tools_algorithmic.h"
 
-// hdf5 operation:
+// hdf5 operation
 herr_t h5error;
 // file pointer
 hid_t file_id; 
@@ -74,7 +74,7 @@ int main(int argc, char *argv[])
 	t_mpi[0] = MPI_Wtime();	start_main = clock(); // the clock	
 
 	// create parameters & load initial data
-	file_id = H5Fopen ("results.h5", H5F_ACC_RDONLY, H5P_DEFAULT); // the file is opened for read only by all the processes independently, every process then has its own copy of variables.
+	file_id = H5Fopen("results.h5", H5F_ACC_RDONLY, H5P_DEFAULT); // the file is opened for read only by all the processes independently, every process then has its own copy of variables.
 	ReadInputs(file_id, "TDSE_inputs/", &h5error, &inputs);
 	inputs.Print = Set_prints_from_HDF5(file_id, "TDSE_inputs/", &h5error);
 	dims = get_dimensions_h5(file_id, "outputs/output_field", &h5error, &ndims, &datatype);
@@ -85,8 +85,12 @@ int main(int argc, char *argv[])
             dim_r = *get_dimensions_h5(file_id, "outputs/rgrid", &h5error, &ndims, &datatype), \
             dim_z = *get_dimensions_h5(file_id, "outputs/zgrid", &h5error, &ndims, &datatype); 
 	// label the dims by physical axes	
-    dims[0] = dim_t; dims[1] = dim_r; dims[2] = dim_z;
-	dims_input[0] = dim_z; dims_input[1] = dim_t; dims_input[2] = dim_r;
+    dims[0] = dim_t; 
+	dims[1] = dim_r; 
+	dims[2] = dim_z;
+	dims_input[0] = dim_z; 
+	dims_input[1] = dim_t; 
+	dims_input[2] = dim_r;
 
 	// Allocate space for the fields & load the tgrid
 	inputs.Efield.Field = malloc(((int)dims[0])*sizeof(double));
@@ -154,6 +158,8 @@ int main(int argc, char *argv[])
 		dum3int[0] = kz_step*kz; 
 		dum3int[1] = -1; 
 		dum3int[2] = kr_step*kr;	
+
+		// Read the electric field from the hdf5 file with the indices
 		rw_real_fullhyperslab_nd_h5(file_id,"outputs/output_field",&h5error,3,dims_input,dum3int,inputs.Efield.Field,"r");
 
 		int Nz_CUPRAD, Nr_CUPRAD;
@@ -168,7 +174,7 @@ int main(int argc, char *argv[])
 			inputs.Efield.Field[k1] = inputs.Efield.Field[k1]/EFIELDau;
 		}
 
-		// do the calculation
+		// do the TDSE calculation
 		outputs = call1DTDSE(inputs); // THE TDSE
 
 		// resize grids
@@ -184,6 +190,7 @@ int main(int argc, char *argv[])
 		strcat(local_filename,filename_stub); 
 		strcat(local_filename,dumchar1); 
 		strcat(local_filename,".h5");	
+		
 		// Create a new temporary HDF5 file	
 		file_id = H5Fcreate (local_filename, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
 		prepare_local_output_fixed_print_grids_h5(file_id, "", &h5error, &inputs, &outputs, Ntot/nprocs + 1, dims);

@@ -1,3 +1,11 @@
+/**
+ * @file singleTDSE.c
+ * @brief Contains wrapper around the 1D TDSE solver.
+ * 
+ * @copyright Copyright (c) 2023
+ * 
+ */
+
 #include "numerical_constants.h"
 #include "tools_hdf5.h"
 #include "singleTDSE.h"
@@ -20,17 +28,18 @@
  */
 outputs_def call1DTDSE(inputs_def inputs)
 {
-	// declarations
+	// Output structure
 	outputs_def outputs;	
+
 	double * dumptrs_real[2];
 
 	///////////////////////////////////////////////
 	// local copies of variables given by inputs //
 	///////////////////////////////////////////////
 
-	// input in atomic units
-
-	Eguess = inputs.Eguess; // Energy of the initial state
+	// input in atomic units (TDSE is written in a.u.)
+	// Energy of the initial state
+	Eguess = inputs.Eguess; 
 	num_r = inputs.num_r; // Number of points of the initial spatial grid 16000
 	num_exp = inputs.num_exp; // Number of points of the spatial grid for the expansion
 	dx = inputs.dx; // resolution for the grid
@@ -50,27 +59,32 @@ outputs_def call1DTDSE(inputs_def inputs)
 	tmin2window = inputs.tmin2window; // analyse 2nd part of the dipole
 	tmax2window = inputs.tmax2window; // analyse 2nd part of the dipole
 	PrintOutputMethod = inputs.PrintOutputMethod; // (0 - only text, 1 - only binaries, 2 - both)
-	trg.a = inputs.trg.a; // the limit of the integral for the ionisation //2 2 works fine with the
- 
+	trg.a = inputs.trg.a; // the limit of the integral for the ionisation //2 2 works fine with the 
 	Efield = inputs.Efield;
 
 
-	// gauge = 0;
 	gauge = inputs.gauge;
 	transformgauge = 0;
 	input0 = 1;
-	// printf("tgrid,  %e, %e \n",Efield.tgrid[0],Efield.tgrid[1]);
-
 
 	////////////////////////////////
 	// PREPARATIONAL COMPUTATIONS //
 	////////////////////////////////
 
 	// find dt from the grid around 0	
-	switch ( input0 ){case 0: dumint = 0; break; case 1: dumint = round(Efield.Nt/2.); /* field centered around 0 */ break;} // choosing the best resolution	
+	switch (input0) {
+	case 0: 
+		dumint = 0; 
+		break; 
+	case 1: 
+		dumint = round(Efield.Nt/2.); /* field centered around 0 */ 
+		break;
+	} // choosing the best resolution	
+
 	Efield.dt = Efield.tgrid[dumint+1]-Efield.tgrid[dumint]; // 
 	
-	tmax = Efield.tgrid[Efield.Nt-1]-Efield.tgrid[0]; // total length of the grid
+	// total length of the grid
+	tmax = Efield.tgrid[Efield.Nt-1]-Efield.tgrid[0]; 
    
 	// refine dt either by given number of points or by required dt
 	if (InterpByDTorNT == 1){k1 = Ntinterp + 1;} else { k1 = floor(Efield.dt/dt); Ntinterp = k1; k1++; }
