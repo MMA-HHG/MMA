@@ -9,7 +9,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-#include "numerical_constants.h"
+#include "constants.h"
 #include "tools_hdf5.h"
 #include "singleTDSE.h"
 #include "structures.h"

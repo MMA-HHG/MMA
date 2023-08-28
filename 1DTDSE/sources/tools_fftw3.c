@@ -10,7 +10,7 @@
 #include <stdio.h>
 #include <time.h>
 #include <fftw3.h>
-#include "numerical_constants.h"
+#include "constants.h"
 #include "tools_fftw3.h"
 
 

@@ -11,7 +11,7 @@
 #include <stdio.h>
 #include <time.h>
 #include <hdf5.h>
-#include "numerical_constants.h"
+#include "constants.h"
 #include "util.h"
 #include "tools_hdf5.h"
 #include "structures.h"

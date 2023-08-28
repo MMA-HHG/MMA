@@ -1,7 +1,14 @@
+/**
+ * @file constants.c
+ * @brief Contains physical constants.
+ * 
+ * @copyright Copyright (c) 2023
+ * 
+ */
 #include<stdlib.h>
 #include<math.h>
 
-#include "numerical_constants.h"
+#include "constants.h"
 
 const double Pi = M_PI;
 

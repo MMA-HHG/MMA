@@ -12,7 +12,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include <hdf5.h>
-#include "numerical_constants.h"
+#include "constants.h"
 #include "tools.h"
 #include "tools_hdf5.h"
 #include "tools_MPI-RMA.h"
@@ -190,7 +190,7 @@ int main(int argc, char *argv[])
 		strcat(local_filename,filename_stub); 
 		strcat(local_filename,dumchar1); 
 		strcat(local_filename,".h5");	
-		
+
 		// Create a new temporary HDF5 file	
 		file_id = H5Fcreate (local_filename, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
 		prepare_local_output_fixed_print_grids_h5(file_id, "", &h5error, &inputs, &outputs, Ntot/nprocs + 1, dims);
