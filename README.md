@@ -7,6 +7,8 @@ The work on the publication is being done in an independet repo `XXX`.
 ## To do list
 * *Make compilation smooth and easy on various machines (ongoing)*
 * Clean-up the code
+* Check conventions
+    * The conventions in the code shall correspond the written ones in supplmentary materials. I did checks during the development, that the code works intrinsically. However, there might be a mistake in the sign of the $e^-$ charge in TDSE etc.
 * Implement density modulation (CUPRAD + Hankel)
 * Organise Pythonic procedures (Hankel + various post-processings)
     * There is used the module `mynumerics`, this shall be cleaned & integrated in the multiscale model
