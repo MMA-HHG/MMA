@@ -1,56 +1,57 @@
+/**
+ * @file tools_algorithmic.c
+ * @brief Contains interpolation tools.
+ * 
+ * @copyright Copyright (c) 2023
+ * 
+ */
 #include "tools_algorithmic.h"
-#include "constants.h"
 
-clock_t start, finish;
-clock_t start2, finish2;
-
-//extern double* timet,dipole;
-
-void nxtval_init(int init_offset, int *val)
-{
-	*val = init_offset;
-}
-
-void nxtval_strided(int stride, int *val)
-{
-	*val = *val + stride;
-}
-
-// MANIPULATION WITH DATA
-
+/**
+ * @brief Finds value in an interval within indices k1 and k2.
+ * 
+ * @param n Grid size.
+ * @param x Searched value.
+ * @param x_grid Array to be searched.
+ * @param k1 Index before x.
+ * @param k2 Index after x.
+ */
 void findinterval(int n, double x, double *x_grid, int *k1, int *k2) //! returns interval where is placed x value, if it is out of the range, 0 is used
 {
-//intervals are ordered: <..>(..>(..>...(..>
+	// intervals are ordered: <..>(..>(..>...(..>
 	int i;
 	
-
-	// printf("x_grid[0],  %lf \n",x_grid[0]);
-	
-	if( x < x_grid[0] )
+	if(x < x_grid[0])
 	{
-			*k1 = -1;
-			*k2= 0;
-			return;
+		*k1 = -1;
+		*k2= 0;
+		return;
 	}
 
-	for(i=0;i< n;i++)
+	for(i = 0; i < n; i++)
 	{
-		if ( x <= x_grid[i+1] )
+		if (x <= x_grid[i+1])
 		{
 			*k1 = i;
 			*k2= i+1;
-			// printf("interval,  %i \n",*k1);
-			// printf("interval,  %i \n",*k2);
 			return;
 		}
 	}
 	
- 	*k1=n; *k2=n+1;
-	// !write(*,*) "error in the interval subroutine"
-
+ 	*k1=n; 
+	*k2=n+1;
 }
 
-
+/**
+ * @brief Coarsens a real array.
+ * 
+ * @param in_array Input array to be coarsened.
+ * @param length_in Input array length.
+ * @param out_array Coarsened output array.
+ * @param length_out Output array length after coarsening.
+ * @param k_step Number of steps to skip.
+ * @param N_max Maximum number of points.
+ */
 void coarsen_grid_real(double *in_array, int length_in, double **out_array, int *length_out, int k_step, int N_max)
 {
 	*length_out = N_max/k_step;
@@ -64,10 +65,20 @@ void coarsen_grid_real(double *in_array, int length_in, double **out_array, int 
 
 }
 
-
-// NUMERICS
-
-double interpolate( int n, double x, double *x_grid, double* y_grid) //!inputs: # of points, x(n), y(x(n)), x, returns y(x) (linearinterpolation), extrapolation by the boundary values
+/**
+ * @brief Returns a linear interpolation of a point x, i.e. given x it returns 
+ * y(x).
+ * 
+ * @details If x outside the boundary given by x_grid, it returns the boundary values
+ * of y_grid. 
+ * 
+ * @param n Grid size.
+ * @param x Interpolated point.
+ * @param x_grid X-axis where the point x is located.
+ * @param y_grid Y(X) array.
+ * @return double y_interp(x)
+ */
+double interpolate(int n, double x, double *x_grid, double* y_grid) 
 {
 	int k1,k2;
 	double y;
@@ -75,9 +86,6 @@ double interpolate( int n, double x, double *x_grid, double* y_grid) //!inputs: 
 	k1=0;
 	k2=0;
 	findinterval(n, x, x_grid, &k1, &k2);
-	// printf("\ninside interpolate \n");
-	// printf("interval,  %i \n",k1);
-	// printf("interval,  %i \n",k2);
 	if( k1 == -1 )
 	{
 		y=y_grid[0];
@@ -87,15 +95,19 @@ double interpolate( int n, double x, double *x_grid, double* y_grid) //!inputs: 
 		y=y_grid[k1]+(x-x_grid[k1])*(y_grid[k2]-y_grid[k1])/(x_grid[k2]-x_grid[k1]);	
 	}
 	
-	//y = 0.;
-	//printf("interpolated value,  %lf \n",y);
-	//printf("\n");	
 	return y;
-
 }
 
-
-double findnextinterpolatedzero(int n, double x, double* x_grid, double* y_grid) // it next zero according to an input value
+/**
+ * @brief Finds next closest zero, i.e. x for which y(x) = 0, according to an input array.
+ * 
+ * @param n Grid size.
+ * @param x Value from which to start searching for zero.
+ * @param x_grid X-grid where the zeros are located.
+ * @param y_grid Y(X) array.
+ * @return double 
+ */
+double findnextinterpolatedzero(int n, double x, double * x_grid, double * y_grid) 
 {
 	int k1,k2,k3,k4;
 	double x_root,x1,x2,y1,y2;
@@ -104,9 +116,7 @@ double findnextinterpolatedzero(int n, double x, double* x_grid, double* y_grid)
 	k2=0;
 	k3=0;
 	findinterval(n, x, x_grid, &k1, &k2);
-	// printf("\ninside interpolate \n");
-	// printf("interval,  %i \n",k1);
-	// printf("interval,  %i \n",k2);
+
 	if( ( k1 == -1 ) ||  ( k2 == n+1 ))
 	{
 		printf("Cannot find interpolated zero: out of range\n");
@@ -130,15 +140,3 @@ double findnextinterpolatedzero(int n, double x, double* x_grid, double* y_grid)
 	
 	return 0.;
 }
-
-
-
-double ** create_2Darray_accessor_real(int * dims, double *array_data) //takes a contiguous block of memory and reconstruct a 2D arroy from that !!! generalise it to nD using void* (see discussion)
-{
-	int k1;
-	double **array_accessor;
-	array_accessor = (double**) malloc(dims[0]*sizeof(double));
-	for(k1 = 0; k1 < dims[0];k1++){array_accessor[k1] = &array_data[dims[1]*k1];}	
-	return array_accessor;
-}
-// how-to generalise: there could be a problem to declare a correct number of '*', chain somehow voids (seems to be possible)? or hot-fix it by log if?

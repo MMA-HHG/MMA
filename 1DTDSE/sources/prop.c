@@ -16,7 +16,7 @@ double* propagation(inputs_def inputs, outputs_def outputs)
 {
 	double *res1,*dnew1,*dinfnew1,*dsupnew1,*psi_inter1;
 	double *res2,*dnew2,*dinfnew2,*dsupnew2,*psi_inter2;
-	double Field, tt, coef, Apot;
+	double Field, tt = inputs.tmin, coef, Apot;
 	int j, k, k1, k2, k3, k4;	
 	double cpot;
 	double dip;
@@ -47,17 +47,16 @@ double* propagation(inputs_def inputs, outputs_def outputs)
 	res2 = calloc(2*(num_r+1),sizeof(double));
 	dnew2 = calloc(2*(num_r+1),sizeof(double));
 	dinfnew2 = calloc(2*(num_r+1),sizeof(double));
-	dsupnew2 = calloc(2*(num_r+1),sizeof(double));
+	dsupnew2 = calloc(2*(num_r+1),sizeof(double)); 
 
-
-	tt = inputs.tmin; 
-
-	// the gauge independent probability of the electron being between -x_int and x_int for psi0
+	
 	k1 = 0; k2 = 0; k3 = 0; k4 = 0;
 	findinterval(num_r, -x_int, x, &k1, &k2);
 	findinterval(num_r, x_int, x, &k3, &k4);
 	ion_prob2 = 0;
-	for(j=k1;j<=k4;j++){ion_prob2 = ion_prob2 + psi0[2*j]*psi0[2*j] + psi0[2*j+1]*psi0[2*j+1];}
+	for(j = k1; j <= k4; j++) {
+		ion_prob2 = ion_prob2 + psi0[2*j]*psi0[2*j] + psi0[2*j+1]*psi0[2*j+1];
+	}
 
 
 

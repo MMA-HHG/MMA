@@ -79,3 +79,14 @@ int MPE_Counter_nxtval(MPI_Win counterWin, int counterNum, int *value) // MPI-3 
     t_mpi[3] = MPI_Wtime();
     return 0;
 }
+
+
+void nxtval_init(int init_offset, int *val)
+{
+	*val = init_offset;
+}
+
+void nxtval_strided(int stride, int *val)
+{
+	*val = *val + stride;
+}
