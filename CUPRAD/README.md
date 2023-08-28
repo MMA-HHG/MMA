@@ -9,6 +9,7 @@
     * The pre-processor does a lot of tedious work: mainly the conversion from SI inputs to *computational units **[C.U.]***. It will require a lot of thesting and work to Pythonise the pre-processor/include conversion in the main code/... I propse to clean up the pre-processor for now.
 * Data treatment:
     * The storing procedures need a better organisation. For example, the field is printed twice.
+    * There is a lot of redundant files produced form CUPRAD. We need to ensure that everything is in the HDF5-ouput. Other files will be removed.
 * Overall functionality
     * There are still some extensions of the code that shall be either commented or deprecated[^1] to provide a clear code.
 * Code continuation: it is now disallowed. THe purpose of it is to separate a long simulation into more jobs. It shall be easy to reintroduce: we just need to properly use the endplane as the input for the next run.
