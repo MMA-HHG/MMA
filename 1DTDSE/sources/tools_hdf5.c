@@ -180,7 +180,7 @@ void print_nd_array_h5(hid_t file_id, char *dset_name, herr_t *h5error, int ndim
 }
 
 /**
- * @brief Creates dataset for an nd array into HDF5 file.
+ * @brief Creates dataset for an nd array in HDF5 file.
  * 
  * @param file_id HDF5 file.
  * @param dset_name Name of the dataset.
@@ -189,7 +189,8 @@ void print_nd_array_h5(hid_t file_id, char *dset_name, herr_t *h5error, int ndim
  * @param dimensions Dimensions of the dataset.
  * @param datatype Datatype.
  */
-void create_nd_array_h5(hid_t file_id, char *dset_name, herr_t *h5error, int ndims, hsize_t *dimensions, hid_t datatype)
+void create_nd_array_h5(hid_t file_id, char *dset_name, herr_t *h5error, 
+						int ndims, hsize_t *dimensions, hid_t datatype)
 {
 	hid_t dspace_id = H5Screate_simple(ndims, dimensions, NULL);
 	hid_t dset_id = H5Dcreate2(file_id, dset_name, datatype, dspace_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
@@ -198,17 +199,19 @@ void create_nd_array_h5(hid_t file_id, char *dset_name, herr_t *h5error, int ndi
 }
 
 /**
- * @brief 
+ * @brief Writes output of the TDSE computation into HDF5 file
  * 
- * @param file_id 
- * @param inpath 
- * @param h5error 
- * @param in 
- * @param out 
+ * @param file_id HDF5 file.
+ * @param inpath Path to outputs in the HDF5 file.
+ * @param h5error Status.
+ * @param in Input structure.
+ * @param out Output structure.
  */
-void PrintOutputs(hid_t file_id, char *inpath, herr_t *h5error,  inputs_def *in,  outputs_def *out)
+void PrintOutputs(hid_t file_id, char *inpath, herr_t *h5error,  inputs_def *in,  
+				  outputs_def *out)
 {
-	hsize_t output_dims[2]; // never exceeds 2 in this case, can be longer
+	// Dimensions never exceeds 2 in this case, can be longer
+	hsize_t output_dims[2]; 
 	char path[50];
 
   	// time domain
@@ -219,460 +222,492 @@ void PrintOutputs(hid_t file_id, char *inpath, herr_t *h5error,  inputs_def *in,
 		print_nd_array_h5(file_id, path, h5error, 1, output_dims, (*out).Efield, H5T_NATIVE_DOUBLE);
 	}
 
-  if ( (*in).Print.sourceterm == 1 )
-  {
+  	if ( (*in).Print.sourceterm == 1 )
+	{
 		path[0] = '\0';	strcat(strcat(path,inpath),"SourceTerm");
 		print_nd_array_h5(file_id, path, h5error, 1, output_dims, (*out).sourceterm, H5T_NATIVE_DOUBLE);
-  }
-
-  if ( (*in).Print.PopTot == 1 )
-  {
-		path[0] = '\0';	strcat(strcat(path,inpath),"PopTot");
-		print_nd_array_h5(file_id, path, h5error, 1, output_dims, (*out).PopTot, H5T_NATIVE_DOUBLE);
-  }
-
-  // the grid
-  if ( (*in).Print.Efield == 1 || (*in).Print.sourceterm == 1 || (*in).Print.PopTot == 1 )
-  {
-		path[0] = '\0';	strcat(strcat(path,inpath),"tgrid");
-		print_nd_array_h5(file_id, path, h5error, 1, output_dims, (*out).tgrid, H5T_NATIVE_DOUBLE);
-  }
-
-  // omega domain - complex
-  output_dims[0] = (*out).Nomega; output_dims[1] = 2;
-  if ( (*in).Print.FEfield == 1 )
-  {
-		path[0] = '\0';	strcat(strcat(path,inpath),"FEfield");
-		print_nd_array_h5(file_id, path, h5error, 2, output_dims, (*out).FEfield_data, H5T_NATIVE_DOUBLE);
-  }
-
-  if ( (*in).Print.Fsourceterm == 1 )
-  {
-		path[0] = '\0';	strcat(strcat(path,inpath),"FSourceTerm");
-		print_nd_array_h5(file_id, path, h5error, 2, output_dims, (*out).Fsourceterm_data, H5T_NATIVE_DOUBLE);
-  }
-
-  // omega domain - real
-  output_dims[0] = (*out).Nomega; output_dims[1] = 0;
-
-  if ( (*in).Print.FEfieldM2 == 1 )
-  {
-		path[0] = '\0';	strcat(strcat(path,inpath),"FEfieldM2");
-		print_nd_array_h5(file_id, path, h5error, 1, output_dims, (*out).FEfieldM2, H5T_NATIVE_DOUBLE);
-  }
-
-  if ( (*in).Print.FsourceTermM2 == 1 )
-  {
-		path[0] = '\0';	strcat(strcat(path,inpath),"FSourceTermM2");
-		print_nd_array_h5(file_id, path, h5error, 1, output_dims, (*out).FsourcetermM2, H5T_NATIVE_DOUBLE);
-  }
-
-  // the grid
-  if ( (*in).Print.FEfield == 1 || (*in).Print.Fsourceterm == 1 || (*in).Print.FEfieldM2 == 1 || (*in).Print.FsourceTermM2 == 1 )
-  {
-		path[0] = '\0';	strcat(strcat(path,inpath),"omegagrid");
-		print_nd_array_h5(file_id, path, h5error, 1, output_dims, (*out).omegagrid, H5T_NATIVE_DOUBLE);
-  }
-
-  // various scalars
-  output_dims[0] = 1; output_dims[1] = 0;
-  path[0] = '\0'; strcat(strcat(path,inpath),"Energy_of_the_ground_state");
-  print_nd_array_h5(file_id, path, h5error, 1, output_dims, &(*in).Einit, H5T_NATIVE_DOUBLE);
-}
-
-
-void rw_hyperslab_nd_h5(hid_t file_id, char *dset_name, herr_t *h5error, int nhyperslab_dimensions, int *hyperslab_dimensions_int, int *offset_int, int *count_int, void *array, char *rw) // This function reads full line from an n-D array, the selected dimension is given by (-1), the rest of selection is the offset
-{ 
-  int ndims, k1;
-  hid_t datatype;
-  hsize_t *dims; dims = get_dimensions_h5(file_id, dset_name, h5error, &ndims, &datatype);
-  hsize_t hyperslab_dimensions[nhyperslab_dimensions];
-  for(k1 = 0; k1 < nhyperslab_dimensions; k1++){hyperslab_dimensions[k1] = hyperslab_dimensions_int[k1];}
-  hid_t memspace_id = H5Screate_simple(nhyperslab_dimensions,hyperslab_dimensions,NULL);
-  hsize_t  offset[ndims], count[ndims];
-  for(k1 = 0; k1 < ndims; k1++){offset[k1] = offset_int[k1]; count[k1] = count_int[k1]; //printf("offset: %i \n", offset[k1]); fflush(NULL); printf("count: %i \n", count[k1]); fflush(NULL);
 	}
 
-  hid_t dset_id = H5Dopen2 (file_id, dset_name, H5P_DEFAULT);
-  hid_t dspace_id = H5Dget_space (dset_id);
-  *h5error = H5Sselect_hyperslab (dspace_id, H5S_SELECT_SET, offset, NULL, count, NULL); // operation with only a part of the array = hyperslab	
-  if (strcmp(rw,"r")==0){
-    *h5error = H5Dread (dset_id, datatype, memspace_id, dspace_id, H5P_DEFAULT, array); // read only the hyperslab
-  } else if (strcmp(rw,"w")==0){
-    *h5error = H5Dwrite (dset_id, datatype, memspace_id, dspace_id, H5P_DEFAULT, array); // write the data
-  } else {
-    printf("wrongly sepcified r/w: nothing done\n"); 
-  }
-  
-  *h5error = H5Dclose(dset_id); // dataset
-  *h5error = H5Sclose(dspace_id); // dataspace
-  *h5error = H5Sclose(memspace_id); // dataspace
+	if ( (*in).Print.PopTot == 1 )
+	{
+		path[0] = '\0';	strcat(strcat(path,inpath),"PopTot");
+		print_nd_array_h5(file_id, path, h5error, 1, output_dims, (*out).PopTot, H5T_NATIVE_DOUBLE);
+	}
+
+	// the grid
+	if ( (*in).Print.Efield == 1 || (*in).Print.sourceterm == 1 || (*in).Print.PopTot == 1 )
+	{
+		path[0] = '\0';	strcat(strcat(path,inpath),"tgrid");
+		print_nd_array_h5(file_id, path, h5error, 1, output_dims, (*out).tgrid, H5T_NATIVE_DOUBLE);
+	}
+
+	// omega domain - complex
+	output_dims[0] = (*out).Nomega; output_dims[1] = 2;
+	if ( (*in).Print.FEfield == 1 )
+	{
+		path[0] = '\0';	strcat(strcat(path,inpath),"FEfield");
+		print_nd_array_h5(file_id, path, h5error, 2, output_dims, (*out).FEfield_data, H5T_NATIVE_DOUBLE);
+	}
+
+	if ( (*in).Print.Fsourceterm == 1 )
+	{
+		path[0] = '\0';	strcat(strcat(path,inpath),"FSourceTerm");
+		print_nd_array_h5(file_id, path, h5error, 2, output_dims, (*out).Fsourceterm_data, H5T_NATIVE_DOUBLE);
+	}
+
+	// omega domain - real
+	output_dims[0] = (*out).Nomega; output_dims[1] = 0;
+
+	if ( (*in).Print.FEfieldM2 == 1 )
+	{
+		path[0] = '\0';	strcat(strcat(path,inpath),"FEfieldM2");
+		print_nd_array_h5(file_id, path, h5error, 1, output_dims, (*out).FEfieldM2, H5T_NATIVE_DOUBLE);
+	}
+
+	if ( (*in).Print.FsourceTermM2 == 1 )
+	{
+		path[0] = '\0';	strcat(strcat(path,inpath),"FSourceTermM2");
+		print_nd_array_h5(file_id, path, h5error, 1, output_dims, (*out).FsourcetermM2, H5T_NATIVE_DOUBLE);
+	}
+
+	// the grid
+	if ( (*in).Print.FEfield == 1 || (*in).Print.Fsourceterm == 1 || (*in).Print.FEfieldM2 == 1 || (*in).Print.FsourceTermM2 == 1 )
+	{
+		path[0] = '\0';	strcat(strcat(path,inpath),"omegagrid");
+		print_nd_array_h5(file_id, path, h5error, 1, output_dims, (*out).omegagrid, H5T_NATIVE_DOUBLE);
+	}
+
+	// various scalars
+	output_dims[0] = 1; output_dims[1] = 0;
+	path[0] = '\0'; strcat(strcat(path,inpath),"Energy_of_the_ground_state");
+	print_nd_array_h5(file_id, path, h5error, 1, output_dims, &(*in).Einit, H5T_NATIVE_DOUBLE);
 }
 
-
-void rw_real_fullhyperslab_nd_h5(hid_t file_id, char *dset_name, herr_t *h5error, int ndims, hsize_t *dimensions, int *selection, double *array1D, char *rw) // This function reads full line from an n-D array, the selected dimension is given by (-1), the rest of selection is the offset
+/**
+ * @brief Reads/writes full line from an nd array, the selected dimension is given by (-1), 
+ * the rest of selection is the offset.
+ * 
+ * @param file_id HDF5 file.
+ * @param dset_name Name of the dataset of the nd array.
+ * @param h5error Status.
+ * @param nhyperslab_dimensions Dimension of the nd array.
+ * @param hyperslab_dimensions_int Dimensions of the nd array.
+ * @param offset_int Offset in the chosen dimension.
+ * @param count_int Total number of offsets.
+ * @param array Array for reading/writing.
+ * @param rw Read or write operation, {'r', 'w'}.
+ */
+void rw_hyperslab_nd_h5(hid_t file_id, char *dset_name, herr_t *h5error, 
+						int nhyperslab_dimensions, int *hyperslab_dimensions_int, 
+						int *offset_int, int *count_int, void *array, char *rw) 
 { 
-  int k1;
-  hid_t memspace_id;
-  hsize_t field_dims[1];  
-  hsize_t  offset[ndims], stride[ndims], count[ndims], block[ndims];
+	int ndims, k1;
+	hid_t datatype;
+	hsize_t *dims; dims = get_dimensions_h5(file_id, dset_name, h5error, &ndims, &datatype);
+	hsize_t hyperslab_dimensions[nhyperslab_dimensions];
+	for(k1 = 0; k1 < nhyperslab_dimensions; k1++){hyperslab_dimensions[k1] = hyperslab_dimensions_int[k1];}
+	hid_t memspace_id = H5Screate_simple(nhyperslab_dimensions,hyperslab_dimensions,NULL);
+	hsize_t  offset[ndims], count[ndims];
+	for(k1 = 0; k1 < ndims; k1++) {
+		offset[k1] = offset_int[k1]; 
+		count[k1] = count_int[k1];
+	}
 
-  for(k1 = 0; k1 < ndims; k1++){
-    stride[k1] = 1; block[k1] = 1;
-    if (selection[k1] < 0){
-      offset[k1] = 0;
-      count[k1] = dimensions[k1];
-      field_dims[0] = dimensions[k1]; // a way to specify the length of the array for HDF5	
-      memspace_id = H5Screate_simple(1,field_dims,NULL);
-    }else{
-      offset[k1] = selection[k1];
-      count[k1] = 1;
-    }
-  }
-  hid_t dset_id = H5Dopen2 (file_id, dset_name, H5P_DEFAULT);
-  hid_t dspace_id = H5Dget_space (dset_id);
-  // hid_t datatype  = H5Dget_type(dset_id);
-  *h5error = H5Sselect_hyperslab (dspace_id, H5S_SELECT_SET, offset, stride, count, block); // operation with only a part of the array = hyperslab	
-  if (strcmp(rw,"r")==0){
-    *h5error = H5Dread (dset_id, H5T_NATIVE_DOUBLE, memspace_id, dspace_id, H5P_DEFAULT, array1D); // read only the hyperslab
-  } else if (strcmp(rw,"w")==0){
-    *h5error = H5Dwrite (dset_id, H5T_NATIVE_DOUBLE, memspace_id, dspace_id, H5P_DEFAULT, array1D); // write the data
-  } else {
-    printf("wrongly sepcified r/w: nothing done\n"); 
-  }
-  
-  *h5error = H5Dclose(dset_id); // dataset
-  *h5error = H5Sclose(dspace_id); // dataspace
-  *h5error = H5Sclose(memspace_id); // dataspace
+	hid_t dset_id = H5Dopen2 (file_id, dset_name, H5P_DEFAULT);
+	hid_t dspace_id = H5Dget_space (dset_id);
+	// operation with only a part of the array = hyperslab	
+	*h5error = H5Sselect_hyperslab (dspace_id, H5S_SELECT_SET, offset, NULL, count, NULL); 
+	// read only the hyperslab
+	if (strcmp(rw,"r")==0){
+		*h5error = H5Dread (dset_id, datatype, memspace_id, dspace_id, H5P_DEFAULT, array); 
+	} else if (strcmp(rw,"w")==0){
+		// write the data
+		*h5error = H5Dwrite (dset_id, datatype, memspace_id, dspace_id, H5P_DEFAULT, array); 
+	} else {
+		printf("wrongly sepcified r/w: nothing done\n"); 
+	}
+	
+	*h5error = H5Dclose(dset_id); // dataset
+	*h5error = H5Sclose(dspace_id); // dataspace
+	*h5error = H5Sclose(memspace_id); // dataspace
 }
 
-void rw_real_full2Dhyperslab_nd_h5(hid_t file_id, char *dset_name, herr_t *h5error, int ndims, hsize_t *dimensions, int *selection, double *array1D, char *rw) // This function reads full line from an n-D array, the selected dimension is given by (-1), the rest of selection is the offset
+/**
+ * @brief Reads/writes full line from an nd array, the selected dimension is given 
+ * by (-1), the rest of selection is the offset.
+ * 
+ * @param file_id HDF5 file.
+ * @param dset_name Name of the dataset of the nd array.
+ * @param h5error Status.
+ * @param ndims Dimension of the nd array.
+ * @param dimensions Dimensions of the nd array.
+ * @param selection Indeces for array selection.
+ * @param array1D Array for read/write.
+ * @param rw Read or write operation, {'r', 'w'}.
+ */
+void rw_real_fullhyperslab_nd_h5(hid_t file_id, char *dset_name, herr_t *h5error, int ndims, hsize_t *dimensions, int *selection, double *array1D, char *rw) 
 { 
-  int k1, k2 = 0;
-  hid_t memspace_id;
-  hsize_t field_dims[2];  
-  hsize_t  offset[ndims], stride[ndims], count[ndims], block[ndims];
+	int k1;
+	hid_t memspace_id;
+	hsize_t field_dims[1];  
+	hsize_t  offset[ndims], stride[ndims], count[ndims], block[ndims];
 
-  for(k1 = 0; k1 < ndims; k1++){
-    stride[k1] = 1; block[k1] = 1;
-    if (selection[k1] < 0){
-      offset[k1] = 0;
-      count[k1] = dimensions[k1];
-      field_dims[k2] = dimensions[k1]; // a way to specify the length of the array for HDF5
-      k2++;	
-    }else{
-      offset[k1] = selection[k1];
-      count[k1] = 1;
-    }
-  }
-
-  memspace_id = H5Screate_simple(2,field_dims,NULL);
-
-  hid_t dset_id = H5Dopen2 (file_id, dset_name, H5P_DEFAULT);
-  hid_t dspace_id = H5Dget_space (dset_id);
-  // hid_t datatype  = H5Dget_type(dset_id);
-  *h5error = H5Sselect_hyperslab (dspace_id, H5S_SELECT_SET, offset, stride, count, block); // operation with only a part of the array = hyperslab	
-  if (strcmp(rw,"r")==0){
-    *h5error = H5Dread (dset_id, H5T_NATIVE_DOUBLE, memspace_id, dspace_id, H5P_DEFAULT, array1D); // read only the hyperslab
-  } else if (strcmp(rw,"w")==0){
-    *h5error = H5Dwrite (dset_id, H5T_NATIVE_DOUBLE, memspace_id, dspace_id, H5P_DEFAULT, array1D); // write the data
-  } else {
-    printf("wrongly sepcified r/w: nothing done\n"); 
-  }
-
-  *h5error = H5Dclose(dset_id); // dataset
-  *h5error = H5Sclose(dspace_id); // dataspace
-  *h5error = H5Sclose(memspace_id); // dataspace
+	for(k1 = 0; k1 < ndims; k1++){
+		stride[k1] = 1; 
+		block[k1] = 1;
+		if (selection[k1] < 0){
+			offset[k1] = 0;
+			count[k1] = dimensions[k1];
+			// a way to specify the length of the array for HDF5	
+			field_dims[0] = dimensions[k1]; 
+			memspace_id = H5Screate_simple(1,field_dims,NULL);
+		} else {
+			offset[k1] = selection[k1];
+			count[k1] = 1;
+		}
+	}
+	hid_t dset_id = H5Dopen2 (file_id, dset_name, H5P_DEFAULT);
+	hid_t dspace_id = H5Dget_space (dset_id);
+	// operation with only a part of the array = hyperslab	
+	*h5error = H5Sselect_hyperslab (dspace_id, H5S_SELECT_SET, offset, stride, count, block); 
+	if (strcmp(rw,"r")==0){
+		// read only the hyperslab
+		*h5error = H5Dread (dset_id, H5T_NATIVE_DOUBLE, memspace_id, dspace_id, H5P_DEFAULT, array1D); 
+	} else if (strcmp(rw,"w")==0){
+		// write the data
+		*h5error = H5Dwrite (dset_id, H5T_NATIVE_DOUBLE, memspace_id, dspace_id, H5P_DEFAULT, array1D); 
+	} else {
+		printf("wrongly sepcified r/w: nothing done\n"); 
+	}
+	
+	*h5error = H5Dclose(dset_id); // dataset
+	*h5error = H5Sclose(dspace_id); // dataspace
+	*h5error = H5Sclose(memspace_id); // dataspace
 }
 
-
+/**
+ * @brief Reads real variable from HDF5 file.
+ * 
+ * @param file_id HDF5 file.
+ * @param dset_name Name of the dataset.
+ * @param h5error Status.
+ * @param value Variable for storing the value.
+ */
 void readreal(hid_t file_id, char *dset_name, herr_t *h5error, double *value)
 {
-  hid_t dset_id = H5Dopen2 (file_id, dset_name, H5P_DEFAULT); // open dataset
-  // hid_t datatype  = H5Dget_type(dset_id);
-  *h5error = H5Dread(dset_id,  H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, value);
-  *h5error = H5Dclose(dset_id);
+	// open dataset
+	hid_t dset_id = H5Dopen2 (file_id, dset_name, H5P_DEFAULT); 
+	*h5error = H5Dread(dset_id,  H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, value);
+	*h5error = H5Dclose(dset_id);
 }
 
-
+/**
+ * @brief Reads integer variable from HDF5 file.
+ * 
+ * @param file_id HDF5 file.
+ * @param dset_name Name of the dataset.
+ * @param h5error Status.
+ * @param value Variable for storing the value.
+ */
 void readint(hid_t file_id, char *dset_name, herr_t *h5error, int *value)
 {
-  hid_t dset_id = H5Dopen2 (file_id, dset_name, H5P_DEFAULT); // open dataset
-  // hid_t datatype  = H5Dget_type(dset_id);
-  *h5error = H5Dread(dset_id,  H5T_NATIVE_INT, H5S_ALL, H5S_ALL, H5P_DEFAULT, value);
-  *h5error = H5Dclose(dset_id);
+	hid_t dset_id = H5Dopen2 (file_id, dset_name, H5P_DEFAULT); 
+	*h5error = H5Dread(dset_id,  H5T_NATIVE_INT, H5S_ALL, H5S_ALL, H5P_DEFAULT, value);
+	*h5error = H5Dclose(dset_id);
 }
 
-// double * readreal1Darray(hid_t file_id, char *dset_name, herr_t *h5error, int *N_points) 
-// {
-// 	hid_t dset_id = H5Dopen2 (file_id, dset_name, H5P_DEFAULT); // open dataset	     
-// 	hid_t dspace_id = H5Dget_space (dset_id); // Get the dataspace ID     
-// 	const int ndims = H5Sget_simple_extent_ndims(dspace_id); // number of dimensions in the tgrid
-// 	hsize_t dims[ndims]; // we need the size to allocate tgrid for us
-// 	H5Sget_simple_extent_dims(dspace_id, dims, NULL); // get dimensions
-// 	// hid_t datatype  = H5Dget_type(dset_id);     // we get the type of data (SINGLE, DOUBLE, etc. from HDF5)
-//   double *array = malloc((int)dims[0]*sizeof(double)); 
-// 	/*see https://stackoverflow.com/questions/10575544/difference-between-array-type-and-array-allocated-with-malloc
-// 	      https://stackoverflow.com/questions/216259/is-there-a-max-array-length-limit-in-c/216731#216731  */
-// 	*h5error = H5Dread(dset_id,  H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, array); // read the grid
-//   *h5error = H5Sclose(dspace_id);
-//   *h5error = H5Dclose(dset_id);	
-
-//   *N_points = (int)dims[0];
-//   return array;
-// }
-
-double * readreal1Darray_fort(hid_t file_id, char *dset_name, herr_t *h5error, int *N_points) // fort is for the extra diemnsion due to fortran
+/**
+ * @brief Returns real 1D array from the dataset created using Fortran code. 
+ * 
+ * @details Fort is for the extra diemnsion due to fortran.
+ * Further notes: https://stackoverflow.com/questions/10575544/difference-between-array-type-and-array-allocated-with-malloc
+	      		  https://stackoverflow.com/questions/216259/is-there-a-max-array-length-limit-in-c/216731#216731
+ * 
+ * @param file_id HDF5 file.
+ * @param dset_name Dataset name.
+ * @param h5error Status.
+ * @param N_points Size of the dataset.
+ * @return double*
+ */
+double * readreal1Darray_fort(hid_t file_id, char *dset_name, herr_t *h5error, int *N_points) 
 {
-	hid_t dset_id = H5Dopen2 (file_id, dset_name, H5P_DEFAULT); // open dataset	     
-	hid_t dspace_id = H5Dget_space (dset_id); // Get the dataspace ID     
-	const int ndims = H5Sget_simple_extent_ndims(dspace_id); // number of dimensions in the tgrid
-	hsize_t dims[ndims]; // we need the size to allocate tgrid for us
-	H5Sget_simple_extent_dims(dspace_id, dims, NULL); // get dimensions
-	// hid_t datatype  = H5Dget_type(dset_id);     // we get the type of data (SINGLE, DOUBLE, etc. from HDF5)
-  double *array = malloc((int)dims[0]*sizeof(double)); 
-	/*see https://stackoverflow.com/questions/10575544/difference-between-array-type-and-array-allocated-with-malloc
-	      https://stackoverflow.com/questions/216259/is-there-a-max-array-length-limit-in-c/216731#216731  */
-	*h5error = H5Dread(dset_id,  H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, array); // read the grid
-  *h5error = H5Sclose(dspace_id);
-  *h5error = H5Dclose(dset_id);	
+	// open dataset	     
+	hid_t dset_id = H5Dopen2 (file_id, dset_name, H5P_DEFAULT); 
+	// Get the dataspace ID     
+	hid_t dspace_id = H5Dget_space (dset_id); 
+	// number of dimensions in the tgrid
+	const int ndims = H5Sget_simple_extent_ndims(dspace_id); 
+	// we need the size to allocate tgrid for us
+	hsize_t dims[ndims]; 
+	// get dimensions
+	H5Sget_simple_extent_dims(dspace_id, dims, NULL); 
+  	double *array = malloc((int)dims[0]*sizeof(double)); 
+	// read the grid
+	*h5error = H5Dread(dset_id,  H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, array); 
+	*h5error = H5Sclose(dspace_id);
+	*h5error = H5Dclose(dset_id);	
 
-  *N_points = (int)dims[0];
-  return array;
+	*N_points = (int)dims[0];
+	return array;
 }
 
-
+/**
+ * @brief Returns dimensions of HDF5 dataset.
+ * 
+ * @param file_id HDF5 file.
+ * @param dset_name Dataset name.
+ * @param h5error Status.
+ * @param ndims Dimension of the nd array.
+ * @param datatype Datatype of the array.
+ * @return hsize_t* 
+ */
 hsize_t * get_dimensions_h5(hid_t file_id, char *dset_name, herr_t *h5error, int *ndims, hid_t *datatype)
 {
 	hid_t dset_id = H5Dopen2 (file_id, dset_name, H5P_DEFAULT); // open dataset	     
 	hid_t dspace_id = H5Dget_space (dset_id); // Get the dataspace ID     
 	*ndims = H5Sget_simple_extent_ndims(dspace_id); // number of dimensions for the fields
-  hsize_t *dims = malloc((*ndims)*sizeof(hsize_t));
+  	hsize_t *dims = malloc((*ndims)*sizeof(hsize_t));
 	H5Sget_simple_extent_dims(dspace_id, dims, NULL); // get dimensions
  
 	*datatype  = H5Dget_type(dset_id); // get datatype
 
-  *h5error = H5Sclose(dspace_id);
+  	*h5error = H5Sclose(dspace_id);
 	*h5error = H5Dclose(dset_id);
  
-  return dims;
+  	return dims;
 }
 
-//int linkexists(hid_t file_id, char *link_name, herr_t *h5error)
-//{
-//  hid_t dset_id = H5Lexists (file_id, link_name, H5P_DEFAULT); // open dataset
-//  hid_t datatype  = H5Dget_type(dset_id);
-//  *h5error = H5Dread(dset_id,  datatype, H5S_ALL, H5S_ALL, H5P_DEFAULT, value);
-//  *h5error = H5Dclose(dset_id);
-//}
-
-void addone(int *val ){*val=*val+1;} // to test pointers
-
-
-
-
-
-void prepare_local_output_fixed_print_grids_h5(hid_t file_id, char *inpath, herr_t *h5error,  inputs_def *in,  outputs_def *out, int nsimulations, hsize_t *dims)
+/**
+ * @brief Allocates output arrays for the output of a single TDSE computation 
+ * into a temporary HDF5 file.
+ * 
+ * @param file_id HDF5 file.
+ * @param inpath Path to outputs in the HDF5 file.
+ * @param h5error Status.
+ * @param in Input structure.
+ * @param out Output structure.
+ * @param nsimulations Total simulations.
+ * @param dims Field dimensions.
+ */
+void prepare_local_output_fixed_print_grids_h5(hid_t file_id, char *inpath, 
+	herr_t *h5error,  inputs_def *in,  outputs_def *out, int nsimulations, 
+	hsize_t *dims)
 {
-	hsize_t output_dims[3]; // never exceeds 2 in this case, can be longer
+	hsize_t output_dims[3];
 	char path[50];
-  int k1;
+	int k1;
 
-  // keys for post-processing
-  output_dims[0] = nsimulations;
-  path[0] = '\0';	strcat(strcat(path,inpath),"keys");
-  int initial_keys[nsimulations]; for(k1 = 0 ; k1 < nsimulations; k1++){initial_keys[k1] = -1;}   // initilise with (-1): not merged value
-  print_nd_array_h5(file_id, path, h5error, 1, output_dims, initial_keys, H5T_NATIVE_INT);
+	// keys for post-processing
+	output_dims[0] = nsimulations;
+	path[0] = '\0';	strcat(strcat(path,inpath),"keys");
+	int initial_keys[nsimulations]; 
+	for(k1 = 0 ; k1 < nsimulations; k1++) {
+		initial_keys[k1] = -1;
+	}  
+	print_nd_array_h5(file_id, path, h5error, 1, output_dims, initial_keys, H5T_NATIVE_INT);
 
-  // printf("keys: %i, %i \n",initial_keys[0],initial_keys[1]); fflush(NULL);
-
-  // time domain
-	output_dims[0] = (*out).Nt; output_dims[1] = nsimulations;
-	if ( (*in).Print.Efield == 1 ) 
-  {
+	// time domain
+		output_dims[0] = (*out).Nt; output_dims[1] = nsimulations;
+		if ( (*in).Print.Efield == 1 ) 
+	{
 		path[0] = '\0';	strcat(strcat(path,inpath),"Efield");
-    create_nd_array_h5(file_id, path, h5error, 2, output_dims, dtype_h5((*in).precision));
-  }
+		create_nd_array_h5(file_id, path, h5error, 2, output_dims, dtype_h5((*in).precision));
+	}
 
-  if ( (*in).Print.sourceterm == 1 )
-  {
+	if ( (*in).Print.sourceterm == 1 )
+	{
 		path[0] = '\0';	strcat(strcat(path,inpath),"SourceTerm");
 		create_nd_array_h5(file_id, path, h5error, 2, output_dims, dtype_h5((*in).precision));
-  }
+	}
 
-  if ( (*in).Print.PopTot == 1 )
-  {
+	if ( (*in).Print.PopTot == 1 )
+	{
 		path[0] = '\0';	strcat(strcat(path,inpath),"PopTot");
 		create_nd_array_h5(file_id, path, h5error, 2, output_dims, dtype_h5((*in).precision));
-  }
+	}
 
-  if ( (*in).Print.PopInt == 1 )
-  {
+	if ( (*in).Print.PopInt == 1 )
+	{
 		path[0] = '\0';	strcat(strcat(path,inpath),"PopInt");
 		create_nd_array_h5(file_id, path, h5error, 2, output_dims, dtype_h5((*in).precision));
-  }
+	}
 
-  if ( (*in).Print.expval_x == 1 )
-  {
+	if ( (*in).Print.expval_x == 1 )
+	{
 		path[0] = '\0';	strcat(strcat(path,inpath),"expval_x");
 		create_nd_array_h5(file_id, path, h5error, 2, output_dims, dtype_h5((*in).precision));
-  }
+	}
 
-  // the grid
-  output_dims[0] = (*out).Nt; output_dims[1] = 0;
-  if ( (*in).Print.Efield == 1 || (*in).Print.sourceterm == 1 || (*in).Print.PopTot == 1  || (*in).Print.PopInt == 1 || (*in).Print.expval_x == 1 )
-  {
+	// the grid
+	output_dims[0] = (*out).Nt; output_dims[1] = 0;
+	if ((*in).Print.Efield == 1 || (*in).Print.sourceterm == 1 || 
+		(*in).Print.PopTot == 1  || (*in).Print.PopInt == 1 || 
+		(*in).Print.expval_x == 1 )
+	{
 		path[0] = '\0';	strcat(strcat(path,inpath),"tgrid");
 		print_nd_array_h5(file_id, path, h5error, 1, output_dims, (*out).tgrid, H5T_NATIVE_DOUBLE);
-  }
+	}
 
-  // omega domain - complex
-  //output_dims[0] = (*out).Nomega; output_dims[1] = 2;
-  output_dims[0] = (*out).Nomega; output_dims[1] = 2; output_dims[2] = nsimulations;
-  if ( (*in).Print.FEfield == 1 )
-  {
+	// omega domain - complex
+	output_dims[0] = (*out).Nomega; output_dims[1] = 2; 
+	output_dims[2] = nsimulations;
+	if ( (*in).Print.FEfield == 1 )
+	{
 		path[0] = '\0';	strcat(strcat(path,inpath),"FEfield");
 		create_nd_array_h5(file_id, path, h5error, 3, output_dims, dtype_h5((*in).precision));
-  }
+	}
 
-  if ( (*in).Print.Fsourceterm == 1 )
-  {
+	if ( (*in).Print.Fsourceterm == 1 )
+	{
 		path[0] = '\0';	strcat(strcat(path,inpath),"FSourceTerm");
 		create_nd_array_h5(file_id, path, h5error, 3, output_dims, dtype_h5((*in).precision));
-  }
+	}
 
-  // omega domain - real
-  // output_dims[0] = (*out).Nomega; output_dims[1] = 0;
-  output_dims[0] = (*out).Nomega; output_dims[1] = nsimulations;
+	// omega domain - real
+	output_dims[0] = (*out).Nomega; output_dims[1] = nsimulations;
 
-  if ( (*in).Print.FEfieldM2 == 1 )
-  {
+	if ( (*in).Print.FEfieldM2 == 1 )
+	{
 		path[0] = '\0';	strcat(strcat(path,inpath),"FEfieldM2");
 		create_nd_array_h5(file_id, path, h5error, 2, output_dims, dtype_h5((*in).precision));
-  }
+	}
 
-  if ( (*in).Print.FsourceTermM2 == 1 )
-  {
+	if ( (*in).Print.FsourceTermM2 == 1 )
+	{
 		path[0] = '\0';	strcat(strcat(path,inpath),"FSourceTermM2");
 		create_nd_array_h5(file_id, path, h5error, 2, output_dims, dtype_h5((*in).precision));
-  }
+	}
 
-  // the grid
-  output_dims[0] = (*out).Nomega; output_dims[1] = 0;
-  if ( (*in).Print.FEfield == 1 || (*in).Print.Fsourceterm == 1 || (*in).Print.FEfieldM2 == 1 || (*in).Print.FsourceTermM2 == 1 )
-  {
+	// the grid
+	output_dims[0] = (*out).Nomega; output_dims[1] = 0;
+	if ((*in).Print.FEfield == 1 || (*in).Print.Fsourceterm == 1 || 
+		(*in).Print.FEfieldM2 == 1 || (*in).Print.FsourceTermM2 == 1 )
+	{
 		path[0] = '\0';	strcat(strcat(path,inpath),"omegagrid");
 		print_nd_array_h5(file_id, path, h5error, 1, output_dims, (*out).omegagrid, H5T_NATIVE_DOUBLE);
-  }
+	}
 
-  // various scalars
-  output_dims[0] = 1; output_dims[1] = 0;
-  path[0] = '\0'; strcat(strcat(path,inpath),"Energy_of_the_ground_state");
-  print_nd_array_h5(file_id, path, h5error, 1, output_dims, &(*in).Einit, H5T_NATIVE_DOUBLE);
+	// various scalars
+	output_dims[0] = 1; output_dims[1] = 0;
+	path[0] = '\0'; strcat(strcat(path,inpath),"Energy_of_the_ground_state");
+	print_nd_array_h5(file_id, path, h5error, 1, output_dims, &(*in).Einit, H5T_NATIVE_DOUBLE);
 
-  path[0] = '\0'; strcat(strcat(path,inpath),"Nr_orig"); int foo = dims[2];
-  print_nd_array_h5(file_id, path, h5error, 1, output_dims, &foo, H5T_NATIVE_INT);
+	path[0] = '\0'; strcat(strcat(path,inpath),"Nr_orig"); int foo = dims[2];
+	print_nd_array_h5(file_id, path, h5error, 1, output_dims, &foo, H5T_NATIVE_INT);
 
-  path[0] = '\0'; strcat(strcat(path,inpath),"Nz_orig"); foo = dims[0];
-  print_nd_array_h5(file_id, path, h5error, 1, output_dims, &foo, H5T_NATIVE_INT);
+	path[0] = '\0'; strcat(strcat(path,inpath),"Nz_orig"); foo = dims[0];
+	print_nd_array_h5(file_id, path, h5error, 1, output_dims, &foo, H5T_NATIVE_INT);
 
-  path[0] = '\0'; strcat(strcat(path,inpath),"Nt_orig"); foo = dims[1];
-  print_nd_array_h5(file_id, path, h5error, 1, output_dims, &foo, H5T_NATIVE_INT);
+	path[0] = '\0'; strcat(strcat(path,inpath),"Nt_orig"); foo = dims[1];
+	print_nd_array_h5(file_id, path, h5error, 1, output_dims, &foo, H5T_NATIVE_INT);
 
-  path[0] = '\0'; strcat(strcat(path,inpath),"number_of_local_simulations");
-  create_nd_array_h5(file_id, path, h5error, 1, output_dims, H5T_NATIVE_INT);
-  //print_nd_array_h5(file_id, path, h5error, 1, output_dims, &one, H5T_NATIVE_DOUBLE);
+	path[0] = '\0'; strcat(strcat(path,inpath),"number_of_local_simulations");
+	create_nd_array_h5(file_id, path, h5error, 1, output_dims, H5T_NATIVE_INT);
 }
 
 
-
-void print_local_output_fixed_h5(hid_t file_id, char *inpath, herr_t *h5error,  inputs_def *in,  outputs_def *out, int nsimulations, int Nsim, int Nsim_loc)
+/**
+ * @brief Writes output of a single TDSE computation into a temporary HDF5 file.
+ * 
+ * @param file_id HDF5 file.
+ * @param inpath Path to outputs in the HDF5 file.
+ * @param h5error Status.
+ * @param in Input structure.
+ * @param out Output structure.
+ * @param nsimulations Total simulations.
+ * @param Nsim Number of parallel jobs.
+ * @param Nsim_loc Local job.
+ */
+void print_local_output_fixed_h5(hid_t file_id, char *inpath, herr_t *h5error,  
+	inputs_def *in,  outputs_def *out, int nsimulations, int Nsim, int Nsim_loc)
 {
-	hsize_t output_dims[3]; // never exceeds 2 in this case, can be longer
-  int offsets[3];
+	hsize_t output_dims[3]; 
+  	int offsets[3];
 	char path[50];
 
-  // keys for post-processing
-  output_dims[0] = nsimulations;
-  path[0] = '\0';	strcat(strcat(path,inpath),"keys");
-  rw_hyperslab_nd_h5(file_id, path, h5error, one, &one, &Nsim_loc, &one, &Nsim, "w");
-  // create_nd_array_h5(file_id, path, h5error, 1, output_dims, H5T_NATIVE_INT);
+	// keys for post-processing
+	output_dims[0] = nsimulations;
+	path[0] = '\0';	strcat(strcat(path,inpath),"keys");
+	rw_hyperslab_nd_h5(file_id, path, h5error, one, &one, &Nsim_loc, &one, &Nsim, "w");
 
-  // time domain
+	// time domain
 	output_dims[0] = (*out).Nt; output_dims[1] = nsimulations;
-  offsets[0] = -1; offsets[1] = Nsim_loc;
-	if ( (*in).Print.Efield == 1 ) 
-  {
+	offsets[0] = -1; offsets[1] = Nsim_loc;
+		if ( (*in).Print.Efield == 1 ) 
+	{
 		path[0] = '\0';	strcat(strcat(path,inpath),"Efield");
-    rw_real_fullhyperslab_nd_h5(file_id, path, h5error, 2, output_dims, offsets, (*out).Efield, "w");
-  }
+		rw_real_fullhyperslab_nd_h5(file_id, path, h5error, 2, output_dims, offsets, (*out).Efield, "w");
+	}
 
-  if ( (*in).Print.sourceterm == 1 )
-  {
+	if ( (*in).Print.sourceterm == 1 )
+	{
 		path[0] = '\0';	strcat(strcat(path,inpath),"SourceTerm");
 		rw_real_fullhyperslab_nd_h5(file_id, path, h5error, 2, output_dims, offsets, (*out).sourceterm, "w");
-  }
+	}
 
-  if ( (*in).Print.PopTot == 1 )
-  {
+	if ( (*in).Print.PopTot == 1 )
+	{
 		path[0] = '\0';	strcat(strcat(path,inpath),"PopTot");
 		rw_real_fullhyperslab_nd_h5(file_id, path, h5error, 2, output_dims, offsets, (*out).PopTot, "w");
-  }
+	}
 
-  if ( (*in).Print.PopTot == 1 ) // we use the original driver for the instant
-  {
+	if ( (*in).Print.PopTot == 1 ) 
+	{
 		path[0] = '\0';	strcat(strcat(path,inpath),"PopInt");
 		rw_real_fullhyperslab_nd_h5(file_id, path, h5error, 2, output_dims, offsets, (*out).PopInt, "w");
-  }
+	}
 
-  if ( (*in).Print.PopTot == 1 ) // we use the original driver for the instant
-  {
+	if ( (*in).Print.PopTot == 1 )
+	{
 		path[0] = '\0';	strcat(strcat(path,inpath),"expval_x");
 		rw_real_fullhyperslab_nd_h5(file_id, path, h5error, 2, output_dims, offsets, (*out).expval, "w");
-  }
+	}
 
-  // omega domain - complex
-  int hcount[3] = {(*out).Nomega,2,1};
-  int hoffset[3] = {0,0,Nsim_loc};
-  int dimsloc[2] = {(*out).Nomega,2};
-  output_dims[0] = (*out).Nomega; output_dims[1] = 2; output_dims[2] = nsimulations;
-  
-  if ( (*in).Print.FEfield == 1 )
-  {
+	// omega domain - complex
+	int hcount[3] = {(*out).Nomega,2,1};
+	int hoffset[3] = {0,0,Nsim_loc};
+	int dimsloc[2] = {(*out).Nomega,2};
+	output_dims[0] = (*out).Nomega; 
+	output_dims[1] = 2; 
+	output_dims[2] = nsimulations;
+	
+	if ( (*in).Print.FEfield == 1 )
+	{
 		path[0] = '\0';	strcat(strcat(path,inpath),"FEfield");	
 		rw_hyperslab_nd_h5(file_id, path, h5error, 2, dimsloc, hoffset, hcount, (*out).FEfield_data, "w");
-  }
+	}
 
-  if ( (*in).Print.Fsourceterm == 1 )
-  {
+	if ( (*in).Print.Fsourceterm == 1 )
+	{
 		path[0] = '\0';	strcat(strcat(path,inpath),"FSourceTerm");
 		rw_hyperslab_nd_h5(file_id, path, h5error, 2, dimsloc, hoffset, hcount, (*out).Fsourceterm_data, "w");
-  }
+	}
 
-  // omega domain - real
-  output_dims[0] = (*out).Nomega; output_dims[1] = nsimulations;
-  offsets[0] = -1; offsets[1] = Nsim_loc;
+	// omega domain - real
+	output_dims[0] = (*out).Nomega; 
+	output_dims[1] = nsimulations;
+	offsets[0] = -1; 
+	offsets[1] = Nsim_loc;
 
-  if ( (*in).Print.FEfieldM2 == 1 )
-  {
+	if ( (*in).Print.FEfieldM2 == 1 )
+	{
 		path[0] = '\0';	strcat(strcat(path,inpath),"FEfieldM2");
-    rw_real_fullhyperslab_nd_h5(file_id, path, h5error, 2, output_dims, offsets, (*out).FEfieldM2, "w");
-  }
+		rw_real_fullhyperslab_nd_h5(file_id, path, h5error, 2, output_dims, offsets, (*out).FEfieldM2, "w");
+	}
 
-  if ( (*in).Print.FsourceTermM2 == 1 )
-  {
+	if ( (*in).Print.FsourceTermM2 == 1 )
+	{
 		path[0] = '\0';	strcat(strcat(path,inpath),"FSourceTermM2");
 		rw_real_fullhyperslab_nd_h5(file_id, path, h5error, 2, output_dims, offsets, (*out).FsourcetermM2, "w");
-  }
+	}
 
-  // // various scalars
-  output_dims[0] = 1; output_dims[1] = 0;
-  // path[0] = '\0'; strcat(strcat(path,inpath),"Energy_of_the_ground_state");
-  // print_nd_array_h5(file_id, path, h5error, 1, output_dims, &(*in).Einit, H5T_NATIVE_DOUBLE);
-  
-  path[0] = '\0'; strcat(strcat(path,inpath),"number_of_local_simulations");
-  int foo = Nsim_loc + 1;
-  hid_t dset_id = H5Dopen2 (file_id, path, H5P_DEFAULT);
-  *h5error = H5Dwrite (dset_id, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, H5P_DEFAULT, &foo);
-  *h5error = H5Dclose(dset_id); // dataset
+	// various scalars
+	output_dims[0] = 1; output_dims[1] = 0;
+	
+	path[0] = '\0'; 
+	strcat(strcat(path,inpath),"number_of_local_simulations");
+	int foo = Nsim_loc + 1;
+	hid_t dset_id = H5Dopen2 (file_id, path, H5P_DEFAULT);
+	*h5error = H5Dwrite (dset_id, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, H5P_DEFAULT, &foo);
+	*h5error = H5Dclose(dset_id); // dataset
 }
