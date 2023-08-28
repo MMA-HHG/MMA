@@ -15,8 +15,7 @@
 #include <mpi.h>
 #include "structures.h"
 
-double* propagation(trg_def, Efield_var, double, int, int, double, int, int, double, double *, double *, double *,
-				    FILE *, FILE *, double, double, double*, double*, int, int, double, analy_def, outputs_def);
+double* propagation(inputs_def inputs, outputs_def outputs);
 void compute_population(trg_def, Efield_var, int, double *, int, double *, double, double *, double, double, double, double, double, outputs_def);
 
 

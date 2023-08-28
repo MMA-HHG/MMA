@@ -78,7 +78,9 @@ typedef struct trg_def{
  * 
  */
 typedef struct analy_def{
+	// time spacing for writing the wavefunction
 	double tprint;
+	// writewavefunction (1-writting every tprint)
 	int writewft;
 } analy_def;
 
@@ -136,14 +138,18 @@ typedef struct inputs_def {
 	int gauge;
 	// Gauge transform
 	int transformgauge;
-	// Integration limit for the ionization computation
+	// Integration limit for the ionization computation, note: 2 works fine with the lenth gauge and strong fields
 	double x_int;
 	// Specifies output dataset
 	struct analy_def analy;	
-	// Switches
-	int InterpByDTorNT, Ntinterp, PrintGaborAndSpectrum, PrintOutputMethod;	
+	// Switches (1 = yes)
+	int InterpByDTorNT, Ntinterp, PrintGaborAndSpectrum;
+	// Switch (0 - only text, 1 - only binaries, 2 - both)
+	int PrintOutputMethod;	
+	// extension of the calculation after the last fields ends !!! NOW ONLY FOR ANALYTICAL FIELD
+	double textend;
 	// Gabor variables
-	double textend, dtGabor, tmin1window, tmin2window, tmax1window, tmax2window, a_Gabor, omegaMaxGabor;
+	double dtGabor, tmin1window, tmin2window, tmax1window, tmax2window, a_Gabor, omegaMaxGabor;
 	// I/O printing structure
 	struct output_print_def Print;
 	// Precision of the ground state energy

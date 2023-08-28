@@ -11,32 +11,33 @@ clock_t start, finish;
 clock_t start2, finish2;
 double MPI_clock_start, MPI_clock_finish;
 
-extern double* timet,dipole;
 
-// extern  Efield_var;
-
-
-double* propagation( trg_def trg,  Efield_var Efield, double tmin, int Nt, int num_t,double dt,int num_r
-,int num_exp,double dx,double *psi0,double *psi,double *x
-,FILE *timef,FILE *timef2,double ton,double toff, double *timet, double *dipole, int gauge, int transformgauge, double x_int,  analy_def analy,  outputs_def outputs)
-{	
-	
+double* propagation(inputs_def inputs, outputs_def outputs)
+{
 	double *res1,*dnew1,*dinfnew1,*dsupnew1,*psi_inter1;
 	double *res2,*dnew2,*dinfnew2,*dsupnew2,*psi_inter2;
-	double Field,tt,coef,Apot,atten;
-	int j,save,comp,index,k,ip,k1,k2,k3,k4;	
-	
+	double Field, tt, coef, Apot;
+	int j, k, k1, k2, k3, k4;	
 	double cpot;
 	double dip;
-	double ion_prob2, ttrig; 
-	
+	double ion_prob2; 
+	double t_zero1, t_zero2;
 
-	double t_zero1,t_zero2;
+	// Define local variables for the computation
+	int num_r = inputs.num_r;
+	double *x = inputs.x;
+	double *psi0 = inputs.psi0;
+	double *psi;
+	double dx = inputs.dx;
+	double x_int = inputs.x_int;
+	int num_t = inputs.num_t;
+	double dt = inputs.dt;
+	int Nt = inputs.Nt;
+	trg_def trg = inputs.trg;
+	Efield_var Efield = inputs.Efield; 
 
-	
-	
-	double *psi2;	
-
+	// Allocate arrays
+	psi = calloc(2*(num_r+1),sizeof(double));
 	psi_inter1 = calloc(2*(num_r+1),sizeof(double));
 	res1 = calloc(2*(num_r+1),sizeof(double));
 	dnew1 = calloc(2*(num_r+1),sizeof(double));
@@ -48,27 +49,23 @@ double* propagation( trg_def trg,  Efield_var Efield, double tmin, int Nt, int n
 	dinfnew2 = calloc(2*(num_r+1),sizeof(double));
 	dsupnew2 = calloc(2*(num_r+1),sizeof(double));
 
-	psi2 = calloc(2*(num_r+1),sizeof(double));
 
+	tt = inputs.tmin; 
 
-	tt = tmin; ttrig=tmin;
-
-	comp = 100; index = 0; save = 1;
-
-		// the gauge independent probability of the electron being between -x_int and x_int for psi0
-		k1 = 0; k2 = 0; k3 = 0; k4 = 0;
-		findinterval(num_r, -x_int, x, &k1, &k2);
-		findinterval(num_r, x_int, x, &k3, &k4);
-		ion_prob2 = 0;
-		for(j=k1;j<=k4;j++){ion_prob2 = ion_prob2 + psi0[2*j]*psi0[2*j] + psi0[2*j+1]*psi0[2*j+1];}
+	// the gauge independent probability of the electron being between -x_int and x_int for psi0
+	k1 = 0; k2 = 0; k3 = 0; k4 = 0;
+	findinterval(num_r, -x_int, x, &k1, &k2);
+	findinterval(num_r, x_int, x, &k3, &k4);
+	ion_prob2 = 0;
+	for(j=k1;j<=k4;j++){ion_prob2 = ion_prob2 + psi0[2*j]*psi0[2*j] + psi0[2*j+1]*psi0[2*j+1];}
 
 
 
-		Field = 0;
-		// variables for apodization
-		t_zero1 = tmin;
-		t_zero2 = findnextinterpolatedzero(Efield.Nt-1, t_zero1 + Efield.dt, Efield.tgrid, Efield.Field);		
-	ip = 0;
+	Field = 0;
+	// variables for apodization
+	t_zero1 = inputs.tmin;
+	t_zero2 = findnextinterpolatedzero(Efield.Nt-1, t_zero1 + Efield.dt, Efield.tgrid, Efield.Field);		
+
 
 	cpot = 1.;
 
@@ -86,23 +83,14 @@ double* propagation( trg_def trg,  Efield_var Efield, double tmin, int Nt, int n
 	int do_zeroing = 0;
 	for(k = 0 ; k < Nt ; k++)
 	{
-
-		// printf("tcycle %i \n",k); fflush(NULL);	
 		if( k%num_t == 0 )
 		{
-		start = clock();	
-		// printf("Cycle number : %i ; size of the box : %i ; progress %i/%i \n",(k/num_t)+1,num_r,k,Nt); fflush(NULL);
+			start = clock();	
 		}
 
-
-		tt = tt + dt;
-		
+		tt = tt + dt;		
 		coef = 0.5*dt/(dx*dx);
-
 		
-		
-		comp = 100; index = 0; save = 1;
-
 		if(do_zeroing == 0){
 			if(Efield.Field[k]*Efield.Field[k+1] <= 0.0){do_zeroing = 1;}
 			Field = 0.;
@@ -110,15 +98,6 @@ double* propagation( trg_def trg,  Efield_var Efield, double tmin, int Nt, int n
 			Field = Efield.Field[k]; 
 		}
 		
-		// if(tt <= t_zero2)
-		// {
-		// 	Field = 0.;
-		// }else{
-		// 	Field = Efield.Field[k];
-		// }
-		
-
-
 		for(j = 0 ; j<= num_r ; j++) 
 		{	
 			dinfnew1[2*j] = 1/12.; dinfnew1[2*j+1] = 0.5*dt*( -0.5/(dx*dx) )+0.5*dt*1/12.*(cpot*potential(x[j],trg));
@@ -169,7 +148,7 @@ double* propagation( trg_def trg,  Efield_var Efield, double tmin, int Nt, int n
 
 		// second part of the evolution (Hint)
 
-		if( gauge == 0 )
+		if( inputs.gauge == 0 )
 		{
 			for(j = 0 ; j<= num_r ; j++) 
 			{
@@ -204,42 +183,9 @@ double* propagation( trg_def trg,  Efield_var Efield, double tmin, int Nt, int n
 			psi_inter2[2*num_r+1] = 4/6.*res1[2*num_r+1]+(1/6.-0.5*dt*Apot*0.5/dx)*res1[2*(num_r-1)+1];	
 
 			Inv_Tridiagonal_Matrix_complex(dinfnew2,dnew2,dsupnew2,psi_inter2,res2,num_r+1);
-			for(j = 0 ; j<= num_r ; j++) 
-			{
-				atten = 1.;		
-		        	psi[2*j] = atten*res2[2*j]; 
-				psi[2*j+1] = atten*res2[2*j+1];	
-			}
 
 		}
 			
-
-///////// ABSORBING WALL (REINTRODUCE!)
-
-
-		// // absorbing wall
-		// for(j = 0 ; j<= num_r ; j++) 
-		// {
-		// 	if ( j >= (num_r-300) ) 
-		// 	{	phiabs = x[j]-x[num_r-300];
-		// 		phiabs *= 1./(x[num_r]-x[num_r-300]);
-		// 		atten = 1-phiabs;
-		// 		phiabs *= Pi*0.5;
-		// 		atten *= cos(phiabs);
-		// 	}
-		// 	else {atten = 1;}
-
-		// 	if ( j <= 300 ) 
-		// 	{	phiabs = x[j]-x[300];
-		// 		phiabs *= 1./(x[0]-x[300]);
-		// 		atten = 1-phiabs;
-		// 		phiabs *= Pi*0.5;
-		// 		atten *= cos(phiabs);
-		// 	}
-		// 	else {if (j < (num_r-300)) atten = 1;}
-		// }
-
-
 		// PRINTING
 		dip=0.; for(k1 = 0 ; k1 <= num_r ; k1++) {dip = dip + (psi[2*k1]*psi[2*k1] + psi[2*k1+1]*psi[2*k1+1])*gradpot(x[k1],trg);};
 		outputs.tgrid[k+1] = tt, outputs.sourceterm[k+1] = -dip+Field; outputs.Efield[k+1]=Field;
@@ -249,21 +195,11 @@ double* propagation( trg_def trg,  Efield_var Efield, double tmin, int Nt, int n
 		// printresults(trg,Efield, timef,k,psi,num_r,psi0,tt,x,dx,Field,Apot,x_int,dip,outputs); population was computed there
 		compute_population(trg,Efield,k,psi,num_r,psi0,tt,x,dx,Field,Apot,x_int,dip,outputs);
 
-		if (ip == (int)floor(num_t/20.))
-		{
-			// printf("*/"); fflush(stdout);
-			ip = 0;
-		}
-		ip++;
-
 
 	if( ( k%num_t == num_t-1) && ( k != 0 ) )
 	{
-	finish = clock();
+		finish = clock();
 	}
-
-	
-
 	
 
 	} // end of the main loop
@@ -273,9 +209,16 @@ double* propagation( trg_def trg,  Efield_var Efield, double tmin, int Nt, int n
 	// printf("\nDuration of calculation for the whole problem %f sec, MPI time %f sec\n\n",(double)(finish2 - start2) / CLOCKS_PER_SEC, MPI_clock_finish-MPI_clock_start);
 
 	
-	free(psi_inter1);free(res1);free(dnew1);free(dinfnew1);free(dsupnew1);
-    	free(psi_inter2);free(res2);free(dnew2);free(dinfnew2);free(dsupnew2);
-	free(psi2);
+	free(psi_inter1);
+	free(res1);
+	free(dnew1);
+	free(dinfnew1);
+	free(dsupnew1);
+    free(psi_inter2);
+	free(res2);
+	free(dnew2);
+	free(dinfnew2);
+	free(dsupnew2);
 
 	return psi;
 }
