@@ -33,93 +33,153 @@ typedef struct flattop1chirp_definition {
 } flattop1chirp_definition;
 
 /**
- * @brief Full specification of the input field
- * 
+ * @brief Full specification of the input field.
  */
 typedef struct Efield_var {
+	// Type of field – numerical/analytical.
 	int fieldtype,fieldtype2;
+	// Time grid
 	double *tgrid;
+	// Field array
 	double *Field;
+	// Timestep
 	double dt;
+	// Number of timesteps
 	int Nt;
+	// Trapezoidal envelope
 	struct trap_definition trap;
+	// Sine-squared envelope of vector potential
 	struct sin2_definition *sin2;
+	// Sine-squared envelope of electric field
 	struct Esin2_definition *Esin2;
+	// Flat-top envelope
 	struct flattop1_definition *flt1;
+	// Flat-top envelope with chirp
 	struct flattop1chirp_definition *flt1ch;
+	// Number of points in one cycle
 	int Nflt1,Nsin2,NEsin2,Nflt1ch;
+	// Field parameters
 	double omega,E0,phi,ton,toff;
+	// Number of points in the envelope
 	int nc;
 } Efield_var;
 
 /**
  * @brief Microscopic target specification
  * 
- * @param a (double) Parameter of the soft core potential.
  */
 typedef struct trg_def{
+	// Parameter of the soft core potential
 	double a;
 } trg_def;
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Auxiliary structures for drivers of I/O
+/**
+ * @brief Auxiliary structures for drivers of I/O
+ * 
+ */
 typedef struct analy_def{
 	double tprint;
 	int writewft;
 } analy_def;
 
+/**
+ * @brief Auxiliary structures for drivers of I/O
+ * 
+ */
 typedef struct output_print_def{
 	int Efield, FEfield, sourceterm, Fsourceterm, FEfieldM2, FsourceTermM2, PopTot, tgrid, omegagrid, PopInt, expval_x;
 } output_print_def;
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// I/O structures & functions operating on them
-typedef struct inputs_def{
+
+/**
+ * @brief Input structure
+ * 
+ * @details Full specification of the input parameters for the TDSE computation.
+ * 
+ */
+typedef struct inputs_def {
+	// Target info
 	struct trg_def trg;
+	// Field info
 	struct Efield_var Efield;
+	// Energy of the ground state
 	double Eguess, Einit;
+	// Start time
 	double tmin;
+	// Timesteps for TDSE
 	int Nt;
+	// Timestep grid size CUPRAD
 	int num_t;
+	// Timestep
 	double dt;
+	// Radial grid size for CUPRAD
 	int num_r;
+	// Number of points of the spatial grid for the expansion
 	int num_exp;
+	// Spatial step
 	double dx;
+	// Initial wavefunction
 	double *psi0;
+	// Wavefunction in time t
 	double *psi;
+	// Spatial grid for the TDSE
 	double *x;
+	// Start of the envelope
 	double ton;
+	// End of the envelope
 	double toff;
+	// Time grid TDSE
 	double *timet;
+	// TDSE dipole
 	double *dipole;
+	// Choice of gauge
 	int gauge;
+	// Gauge transform
 	int transformgauge;
+	// Integration limit for the ionization computation
 	double x_int;
+	// Specifies output dataset
 	struct analy_def analy;	
+	// Switches
 	int InterpByDTorNT, Ntinterp, PrintGaborAndSpectrum, PrintOutputMethod;	
+	// Gabor variables
 	double textend, dtGabor, tmin1window, tmin2window, tmax1window, tmax2window, a_Gabor, omegaMaxGabor;
+	// I/O printing structure
 	struct output_print_def Print;
+	// Precision of the ground state energy
 	double CV;
 	char precision[2];
 } inputs_def;
 
-typedef struct outputs_def{ // only * can be modified by direct inputs
+typedef struct outputs_def{ 
+	// Temporal grid
 	double *tgrid;
+	// Temporal grid for FFTW
 	double *tgrid_fftw;
+	// Electric field
 	double *Efield;
+	// Source term (current)
 	double *sourceterm;
+	// Angular frequency grid
 	double *omegagrid;
+	// Field spectrum
 	double **FEfield, *FEfield_data;
+	// Source term spectrum
 	double **Fsourceterm, *Fsourceterm_data;
 	double *FEfieldM2;
 	double *FsourcetermM2;
+	// Population of the ground state
 	double *PopTot;
+	// Filtered source term
 	double *sourcetermfiltered;
+	// Ionization probability
 	double *PopInt;
+	// Expectation value of x
 	double *expval;
+	// Number of temporal gridpoints
 	int Nt; 
+	// Number of frequency gridpoints
 	int Nomega;
-/*	double *tmax;*/
 } outputs_def;
 
 // functions operating on them

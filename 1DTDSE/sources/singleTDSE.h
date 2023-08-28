@@ -18,7 +18,7 @@ outputs_def call1DTDSE(inputs_def inputs);
 
 // Electric field structure
 Efield_var Efield;
-// Target information - type of gas
+// Target information
 trg_def trg;
 // ??
 analy_def analy;
