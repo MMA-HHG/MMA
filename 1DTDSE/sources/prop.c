@@ -1,3 +1,10 @@
+/**
+ * @file prop.c
+ * @brief Contains propagator of the TDSE.
+ * 
+ * @copyright Copyright (c) 2023
+ * 
+ */
 #include "tools_MPI-RMA.h"
 #include "constants.h"
 #include "prop.h"
@@ -7,33 +14,47 @@
 #include "tools.h"
 #include "tools_algorithmic.h"
 
-clock_t start, finish;
-clock_t start2, finish2;
-double MPI_clock_start, MPI_clock_finish;
-
-
-double* propagation(inputs_def inputs, outputs_def outputs)
+/**
+ * @brief Propagates the wavefunction using split operator technique
+ * 
+ * @param inputs Input parameters.
+ * @param outputs Computation results.
+ * @return double* wavefunction in final time.
+ */
+double * propagation(inputs_def inputs, outputs_def outputs)
 {
+	// Intermediate and tridiagonal variables
 	double *res1,*dnew1,*dinfnew1,*dsupnew1,*psi_inter1;
+	// Intermediate and tridiagonal variables
 	double *res2,*dnew2,*dinfnew2,*dsupnew2,*psi_inter2;
-	double Field, tt = inputs.tmin, coef, Apot;
+	double Field, tt = inputs.tmin, coef, Apot = 0;
+	// Iterables
 	int j, k, k1, k2, k3, k4;	
+	// Potential strength
 	double cpot;
 	double dip;
+	// Electron probability
 	double ion_prob2; 
-	double t_zero1, t_zero2;
 
 	// Define local variables for the computation
 	int num_r = inputs.num_r;
+	// Grid
 	double *x = inputs.x;
+	// Init wavefunction
 	double *psi0 = inputs.psi0;
+	// Wavefunction
 	double *psi;
+	// Spatial step
 	double dx = inputs.dx;
+	// Integration limit for ionization 
 	double x_int = inputs.x_int;
-	int num_t = inputs.num_t;
+	// Time step
 	double dt = inputs.dt;
+	// Number of time steps for the TDSE
 	int Nt = inputs.Nt;
+	// Target information
 	trg_def trg = inputs.trg;
+	// Field information
 	Efield_var Efield = inputs.Efield; 
 
 	// Allocate arrays
@@ -49,7 +70,7 @@ double* propagation(inputs_def inputs, outputs_def outputs)
 	dinfnew2 = calloc(2*(num_r+1),sizeof(double));
 	dsupnew2 = calloc(2*(num_r+1),sizeof(double)); 
 
-	
+	// Gauge independent probability of the electron being between -x_int and x_int
 	k1 = 0; k2 = 0; k3 = 0; k4 = 0;
 	findinterval(num_r, -x_int, x, &k1, &k2);
 	findinterval(num_r, x_int, x, &k3, &k4);
@@ -58,56 +79,72 @@ double* propagation(inputs_def inputs, outputs_def outputs)
 		ion_prob2 = ion_prob2 + psi0[2*j]*psi0[2*j] + psi0[2*j+1]*psi0[2*j+1];
 	}
 
-
-
-	Field = 0;
-	// variables for apodization
+	Field = 0.;
+	// variables for apodization <--- PURPOSE???
+	/*
 	t_zero1 = inputs.tmin;
 	t_zero2 = findnextinterpolatedzero(Efield.Nt-1, t_zero1 + Efield.dt, Efield.tgrid, Efield.Field);		
-
-
+	*/
 	cpot = 1.;
+	outputs.tgrid[0] = tt; 
+	outputs.sourceterm[0] = 0.; 
+	outputs.Efield[0] = Field; 
+	outputs.PopInt[0] = ion_prob2; 
+	outputs.expval[0] = 0.0;
 
-	
-	outputs.tgrid[0] = tt, outputs.sourceterm[0] = 0.; outputs.Efield[0]=Field; outputs.PopTot[0]=1.0; // wrong, first values shall be computed
-	outputs.PopInt[0]=ion_prob2; outputs.expval[0]=0.0;
+	// Save the initial state to psi
+	for(j = 0 ; j<= num_r ; j++) {
+		psi[2*j] = psi0[2*j]; 
+		psi[2*j+1] = psi0[2*j+1];
+	}
 
-
-	for(j = 0 ; j<= num_r ; j++) {psi[2*j] = psi0[2*j]; psi[2*j+1] = psi0[2*j+1];}
-
-	
-	start2 = clock();
-	MPI_clock_start = MPI_Wtime(); 
-	
-	int do_zeroing = 0;
+	/************
+	 * MAIN LOOP
+	*/
 	for(k = 0 ; k < Nt ; k++)
 	{
-		if( k%num_t == 0 )
-		{
-			start = clock();	
-		}
-
 		tt = tt + dt;		
 		coef = 0.5*dt/(dx*dx);
 		
+		// PURPOSE???
+		/*
+		int do_zeroing = 0;
 		if(do_zeroing == 0){
-			if(Efield.Field[k]*Efield.Field[k+1] <= 0.0){do_zeroing = 1;}
+			if(Efield.Field[k]*Efield.Field[k+1] <= 0.0) {
+				do_zeroing = 1;
+			}
 			Field = 0.;
-		}else{
-			Field = Efield.Field[k]; 
-		}
+		} else {
+		*/
+		Field = Efield.Field[k]; 
+		//}
 		
-		for(j = 0 ; j<= num_r ; j++) 
+		// Numerov matrix M_2 product with M_2^-1 * (d^2/dx^2 + V)
+		for(j = 0 ; j < num_r ; j++) 
 		{	
-			dinfnew1[2*j] = 1/12.; dinfnew1[2*j+1] = 0.5*dt*( -0.5/(dx*dx) )+0.5*dt*1/12.*(cpot*potential(x[j],trg));
-			dnew1[2*j] = 10/12.; dnew1[2*j+1] = 0.5*dt*( 1./(dx*dx) )+0.5*dt*10/12.*(cpot*potential(x[j],trg));
-			//dsupnew1[2*j] = 1/12.; dsupnew1[2*j+1] = 0.5*dt*( -0.5/(dx*dx) )+0.5*dt*1/12.*(cpot*potential(x[j+1],trg));			
+			// Subdiagonal, real and imaginary
+			dinfnew1[2*j] = 1/12.; 
+			dinfnew1[2*j+1] = 0.5*dt*( -0.5/(dx*dx) )+0.5*dt*1/12.*(cpot*potential(x[j],trg));
+			// Diagonal, real and imaginary
+			dnew1[2*j] = 10/12.; 
+			dnew1[2*j+1] = 0.5*dt*( 1./(dx*dx) )+0.5*dt*10/12.*(cpot*potential(x[j],trg));
+			// Superdiagonal, real and imaginary
+			dsupnew1[2*j] = 1/12.; 
+			dsupnew1[2*j+1] = 0.5*dt*( -0.5/(dx*dx) )+0.5*dt*1/12.*(cpot*potential(x[j+1],trg));			
 		}
-		for(j = 0 ; j<num_r ; j++) { dsupnew1[2*j] = 1/12.; dsupnew1[2*j+1] = 0.5*dt*( -0.5/(dx*dx) )+0.5*dt*1/12.*(cpot*potential(x[j+1],trg));}
-		dsupnew1[2*num_r ] = 1/12.; dsupnew1[2*num_r +1] = 0.5*dt*( -0.5/(dx*dx) )+0.5*dt*1/12.*(cpot*potential(x[num_r]+dx,trg));	
+		// Last elements of the tridiagonal matric, j = num_r
+		// Subdiagonal, real and imaginary
+		dinfnew1[2*num_r] = 1/12.; 
+		dinfnew1[2*num_r+1] = 0.5*dt*( -0.5/(dx*dx) )+0.5*dt*1/12.*(cpot*potential(x[num_r],trg));
+		// Diagonal, real and imaginary
+		dnew1[2*num_r] = 10/12.; 
+		dnew1[2*num_r+1] = 0.5*dt*( 1./(dx*dx) )+0.5*dt*10/12.*(cpot*potential(x[num_r],trg));
+		// Superdiagonal, real and imaginary, x[num_r] is the final element of the array
+		dsupnew1[2*num_r] = 1/12.; 
+		dsupnew1[2*num_r +1] = 0.5*dt*( -0.5/(dx*dx) )+0.5*dt*1/12.*(cpot*potential(x[num_r]+dx,trg));	
 		
-		// first part of the evolution (H0+V)
 
+		// first part of the evolution (H0+V)
 		psi_inter1[0] = (10/12.)*psi[0]+coef*psi[1]+1/12.*psi[2]-0.5*coef*psi[3];
 		psi_inter1[0] = psi_inter1[0]+0.5*dt*((10/12.)*psi[1]*(cpot*potential(x[0],trg))
 						+(1/12.)*psi[3]*(cpot*potential(x[1],trg)));
@@ -116,9 +153,7 @@ double* propagation(inputs_def inputs, outputs_def outputs)
 		psi_inter1[1] = psi_inter1[1]-0.5*dt*((10/12.)*psi[0]*(cpot*potential(x[0],trg))
 						+(1/12.)*psi[2]*(cpot*potential(x[1],trg)));
 
-		for(j = 1 ; j< num_r ; j++)
-		{
-
+		for(j = 1; j < num_r; j++) {
 			psi_inter1[2*j] = (10/12.)*psi[2*j]+coef*psi[2*j+1]+1/12.*psi[2*(j+1)]
 							  +1/12.*psi[2*(j-1)]-0.5*coef*(psi[2*(j-1)+1]+psi[2*(j+1)+1]);
 			psi_inter1[2*j] = psi_inter1[2*j]+0.5*dt*((10/12.)*psi[2*j+1]*(cpot*potential(x[j],trg))
@@ -130,7 +165,6 @@ double* propagation(inputs_def inputs, outputs_def outputs)
 			psi_inter1[2*j+1] = psi_inter1[2*j+1]-0.5*dt*((10/12.)*psi[2*j]*(cpot*potential(x[j],trg))
 							  +(1/12.)*psi[2*(j-1)]*(cpot*potential(x[j-1],trg))
 							  +(1/12.)*psi[2*(j+1)]*(cpot*potential(x[j+1],trg)));
-
 		}
 
 		psi_inter1[2*num_r] = (10/12.)*psi[2*num_r]+coef*psi[2*num_r+1]+1/12.*psi[2*(num_r-1)]-0.5*coef*psi[2*(num_r-1)+1];
@@ -140,72 +174,67 @@ double* propagation(inputs_def inputs, outputs_def outputs)
 		psi_inter1[2*num_r+1] = (10/12.)*psi[2*num_r+1]-coef*psi[2*num_r]+1/12.*psi[2*(num_r-1)+1]+0.5*coef*psi[2*(num_r-1)];
 		psi_inter1[2*num_r+1] = psi_inter1[2*num_r+1]-0.5*dt*((10/12.)*psi[2*num_r]*(cpot*potential(x[num_r],trg))
 							    +(1/12.)*psi[2*(num_r-1)]*(cpot*potential(x[num_r-1],trg)));
-
-
+		
+		// Solve for psi, tridiagonal matrix system
 		Inv_Tridiagonal_Matrix_complex(dinfnew1,dnew1,dsupnew1,psi_inter1,res1,num_r+1);
 
-
 		// second part of the evolution (Hint)
-
-		if( inputs.gauge == 0 )
+		// Depending on gauge (velocity/length), we apply the corresponding propagator exp(-i V(t))
+		if (inputs.gauge == 0)
 		{
-			for(j = 0 ; j<= num_r ; j++) 
+			// Length gauge: exp(-i x * E) = cos(...) - i sin(...)
+			for (j = 0; j <= num_r ; j++) 
 			{
 				psi[2*j] = cos(Field*dt*x[j])*res1[2*j]-sin(Field*dt*x[j])*res1[2*j+1]; 
 				psi[2*j+1] = cos(Field*dt*x[j])*res1[2*j+1]+sin(Field*dt*x[j])*res1[2*j];
 			}
 		}
-		else // velocity gauge (A has to be available)
+		else // velocity gauge (Apot has to be available): exp(A * d/dx), derivative approximated using Numerov
 		{
-
-			for(j = 0 ; j<= num_r ; j++) 
+			// Tridiagonal matrix init
+			for (j = 0; j <= num_r; j++) 
 			{			
-				dinfnew2[2*j] = 1/6.+0.5*dt*Apot*0.5/dx; dinfnew2[2*j+1] = 0;
-				dnew2[2*j] = 4/6.; dnew2[2*j+1] = 0;
-				dsupnew2[2*j] = 1/6.-0.5*dt*Apot*0.5/dx; dsupnew2[2*j+1] = 0;
+				dinfnew2[2*j] = 1/6.+0.5*dt*Apot*0.5/dx; 
+				dinfnew2[2*j+1] = 0;
+				dnew2[2*j] = 4/6.; 
+				dnew2[2*j+1] = 0;
+				dsupnew2[2*j] = 1/6.-0.5*dt*Apot*0.5/dx; 
+				dsupnew2[2*j+1] = 0;
 			}
 
+			// RHS vector
 			psi_inter2[0] = 4/6.*res1[0]+(1/6.+0.5*dt*Apot*0.5/dx)*res1[2];
 			psi_inter2[1] = 4/6.*res1[1]+(1/6.+0.5*dt*Apot*0.5/dx)*res1[3];
-
-			for(j = 1 ; j< num_r ; j++)
+			for (j = 1; j < num_r; j++)
 			{
-
 				psi_inter2[2*j] = 4/6.*res1[2*j] + (1/6. + 0.5*dt*Apot*0.5/dx)*res1[2*(j+1)];
 				psi_inter2[2*j] = psi_inter2[2*j] + (1/6. - 0.5*dt*Apot*0.5/dx)*res1[2*(j-1)];
 				psi_inter2[2*j+1] = 4/6.*res1[2*j+1] + (1/6. + 0.5*dt*Apot*0.5/dx)*res1[2*(j+1)+1];
 				psi_inter2[2*j+1] = psi_inter2[2*j+1] + (1/6. - 0.5*dt*Apot*0.5/dx)*res1[2*(j-1)+1];
 
 			}
-
 			psi_inter2[2*num_r] = 4/6.*res1[2*num_r]+(1/6.-0.5*dt*Apot*0.5/dx)*res1[2*(num_r-1)];
 			psi_inter2[2*num_r+1] = 4/6.*res1[2*num_r+1]+(1/6.-0.5*dt*Apot*0.5/dx)*res1[2*(num_r-1)+1];	
 
-			Inv_Tridiagonal_Matrix_complex(dinfnew2,dnew2,dsupnew2,psi_inter2,res2,num_r+1);
-
+			// Find psi by solving a tridiagonal system
+			Inv_Tridiagonal_Matrix_complex(dinfnew2, dnew2, dsupnew2, psi_inter2, res2, num_r+1);
 		}
 			
-		// PRINTING
-		dip=0.; for(k1 = 0 ; k1 <= num_r ; k1++) {dip = dip + (psi[2*k1]*psi[2*k1] + psi[2*k1+1]*psi[2*k1+1])*gradpot(x[k1],trg);};
-		outputs.tgrid[k+1] = tt, outputs.sourceterm[k+1] = -dip+Field; outputs.Efield[k+1]=Field;
+		
+		dip = 0.; 
+		for (k1 = 0 ; k1 <= num_r ; k1++) {
+			dip = dip + (psi[2*k1]*psi[2*k1] + psi[2*k1+1]*psi[2*k1+1])*gradpot(x[k1],trg);
+		}
+		outputs.tgrid[k+1] = tt;
+		outputs.sourceterm[k+1] = -dip+Field; 
+		outputs.Efield[k+1] = Field;
 		//outputs.tgrid[k+1] = tt, outputs.sourceterm[k+1] = Field; outputs.Efield[k+1]=Field;
 
 
 		// printresults(trg,Efield, timef,k,psi,num_r,psi0,tt,x,dx,Field,Apot,x_int,dip,outputs); population was computed there
 		compute_population(trg,Efield,k,psi,num_r,psi0,tt,x,dx,Field,Apot,x_int,dip,outputs);
 
-
-	if( ( k%num_t == num_t-1) && ( k != 0 ) )
-	{
-		finish = clock();
-	}
-	
-
 	} // end of the main loop
-
-	finish2 = clock();
-	MPI_clock_finish = MPI_Wtime(); 
-	// printf("\nDuration of calculation for the whole problem %f sec, MPI time %f sec\n\n",(double)(finish2 - start2) / CLOCKS_PER_SEC, MPI_clock_finish-MPI_clock_start);
 
 	
 	free(psi_inter1);
