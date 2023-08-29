@@ -114,7 +114,7 @@ typedef struct inputs_def {
 	int num_t;
 	// Timestep
 	double dt;
-	// Radial grid size for CUPRAD
+	// Spatial grid size for TDSE
 	int num_r;
 	// Number of points of the spatial grid for the expansion
 	int num_exp;

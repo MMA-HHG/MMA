@@ -16,7 +16,7 @@
 #include "structures.h"
 
 double* propagation(inputs_def inputs, outputs_def outputs);
-void compute_population(trg_def, Efield_var, int, double *, int, double *, double, double *, double, double, double, double, double, outputs_def);
+void compute_expectation_values(inputs_def, int, double *, outputs_def);
 
 
 

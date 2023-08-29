@@ -24,21 +24,20 @@
 double * propagation(inputs_def inputs, outputs_def outputs)
 {
 	// Intermediate and tridiagonal variables
-	double *res1,*dnew1,*dinfnew1,*dsupnew1,*psi_inter1;
+	double *res1, *dnew1, *dinfnew1, *dsupnew1, *psi_inter1;
 	// Intermediate and tridiagonal variables
-	double *res2,*dnew2,*dinfnew2,*dsupnew2,*psi_inter2;
+	double *res2, *dnew2, *dinfnew2, *dsupnew2, *psi_inter2;
 	double Field, tt = inputs.tmin, coef, Apot = 0;
 	// Iterables
 	int j, k, k1, k2, k3, k4;	
 	// Potential strength
 	double cpot;
-	double dip;
 	// Electron probability
 	double ion_prob2; 
 
 	// Define local variables for the computation
 	int num_r = inputs.num_r;
-	// Grid
+	// Spatial grid
 	double *x = inputs.x;
 	// Init wavefunction
 	double *psi0 = inputs.psi0;
@@ -219,20 +218,11 @@ double * propagation(inputs_def inputs, outputs_def outputs)
 			// Find psi by solving a tridiagonal system
 			Inv_Tridiagonal_Matrix_complex(dinfnew2, dnew2, dsupnew2, psi_inter2, res2, num_r+1);
 		}
-			
-		
-		dip = 0.; 
-		for (k1 = 0 ; k1 <= num_r ; k1++) {
-			dip = dip + (psi[2*k1]*psi[2*k1] + psi[2*k1+1]*psi[2*k1+1])*gradpot(x[k1],trg);
-		}
 		outputs.tgrid[k+1] = tt;
-		outputs.sourceterm[k+1] = -dip+Field; 
 		outputs.Efield[k+1] = Field;
-		//outputs.tgrid[k+1] = tt, outputs.sourceterm[k+1] = Field; outputs.Efield[k+1]=Field;
-
-
-		// printresults(trg,Efield, timef,k,psi,num_r,psi0,tt,x,dx,Field,Apot,x_int,dip,outputs); population was computed there
-		compute_population(trg,Efield,k,psi,num_r,psi0,tt,x,dx,Field,Apot,x_int,dip,outputs);
+		
+		// Compute expectation values: position, current, grad V, population
+		compute_expectation_values(inputs, k, psi, outputs);
 
 	} // end of the main loop
 
@@ -251,58 +241,70 @@ double * propagation(inputs_def inputs, outputs_def outputs)
 	return psi;
 }
 
-void compute_population( trg_def trg,  Efield_var Efield, int k, double *psi, int num_r, double *psi0, double tt, double *x, double dx, double Field, double Apot, double x_int, double dip_pre,  outputs_def outputs)
+/**
+ * @brief Computes expectation values of position, current, grad V, electron probability 
+ * density and population.
+ * 
+ * @details Remark that population and current are gauge dependent.
+ * 
+ * @param inputs Input parameters of the TDSE.
+ * @param k Iteration of the main propagation loop.
+ * @param psi Wavefunction in time t[k+1].
+ * @param outputs Storage of expectation values.
+ */
+void compute_expectation_values(inputs_def inputs, int k, double *psi, outputs_def outputs)
 {
-	double dip,pop_re,pop_im,pop_tot,current,position,ion_prob2, dum;
-	int j,k1,k2,k3,k4;
+	// Average value
+	double pop_re, pop_im, pop_tot, current, position, ion_prob2, grad_pot;
+	// Iterables
+	int j, k1, k2, k3, k4;
+	// Grid size
+	int num_r = inputs.num_r;
 
-		// printf("test2,\t%i\n",k);
-		// the population in the ground state (gauge dependent)
-		 pop_re=0.; pop_im=0.;
-		for(j = 0 ; j <= num_r ; j++) {pop_re = pop_re + psi[2*j]*psi0[2*j] + psi[2*j+1]*psi0[2*j+1]; pop_im = pop_im + psi[2*j]*psi0[2*j+1] - psi[2*j+1]*psi0[2*j];}
-		pop_tot = pop_re*pop_re + pop_im*pop_im;
+	// the population in the ground state (gauge dependent)
+	pop_re = 0.; 
+	pop_im = 0.;
+	for (j = 0 ; j <= num_r ; j++) {
+		pop_re = pop_re + psi[2*j]*inputs.psi0[2*j] + psi[2*j+1]*inputs.psi0[2*j+1]; 
+		pop_im = pop_im + psi[2*j]*inputs.psi0[2*j+1] - psi[2*j+1]*inputs.psi0[2*j];
+	}
+	pop_tot = pop_re*pop_re + pop_im*pop_im;
 
+	// the gauge independent probability of the electron being between -x_int and x_int
+	k1 = 0; k2 = 0; k3 = 0; k4 = 0;
+	findinterval(num_r, -inputs.x_int, inputs.x, &k1, &k2);
+	findinterval(num_r, inputs.x_int, inputs.x, &k3, &k4);
+	ion_prob2 = 0;
+	for(j = k1; j <= k4; j++) {
+		ion_prob2 = ion_prob2 + psi[2*j]*psi[2*j] + psi[2*j+1]*psi[2*j+1];
+	}
 
-		// the gauge independent probability of the electron being between -x_int and x_int
-		k1 = 0; k2 = 0; k3 = 0; k4 = 0;
-		findinterval(num_r, -x_int, x, &k1, &k2);
-		findinterval(num_r, x_int, x, &k3, &k4);
-		ion_prob2 = 0;
-		for(j=k1;j<=k4;j++){ion_prob2 = ion_prob2 + psi[2*j]*psi[2*j] + psi[2*j+1]*psi[2*j+1];}
+	// calculation of <x> (gauge independent)
+	position = 0.;
+	for(j = 0 ; j <= num_r ; j++)
+	{
+		position = position + (psi[2*j]*psi[2*j] + psi[2*j+1]*psi[2*j+1])*inputs.x[j]; 
+	}
 
-		dip = dip_pre;
-		
+	// calculation of <grad V> (gauge independent)
+	grad_pot = 0.; 
+	for (k1 = 0 ; k1 <= num_r ; k1++) {
+		grad_pot = grad_pot + (psi[2*k1]*psi[2*k1] + psi[2*k1+1]*psi[2*k1+1])*
+				   gradpot(inputs.x[k1],inputs.trg);
+	}	
+	grad_pot = -grad_pot + outputs.Efield[k+1];
 
-		// calculation of <x> (gauge independent)
-		position=0.;
-		
-		for(j = 0 ; j <= num_r ; j++)
-		{
-			position = position + (psi[2*j]*psi[2*j] + psi[2*j+1]*psi[2*j+1])*x[j]; 
-		}
-	       	
-
-		current = 0.; // (gauge dependent, current+Apot is gauge-independent) 
-		for(j = 1 ; j<= num_r-1 ; j++) 
-		{
+	// calculation of current (gauge dependent, gauge independent current is j + A (vector potential))
+	current = 0.; 
+	for(j = 1; j <= num_r-1; j++) {
 		current = current + psi[2*j]*(psi[2*(j+1)+1]-psi[2*(j-1)+1]) - psi[2*j+1]*(psi[2*(j+1)]-psi[2*(j-1)]);                 
-		}
-		current = current*0.5/dx;
+	}
+	current = current*0.5/inputs.dx;
 
-
-
-		dum = 0.; // test
-		for(j = 1 ; j<= num_r-1 ; j++) 
-		{
-		dum = dum + psi[2*j]*(psi[2*(j+1)+1]-psi[2*(j-1)+1]) + psi[2*j+1]*(psi[2*(j+1)]-psi[2*(j-1)]);                 
-		}
-		dum = dum*0.5/dx;
-
-	
-		// save to outputs
-		outputs.PopTot[k+1]=pop_tot;
-
-		outputs.expval[k+1]=position;
-		outputs.PopInt[k+1]=ion_prob2;	
+	// save to outputs
+	outputs.sourceterm[k+1] = grad_pot; 
+	outputs.PopTot[k+1]=pop_tot;
+	outputs.expval[k+1]=position;
+	outputs.PopInt[k+1]=ion_prob2;	
 }
 

@@ -41,7 +41,7 @@ outputs_def call1DTDSE(inputs_def inputs)
 	int Nt;
 	// Temporal grid size TDSE
 	int num_t;
-	// Radial grid size CUPRAD
+	// Spatial grid size TDSE
 	int num_r;
 	// Switch
 	int input0 = 1;
