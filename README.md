@@ -14,6 +14,7 @@ The work on the publication is being done in an independet repo `XXX`.
     * There is used the module `mynumerics`, this shall be cleaned & integrated in the multiscale model
 * Enhance code + executables (compilation with a 'pedantic' compiler, valgrind)
 * Test cases & tutorials
+    * (?) Jupyter notebook    
 * CodeOcean capsule
 * (?) Documentation: the basic overview will be given in the paper, Shall we use [doxygen](https://www.doxygen.nl/) to create more technical documentation capturing the structure of the code?
 
