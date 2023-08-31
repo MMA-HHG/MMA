@@ -26,7 +26,7 @@
  * @param inputs Input structure.
  * @return outputs_def 
  */
-outputs_def call1DTDSE(inputs_def inputs)
+outputs_def call1DTDSE(inputs_def * inputs)
 {
 	// Output structure
 	outputs_def outputs;	
@@ -37,9 +37,9 @@ outputs_def call1DTDSE(inputs_def inputs)
 	double dt;
 	// Maximum time
 	double tmax;
-	// Temporal grid size CUPRAD
-	int Nt;
 	// Temporal grid size TDSE
+	int Nt;
+	// Points per cycle of 800nm field
 	int num_t;
 	// Spatial grid size TDSE
 	int num_r;
@@ -53,12 +53,14 @@ outputs_def call1DTDSE(inputs_def inputs)
 	clock_t start, finish;
 	// Dummy pointer
 	double * dumptrs_real[2];
+	// Local field
+	double * field;
 
 	
 	// local copies of variables given by inputs
-	num_r = inputs.num_r; 
-	dt = inputs.dt;
-	Efield_var Efield = inputs.Efield;
+	num_r = (*inputs).num_r; 
+	dt = (*inputs).dt;
+	//Efield_var Efield = inputs.Efield;
 
 	// PREPARATIONAL COMPUTATIONS 
 	
@@ -68,39 +70,43 @@ outputs_def call1DTDSE(inputs_def inputs)
 		dumint = 0; 
 		break; 
 	case 1: 
-		dumint = round(Efield.Nt/2.); /* field centered around 0 */ 
+		dumint = round((*inputs).Efield.Nt/2.); /* field centered around 0 */ 
 		break;
 	} // choosing the best resolution	
 
-	Efield.dt = Efield.tgrid[dumint+1]-Efield.tgrid[dumint]; 
+	(*inputs).Efield.dt = (*inputs).Efield.tgrid[dumint+1]-(*inputs).Efield.tgrid[dumint]; 
 	
 	// total length of the grid
-	tmax = Efield.tgrid[Efield.Nt-1]-Efield.tgrid[0]; 
+	tmax = (*inputs).Efield.tgrid[(*inputs).Efield.Nt-1]-(*inputs).Efield.tgrid[0]; 
    
 	// refine dt either by given number of points or by required dt
-	if (inputs.InterpByDTorNT == 1) {
-		k1 = inputs.Ntinterp + 1;
+	if ((*inputs).InterpByDTorNT == 1) {
+		k1 = (*inputs).Ntinterp + 1;
 	} else { 
-		k1 = floor(Efield.dt/dt); 
-		inputs.Ntinterp = k1; 
+		k1 = floor((*inputs).Efield.dt/dt); 
+		(*inputs).Ntinterp = k1; 
 		k1++; 
 	}
-	dt = Efield.dt/((double)k1); // redefine dt properly
+	dt = (*inputs).Efield.dt/((double)k1); // redefine dt properly
 
+	// Free field and allocate new field array
 	// make the interpolation, note: tgrid does not correspond any more
-	Efield.Field = FourInterp(k1, Efield.Field, Efield.Nt); 
-
-	Nt = k1*Efield.Nt + 1;
+	//field = FourInterp(k1, (*inputs).Efield.Field, (*inputs).Efield.Nt); 
+	field = FourInterp(k1, (*inputs).Efield.Field, (*inputs).Efield.Nt); 
+	free((*inputs).Efield.Field);
+	Nt = k1*(*inputs).Efield.Nt + 1;
+	(*inputs).Efield.Field = field;
 	
 	// the length of one cycle for 800 nm (i.e. omega=0.057) 
 	num_t = floor((2*Pi)/(0.057*dt)); 
 	num_t++;  
 
-
 	// ALLOCATE MEMORY, COPY INITIAL ARRAYS AND PREPARE THEM FOR THE PROPAGATOR
 	// Inputs
-	inputs.x = malloc((num_r+1)*sizeof(double)); 
-	inputs.psi0 = malloc(2*(num_r+1)*sizeof(double));	
+	(*inputs).x = malloc((num_r+1)*sizeof(double)); 
+	//(*inputs).psi0 = malloc(2*(num_r+1)*sizeof(double));	
+	(*inputs).dt = dt;
+	(*inputs).num_t = num_t;
 	// Outputs
 	outputs.tgrid = calloc((Nt+1),sizeof(double));
 	outputs.Efield = calloc((Nt+1),sizeof(double));
@@ -114,7 +120,7 @@ outputs_def call1DTDSE(inputs_def inputs)
 	start = clock();
 
 	// Propagate the solution
-	psi = propagation(inputs, outputs);
+	psi = propagation(inputs, &outputs);
 	
 	finish = clock();
 
@@ -127,10 +133,10 @@ outputs_def call1DTDSE(inputs_def inputs)
 			  &outputs.omegagrid, &outputs.Fsourceterm_data, &outputs.FsourcetermM2, 
 			  &outputs.Nomega);
 
-	free(inputs.x); 
+	free((*inputs).x); 
 	free(psi); 
-	free(inputs.psi0);
-	free(Efield.Field);
+	free((*inputs).psi0);
+	free((*inputs).Efield.Field);
 	
 	return outputs;
 }

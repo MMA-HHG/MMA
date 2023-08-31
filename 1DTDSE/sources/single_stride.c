@@ -172,7 +172,7 @@ int main(int argc, char *argv[])
 
     // do the TDSE calculation
     printf("Starting the computation.\n");
-    outputs = call1DTDSE(inputs); // THE TDSE
+    outputs = call1DTDSE(&inputs); // THE TDSE
 
     // resize grids
     int Nr_coarse, Nz_coarse;
@@ -189,15 +189,20 @@ int main(int argc, char *argv[])
 
     // Create a new temporary HDF5 file	
     file_id = H5Fcreate (local_filename, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
+    printf("Test 1\n");
     prepare_local_output_fixed_print_grids_h5(file_id, "", &h5error, &inputs, &outputs, 1, dims);
+    printf("Test 2\n");
     print_local_output_fixed_h5(file_id,"", &h5error, &inputs, &outputs, 1, 0, 0);
+    printf("Test 3 \n");
 
     // print coarser grids
     hsize_t output_dims[2];
     output_dims[0] = Nr_coarse;
     print_nd_array_h5(file_id, "rgrid_coarse", &h5error, 1, output_dims, rgrid_coarse, H5T_NATIVE_DOUBLE);
+    printf("Test 4 \n");
     output_dims[0] = Nz_coarse;
     print_nd_array_h5(file_id, "zgrid_coarse", &h5error, 1, output_dims, zgrid_coarse, H5T_NATIVE_DOUBLE);
+    printf("Test 5 \n");
 
     // print GS etc.
     output_dims[0] = inputs.num_r + 1; 

@@ -13,4 +13,4 @@
 #include <math.h>
 #include "structures.h"
 
-outputs_def call1DTDSE(inputs_def inputs);
+outputs_def call1DTDSE(inputs_def * inputs);

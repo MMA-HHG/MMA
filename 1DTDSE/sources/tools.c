@@ -19,29 +19,33 @@
 #include "tools_algorithmic.h"
 #include "tools.h"
 
-clock_t start, finish;
-clock_t start2, finish2;
-
-extern double* timet,dipole;
-
-void Initialise_grid_and_ground_state(inputs_def *in)
-{
-	/* 
-	Comment to the choice of the CV criterion:
-	This number has to be small enough to assure a good convregence of the wavefunction
-	if it is not the case, then the saclar product of the the ground state and the excited states 
-	is not quite 0 and those excited appears in the energy analysis of the gorund states, so the propagation !!
-	CV = 1E-25 has been choosen to have a scalar product of 10^-31 with the third excited state for num_r = 5000 and dx=0.1
-	*/
-
+/**
+ * @brief 
+ * 
+ * @details Comment to the choice of the CV criterion for Einitialise: 
+ * This number has to be small enough to assure a good conergence of the wavefunction. 
+ * If it is not the case, then the scalar product of the the ground state and the excited states 
+ * is not quite 0 and those excited states appear in the energy analysis of the ground states. 
+ * So the value CV = 1E-25 has been choosen to have a scalar product of 10^-31 with 
+ * the third excited state for num_r = 5000 and dx=0.1
+ * 
+ * @param in 
+ */
+void Initialise_grid_and_ground_state(inputs_def *in) {
 	int k1;
 	int size = 2*((*in).num_r+1);
-	double *off_diagonal, *diagonal;
+	double *off_diagonal = NULL;
+	double *diagonal = NULL;
+
 	(*in).psi0 = calloc(size,sizeof(double));
-	for(k1=0;k1<=(*in).num_r;k1++){(*in).psi0[2*k1] = 1.0; (*in).psi0[2*k1+1] = 0.;}
+	for(k1 = 0; k1 <= (*in).num_r; k1++) {
+		(*in).psi0[2*k1] = 1.0; 
+		(*in).psi0[2*k1+1] = 0.;
+	}
 	Initialise_grid_and_D2((*in).dx, (*in).num_r, &((*in).x), &diagonal, &off_diagonal); // !!!! dx has to be small enough, it doesn't converge otherwise
 	(*in).Einit = Einitialise((*in).trg, (*in).psi0, off_diagonal, diagonal, off_diagonal, (*in).x, (*in).Eguess, (*in).CV, (*in).num_r); // originally, some possibility to have also excited state
-	free(diagonal); free(off_diagonal);
+	free(diagonal); 
+	free(off_diagonal);
 }
 
 void Initialise_grid_and_D2(double dx, int num_r, double **x, double **diagonal, double **off_diagonal) // Initialise ground-state
@@ -57,9 +61,11 @@ void Initialise_grid_and_D2(double dx, int num_r, double **x, double **diagonal,
 	//Initialisation Matrix corresponding to D2
 	for(k1=0;k1<=num_r;k1++)
 	{
-		(*x)[k1] = (double)k1*dx-xmax;
-		(*off_diagonal)[2*k1] = -0.5/(dx*dx); (*off_diagonal)[2*k1 + 1] = 0.;
-		(*diagonal)[2*k1] = 1./(dx*dx); (*diagonal)[2*k1 + 1] = 0.;
+		(*x)[k1] = (double)k1 * dx - xmax;
+		(*off_diagonal)[2*k1] = -0.5/(dx*dx); 
+		(*off_diagonal)[2*k1 + 1] = 0.;
+		(*diagonal)[2*k1] = 1./(dx*dx); 
+		(*diagonal)[2*k1 + 1] = 0.;
 	}	
 }
 

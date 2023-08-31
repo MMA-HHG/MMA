@@ -507,8 +507,8 @@ void prepare_local_output_fixed_print_grids_h5(hid_t file_id, char *inpath,
 	print_nd_array_h5(file_id, path, h5error, 1, output_dims, initial_keys, H5T_NATIVE_INT);
 
 	// time domain
-		output_dims[0] = (*out).Nt; output_dims[1] = nsimulations;
-		if ( (*in).Print.Efield == 1 ) 
+	output_dims[0] = (*out).Nt; output_dims[1] = nsimulations;
+	if ( (*in).Print.Efield == 1 ) 
 	{
 		path[0] = '\0';	strcat(strcat(path,inpath),"Efield");
 		create_nd_array_h5(file_id, path, h5error, 2, output_dims, dtype_h5((*in).precision));

@@ -21,13 +21,13 @@
  * @param outputs Computation results.
  * @return double* wavefunction in final time.
  */
-double * propagation(inputs_def inputs, outputs_def outputs)
+double * propagation(inputs_def *inputs, outputs_def *outputs)
 {
 	// Intermediate and tridiagonal variables
 	double *res1, *dnew1, *dinfnew1, *dsupnew1, *psi_inter1;
 	// Intermediate and tridiagonal variables
 	double *res2, *dnew2, *dinfnew2, *dsupnew2, *psi_inter2;
-	double Field, tt = inputs.tmin, coef, Apot = 0;
+	double Field, tt = (*inputs).tmin, coef, Apot = 0;
 	// Iterables
 	int j, k, k1, k2, k3, k4;	
 	// Potential strength
@@ -36,25 +36,23 @@ double * propagation(inputs_def inputs, outputs_def outputs)
 	double ion_prob2; 
 
 	// Define local variables for the computation
-	int num_r = inputs.num_r;
+	int num_r = (*inputs).num_r;
 	// Spatial grid
-	double *x = inputs.x;
+	double *x = (*inputs).x;
 	// Init wavefunction
-	double *psi0 = inputs.psi0;
+	double *psi0 = (*inputs).psi0;
 	// Wavefunction
 	double *psi;
 	// Spatial step
-	double dx = inputs.dx;
+	double dx = (*inputs).dx;
 	// Integration limit for ionization 
-	double x_int = inputs.x_int;
+	double x_int = (*inputs).x_int;
 	// Time step
-	double dt = inputs.dt;
+	double dt = (*inputs).dt;
 	// Number of time steps for the TDSE
-	int Nt = inputs.Nt;
+	int Nt = (*outputs).Nt;
 	// Target information
-	trg_def trg = inputs.trg;
-	// Field information
-	Efield_var Efield = inputs.Efield; 
+	trg_def trg = (*inputs).trg;
 
 	// Allocate arrays
 	psi = calloc(2*(num_r+1),sizeof(double));
@@ -85,40 +83,38 @@ double * propagation(inputs_def inputs, outputs_def outputs)
 	t_zero2 = findnextinterpolatedzero(Efield.Nt-1, t_zero1 + Efield.dt, Efield.tgrid, Efield.Field);		
 	*/
 	cpot = 1.;
-	outputs.tgrid[0] = tt; 
-	outputs.sourceterm[0] = 0.; 
-	outputs.Efield[0] = Field; 
-	outputs.PopInt[0] = ion_prob2; 
-	outputs.expval[0] = 0.0;
+	(*outputs).tgrid[0] = tt; 
+	(*outputs).sourceterm[0] = 0.; 
+	(*outputs).Efield[0] = Field; 
+	(*outputs).PopInt[0] = ion_prob2; 
+	(*outputs).PopTot[0] = 1.0; 
+	(*outputs).expval[0] = 0.0;
 
 	// Save the initial state to psi
-	for(j = 0 ; j<= num_r ; j++) {
+	for(j = 0; j <= num_r; j++) {
 		psi[2*j] = psi0[2*j]; 
 		psi[2*j+1] = psi0[2*j+1];
+		if (j%100 == 0) printf("psi0 = %e, psi - psi0 = %e \n", psi0[2*j], psi[2*j]-inputs->psi0[2*j]);
 	}
+
 
 	/************
 	 * MAIN LOOP
 	*/
-	for(k = 0 ; k < Nt ; k++)
+	for(k = 0; k < Nt; k++)
 	{
 		tt = tt + dt;		
 		coef = 0.5*dt/(dx*dx);
 		
-		// PURPOSE???
-		/*
-		int do_zeroing = 0;
-		if(do_zeroing == 0){
-			if(Efield.Field[k]*Efield.Field[k+1] <= 0.0) {
-				do_zeroing = 1;
-			}
+		// Introduce real zero in the field
+		if((*inputs).Efield.Field[k]*(*inputs).Efield.Field[k+1] <= 0.0) {
 			Field = 0.;
 		} else {
-		*/
-		Field = Efield.Field[k]; 
-		//}
-		
+			Field = (*inputs).Efield.Field[k]; 
+		}
+
 		// Numerov matrix M_2 product with M_2^-1 * (d^2/dx^2 + V)
+		/*
 		for(j = 0 ; j < num_r ; j++) 
 		{	
 			// Subdiagonal, real and imaginary
@@ -141,7 +137,16 @@ double * propagation(inputs_def inputs, outputs_def outputs)
 		// Superdiagonal, real and imaginary, x[num_r] is the final element of the array
 		dsupnew1[2*num_r] = 1/12.; 
 		dsupnew1[2*num_r +1] = 0.5*dt*( -0.5/(dx*dx) )+0.5*dt*1/12.*(cpot*potential(x[num_r]+dx,trg));	
-		
+		*/
+		for(j = 0 ; j<= num_r ; j++) 
+		{	
+			dinfnew1[2*j] = 1/12.; dinfnew1[2*j+1] = 0.5*dt*( -0.5/(dx*dx) )+0.5*dt*1/12.*(cpot*potential(x[j],trg));
+			dnew1[2*j] = 10/12.; dnew1[2*j+1] = 0.5*dt*( 1./(dx*dx) )+0.5*dt*10/12.*(cpot*potential(x[j],trg));
+			//dsupnew1[2*j] = 1/12.; dsupnew1[2*j+1] = 0.5*dt*( -0.5/(dx*dx) )+0.5*dt*1/12.*(cpot*potential(x[j+1],trg));			
+		}
+		for(j = 0 ; j<num_r ; j++) { dsupnew1[2*j] = 1/12.; dsupnew1[2*j+1] = 0.5*dt*( -0.5/(dx*dx) )+0.5*dt*1/12.*(cpot*potential(x[j+1],trg));}
+		dsupnew1[2*num_r ] = 1/12.; dsupnew1[2*num_r +1] = 0.5*dt*( -0.5/(dx*dx) )+0.5*dt*1/12.*(cpot*potential(x[num_r]+dx,trg));	
+
 
 		// first part of the evolution (H0+V)
 		psi_inter1[0] = (10/12.)*psi[0]+coef*psi[1]+1/12.*psi[2]-0.5*coef*psi[3];
@@ -179,7 +184,7 @@ double * propagation(inputs_def inputs, outputs_def outputs)
 
 		// second part of the evolution (Hint)
 		// Depending on gauge (velocity/length), we apply the corresponding propagator exp(-i V(t))
-		if (inputs.gauge == 0)
+		if ((*inputs).gauge == 0)
 		{
 			// Length gauge: exp(-i x * E) = cos(...) - i sin(...)
 			for (j = 0; j <= num_r ; j++) 
@@ -217,9 +222,14 @@ double * propagation(inputs_def inputs, outputs_def outputs)
 
 			// Find psi by solving a tridiagonal system
 			Inv_Tridiagonal_Matrix_complex(dinfnew2, dnew2, dsupnew2, psi_inter2, res2, num_r+1);
+			for(j = 0 ; j<= num_r ; j++) 
+			{
+				psi[2*j] = res2[2*j]; 
+				psi[2*j+1] = res2[2*j+1];	
+			}
 		}
-		outputs.tgrid[k+1] = tt;
-		outputs.Efield[k+1] = Field;
+		(*outputs).tgrid[k+1] = tt;
+		(*outputs).Efield[k+1] = Field;
 		
 		// Compute expectation values: position, current, grad V, population
 		compute_expectation_values(inputs, k, psi, outputs);
@@ -252,28 +262,28 @@ double * propagation(inputs_def inputs, outputs_def outputs)
  * @param psi Wavefunction in time t[k+1].
  * @param outputs Storage of expectation values.
  */
-void compute_expectation_values(inputs_def inputs, int k, double *psi, outputs_def outputs)
+void compute_expectation_values(inputs_def * inputs, int k, double *psi, outputs_def * outputs)
 {
 	// Average value
 	double pop_re, pop_im, pop_tot, current, position, ion_prob2, grad_pot;
 	// Iterables
 	int j, k1, k2, k3, k4;
 	// Grid size
-	int num_r = inputs.num_r;
+	int num_r = (*inputs).num_r;
 
 	// the population in the ground state (gauge dependent)
 	pop_re = 0.; 
 	pop_im = 0.;
 	for (j = 0 ; j <= num_r ; j++) {
-		pop_re = pop_re + psi[2*j]*inputs.psi0[2*j] + psi[2*j+1]*inputs.psi0[2*j+1]; 
-		pop_im = pop_im + psi[2*j]*inputs.psi0[2*j+1] - psi[2*j+1]*inputs.psi0[2*j];
+		pop_re = pop_re + psi[2*j]*(*inputs).psi0[2*j] + psi[2*j+1]*(*inputs).psi0[2*j+1]; 
+		pop_im = pop_im + psi[2*j]*(*inputs).psi0[2*j+1] - psi[2*j+1]*(*inputs).psi0[2*j];
 	}
 	pop_tot = pop_re*pop_re + pop_im*pop_im;
 
 	// the gauge independent probability of the electron being between -x_int and x_int
 	k1 = 0; k2 = 0; k3 = 0; k4 = 0;
-	findinterval(num_r, -inputs.x_int, inputs.x, &k1, &k2);
-	findinterval(num_r, inputs.x_int, inputs.x, &k3, &k4);
+	findinterval(num_r, -(*inputs).x_int, (*inputs).x, &k1, &k2);
+	findinterval(num_r, (*inputs).x_int, (*inputs).x, &k3, &k4);
 	ion_prob2 = 0;
 	for(j = k1; j <= k4; j++) {
 		ion_prob2 = ion_prob2 + psi[2*j]*psi[2*j] + psi[2*j+1]*psi[2*j+1];
@@ -283,28 +293,28 @@ void compute_expectation_values(inputs_def inputs, int k, double *psi, outputs_d
 	position = 0.;
 	for(j = 0 ; j <= num_r ; j++)
 	{
-		position = position + (psi[2*j]*psi[2*j] + psi[2*j+1]*psi[2*j+1])*inputs.x[j]; 
+		position = position + (psi[2*j]*psi[2*j] + psi[2*j+1]*psi[2*j+1])*(*inputs).x[j]; 
 	}
 
 	// calculation of <grad V> (gauge independent)
 	grad_pot = 0.; 
 	for (k1 = 0 ; k1 <= num_r ; k1++) {
 		grad_pot = grad_pot + (psi[2*k1]*psi[2*k1] + psi[2*k1+1]*psi[2*k1+1])*
-				   gradpot(inputs.x[k1],inputs.trg);
+				   gradpot((*inputs).x[k1], (*inputs).trg);
 	}	
-	grad_pot = -grad_pot + outputs.Efield[k+1];
+	grad_pot = -grad_pot + (*outputs).Efield[k+1];
 
 	// calculation of current (gauge dependent, gauge independent current is j + A (vector potential))
 	current = 0.; 
 	for(j = 1; j <= num_r-1; j++) {
 		current = current + psi[2*j]*(psi[2*(j+1)+1]-psi[2*(j-1)+1]) - psi[2*j+1]*(psi[2*(j+1)]-psi[2*(j-1)]);                 
 	}
-	current = current*0.5/inputs.dx;
+	current = current*0.5/(*inputs).dx;
 
 	// save to outputs
-	outputs.sourceterm[k+1] = grad_pot; 
-	outputs.PopTot[k+1]=pop_tot;
-	outputs.expval[k+1]=position;
-	outputs.PopInt[k+1]=ion_prob2;	
+	(*outputs).sourceterm[k+1] = grad_pot; 
+	(*outputs).PopTot[k+1]=pop_tot;
+	(*outputs).expval[k+1]=position;
+	(*outputs).PopInt[k+1]=ion_prob2;	
 }
 

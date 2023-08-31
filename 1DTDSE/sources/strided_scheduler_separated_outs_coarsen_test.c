@@ -175,7 +175,7 @@ int main(int argc, char *argv[])
 		}
 
 		// do the TDSE calculation
-		outputs = call1DTDSE(inputs); // THE TDSE
+		outputs = call1DTDSE(&inputs); // THE TDSE
 
 		// resize grids
 		int Nr_coarse, Nz_coarse;
@@ -259,7 +259,7 @@ int main(int argc, char *argv[])
 		}
 
 		// do the calculation
-		outputs = call1DTDSE(inputs); // THE TDSE  
+		outputs = call1DTDSE(&inputs); // THE TDSE  
 
 		// open file again
 		file_id = H5Fopen(local_filename, H5F_ACC_RDWR, H5P_DEFAULT); 

@@ -110,7 +110,7 @@ typedef struct inputs_def {
 	double tmin;
 	// Timesteps for TDSE
 	int Nt;
-	// Timestep grid size CUPRAD
+	// Length of one cycle for 800 nm
 	int num_t;
 	// Timestep
 	double dt;
