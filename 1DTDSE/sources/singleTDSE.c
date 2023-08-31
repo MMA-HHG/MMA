@@ -103,7 +103,7 @@ outputs_def call1DTDSE(inputs_def * inputs)
 
 	// ALLOCATE MEMORY, COPY INITIAL ARRAYS AND PREPARE THEM FOR THE PROPAGATOR
 	// Inputs
-	(*inputs).x = malloc((num_r+1)*sizeof(double)); 
+	//(*inputs).x = malloc((num_r+1)*sizeof(double)); 
 	//(*inputs).psi0 = malloc(2*(num_r+1)*sizeof(double));	
 	(*inputs).dt = dt;
 	(*inputs).num_t = num_t;

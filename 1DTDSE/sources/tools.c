@@ -20,7 +20,7 @@
 #include "tools.h"
 
 /**
- * @brief 
+ * @brief Initialises grid, ground state energy and psi0 in input structure.
  * 
  * @details Comment to the choice of the CV criterion for Einitialise: 
  * This number has to be small enough to assure a good conergence of the wavefunction. 
@@ -29,7 +29,7 @@
  * So the value CV = 1E-25 has been choosen to have a scalar product of 10^-31 with 
  * the third excited state for num_r = 5000 and dx=0.1
  * 
- * @param in 
+ * @param in Input data for the TDSE.
  */
 void Initialise_grid_and_ground_state(inputs_def *in) {
 	int k1;
@@ -37,28 +37,38 @@ void Initialise_grid_and_ground_state(inputs_def *in) {
 	double *off_diagonal = NULL;
 	double *diagonal = NULL;
 
+	// Alloc psi0
 	(*in).psi0 = calloc(size,sizeof(double));
 	for(k1 = 0; k1 <= (*in).num_r; k1++) {
 		(*in).psi0[2*k1] = 1.0; 
 		(*in).psi0[2*k1+1] = 0.;
 	}
-	Initialise_grid_and_D2((*in).dx, (*in).num_r, &((*in).x), &diagonal, &off_diagonal); // !!!! dx has to be small enough, it doesn't converge otherwise
-	(*in).Einit = Einitialise((*in).trg, (*in).psi0, off_diagonal, diagonal, off_diagonal, (*in).x, (*in).Eguess, (*in).CV, (*in).num_r); // originally, some possibility to have also excited state
+	// Alloc and declare x_grid and diagonal elements for E computation.
+	Initialise_grid_and_D2((*in).dx, (*in).num_r, &((*in).x), &diagonal, &off_diagonal); 
+	(*in).Einit = Einitialise((*in).trg, (*in).psi0, off_diagonal, diagonal, 
+							  off_diagonal, (*in).x, (*in).Eguess, (*in).CV, (*in).num_r); 
 	free(diagonal); 
 	free(off_diagonal);
 }
 
+/**
+ * @brief Initialises grid and diagonals.
+ * 
+ * @param dx Spatial step.
+ * @param num_r Number of points in the grid.
+ * @param x Grid.
+ * @param diagonal Diagonal array.
+ * @param off_diagonal Off diagonal array – same for super-/sub-diagonal.
+ */
 void Initialise_grid_and_D2(double dx, int num_r, double **x, double **diagonal, double **off_diagonal) // Initialise ground-state
 {
     int k1;
     double xmax = 0.5*num_r*dx;
-	// printf("numr : %i \n",num_r);
 	*x = calloc((num_r+1),sizeof(double));
 	*off_diagonal = calloc(2*(num_r+1),sizeof(double));
 	*diagonal = calloc(2*(num_r+1),sizeof(double));	
 
-
-	//Initialisation Matrix corresponding to D2
+	// Declare x grid and diagonals (complex)
 	for(k1=0;k1<=num_r;k1++)
 	{
 		(*x)[k1] = (double)k1 * dx - xmax;
@@ -69,92 +79,130 @@ void Initialise_grid_and_D2(double dx, int num_r, double **x, double **diagonal,
 	}	
 }
 
-//// POTENTIAL SPECIFICATION
-
-double potential(double x,  trg_def trg)
+/**
+ * @brief Computes potential of the Hamiltonian.
+ * 
+ * @param x Position on the grid.
+ * @param trg Target specification.
+ * @return double 
+ */
+double potential(double x, trg_def trg)
 {
-	// Soft core potential
+	// Soft core potential V = -1/sqrt(x^2 + a^2)
 	return -1.0/sqrt(trg.a*trg.a+x*x);
-
-	//return 0.025*x*x;
-	
-	//double a0 = 0.695, a1 = 0.5, a2 = 1., a3 = 1.;  
-	//return -2.0/sqrt(a0*a0+x*x) + a1*exp(-pow( (x-a2)/a3 ,2));
-
-	//double q = 3.;
-	//return -pow((pow(trg.a,q)+pow(abs(x),q)), 1./q );
-	
 }
 
-
+/**
+ * @brief Computes gradient of potential from Hamiltonian.
+ * 
+ * @param x Position on the grid.
+ * @param trg Target specification.
+ * @return double 
+ */
 double gradpot(double x,  trg_def trg)
 {
-  
-  return x*pow(trg.a*trg.a+x*x,-1.5);
-
-
-  //return x*pow(c*c+(x-R*0.5)*(x-R*0.5),-1.5)+x*pow(c*c+(x+R*0.5)*(x+R*0.5),-1.5);
-
-  
-  //return 0.05*x;
-
-  //double a0 = 0.695, a1 = 0.5, a2 = 1., a3 = 1.;  
-  //return 2.0*x*pow(a0*a0+x*x,-1.5) - 2.*a0*(x-a2)*exp(-pow( (x-a2)/a3 ,2))/(a3*a3) ;
-  //double q = 3.;
-  //if ( x >= 0.){ return pow(abs(x),q-1) * pow((pow(trg.a,q)+pow(abs(x),q)), (1.+q)/q );}else{return -pow(abs(x),q-1) * pow((pow(trg.a,q)+pow(abs(x),q)), (1.+q)/q );}
-
+	// Returns -grad V
+  	return x*pow(trg.a*trg.a+x*x,-1.5);
 }
 
-double norme(double *x,int Num_r)
-{
+/**
+ * @brief Computes norm of wavefunction.
+ * 
+ * @param x Wavefunction.
+ * @param Num_r Wavefunction size.
+ * @return double 
+ */
+double norme(double *x,int Num_r) {
 	int i;
 	double sum = 0.;
-	for(i=0;i<=Num_r;i++){sum = sum + x[2*i]*x[2*i] + x[2*i+1]*x[2*i+1];}
+	for(i = 0; i <= Num_r; i++) {
+		sum = sum + x[2*i]*x[2*i] + x[2*i+1]*x[2*i+1];
+	}
 	return sum;
 }
-void normalise(double *x,int Num_r)
-{
+
+/**
+ * @brief Normalises wavefunction.
+ * 
+ * @param x Wavefunction.
+ * @param Num_r Wavefunction size.
+ */
+void normalise(double *x, int Num_r) {
 	int i;
-	double sum = 0.;
-	for(i=0;i<=Num_r;i++){sum = sum + x[2*i]*x[2*i] + x[2*i+1]*x[2*i+1];}
-	sum = sqrt(sum);
-	for(i=0;i<=Num_r;i++){x[2*i]/=sum;x[2*i+1]/=sum;}
+	double norm;
+	norm = sqrt(norme(x, Num_r));
+	for(i = 0; i <= Num_r; i++) {
+		x[2*i] /= norm;
+		x[2*i+1] /= norm;
+	}
 }
 
-double * extend_grid(double *pold,int size,int oldsize,int shift)
+/**
+ * @brief Extends wavefunction on the grid.
+ * 
+ * @param pold Old wavefunction.
+ * @param size Additional number of points for extension.
+ * @param oldsize Old grid size.
+ * @param shift Shift of the wavefunction on the grid.
+ * @return double* extended wavefunction
+ * 
+ * @warning Deprecated, needs to be adjusted to work properly with the grid
+ * extension.
+ */
+double * extend_grid(double *pold, int size, int oldsize, int shift)
 {
 	int i;
 	double *pnew;
 
-	pnew = calloc(2*(size+oldsize+1),sizeof(double));
+	pnew = calloc(2*(size+oldsize+1), sizeof(double));
 
 	if ((shift >= 0) && (size >= shift))
 	{
+		for (i = oldsize + 1; i <= oldsize + size; i++) {
+			pnew[2*i] = 0.; 
+			pnew[2*i+1] = 0.;
+		}
 
-	 for(i=oldsize+1;i<=oldsize+size;i++) {pnew[2*i] = 0.; pnew[2*i+1] = 0.;}
+		for (i = 0; i <= oldsize; i++) {
+			pnew[2*shift+2*(oldsize-i)] = pold[2*(oldsize-i)]; 
+			pnew[2*shift+2*(oldsize-i)+1] = pold[2*(oldsize-i)+1]; 
+		}
 
-	 for(i=0;i<=oldsize;i++) 
-	 {
-		pnew[2*shift+2*(oldsize-i)] = pold[2*(oldsize-i)]; 
-		pnew[2*shift+2*(oldsize-i)+1] = pold[2*(oldsize-i)+1]; 
-	 }
-
-	for(i=0;i<shift;i++) {pnew[2*i] = 0.; pnew[2*i+1] = 0.;}
-
+		for(i = 0; i < shift; i++) {
+			pnew[2*i] = 0.; 
+			pnew[2*i+1] = 0.;
+		}
 	}
-	else
-	{printf("\nExpansion of the grid incorrect : shift <0 or size < shift \n\n");}
+	else {
+		printf("\nExpansion of the grid incorrect : shift <0 or size < shift \n\n");
+	}
 	
 	free(pold);
-
 	return pnew;
 }
 
-
-void window_analysis( trg_def trg, double dE,double Estep,double E_start,int num_E,int num_r,double dx,double *psi,double *dinf,double *d,double *dsup,double *x)
-{
-
-	
+/**
+ * @brief Computes photoelectron spectrum.
+ * 
+ * @param trg 
+ * @param dE 
+ * @param Estep 
+ * @param E_start 
+ * @param num_E 
+ * @param num_r 
+ * @param dx 
+ * @param psi 
+ * @param dinf 
+ * @param d 
+ * @param dsup 
+ * @param x 
+ * 
+ * @warning Not implemented into the main TDSE code.
+ */
+void window_analysis(trg_def trg, double dE, double Estep, double E_start, 
+					 int num_E, int num_r, double dx, double *psi, double *dinf,
+					 double *d, double *dsup, double *x)
+{	
 	double *dnew,*dnew2,*dinfnew,*dsupnew,*res,*res2,*psi2;
 	double *dinfnew2,*dsupnew2;
 	double prob;
@@ -172,172 +220,83 @@ void window_analysis( trg_def trg, double dE,double Estep,double E_start,int num
 	res2 = calloc(2*(num_r+1),sizeof(double));
 	psi2 = calloc(2*(num_r+1),sizeof(double));
 
-
-
 	fel = fopen("electron_spectrum.dat","w");
-	if(fel == NULL){ printf("Cannot open electron_spectrum.dat"); exit(1);} 
+	if (fel == NULL) {
+		printf("Cannot open electron_spectrum.dat"); 
+		exit(1);
+	} 
 	printf("Working on the bin 00000");
 
 
+	for(i=0; i<= num_E ; i++) {
+				
+		for(j = 0 ; j<= num_r ; j++) 
+		{	
+			dnew[2*j] = 10*(E_start+Estep*i-dE/sqrt(8)-potential(x[j],trg))/12. - d[2*j]; dnew[2*j+1] = -d[2*j+1]-10*dE/(12*sqrt(8));
+			dnew2[2*j] = 10*(E_start+Estep*i+dE/sqrt(8)-potential(x[j],trg))/12. - d[2*j]; dnew2[2*j+1] = -d[2*j+1]+10*dE/(12*sqrt(8));
+			
+			dinfnew[2*j] = (E_start+Estep*i-dE/sqrt(8)-potential(x[j],trg))/12.-dinf[2*j]; dinfnew[2*j+1] = -dinf[2*j+1]-dE/(12*sqrt(8));
+			dsupnew[2*j] = (E_start+Estep*i-dE/sqrt(8)-potential(x[j+1],trg))/12.-dsup[2*j]; dsupnew[2*j+1] = -dsup[2*j+1]-dE/(12*sqrt(8));	 
 
-	
-/*
-	for(j = 0 ; j<= num_r ; j++) 
-	{	
-			dinfnew[2*j] = -dinf[2*j]; dinfnew[2*j+1] = -dinf[2*j+1];
-			dsupnew[2*j] = -dsup[2*j]; dsupnew[2*j+1] = -dsup[2*j+1];
-	}
-*/
+			dinfnew2[2*j] = (E_start+Estep*i+dE/sqrt(8)-potential(x[j],trg))/12.-dinf[2*j]; dinfnew2[2*j+1] = -dinf[2*j+1]+dE/(12*sqrt(8));
+			dsupnew2[2*j] = (E_start+Estep*i+dE/sqrt(8)-potential(x[j+1],trg))/12.-dsup[2*j]; dsupnew2[2*j+1] = -dsup[2*j+1]+dE/(12*sqrt(8));
 
-
-
-
-
-	for(i=0; i<= num_E ; i++)
-	{
-	 		
-	  for(j = 0 ; j<= num_r ; j++) 
-	  {	
-			//dnew[2*j] = E_start+Estep*i-d[2*j]-potential(x[j],trg)-dE/sqrt(8); dnew[2*j+1] = -d[2*j+1]-dE/sqrt(8);
-			//dnew2[2*j] = E_start+Estep*i-d[2*j]-potential(x[j],trg)+dE/sqrt(8); dnew2[2*j+1] = -d[2*j+1]+dE/sqrt(8);
-
-		  dnew[2*j] = 10*(E_start+Estep*i-dE/sqrt(8)-potential(x[j],trg))/12. - d[2*j]; dnew[2*j+1] = -d[2*j+1]-10*dE/(12*sqrt(8));
-		  dnew2[2*j] = 10*(E_start+Estep*i+dE/sqrt(8)-potential(x[j],trg))/12. - d[2*j]; dnew2[2*j+1] = -d[2*j+1]+10*dE/(12*sqrt(8));
-		    
-		  dinfnew[2*j] = (E_start+Estep*i-dE/sqrt(8)-potential(x[j],trg))/12.-dinf[2*j]; dinfnew[2*j+1] = -dinf[2*j+1]-dE/(12*sqrt(8));
-		  dsupnew[2*j] = (E_start+Estep*i-dE/sqrt(8)-potential(x[j+1],trg))/12.-dsup[2*j]; dsupnew[2*j+1] = -dsup[2*j+1]-dE/(12*sqrt(8));	 
-
-		  dinfnew2[2*j] = (E_start+Estep*i+dE/sqrt(8)-potential(x[j],trg))/12.-dinf[2*j]; dinfnew2[2*j+1] = -dinf[2*j+1]+dE/(12*sqrt(8));
-		  dsupnew2[2*j] = (E_start+Estep*i+dE/sqrt(8)-potential(x[j+1],trg))/12.-dsup[2*j]; dsupnew2[2*j+1] = -dsup[2*j+1]+dE/(12*sqrt(8));
-
-	  }
-
-
-
-/*
-	  Inv_Tridiagonal_Matrix_complex(dinfnew,dnew,dsupnew,psi,res,num_r+1);
-		
-	  for(j=0; j<= num_r ; j++) {psi2[2*j] = res[2*j];psi2[2*j+1] = res[2*j+1];}
-
-	  Inv_Tridiagonal_Matrix_complex(dinfnew,dnew2,dsupnew,psi2,res2,num_r+1);
-*/
-
-
-
-
-	  Inv_Tridiagonal_Matrix_complex_Numerov(dinfnew,dnew,dsupnew,psi,res,num_r);
-		
-	  for(j=0; j<= num_r ; j++) {psi2[2*j] = res[2*j];psi2[2*j+1] = res[2*j+1];}
-
-	  Inv_Tridiagonal_Matrix_complex_Numerov(dinfnew2,dnew2,dsupnew2,psi2,res2,num_r);
-
-
-
-	  prob = norme(res2,num_r);
-      	  prob = prob*dx*pow(dE,4.);
-
-	  fprintf(fel,"%e\t%e\n",E_start+Estep*i,prob);
-	  
-	  printf("\b\b\b\b\b%5d", i); fflush(stdout); 
-
-	}
-
-	printf("\n");
-
-
-
-	free(dnew); free(dnew2); free(dinfnew);
-	free(res);free(dsupnew);
-	free(dinfnew2);free(dsupnew2);
-	free(res2);free(psi2); 
-	fclose(fel);
-
-}
-
-
-void dipole_analysis(double num_w,double dw,double *timet,double *dipole, int nc, int num_t)
-{
-
-	int i,j;
-	double FFT_re,FFT_im,omega;
-	FILE *fhhg;
-	
-	fhhg = fopen("HHG_spectrum.dat", "w" );
-	printf("Working on the bin 00000");
-
-	
-	omega = 0;
-	for (i = 0 ; i < num_w ; i++)
-	{
-		
-		FFT_re = 0; FFT_im = 0;
-		for( j = 0 ; j < nc*num_t ; j++)
-		{
-			FFT_re += dipole[2*j]*cos(omega*timet[j])-dipole[2*j+1]*sin(omega*timet[j]);
-			FFT_im += dipole[2*j]*sin(omega*timet[j])+dipole[2*j+1]*cos(omega*timet[j]);
 		}
-	
-	   fprintf(fhhg,"%e\t%e\t%e\n",omega,FFT_re,FFT_im);
-	   printf("\b\b\b\b\b%5d", i); fflush(stdout);
+
+		Inv_Tridiagonal_Matrix_complex_Numerov(dinfnew,dnew,dsupnew,psi,res,num_r);
 		
-	   omega += dw;
-	}
+		for(j=0; j<= num_r ; j++) {
+			psi2[2*j] = res[2*j];
+			psi2[2*j+1] = res[2*j+1];
+		}
 
-    printf("\n"); fclose(fhhg);
-
-}
-
-
-
-void projection_analysis(double Estep,double E_start,int num_E,int num_r,double dx,double *psi,double *x)
-{
+		Inv_Tridiagonal_Matrix_complex_Numerov(dinfnew2,dnew2,dsupnew2,psi2,res2,num_r);
 
 
-	double prob,prob_re,prob_im,k,delta;
-	FILE *fel;
-	int i,j,jmin,jmax;
+		prob = norme(res2,num_r);
+		prob = prob*dx*pow(dE,4.);
 
-
-	fel = fopen("electron_spectrum.dat", "w" );
-	printf("Working on the bin 00000");
-
-	num_E = 1000;
-	Estep = 0.001;	jmin = 7000; jmax = 8000; delta = (double) jmax- (double) jmin;
+		fprintf(fel,"%e\t%e\n",E_start+Estep*i,prob);
 		
-	for(i=0; i<=  num_E ; i++)
-	{
-	 		
-	  k = sqrt(2.0*Estep*i); 
-	  prob_re = 0.0; prob_im = 0.0;
-          for(j = jmin ; j<= jmax ; j++) 
-	  {	
-		prob_re +=  psi[2*j]*cos(k*x[j])-psi[2*j+1]*sin(k*x[j]);  
-		prob_im +=  psi[2*j]*sin(k*x[j])+psi[2*j+1]*cos(k*x[j]);
-
-	  }
-
-	  prob_re *= dx/delta; prob_im *= dx/delta; 	
-
-
-	  prob = (prob_re*prob_re+prob_im*prob_im)/(2.0*Pi);
-
-
-	  fprintf(fel,"%e\t%e\n",Estep*i,prob);
-	  printf("\b\b\b\b\b%5d", i); fflush(stdout); 
+		printf("\b\b\b\b\b%5d", i); fflush(stdout); 
 
 	}
 
 	printf("\n");
 
+
+	free(dnew); 
+	free(dnew2); 
+	free(dinfnew);
+	free(res);
+	free(dsupnew);
+	free(dinfnew2);
+	free(dsupnew2);
+	free(res2);
+	free(psi2); 
 	fclose(fel);
-
-
 }
 
+/**
+ * @brief Does projection of wavefunction onto the ground state
+ * 
+ * @param trg 
+ * @param dE 
+ * @param Estep 
+ * @param E_start 
+ * @param num_E 
+ * @param num_r 
+ * @param dx 
+ * @param psi 
+ * @param dinf 
+ * @param d 
+ * @param dsup 
+ * @param x 
+ * 
+ * @warning Not implemented into the main TDSE code.
+ */
 void projection_analysis_EV( trg_def trg, double dE,double Estep,double E_start,int num_E,int num_r,double dx,double *psi,double *dinf,double *d,double *dsup,double *x) // inti procedure incompatible
 {
-
-
 	double prob,CV,Eguess,E_previous,E,ps_re,ps_im;
 	double *psi_EV;
 	FILE *fel;
@@ -356,10 +315,13 @@ void projection_analysis_EV( trg_def trg, double dE,double Estep,double E_start,
 	CV = 1E-10; // CV criteria  
 	E_previous = 0;
 		
-	for(i=0; i<= num_E ; i++)
+	for(i = 0; i<= num_E; i++)
 	{
 
-		for(j=0;j<=num_r;j++) {psi_EV[2*j] = 1; psi_EV[2*j+1] = 0.;}
+		for(j = 0; j <= num_r; j++) {
+			psi_EV[2*j] = 1; 
+			psi_EV[2*j+1] = 0.;
+		}
 		normalise(psi_EV,num_r); // Initialise psi_EV for Einitialise
 
 	 	Eguess = i*Estep; 
@@ -373,21 +335,18 @@ void projection_analysis_EV( trg_def trg, double dE,double Estep,double E_start,
 		{
 			ps_re += (psi[2*j]*psi_EV[2*j]-psi[2*j+1]*psi_EV[2*j+1])*x[j];
 			ps_im += (psi[2*j]*psi_EV[2*j+1]+psi[2*j+1]*psi_EV[2*j])*x[j];
-			//fprintf(fel,"%e\t%e\t%e\n",x[j],psi_EV[2*j],psi_EV[2*j+1]);
 		}
 
-	 prob = ps_re*ps_re + ps_im*ps_im; 
-	 // if ( Eguess != E_previous)
-	  //{	
-	    fprintf(fel,"%e\t%e\n",E,prob); //E_previous = E;
-	  //}
-	  //printf("\b\b\b\b\b%5d", i); fflush(stdout); 
+		prob = ps_re*ps_re + ps_im*ps_im; 
+		
+		fprintf(fel,"%e\t%e\n",E,prob); 
 
 	}
 
 	printf("\n");
 
-	fclose(fel); free(psi_EV);
+	fclose(fel); 
+	free(psi_EV);
 
 
 }

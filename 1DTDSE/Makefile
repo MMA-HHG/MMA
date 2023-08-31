@@ -1,10 +1,8 @@
 ### Compile 1D TDSE
 
 CC=mpicc
-#CC=gcc
 CFLAGS=-Wall -std=c99 -g -O0 
 LIBS=-L/usr/local/lib -lhdf5 -lhdf5_hl -lfftw3 -lm
-#LIBS=-L/usr/local/lib -lhdf5 -lhdf5_hl -lfftw3 -lmpi -lm
 INCLUDE=-I/usr/local/include
 SOURCE=sources/constants.c sources/tools_algorithmic.c sources/tools_MPI-RMA.c \
 		sources/tools_hdf5.c sources/tridiag.c sources/tools_fftw3.c sources/structures.c \

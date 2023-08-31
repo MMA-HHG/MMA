@@ -189,9 +189,8 @@ int main(int argc, char *argv[])
 
     // Create a new temporary HDF5 file	
     file_id = H5Fcreate (local_filename, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
-    printf("Test 1\n");
+
     prepare_local_output_fixed_print_grids_h5(file_id, "", &h5error, &inputs, &outputs, 1, dims);
-    printf("Test 2\n");
     print_local_output_fixed_h5(file_id,"", &h5error, &inputs, &outputs, 1, 0, 0);
     printf("Test 3 \n");
 

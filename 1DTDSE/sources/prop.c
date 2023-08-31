@@ -28,6 +28,8 @@ double * propagation(inputs_def *inputs, outputs_def *outputs)
 	// Intermediate and tridiagonal variables
 	double *res2, *dnew2, *dinfnew2, *dsupnew2, *psi_inter2;
 	double Field, tt = (*inputs).tmin, coef, Apot = 0;
+	// Zeroeing the first part of the pulse
+	bool add_zeros = true;
 	// Iterables
 	int j, k, k1, k2, k3, k4;	
 	// Potential strength
@@ -94,8 +96,8 @@ double * propagation(inputs_def *inputs, outputs_def *outputs)
 	for(j = 0; j <= num_r; j++) {
 		psi[2*j] = psi0[2*j]; 
 		psi[2*j+1] = psi0[2*j+1];
-		if (j%100 == 0) printf("psi0 = %e, psi - psi0 = %e \n", psi0[2*j], psi[2*j]-inputs->psi0[2*j]);
 	}
+	
 
 
 	/************
@@ -106,15 +108,21 @@ double * propagation(inputs_def *inputs, outputs_def *outputs)
 		tt = tt + dt;		
 		coef = 0.5*dt/(dx*dx);
 		
-		// Introduce real zero in the field
-		if((*inputs).Efield.Field[k]*(*inputs).Efield.Field[k+1] <= 0.0) {
+		/* Introduce real zero into the field until the field crosses 0 for
+		*  the first time, then the field becomes nonzero. This is useful to
+		*  get rid of the initial nonzero pulse front.
+		*/
+		if (add_zeros) {
+			if((*inputs).Efield.Field[k]*(*inputs).Efield.Field[k+1] <= 0.0) {
+				add_zeros = false;
+			}
 			Field = 0.;
 		} else {
 			Field = (*inputs).Efield.Field[k]; 
 		}
 
+
 		// Numerov matrix M_2 product with M_2^-1 * (d^2/dx^2 + V)
-		/*
 		for(j = 0 ; j < num_r ; j++) 
 		{	
 			// Subdiagonal, real and imaginary
@@ -137,7 +145,7 @@ double * propagation(inputs_def *inputs, outputs_def *outputs)
 		// Superdiagonal, real and imaginary, x[num_r] is the final element of the array
 		dsupnew1[2*num_r] = 1/12.; 
 		dsupnew1[2*num_r +1] = 0.5*dt*( -0.5/(dx*dx) )+0.5*dt*1/12.*(cpot*potential(x[num_r]+dx,trg));	
-		*/
+		/*
 		for(j = 0 ; j<= num_r ; j++) 
 		{	
 			dinfnew1[2*j] = 1/12.; dinfnew1[2*j+1] = 0.5*dt*( -0.5/(dx*dx) )+0.5*dt*1/12.*(cpot*potential(x[j],trg));
@@ -146,6 +154,7 @@ double * propagation(inputs_def *inputs, outputs_def *outputs)
 		}
 		for(j = 0 ; j<num_r ; j++) { dsupnew1[2*j] = 1/12.; dsupnew1[2*j+1] = 0.5*dt*( -0.5/(dx*dx) )+0.5*dt*1/12.*(cpot*potential(x[j+1],trg));}
 		dsupnew1[2*num_r ] = 1/12.; dsupnew1[2*num_r +1] = 0.5*dt*( -0.5/(dx*dx) )+0.5*dt*1/12.*(cpot*potential(x[num_r]+dx,trg));	
+		*/
 
 
 		// first part of the evolution (H0+V)
