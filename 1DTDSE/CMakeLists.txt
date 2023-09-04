@@ -17,7 +17,7 @@ find_package(HDF5 REQUIRED COMPONENTS C HL)
 set(SOURCE sources/constants.c sources/tools_algorithmic.c sources/tools_MPI-RMA.c 
 	sources/tools_hdf5.c sources/tridiag.c sources/tools_fftw3.c 
 	sources/structures.c sources/tools.c sources/prop.c sources/singleTDSE.c 
-	sources/strided_scheduler_separated_outs_coarsen_test.c)
+	sources/strided_scheduler_separated_outs_coarsen.c)
 
 set(SOURCE_STRIDE sources/constants.c sources/tools_algorithmic.c sources/tools_MPI-RMA.c 
 	sources/tools_hdf5.c sources/tridiag.c sources/tools_fftw3.c 

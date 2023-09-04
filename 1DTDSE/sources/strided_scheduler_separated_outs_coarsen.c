@@ -49,7 +49,10 @@ int main(int argc, char *argv[])
 	hsize_t * dims, * dims_input; int ndims; hid_t datatype; // ! hot-fixed to have input dimension different
 	char dumchar1[50];
 	// Processing the queue
-	int Nsim, Nsim_loc = -1, kr, kz; // counter of simulations, indices in the Field array
+	// counter of simulations
+	int Nsim, Nsim_loc = -1;
+	// indices in the Field array
+	int kr, kz;
 
 	int comment_operation = 1;
 	double t_mpi[10]; 
@@ -63,7 +66,9 @@ int main(int argc, char *argv[])
 	MPI_Init(&argc,&argv);
 	MPI_Comm_size(MPI_COMM_WORLD,&nprocs);
 	MPI_Comm_rank(MPI_COMM_WORLD,&myrank);
-	nxtval_init(-nprocs+myrank,&Nsim);
+	// Initialise Nsim corresponding to a simulation number for each process:
+	// Nsim = - Number_of_processors + process_rank (negative number initially)
+	nxtval_init(-nprocs + myrank, &Nsim);
 
 	// Initialise the code values
 	Init_constants();
@@ -96,21 +101,25 @@ int main(int argc, char *argv[])
 	inputs.Efield.Field = malloc(((int)dims[0])*sizeof(double));
 	inputs.Efield.tgrid =  readreal1Darray_fort(file_id, "outputs/tgrid",&h5error,&inputs.Efield.Nt); // tgrid is not changed when program runs
 	
-    // coarsing procedure
+    /*
+	Coarsing procedure:
+	Divide the original dimensions of the output laser field by number of
+	steps in each dimension. More computationally effective.
+	*/
     int kz_step, Nz_max, kr_step, Nr_max;
     readint(file_id, "TDSE_inputs/kz_step", &h5error, &kz_step);
     readint(file_id, "TDSE_inputs/Nz_max", &h5error, &Nz_max);
     readint(file_id, "TDSE_inputs/kr_step", &h5error, &kr_step);
     readint(file_id, "TDSE_inputs/Nr_max", &h5error, &Nr_max);
 
-    // redefine dimensions, t-not affected
+    // Coarsening: redefine dimensions, t-not affected
     dim_z = Nz_max/kz_step; 
 	dim_r = Nr_max/kr_step;
     dims[0] = dim_z; 
 	dims[1] = dim_t; 
 	dims[2] = dim_r;
     
-	// Close file access
+	// Close file access (dataset with the field).
     h5error = H5Fclose(file_id);
     // convert units to atomic units
 	for(k1 = 0 ; k1 < inputs.Efield.Nt; k1++) {
@@ -135,13 +144,20 @@ int main(int argc, char *argv[])
 	// Counter - queue length
 	int Ntot = dim_r*dim_z; 	
 
-
+	/*
 	//////////////////////////
 	// COMPUTATIONAL PHASE  //
 	//////////////////////////
 
-	// first simulation prepares the outputfile (we keep it for the purpose of possible generalisations for parallel output)
-	nxtval_strided(nprocs,&Nsim); Nsim_loc++;
+	First simulation prepares the outputfile (we keep it for the purpose of 
+	possible generalisations for parallel output).
+	*/
+
+	// Adjusts local simulation number by addition of the number of processors
+	// to the initial simulation number Nsim (now non-negative value).
+	nxtval_strided(nprocs, &Nsim); 
+	// First parallel batch of jobs -> Nsim_loc = 0
+	Nsim_loc++;
 	t_mpi[1] = MPI_Wtime(); 
 
 	if (Nsim < Ntot){
@@ -175,7 +191,7 @@ int main(int argc, char *argv[])
 		}
 
 		// do the TDSE calculation
-		outputs = call1DTDSE(&inputs); // THE TDSE
+		outputs = call1DTDSE(&inputs); 
 
 		// resize grids
 		int Nr_coarse, Nz_coarse;
@@ -186,7 +202,7 @@ int main(int argc, char *argv[])
 		// set name
 		local_filename[0] = '\0'; 
 		dumchar1[0] = '\0'; 
-		sprintf(dumchar1, "%07d", myrank);
+		//sprintf(dumchar1, "%07d", myrank);
 		strcat(local_filename,filename_stub); 
 		strcat(local_filename,dumchar1); 
 		strcat(local_filename,".h5");	
@@ -223,8 +239,11 @@ int main(int argc, char *argv[])
 	t_mpi[2] = MPI_Wtime(); 
 
 
-	// process the MPI queue
-	nxtval_strided(nprocs,&Nsim); Nsim_loc++;
+	// process the MPI queue, update Nsim number for each process
+	nxtval_strided(nprocs, &Nsim); 
+	// update the number of simulations
+	Nsim_loc++;
+
 	if ((comment_operation == 1) && (myrank == 0)) { 
 		printf("Proc %i c %i; time %f sec \n", myrank, Nsim, t_mpi[2]-t_mpi[1]); 
 		fflush(NULL);
@@ -248,7 +267,7 @@ int main(int argc, char *argv[])
 		dims_input[0] = dim_t;
 
 		// read the HDF5 file
-		file_id = H5Fopen ("results.h5", H5F_ACC_RDONLY, H5P_DEFAULT);
+		file_id = H5Fopen("results.h5", H5F_ACC_RDONLY, H5P_DEFAULT);
 		rw_real_fullhyperslab_nd_h5(file_id,"outputs/output_field", &h5error, 3,
 									dims_input, dum3int, inputs.Efield.Field, "r");
 		h5error = H5Fclose(file_id);
@@ -270,7 +289,8 @@ int main(int argc, char *argv[])
 		
 		// free memory
 		outputs_destructor(&outputs);
-		nxtval_strided(nprocs,&Nsim); Nsim_loc++;
+		nxtval_strided(nprocs,&Nsim); 
+		Nsim_loc++;
 		
 		t_mpi[4] = MPI_Wtime();
 		if ((comment_operation == 1) && (myrank == 0)) { 
