@@ -9,7 +9,7 @@ The work on the publication is being done in an independet repo `XXX`.
 * Clean-up the code
 * Check conventions
     * The conventions in the code shall correspond the written ones in supplmentary materials. I did checks during the development, that the code works intrinsically. However, there might be a mistake in the sign of the $e^-$ charge in TDSE etc.
-* Implement density modulation (CUPRAD + Hankel)
+* Implement density modulation (CUPRAD + Hankel), implement $(1-\eta) \alpha_{\mathrm{n}} + \eta \alpha_{\mathrm{X^+}}$ contribution to dispersion from ions
 * Organise Pythonic procedures (Hankel + various post-processings)
     * There is used the module `mynumerics`, this shall be cleaned & integrated in the multiscale model
 * Enhance code + executables (compilation with a 'pedantic' compiler, valgrind)
