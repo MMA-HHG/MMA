@@ -12,24 +12,56 @@
 
 // various analytic envelopes (not reintroduced yet)
 typedef struct sin2_definition {
-	double oc, o, A0, nc, phi, phi0, ti, E0;
+	double oc;
+	double o;
+	double A0;
+	double nc;
+	double phi;
+	double phi0;
+	double ti;
+	double E0;
 } sin2_definition;
 
 typedef struct Esin2_definition {
-	double oc, o, A0, nc, phi, phi0, ti, E0;
+	double oc;
+ 	double o;
+	double A0;
+	double nc;
+	double phi;
+	double phi0;
+	double ti;
+	double E0;
 } Esin2_definition;
 
 typedef struct trap_definition {
-	double omega,E0,phi,ton,toff;
+	double omega;
+	double E0;
+	double phi;
+	double ton;
+	double toff;
 	int nc;
 } trap_definition;
 
 typedef struct flattop1_definition {
-	double ton,toff,T,o,phi,A,ti;
+	double ton;
+	double toff;
+	double T;
+	double o;
+	double phi;
+	double A;
+	double ti;
 } flattop1_definition;
 
 typedef struct flattop1chirp_definition {
-	double ton,toff,T,o,phi,A,ti,b,c;
+	double ton;
+	double toff;
+	double T;
+	double o;
+	double phi;
+	double A;
+	double ti;
+	double b;
+	double c;
 } flattop1chirp_definition;
 
 /**
@@ -37,15 +69,28 @@ typedef struct flattop1chirp_definition {
  */
 typedef struct Efield_var {
 	// Type of field – numerical/analytical.
-	int fieldtype,fieldtype2;
+	int fieldtype;
+	int fieldtype2;
 	// Time grid
 	double *tgrid;
 	// Field array
 	double *Field;
 	// Timestep
 	double dt;
+	// Field parameters
+	double omega;
+	double E0;
+	double phi;
+	double ton;
+	double toff;
 	// Number of timesteps
 	int Nt;
+	// Number of points in one cycle
+	int nc;
+	int Nftlt1;
+	int N;
+	int NEsin2;
+	int Nftlt1ch;
 	// Trapezoidal envelope
 	struct trap_definition trap;
 	// Sine-squared envelope of vector potential
@@ -56,12 +101,7 @@ typedef struct Efield_var {
 	struct flattop1_definition *flt1;
 	// Flat-top envelope with chirp
 	struct flattop1chirp_definition *flt1ch;
-	// Number of points in one cycle
-	int Nflt1,Nsin2,NEsin2,Nflt1ch;
-	// Field parameters
-	double omega,E0,phi,ton,toff;
 	// Number of points in the envelope
-	int nc;
 } Efield_var;
 
 /**
@@ -89,7 +129,17 @@ typedef struct analy_def{
  * 
  */
 typedef struct output_print_def{
-	int Efield, FEfield, sourceterm, Fsourceterm, FEfieldM2, FsourceTermM2, PopTot, tgrid, omegagrid, PopInt, expval_x;
+	int Efield;
+	int FEfield;
+	int sourceterm;
+	int Fsourceterm;
+	int FEfieldM2;
+	int FsourceTermM2;
+	int PopTot;
+	int tgrid;
+	int omegagrid;
+	int PopInt;
+	int expval_x;
 } output_print_def;
 
 
@@ -105,7 +155,8 @@ typedef struct inputs_def {
 	// Field info
 	struct Efield_var Efield;
 	// Energy of the ground state
-	double Eguess, Einit;
+	double Eguess;
+	double Einit;
 	// Start time
 	double tmin;
 	// Timesteps for TDSE
@@ -143,13 +194,21 @@ typedef struct inputs_def {
 	// Specifies output dataset
 	struct analy_def analy;	
 	// Switches (1 = yes)
-	int InterpByDTorNT, Ntinterp, PrintGaborAndSpectrum;
+	int InterpByDTorNT;
+	int Ntinterp; 
+	int PrintGaborAndSpectrum;
 	// Switch (0 - only text, 1 - only binaries, 2 - both)
 	int PrintOutputMethod;	
 	// extension of the calculation after the last fields ends !!! NOW ONLY FOR ANALYTICAL FIELD
 	double textend;
 	// Gabor variables
-	double dtGabor, tmin1window, tmin2window, tmax1window, tmax2window, a_Gabor, omegaMaxGabor;
+	double dtGabor;
+	double tmin1window;
+	double tmin2window; 
+	double tmax1window; 
+	double tmax2window; 
+	double a_Gabor; 
+	double omegaMaxGabor;
 	// I/O printing structure
 	struct output_print_def Print;
 	// Precision of the ground state energy
@@ -169,9 +228,11 @@ typedef struct outputs_def{
 	// Angular frequency grid
 	double *omegagrid;
 	// Field spectrum
-	double **FEfield, *FEfield_data;
+	double **FEfield;
+	double *FEfield_data;
 	// Source term spectrum
-	double **Fsourceterm, *Fsourceterm_data;
+	double **Fsourceterm;
+	double *Fsourceterm_data;
 	double *FEfieldM2;
 	double *FsourcetermM2;
 	// Population of the ground state

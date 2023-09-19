@@ -22,6 +22,7 @@ OBJ_STRIDE=constants.o tools_algorithmic.o tools_MPI-RMA.o \
 		single_stride.o
 TDSE=TDSE.e
 TDSE_STRIDE=TDSE_stride.e
+TDSE_LIB=singleTDSE.so
 
 all: $(TDSE) $(TDSE_STRIDE)
 
@@ -33,8 +34,12 @@ $(TDSE_STRIDE): $(SOURCE_STRIDE)
 	$(CC) $(CFLAGS) $(INCLUDE) -c $(SOURCE_STRIDE)
 	$(CC) $(CFLAGS) $(LIBS) -o $(TDSE_STRIDE) $(OBJ_STRIDE)
 
+lib:
+	$(CC) -fPIC -shared -lhdf5 -lfftw3 -o $(TDSE_LIB) sources/constants.c sources/tools_algorithmic.c sources/tools_MPI-RMA.c sources/tools_hdf5.c sources/tridiag.c sources/tools_fftw3.c sources/structures.c sources/tools.c sources/prop.c sources/singleTDSE.c
+
 clean_obj: *.o
 	rm -f *.o
 
 clean:
 	rm *.o $(TDSE)
+	rm $(TDSE_LIB)

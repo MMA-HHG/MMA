@@ -81,3 +81,6 @@ General remarks & problems occured along the way
   makes a copy (<--- feature to be probably removed later) and writes necessary
   input data information for the TDSE computation. The data is provided in form
   of an ```.inp``` file located inside ```1DTDSE/processing/...```. Then the script ```prepare_TDSE.py``` calls some routines from the 'universal_input' python package provided on Git (it is convenient to include this package in PYTHONPATH env variable).
+
+* To compile the TDSE library as a dynamic library, we must run the following command:
+  ```mpicc -fPIC -shared -lhdf5 -lfftw3 -o singleTDSE.so sources/constants.c sources/tools_algorithmic.c sources/tools_MPI-RMA.c sources/tools_hdf5.c sources/tridiag.c sources/tools_fftw3.c sources/structures.c sources/tools.c sources/prop.c sources/singleTDSE.c```
