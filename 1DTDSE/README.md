@@ -9,6 +9,11 @@ We provide two opssible operations in the publication:
 * MPI processing of the numerical field
 * A single caller to treat microscopic problems
 
+### Single TDSE for versatile applications
+* Python wrapper to run the code easily from jupyter notebooks etc.
+* Reintroduce storing the wavefunction as an output of TDSE for detailed analysis
+* (?) Use Gabor transform from c, ...
+
 ## Improvements
 * The single caller is separated in `single_caller.c` and `prop.c`. The former just unpacks and packs I/O structures to feed the caller. I think this is a bit clumsy and might be improved.
 * The main part of the multi-scale model is the MPI scheduler. We need to comment and polish it.
