@@ -5,7 +5,35 @@ Python TDSE
 
 from ctypes import *
 import h5py
+import numpy as np
+import matplotlib.pyplot as plt
 
+### Return ctypes array to pointer
+def ctypes_arr_ptr(ctype_, size_, arr_):
+    arr = ctype_ * size_
+    return arr(*arr_)
+
+### return numpy array from c_types array
+def ctype_arr_to_numpy(c_arr, size):
+    return np.array([c_arr[i] for i in range(size)])
+
+
+### Physical constants
+Ip_HeV = 27.21138602
+hbar = 1.054571800e-34
+alpha_fine = 1/137.035999139
+c_light = 299792458.
+elcharge = 1.602176565e-19
+elmass = 9.10938356e-31
+mu0 = 4.0*np.pi*1e-7
+eps0 = 1.0/(mu0*c_light*c_light)
+r_Bohr = 4.0*np.pi*eps0*hbar*hbar/(elmass*elcharge*elcharge)
+TIMEau = (elmass*r_Bohr*r_Bohr)/hbar
+EFIELDau = hbar*hbar/(elmass*r_Bohr*r_Bohr*r_Bohr*elcharge)
+k_Boltz = 1.38064852e-23
+absolute_zero = -273.15
+torr2SI = 101325./760.
+    
 
 ### Define structures
 class sin2_definition(Structure):
@@ -162,7 +190,7 @@ class inputs_def(Structure):
 
     def init_inputs(self, filename):
         with h5py.File(filename, "r") as f:
-            self.E_guess = c_double(f["TDSE_inputs/Eguess"][()])
+            self.Eguess = c_double(f["TDSE_inputs/Eguess"][()])
             self.num_r = c_int(f["TDSE_inputs/N_r_grid"][()])
             self.num_exp = c_int(f["TDSE_inputs/N_r_grid_exp"][()])
             self.dx = c_double(f["TDSE_inputs/dx"][()])
@@ -185,6 +213,55 @@ class inputs_def(Structure):
             self.trg.a = c_double(f["TDSE_inputs/trg_a"][()])
             self.CV = c_double(f["TDSE_inputs/CV_criterion_of_GS"][()])
             self.gauge = c_int(f["TDSE_inputs/gauge_type"][()])
+            precision = 'd'
+            self.precision = precision.encode('utf-8')
+        
+    def init_prints(self, path_to_DLL):
+        DLL = CDLL(path_to_DLL)
+        set_prints = DLL.Set_all_prints
+        set_prints.restype = output_print_def
+        self.Print = set_prints()
+
+    def init_time_and_field(self, filename = "", z_i = 0, r_i = 0, E = None, t = None):
+        f = h5py.File(filename, "r")
+
+        if (filename != "") and (E is None or t is None):
+            field_shape = f["outputs/output_field"].shape
+            if (z_i < 0) or (z_i >= field_shape[0]):
+                print("Incorrect z-grid dimension selection. Select z in range (0, {})".format(field_shape[0]-1))
+                f.close()
+                return
+            if (r_i < 0) or (r_i >= field_shape[2]):
+                print("Incorrect r-grid dimension selection. Select r in range (0, {})".format(field_shape[2]-1))
+                f.close()
+                return        
+            ### Load tgrid
+            tgrid = f["outputs/tgrid"][()]/TIMEau
+            ### Load field and convert to a.u.
+            field = f["outputs/output_field"][z_i, :, r_i][()]/EFIELDau
+            
+            Nt = len(tgrid)
+            self.Efield.Nt = Nt
+            #t = c_double * Nt
+            #t = t(*tgrid)
+            #self.Efield.tgrid = t
+            ### Init temporal grid
+            self.Efield.tgrid = ctypes_arr_ptr(c_double, Nt, tgrid)
+            self.Efield.Field = ctypes_arr_ptr(c_double, Nt, field)
+
+        else:
+            Nt = len(t)
+            assert(Nt == len(E))
+            self.Efield.Nt = Nt
+            self.Efield.tgrid = ctypes_arr_ptr(c_double, Nt, t)
+            self.Efield.Field = ctypes_arr_ptr(c_double, Nt, E)
+            ### Do not interpolate
+            #self.InterpByDTorNT = c_int(1)
+            
+
+        f.close()
+    #def init_time_grid(self, filename):
+
 
 class outputs_def(Structure):
     _fields_ = [
@@ -209,37 +286,20 @@ class outputs_def(Structure):
 
 ### Structures
 inputs = inputs_def()
-#outputs = outputs_def()
-
-
-with h5py.File("1DTDSE/results.h5", "r") as f:
-    inputs.E_guess = c_double(f["TDSE_inputs/Eguess"][()])
-    inputs.num_r = c_int(f["TDSE_inputs/N_r_grid"][()])
-    inputs.num_exp = c_int(f["TDSE_inputs/N_r_grid_exp"][()])
-    inputs.dx = c_double(f["TDSE_inputs/dx"][()])
-    inputs.InterpByDTorNT = c_int(f["TDSE_inputs/InterpByDTorNT"][()])
-    inputs.dt = c_double(f["TDSE_inputs/dt"][()])
-    inputs.Ntinterp = c_int(f["TDSE_inputs/Ntinterp"][()])
-    inputs.textend = c_double(f["TDSE_inputs/textend"][()])
-    inputs.analy.writewft = c_int(f["TDSE_inputs/analy_writewft"][()])
-    inputs.analy.tprint = c_double(f["TDSE_inputs/analy_tprint"][()])
-    inputs.x_int = c_double(f["TDSE_inputs/x_int"][()])
-    inputs.PrintGaborAndSpectrum = c_int(f["TDSE_inputs/PrintGaborAndSpectrum"][()])
-    inputs.a_Gabor = c_double(f["TDSE_inputs/a_Gabor"][()])
-    inputs.omegaMaxGabor = c_double(f["TDSE_inputs/omegaMaxGabor"][()])
-    inputs.dtGabor = c_double(f["TDSE_inputs/dtGabor"][()])
-    inputs.tmin1window = c_double(f["TDSE_inputs/tmin1window"][()])
-    inputs.tmax1window = c_double(f["TDSE_inputs/tmax1window"][()])
-    inputs.tmin2window = c_double(f["TDSE_inputs/tmin2window"][()])
-    inputs.tmax2window = c_double(f["TDSE_inputs/tmax2window"][()])
-    inputs.PrintOutputMethod = c_int(f["TDSE_inputs/PrintOutputMethod"][()])
-    inputs.trg.a = c_double(f["TDSE_inputs/trg_a"][()])
-    inputs.CV = c_double(f["TDSE_inputs/CV_criterion_of_GS"][()])
-    inputs.gauge = c_int(f["TDSE_inputs/gauge_type"][()])
+outputs = outputs_def()
 
 
 ### Init input structure from the HDF5 file
 inputs.init_inputs("1DTDSE/results.h5")
+inputs.init_time_and_field("1DTDSE/results.h5", 75, 512)
+
+### Check the field 
+fig = plt.figure()
+N = inputs.Efield.Nt
+E = ctype_arr_to_numpy(inputs.Efield.Field, N)
+t = ctype_arr_to_numpy(inputs.Efield.tgrid, N)
+plt.plot(t, E)
+plt.show()
 
 ### Load compiled dynamic library
 path = "/Users/tadeasnemec/Programming/Git/CUPRAD_TDSE_Hankel/1DTDSE/singleTDSE.so"
@@ -251,6 +311,12 @@ init_grid.restype = None
 init_grid.argtypes = [POINTER(inputs_def)]
 init_grid(byref(inputs))
 
+### Check the ground state
+fig = plt.figure()
+psi0 = ctype_arr_to_numpy(inputs.psi0, 2*(inputs.num_r+1))
+x = ctype_arr_to_numpy(inputs.x, inputs.num_r+1)
+plt.semilogy(x, np.abs(psi0)[0:-1:2])
+plt.show()
 
 ### Run TDSE from Python
 call1DTDSE = DLL_Func.call1DTDSE
