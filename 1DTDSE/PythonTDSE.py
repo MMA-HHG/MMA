@@ -17,7 +17,6 @@ def ctypes_arr_ptr(ctype_, size_, arr_):
 def ctype_arr_to_numpy(c_arr, size):
     return np.array([c_arr[i] for i in range(size)])
 
-
 ### Physical constants
 Ip_HeV = 27.21138602
 hbar = 1.054571800e-34
@@ -258,10 +257,7 @@ class inputs_def(Structure):
             ### Do not interpolate
             #self.InterpByDTorNT = c_int(1)
             
-
         f.close()
-    #def init_time_grid(self, filename):
-
 
 class outputs_def(Structure):
     _fields_ = [
@@ -284,45 +280,62 @@ class outputs_def(Structure):
         ("Nomega", c_int)
     ]
 
-### Structures
-inputs = inputs_def()
-outputs = outputs_def()
+def init_GS(inputs, DLL_path):
+    DLL = CDLL(DLL_path)
+    ### Find ground state and init grids
+    init_grid = DLL.Initialise_grid_and_ground_state
+    init_grid.restype = None
+    init_grid.argtypes = [POINTER(inputs_def)]
+    init_grid(byref(inputs))
 
+def call1DTDSE(inputs, DLL_path):
+    DLL = CDLL(DLL_path)
+    ### Do the propagation
+    TDSE = DLL.call1DTDSE
+    TDSE.restype = outputs_def
+    TDSE.argtypes = [POINTER(inputs_def)]
+    return TDSE(byref(inputs))
 
-### Init input structure from the HDF5 file
-inputs.init_inputs("1DTDSE/results.h5")
-inputs.init_time_and_field("1DTDSE/results.h5", 75, 512)
+if __name__ == "__main__":
 
-### Check the field 
-fig = plt.figure()
-N = inputs.Efield.Nt
-E = ctype_arr_to_numpy(inputs.Efield.Field, N)
-t = ctype_arr_to_numpy(inputs.Efield.tgrid, N)
-plt.plot(t, E)
-plt.show()
+    ### Structures
+    inputs = inputs_def()
+    outputs = outputs_def()
 
-### Load compiled dynamic library
-path = "/Users/tadeasnemec/Programming/Git/CUPRAD_TDSE_Hankel/1DTDSE/singleTDSE.so"
-DLL_Func = CDLL(path)
+    ### Init input structure from the HDF5 file
+    inputs.init_inputs("1DTDSE/results.h5")
+    inputs.init_time_and_field("1DTDSE/results.h5", 75, 512)
 
-### Init ground state
-init_grid = DLL_Func.Initialise_grid_and_ground_state
-init_grid.restype = None
-init_grid.argtypes = [POINTER(inputs_def)]
-init_grid(byref(inputs))
+    ### Check the field 
+    fig = plt.figure()
+    N = inputs.Efield.Nt
+    E = ctype_arr_to_numpy(inputs.Efield.Field, N)
+    t = ctype_arr_to_numpy(inputs.Efield.tgrid, N)
+    plt.plot(t, E)
+    plt.show()
 
-### Check the ground state
-fig = plt.figure()
-psi0 = ctype_arr_to_numpy(inputs.psi0, 2*(inputs.num_r+1))
-x = ctype_arr_to_numpy(inputs.x, inputs.num_r+1)
-plt.semilogy(x, np.abs(psi0)[0:-1:2])
-plt.show()
+    ### Load compiled dynamic library
+    path = "/Users/tadeasnemec/Programming/Git/CUPRAD_TDSE_Hankel/1DTDSE/singleTDSE.so"
+    DLL_Func = CDLL(path)
 
-### Run TDSE from Python
-call1DTDSE = DLL_Func.call1DTDSE
-call1DTDSE.restype = outputs_def
-call1DTDSE.argtypes = [POINTER(inputs_def)]
-outputs = call1DTDSE(byref(inputs))
+    ### Init ground state
+    init_grid = DLL_Func.Initialise_grid_and_ground_state
+    init_grid.restype = None
+    init_grid.argtypes = [POINTER(inputs_def)]
+    init_grid(byref(inputs))
+
+    ### Check the ground state
+    fig = plt.figure()
+    psi0 = ctype_arr_to_numpy(inputs.psi0, 2*(inputs.num_r+1))
+    x = ctype_arr_to_numpy(inputs.x, inputs.num_r+1)
+    plt.semilogy(x, np.abs(psi0)[0:-1:2])
+    plt.show()
+
+    ### Run TDSE from Python
+    call1DTDSE = DLL_Func.call1DTDSE
+    call1DTDSE.restype = outputs_def
+    call1DTDSE.argtypes = [POINTER(inputs_def)]
+    outputs = call1DTDSE(byref(inputs))
 
 #DLL_Func = CDLL(DLL)
 #DLL = "/Users/tadeasnemec/Programming/Git/CUPRAD_TDSE_Hankel/1DTDSE/tools.so"
