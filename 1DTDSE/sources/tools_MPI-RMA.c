@@ -9,7 +9,7 @@
 
 int MPE_COUNTER_KEYVAL = MPI_KEYVAL_INVALID;
 extern int MPEi_CounterFree(MPI_Win counter_win, int keyval, void *attr_val, void *extra_state);
-
+double t_mpi[10]; 
 
 void MPE_Counter_create(MPI_Comm comm, int num, MPI_Win *counter_win) // MPI-3 version
 {

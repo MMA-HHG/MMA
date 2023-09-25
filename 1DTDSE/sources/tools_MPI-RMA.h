@@ -21,6 +21,4 @@ int MPE_Mutex_release(MPI_Win, int, int);
 void nxtval_init(int, int *);
 void nxtval_strided(int, int *);
 
-double t_mpi[10]; 
-
 #endif

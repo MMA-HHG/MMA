@@ -5,12 +5,18 @@
  * @copyright Copyright (c) 2023
  * 
  */
-#include<stdlib.h>
+#define _USE_MATH_DEFINES
+#ifndef M_PI
+    #define M_PI 3.14159265358979323846
+#endif
 #include<math.h>
+#include<stdlib.h>
 
 #include "constants.h"
 
 const double Pi = M_PI;
+double Ip_HeV, hbar, alpha_fine, c_light, elcharge, elmass, mu0, eps0, r_Bohr, 
+    TIMEau, EFIELDau, k_Boltz, absolute_zero, torr2SI;
 
 void Init_constants(){
     Ip_HeV = 27.21138602;
