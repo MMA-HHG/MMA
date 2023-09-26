@@ -202,14 +202,16 @@ int main(int argc, char *argv[])
 		// set name
 		local_filename[0] = '\0'; 
 		dumchar1[0] = '\0'; 
-		//sprintf(dumchar1, "%07d", myrank);
+		sprintf(dumchar1, "%07d", myrank);
 		strcat(local_filename,filename_stub); 
 		strcat(local_filename,dumchar1); 
 		strcat(local_filename,".h5");	
 
 		// Create a new temporary HDF5 file	
 		file_id = H5Fcreate (local_filename, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
+		// Allocate space within temporary HDF5 file
 		prepare_local_output_fixed_print_grids_h5(file_id, "", &h5error, &inputs, &outputs, Ntot/nprocs + 1, dims);
+		// Write output into the temporary HDF5 file
 		print_local_output_fixed_h5(file_id,"", &h5error, &inputs, &outputs, Ntot/nprocs + 1, Nsim, Nsim_loc);
 
 		// print coarser grids
