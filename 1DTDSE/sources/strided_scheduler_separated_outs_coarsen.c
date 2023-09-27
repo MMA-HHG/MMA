@@ -266,7 +266,10 @@ int main(int argc, char *argv[])
 		dum3int[1] = -1; 
 		dum3int[2] = kr_step*kr;	
 
-		dims_input[0] = dim_t;
+		//dims_input[0] = dim_t;
+
+		// Alloc input field array again – it has been reallocated within call1DTDSE()
+		inputs.Efield.Field = malloc(((int)dim_t)*sizeof(double));
 
 		// read the HDF5 file
 		file_id = H5Fopen("results.h5", H5F_ACC_RDONLY, H5P_DEFAULT);
@@ -305,6 +308,8 @@ int main(int argc, char *argv[])
 	}
 
 	free(dims);
+	// Free inputs
+	inputs_destructor(&inputs);
  
 	t_mpi[6] = MPI_Wtime();
 	if (comment_operation == 1) {

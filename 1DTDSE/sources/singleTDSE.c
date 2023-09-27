@@ -105,7 +105,7 @@ outputs_def call1DTDSE(inputs_def * inputs)
 	// Inputs
 	//(*inputs).x = malloc((num_r+1)*sizeof(double)); 
 	//(*inputs).psi0 = malloc(2*(num_r+1)*sizeof(double));	
-	(*inputs).dt = dt;
+	(*inputs).Efield.dt = dt;
 	(*inputs).num_t = num_t;
 	// Outputs
 	outputs.tgrid = calloc((Nt+1),sizeof(double));
@@ -133,10 +133,10 @@ outputs_def call1DTDSE(inputs_def * inputs)
 			  &outputs.omegagrid, &outputs.Fsourceterm_data, &outputs.FsourcetermM2, 
 			  &outputs.Nomega);
 
-	free((*inputs).x); 
+	//free((*inputs).x); 
 	free(psi); 
-	free((*inputs).psi0);
-	free((*inputs).Efield.Field);
+	//free((*inputs).psi0);
+	//free((*inputs).Efield.Field);
 	
 	return outputs;
 }

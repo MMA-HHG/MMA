@@ -50,7 +50,7 @@ double * propagation(inputs_def *inputs, outputs_def *outputs)
 	// Integration limit for ionization 
 	double x_int = (*inputs).x_int;
 	// Time step
-	double dt = (*inputs).dt;
+	double dt = (*inputs).Efield.dt;
 	// Number of time steps for the TDSE
 	int Nt = (*outputs).Nt;
 	// Target information

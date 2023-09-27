@@ -40,8 +40,6 @@ void inputs_destructor(inputs_def *in) // frees memory allocated for inputs
 {
 	free((*in).psi0);
 	free((*in).x);
-	free((*in).timet);
-	free((*in).dipole);
 	free((*in).Efield.tgrid);
 	free((*in).Efield.Field);
 }

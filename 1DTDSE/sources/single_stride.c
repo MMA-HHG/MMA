@@ -102,7 +102,7 @@ int main(int argc, char *argv[])
 
 	// Allocate space for the fields & load the tgrid
 	inputs.Efield.Field = malloc(((int)dims[0])*sizeof(double));
-	inputs.Efield.tgrid =  readreal1Darray_fort(file_id, "outputs/tgrid",&h5error,&inputs.Efield.Nt); // tgrid is not changed when program runs
+	inputs.Efield.tgrid = readreal1Darray_fort(file_id, "outputs/tgrid",&h5error,&inputs.Efield.Nt); // tgrid is not changed when program runs
 	
     // coarsing procedure
     int kz_step, Nz_max, kr_step, Nr_max;
@@ -210,6 +210,8 @@ int main(int argc, char *argv[])
     h5error = H5Fclose(file_id); 
     // clean outputs
     outputs_destructor(&outputs); 
+    // clean inputs
+    inputs_destructor(&inputs);
 
     // Free memory
     free(rgrid_coarse); 
