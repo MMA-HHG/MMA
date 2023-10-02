@@ -360,12 +360,13 @@ void rw_real_fullhyperslab_nd_h5(hid_t file_id, char *dset_name, herr_t *h5error
 			count[k1] = dimensions[k1];
 			// a way to specify the length of the array for HDF5	
 			field_dims[0] = dimensions[k1]; 
-			memspace_id = H5Screate_simple(1,field_dims,NULL);
 		} else {
 			offset[k1] = selection[k1];
 			count[k1] = 1;
 		}
 	}
+	memspace_id = H5Screate_simple(1,field_dims,NULL);
+	
 	hid_t dset_id = H5Dopen2 (file_id, dset_name, H5P_DEFAULT);
 	hid_t dspace_id = H5Dget_space (dset_id);
 	// operation with only a part of the array = hyperslab	
