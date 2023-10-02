@@ -12,7 +12,6 @@
 #include <time.h>
 #include <hdf5.h>
 #include "constants.h"
-#include "util.h"
 #include "tools_hdf5.h"
 #include "structures.h"
 #include "tridiag.h"
