@@ -303,7 +303,7 @@ void rw_hyperslab_nd_h5(hid_t file_id, char *dset_name, herr_t *h5error,
 { 
 	int ndims, k1;
 	hid_t datatype;
-	hsize_t *dims; dims = get_dimensions_h5(file_id, dset_name, h5error, &ndims, &datatype);
+	get_dimensions_h5(file_id, dset_name, h5error, &ndims, &datatype);
 	hsize_t hyperslab_dimensions[nhyperslab_dimensions];
 	for(k1 = 0; k1 < nhyperslab_dimensions; k1++){hyperslab_dimensions[k1] = hyperslab_dimensions_int[k1];}
 	hid_t memspace_id = H5Screate_simple(nhyperslab_dimensions,hyperslab_dimensions,NULL);

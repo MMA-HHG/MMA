@@ -296,7 +296,7 @@ void window_analysis(trg_def trg, double dE, double Estep, double E_start,
  */
 void projection_analysis_EV( trg_def trg, double dE,double Estep,double E_start,int num_E,int num_r,double dx,double *psi,double *dinf,double *d,double *dsup,double *x) // inti procedure incompatible
 {
-	double prob,CV,Eguess,E_previous,E,ps_re,ps_im;
+	double prob,CV,Eguess,E,ps_re,ps_im;
 	double *psi_EV;
 	FILE *fel;
 	int i,j;
@@ -312,7 +312,6 @@ void projection_analysis_EV( trg_def trg, double dE,double Estep,double E_start,
 
 
 	CV = 1E-10; // CV criteria  
-	E_previous = 0;
 		
 	for(i = 0; i<= num_E; i++)
 	{

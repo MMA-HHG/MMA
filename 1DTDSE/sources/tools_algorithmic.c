@@ -109,12 +109,12 @@ double interpolate(int n, double x, double *x_grid, double* y_grid)
  */
 double findnextinterpolatedzero(int n, double x, double * x_grid, double * y_grid) 
 {
-	int k1,k2,k3,k4;
+	int k1,k2,k4;
 	double x_root,x1,x2,y1,y2;
 	
 	k1=0;
 	k2=0;
-	k3=0;
+	
 	findinterval(n, x, x_grid, &k1, &k2);
 
 	if( ( k1 == -1 ) ||  ( k2 == n+1 ))

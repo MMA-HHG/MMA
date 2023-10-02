@@ -179,7 +179,7 @@ void printGaborFFTW3(FILE *Gsig, FILE *xgrid, FILE *xigrid, FILE *Gsigbin, doubl
 	int Nc, Ncprint;
 	fftw_complex *out;
 	double *in;
-	double dxi,coeff1,coeff2;
+	double dxi,coeff2;
 	fftw_plan p;
 	int k1,k2,kstep2;
 	
@@ -195,7 +195,7 @@ void printGaborFFTW3(FILE *Gsig, FILE *xgrid, FILE *xigrid, FILE *Gsigbin, doubl
 
 
 	dxi = 2.*Pi/(  ((double)N) * dx); // dimension-preserving coefficients
-	coeff1 = dx/ sqrt(2.*Pi); coeff2 = dx*dx/(2.*Pi);
+	coeff2 = dx*dx/(2.*Pi);
 
 	Ncprint = floor( xiMaxPrint/dxi ); Ncprint++; if (Ncprint > (Nc-1) ){Ncprint = Nc-1;} // maximum frequency
 
@@ -336,7 +336,7 @@ void printGaborFFTW3binary(FILE *Gsize, FILE *xgrid, FILE *xigrid, FILE *Gsigbin
 	int Nc, Ncprint;
 	fftw_complex *out;
 	double *in;
-	double dxi,coeff1,coeff2;
+	double dxi, coeff2;
 	fftw_plan p;
 	int k1,k2,kstep2,NxG;
 	
@@ -352,7 +352,7 @@ void printGaborFFTW3binary(FILE *Gsize, FILE *xgrid, FILE *xigrid, FILE *Gsigbin
 
 
 	dxi = 2.*Pi/(  ((double)N) * dx); // dimension-preserving coefficients
-	coeff1 = dx/ sqrt(2.*Pi); coeff2 = dx*dx/(2.*Pi);
+	coeff2 = dx*dx/(2.*Pi);
 
 	Ncprint = floor( xiMaxPrint/dxi ); Ncprint++; if (Ncprint > (Nc-1) ){Ncprint = Nc-1;} // maximum frequency
 	fprintf(Gsize,"%i\n", Ncprint+1);

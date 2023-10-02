@@ -41,16 +41,12 @@ outputs_def call1DTDSE(inputs_def * inputs)
 	int Nt;
 	// Points per cycle of 800nm field
 	int num_t;
-	// Spatial grid size TDSE
-	int num_r;
 	// Switch
 	int input0 = 1;
 	// Dummy integer
 	int dumint;
 	// Iterable
 	int k1;
-	// Time
-	clock_t start, finish;
 	// Dummy pointer
 	double * dumptrs_real[2];
 	// Local field
@@ -58,9 +54,7 @@ outputs_def call1DTDSE(inputs_def * inputs)
 
 	
 	// local copies of variables given by inputs
-	num_r = (*inputs).num_r; 
 	dt = (*inputs).dt;
-	//Efield_var Efield = inputs.Efield;
 
 	// PREPARATIONAL COMPUTATIONS 
 	
@@ -91,7 +85,6 @@ outputs_def call1DTDSE(inputs_def * inputs)
 
 	// Free field and allocate new field array
 	// make the interpolation, note: tgrid does not correspond any more
-	//field = FourInterp(k1, (*inputs).Efield.Field, (*inputs).Efield.Nt); 
 	field = FourInterp(k1, (*inputs).Efield.Field, (*inputs).Efield.Nt); 
 	free((*inputs).Efield.Field);
 	Nt = k1*(*inputs).Efield.Nt + 1;
@@ -102,9 +95,7 @@ outputs_def call1DTDSE(inputs_def * inputs)
 	num_t++;  
 
 	// ALLOCATE MEMORY, COPY INITIAL ARRAYS AND PREPARE THEM FOR THE PROPAGATOR
-	// Inputs
-	//(*inputs).x = malloc((num_r+1)*sizeof(double)); 
-	//(*inputs).psi0 = malloc(2*(num_r+1)*sizeof(double));	
+	// Inputs	
 	(*inputs).Efield.dt = dt;
 	(*inputs).num_t = num_t;
 	// Outputs
@@ -117,12 +108,9 @@ outputs_def call1DTDSE(inputs_def * inputs)
 	outputs.Nt = (Nt+1);
 
 	// do the calculation
-	start = clock();
-
+	
 	// Propagate the solution
 	psi = propagation(inputs, &outputs);
-	
-	finish = clock();
 
 	// Compute FFT
 	calcFFTW3(outputs.Nt, dt, tmax, outputs.Efield, &(dumptrs_real[0]), &(dumptrs_real[1]), 
