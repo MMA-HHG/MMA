@@ -3,11 +3,11 @@
 #include<stdlib.h>
 #include<math.h>
 #include<hdf5.h>
-#include<fftw3.h> // for finalising the plans
-
+#include<fftw3.h>
 #include "numerical_constants.h"
-#include "util.h"
-#include "util_hdf5.h"
+#include "tools_hdf5.h"
+#include "structures.h"
+#include "singleTDSE.h"
 
 // hdf5 operation:
 herr_t  h5error;

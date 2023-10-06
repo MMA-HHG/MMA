@@ -375,7 +375,7 @@ subroutine preset_numerics_tests(test_number)
         num_proc = 32
         time_limit = 1.98d0 
     case(25,26,28:30)  
-        num_proc = 4
+        num_proc = 32
         time_limit = 23.95d0 
     case(27)  
         num_proc = 16
