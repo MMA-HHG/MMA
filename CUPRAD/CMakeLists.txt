@@ -6,13 +6,34 @@ cmake_minimum_required(VERSION 3.5)
 project(cuprad)
 enable_language(Fortran)      
 
-### Set compiler flags
-set(CMAKE_Fortran_FLAGS "-std=gnu -O0 -fcheck=all -W -Wno-compare-reals -fbacktrace -ffixed-line-length-none -ffree-line-length-none -g")
+message("Compiler: ${CMAKE_Fortran_COMPILER}")
 
-### Find FFTW and HDF5 libraries and packages
-find_library(fftw3 fftw3)
+#execute_process(COMMAND which mpifort OUTPUT_VARIABLE MPIFORT)
+#execute_process(COMMAND which mpiifort OUTPUT_VARIABLE MPIIFORT)
+#execute_process(COMMAND MPIIFORT=${MPIIFORT} | tr -d '\n')
+#execute_process(COMMAND MPIFORT=${MPIFORT} | tr -d '\n')
+#message(${MPIFORT})
+#message(${MPIIFORT})
+#execute_process(COMMAND echo ${MPIIFORT} | tr -d '\n')
+
+#if(${CMAKE_Fortran_COMPILER} STREQUAL ${MPIFORT})
+    ### Set compiler flags
+#    set(CMAKE_Fortran_FLAGS "-std=gnu -O0 -fcheck=all -W -Wno-compare-reals -fbacktrace -ffixed-line-length-none -ffree-line-length-none -g")
+
+    ### Find FFTW and HDF5 libraries and packages
+#    find_library(fftw3 fftw3)
+#    find_package(HDF5 REQUIRED COMPONENTS Fortran HL)
+#    find_package(MPI REQUIRED Fortran)
+#elseif(${CMAKE_Fortran_COMPILER} STREQUAL ${MPIIFORT})
+find_package(MKL CONFIG REQUIRED)
+include_directories(${MKL_INCLUDE_DIRS})
 find_package(HDF5 REQUIRED COMPONENTS Fortran HL)
 find_package(MPI REQUIRED Fortran)
+
+#set(CMAKE_Fortran_FLAGS "-O0")
+#else()
+#    message(FATAL_ERROR "Unsupported Fortran compiler: ${CMAKE_Fortran_COMPILER}")
+#endif()
 
 ### Link FFTW3 library
 #link_directories(/usr/local/lib)
@@ -38,14 +59,21 @@ set(S_MAKE_START sources/constants.f90 sources/hdf5_helper_serial.f90
 ### ==================
 ### cuprad.e
 add_executable(${PROPAGATION} ${S_PROPAGATION})
-target_link_libraries(${PROPAGATION} fftw3 fftw3_mpi ${HDF5_LIBRARIES} ${MPI_Fortran_LIBRARIES})
-target_include_directories(${PROPAGATION} PRIVATE ${HDF5_INCLUDE_DIRS} ${MPI_Fortran_INCLUDE_PATH})# /usr/local/include)
+#target_link_libraries(${PROPAGATION} fftw3 fftw3_mpi ${HDF5_LIBRARIES} ${MPI_Fortran_LIBRARIES})
+target_compile_options(${PROPAGATION} PUBLIC $<TARGET_PROPERTY:MKL::MKL,INTERFACE_COMPILE_OPTIONS>)
+target_link_libraries(${PROPAGATION} PUBLIC $<LINK_ONLY:MKL::MKL> ${HDF5_LIBRARIES} ${MPI_Fortran_LIBRARIES})
+target_include_directories(${PROPAGATION} PRIVATE ${HDF5_INCLUDE_DIRS} ${MPI_Fortran_INCLUDE_PATH} $<TARGET_PROPERTY:MKL::MKL,INTERFACE_INCLUDE_DIRECTORIES>)# /usr/local/include)
+#target_compile_options(${PROPAGATION} PUBLIC $<TARGET_PROPERTY:MKL::MKL,INTERFACE_COMPILE_OPTIONS>)
+
 
 ### make_start.e
 add_executable(${MAKE_START} ${S_MAKE_START})
-target_include_directories(${MAKE_START} PRIVATE ${HDF5_INCLUDE_DIRS})# /usr/local/include)
-target_link_libraries(${MAKE_START} ${HDF5_LIBRARIES} fftw3 fftw3_mpi)# ${MPI_Fortran_LIBRARIES})
-
+#target_include_directories(${MAKE_START} PRIVATE ${HDF5_INCLUDE_DIRS})# /usr/local/include)
+#target_link_libraries(${MAKE_START} ${HDF5_LIBRARIES} fftw3 fftw3_mpi)# ${MPI_Fortran_LIBRARIES})
+target_compile_options(${MAKE_START} PUBLIC $<TARGET_PROPERTY:MKL::MKL,INTERFACE_COMPILE_OPTIONS>)
+target_link_libraries(${MAKE_START} PUBLIC $<LINK_ONLY:MKL::MKL> ${HDF5_LIBRARIES})
+target_include_directories(${MAKE_START} PRIVATE ${HDF5_INCLUDE_DIRS} $<TARGET_PROPERTY:MKL::MKL,INTERFACE_INCLUDE_DIRECTORIES>)# /usr/local/include)
+#target_compile_options(${MAKE_START} PUBLIC $<TARGET_PROPERTY:MKL::MKL,INTERFACE_COMPILE_OPTIONS>)
 
 ### Add custom commands
 ### ===================
