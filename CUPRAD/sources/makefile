@@ -4,27 +4,27 @@
 #CINES correction   MPIF90 = mpif90
 #CINES commentaire : mpif90 est A utiliser avec openmpi
 #CINES commentaire : mpiifort est A utiliser avec intelmpi
-#  MPIF90 = mpiifort
-	MPIF90 = mpif90
-#  F90    = ifort
+  MPIF90 = mpiifort
+#	MPIF90 = mpif90
+  F90    = ifort
 #	F90    = gfortran  
-	F90    = mpif90  
+#	F90    = mpif90  
 # F90    = h5fc  
 #  H5 = h5pfc
 	### FFTW libraries for linking
-	FFT     = -lfftw3_mpi -lfftw3
+	FFT     = -L$(MKLROOT)/lib/intel64 -lmkl_intel_lp64 -lmkl_core -lmkl_intel_thread -lhdf5_fortran
 ### Does not work on a Mac
 #  FFLAGS =  -check all -warn all -traceback -fpe0
 	#FFLAGS =  -fcheck=all -W -fbacktrace -ffpe-trap=zero -ffree-line-length-300
 
 	### Optional flags for compilation
-	FFLAGS = -fbacktrace -ffpe-trap=zero -ffree-line-length-250
+	FFLAGS = -check all -warn all -traceback -fpe0 -qopenmp -fp-stack-check
 #  FFLAGS =  -Wall -O2 -ffree-line-length-none -fbacktrace -fcheck=all -v -g3 # -g[0-3] is for debuging
 #  FFLAGS =  -Wall -O0 -ffree-line-length-none -fbacktrace -fcheck=all -Wuninitialized -v -g -fbounds-check
 #  FFLAGS =  -O3 -ansi_alias 
 
 	### HDF5 library linking
-	LFLAGS = -lhdf5 -lhdf5_hl -lhdf5_fortran -lhdf5hl_fortran -lz -lm
+	LFLAGS = 
 	#LFLAGS = -lhdf5 -lm
 #  LFLAGS = -lfftw3_mpi -lfftw3 -lhdf5 -lhdf5_hl -lhdf5_fortran -lhdf5hl_fortran -lz -lm
 #  LDLIBS = -lfftw3_mpi -lfftw3 -lhdf5 -lhdf5_hl -lhdf5_fortran -lhdf5hl_fortran -lz -lm
@@ -33,7 +33,7 @@
 #  FFTPATH    = /gpfs/apps/tools/modulefiles/software/FFTW/3.3.5-OpenMPI-1.10.2-GCC-6.1.0-psm-dbg/lib/libfftw3.so
 
 	### Path to FFTW and HDF5 libraries and inclusion of corresponding files
-	FFTPATH = -I/usr/local/include -L/usr/local/lib
+	FFTPATH = 
 #  H5INCLUDE  = /gpfs/apps/tools/modulefiles/software/HDF5/1.8.13-OpenMPI-1.10.2-GCC-6.1.0-psm/include
 #  H5LIBS = /gpfs/apps/tools/modulefiles/software/HDF5/1.8.13-OpenMPI-1.10.2-GCC-6.1.0-psm/lib
 #  FFT     = -lfftw3
@@ -68,7 +68,7 @@ $(PROPAGATION_MICKAEL) : $(S_PROPAGATION_MICKAEL)
 	${MPIF90} -o $(PROPAGATION_MICKAEL) $(S_PROPAGATION_MICKAEL) ${FFTPATH} ${FFT} ${FFLAGS}
 $(MAKE_START) : $(S_MAKE_START)
 #	${H5} -o $(MAKE_START) $(S_MAKE_START) ${FFTPATH} ${FFT} ${FMFLAGS}
-	${F90} -o $(MAKE_START) $(S_MAKE_START) ${FFTPATH} ${FFT} ${FMFLAGS} ${LFLAGS}
+	${F90} -o $(MAKE_START) $(S_MAKE_START) ${FFTPATH} ${FFT} ${FFLAGS} ${LFLAGS}
 #	${F90} ${FFLAGS} -o $(MAKE_START) $(S_MAKE_START) ${FFTPATH} ${FFT} ${FMFLAGS}
 $(MAKE_START_NU0) : $(S_MAKE_START_NU0)
 	${F90} -o $(MAKE_START_NU0) $(S_MAKE_START_NU0) ${FFTPATH} ${FFT} ${FFLAGS}
@@ -89,14 +89,14 @@ clean :
 
 binary :
 #	/bin/mv *.e ../binary
-	if [ ! -d "../binary" ]; then mkdir ../binary; fi;
-	/bin/mv -f *.e ../binary/
+#	if [ ! -d "../binary" ]; then mkdir ../binary; fi;
+	/bin/mv -f *.e ../build
 #
 clean_preprocessor :
 	rm -f listing STOP *.DAT *.LOG
 #
-code : clean_preprocessor linked_list $(CALC_FT) $(MAKE_START) $(MAKE_START_4WM) $(PROPAGATION) $(PROPAGATION_DEFOK) $(PROPAGATION_MICKAEL) $(CLEAN) $(MERGE) binary clean
+code : clean_preprocessor linked_list $(MAKE_START) $(PROPAGATION) binary clean
 #
 preprocessor : clean clean_preprocessor $(MAKE_START)
 #
-util : $(CALC_FT) $(MAKE_START) $(MAKE_START_NU0) $(CLEAN) $(MERGE) binary clean
+util : $(MAKE_START) binary clean
