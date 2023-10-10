@@ -214,6 +214,59 @@ class inputs_def(Structure):
             self.gauge = c_int(f["TDSE_inputs/gauge_type"][()])
             precision = 'd'
             self.precision = precision.encode('utf-8')
+
+    def init_default_inputs(self,
+                            Eguess = -1.,
+                            num_r = 16000,
+                            dx = 0.4,
+                            InterpByDTorNT = 0,
+                            dt = 0.25,
+                            trg_a = 1.3677,
+                            CV = 1e-25,
+                            gauge = 0,
+                            num_exp = 0,
+                            Ntinterp = 1,
+                            textend = 200.0,
+                            writewft = 0,
+                            tprint = 10,
+                            x_int = 2.,
+                            PrintGaborAndSpectrum = 0,
+                            a_Gabor = 8.,
+                            omegaMaxGabor = 60.,
+                            dtGabor = 10.,
+                            tmin1window = 0.,
+                            tmin2window = 0.,
+                            tmax1window = 0.,
+                            tmax2window = 0.,
+                            PrintOutputMethod = 1,
+                            precision = 'd'
+                            ):
+        
+        self.Eguess = c_double(Eguess)
+        self.num_r = c_int(num_r)
+        self.num_exp = c_int(num_exp)
+        self.dx = c_double(dx)
+        self.InterpByDTorNT = c_int(InterpByDTorNT)
+        self.dt = c_double(dt)
+        self.Ntinterp = c_int(Ntinterp)
+        self.textend = c_double(textend)
+        self.analy.writewft = c_int(writewft)
+        self.analy.tprint = c_double(tprint)
+        self.x_int = c_double(x_int)
+        self.PrintGaborAndSpectrum = c_int(PrintGaborAndSpectrum)
+        self.a_Gabor = c_double(a_Gabor)
+        self.omegaMaxGabor = c_double(omegaMaxGabor)
+        self.dtGabor = c_double(dtGabor)
+        self.tmin1window = c_double(tmin1window)
+        self.tmax1window = c_double(tmax1window)
+        self.tmin2window = c_double(tmin2window)
+        self.tmax2window = c_double(tmax2window)
+        self.PrintOutputMethod = c_int(PrintOutputMethod)
+        self.trg.a = c_double(trg_a)
+        self.CV = c_double(CV)
+        self.gauge = c_int(gauge)
+        precision = precision
+        self.precision = precision.encode('utf-8')
         
     def init_prints(self, path_to_DLL):
         DLL = CDLL(path_to_DLL)
@@ -222,9 +275,9 @@ class inputs_def(Structure):
         self.Print = set_prints()
 
     def init_time_and_field(self, filename = "", z_i = 0, r_i = 0, E = None, t = None):
-        f = h5py.File(filename, "r")
 
         if (filename != "") and (E is None or t is None):
+            f = h5py.File(filename, "r")
             field_shape = f["outputs/output_field"].shape
             if (z_i < 0) or (z_i >= field_shape[0]):
                 print("Incorrect z-grid dimension selection. Select z in range (0, {})".format(field_shape[0]-1))
@@ -247,6 +300,7 @@ class inputs_def(Structure):
             ### Init temporal grid
             self.Efield.tgrid = ctypes_arr_ptr(c_double, Nt, tgrid)
             self.Efield.Field = ctypes_arr_ptr(c_double, Nt, field)
+            f.close()
 
         else:
             Nt = len(t)
@@ -257,7 +311,6 @@ class inputs_def(Structure):
             ### Do not interpolate
             #self.InterpByDTorNT = c_int(1)
             
-        f.close()
 
 class outputs_def(Structure):
     _fields_ = [
