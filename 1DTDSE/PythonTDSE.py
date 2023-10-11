@@ -17,6 +17,10 @@ def ctypes_arr_ptr(ctype_, size_, arr_):
 def ctype_arr_to_numpy(c_arr, size):
     return np.array([c_arr[i] for i in range(size)])
 
+### return numpy array from c_types array of complex numbers
+def ctype_cmplx_arr_to_numpy(c_arr, size):
+    return np.array([c_arr[2*i]+1j*c_arr[2*i+1] for i in range(size)])
+
 ### Physical constants
 Ip_HeV = 27.21138602
 hbar = 1.054571800e-34
@@ -239,7 +243,7 @@ class inputs_def(Structure):
                             tmax1window = 0.,
                             tmax2window = 0.,
                             PrintOutputMethod = 1,
-                            precision = 'd'
+                            precision = np.string_('d')
                             ):
         
         self.Eguess = c_double(Eguess)
@@ -265,8 +269,8 @@ class inputs_def(Structure):
         self.trg.a = c_double(trg_a)
         self.CV = c_double(CV)
         self.gauge = c_int(gauge)
-        precision = precision
-        self.precision = precision.encode('utf-8')
+        #precision = precision
+        self.precision = precision
         
     def init_prints(self, path_to_DLL):
         DLL = CDLL(path_to_DLL)
