@@ -55,6 +55,12 @@ double * propagation(inputs_def *inputs, outputs_def *outputs)
 	int Nt = (*outputs).Nt;
 	// Target information
 	trg_def trg = (*inputs).trg;
+	// Steps for writing wavefunction
+	int steps_per_dt = floor(inputs->analy.tprint/dt);
+	// Wavefunction write iteration
+	int i_wf = 0;
+	// Number of stored wavefunctions
+	int size = Nt/steps_per_dt;
 
 	// Allocate arrays
 	psi = calloc(2*(num_r+1),sizeof(double));
@@ -68,6 +74,14 @@ double * propagation(inputs_def *inputs, outputs_def *outputs)
 	dnew2 = calloc(2*(num_r+1),sizeof(double));
 	dinfnew2 = calloc(2*(num_r+1),sizeof(double));
 	dsupnew2 = calloc(2*(num_r+1),sizeof(double)); 
+	// If write wavefunction, allocate the matrix of wavefunctions in t
+	if (inputs->analy.writewft) {
+		// Allocate for every timestep t after every 'tprint' time interval
+		outputs->psi = malloc(sizeof(double *) * size);
+		for (j = 0; j < size; j++) {
+			outputs->psi[j] = calloc(2*(num_r+1),sizeof(double));
+		}
+	}
 
 	// Gauge independent probability of the electron being between -x_int and x_int
 	k1 = 0; k2 = 0; k3 = 0; k4 = 0;
@@ -145,17 +159,6 @@ double * propagation(inputs_def *inputs, outputs_def *outputs)
 		// Superdiagonal, real and imaginary, x[num_r] is the final element of the array
 		dsupnew1[2*num_r] = 1/12.; 
 		dsupnew1[2*num_r +1] = 0.5*dt*( -0.5/(dx*dx) )+0.5*dt*1/12.*(cpot*potential(x[num_r]+dx,trg));	
-		/*
-		for(j = 0 ; j<= num_r ; j++) 
-		{	
-			dinfnew1[2*j] = 1/12.; dinfnew1[2*j+1] = 0.5*dt*( -0.5/(dx*dx) )+0.5*dt*1/12.*(cpot*potential(x[j],trg));
-			dnew1[2*j] = 10/12.; dnew1[2*j+1] = 0.5*dt*( 1./(dx*dx) )+0.5*dt*10/12.*(cpot*potential(x[j],trg));
-			//dsupnew1[2*j] = 1/12.; dsupnew1[2*j+1] = 0.5*dt*( -0.5/(dx*dx) )+0.5*dt*1/12.*(cpot*potential(x[j+1],trg));			
-		}
-		for(j = 0 ; j<num_r ; j++) { dsupnew1[2*j] = 1/12.; dsupnew1[2*j+1] = 0.5*dt*( -0.5/(dx*dx) )+0.5*dt*1/12.*(cpot*potential(x[j+1],trg));}
-		dsupnew1[2*num_r ] = 1/12.; dsupnew1[2*num_r +1] = 0.5*dt*( -0.5/(dx*dx) )+0.5*dt*1/12.*(cpot*potential(x[num_r]+dx,trg));	
-		*/
-
 
 		// first part of the evolution (H0+V)
 		psi_inter1[0] = (10/12.)*psi[0]+coef*psi[1]+1/12.*psi[2]-0.5*coef*psi[3];
@@ -242,6 +245,24 @@ double * propagation(inputs_def *inputs, outputs_def *outputs)
 		
 		// Compute expectation values: position, current, grad V, population
 		compute_expectation_values(inputs, k, psi, outputs);
+
+		// Save wavefunction to outputs
+		if (inputs->analy.writewft) {
+			if (k%steps_per_dt == 0 && i_wf < size-1) {
+				for (j = 0; j <= num_r; j++) {
+					outputs->psi[i_wf][2*j] = psi[2*j];
+					outputs->psi[i_wf][2*j+1] = psi[2*j+1];
+				}
+				i_wf++;
+			}
+			// Write the final wavefunction
+			if (k == Nt-1 && i_wf == size-1) {
+				for (j = 0; j <= num_r; j++) {
+					outputs->psi[i_wf][2*j] = psi[2*j];
+					outputs->psi[i_wf][2*j+1] = psi[2*j+1];
+				}
+			}
+		}
 
 	} // end of the main loop
 

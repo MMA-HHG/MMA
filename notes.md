@@ -88,3 +88,5 @@ General remarks & problems occured along the way
 * To compile 1DTDSE with Intel MKL fftw3.h, we need to manually set the environment path CPATH as
   ```export CPATH=${CPATH}:${MKLROOT}/include/fftw```
 CPATH may not include the correct path to fftw headers.
+
+* Check the field propagator in ```propagation``` function!!! For electron we have $\exp(-i E x)$.

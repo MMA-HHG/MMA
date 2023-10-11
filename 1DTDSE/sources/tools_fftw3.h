@@ -8,6 +8,12 @@
 #ifndef TOOLS_FFTW_H
 #define TOOLS_FFTW_H
 
+#include <math.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <time.h>
+#include <fftw3.h>
+
 double* FourInterp(int , double * , int );
 void printFFTW3(FILE *, FILE *, double *, int, double );
 void print2FFTW3(FILE *, FILE *, double *, double *, int, double, double);

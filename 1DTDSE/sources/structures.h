@@ -247,6 +247,8 @@ typedef struct outputs_def{
 	int Nt; 
 	// Number of frequency gridpoints
 	int Nomega;
+	// Wavefunction in time t
+	double **psi;
 } outputs_def;
 
 // functions operating on them

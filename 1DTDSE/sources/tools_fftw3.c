@@ -5,14 +5,8 @@
  * @copyright Copyright (c) 2023
  * 
  */
-#include <math.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <time.h>
-#include <fftw3.h>
 #include "constants.h"
 #include "tools_fftw3.h"
-
 
 /**
  * @brief Takes signal and interpolates it using Fourier transform. 

@@ -7,6 +7,7 @@ from ctypes import *
 import h5py
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.colors import LogNorm, Normalize
 
 ### Return ctypes array to pointer
 def ctypes_arr_ptr(ctype_, size_, arr_):
@@ -20,6 +21,11 @@ def ctype_arr_to_numpy(c_arr, size):
 ### return numpy array from c_types array of complex numbers
 def ctype_cmplx_arr_to_numpy(c_arr, size):
     return np.array([c_arr[2*i]+1j*c_arr[2*i+1] for i in range(size)])
+
+### Return numpy array from c_types matrix of wavefunction values
+def get_wavefunction(c_arr, timesteps, wf_size):
+    return np.array([[c_arr[i][2*j] + 1j*c_arr[i][2*j+1] for j in range(wf_size)] for i in range(timesteps)])
+
 
 ### Physical constants
 Ip_HeV = 27.21138602
@@ -37,6 +43,80 @@ k_Boltz = 1.38064852e-23
 absolute_zero = -273.15
 torr2SI = 101325./760.
     
+def plot_colormap(
+        y_axis, 
+        x_axis, 
+        z, 
+        plot_scale = "log", 
+        z_min = 1e-14,
+        z_max = 1,
+        figsize = (12, 3),
+        y_label = "",
+        x_label = "",
+        cmap = "jet"
+    ):
+    """
+    Plots the colormap of arbitrary matrix for arbitrary distribution on the y-axis.
+    
+
+    Parameters:
+    -----------
+    y_axis (numpy.ndarray):
+        Values on the y-axis on the colormap.
+    wgrid (numpy.ndarray):
+        Grid of frequencies corresponding to the harmonic spectra.
+    spectra (numpy.ndarray):
+        Harmonic spectra corresponding to the y-axis and wgrid distributions, 
+        spectra.shape = (len(y_axis), len(wgrid))
+    tgrid (numpy.ndarray):
+        Temporal grid corresponding to the original field
+    omega_0 (float):
+        Fundamental frequency of the field
+    plot_scale: {'log', 'linear'}, optional, default: 'log'
+        Plot with logarithmic or linear scale.
+    z_min (float):
+        Minimum plotting value on the colormesh.
+    z_max (float):
+        Maximum threshold for the colorbar
+    figsize (tuple), optional, default: (12, 3)
+        Set figure size in inches - (width, height)
+    omega_max (int), optional, default: 50
+        Maximum harmonics plotted 
+    omega_min (int), optional, default: 0
+        Minimum harmonics plotted
+    y_label (str), optional, default: ""
+        Label of the y-axis
+    cmap (str), optional, default: "jet"
+        Colormap name from the Matplotlib colormap library
+
+    Returns:
+    --------
+    None
+    """
+    fig, ax = plt.subplots()
+    
+    if plot_scale == 'log':
+        col = LogNorm(vmin = z_min, vmax = z_max)
+    elif plot_scale == 'linear':
+        col = Normalize(vmin = z_min, vmax = z_max)
+    else:
+        raise ValueError("Unknown scale '" + plot_scale +"'. "
+                         "Available options are 'log' and 'linear'")
+        
+    c = ax.pcolormesh(x_axis, y_axis, z,
+        cmap = cmap,
+        shading = 'gouraud',
+        norm = col
+    )
+
+    ax.set_ylabel(y_label)
+    ax.set_xlabel(x_label)
+
+    fig.colorbar(c, ax=ax)
+    fig.dpi = 300
+    fig.set_size_inches(figsize)
+
+    plt.show()
 
 ### Define structures
 class sin2_definition(Structure):
@@ -334,7 +414,8 @@ class outputs_def(Structure):
         ("PopInt", POINTER(c_double)),
         ("expval", POINTER(c_double)),
         ("Nt", c_int),
-        ("Nomega", c_int)
+        ("Nomega", c_int),
+        ("psi", POINTER(POINTER(c_double)))
     ]
 
 def init_GS(inputs, DLL_path):
