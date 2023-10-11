@@ -84,3 +84,7 @@ General remarks & problems occured along the way
 
 * To compile the TDSE library as a dynamic library, we must run the following command:
   ```mpicc -fPIC -shared -lhdf5 -lfftw3 -o singleTDSE.so sources/constants.c sources/tools_algorithmic.c sources/tools_MPI-RMA.c sources/tools_hdf5.c sources/tridiag.c sources/tools_fftw3.c sources/structures.c sources/tools.c sources/prop.c sources/singleTDSE.c```
+
+* To compile 1DTDSE with Intel MKL fftw3.h, we need to manually set the environment path CPATH as
+  ```export CPATH=${CPATH}:${MKLROOT}/include/fftw```
+CPATH may not include the correct path to fftw headers.
