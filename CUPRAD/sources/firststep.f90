@@ -41,7 +41,7 @@ CONTAINS
           p_t(dim_th+j)=exp(CMPLX(0.D0,delta_zh,8)*komega_red(j))
        ENDDO
        hfac=1.D0
-    CASE(3)
+    CASE(3) ! here we include low-order harmonic
        DO j=1,dim_th
           p_t(j)=exp(CMPLX(0.D0,delta_zh,8)*komega_red(dim_th+j))
           p_t(dim_th+j)=exp(CMPLX(0.D0,delta_zh,8)*komega_red(j))
@@ -62,18 +62,22 @@ CONTAINS
        hfac=1.D0
     END SELECT
 
+   ! D - diagonal, DU - upper diagonal, DL - lower diagonal
     delta_rel=op_t_inv*delta_zh/delta_r**2
     DO k=dim_t_start(num_proc),dim_t_end(num_proc)  
-       DU(1,k)=CMPLX(0.D0,-2.D0,8)*delta_rel(k)
+       DU(1,k)=CMPLX(0.D0,-2.D0,8)*delta_rel(k) ! "-2" comes from the Laplacian at r =0
        DO j=1,dim_r-2
           DU(j+1,k)=delta_rel(k)*CMPLX(0.D0,-1.D0*(0.25D0/REAL(j,8)+0.5D0),8)
           DL(j,k)=delta_rel(k)*CMPLX(0.D0,(0.25D0/REAL(j,8)-0.5D0),8)
        ENDDO
-       D(1,k)=CMPLX(1.D0,0.D0,8)+CMPLX(0.D0,2.D0,8)*delta_rel(k)
+       D(1,k)=CMPLX(1.D0,0.D0,8)+CMPLX(0.D0,2.D0,8)*delta_rel(k) ! "-2" comes from the Laplacian at r =0
        DO j=1,dim_r-2
           D(j+1,k)=CMPLX(1.D0,0.D0,8)+CMPLX(0.D0,1.D0,8)*delta_rel(k)
        ENDDO
-       D(dim_r,k)=CMPLX(1.D0,0.D0,8)
+       D(dim_r,k)=CMPLX(1.D0,0.D0,8) ! Hadley boundary in r https://doi.org/10.1364/OL.16.000624 (there is not imposed the -1, last two rows of the diagonal are missing)
+       ! The end of the matrix
+       ! DL 1 DU) ()
+       ! 0  0 1 )
     ENDDO
 
     RETURN

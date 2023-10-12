@@ -11,7 +11,7 @@ MODULE fft
 
 CONTAINS
 
-  SUBROUTINE fft_init
+  SUBROUTINE fft_init ! open the channels, persistent communication (equivalent to "MPI all to all")
     IMPLICIT NONE
 
     INTEGER(4) schema(num_proc),i,j,power,help,m,n,s
@@ -144,12 +144,14 @@ CONTAINS
 
   SUBROUTINE fft_forward_inplace(nlinstep)
     IMPLICIT NONE
+    ! nlinstep - applying non-linearities
+    ! FALSE - only FFT + transpose
 
     LOGICAL nlinstep
     INTEGER(4) k,l,i
 
     CALL dfftw_execute(plan_forward1)
-    IF (nlinstep) THEN
+    IF (nlinstep) THEN 
        SELECT CASE (switch_T)
        CASE(1)
           continue

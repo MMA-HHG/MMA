@@ -22,7 +22,7 @@ MODULE long_step
   REAL(8) rhompi,rho1,rho2,rhoth,rhotr,rhofh,rhoslg2,rhoav
 CONTAINS
 
-  SUBROUTINE index_interpolation(phase_index,r)
+  SUBROUTINE index_interpolation(phase_index,r) ! refractive index lookup
     USE fields
     IMPLICIT NONE
 
@@ -71,7 +71,7 @@ CONTAINS
   END SUBROUTINE index_interpolation
 
   
-  SUBROUTINE absorbation
+  SUBROUTINE absorbation ! apply absorption using cosh in time on the boundary (see firstep.f90) 
     USE fields
     USE mpi_stuff
     IMPLICIT NONE
@@ -145,7 +145,7 @@ CONTAINS
     RETURN
   END SUBROUTINE cn
 
-  SUBROUTINE mult_propagator
+  SUBROUTINE mult_propagator ! it does the porpagation in z (linear dispersion - linar part of the porpagator)
     USE fields
     USE mpi_stuff
     IMPLICIT NONE
@@ -154,7 +154,9 @@ CONTAINS
 
     DO k=dim_t_start(num_proc),dim_t_end(num_proc)
        CALL cn(efft(1:dim_r,k),k)
-       efft(1:dim_r,k)=efft(1:dim_r,k)*p_t(k)
+       efft(1:dim_r,k)=efft(1:dim_r,k)*p_t(k) ! p_t - the dispersion "p_t =  exp(i*(k(omega)*z-k' * omega*z)" (co-moving frame taken)
+                                              ! k(omega) = (omega/c)*sqrt(eps(omega))
+                                              ! k' evaluated at omega0 defines our co-moving frame, in fact exp(i*(k(omega)*z-(omega*z/vg) )
     ENDDO
 
     RETURN
