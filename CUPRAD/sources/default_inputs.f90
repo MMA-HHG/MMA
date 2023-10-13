@@ -161,7 +161,7 @@ integer         :: switch_ionisation, switch_atom
     alpha_fs_phys = 0.d0
     alphaquad_fscm3_phys = 0.d0 !1.d-3
 
-    NN = 2
+    NN = 0
     sigman_phys = 0.d0
     rhoabs_cm3_phys = 0.d0
 

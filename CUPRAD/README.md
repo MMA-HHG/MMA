@@ -1,5 +1,11 @@
 # CUPRAD
 
+## TODO
+* To be removed
+    * $\chi_5$-processes
+    * $T$-operator case 4
+    * (?) Raman remove option 2
+
 ## Development notes
 
 * The code is not written in a single style according to various contributors.
