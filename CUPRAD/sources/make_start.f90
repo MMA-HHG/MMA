@@ -485,7 +485,7 @@ PROGRAM make_start
 
   PRINT*, 'indexes:'
   PRINT*, Indice(:,1)
-  PRINT*, Indice(:,2)
+  !PRINT*, Indice(:,2)
 
   PRINT*, 'acdispersion'
 
