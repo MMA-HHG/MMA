@@ -1,3 +1,8 @@
+"""
+This python script checks if the HDF5 file contains necessary inputs for the 
+1DTDSE.
+"""
+
 import h5py
 
 def test_key(key):
@@ -9,7 +14,10 @@ def test_key(key):
     else:
         pass
 
-with h5py.File("results.h5", 'r') as f:
+print("Type the HDF5 file to check with relative path: ")
+filename = input()
+
+with h5py.File(filename, 'r') as f:
     keys = ["TDSE_inputs/Eguess",
               "TDSE_inputs/N_r_grid",
               "TDSE_inputs/N_r_grid_exp",
@@ -43,6 +51,10 @@ with h5py.File("results.h5", 'r') as f:
         if out is not None:
             missing_keys.append(out)
 
-    print("Missing keys:")
-    print(missing_keys)
+    print("*******************************\n")
+    if missing_keys!=[]:
+        print("Missing keys:")
+        print(missing_keys)
+    else:
+        print("All OK.")
     print("Check finished.")
