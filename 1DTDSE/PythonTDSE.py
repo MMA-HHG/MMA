@@ -110,24 +110,24 @@ def plot_colormap(
 
     plt.show()
 
-def plot_PES(
-        E, 
-        PES, 
-        plot_scale = "log", 
+def plot(
+        x, 
+        y, 
+        plot_scale = "linear", 
         figsize = (5, 3),
         y_label = "",
-        x_label = ""
+        x_label = "",
         ):
     """
-    Plots the photoelectron spectrum.
+    Simple plot method.
 
     Parameters:
     -----------
-    E (numpy.ndarray):
-        Energy grid.
-    PES (numpy.ndarray):
-        Photoelectron spectrum.
-    plot_scale: {'log', 'linear'}, optional, default: 'log'
+    x (numpy.ndarray):
+        x axis.
+    y (numpy.ndarray):
+        y axis.
+    plot_scale: {'log', 'linear'}, optional, default: 'linear'
         Plot with logarithmic or linear scale.
     figsize (tuple), optional, default: (5, 3)
         Set figure size in inches - (width, height)
@@ -148,9 +148,9 @@ def plot_PES(
     fig.set_size_inches(figsize)
 
     if plot_scale == 'log':
-        plt.semilogy(E, PES)
+        plt.semilogy(x, y)
     elif plot_scale == 'linear':
-        plt.plot(E, PES)
+        plt.plot(x, y)
     else:
         raise ValueError("Unknown scale '" + plot_scale +"'. "
                          "Available options are 'log' and 'linear'")
