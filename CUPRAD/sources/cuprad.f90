@@ -18,6 +18,7 @@ PROGRAM cuprad
   USE mpi_stuff
   USE run_status
   USE longstep_vars
+  USE density_mod
   IMPLICIT NONE 
   
 
@@ -72,7 +73,11 @@ PROGRAM cuprad
 
         ! Standard operation of the code: call propagation until end of medium reached
         CALL propagation
-
+        
+       IF (apply_density_mod) THEN
+         CALL calc_density_mod( density_mod,z,is_density_changed)
+         IF(is_density_changed) call calc_time_propagator
+       ENDIF
 
         ! Adaptive step-size controlling + the duration of the calculation
         ! Step size is changed, propagation operator recalculated and step-size stored in outputs.
@@ -82,14 +87,16 @@ PROGRAM cuprad
            IF(my_rank.EQ.0) THEN
               CALL write_extended_dz    ! save the length of the steps
            ENDIF
-           call calc_propagator
+           call calc_time_propagator
+           call calc_cn_propagator
         ENDIF
         IF ((maxphase.LT.increase).AND.(delta_z.LT.delta_z_max)) THEN ! increase step size (not above maximally allowed)
            delta_z=MIN(delta_z_max,0.5D0*(decrease+increase)/maxphase*delta_z)
            IF(my_rank.EQ.0) THEN
               CALL write_extended_dz
            ENDIF
-           call calc_propagator
+           call calc_time_propagator
+           call calc_cn_propagator
         ENDIF
 
         ! Check if time limit for the calculation reached

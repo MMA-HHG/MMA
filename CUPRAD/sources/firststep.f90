@@ -20,7 +20,7 @@ MODULE first_step
   USE h5namelist
 CONTAINS
 
-  SUBROUTINE calc_propagator
+  SUBROUTINE calc_time_propagator
     IMPLICIT NONE
 
     INTEGER(4)  :: j,k
@@ -28,24 +28,29 @@ CONTAINS
 
     delta_zh=0.5D0*delta_z
 
-    SELECT CASE (switch_T)
-    CASE(1)
-       DO j=1,dim_th
-          p_t(j)=exp(CMPLX(0.D0,delta_zh,8)*komega_red(dim_th+j))
-          p_t(dim_th+j)=exp(CMPLX(0.D0,delta_zh,8)*komega_red(j))
+    IF dim_t_start(num_proc).LT.dim_th
+       DO j=dim_t_start(num_proc):dim_t_end(num_proc)
+          p_t(:,j)=exp(CMPLX(0.D0,delta_zh,8)*komega_red(dim_th+j)*density_mod)
        ENDDO
-       hfac=1.D0
-    CASE(2)
-       DO j=1,dim_th
-          p_t(j)=exp(CMPLX(0.D0,delta_zh,8)*komega_red(dim_th+j))
-          p_t(dim_th+j)=exp(CMPLX(0.D0,delta_zh,8)*komega_red(j))
+    ELSE
+       DO j=dim_t_start(num_proc):dim_t_end(num_proc)
+          p_t(:,j)=exp(CMPLX(0.D0,delta_zh,8)*komega_red(j-dim_th)*density_mod)
        ENDDO
-       hfac=1.D0
-    CASE(3) ! here we include low-order harmonic
-       DO j=1,dim_th
-          p_t(j)=exp(CMPLX(0.D0,delta_zh,8)*komega_red(dim_th+j))
-          p_t(dim_th+j)=exp(CMPLX(0.D0,delta_zh,8)*komega_red(j))
-       ENDDO
+    ENDIF
+    
+    RETURN
+  END SUBROUTINE calc_time_propagator
+  
+  SUBROUTINE calc_cn_propagator
+    IMPLICIT NONE
+
+    INTEGER(4)  :: j,k
+    REAL(8) t
+
+    delta_zh=0.5D0*delta_z
+    
+    hfac=1.D0
+    IF (switch_T.EQ.3) THEN
        DO j=1,dim_t
           t=tlo+REAL(j,8)*delta_t
           hfac(j,0)=exp(CMPLX(0.D0,(omega-omega_uppe)*t,8))
@@ -54,13 +59,7 @@ CONTAINS
           hfac(j,3)=CMPLX(0.D0,-c5*delta_zh/10.D0)*exp(CMPLX(0.D0,(omega_uppe-5.D0*omega)*t,8))
           hfac(j,4)=exp(CMPLX(0.D0,(omega_uppe+omega)*t,8))
        ENDDO
-    CASE(4)
-       DO j=1,dim_th
-          p_t(j)=exp(CMPLX(0.D0,delta_zh,8)*komega_red(dim_th+j))
-          p_t(dim_th+j)=exp(CMPLX(0.D0,delta_zh,8)*komega_red(j))
-       ENDDO
-       hfac=1.D0
-    END SELECT
+    ENDIF
 
    ! D - diagonal, DU - upper diagonal, DL - lower diagonal
     delta_rel=op_t_inv*delta_zh/delta_r**2
@@ -81,7 +80,7 @@ CONTAINS
     ENDDO
 
     RETURN
-  END SUBROUTINE calc_propagator
+  END SUBROUTINE calc_cn_propagator
 
 
 
@@ -92,6 +91,7 @@ CONTAINS
     USE fft
     USE HDF5
     USE HDF5_helper
+    USE density_mod
     USE pre_ionised
     USE longstep_vars
     IMPLICIT NONE
@@ -218,8 +218,12 @@ CONTAINS
       CALL read_dset(group_id, 'outlength_Efield', outlength_Efield)
     ENDIF  
 
-
-
+      ALLOCATE(density_mod(dim_r))
+      IF (apply_density_mod) THEN                                          ! density
+         CALL calc_density_mod( density_mod,z,is_density_changed)
+      ELSE
+         density_mod = 1.D0/rhoatinv
+      ENDIF
 
 
     ! Prepare the fourier transforms
@@ -275,7 +279,7 @@ CONTAINS
           bound_t(dim_t+1-j)=bound_t (dim_t+1-j)-1.D0/cosh(absorb_factor*REAL(j-1,8))
        ENDDO
     ENDIF
-    ALLOCATE(p_t(dim_t),delta_rel(dim_t),op_t(dim_t),op_t_inv(dim_t),hfac(dim_t,0:4))
+    ALLOCATE(p_t(dim_r,dim_t_start(num_proc):dim_t_end(num_proc)),delta_rel(dim_t),op_t(dim_t),op_t_inv(dim_t),hfac(dim_t,0:4))
     ALLOCATE(DL(dim_r-2,dim_t_start(num_proc):dim_t_end(num_proc)),D(dim_r,dim_t_start(num_proc):dim_t_end(num_proc)), & 
     DU(dim_r-1,dim_t_start(num_proc):dim_t_end(num_proc)))
     SELECT CASE (switch_T)
@@ -340,7 +344,8 @@ CONTAINS
             -exp(-delta_t/tdk)*sin(raman*delta_t)*delta_t*raman**2*tdk**2+tdk**2*raman-exp(-delta_t/tdk)*sin(raman*delta_t)*tdk-exp(-delta_t/tdk)*sin(raman*delta_t)*delta_t)/(raman*delta_t*tdk**2)
        expt4p=-(+exp(-delta_t/tdk)*sin(raman*delta_t)*tdk-tdk**2*raman+exp(-delta_t/tdk)*cos(raman*delta_t)*tdk**2*raman)/(raman*delta_t*tdk**2)
     END SELECT
-    CALL calc_propagator
+    CALL calc_time_propagator
+    CALL calc_cn_propagator
     ALLOCATE(real_e(dim_t,dim_r/num_proc),imag_e(dim_t,dim_r/num_proc))
     CALL read_dset(group_id,'startfield_r',real_e,dim_t,dim_r,dim_t,dim_r/num_proc,0,(dim_r/num_proc)*my_rank)
     CALL read_dset(group_id,'startfield_i',imag_e,dim_t,dim_r,dim_t,dim_r/num_proc,0,(dim_r/num_proc)*my_rank)
@@ -409,6 +414,9 @@ CONTAINS
     Nz_points = CEILING(proplength/outlength)+1 ! expected number of hdf5 output along z (with safety)
     Nz_points_Efield = CEILING(proplength/outlength_Efield)+1 ! expected number of hdf5 output along z (with safety) ! need to add if to compute only once this print is needed
 
+   ! density_mod
+    CALL h5lexists_f(file_id,'density_mod',apply_density_mod,error) ! it finds only if it's applied, the rest is fully encapsulated in the module        
+    IF (apply_density_mod) CALL init_density_mod(file_id)
 
     ! pre-ionisation
     CALL h5lexists_f(file_id,'pre_ionised',apply_pre_ionisation,error) ! it finds only if it's applied, the rest is fully encapsulated in the module        

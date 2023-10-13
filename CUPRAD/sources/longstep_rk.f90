@@ -150,13 +150,15 @@ CONTAINS
     USE mpi_stuff
     IMPLICIT NONE
 
-    INTEGER(4) k
+    INTEGER(4) k,l
 
     DO k=dim_t_start(num_proc),dim_t_end(num_proc)
        CALL cn(efft(1:dim_r,k),k)
-       efft(1:dim_r,k)=efft(1:dim_r,k)*p_t(k) ! p_t - the dispersion "p_t =  exp(i*(k(omega)*z-k' * omega*z)" (co-moving frame taken)
+       DO l=1,dim_r
+         efft(l,k)=efft(l,k)*p_t(l,k) ! p_t - the dispersion "p_t =  exp(i*(k(omega)*z-k' * omega*z)" (co-moving frame taken)
                                               ! k(omega) = (omega/c)*sqrt(eps(omega))
                                               ! k' evaluated at omega0 defines our co-moving frame, in fact exp(i*(k(omega)*z-(omega*z/vg) )
+      ENDDO
     ENDDO
 
     RETURN
@@ -176,11 +178,12 @@ CONTAINS
     RETURN
   END SUBROUTINE calc_absorption
 
-  SUBROUTINE calc_rho(rho,mpa,eti,etip1)
+  SUBROUTINE calc_rho(rho,mpa,eti,etip1,l)
     USE PPT
     USE External_ionisation_table
     IMPLICIT NONE
 
+    INTEGER(4) :: l
     REAL(8) :: rho,mpa
     REAL(8) :: eti,etip1
     REAL(8) intF,var1,rhosave
@@ -189,23 +192,23 @@ CONTAINS
     SELECT CASE (switch_rho)
     CASE(8)
        CALL interpolate_ext(var1,mpa,etip1)
-       intF=(nu*0.5d0*(etip1+eti)-rhoat_inv*var1-alpha)*delta_t
-       rho=rho*exp(intF)+var1*delta_t
-       mpa=mpa*(1.D0-rhosave*rhoat_inv)
+       intF=(nu*0.5d0*(etip1+eti)*density_mod(l)-rhoat_inv*var1-alpha)*delta_t
+       rho=rho*exp(intF)+var1*density_mod(l)*delta_t
+       mpa=mpa*(density_mod(l)-rhosave*rhoat_inv)
     CASE(1)
-       rho=rho+(nu*rho*eti+beta_inv_2KK*eti**KK*(1.D0-rho*rhoat_inv)-alpha*rho)*delta_t
-       mpa=muk*etip1**(KK-1)*(1.D0-rhosave*rhoat_inv)
+       rho=rho+(nu*rho*eti*density_mod(l)+beta_inv_2KK*eti**KK*(density_mod(l)-rho*rhoat_inv)-alpha*rho)*delta_t
+       mpa=muk*etip1**(KK-1)*(density_mod(l)-rhosave*rhoat_inv)
     CASE(2)
        var1=0.5d0*beta_inv_2KK*(etip1**KK+eti**KK)
-       intF=(nu*0.5d0*(etip1+eti)-rhoat_inv*var1-alpha)*delta_t
-       rho=rho*exp(intF)+var1*delta_t
-       mpa=muk*etip1**(KK-1)*(1.D0-rhosave*rhoat_inv)
+       intF=(nu*0.5d0*(etip1+eti)*density_mod(l)-rhoat_inv*var1-alpha)*delta_t
+       rho=rho*exp(intF)+var1*density_mod(l)*delta_t
+       mpa=muk*etip1**(KK-1)*(density_mod(l)-rhosave*rhoat_inv)
    !  CASE(3,4)
     CASE(3)
        CALL interpolate_ppt(var1,mpa,etip1)
-       intF=(nu*0.5d0*(etip1+eti)-rhoat_inv*var1-alpha)*delta_t
-       rho=rho*exp(intF)+var1*delta_t
-       mpa=mpa*(1.D0-rhosave*rhoat_inv)
+       intF=(nu*0.5d0*(etip1+eti)*density_mod(l)-rhoat_inv*var1-alpha)*delta_t
+       rho=rho*exp(intF)+var1*density_mod(l)*delta_t
+       mpa=mpa*(density_mod(l)-rhosave*rhoat_inv)
     END SELECT
     !print *, 'alpha4', alphaquad
     rho=rho-alphaquad*rhosave**2*delta_t
@@ -348,22 +351,24 @@ CONTAINS
        ! Physical effects
        CALL index_interpolation(phase_index,r) ! refractive index
        phase_index=phase_index*delta_zh
-       CALL calc_rho(rhotemp,mpa,0.D0,e_2(1)) ! compute ionisation
+       CALL calc_rho(rhotemp,mpa,0.D0,e_2(1),l) ! compute ionisation
        CALL calc_absorption(rhoabstemp, mediumabs, 0.D0,e_2(1)) ! N-photon absorption (to be removed)
 
        DO j=1,dim_t
-          phase_p=(c3i*e_2(j)+c3d*delkerr-c5*e_2(j)**2)*((1.D0-rhotemp*rhoat_inv)+ions_Kerr_ratio*rhotemp*rhoat_inv)*delta_zh ! phase_p is polarisation
+          phase_p=(c3i*e_2(j)+c3d*delkerr-c5*e_2(j)**2)*((density_mod(l)-rhotemp*rhoat_inv)+ions_Kerr_ratio*rhotemp*rhoat_inv)*delta_zh ! phase_p is polarisation
           ! polarisation = i*phase_p
           ! c3i: instanataneous Kerr
           ! c3d: delayed Kerr (Raman)
           phase_j=-gamma2*rhotemp*delta_zh
-          losses_j=-gamma1*rhotemp*delta_zh ! ~ losses_plasma(l)
+          losses_j=-gamma1*density_mod(l)*rhotemp*delta_zh ! ~ losses_plasma(l)
           rho(l)=MAX(rho(l),rhotemp)
           rhoabs(l) = MAX(rhoabs(l),rhoabstemp)
-          losses_plasma(l)=losses_plasma(l)+2.D0*e_2(j)*gamma1*rhotemp  ! losses for diagnostic
+          losses_plasma(l)=losses_plasma(l)+2.D0*e_2(j)*gamma1*density_mod(l)*rhotemp  ! losses for diagnostic
           losses_ionization(l)=losses_ionization(l)+2.D0*e_2(j)*mpa     ! losses for diagnostic (from ionization rate eq.)
           phase=phase_p+phase_j+phase_index
           maxphase_part=MAX(maxphase_part,ABS(phase))
+          
+! till here
 
           SELECT CASE (switch_T) ! decision over various propagators
           CASE(1)
