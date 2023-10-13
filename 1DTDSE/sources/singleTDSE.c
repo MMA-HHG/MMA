@@ -48,7 +48,7 @@ outputs_def call1DTDSE(inputs_def * inputs)
 	// Iterable
 	int k1;
 	// Dummy pointer
-	double * dumptrs_real[2];
+	double * dum_ptr;
 	// Local field
 	double * field;
 
@@ -113,18 +113,14 @@ outputs_def call1DTDSE(inputs_def * inputs)
 	psi = propagation(inputs, &outputs);
 
 	// Compute FFT
-	calcFFTW3(outputs.Nt, dt, tmax, outputs.Efield, &(dumptrs_real[0]), &(dumptrs_real[1]), 
+	calcFFTW3(outputs.Nt, dt, tmax, outputs.Efield, &dum_ptr, 
 			  &outputs.FEfield_data, &outputs.FEfieldM2, &outputs.Nomega); 
-	free(dumptrs_real[0]); 
-	free(dumptrs_real[1]);
-	calcFFTW3(outputs.Nt, dt, tmax, outputs.sourceterm, &outputs.tgrid_fftw, 
+	free(dum_ptr);
+	calcFFTW3(outputs.Nt, dt, tmax, outputs.sourceterm, 
 			  &outputs.omegagrid, &outputs.Fsourceterm_data, &outputs.FsourcetermM2, 
 			  &outputs.Nomega);
 
-	//free((*inputs).x); 
 	free(psi); 
-	//free((*inputs).psi0);
-	//free((*inputs).Efield.Field);
 	
 	return outputs;
 }

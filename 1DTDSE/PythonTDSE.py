@@ -441,7 +441,6 @@ class inputs_def(Structure):
 class outputs_def(Structure):
     _fields_ = [
         ("tgrid", POINTER(c_double)),
-        ("tgrid_fftw", POINTER(c_double)),
         ("Efield", POINTER(c_double)),
         ("sourceterm", POINTER(c_double)),
         ("omegagrid", POINTER(c_double)),

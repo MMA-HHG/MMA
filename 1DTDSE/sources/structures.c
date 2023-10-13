@@ -11,31 +11,27 @@
 /**
  * @brief Frees up the memory of the output struct.
  * 
- * @param outputs (outputs_def) Output structure.
+ * @param outputs Output structure.
  */
-void outputs_destructor(outputs_def *outputs) // frees memory allocated for outputs
+void outputs_destructor(outputs_def *outputs)
 {
 	free((*outputs).tgrid);
 	free((*outputs).omegagrid);
-	free((*outputs).tgrid_fftw);
-
 	free((*outputs).Efield);
 	free((*outputs).sourceterm);
 	free((*outputs).PopTot);
-
 	free((*outputs).FEfield_data);
 	free((*outputs).Fsourceterm_data);
-
 	free((*outputs).FEfieldM2);
 	free((*outputs).FsourcetermM2);
-
 	free((*outputs).PopInt);
 	free((*outputs).expval);
-
-	(*outputs).Nt = 0;
-	(*outputs).Nomega = 0;
 }
-
+/**
+ * @brief Frees up the memory of the input struct.
+ * 
+ * @param outputs Input structure.
+ */
 void inputs_destructor(inputs_def *in) // frees memory allocated for inputs
 {
 	free((*in).psi0);
@@ -44,6 +40,11 @@ void inputs_destructor(inputs_def *in) // frees memory allocated for inputs
 	free((*in).Efield.Field);
 }
 
+/**
+ * @brief Returns printing structure for HDF5 writing and sets all prints to 1.
+ * 
+ * @return output_print_def 
+ */
 output_print_def Set_all_prints(void)
 {
 	output_print_def res;
@@ -63,9 +64,14 @@ output_print_def Set_all_prints(void)
 	return res;
 }
 
+/**
+ * @brief Returns printing structure for HDF5 writing and sets all prints to 0.
+ * 
+ * @return output_print_def 
+ */
 output_print_def Initialise_Printing_struct(void)
 {
-	 output_print_def res;
+	output_print_def res;
 
 	res.Efield = 0;
 	res.FEfield = 0;
@@ -82,6 +88,12 @@ output_print_def Initialise_Printing_struct(void)
 	return res;
 }
 
+/**
+ * @brief Returns printing structure for HDF5 writing and sets all prints according
+ * to the input HDF5 file.
+ * 
+ * @return output_print_def 
+ */
 output_print_def Set_prints_from_HDF5(hid_t file_id, char *inpath, herr_t *h5error)
 {
 	output_print_def res;
@@ -125,19 +137,8 @@ output_print_def Set_prints_from_HDF5(hid_t file_id, char *inpath, herr_t *h5err
 	readint(file_id, path, h5error,&dum_int);
 	if(dum_int==1){res.expval_x = 1;}
 
-	
-	// res.FEfield = 1;
-	// res.sourceterm = 1;
-	// res.Fsourceterm = 1;
-	// res.FEfieldM2 = 1;
-	// res.FsourceTermM2 = 1;
-	// res.PopTot = 1;
-
 	res.tgrid = 1; // not memory consuming
 	res.omegagrid = 1; // not memory consuming
-
-	// res.PopInt = 1;
-	// res.expval_x = 1;
 
 	return res;
 }

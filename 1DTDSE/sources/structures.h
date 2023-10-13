@@ -219,8 +219,6 @@ typedef struct inputs_def {
 typedef struct outputs_def{ 
 	// Temporal grid
 	double *tgrid;
-	// Temporal grid for FFTW
-	double *tgrid_fftw;
 	// Electric field
 	double *Efield;
 	// Source term (current)
