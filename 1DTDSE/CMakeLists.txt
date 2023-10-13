@@ -11,21 +11,18 @@ if(${CMAKE_C_COMPILER_ID} MATCHES Intel)
     set(MKL_INCLUDE_DIRS ${MKLROOT}/include/fftw)
     set(MKL_LIB_DIRS ${MKLROOT}/lib)
     set(FFTW_LIBS mkl_gf_lp64 mkl_sequential mkl_core)
-    #set(CMAKE_Fortran_FLAGS "-O0")
 elseif(${CMAKE_C_COMPILER_ID} MATCHES GNU)
     find_library(fftw3 fftw3)
-    #set(CMAKE_Fortran_FLAGS "-O0")
     set(FFTW_LIBS fftw3 fftw3_mpi)
 elseif(${CMAKE_C_COMPILER_ID} MATCHES AppleClang)
     find_library(fftw3 fftw3)
-    #set(CMAKE_Fortran_FLAGS "-O0")
     set(FFTW_LIBS fftw3 fftw3_mpi)
 else()
     message(FATAL_ERROR "Unsupported C compiler: ${CMAKE_C_COMPILER}")
 endif()
 
 ### Set compiler flags
-set(CMAKE_C_FLAGS "-Wall -std=c99 -O3")
+set(CMAKE_C_FLAGS "-O3")
 
 ### Find HDF5 libraries and packages
 find_package(HDF5 REQUIRED COMPONENTS C HL)

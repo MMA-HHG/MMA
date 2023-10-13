@@ -56,22 +56,16 @@ def plot_colormap(
         cmap = "jet"
     ):
     """
-    Plots the colormap of arbitrary matrix for arbitrary distribution on the y-axis.
+    Plots the colormap of arbitrary matrix for arbitrary distribution.
     
-
     Parameters:
     -----------
     y_axis (numpy.ndarray):
         Values on the y-axis on the colormap.
-    wgrid (numpy.ndarray):
-        Grid of frequencies corresponding to the harmonic spectra.
-    spectra (numpy.ndarray):
-        Harmonic spectra corresponding to the y-axis and wgrid distributions, 
-        spectra.shape = (len(y_axis), len(wgrid))
-    tgrid (numpy.ndarray):
-        Temporal grid corresponding to the original field
-    omega_0 (float):
-        Fundamental frequency of the field
+    x_axis (numpy.ndarray):
+        Values on the y-axis on the colormap.
+    z (numpy.ndarray):
+        Matrix for plotting.
     plot_scale: {'log', 'linear'}, optional, default: 'log'
         Plot with logarithmic or linear scale.
     z_min (float):
@@ -80,12 +74,10 @@ def plot_colormap(
         Maximum threshold for the colorbar
     figsize (tuple), optional, default: (12, 3)
         Set figure size in inches - (width, height)
-    omega_max (int), optional, default: 50
-        Maximum harmonics plotted 
-    omega_min (int), optional, default: 0
-        Minimum harmonics plotted
     y_label (str), optional, default: ""
         Label of the y-axis
+    x_label (str), optional, default: ""
+        Label of the x-axis
     cmap (str), optional, default: "jet"
         Colormap name from the Matplotlib colormap library
 
@@ -116,6 +108,53 @@ def plot_colormap(
     fig.dpi = 300
     fig.set_size_inches(figsize)
 
+    plt.show()
+
+def plot_PES(
+        E, 
+        PES, 
+        plot_scale = "log", 
+        figsize = (5, 3),
+        y_label = "",
+        x_label = ""
+        ):
+    """
+    Plots the photoelectron spectrum.
+
+    Parameters:
+    -----------
+    E (numpy.ndarray):
+        Energy grid.
+    PES (numpy.ndarray):
+        Photoelectron spectrum.
+    plot_scale: {'log', 'linear'}, optional, default: 'log'
+        Plot with logarithmic or linear scale.
+    figsize (tuple), optional, default: (5, 3)
+        Set figure size in inches - (width, height)
+    y_label (str), optional, default: ""
+        Label of the y-axis
+    x_label (str), optional, default: ""
+        Label of the x-axis
+
+    Returns:
+    --------
+    None
+    """
+    
+    fig, ax = plt.subplots()
+    fig.dpi = 300
+    ax.set_ylabel(y_label)
+    ax.set_xlabel(x_label)
+    fig.set_size_inches(figsize)
+
+    if plot_scale == 'log':
+        plt.semilogy(E, PES)
+    elif plot_scale == 'linear':
+        plt.plot(E, PES)
+    else:
+        raise ValueError("Unknown scale '" + plot_scale +"'. "
+                         "Available options are 'log' and 'linear'")
+    
     plt.show()
 
 ### Define structures
@@ -231,6 +270,9 @@ class output_print_def(Structure):
     ]
 
 class inputs_def(Structure):
+    """
+    Input structure with input data for the 1DTDSE computation.
+    """
     _fields_ = [
         ("trg", trg_def),
         ("Efield", Efield_var),
@@ -433,6 +475,15 @@ def call1DTDSE(inputs, DLL_path):
     TDSE.restype = outputs_def
     TDSE.argtypes = [POINTER(inputs_def)]
     return TDSE(byref(inputs))
+
+def compute_PES(inputs, psi, DLL_path, E_start = -0.6, num_E = 10000, dE = 5e-4, Estep = 5e-4):
+    DLL = CDLL(DLL_path)
+    PES = DLL.window_analysis
+    PES.restype = POINTER(c_double)
+    PES.argtypes = [inputs_def, POINTER(c_double), c_int, c_double, c_double, c_double]
+    res = PES(inputs, psi, c_int(num_E), c_double(dE), c_double(Estep), c_double(E_start))
+    E_grid = np.linspace(E_start, E_start+(num_E-1)*dE, num_E)
+    return E_grid, ctype_arr_to_numpy(res, num_E)
 
 if __name__ == "__main__":
 
