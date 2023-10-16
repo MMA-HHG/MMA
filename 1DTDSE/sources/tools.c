@@ -181,42 +181,41 @@ double * extend_grid(double *pold, int size, int oldsize, int shift)
 }
 
 /**
- * @brief Computes photoelectron spectrum.
- * 
- * @param trg 
- * @param dE 
- * @param Estep 
- * @param E_start 
- * @param num_E 
- * @param num_r 
- * @param dx 
- * @param psi 
- * @param dinf 
- * @param d 
- * @param dsup 
- * @param x 
+ * @brief Computes photoelectron spectrum (PES)
  * 
  * @warning Not implemented into the main TDSE code.
+ * 
+ * @param inputs Input structure.
+ * @param psi Wavefunction for PES computation.
+ * @param num_E Number of energy points. 
+ * @param dE Integration range.
+ * @param Estep Energy step.
+ * @param E_start Starting energy for the PES.
+ * @return double* 
  */
-/*void window_analysis(trg_def trg, double dE, double Estep, double E_start, 
-					 int num_E, int num_r, double dx, double *psi, double *dinf,
-					 double *d, double *dsup, double *x)*/
 double * window_analysis(inputs_def inputs, double *psi, int num_E, double dE, double Estep, double E_start)
 {	
-	double *dnew,*dnew2,*dinfnew,*dsupnew,*res,*res2,*psi2;
-	double *dinfnew2,*dsupnew2;
+	// Diagonals and intermediate results
+	double *dnew, *dnew2, *dinfnew, *dsupnew, *res, *res2, *psi2, *dinfnew2, *dsupnew2;
+	// Photoelectron spectrum for 1 energy value
 	double prob;
+	// Iterables
 	int i, j;
-	//FILE *fel; 
 	// Diagonals of the Hamiltonian matrix
 	double *diagonal, *off_diagonal;
 	// x grid
 	double *x;
+	// Photoelectron spectrum
 	double *PES;
+
+	// Grid step
 	double dx = inputs.dx;
+	// Number of x points
 	int num_r = inputs.num_r;
+	// Size of the x grid
 	double xmax = 0.5*num_r*dx;
 
+	// Allocation of arrays
 	dnew = calloc(2*(num_r+1),sizeof(double));
 	dnew2 = calloc(2*(num_r+1),sizeof(double)); 
 	dinfnew = calloc(2*(num_r+1),sizeof(double)); 
@@ -231,7 +230,6 @@ double * window_analysis(inputs_def inputs, double *psi, int num_E, double dE, d
 	x = calloc((num_r+1),sizeof(double));
 	PES = calloc(num_E, sizeof(double));
 
-
 	// Declare diagonals (complex)
 	for(int k1 = 0; k1 <= num_r; k1++)
 	{
@@ -242,15 +240,7 @@ double * window_analysis(inputs_def inputs, double *psi, int num_E, double dE, d
 		diagonal[2*k1 + 1] = 0.;
 	}
 
-
-	/*fel = fopen("electron_spectrum.dat","w");
-	if (fel == NULL) {
-		printf("Cannot open electron_spectrum.dat"); 
-		exit(1);
-	} 
-	printf("Working on the bin 00000");
-	*/
-
+	// Main cycle for PES
 	for (i = 0; i < num_E; i++) {
 		for (j = 0; j <= num_r; j++) 
 		{	
@@ -282,16 +272,10 @@ double * window_analysis(inputs_def inputs, double *psi, int num_E, double dE, d
 		prob = norme(res2,num_r);
 		prob = prob*dx*pow(dE,4.);
 
-		//fprintf(fel,"%e\t%e\n",E_start+Estep*i,prob);
-
 		PES[i] = prob;
-		
-		//printf("\b\b\b\b\b%5d", i); fflush(stdout); 
-
 	}
 
-
-
+	// Free arrays
 	free(dnew); 
 	free(dnew2); 
 	free(dinfnew);
@@ -307,9 +291,19 @@ double * window_analysis(inputs_def inputs, double *psi, int num_E, double dE, d
 
 	return PES;
 }
-//Does projection of wavefunction onto the ground state
-//@warning Not implemented into the main TDSE code.
 
+/**
+ * @brief Does projection of wavefunction onto the ground state
+ * 
+ * @warning Not implemented into the main TDSE code.
+ * 
+ * @param inputs Input structure
+ * @param psi Wavefunction for the projection
+ * @param num_E Number of energy points
+ * @param dE Energy step
+ * @param E_start Starting energy
+ * @return double* 
+ */
 double * projection_analysis_EV(inputs_def inputs, double *psi, int num_E, double dE, double E_start) // inti procedure incompatible
 {
 	double prob, CV, Eguess, E, ps_re, ps_im;
@@ -323,13 +317,9 @@ double * projection_analysis_EV(inputs_def inputs, double *psi, int num_E, doubl
 	double dx = inputs.dx;
 	int num_r = inputs.num_r;
 	double xmax = 0.5*num_r*dx;
-	//double E_start = -0.6;
 	double *projection;
-	//FILE *fel;
 	int i, j;
-	//num_E = 10000;
-	//dE = 0.001;	
-
+	
 	off_diagonal = calloc(2*(num_r+1),sizeof(double));
 	diagonal = calloc(2*(num_r+1),sizeof(double));	
 	x = calloc((num_r+1),sizeof(double));
@@ -346,12 +336,6 @@ double * projection_analysis_EV(inputs_def inputs, double *psi, int num_E, doubl
 		diagonal[2*k1 + 1] = 0.;
 	}
 
-
-
-	//fel = fopen("electron_spectrum.dat", "w" );
-	//printf("Working on the bin 00000");
-
-
 	CV = 1E-10; // CV criteria  
 		
 	for(i = 0; i < num_E; i++)
@@ -367,7 +351,6 @@ double * projection_analysis_EV(inputs_def inputs, double *psi, int num_E, doubl
 		
 		E = Einitialise(inputs.trg, psi_EV, off_diagonal, diagonal, 
 						off_diagonal, x, Eguess, CV, num_r);
-		//printf("%e\t%e\n", Eguess, E);
 
 		ps_re = 0; 
 		ps_im = 0;
@@ -378,14 +361,9 @@ double * projection_analysis_EV(inputs_def inputs, double *psi, int num_E, doubl
 		}
 
 		projection[i] = ps_re*ps_re + ps_im*ps_im; 
-		
-		//fprintf(fel,"%e\t%e\n", E, prob); 
 
 	}
 
-	//printf("\n");
-
-	//fclose(fel); 
 	free(psi_EV);
 	free(diagonal);
 	free(off_diagonal);
