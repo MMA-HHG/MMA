@@ -19,6 +19,7 @@
 MODULE long_step
   USE constants
   USE parameters
+  USE density_module
   REAL(8) rhompi,rho1,rho2,rhoth,rhotr,rhofh,rhoslg2,rhoav
 CONTAINS
 
@@ -378,9 +379,9 @@ CONTAINS
              jtemp(j,l)=e(j,l)*CMPLX(0.D0,phase_j)
              etemp(j,l)=e(j,l)*exp(CMPLX(losses_j-delta_zh*(mpa+mediumabs),phase_index,8)) ! applying the losses, T-operator does not affect
           CASE(3)
-             ptemp(j,l)=e(j,l)*CMPLX(0.D0,phase_p) + hfac(j,4)*CONJG(hfac(j,0)*e(j,l))*CMPLX(0.D0,phase_p) &
+             ptemp(j,l)=e(j,l)*CMPLX(0.D0,phase_p) + (hfac(j,4)*CONJG(hfac(j,0)*e(j,l))*CMPLX(0.D0,phase_p) &
                   + (hfac(j,1)*(hfac(j,0)*e(j,l))**3 + hfac(j,2)*(hfac(j,0)*e(j,l))**3*e_2(j)) &
-                  + (hfac(j,3)*(hfac(j,0)*e(j,l))**5)
+                  + (hfac(j,3)*(hfac(j,0)*e(j,l))**5))*((density_mod(l)-rhotemp*rhoat_inv)+ions_Kerr_ratio*rhotemp*rhoat_inv)
             ! terms comes from the expansion (E+E*)^3
             ! e(j,l)*CMPLX(0.D0,phase_p) - the same as above (usual Kerr)
             ! hfac(j,4)*CONJG(hfac(j,0)*e(j,l))*CMPLX(0.D0,phase_p) 3E*^2E (-omega process)
@@ -395,7 +396,7 @@ CONTAINS
              etemp(j,l)=e(j,l)*exp(CMPLX(losses_j-delta_zh*(mpa+mediumabs),phase_index,8))
           END SELECT
           IF (j.NE.dim_t) THEN
-             CALL calc_rho(rhotemp,mpa,e_2(j),e_2(j+1)) ! update ionization
+             CALL calc_rho(rhotemp,mpa,e_2(j),e_2(j+1),l) ! update ionization
              CALL calc_absorption(rhoabstemp, mediumabs, e_2(j), e_2(j+1))
              CALL calc_delkerr(delkerr,delkerrp,e_2(j),e_2(j+1)) ! 2nd ored eq.; it requires derivative
           ENDIF
@@ -483,13 +484,13 @@ CONTAINS
        mediumabs=0.D0
        CALL index_interpolation(phase_index,r)
        phase_index=phase_index*delta_z
-       CALL calc_rho(rhotemp,mpa,0.D0,e_2(1))
+       CALL calc_rho(rhotemp,mpa,0.D0,e_2(1),l)
        CALL calc_absorption(rhoabstemp, mediumabs, 0.D0,e_2(1))
        DO j=1,dim_t
-          phase_p=(c3i*e_2(j)+c3d*delkerr-c5*e_2(j)**2)*((1.D0-rhotemp*rhoat_inv)+ions_Kerr_ratio*rhotemp*rhoat_inv)*delta_z
+          phase_p=(c3i*e_2(j)+c3d*delkerr-c5*e_2(j)**2)*((density_mod(l)-rhotemp*rhoat_inv)+ions_Kerr_ratio*rhotemp*rhoat_inv)*delta_z
           !phase_p=(c3i*e_2(j)+c3d*delkerr-c5*e_2(j)**2)*delta_z
           phase_j=-gamma2*rhotemp*delta_z
-          losses_j=-gamma1*rhotemp*delta_z
+          losses_j=-gamma1*density_mod(l)*rhotemp*delta_z
           phase=phase_p+phase_j+phase_index
           SELECT CASE (switch_T)
           CASE(1)
@@ -499,9 +500,9 @@ CONTAINS
              jtemp(j,l)=etemp(j,l)*CMPLX(0.D0,phase_j)
              e(j,l)=e(j,l)*exp(CMPLX(losses_j-delta_z*(mpa+mediumabs),phase_index,8))
           CASE(3)
-             ptemp(j,l)=etemp(j,l)*CMPLX(0.D0,phase_p) + hfac(j,4)*CONJG(hfac(j,0)*etemp(j,l))*CMPLX(0.D0,phase_p) &
+             ptemp(j,l)=etemp(j,l)*CMPLX(0.D0,phase_p) + (hfac(j,4)*CONJG(hfac(j,0)*etemp(j,l))*CMPLX(0.D0,phase_p) &
                   + 2.D0*(hfac(j,1)*(hfac(j,0)*etemp(j,l))**3 + hfac(j,2)*(hfac(j,0)*etemp(j,l))**3*e_2(j)) &
-                  + 2.D0*(hfac(j,3)*(hfac(j,0)*etemp(j,l))**5)
+                  + 2.D0*(hfac(j,3)*(hfac(j,0)*etemp(j,l))**5))*((density_mod(l)-rhotemp*rhoat_inv)+ions_Kerr_ratio*rhotemp*rhoat_inv)
              jtemp(j,l)=etemp(j,l)*CMPLX(0.D0,phase_j)
              e(j,l)=e(j,l)*exp(CMPLX(losses_j-delta_z*(mpa+mediumabs),phase_index,8))
           CASE(4)
@@ -510,7 +511,7 @@ CONTAINS
              e(j,l)=e(j,l)*exp(CMPLX(losses_j-delta_z*(mpa+mediumabs),phase_index,8))
           END SELECT
           IF (j.NE.dim_t) THEN
-             CALL calc_rho(rhotemp,mpa,e_2(j),e_2(j+1))
+             CALL calc_rho(rhotemp,mpa,e_2(j),e_2(j+1),l)
              CALL calc_absorption(rhoabstemp, mediumabs, e_2(j), e_2(j+1))
              CALL calc_delkerr(delkerr,delkerrp,e_2(j),e_2(j+1))
           ENDIF

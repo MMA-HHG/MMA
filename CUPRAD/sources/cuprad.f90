@@ -18,7 +18,7 @@ PROGRAM cuprad
   USE mpi_stuff
   USE run_status
   USE longstep_vars
-  USE density_mod
+  USE density_module
   IMPLICIT NONE 
   
 
@@ -75,7 +75,7 @@ PROGRAM cuprad
         CALL propagation
         
        IF (apply_density_mod) THEN
-         CALL calc_density_mod( density_mod,z,is_density_changed)
+         CALL calc_density_mod(z)
          IF(is_density_changed) call calc_time_propagator
        ENDIF
 

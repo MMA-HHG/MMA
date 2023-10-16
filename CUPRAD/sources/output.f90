@@ -120,7 +120,7 @@ ENDIF
       DO j=1,dim_t
          e_2KKm2(j)=rhotemp
          IF (j.NE.dim_t) THEN
-            CALL calc_rho(rhotemp,mpa,e_2(j),e_2(j+1))
+            CALL calc_rho(rhotemp,mpa,e_2(j),e_2(j+1),l)
          ENDIF
       ENDDO
       

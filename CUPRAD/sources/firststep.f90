@@ -17,6 +17,7 @@ MODULE first_step
   USE mpi_stuff
   USE run_status
   USE normalization
+  USE density_module
   USE h5namelist
 CONTAINS
 
@@ -28,12 +29,12 @@ CONTAINS
 
     delta_zh=0.5D0*delta_z
 
-    IF dim_t_start(num_proc).LT.dim_th
-       DO j=dim_t_start(num_proc):dim_t_end(num_proc)
+    IF (dim_t_start(num_proc).LT.dim_th) THEN
+       DO j=dim_t_start(num_proc),dim_t_end(num_proc)
           p_t(:,j)=exp(CMPLX(0.D0,delta_zh,8)*komega_red(dim_th+j)*density_mod)
        ENDDO
     ELSE
-       DO j=dim_t_start(num_proc):dim_t_end(num_proc)
+       DO j=dim_t_start(num_proc),dim_t_end(num_proc)
           p_t(:,j)=exp(CMPLX(0.D0,delta_zh,8)*komega_red(j-dim_th)*density_mod)
        ENDDO
     ENDIF
@@ -91,7 +92,6 @@ CONTAINS
     USE fft
     USE HDF5
     USE HDF5_helper
-    USE density_mod
     USE pre_ionised
     USE longstep_vars
     IMPLICIT NONE
@@ -217,12 +217,20 @@ CONTAINS
       CALL read_dset(group_id, 'z_out_Efield', z_out_Efield)
       CALL read_dset(group_id, 'outlength_Efield', outlength_Efield)
     ENDIF  
+    
+ ! density_mod
+    CALL h5lexists_f(file_id,'density_mod',apply_density_mod,error) ! it finds only if it's applied, the rest is fully encapsulated in the module        
+    IF (apply_density_mod) CALL init_density_mod(file_id)
+
+    ! pre-ionisation
+    CALL h5lexists_f(file_id,'pre_ionised',apply_pre_ionisation,error) ! it finds only if it's applied, the rest is fully encapsulated in the module        
+    IF (apply_pre_ionisation) CALL init_pre_ionisation(file_id)
 
       ALLOCATE(density_mod(dim_r))
       IF (apply_density_mod) THEN                                          ! density
-         CALL calc_density_mod( density_mod,z,is_density_changed)
+         CALL calc_density_mod(z)
       ELSE
-         density_mod = 1.D0/rhoatinv
+         density_mod = 1.D0
       ENDIF
 
 
@@ -413,15 +421,6 @@ CONTAINS
 
     Nz_points = CEILING(proplength/outlength)+1 ! expected number of hdf5 output along z (with safety)
     Nz_points_Efield = CEILING(proplength/outlength_Efield)+1 ! expected number of hdf5 output along z (with safety) ! need to add if to compute only once this print is needed
-
-   ! density_mod
-    CALL h5lexists_f(file_id,'density_mod',apply_density_mod,error) ! it finds only if it's applied, the rest is fully encapsulated in the module        
-    IF (apply_density_mod) CALL init_density_mod(file_id)
-
-    ! pre-ionisation
-    CALL h5lexists_f(file_id,'pre_ionised',apply_pre_ionisation,error) ! it finds only if it's applied, the rest is fully encapsulated in the module        
-    IF (apply_pre_ionisation) CALL init_pre_ionisation(file_id)
-
     
     ! CLOSE HDF5 interface (ionisation models will re-open again, but use also write, there are many readers above)
     CALL h5fclose_f(file_id, error)
