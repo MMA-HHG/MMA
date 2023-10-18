@@ -1,4 +1,4 @@
-### CMake file for cuprad project
+### CMake file for CTDSE project
 cmake_minimum_required(VERSION 3.5)
 
 project(TDSE)
@@ -38,7 +38,7 @@ set(SOURCE_STRIDE sources/constants.c sources/tools_algorithmic.c sources/tools_
 	sources/structures.c sources/tools.c sources/prop.c sources/singleTDSE.c 
 	sources/single_stride.c)
 
-set(SOURCE_DLL sources/constants.c sources/tools_algorithmic.c sources/tools_MPI-RMA.c 
+set(SOURCE_DLL sources/constants.c sources/tools_algorithmic.c 
 	sources/tools_hdf5.c sources/tridiag.c sources/tools_fftw3.c sources/structures.c 
 	sources/tools.c sources/prop.c sources/singleTDSE.c)
 
