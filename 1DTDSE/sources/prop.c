@@ -5,7 +5,6 @@
  * @copyright Copyright (c) 2023
  * 
  */
-#include "tools_MPI-RMA.h"
 #include "constants.h"
 #include "prop.h"
 #include "tools_fftw3.h"

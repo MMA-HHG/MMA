@@ -183,7 +183,8 @@ double * extend_grid(double *pold, int size, int oldsize, int shift)
 /**
  * @brief Computes photoelectron spectrum (PES)
  * 
- * @warning Not implemented into the main TDSE code.
+ * @warning Not implemented into the main TDSE code. Accessible only from Python
+ * API.
  * 
  * @param inputs Input structure.
  * @param psi Wavefunction for PES computation.
@@ -240,7 +241,8 @@ double * window_analysis(inputs_def inputs, double *psi, int num_E, double dE, d
 		diagonal[2*k1 + 1] = 0.;
 	}
 
-	// Main cycle for PES
+	// Main cycle for PES:
+	// Computes PES using the resolvent operator method.
 	for (i = 0; i < num_E; i++) {
 		for (j = 0; j <= num_r; j++) 
 		{	
