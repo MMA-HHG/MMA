@@ -721,3 +721,59 @@ void print_local_output_fixed_h5(hid_t file_id, char *inpath, herr_t *h5error,
 	printf("Print number_of_local_simulations \n");
 	*h5error = H5Dclose(dset_id); // dataset
 }
+
+
+/**
+ * @brief Returns printing structure for HDF5 writing and sets all prints according
+ * to the input HDF5 file.
+ * 
+ * @return output_print_def 
+ */
+output_print_def Set_prints_from_HDF5(hid_t file_id, char *inpath, herr_t *h5error)
+{
+	output_print_def res;
+	char path[50];
+	int dum_int;
+
+	res = Initialise_Printing_struct();
+	path[0] = '\0';	strcat(strcat(path,inpath),"print_Efield");
+	readint(file_id, path, h5error,&dum_int);
+	if(dum_int==1){res.Efield = 1;}
+
+	path[0] = '\0';	strcat(strcat(path,inpath),"print_Source_Term");
+	readint(file_id, path, h5error,&dum_int);
+	if(dum_int==1){res.sourceterm = 1;}
+
+	path[0] = '\0';	strcat(strcat(path,inpath),"print_F_Source_Term");
+	readint(file_id, path, h5error,&dum_int);
+	if(dum_int==1){res.Fsourceterm = 1;}
+
+	path[0] = '\0';	strcat(strcat(path,inpath),"print_F_Efield_M2");
+	readint(file_id, path, h5error,&dum_int);
+	if(dum_int==1){res.FEfieldM2 = 1;}
+
+	path[0] = '\0';	strcat(strcat(path,inpath),"print_F_Efield");
+	readint(file_id, path, h5error,&dum_int);
+	if(dum_int==1){res.FEfield = 1;}
+
+	path[0] = '\0';	strcat(strcat(path,inpath),"print_F_Source_Term_M2");
+	readint(file_id, path, h5error,&dum_int);
+	if(dum_int==1){res.FsourceTermM2 = 1;}
+
+	path[0] = '\0';	strcat(strcat(path,inpath),"print_GS_population");
+	readint(file_id, path, h5error,&dum_int);
+	if(dum_int==1){res.PopTot = 1;}
+
+	path[0] = '\0';	strcat(strcat(path,inpath),"print_integrated_population");
+	readint(file_id, path, h5error,&dum_int);
+	if(dum_int==1){res.PopInt = 1;}
+
+	path[0] = '\0';	strcat(strcat(path,inpath),"print_x_expectation_value");
+	readint(file_id, path, h5error,&dum_int);
+	if(dum_int==1){res.expval_x = 1;}
+
+	res.tgrid = 1; // not memory consuming
+	res.omegagrid = 1; // not memory consuming
+
+	return res;
+}

@@ -2,11 +2,14 @@
 CTDSE is a 1-dimensional time-dependent Schrödinger equation solver (1D-TDSE) written in C language. The purpose of the code is to evaluate the microscopic response, i.e. the observables, during the propagation of the electric field. The solver is based on the grid method and the propagation scheme employs operator splitting and Crank-Nicolson method. 
 
 The code offers multiple binaries and interactive interfaces for various tasks:
-* computation of microscopic responses in the whole medium for cylindrically symmetrical macroscopic fields from CUPRAD,
-* evaluation of a single microscopic response for only one field from from the macroscopic CUPRAD field
-* interactive Python interface wrapping C routines for the propagation enabling advanced analysis of the microscopic response as well as the ability to impose arbitrary electric field. 
+* **MPI-CTDSE**: computation of microscopic responses in the whole medium for cylindrically symmetrical macroscopic fields from CUPRAD,
+* **single-CTDSE**: evaluation of a single microscopic response for only one field from from the macroscopic CUPRAD field
+* **CTDSE as a dynamic library**: interactive Python interface wrapping C routines for the propagation enabling advanced analysis of the microscopic response as well as the ability to impose arbitrary electric field. 
+
+The default recipe allows to install all the binaries. We provide also a simpler installation for the *CTDSE as a dynamic library* in
 
 # Table of contents
+1. [Install only the dynamic CTDSE library](#install-only-the-dynamic-CTDSE-library)
 1. [Install](#install)
    1. [Dependencies](#dependencies)
    2. [Setup environment variables](#setup-environment-variables)
@@ -17,13 +20,54 @@ The code offers multiple binaries and interactive interfaces for various tasks:
    1. [MPI scheduler for the CUPRAD output](#mpi-scheduler-for-the-cuprad-output)
    2. 
 
-# Install
 
+
+# Install only the dynamic CTDSE library
+This installation requires only a c-compiler and fftw3 library.
+
+Here is the way to install it using cmake, replace `CMakeLists.txt` by
+Replace the 
+```
+### CMake file for The dynamic 1D-TDSE library
+cmake_minimum_required(VERSION 3.13)
+
+project(TDSE)
+enable_language(C)      
+
+message("Compiler: ${CMAKE_C_COMPILER}")
+message("Compiler ID: ${CMAKE_C_COMPILER_ID}")
+
+if(${CMAKE_C_COMPILER_ID} MATCHES Intel)
+    set(MKL_INCLUDE_DIRS ${MKLROOT}/include/fftw)
+    set(MKL_LIB_DIRS ${MKLROOT}/lib)
+    set(FFTW_LIBS mkl_gf_lp64 mkl_sequential mkl_core)
+elseif(${CMAKE_C_COMPILER_ID} MATCHES GNU)
+    find_library(fftw3 fftw3)
+    set(FFTW_LIBS fftw3) 
+elseif(${CMAKE_C_COMPILER_ID} MATCHES AppleClang)
+    find_library(fftw3 fftw3)
+    set(FFTW_LIBS fftw3 fftw3_mpi)
+else()
+    message(FATAL_ERROR "Unsupported C compiler: ${CMAKE_C_COMPILER}")
+endif()
+
+set(SOURCE_DLL sources/constants.c sources/tools_algorithmic.c 
+	sources/tridiag.c sources/tools_fftw3.c sources/structures.c 
+	sources/tools.c sources/prop.c sources/singleTDSE.c)
+
+set(TDSE_LIB singleTDSE)
+
+add_library(${TDSE_LIB} SHARED ${SOURCE_DLL})
+target_link_libraries(${TDSE_LIB} PRIVATE ${FFTW_LIBS} ${HDF5_LIBRARIES})
+target_include_directories(${TDSE_LIB} PRIVATE ${HDF5_INCLUDE_DIRS})
+target_link_options(${TDSE_LIB} PRIVATE -fPIC)
+```
+# Install CTDSE as a part of the multiscale model
 ## Dependencies
 Before installing CTDSE, a few dependencies are required:
 * a **C compiler** (GNU/Intel),
 * **CMake** utility,
-* an **MPI** library,
+* an **MPI** library (),
 * an **HDF5** library,
 * an **FFTW3** library (for GNU) OR corresponding **MKL** library containing FFTW3 libraries compatible with Intel C compiler,
 * **Python** (3.+) with *h5py, ctypes, numpy, matplotlib* modules.
@@ -84,6 +128,13 @@ make
 
 ## Python-TDSE library compilation
 -->
+
+### Local installation (Ubuntu 18.04 subsystem)
+``apt-get install build-essential``
+``apt-get install libhdf5-dev``
+`` sudo apt-get install hdf5-helpers ``
+cmake may have problems with h5cc (worked with v3.15.7)
+check the fftw3 installation (`-fPIC`)
 
 # User guide
 
