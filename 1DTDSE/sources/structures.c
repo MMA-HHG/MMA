@@ -6,7 +6,6 @@
  * 
  */
 #include "structures.h"
-//  #include "tools_hdf5.h"
 
 /**
  * @brief Frees up the memory of the output struct.

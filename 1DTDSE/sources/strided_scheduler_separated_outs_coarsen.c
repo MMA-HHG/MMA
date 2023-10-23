@@ -195,8 +195,8 @@ int main(int argc, char *argv[])
 
 		// resize grids
 		int Nr_coarse, Nz_coarse;
-		coarsen_grid_real(rgrid_CUPRAD, Nr_CUPRAD, &rgrid_coarse, &Nr_coarse, kr_step, Nr_max);
-		coarsen_grid_real(zgrid_CUPRAD, Nz_CUPRAD, &zgrid_coarse, &Nz_coarse, kz_step, Nz_max);
+		coarsen_grid_real(rgrid_CUPRAD, &rgrid_coarse, &Nr_coarse, kr_step, Nr_max);
+		coarsen_grid_real(zgrid_CUPRAD, &zgrid_coarse, &Nz_coarse, kz_step, Nz_max);
 
 		// create local output file
 		// set name

@@ -13,7 +13,7 @@
 #include<stdio.h>
 #include<time.h>
 
-void coarsen_grid_real(double *, int, double **, int *, int, int);
+void coarsen_grid_real(double *, double **, int *, int, int);
 double interpolate( int , double , double* , double* );
 void findinterval(int , double , double* , int* , int* );
 double findnextinterpolatedzero(int, double, double* , double* );

@@ -1,4 +1,4 @@
-### CMake file for The dynamic 1D-TDSE library
+### CMake file for the CTDSE
 cmake_minimum_required(VERSION 3.13)
 
 project(TDSE)
@@ -20,8 +20,6 @@ elseif(${CMAKE_C_COMPILER_ID} MATCHES AppleClang)
 else()
     message(FATAL_ERROR "Unsupported C compiler: ${CMAKE_C_COMPILER}")
 endif()
-
-# set(HDF5_ROOT "/usr/lib/x86_64-linux-gnu/hdf5/serial")
 
 ### Find HDF5 libraries and packages
 find_package(HDF5 REQUIRED COMPONENTS C HL)

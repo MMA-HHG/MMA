@@ -10,9 +10,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <time.h>
-// #include <hdf5.h>
 #include "constants.h"
-// #include "tools_hdf5.h"
 #include "structures.h"
 #include "tridiag.h"
 #include "tools_algorithmic.h"
@@ -303,10 +301,9 @@ double * window_analysis(inputs_def inputs, double *psi, int num_E, double dE, d
  * @param psi Wavefunction for the projection
  * @param num_E Number of energy points
  * @param dE Energy step
- * @param E_start Starting energy
  * @return double* 
  */
-double * projection_analysis_EV(inputs_def inputs, double *psi, int num_E, double dE, double E_start) // inti procedure incompatible
+double * projection_analysis_EV(inputs_def inputs, double *psi, int num_E, double dE)
 {
 	double prob, CV, Eguess, E, ps_re, ps_im;
 	// Local wavefunction corresponding to energy E

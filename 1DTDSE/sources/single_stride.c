@@ -35,7 +35,7 @@ int k1;
 clock_t start_main, finish_main;
 
 
-int main(int argc, char *argv[]) 
+int main() 
 {
 	// vars:
 	const char filename_stub[] = "hdf5_temp_";
@@ -91,11 +91,11 @@ int main(int argc, char *argv[])
     kz = dims[2];
 
     // Prompt the particular field from the output field array
-    while (kr >= dims[1] || kr < 0) {
+    while (kr >= (int)dims[1] || kr < 0) {
         printf("Set the index in the radial dimension: ");
         scanf("%d", &kr);
     }
-    while (kz >= dims[2] || kz < 0) {
+    while (kz >= (int)dims[2] || kz < 0) {
         printf("Set the index in the propagation dimension: ");
         scanf("%d", &kz);
     }
@@ -176,8 +176,8 @@ int main(int argc, char *argv[])
 
     // resize grids
     int Nr_coarse, Nz_coarse;
-    coarsen_grid_real(rgrid_CUPRAD, Nr_CUPRAD, &rgrid_coarse, &Nr_coarse, kr_step, Nr_max);
-    coarsen_grid_real(zgrid_CUPRAD, Nz_CUPRAD, &zgrid_coarse, &Nz_coarse, kz_step, Nz_max);
+    coarsen_grid_real(rgrid_CUPRAD, &rgrid_coarse, &Nr_coarse, kr_step, Nr_max);
+    coarsen_grid_real(zgrid_CUPRAD, &zgrid_coarse, &Nz_coarse, kz_step, Nz_max);
 
     // create local output .h5 file
     local_filename[0] = '\0'; 

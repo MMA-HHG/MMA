@@ -46,13 +46,12 @@ void findinterval(int n, double x, double *x_grid, int *k1, int *k2) //! returns
  * @brief Coarsens a real array.
  * 
  * @param in_array Input array to be coarsened.
- * @param length_in Input array length.
  * @param out_array Coarsened output array.
  * @param length_out Output array length after coarsening.
  * @param k_step Number of steps to skip.
  * @param N_max Maximum number of points.
  */
-void coarsen_grid_real(double *in_array, int length_in, double **out_array, int *length_out, int k_step, int N_max)
+void coarsen_grid_real(double *in_array, double **out_array, int *length_out, int k_step, int N_max)
 {
 	*length_out = N_max/k_step;
 	*out_array = calloc(*length_out,sizeof(double));
