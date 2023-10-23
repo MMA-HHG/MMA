@@ -16,7 +16,9 @@
 
 double* FourInterp(int , double * , int );
 void calcFFTW3(int, double, double, double *, double **, double **, double **, int *);
-//void printGaborFFTW3(FILE *, FILE *, FILE *, FILE *, double *, int, double, double, double, double);
+double ** GaborTransform(double *signal, double dt, int N, int N_freq, int N_t, 
+                         double t_min, double t_max, double a);
+void free_mtrx(double ** buf, int N_rows);
 
 
 

@@ -142,68 +142,83 @@ void calcFFTW3(int N, double dx, double xmax, double *signal, double **xigrid,
 	return;
 }
 
-
-// PRINT Gabor of a signal - NOW NOT IMPLEMENTED
-/*
-void printGaborFFTW3(FILE *Gsig, FILE *xgrid, FILE *xigrid, FILE *Gsigbin, double *signal, int N, double dx, double dxG, double a, double xiMaxPrint) // takes real signal speced by given "dx" and it computes and prints its Gabor transform, The parameters of the Gabor transform are new "dxG" (will be adjusted to a close one matching the points) and gabor parameter "a"
+/**
+ * @brief Computes Gabor transform of signal.
+ * 
+ * @param signal Signal for computing Gabor.
+ * @param dt Timestep of signal.
+ * @param N Number of points in the signal.
+ * @param N_freq Number of frequency points to include in the signal (relates to maximum omega).
+ * @param N_t Number of temporal points for Gabor evaluation.
+ * @param t_min Minimum time for Gabor evaluation.
+ * @param t_max Maximum time for Gabor evaluation.
+ * @param a Gabor parameter.
+ * @return double** 
+ */
+double ** GaborTransform(double *signal, double dt, int N, int N_freq, int N_t, double t_min, double t_max, double a) // takes real signal speced by given "dx" and it computes and prints its Gabor transform, The parameters of the Gabor transform are new "dxG" (will be adjusted to a close one matching the points) and gabor parameter "a"
 {
-	int Nc, Ncprint;
+	// Number of points in the FFT
+	int Nc;
+	// Output array for FFTW
 	fftw_complex *out;
+	// Input array for FFTW
 	double *in;
-	double dxi,coeff2;
+	// Normalization coefficient
+	double norm;
+	// FFTW plan 
 	fftw_plan p;
-	int k1,k2,kstep2;
-	
-	double *dumptr;
+	// dt for Gabor
+	double dt_G;
+	// Gabor transform array
+	double **gabor_transform;
 
+	// Set variables
 	a = 1.0/a;
+	dt_G = (t_max - t_min)/N_t;
+	Nc = floor(((double)N)/2.); 
+	Nc++;
 
-	Nc = floor(((double)N) / 2.); Nc++;
-
-	in = calloc(2*Nc,sizeof(double));	
-	
+	// Allocate arrays
+	gabor_transform = malloc(sizeof(double *) * N_t);
+	for (int j = 0; j < N_t; j++) {
+		gabor_transform[j] = calloc(N_freq, sizeof(double));
+	}
+	in = calloc(2*Nc, sizeof(double));	
 	out = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * Nc);
 
+	// DFT normalization coefficient dt/sqrt(2 \pi)
+	norm = dt/sqrt(2.*Pi);
 
-	dxi = 2.*Pi/(  ((double)N) * dx); // dimension-preserving coefficients
-	coeff2 = dx*dx/(2.*Pi);
-
-	Ncprint = floor( xiMaxPrint/dxi ); Ncprint++; if (Ncprint > (Nc-1) ){Ncprint = Nc-1;} // maximum frequency
-
-	
-	if (dxG > dx){kstep2=floor(dxG/dx);}else{kstep2=1;}
-
-
-	for(k2 = 0; k2 <= (N-1); k2 = k2 + kstep2) // gabor loop
+	for(int i = 0; i < N_t; i++) // gabor loop
 	{
 
-		for(k1 = 0; k1 <= (N-1); k1++){in[k1]= exp( -pow( a*dx*( ((double)k1)-((double)k2) ),2.)  ) * signal[k1];} // 
+		for(int j = 0; j < N; j++) {
+			in[j]= exp(-pow(a * (((double)j)*dt - (t_min + ((double)i)*dt_G)), 2.)) * signal[j];
+		} 
 		
-		p = fftw_plan_dft_r2c_1d(N, in, out, FFTW_ESTIMATE); //fftw_plan_dft_r2c_1d(int n, double *in, fftw_complex *out, unsigned flags); // plan FFTW
-		fftw_execute(p); // run FFTW
+		// Plan FFTW - real to complex in 1D
+		p = fftw_plan_dft_r2c_1d(N, in, out, FFTW_ESTIMATE); 
+		// Run FFTW
+		fftw_execute(p); 
 
-		dumptr = calloc(1,sizeof(double));
-
-		for(k1 = 0; k1 <= (Ncprint-1); k1++){
-						dumptr[0] = sqrt( coeff2*(out[k1][0]*out[k1][0]+out[k1][1]*out[k1][1]));
-						fprintf(Gsig,"%e\t", dumptr[0]) ;
-
-						fwrite( dumptr ,sizeof(double),1,Gsigbin);
-
-						}
-		dumptr[0] = sqrt( coeff2*(out[Ncprint][0]*out[Ncprint][0]+out[Ncprint][1]*out[Ncprint][1]));
-		fprintf(Gsig,"%e\n", dumptr[0] ) ;
-		fwrite( dumptr,sizeof(double),1,Gsigbin);
-
-		
-
-		fprintf(xgrid,"%e\n", ((double)k2)*dx );
+		for(int j = 0; j < N_freq; j++) {
+			gabor_transform[i][j] = norm * sqrt((out[j][0]*out[j][0] + out[j][1]*out[j][1]));
+		}
 	}
-	for(k1 = 0; k1 <= Ncprint; k1++){fprintf(xigrid,"%e\n", ((double)k1)*dxi) ;}
 
-	// !!!!! OUR CONVENTION OF ft IS COMLEX CONJUGATE WRT dft
-
-	return;
+	return gabor_transform;
 
 }
-*/
+
+/**
+ * @brief Frees C matrix.
+ * 
+ * @param buf Buffer matrix for deletion.
+ * @param N_rows Number of rows in the matrix.
+ */
+void free_mtrx(double ** buf, int N_rows) {
+	for (int i = 0; i < N_rows; i++) {
+		free(buf[i]);
+	}
+	free(buf);
+}

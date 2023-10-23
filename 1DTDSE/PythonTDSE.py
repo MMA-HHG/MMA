@@ -26,6 +26,9 @@ def ctype_cmplx_arr_to_numpy(c_arr, size):
 def get_wavefunction(c_arr, timesteps, wf_size):
     return np.array([[c_arr[i][2*j] + 1j*c_arr[i][2*j+1] for j in range(wf_size)] for i in range(timesteps)])
 
+def ctype_mtrx_to_numpy(c_arr, N_rows, N_cols):
+    return np.array([[c_arr[i][j] for j in range(N_cols)] for i in range(N_rows)])
+
 
 ### Physical constants
 Ip_HeV = 27.21138602
@@ -484,55 +487,22 @@ def compute_PES(inputs, psi, DLL_path, E_start = -0.6, num_E = 10000, dE = 5e-4,
     E_grid = np.linspace(E_start, E_start+(num_E-1)*dE, num_E)
     return E_grid, ctype_arr_to_numpy(res, num_E)
 
-if __name__ == "__main__":
+def gabor_transform(signal, dt, N, omega_max, t_min, t_max, N_t, DLL_path, a = 8.):
+    DLL = CDLL(DLL_path)
+    gabor = DLL.GaborTransform
+    gabor.restype = POINTER(POINTER(c_double))
+    gabor.argtypes = [POINTER(c_double), c_double, c_int, c_int, c_int, c_double, c_double, c_double]
+    omegas = np.fft.fftfreq(N, dt)[0:N//2]
+    omega_range = (omegas <= omega_max)
+    N_freq = len(omegas[omega_range])
+    res = gabor(signal, c_double(dt), c_int(N), c_int(N_freq), c_int(N_t), 
+                c_double(t_min), c_double(t_max), c_double(a))
+    gabor_res = ctype_mtrx_to_numpy(res, N_t, N_freq)
+    free_mtrx(res, N_t, DLL_path)
+    return np.linspace(t_min, t_max, N_t), omegas[omega_range], np.transpose(gabor_res)
 
-    ### Structures
-    inputs = inputs_def()
-    outputs = outputs_def()
-
-    ### Init input structure from the HDF5 file
-    inputs.init_inputs("1DTDSE/results.h5")
-    inputs.init_time_and_field("1DTDSE/results.h5", 75, 512)
-
-    ### Check the field 
-    fig = plt.figure()
-    N = inputs.Efield.Nt
-    E = ctype_arr_to_numpy(inputs.Efield.Field, N)
-    t = ctype_arr_to_numpy(inputs.Efield.tgrid, N)
-    plt.plot(t, E)
-    plt.show()
-
-    ### Load compiled dynamic library
-    path = "/Users/tadeasnemec/Programming/Git/CUPRAD_TDSE_Hankel/1DTDSE/singleTDSE.so"
-    DLL_Func = CDLL(path)
-
-    ### Init ground state
-    init_grid = DLL_Func.Initialise_grid_and_ground_state
-    init_grid.restype = None
-    init_grid.argtypes = [POINTER(inputs_def)]
-    init_grid(byref(inputs))
-
-    ### Check the ground state
-    fig = plt.figure()
-    psi0 = ctype_arr_to_numpy(inputs.psi0, 2*(inputs.num_r+1))
-    x = ctype_arr_to_numpy(inputs.x, inputs.num_r+1)
-    plt.semilogy(x, np.abs(psi0)[0:-1:2])
-    plt.show()
-
-    ### Run TDSE from Python
-    call1DTDSE = DLL_Func.call1DTDSE
-    call1DTDSE.restype = outputs_def
-    call1DTDSE.argtypes = [POINTER(inputs_def)]
-    outputs = call1DTDSE(byref(inputs))
-
-#DLL_Func = CDLL(DLL)
-#DLL = "/Users/tadeasnemec/Programming/Git/CUPRAD_TDSE_Hankel/1DTDSE/tools.so"
-#print(DLL_Func.test(pointer(inputs)))
-
-#inputs.num_r
-
-
-#test = DLL_Func.test
-#test.restype = c_double
-#print(test(byref(inputs)))
-
+def free_mtrx(buffer, N_rows, DLL_path):
+    DLL = CDLL(DLL_path)
+    DLL.free_mtrx.restype = None
+    DLL.free_mtrx.argtypes = [POINTER(POINTER(c_double)), c_int]
+    DLL.free_mtrx(buffer, c_int(N_rows))
