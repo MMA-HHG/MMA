@@ -196,19 +196,10 @@ typedef struct inputs_def {
 	// Switches (1 = yes)
 	int InterpByDTorNT;
 	int Ntinterp; 
-	int PrintGaborAndSpectrum;
 	// Switch (0 - only text, 1 - only binaries, 2 - both)
 	int PrintOutputMethod;	
 	// extension of the calculation after the last fields ends !!! NOW ONLY FOR ANALYTICAL FIELD
 	double textend;
-	// Gabor variables
-	double dtGabor;
-	double tmin1window;
-	double tmin2window; 
-	double tmax1window; 
-	double tmax2window; 
-	double a_Gabor; 
-	double omegaMaxGabor;
 	// I/O printing structure
 	struct output_print_def Print;
 	// Precision of the ground state energy
@@ -253,6 +244,7 @@ typedef struct outputs_def{
 output_print_def Initialise_Printing_struct(void);
 void outputs_destructor(outputs_def *);
 void inputs_destructor(inputs_def *);
+void free_mtrx(double ** buf, int N_rows);
 output_print_def Initialise_Printing_struct(void);
 output_print_def Set_all_prints(void);
 

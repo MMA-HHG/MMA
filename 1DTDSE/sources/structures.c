@@ -29,14 +29,27 @@ void outputs_destructor(outputs_def *outputs)
 /**
  * @brief Frees up the memory of the input struct.
  * 
- * @param outputs Input structure.
+ * @param in Input structure.
  */
-void inputs_destructor(inputs_def *in) // frees memory allocated for inputs
+void inputs_destructor(inputs_def *in) 
 {
 	free((*in).psi0);
 	free((*in).x);
 	free((*in).Efield.tgrid);
 	free((*in).Efield.Field);
+}
+
+/**
+ * @brief Frees C matrix.
+ * 
+ * @param buf Buffer matrix for deletion.
+ * @param N_rows Number of rows in the matrix.
+ */
+void free_mtrx(double ** buf, int N_rows) {
+	for (int i = 0; i < N_rows; i++) {
+		free(buf[i]);
+	}
+	free(buf);
 }
 
 /**

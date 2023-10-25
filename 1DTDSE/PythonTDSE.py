@@ -359,14 +359,6 @@ class inputs_def(Structure):
                             writewft = 0,
                             tprint = 10,
                             x_int = 2.,
-                            PrintGaborAndSpectrum = 0,
-                            a_Gabor = 8.,
-                            omegaMaxGabor = 60.,
-                            dtGabor = 10.,
-                            tmin1window = 0.,
-                            tmin2window = 0.,
-                            tmax1window = 0.,
-                            tmax2window = 0.,
                             PrintOutputMethod = 1,
                             precision = np.string_('d')
                             ):
@@ -382,14 +374,6 @@ class inputs_def(Structure):
         self.analy.writewft = c_int(writewft)
         self.analy.tprint = c_double(tprint)
         self.x_int = c_double(x_int)
-        self.PrintGaborAndSpectrum = c_int(PrintGaborAndSpectrum)
-        self.a_Gabor = c_double(a_Gabor)
-        self.omegaMaxGabor = c_double(omegaMaxGabor)
-        self.dtGabor = c_double(dtGabor)
-        self.tmin1window = c_double(tmin1window)
-        self.tmax1window = c_double(tmax1window)
-        self.tmin2window = c_double(tmin2window)
-        self.tmax2window = c_double(tmax2window)
         self.PrintOutputMethod = c_int(PrintOutputMethod)
         self.trg.a = c_double(trg_a)
         self.CV = c_double(CV)
@@ -462,47 +446,166 @@ class outputs_def(Structure):
         ("psi", POINTER(POINTER(c_double)))
     ]
 
-def init_GS(inputs, DLL_path):
-    DLL = CDLL(DLL_path)
-    ### Find ground state and init grids
-    init_grid = DLL.Initialise_grid_and_ground_state
-    init_grid.restype = None
-    init_grid.argtypes = [POINTER(inputs_def)]
-    init_grid(byref(inputs))
+class TDSE_DLL:
+    """
+    Contains functions and routines from the CTDSE.
 
-def call1DTDSE(inputs, DLL_path):
-    DLL = CDLL(DLL_path)
-    ### Do the propagation
-    TDSE = DLL.call1DTDSE
-    TDSE.restype = outputs_def
-    TDSE.argtypes = [POINTER(inputs_def)]
-    return TDSE(byref(inputs))
+    Atrributes:
+    -----------
+    DLL: a CDLL instance
 
-def compute_PES(inputs, psi, DLL_path, E_start = -0.6, num_E = 10000, dE = 5e-4, Estep = 5e-4):
-    DLL = CDLL(DLL_path)
-    PES = DLL.window_analysis
-    PES.restype = POINTER(c_double)
-    PES.argtypes = [inputs_def, POINTER(c_double), c_int, c_double, c_double, c_double]
-    res = PES(inputs, psi, c_int(num_E), c_double(dE), c_double(Estep), c_double(E_start))
-    E_grid = np.linspace(E_start, E_start+(num_E-1)*dE, num_E)
-    return E_grid, ctype_arr_to_numpy(res, num_E)
+    Methods:
+    --------
+    * __init__ - class initialization
+    * init_GS - initialization of the ground state
+    * call1DTDSE - propagates the ground state according the field
+    * compute_PES - computes photoelectron spectrum of wavefunction
+    * gabor_transform - computes Gabor transform of a signal
+    * free_mtrx - frees double matrix in C
+    * free_outputs - frees output structure in C
+    * free_inputs - frees input structure in C
+    """
+    def __init__(self, path_to_DLL):
+        """
+        Class initialization.
 
-def gabor_transform(signal, dt, N, omega_max, t_min, t_max, N_t, DLL_path, a = 8.):
-    DLL = CDLL(DLL_path)
-    gabor = DLL.GaborTransform
-    gabor.restype = POINTER(POINTER(c_double))
-    gabor.argtypes = [POINTER(c_double), c_double, c_int, c_int, c_int, c_double, c_double, c_double]
-    omegas = np.fft.fftfreq(N, dt)[0:N//2]
-    omega_range = (omegas <= omega_max)
-    N_freq = len(omegas[omega_range])
-    res = gabor(signal, c_double(dt), c_int(N), c_int(N_freq), c_int(N_t), 
-                c_double(t_min), c_double(t_max), c_double(a))
-    gabor_res = ctype_mtrx_to_numpy(res, N_t, N_freq)
-    free_mtrx(res, N_t, DLL_path)
-    return np.linspace(t_min, t_max, N_t), omegas[omega_range], np.transpose(gabor_res)
+        Parameters:
+        -----------
+        path_to_DLL: str
+            Path to the dynamic library.
+        """
+        self.DLL = CDLL(path_to_DLL)
 
-def free_mtrx(buffer, N_rows, DLL_path):
-    DLL = CDLL(DLL_path)
-    DLL.free_mtrx.restype = None
-    DLL.free_mtrx.argtypes = [POINTER(POINTER(c_double)), c_int]
-    DLL.free_mtrx(buffer, c_int(N_rows))
+    def init_GS(self, inputs):
+        """
+        Initialization of the ground state.
+
+        Parameters:
+        -----------
+        inputs: inputs_def
+            Input structure
+        """
+        ### Find ground state and init grids
+        init_grid = self.DLL.Initialise_grid_and_ground_state
+        init_grid.restype = None
+        init_grid.argtypes = [POINTER(inputs_def)]
+        init_grid(byref(inputs))
+
+    def call1DTDSE(self, in_ptr, out_ptr):
+        """
+        Propagates the ground state according the field.
+
+        Parameters:
+        -----------
+        in_ptr: 
+            Ctypes pointer instance of inputs structure
+        out_ptr: 
+            Ctypes pointer instance of outputs structure
+        """
+        ### Do the propagation
+        TDSE = self.DLL.call1DTDSE
+        TDSE.restype = None
+        TDSE.argtypes = [POINTER(inputs_def), POINTER(outputs_def)]
+        TDSE(in_ptr, out_ptr)
+
+    def compute_PES(self, inputs, psi, E_start = -0.6, num_E = 10000, dE = 5e-4, Estep = 5e-4):
+        """
+        Computes photoelectron spectrum (PES) from a wavefunction.
+
+        Parameters:
+        -----------
+        inputs:
+            Ctypes input structure instance
+        psi:
+            Ctypes pointer to C array with wavefunction
+        E_start: float, optional, default E_start = -0.6
+            Initial energy for the PES
+        num_E: int, optional, default num_E = 10000
+            Energy grid resolution
+        dE: float, optional, default dE = 5e-4
+            Integration energy step
+        E_step: float, optional, default E_step = 5e-4
+            Energy step for the PES
+        """
+        PES = self.DLL.window_analysis
+        PES.restype = POINTER(c_double)
+        PES.argtypes = [inputs_def, POINTER(c_double), c_int, c_double, c_double, c_double]
+        res = PES(inputs, psi, c_int(num_E), c_double(dE), c_double(Estep), c_double(E_start))
+        E_grid = np.linspace(E_start, E_start+(num_E-1)*dE, num_E)
+        return E_grid, ctype_arr_to_numpy(res, num_E)
+
+    def gabor_transform(self, signal, dt, N, omega_max, t_min, t_max, N_t, a = 8.):
+        """
+        Computes fast Gabor transform of a signal.
+
+        Parameters:
+        -----------
+        signal: ctypes double array pointer
+            Signal for the Gabor transform
+        dt: float
+            Time step of the signal
+        N: int
+            Size of the signal
+        omega_max: float
+            Maximum frequency for the transform in a.u.
+        t_min: float
+            Minimum time for Gabor
+        t_max: float
+            Maximum time for Gabor
+        N_t: int
+            Resolution for Gabor
+        a: float, optional, default a = 8.
+            Width of the Gabor window, in a.u.
+        """
+        gabor = self.DLL.GaborTransform
+        gabor.restype = POINTER(POINTER(c_double))
+        gabor.argtypes = [POINTER(c_double), c_double, c_int, c_int, c_int, c_double, c_double, c_double]
+        omegas = np.fft.fftfreq(N, dt)[0:N//2]
+        omega_range = (omegas <= omega_max)
+        N_freq = len(omegas[omega_range])
+        res = gabor(signal, c_double(dt), c_int(N), c_int(N_freq), c_int(N_t), 
+                    c_double(t_min), c_double(t_max), c_double(a))
+        gabor_res = ctype_mtrx_to_numpy(res, N_t, N_freq)
+        self.free_mtrx(res, N_t)
+        return np.linspace(t_min, t_max, N_t), omegas[omega_range], np.transpose(gabor_res)
+
+    def free_mtrx(self, buffer_ptr, N_rows):
+        """
+        Frees 2-D C array.
+
+        Parameters:
+        -----------
+        buffer_ptr: ctypes pointer instance
+            Pointer to the buffer to be freed
+        N_rows: int
+            Number of rows in the 2-D array
+        """
+        self.DLL.free_mtrx.restype = None
+        self.DLL.free_mtrx.argtypes = [POINTER(POINTER(c_double)), c_int]
+        self.DLL.free_mtrx(buffer_ptr, c_int(N_rows))
+
+    def free_outputs(self, out_ptr):
+        """
+        Frees outputs structure.
+
+        Parameters:
+        -----------
+        out_ptr: ctypes pointer instance
+            Pointer to the structure to be freed
+        """
+        self.DLL.outputs_destructor.restype = None
+        self.DLL.outputs_destructor.argtypes = [POINTER(outputs_def)]
+        self.DLL.outputs_destructor(out_ptr)
+
+    def free_inputs(self, in_ptr):
+        """
+        Frees inputs structure.
+
+        Parameters:
+        -----------
+        out_ptr: ctypes pointer instance
+            Pointer to the structure to be freed
+        """
+        self.DLL.inputs_destructor.restype = None
+        self.DLL.inputs_destructor.argtypes = [POINTER(inputs_def)]
+        self.DLL.inputs_destructor(in_ptr)

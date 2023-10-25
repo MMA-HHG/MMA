@@ -209,16 +209,3 @@ double ** GaborTransform(double *signal, double dt, int N, int N_freq, int N_t, 
 	return gabor_transform;
 
 }
-
-/**
- * @brief Frees C matrix.
- * 
- * @param buf Buffer matrix for deletion.
- * @param N_rows Number of rows in the matrix.
- */
-void free_mtrx(double ** buf, int N_rows) {
-	for (int i = 0; i < N_rows; i++) {
-		free(buf[i]);
-	}
-	free(buf);
-}

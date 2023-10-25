@@ -92,11 +92,6 @@ double * propagation(inputs_def *inputs, outputs_def *outputs)
 	}
 
 	Field = 0.;
-	// variables for apodization <--- PURPOSE???
-	/*
-	t_zero1 = inputs.tmin;
-	t_zero2 = findnextinterpolatedzero(Efield.Nt-1, t_zero1 + Efield.dt, Efield.tgrid, Efield.Field);		
-	*/
 	cpot = 1.;
 	(*outputs).tgrid[0] = tt; 
 	(*outputs).sourceterm[0] = 0.; 

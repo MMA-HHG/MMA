@@ -134,8 +134,6 @@ double Einitialise(trg_def trg, double *psi0, double *dinf, double *d, double *d
 		test = sqrt((Energy-Eold)*(Energy-Eold));
 		Eold = Energy;
 
-		printf("cv : %e",test);
-		printf(" Energy : %e\n",Eold);
 	}
 	while(test > CV);
 	

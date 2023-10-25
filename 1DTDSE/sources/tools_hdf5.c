@@ -99,30 +99,6 @@ void ReadInputs(hid_t file_id, char *inpath, herr_t *h5error, inputs_def *in)
 	// the limit of the integral for the ionisation (works fine with the lenth gauge and strong fields)
 	path[0] = '\0';	strcat(strcat(path,inpath),"x_int");
 	readreal(file_id, path, h5error,&(*in).x_int);  
-	// print Gabor and partial spectra
-	path[0] = '\0';	strcat(strcat(path,inpath),"PrintGaborAndSpectrum");
-	readint(file_id, path, h5error,&(*in).PrintGaborAndSpectrum); 
-	// the parameter of the gabor window [a.u.]
-	path[0] = '\0';	strcat(strcat(path,inpath),"a_Gabor");
-	readreal(file_id, path, h5error,&(*in).a_Gabor); 
-	// maximal frequency in Gabor [a.u.]
-	path[0] = '\0';	strcat(strcat(path,inpath),"omegaMaxGabor");
-	readreal(file_id, path, h5error,&(*in).omegaMaxGabor); 
-	// spacing in Gabor
-	path[0] = '\0';	strcat(strcat(path,inpath),"dtGabor");
-	readreal(file_id, path, h5error,&(*in).dtGabor); 
-	// analyse 1st part of the dipole
-	path[0] = '\0';	strcat(strcat(path,inpath),"tmin1window");
-	readreal(file_id, path, h5error,&(*in).tmin1window); 
-	// analyse 1st part of the dipole
-	path[0] = '\0';	strcat(strcat(path,inpath),"tmax1window");
-	readreal(file_id, path, h5error,&(*in).tmax1window); 
-	// analyse 2nd part of the dipole
-	path[0] = '\0';	strcat(strcat(path,inpath),"tmin2window");
-	readreal(file_id, path, h5error,&(*in).tmin2window); 
-	// analyse 2nd part of the dipole
-	path[0] = '\0';	strcat(strcat(path,inpath),"tmax2window");
-	readreal(file_id, path, h5error,&(*in).tmax2window); 
 	// (0 - only text, 1 - only binaries, 2 - both)
 	path[0] = '\0';	strcat(strcat(path,inpath),"PrintOutputMethod");
 	readint(file_id, path, h5error,&(*in).PrintOutputMethod); 
