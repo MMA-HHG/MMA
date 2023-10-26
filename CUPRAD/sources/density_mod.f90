@@ -12,6 +12,8 @@ use HDF5_helper
 use array_helper
 use normalization
 use h5namelist
+use parameters
+use fields
 
 use mpi_stuff ! only for testing ot print procnumber etc., remove after
 
@@ -41,8 +43,6 @@ CONTAINS
 
 ! preparation
 subroutine init_density_mod(file_id)
-    use parameters
-    use fields
     integer(hid_t)                          :: file_id
     real(8)                                 :: dumr
     real(8), dimension(:), allocatable      :: dumr_arr_1D
@@ -138,8 +138,35 @@ end subroutine init_density_mod
 
 subroutine calc_density_mod(z)
 
-REAL(8) :: z
+    real(8) :: z
+    integer, save       :: kz_tip = 1
+    integer             :: k1
+    real(8)             :: density_dum
+    logical             :: first_iteration
 
+
+    is_density_changed = .false.
+    first_iteration = .true.
+
+    kr_tip = 1
+    do k1 = 1, dim_r
+        r=(k1-1)*delta_r
+        call findinterval(kr,kz,r,z,rgrid,zgrid,Nr,Nz,kx_tip=kr_tip,ky_tip=kz_tip)
+        if (first_iteration) then
+            first_iteration = .false.
+            kz_tip = kz
+        endif
+
+        call interpolate2D_decomposed_eq(kr,kz,r,z,density_dum,rgrid,zgrid,density_profile_matrix,Nr,Nz)
+        if (density_dum /= density_mod(k1)) then
+            density_mod(k1) = density_dum
+            is_density_changed = .true.
+        endif
+        kr_tip = kr
+    enddo
+
+
+! NOTE: The procedure is written universally to always interpolate. Can be optimised, e.g. do not recompute at all in the case of purely r-modulation.
 end subroutine calc_density_mod
 
 
