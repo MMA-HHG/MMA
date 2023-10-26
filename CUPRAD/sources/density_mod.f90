@@ -53,8 +53,7 @@ subroutine init_density_mod(file_id)
     call h5lexists_f(file_id, density_mod_grpname//'/zgrid',zgrid_exists,h5err)
     call h5lexists_f(file_id, density_mod_grpname//'/rgrid',rgrid_exists,h5err)
     
-    ! We create a matrix in all the cases. If only one grid is provided, max-z (-r) values are used 
-
+    ! We create a matrix in all the cases. If only one grid is provided, max-z (-r) values are used
 
     if (zgrid_exists.and. rgrid_exists) then
         call ask_for_size_1D(file_id, density_mod_grpname//'/rgrid', Nr)
