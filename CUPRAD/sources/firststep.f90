@@ -219,11 +219,11 @@ CONTAINS
     ENDIF  
     
  ! density_mod
-    CALL h5lexists_f(file_id,'density_mod',apply_density_mod,error) ! it finds only if it's applied, the rest is fully encapsulated in the module        
+    CALL h5lexists_f(file_id,density_mod_grpname,apply_density_mod,error) ! it finds only if it's applied, the rest is fully encapsulated in the module        
     IF (apply_density_mod) CALL init_density_mod(file_id)
 
     ! pre-ionisation
-    CALL h5lexists_f(file_id,'pre_ionised',apply_pre_ionisation,error) ! it finds only if it's applied, the rest is fully encapsulated in the module        
+    CALL h5lexists_f(file_id,pre_ionised_grpname,apply_pre_ionisation,error) ! it finds only if it's applied, the rest is fully encapsulated in the module        
     IF (apply_pre_ionisation) CALL init_pre_ionisation(file_id)
 
       ALLOCATE(density_mod(dim_r))

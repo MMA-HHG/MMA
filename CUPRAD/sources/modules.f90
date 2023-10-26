@@ -20,6 +20,8 @@ MODULE h5namelist
   CHARACTER(*), PARAMETER   ::  longstep_grpname =    "longstep"
   CHARACTER(*), PARAMETER   ::  outcont_grpname =     out_grpname//"/code_continuation"
   CHARACTER(*), PARAMETER   ::  refrindex_grpname =   pre_proc_grpname//"/indexes_group"
+  CHARACTER(*), PARAMETER   ::  density_mod_grpname =   "density_mod"
+  CHARACTER(*), PARAMETER   ::  pre_ionised_grpname =   "pre_ionised"
 END MODULE h5namelist
 
 MODULE longstep_vars
