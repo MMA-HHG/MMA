@@ -3,7 +3,7 @@ module array_helper
 
 implicit none
 private
-public  :: findinterval, interpolate_lin
+public  :: findinterval, interpolate_lin, findinterval_1D
 public  :: interpolate1D_decomposed_eq
 public  :: interpolate2D_decomposed_eq
 
@@ -27,6 +27,8 @@ subroutine findinterval_1D(k1,x0,x,n,k_guess) ! returns interval where is placed
 
     integer :: k2, length;
    
+
+    k2 = n    
     ! check boundary cases
     if (x0 >= x(n)) then
 	    if (x0 == x(n)) then
@@ -62,16 +64,21 @@ subroutine findinterval_1D(k1,x0,x,n,k_guess) ! returns interval where is placed
         endif
         length = k2-k1
     else
+        k1 = 1
         length = n
     endif
 
-    ! bisection    
+    ! bisection
+
+    print *, 'initial bounds:', k1, k2
+
     do while (length > 1)
         if ( x0 < x(k1 + (length/2)) ) then
             k2 = k1 + (length/2)
         else
             k1 = k1 + (length/2)
         endif
+        print *, 'interval bounds:', k1, k2
         length = k2 - k1
     enddo
 
