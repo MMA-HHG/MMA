@@ -146,7 +146,7 @@ function initial_electron_density_guess(r,z,k_actual,k_first)
     if (k_actual == k_first) then
         initial_electron_density_guess = initial_electron_density(r,z,reset_r_guess=.TRUE.)
     else
-        initial_electron_density_tip = initial_electron_density(r,z)
+        initial_electron_density_guess = initial_electron_density(r,z)
     endif
 
 end function
