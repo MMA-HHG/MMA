@@ -17,6 +17,7 @@ use HDF5_helper
 use array_helper
 use parameters
 use normalization
+use h5namelist
 
 use mpi_stuff ! only for testing ot print procnumber etc., remove after
 
@@ -44,41 +45,41 @@ subroutine init_pre_ionisation(file_id)
 
     print *, 'pre-inoisation accessed, proc', my_rank
 
-    call read_dset(file_id, 'pre_ionised/method_geometry',method_geometry)
-    call read_dset(file_id, 'pre_ionised/method_units',method_units)
+    call read_dset(file_id, pre_ionised_grpname//'/method_geometry',method_geometry)
+    call read_dset(file_id, pre_ionised_grpname//'/method_units',method_units)
     select case (method_geometry)
         case (1)
             if (method_units == 1) then
-                call read_dset(file_id, 'pre-processed/rhoat_inv',dumr) ! inverse of the neutrals density, C.U.
-                call read_dset(file_id, 'pre_ionised/initial_electrons_ratio',rho0_loc)
+                call read_dset(file_id, pre_proc_grpname//'/rhoat_inv',dumr) ! inverse of the neutrals density, C.U.
+                call read_dset(file_id, pre_ionised_grpname//'/initial_electrons_ratio',rho0_loc)
                 rho0_loc = rho0_loc/dumr ! C.U.
                 print *, 'the initial atom density is',1.0D0/dumr, 'proc', my_rank
                 print *, 'the initial density is',rho0_loc, 'proc', my_rank
                 return
             elseif (method_units == 2) then
-                call read_dset(file_id, 'pre-processed/density_normalisation_factor',dumr) ! conversion factor (cm-3 -> C.U.)
-                call read_dset(file_id, 'pre_ionised/initial_electron_density',rho0_loc) ! in cm-3
+                call read_dset(file_id, pre_proc_grpname//'/density_normalisation_factor',dumr) ! conversion factor (cm-3 -> C.U.)
+                call read_dset(file_id, pre_ionised_grpname//'/initial_electron_density',rho0_loc) ! in cm-3
                 rho0_loc = dumr*rho0_loc ! C.U.
                 return
             endif
         case (2)
-            call ask_for_size_1D(file_id, 'pre_ionised/rgrid', Nr)
-            call read_dset(file_id, 'pre_ionised/rgrid', rgrid, Nr)
+            call ask_for_size_1D(file_id, pre_ionised_grpname//'/rgrid', Nr)
+            call read_dset(file_id, pre_ionised_grpname//'/rgrid', rgrid, Nr)
             rgrid = rgrid/w0m ! m -> C.U.
-            call ask_for_size_1D(file_id, 'pre_ionised/zgrid', Nz)
-            call read_dset(file_id, 'pre_ionised/zgrid', zgrid, Nz)
+            call ask_for_size_1D(file_id, pre_ionised_grpname//'/zgrid', Nz)
+            call read_dset(file_id, pre_ionised_grpname//'/zgrid', zgrid, Nz)
             zgrid = zgrid/four_z_Rayleigh ! m -> C.U.
-            call read_dset(file_id, 'pre_ionised/table', table_2D, Nr, Nz)
+            call read_dset(file_id, pre_ionised_grpname//'/table', table_2D, Nr, Nz)
         case (3)
-            call ask_for_size_1D(file_id, 'pre_ionised/rgrid', Nr)
-            call read_dset(file_id, 'pre_ionised/rgrid', rgrid, Nr)
+            call ask_for_size_1D(file_id, pre_ionised_grpname//'/rgrid', Nr)
+            call read_dset(file_id, pre_ionised_grpname//'/rgrid', rgrid, Nr)
             rgrid = rgrid/w0m ! m -> C.U.
-            call read_dset(file_id, 'pre_ionised/table', table_1D, Nr)
+            call read_dset(file_id, pre_ionised_grpname//'/table', table_1D, Nr)
         case (4)
-            call ask_for_size_1D(file_id, 'pre_ionised/zgrid', Nz)
-            call read_dset(file_id, 'pre_ionised/zgrid', zgrid, Nz)
+            call ask_for_size_1D(file_id, pre_ionised_grpname//'/zgrid', Nz)
+            call read_dset(file_id, pre_ionised_grpname//'/zgrid', zgrid, Nz)
             zgrid = zgrid/four_z_Rayleigh ! m -> C.U.
-            call read_dset(file_id, 'pre_ionised/table', table_1D, Nz)
+            call read_dset(file_id, pre_ionised_grpname//'/table', table_1D, Nz)
     end select
 
     !if (method_units == 1)  then ! any( table_geometries == method_geometry) eventual condition for extended prescriptions
