@@ -329,7 +329,7 @@ CONTAINS
        delkerr=0.D0
        delkerrp=0.d0
       IF (apply_pre_ionisation) THEN                                          ! initial electron density
-         rhotemp = initial_electron_density_tip(r,z,l,dim_r_start(num_proc))
+         rhotemp = initial_electron_density_guess(r,z,l,dim_r_start(num_proc))
       ELSE
          rhotemp = 0.D0
       ENDIF
@@ -467,7 +467,7 @@ CONTAINS
        delkerr=0.D0
        delkerrp=0.d0
       IF (apply_pre_ionisation) THEN
-         rhotemp = initial_electron_density_tip(r,z,l,dim_r_start(num_proc))
+         rhotemp = initial_electron_density_guess(r,z,l,dim_r_start(num_proc))
       ELSE
          rhotemp = 0.D0
       ENDIF

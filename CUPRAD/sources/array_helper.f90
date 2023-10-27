@@ -18,12 +18,12 @@ END INTERFACE
 
 CONTAINS
 
-subroutine findinterval_1D(k1,x0,x,n,k_tip) ! returns interval where is placed x value, if it is out of the range, 0 is used
+subroutine findinterval_1D(k1,x0,x,n,k_guess) ! returns interval where is placed x value, if it is out of the range, 0 is used
 !intervals are ordered: <..)<..)<..)...<..>
     integer, intent(out)                :: k1
     integer, intent(in)                 :: n
 	real(8), intent(in)                 :: x0, x(n)
- 	integer,optional       :: k_tip
+ 	integer,optional       :: k_guess
 
     integer :: k2, length;
    
@@ -40,24 +40,24 @@ subroutine findinterval_1D(k1,x0,x,n,k_tip) ! returns interval where is placed x
         return
     endif
 
-    ! procedure with doubling the interval using initial tip
-    if (present(k_tip)) then
-        k1 = k_tip
+    ! procedure with doubling the interval using initial guess
+    if (present(k_guess)) then
+        k1 = k_guess
         length = 1
-        if ( x0 >= x(k_tip) ) then
-            k2 = k_tip + length
+        if ( x0 >= x(k_guess) ) then
+            k2 = k_guess + length
             do while ( x(k2) <= x0 )
                 k1 = k2
                 length = 2*length
-                k2 = min(k_tip+length,n)
+                k2 = min(k_guess+length,n)
             enddo
         else
             k2 = k1
-            k1 = k_tip - length
+            k1 = k_guess - length
             do while ( x(k1) > x0 )
                 k2 = k1
                 length = 2*length
-                k1 = max(k_tip-length,1)
+                k1 = max(k_guess-length,1)
             enddo
         endif
         length = k2-k1
@@ -78,21 +78,21 @@ subroutine findinterval_1D(k1,x0,x,n,k_tip) ! returns interval where is placed x
 end subroutine findinterval_1D
 
 
-subroutine findinterval_2D(kx,ky,x0,y0,x,y,Nx,Ny,kx_tip,ky_tip) ! returns interval where is placed x value, if it is out of the range, 0 is used
+subroutine findinterval_2D(kx,ky,x0,y0,x,y,Nx,Ny,kx_guess,ky_guess) ! returns interval where is placed x value, if it is out of the range, 0 is used
 !intervals are ordered: <..)<..)<..)...<..>
     integer, intent(out)                :: kx,ky
     integer, intent(in)                 :: Nx,Ny
 	real(8), intent(in)                 :: x0, y0, x(Nx), y(Ny)
- 	integer, intent(in), optional       :: kx_tip, ky_tip
+ 	integer, intent(in), optional       :: kx_guess, ky_guess
 	
-	if (present(kx_tip)) then
-        call findinterval_1D(kx,x0,x,Nx, k_tip=kx_tip)
+	if (present(kx_guess)) then
+        call findinterval_1D(kx,x0,x,Nx, k_guess=kx_guess)
     else
         call findinterval_1D(kx,x0,x,Nx)
     endif
 
-    if (present(ky_tip)) then
-        call findinterval_1D(ky,y0,y,Ny, k_tip=ky_tip)
+    if (present(ky_guess)) then
+        call findinterval_1D(ky,y0,y,Ny, k_guess=ky_guess)
     else
         call findinterval_1D(ky,y0,y,Ny)
     endif
@@ -157,17 +157,17 @@ subroutine interpolate1D_decomposed_eq(k,x,fx,xgrid,fxgrid,n,tol) !inputs: # of 
 
 end subroutine interpolate1D_decomposed_eq
 
-subroutine interpolate1D_lin(x,fx,xgrid,fxgrid,n,tol,k_tip) !inputs: # of points, x(n), y(x(n)), x, returns y(x) (linearinterpolation), extrapolation by the boundary values
+subroutine interpolate1D_lin(x,fx,xgrid,fxgrid,n,tol,k_guess) !inputs: # of points, x(n), y(x(n)), x, returns y(x) (linearinterpolation), extrapolation by the boundary values
 	real(8), intent(out)    :: fx
     integer, intent(in)     :: n
 	real(8), intent(in)     :: x, xgrid(n), fxgrid(n)	
     real(8), optional       :: tol
-    integer, optional       :: k_tip
+    integer, optional       :: k_guess
 
     integer                 :: k1
     
-    if (present(k_tip)) then
-        call findinterval_1D(k1,x,xgrid,n,k_tip=k_tip)
+    if (present(k_guess)) then
+        call findinterval_1D(k1,x,xgrid,n,k_guess=k_guess)
     else
         call findinterval_1D(k1,x,xgrid,n)
     endif
@@ -225,20 +225,20 @@ subroutine interpolate2D_decomposed_eq(kx,ky,x,y,fxy,xgrid,ygrid,fxygrid,Nx,Ny) 
 
 end subroutine interpolate2D_decomposed_eq
 
-subroutine interpolate2D_lin(x,y,fxy,xgrid,ygrid,fxygrid,Nx,Ny,kx_tip,ky_tip) !inputs: # of points, x(n), y(x(n)), x, returns y(x) (linearinterpolation), extrapolation by the boundary values
+subroutine interpolate2D_lin(x,y,fxy,xgrid,ygrid,fxygrid,Nx,Ny,kx_guess,ky_guess) !inputs: # of points, x(n), y(x(n)), x, returns y(x) (linearinterpolation), extrapolation by the boundary values
 	real(8), intent(out)                :: fxy
     integer, intent(in)                 :: Nx,Ny
 	real(8), intent(in)                 :: x,y,xgrid(Nx),ygrid(Ny),fxygrid(Nx,Ny)
-    integer, intent(in), optional       :: kx_tip, ky_tip
+    integer, intent(in), optional       :: kx_guess, ky_guess
 
     integer                 :: k1, k2
     
-    if (present(kx_tip) .and. present(ky_tip)) then
-        call findinterval_2D(k1,k2,x,y,xgrid,ygrid,Nx,Ny,kx_tip=kx_tip,ky_tip=ky_tip)
-    elseif (present(kx_tip) .and. .not.(present(ky_tip))) then
-        call findinterval_2D(k1,k2,x,y,xgrid,ygrid,Nx,Ny,kx_tip=kx_tip)
-    elseif (present(ky_tip)) then
-        call findinterval_2D(k1,k2,x,y,xgrid,ygrid,Nx,Ny,ky_tip=ky_tip)
+    if (present(kx_guess) .and. present(ky_guess)) then
+        call findinterval_2D(k1,k2,x,y,xgrid,ygrid,Nx,Ny,kx_guess=kx_guess,ky_guess=ky_guess)
+    elseif (present(kx_guess) .and. .not.(present(ky_guess))) then
+        call findinterval_2D(k1,k2,x,y,xgrid,ygrid,Nx,Ny,kx_guess=kx_guess)
+    elseif (present(ky_guess)) then
+        call findinterval_2D(k1,k2,x,y,xgrid,ygrid,Nx,Ny,ky_guess=ky_guess)
     else
         call findinterval_2D(k1,k2,x,y,xgrid,ygrid,Nx,Ny)
     endif

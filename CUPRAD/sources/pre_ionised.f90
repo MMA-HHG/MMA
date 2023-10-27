@@ -22,7 +22,7 @@ use mpi_stuff ! only for testing ot print procnumber etc., remove after
 
 implicit none
 private
-public  :: init_pre_ionisation, initial_electron_density, initial_electron_density_tip
+public  :: init_pre_ionisation, initial_electron_density, initial_electron_density_guess
 
 
 logical, public                         :: apply_pre_ionisation
@@ -91,15 +91,15 @@ end subroutine init_pre_ionisation
 
 
 !
-function initial_electron_density(r,z,reset_rtip) ! already rescaled to C.U.
+function initial_electron_density(r,z,reset_r_guess) ! already rescaled to C.U.
     real(8)                    :: initial_electron_density
     real(8)                    :: r,z 
-    logical, optional          :: reset_rtip
+    logical, optional          :: reset_r_guess
     integer                    :: kr,kz    
 
     logical, save              :: first_run = .true.
-    integer, save              :: my_first_kr_tip
-    integer, save              :: kr_tip, kz_tip
+    integer, save              :: my_first_kr_guess
+    integer, save              :: kr_guess, kz_guess
 
     if (method_geometry == 1) then
         initial_electron_density = rho0_loc;
@@ -108,43 +108,43 @@ function initial_electron_density(r,z,reset_rtip) ! already rescaled to C.U.
 
     if (first_run) then
         if ( (method_geometry == 2) .or. (method_geometry == 3) ) then
-            call findinterval(my_first_kr_tip,r,rgrid,Nr) ! obtain tip, assume it's first called at right place
-            kr_tip = my_first_kr_tip
+            call findinterval(my_first_kr_guess,r,rgrid,Nr) ! obtain guess, assume it's first called at right place
+            kr_guess = my_first_kr_guess
         endif
-        if ( (method_geometry == 2) .or. (method_geometry == 4) ) kz_tip = 1
+        if ( (method_geometry == 2) .or. (method_geometry == 4) ) kz_guess = 1
         first_run = .false.
     endif
 
-    if (present(reset_rtip)) then
-        if ( ( (method_geometry == 2) .or. (method_geometry == 3) ) .and. (reset_rtip) ) kr_tip = my_first_kr_tip
+    if (present(reset_r_guess)) then
+        if ( ( (method_geometry == 2) .or. (method_geometry == 3) ) .and. (reset_r_guess) ) kr_guess = my_first_kr_guess
     endif
 
     select case (method_geometry)
         case (2)
-            call findinterval(kr,kz,r,z,rgrid,zgrid,Nr,Nz,kx_tip=kr_tip,ky_tip=kz_tip)
-            kr_tip = kr; kz_tip = kz
+            call findinterval(kr,kz,r,z,rgrid,zgrid,Nr,Nz,kx_guess=kr_guess,ky_guess=kz_guess)
+            kr_guess = kr; kz_guess = kz
             call interpolate2D_decomposed_eq(kr,kz,r,z,initial_electron_density,rgrid,zgrid,table_2D,Nr,Nz)
             return
         case (3)  
-            call findinterval(kr,r,rgrid,Nr,k_tip=kr_tip)
-            kr_tip = kr;
+            call findinterval(kr,r,rgrid,Nr,k_guess=kr_guess)
+            kr_guess = kr;
             call interpolate1D_decomposed_eq(kr,r,initial_electron_density,rgrid,table_1D,Nr)
             return
         case (4)   
-            call findinterval(kz,z,zgrid,Nz,k_tip=kz_tip)
-            kz_tip = kz;
+            call findinterval(kz,z,zgrid,Nz,k_guess=kz_guess)
+            kz_guess = kz;
             call interpolate1D_decomposed_eq(kz,z,initial_electron_density,zgrid,table_1D,Nz)
             return   
     end select
 end function
 
-function initial_electron_density_tip(r,z,k_actual,k_first) 
-    real(8)                    :: initial_electron_density_tip
+function initial_electron_density_guess(r,z,k_actual,k_first) 
+    real(8)                    :: initial_electron_density_guess
     real(8)                    :: r,z 
     integer                    :: k_actual,k_first
 
     if (k_actual == k_first) then
-        initial_electron_density_tip = initial_electron_density(r,z,reset_rtip=.TRUE.)
+        initial_electron_density_guess = initial_electron_density(r,z,reset_r_guess=.TRUE.)
     else
         initial_electron_density_tip = initial_electron_density(r,z)
     endif
