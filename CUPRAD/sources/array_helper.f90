@@ -70,7 +70,7 @@ subroutine findinterval_1D(k1,x0,x,n,k_guess) ! returns interval where is placed
 
     ! bisection
 
-    print *, 'initial bounds:', k1, k2
+    ! print *, 'initial bounds:', k1, k2
 
     do while (length > 1)
         if ( x0 < x(k1 + (length/2)) ) then
@@ -78,7 +78,7 @@ subroutine findinterval_1D(k1,x0,x,n,k_guess) ! returns interval where is placed
         else
             k1 = k1 + (length/2)
         endif
-        print *, 'interval bounds:', k1, k2
+        ! print *, 'interval bounds:', k1, k2
         length = k2 - k1
     enddo
 
