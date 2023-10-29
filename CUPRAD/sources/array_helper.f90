@@ -18,17 +18,27 @@ END INTERFACE
 
 CONTAINS
 
-subroutine findinterval_1D(k1,x0,x,n,k_guess) ! returns interval where is placed x value, if it is out of the range, 0 is used
-!intervals are ordered: <..)<..)<..)...<..>
+!> @brief returns interval where is placed x0 value, ordering <..)<..)..<..>, extrapolation 0, n
+!!
+!! This suboroutine finds the index of the interval where 'x0' is placed within the array 'x'
+!! It uses the bisection lookup and allows for an initial guess 
+!!
+!! @param[out]      k1          the seeked index (integer)
+!! @param[in]       x0          real(8)
+!! @param[in]       x           array of real(8), specifying the partial intervals
+!! @param[in]       n           length of x (integer)
+!! @param[in,opt]   k_guess     initial guess (integer)
+subroutine findinterval_1D(k1,x0,x,n,k_guess)
     integer, intent(out)                :: k1
     integer, intent(in)                 :: n
 	real(8), intent(in)                 :: x0, x(n)
- 	integer,optional       :: k_guess
+ 	integer, optional       :: k_guess
 
     integer :: k2, length;
    
 
     k2 = n    
+
     ! check boundary cases
     if (x0 >= x(n)) then
 	    if (x0 == x(n)) then
@@ -42,14 +52,15 @@ subroutine findinterval_1D(k1,x0,x,n,k_guess) ! returns interval where is placed
         return
     endif
 
-    ! procedure with doubling the interval using initial guess
+    ! procedure with doubling the interval starting from the initial guess
+    ! + eliminating subintervals (Nelder-Mead-ish style)
     if (present(k_guess)) then
         k1 = k_guess
         length = 1
         if ( x0 >= x(k_guess) ) then
             k2 = k_guess + length
             do while ( x(k2) <= x0 )
-                k1 = k2
+                k1 = k2                     
                 length = 2*length
                 k2 = min(k_guess+length,n)
             enddo
@@ -69,16 +80,12 @@ subroutine findinterval_1D(k1,x0,x,n,k_guess) ! returns interval where is placed
     endif
 
     ! bisection
-
-    ! print *, 'initial bounds:', k1, k2
-
     do while (length > 1)
         if ( x0 < x(k1 + (length/2)) ) then
             k2 = k1 + (length/2)
         else
             k1 = k1 + (length/2)
         endif
-        ! print *, 'interval bounds:', k1, k2
         length = k2 - k1
     enddo
 

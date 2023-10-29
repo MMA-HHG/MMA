@@ -4,14 +4,12 @@ use array_helper
 
 implicit none
 
-integer, parameter          :: N_arrs = 3, N_elem=6, N1_test = 2*N_elem + 1, N_elem_max = 4
+integer, parameter          :: N_elem_max = 3000
 integer                     :: k1, k2, k3, k4, k_found, k_found_guess
-real(8), allocatable        :: testvals(:), array(:) ! (N_elem) = (/ (real(k1,8), k1=0, N_elem-1) /)
+real(8), allocatable        :: testvals(:), array(:)
 
-! real(8), allocatable(:)     :: testvals = (/ (-.5d0 + .5*k1, k1=0, N1_test-1) /)
 
-integer                     :: indexes_noguess(N_arrs,N1_test), indexes_guess(N_arrs,N1_test)
-logical                     :: works_for_all_guesses, found_correctly
+logical                     :: works_for_all_guesses, found_correctly, test_passed
 
 
 ! print *, 'array32:', array32
@@ -20,34 +18,30 @@ logical                     :: works_for_all_guesses, found_correctly
 
 k2=0; k4 = 0
 k_found = 0; k_found_guess = 0
+test_passed = .true.
 do k1 = 2, N_elem_max
 
     array = (/ (real(k2,8), k2=0, k1-1) /)
     testvals = (/ (-.5d0 + .5*k2, k2=0, 2*k1 + 1) /)
 
-    print *, array
-    print *, '---'
-    print *, testvals
-
     print *, '---------------------------------------'
+    print *, 'testing N_interval=', k1
 
     found_correctly = .true.
     do k2 = 1, 2*k1 + 1
         call findinterval_1D(k_found,testvals(k2),array,k1)
 
-        print *, 'value', testvals(k2) ,'interval', k_found, (k_found == k2/2), k2, k1
+        ! print *, 'value', testvals(k2) ,'interval', k_found, (k_found == k2/2), k2, k1
 
         if (k2 /= 2*k1) then
-            if (k_found == k2/2) then
-                print *, 'correct'
-            else
-                print *, 'fail'
+            if (k_found /= k2/2) then
+                print *, '!!! FAIL while finding the value', testvals(k2)
+                found_correctly = .false.
             endif
         else
-            if (k_found == (k1-1)) then
-                print *, 'correct'
-            else
-                print *, 'fail'
+            if (k_found /= (k1-1)) then
+                print *, '!!! FAIL while finding the value', testvals(k2)
+                found_correctly = .false.
             endif
         endif
 
@@ -57,32 +51,24 @@ do k1 = 2, N_elem_max
             if (k_found /= k_found_guess)  then
                 works_for_all_guesses = .false.
                 found_correctly = .false.
-                print *, 'problem for the guess:', k3
+                print *, '!!! FAIL for the guess:', k3, 'while finding the value', testvals(k2)
             endif
         enddo
-        if (works_for_all_guesses) print *, 'Works for all guesses.'
-
     enddo
-
-    ! print *, 'arr5', 'value', testvals(k1)
-    ! call findinterval_1D(k2,testvals(k1),array5,N_elem)
-
-    ! works_for_all = .true.
-    ! do k3 = 1, N_elem-1
-    !     print *, '---- next guess ----'
-    !     call findinterval_1D(k4,testvals(k1),array5,N_elem,k_guess=k3)
-    !     if (k2 /= k4)  then
-    !         works_for_all = .false.
-    !         print *, 'problem for the guess:', k3
-    !     endif
-    ! enddo
-    ! print *, 'interval', k2
-    ! if (works_for_all) print *, 'Works for all guesses.'
-    ! print *,
+    if (found_correctly) then
+        print *, 'Works fine'
+    else
+        print *, '!!! TABLE LOOKUP FAILED, look above for details'
+        test_passed = .false.
+    endif
 
 enddo
 
-
-
+print *, '---------------------------------------'
+if (test_passed) then
+    print *, 'SUCCESS! Test works for all values and guesses'
+else
+    print *, '!!! TEST FAILED !!!'
+endif
 
 end program test_bisection_search
