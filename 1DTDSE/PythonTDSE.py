@@ -4,6 +4,7 @@ Python TDSE
 """
 
 from ctypes import *
+from typing import Any
 import h5py
 import numpy as np
 import matplotlib.pyplot as plt
@@ -11,40 +12,132 @@ from matplotlib.colors import LogNorm, Normalize
 
 ### Return ctypes array to pointer
 def ctypes_arr_ptr(ctype_, size_, arr_):
+    """
+    Creates ctypes array from a numpy array
+
+    Parameters:
+    -----------
+    ctype_:
+        Data type of the array.
+    size_: int
+        Size of the ctypes array.
+    arr_:
+        1D list or numpy array containing the data.
+
+    Returns:
+    --------
+    ctypes pointer to an array
+    """
     arr = ctype_ * size_
     return arr(*arr_)
 
 ### return numpy array from c_types array
 def ctype_arr_to_numpy(c_arr, size):
+    """
+    Returns numpy array from a Ctypes array.
+
+    Parameters:
+    -----------
+    c_arr: 
+        Pointer to C array.
+    size: int
+        Array size.
+
+    Returns:
+    --------
+    numpy array with the C array data
+    """
     return np.array([c_arr[i] for i in range(size)])
 
 ### return numpy array from c_types array of complex numbers
 def ctype_cmplx_arr_to_numpy(c_arr, size):
+    """
+    Returns complex numpy array from a Ctypes array. Data in complex ctype array
+    is stored as: z = c_arr[2*j] + i * c_arr[2*j+1], j = 0, .., size-1.
+
+    Parameters:
+    -----------
+    c_arr: 
+        Pointer to C array.
+    size: int
+        Array size.
+
+    Returns:
+    --------
+    numpy array with the C array data
+    """
     return np.array([c_arr[2*i]+1j*c_arr[2*i+1] for i in range(size)])
 
 ### Return numpy array from c_types matrix of wavefunction values
 def get_wavefunction(c_arr, timesteps, wf_size):
+    """
+    Returns complex numpy ND-array wavefunction from a Ctypes matrix. Data in complex ctype array
+    is stored as: z = c_arr[2*j] + i * c_arr[2*j+1], j = 0, .., size-1.
+
+    Parameters:
+    -----------
+    c_arr: 
+        Pointer to C array.
+    timesteps: int
+        Number of stored wavefunctions in time.
+    wf_size: int
+        Size of a single wavefunction.
+
+    Returns:
+    --------
+    numpy ND-array with the C array data
+    """
     return np.array([[c_arr[i][2*j] + 1j*c_arr[i][2*j+1] for j in range(wf_size)] for i in range(timesteps)])
 
 def ctype_mtrx_to_numpy(c_arr, N_rows, N_cols):
+    """
+    Returns numpy ND-array from a Ctypes matrix. 
+
+    Parameters:
+    -----------
+    c_arr: 
+        Pointer to C array.
+    N_rows: int
+        Number of rows.
+    N_cols: int
+        Number of columns.
+
+    Returns:
+    --------
+    numpy ND-array with the C array data
+    """
     return np.array([[c_arr[i][j] for j in range(N_cols)] for i in range(N_rows)])
 
 
 ### Physical constants
-Ip_HeV = 27.21138602
+Ip_HeV = 27.21138602 
+"""Ionisation potential"""
 hbar = 1.054571800e-34
+"""Planck constant"""
 alpha_fine = 1/137.035999139
+"""Fine structure constant"""
 c_light = 299792458.
+"""Speed of light in vacuum"""
 elcharge = 1.602176565e-19
+"""Electron charge"""
 elmass = 9.10938356e-31
+"""Electron mass"""
 mu0 = 4.0*np.pi*1e-7
+"""Magnetic permeability"""
 eps0 = 1.0/(mu0*c_light*c_light)
+"""Vacuum permitivity"""
 r_Bohr = 4.0*np.pi*eps0*hbar*hbar/(elmass*elcharge*elcharge)
+"""Bohr radius"""
 TIMEau = (elmass*r_Bohr*r_Bohr)/hbar
+"""Atomic unit of time"""
 EFIELDau = hbar*hbar/(elmass*r_Bohr*r_Bohr*r_Bohr*elcharge)
+"""Atomic unit of field intensity"""
 k_Boltz = 1.38064852e-23
+"""Boltzmann constant"""
 absolute_zero = -273.15
+"""Absolute zero temperature"""
 torr2SI = 101325./760.
+"""Torr to SI conversion factor"""
     
 def plot_colormap(
         y_axis, 
@@ -275,7 +368,57 @@ class output_print_def(Structure):
 class inputs_def(Structure):
     """
     Input structure with input data for the 1DTDSE computation.
+
+    Attributes:
+    -----------
+    trg:
+        Target definition structure.
+    Efield:
+        Electric field structure.
+    Eguess:
+        GS energy.
+    Einit:
+        Initial guess for the GS computation.
+    tmin:
+        Minimum time.
+    Nt:
+        TDSE temporal resolution.
+    num_t:
+        Number of points per 800nm field cycle.
+    dt:
+        Time step.
+    num_r:
+        TDSE spatial resolution.
+    dx:
+        Spatial step.
+    psi0:
+        Ground state (GS) wavefunction.
+    x:
+        Spatial grid.
+    gauge:
+        TDSE gauge: 0 == length, 1 == velocity (not implemented yet!)
+    x_int:
+        Electron density in range (x-x_int, x+x_int)
+    analy:
+        Analytical values print.
+    InterpByDTorNT:
+        Interpolate by timestep (dt) or by resolution (Nt)
+    PrintOutputMethod:
+        Print standard output (0 - only text, 1 - only binaries, 2 - both)
+    textend:
+        Extension of calculation after the field end (not yet implemented!)
+    Print:
+        Output prints structure.
+    CV:
+        Convergence of the GS.
+    Precision:
+        Floating point precision.
     """
+
+    def __init__(self, *args: Any, **kw: Any):
+        super().__init__(*args, **kw)
+        self.ptr = byref(self)
+
     _fields_ = [
         ("trg", trg_def),
         ("Efield", Efield_var),
@@ -289,34 +432,28 @@ class inputs_def(Structure):
         ("num_exp", c_int),
         ("dx", c_double),
         ("psi0", POINTER(c_double)),
-        ("psi", POINTER(c_double)),
         ("x", POINTER(c_double)),
-        ("ton", c_double),
-        ("toff", c_double),
-        ("timet", POINTER(c_double)),
-        ("dipole", POINTER(c_double)),
         ("gauge", c_int),
-        ("transformgauge", c_int),
         ("x_int", c_double),
         ("analy", analy_def),
         ("InterpByDTorNT", c_int),
         ("Ntinterp", c_int),
-        ("PrintGaborAndSpectrum", c_int),
         ("PrintOutputMethod", c_int),
         ("textend", c_double),
-        ("dtGabor", c_double),
-        ("tmin1window", c_double),
-        ("tmin2window", c_double),
-        ("tmax1window", c_double),
-        ("tmax2window", c_double),
-        ("a_Gabor", c_double),
-        ("omegaMaxGabor", c_double),
         ("Print", output_print_def),
         ("CV", c_double),
         ("precision", c_char * 2)
     ]
 
     def init_inputs(self, filename):
+        """
+        Initializes input structure from an HDF5 archive.
+
+        Parameters:
+        -----------
+        filename: str
+            Path to hdf5 archive.
+        """
         with h5py.File(filename, "r") as f:
             self.Eguess = c_double(f["TDSE_inputs/Eguess"][()])
             self.num_r = c_int(f["TDSE_inputs/N_r_grid"][()])
@@ -329,14 +466,6 @@ class inputs_def(Structure):
             self.analy.writewft = c_int(f["TDSE_inputs/analy_writewft"][()])
             self.analy.tprint = c_double(f["TDSE_inputs/analy_tprint"][()])
             self.x_int = c_double(f["TDSE_inputs/x_int"][()])
-            self.PrintGaborAndSpectrum = c_int(f["TDSE_inputs/PrintGaborAndSpectrum"][()])
-            self.a_Gabor = c_double(f["TDSE_inputs/a_Gabor"][()])
-            self.omegaMaxGabor = c_double(f["TDSE_inputs/omegaMaxGabor"][()])
-            self.dtGabor = c_double(f["TDSE_inputs/dtGabor"][()])
-            self.tmin1window = c_double(f["TDSE_inputs/tmin1window"][()])
-            self.tmax1window = c_double(f["TDSE_inputs/tmax1window"][()])
-            self.tmin2window = c_double(f["TDSE_inputs/tmin2window"][()])
-            self.tmax2window = c_double(f["TDSE_inputs/tmax2window"][()])
             self.PrintOutputMethod = c_int(f["TDSE_inputs/PrintOutputMethod"][()])
             self.trg.a = c_double(f["TDSE_inputs/trg_a"][()])
             self.CV = c_double(f["TDSE_inputs/CV_criterion_of_GS"][()])
@@ -362,6 +491,12 @@ class inputs_def(Structure):
                             PrintOutputMethod = 1,
                             precision = np.string_('d')
                             ):
+        """
+        Initializes default inputs for running 1D-TDSE with custom parameters 
+        within Python API.
+
+        For details of the arguments see ```inputs_def``` structure.
+        """
         
         self.Eguess = c_double(Eguess)
         self.num_r = c_int(num_r)
@@ -388,7 +523,22 @@ class inputs_def(Structure):
         self.Print = set_prints()
 
     def init_time_and_field(self, filename = "", z_i = 0, r_i = 0, E = None, t = None):
+        """
+        Initializes field and temporal grid from custom arrays or from an hdf5 archive.
 
+        Parameters:
+        -----------
+        filename: str, optional, default {""}
+            HDF5 filename.
+        z_i: int, optional, default {0}
+            Index along z-axis in CUPRAD field.
+        r_i: int, optional, default {0}
+            Index along r-axis in CUPRAD field.
+        E: optional, default {None}
+            Electric field array.
+        t: optional, default {None}
+            Time array.
+        """
         if (filename != "") and (E is None or t is None):
             f = h5py.File(filename, "r")
             field_shape = f["outputs/output_field"].shape
@@ -407,9 +557,6 @@ class inputs_def(Structure):
             
             Nt = len(tgrid)
             self.Efield.Nt = Nt
-            #t = c_double * Nt
-            #t = t(*tgrid)
-            #self.Efield.tgrid = t
             ### Init temporal grid
             self.Efield.tgrid = ctypes_arr_ptr(c_double, Nt, tgrid)
             self.Efield.Field = ctypes_arr_ptr(c_double, Nt, field)
@@ -423,28 +570,81 @@ class inputs_def(Structure):
             self.Efield.Field = ctypes_arr_ptr(c_double, Nt, E)
             ### Do not interpolate
             #self.InterpByDTorNT = c_int(1)
+        
+    def delete(self, DLL):
+        """
+        Frees structure memory.
+        """
+        DLL.free_inputs(self.ptr)
             
-
 class outputs_def(Structure):
+    """
+    Output structure
+
+    Attributes:
+    -----------
+    tgrid:
+        Temporal grid.
+    Efield:
+        Electric field.
+    sourceterm:
+        Source term for Maxwell eqs.: <-grad V> - E term
+    omegagrid:
+        Frequency grid.
+    FEfield:
+        Field spectrum.
+    FEfield_data:
+        Field frequencies (positive frequencies only).
+    FSourceterm:
+        Source term spectrum (positive frequencies only).
+    FSourceterm_data:
+        Source term frequencies (positive frequencies only).
+    FEfieldM2:
+        Modulus squared of field spectrum (positive frequencies only)
+    FsourcetermM2:
+        Modulus squared of source term spectrum (positive frequencies only)
+    PopTot:
+        Total population of the ground state.
+    PopInt:
+        Ionization probability.
+    expval:
+        Expectation value of electron position.
+    Nt:
+        Temporal resolution.
+    Nomega:
+        Frequency grid resolution.
+    psi:
+        Wavefunction.
+    
+    """
+    def __init__(self, *args: Any, **kw: Any):
+        super().__init__(*args, **kw)
+        self.ptr = byref(self)
+
     _fields_ = [
         ("tgrid", POINTER(c_double)),
         ("Efield", POINTER(c_double)),
         ("sourceterm", POINTER(c_double)),
         ("omegagrid", POINTER(c_double)),
         ("FEfield", POINTER(POINTER(c_double))),
-        ("FEfield_data", POINTER(POINTER(c_double))),
+        ("FEfield_data", POINTER(c_double)),
         ("Fsourceterm", POINTER(POINTER(c_double))),
         ("Fsourceterm_data", POINTER(c_double)),
         ("FEfieldM2", POINTER(c_double)),
         ("FsourcetermM2", POINTER(c_double)),
         ("PopTot", POINTER(c_double)),
-        ("sourcetermfiltered", POINTER(c_double)),
         ("PopInt", POINTER(c_double)),
         ("expval", POINTER(c_double)),
         ("Nt", c_int),
         ("Nomega", c_int),
         ("psi", POINTER(POINTER(c_double)))
     ]
+
+    def delete(self, DLL):
+        """
+        Frees structure memory.
+        """
+        DLL.free_outputs(self.ptr)
 
 class TDSE_DLL:
     """

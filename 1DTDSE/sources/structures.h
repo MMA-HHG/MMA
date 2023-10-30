@@ -173,22 +173,10 @@ typedef struct inputs_def {
 	double dx;
 	// Initial wavefunction
 	double *psi0;
-	// Wavefunction in time t
-	double *psi;
 	// Spatial grid for the TDSE
 	double *x;
-	// Start of the envelope
-	double ton;
-	// End of the envelope
-	double toff;
-	// Time grid TDSE
-	double *timet;
-	// TDSE dipole
-	double *dipole;
 	// Choice of gauge
 	int gauge;
-	// Gauge transform
-	int transformgauge;
 	// Integration limit for the ionization computation, note: 2 works fine with the lenth gauge and strong fields
 	double x_int;
 	// Specifies output dataset
@@ -226,8 +214,6 @@ typedef struct outputs_def{
 	double *FsourcetermM2;
 	// Population of the ground state
 	double *PopTot;
-	// Filtered source term
-	double *sourcetermfiltered;
 	// Ionization probability
 	double *PopInt;
 	// Expectation value of x

@@ -48,15 +48,6 @@ trg_a	1.3677	R	a.u. # |Krypton Ip = 0.5145 a.u. a = 1.3677, Argon Ip = 0.5792 a 
 ## Analyses
 analy_writewft	0	I	- # Write wavefunction (0 == False, 1 == True)
 analy_tprint	10.	R	- # Write wavefunction every dt = analy_tprint
-PrintGaborAndSpectrum	0	I	- 
-a_Gabor	8	R	a.u.
-omegaMaxGabor	60	R	a.u.
-dtGabor	10	R	a.u.
-
-tmin1window	2000	R	a.u.
-tmax1window	5000	R	a.u.
-tmin2window	5250	R	a.u.
-tmax2window	10000	R	a.u.
 
 PrintOutputMethod	1	I	-
 
