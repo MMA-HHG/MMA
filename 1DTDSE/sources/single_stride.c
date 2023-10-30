@@ -26,7 +26,7 @@ hid_t filespace, dataspace_id, dataset_id, dset_id, dspace_id;
 // Input structure
 inputs_def inputs;
 // Output structure
-outputs_def * outputs;
+outputs_def outputs;
 
 // Iterable
 int k1;
@@ -172,7 +172,7 @@ int main()
 
     // do the TDSE calculation
     printf("Starting the computation.\n");
-    call1DTDSE(&inputs, outputs); // THE TDSE
+    call1DTDSE(&inputs, &outputs); // THE TDSE
 
     // resize grids
     int Nr_coarse, Nz_coarse;
@@ -190,8 +190,8 @@ int main()
     // Create a new temporary HDF5 file	
     file_id = H5Fcreate (local_filename, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
 
-    prepare_local_output_fixed_print_grids_h5(file_id, "", &h5error, &inputs, outputs, 1, dims);
-    print_local_output_fixed_h5(file_id,"", &h5error, &inputs, outputs, 1, 0, 0);
+    prepare_local_output_fixed_print_grids_h5(file_id, "", &h5error, &inputs, &outputs, 1, dims);
+    print_local_output_fixed_h5(file_id,"", &h5error, &inputs, &outputs, 1, 0, 0);
 
     // print coarser grids
     hsize_t output_dims[2];
@@ -209,7 +209,7 @@ int main()
     // Close .h5 file
     h5error = H5Fclose(file_id); 
     // clean outputs
-    outputs_destructor(outputs); 
+    outputs_destructor(&outputs); 
     // clean inputs
     inputs_destructor(&inputs);
 

@@ -28,8 +28,6 @@ hid_t filespace, dataspace_id, dataset_id, dset_id, dspace_id;
 
 // Input structure
 inputs_def inputs;
-// Output structure
-outputs_def * outputs;
 
 // Iterable
 int k1;
@@ -140,7 +138,7 @@ int main(int argc, char *argv[])
 
 	// Prepare the ground state (it's the state of the atom before the interaction)
 	Initialise_grid_and_ground_state(&inputs);
-
+	
 	// Counter - queue length
 	int Ntot = dim_r*dim_z; 	
 
@@ -152,6 +150,8 @@ int main(int argc, char *argv[])
 	First simulation prepares the outputfile (we keep it for the purpose of 
 	possible generalisations for parallel output).
 	*/
+	// Output structure
+	outputs_def outputs;
 
 	// Adjusts local simulation number by addition of the number of processors
 	// to the initial simulation number Nsim (now non-negative value).
@@ -191,7 +191,7 @@ int main(int argc, char *argv[])
 		}
 
 		// do the TDSE calculation
-		call1DTDSE(&inputs, outputs); 
+		call1DTDSE(&inputs, &outputs); 
 
 		// resize grids
 		int Nr_coarse, Nz_coarse;
@@ -210,9 +210,9 @@ int main(int argc, char *argv[])
 		// Create a new temporary HDF5 file	
 		file_id = H5Fcreate (local_filename, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
 		// Allocate space within temporary HDF5 file
-		prepare_local_output_fixed_print_grids_h5(file_id, "", &h5error, &inputs, outputs, Ntot/nprocs + 1, dims);
+		prepare_local_output_fixed_print_grids_h5(file_id, "", &h5error, &inputs, &outputs, Ntot/nprocs + 1, dims);
 		// Write output into the temporary HDF5 file
-		print_local_output_fixed_h5(file_id,"", &h5error, &inputs, outputs, Ntot/nprocs + 1, Nsim, Nsim_loc);
+		print_local_output_fixed_h5(file_id,"", &h5error, &inputs, &outputs, Ntot/nprocs + 1, Nsim, Nsim_loc);
 
 		// print coarser grids
 		hsize_t output_dims[2];
@@ -229,7 +229,7 @@ int main(int argc, char *argv[])
 		// Close .h5 file
 		h5error = H5Fclose(file_id); 
 		// clean outputs
-		outputs_destructor(outputs); 
+		outputs_destructor(&outputs); 
 
 		// Free memory
 		free(rgrid_coarse); 
@@ -283,17 +283,17 @@ int main(int argc, char *argv[])
 		}
 
 		// do the calculation
-		call1DTDSE(&inputs, outputs); // THE TDSE  
+		call1DTDSE(&inputs, &outputs); // THE TDSE  
 
 		// open file again
 		file_id = H5Fopen(local_filename, H5F_ACC_RDWR, H5P_DEFAULT); 
-		print_local_output_fixed_h5(file_id, "", &h5error, &inputs, outputs, 
+		print_local_output_fixed_h5(file_id, "", &h5error, &inputs, &outputs, 
 									Ntot/nprocs + 1, Nsim, Nsim_loc);
 		// close file
 		h5error = H5Fclose(file_id); 
 		
 		// free memory
-		outputs_destructor(outputs);
+		outputs_destructor(&outputs);
 		nxtval_strided(nprocs,&Nsim); 
 		Nsim_loc++;
 		

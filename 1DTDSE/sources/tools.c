@@ -199,7 +199,7 @@ double * window_analysis(inputs_def inputs, double *psi, int num_E, double dE, d
 	// Photoelectron spectrum for 1 energy value
 	double prob;
 	// Iterables
-	int i, j;
+	int i, j, k1;
 	// Diagonals of the Hamiltonian matrix
 	double *diagonal, *off_diagonal;
 	// x grid
@@ -230,7 +230,7 @@ double * window_analysis(inputs_def inputs, double *psi, int num_E, double dE, d
 	PES = calloc(num_E, sizeof(double));
 
 	// Declare diagonals (complex)
-	for(int k1 = 0; k1 <= num_r; k1++)
+	for (k1 = 0; k1 <= num_r; k1++)
 	{
 		x[k1] = (double)k1 * dx - xmax;
 		off_diagonal[2*k1] = -0.5/(dx*dx); 
@@ -317,7 +317,7 @@ double * projection_analysis_EV(inputs_def inputs, double *psi, int num_E, doubl
 	int num_r = inputs.num_r;
 	double xmax = 0.5*num_r*dx;
 	double *projection;
-	int i, j;
+	int i, j, k1;
 	
 	off_diagonal = calloc(2*(num_r+1),sizeof(double));
 	diagonal = calloc(2*(num_r+1),sizeof(double));	
@@ -326,7 +326,7 @@ double * projection_analysis_EV(inputs_def inputs, double *psi, int num_E, doubl
 	psi_EV = calloc(2*(num_r+1),sizeof(double));
 
 	// Declare diagonals (complex)
-	for(int k1 = 0; k1 <= num_r; k1++)
+	for (k1 = 0; k1 <= num_r; k1++)
 	{
 		x[k1] = (double)k1 * dx - xmax;
 		off_diagonal[2*k1] = -0.5/(dx*dx); 
@@ -337,10 +337,10 @@ double * projection_analysis_EV(inputs_def inputs, double *psi, int num_E, doubl
 
 	CV = 1E-10; // CV criteria  
 		
-	for(i = 0; i < num_E; i++)
+	for (i = 0; i < num_E; i++)
 	{
 		// Initialise psi_EV for Einitialise
-		for(j = 0; j <= num_r; j++) {
+		for (j = 0; j <= num_r; j++) {
 			psi_EV[2*j] = 1; 
 			psi_EV[2*j+1] = 0.;
 		}
@@ -353,7 +353,7 @@ double * projection_analysis_EV(inputs_def inputs, double *psi, int num_E, doubl
 
 		ps_re = 0; 
 		ps_im = 0;
-		for(j = 0; j <= num_r; j++)
+		for (j = 0; j <= num_r; j++)
 		{
 			ps_re += (psi[2*j]*psi_EV[2*j]-psi[2*j+1]*psi_EV[2*j+1])*x[j];
 			ps_im += (psi[2*j]*psi_EV[2*j+1]+psi[2*j+1]*psi_EV[2*j])*x[j];

@@ -239,7 +239,7 @@ double * propagation(inputs_def *inputs, outputs_def *outputs)
 		
 		// Compute expectation values: position, current, grad V, population
 		compute_expectation_values(inputs, k, psi, outputs);
-
+		
 		// Save wavefunction to outputs
 		if (inputs->analy.writewft) {
 			if (k%steps_per_dt == 0 && i_wf < size-1) {
