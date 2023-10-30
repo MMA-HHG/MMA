@@ -23,7 +23,7 @@ with h5py.File(results_file[0], 'r') as InputArchive:
     # pass
 
 
-inp_part_path = os.environ['TDSE_1D_HOME']+'/processing/TDSE_scan1/FreeFormInputsTDSE_Xpl_stab.inp'
+inp_part_path = os.environ['TDSE_1D_HOME']+'/TDSE_input_params.inp'
 content = 'Nz_max\t'+str(Nz)+'\tI\t-\n' # Nz_max  1250 I   -
 
 with open(inp_part_path,'r') as inp_part, open('TDSE.inp.tmp','w') as inp_tmp:
