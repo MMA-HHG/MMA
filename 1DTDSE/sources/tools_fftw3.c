@@ -171,6 +171,8 @@ double ** GaborTransform(double *signal, double dt, int N, int N_freq, int N_t, 
 	double dt_G;
 	// Gabor transform array
 	double **gabor_transform;
+	// Iterables
+	int i, j;
 
 	// Set variables
 	a = 1.0/a;
@@ -180,7 +182,7 @@ double ** GaborTransform(double *signal, double dt, int N, int N_freq, int N_t, 
 
 	// Allocate arrays
 	gabor_transform = malloc(sizeof(double *) * N_t);
-	for (int j = 0; j < N_t; j++) {
+	for (j = 0; j < N_t; j++) {
 		gabor_transform[j] = calloc(N_freq, sizeof(double));
 	}
 	in = calloc(2*Nc, sizeof(double));	
@@ -189,10 +191,10 @@ double ** GaborTransform(double *signal, double dt, int N, int N_freq, int N_t, 
 	// DFT normalization coefficient dt/sqrt(2 \pi)
 	norm = dt/sqrt(2.*Pi);
 
-	for(int i = 0; i < N_t; i++) // gabor loop
+	for (i = 0; i < N_t; i++) // gabor loop
 	{
 
-		for(int j = 0; j < N; j++) {
+		for(j = 0; j < N; j++) {
 			in[j]= exp(-pow(a * (((double)j)*dt - (t_min + ((double)i)*dt_G)), 2.)) * signal[j];
 		} 
 		
@@ -201,7 +203,7 @@ double ** GaborTransform(double *signal, double dt, int N, int N_freq, int N_t, 
 		// Run FFTW
 		fftw_execute(p); 
 
-		for(int j = 0; j < N_freq; j++) {
+		for(j = 0; j < N_freq; j++) {
 			gabor_transform[i][j] = norm * sqrt((out[j][0]*out[j][0] + out[j][1]*out[j][1]));
 		}
 	}

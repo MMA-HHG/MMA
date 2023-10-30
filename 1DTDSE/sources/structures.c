@@ -46,7 +46,8 @@ void inputs_destructor(inputs_def *in)
  * @param N_rows Number of rows in the matrix.
  */
 void free_mtrx(double ** buf, int N_rows) {
-	for (int i = 0; i < N_rows; i++) {
+	int i;
+	for (i = 0; i < N_rows; i++) {
 		free(buf[i]);
 	}
 	free(buf);
