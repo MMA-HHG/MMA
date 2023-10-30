@@ -6,72 +6,35 @@ The code offers multiple binaries and interactive interfaces for various tasks:
 * **single-CTDSE**: evaluation of a single microscopic response for only one field from from the macroscopic CUPRAD field
 * **CTDSE as a dynamic library**: interactive Python interface wrapping C routines for the propagation enabling advanced analysis of the microscopic response as well as the ability to impose arbitrary electric field. 
 
-The default recipe allows to install all the binaries. We provide also a simpler installation for the *CTDSE as a dynamic library* in
+The default recipe allows to install all the binaries. We provide also a simpler installation for the *CTDSE as a dynamic library*.
 
 # Table of contents
-1. [Install only the dynamic CTDSE library](#install-only-the-dynamic-CTDSE-library)
-1. [Install](#install)
+1. [Install CTDSE](#install)
    1. [Dependencies](#dependencies)
    2. [Setup environment variables](#setup-environment-variables)
    3. [CMake installation](#cmake-installation)
-   4. [Advanced compilation options](#advanced-compilation-options)
-   5. [Python-TDSE library compilation](#python-tdse-library-compilation)
-2. [User Guide](#user-guide)
+   <!--4. [Advanced compilation options](#advanced-compilation-options)
+   4. [Python-TDSE library compilation](#python-tdse-library-compilation) -->
+2. [Install only the dynamic CTDSE library](#install-only-the-dynamic-CTDSE-library)
+   1. [Dependencies](#dependencies-1)
+   2. [CMake installation](#cmake-installation-1)
+3. [User Guide](#user-guide)
    1. [MPI scheduler for the CUPRAD output](#mpi-scheduler-for-the-cuprad-output)
    2. 
 
 
-
-# Install only the dynamic CTDSE library
-This installation requires only a c-compiler and fftw3 library.
-
-Here is the way to install it using cmake, replace `CMakeLists.txt` by
-Replace the 
-```
-### CMake file for The dynamic 1D-TDSE library
-cmake_minimum_required(VERSION 3.13)
-
-project(TDSE)
-enable_language(C)      
-
-message("Compiler: ${CMAKE_C_COMPILER}")
-message("Compiler ID: ${CMAKE_C_COMPILER_ID}")
-
-if(${CMAKE_C_COMPILER_ID} MATCHES Intel)
-    set(MKL_INCLUDE_DIRS ${MKLROOT}/include/fftw)
-    set(MKL_LIB_DIRS ${MKLROOT}/lib)
-    set(FFTW_LIBS mkl_gf_lp64 mkl_sequential mkl_core)
-elseif(${CMAKE_C_COMPILER_ID} MATCHES GNU)
-    find_library(fftw3 fftw3)
-    set(FFTW_LIBS fftw3) 
-elseif(${CMAKE_C_COMPILER_ID} MATCHES AppleClang)
-    find_library(fftw3 fftw3)
-    set(FFTW_LIBS fftw3 fftw3_mpi)
-else()
-    message(FATAL_ERROR "Unsupported C compiler: ${CMAKE_C_COMPILER}")
-endif()
-
-set(SOURCE_DLL sources/constants.c sources/tools_algorithmic.c 
-	sources/tridiag.c sources/tools_fftw3.c sources/structures.c 
-	sources/tools.c sources/prop.c sources/singleTDSE.c)
-
-set(TDSE_LIB singleTDSE)
-
-add_library(${TDSE_LIB} SHARED ${SOURCE_DLL})
-target_link_libraries(${TDSE_LIB} PRIVATE ${FFTW_LIBS} ${HDF5_LIBRARIES})
-target_include_directories(${TDSE_LIB} PRIVATE ${HDF5_INCLUDE_DIRS})
-target_link_options(${TDSE_LIB} PRIVATE -fPIC)
-```
 # Install CTDSE as a part of the multiscale model
 ## Dependencies
 Before installing CTDSE, a few dependencies are required:
 * a **C compiler** (GNU/Intel),
 * **CMake** utility,
-* an **MPI** library (),
+* an **MPI** library,
 * an **HDF5** library,
 * an **FFTW3** library (for GNU) OR corresponding **MKL** library containing FFTW3 libraries compatible with Intel C compiler,
 * **Python** (3.+) with *h5py, ctypes, numpy, matplotlib* modules.
 * **Universal inputs** Python module (see README in the home directory of CUPRAD_TDSE_Hankel)
+
+**NOTE**: MPI library is not required for **single-CTDSE** code. *If MPI is not found on the system*, the following steps apply, however, **MPI-CTDSE** *will not be built!*
 
 ## Setup environment variables
 
@@ -94,40 +57,120 @@ where ```MKLROOT``` is a variable pointing towards the MKL installation and is s
 CMake utility is used to build a Makefile that eventually builds the CDTSE code. 
 
 1. First move into the CTDSE root directory and create a new directory ```build``` and move into this directory as follows
-```shell
-# PWD = ../CUPRAD_TDSE_Hankel/1DTDSE
-mkdir build
-cd build
-```
-2. The next step involves invoking ```cmake``` command and specification of the compiler. For GNU compiler do the following:
-```shell
-# GNU Compiler = mpicc
-cmake -D CMAKE_C_COMPILER=mpicc ..
-```
-For Intel compiler do:
-```shell
-# Intel Compiler = mpiicc
-cmake -D CMAKE_C_COMPILER=mpiicc ..
-```
+   ```shell
+   # PWD = ../CUPRAD_TDSE_Hankel/1DTDSE
+   mkdir build
+   cd build
+   ```
+2. The next step involves invoking ```cmake``` command and specification of the compiler.   For GNU compiler do the following:
+   ```shell
+   # GNU Compiler = mpicc
+   cmake -D CMAKE_C_COMPILER=mpicc ..
+   ```
 
-If all the environment variables were set properly (see section [Setup environment variables](#setup-environment-variables)) or modules loaded correctly, CMake should generate a new ```Makefile``` file in the ```build``` directory. 
+   For Intel compiler do:
+   ```shell
+   # Intel Compiler = mpiicc
+   cmake -D CMAKE_C_COMPILER=mpiicc ..
+   ```
+
+   If all the environment variables were set properly (see section [Setup environment variables](#setup-environment-variables)) or modules loaded correctly, CMake should generate a new ```Makefile``` file in the ```build``` directory. 
 
 3. The code is then compiled with the ```make``` command:
-```shell
-# PWD = ../CUPRAD_TDSE_Hankel/1DTDSE/build
-make
-```
+	```shell
+	# PWD = ../CUPRAD_TDSE_Hankel/1DTDSE/build
+	make
+	```
 4. If no error was displayed, the following files were generated by the makefile: ```TDSE.e```, ```TDSE_stride.e```, ```libsingleTDSE.so``` (or ```libsingleTDSE.dylib``` dependending on the system)
 
+**NOTE**: ```CMAKE_C_COMPILER``` variable can also be set to ```gcc``` (for GNU compiler) or ```icc``` (for Intel compiler). This is necessary for building only **single-CTDSE** and **CTDSE as dynamic library** without an MPI library (necessary for **MPI-CTDSE**).
+
 ### Built targets
-* ```TDSE.e```: MPI scheduler for execution of the parallel computation of the microscopic response for the field from CUPRAD,
-* ```TDSE_stride.e```: serial code for running 1D-TDSE on a single output from the CUPRAD field. 
-* ```libsingleTDSE.so```: core C dynamic library for running the 1DTDSE from the interactive Python environment. 
+* ```TDSE.e``` (**MPI-CTDSE**): MPI scheduler for execution of the parallel computation of the microscopic response for the field from CUPRAD,
+* ```TDSE_stride.e``` (**Single-CTDSE**): serial code for running 1D-TDSE on a single output from the CUPRAD field. 
+* ```libsingleTDSE.so``` (**CTDSE as a dynamic library**): core C dynamic library for running the 1DTDSE from the interactive Python environment. 
 <!--
 ## Advanced compilation options
 
 ## Python-TDSE library compilation
 -->
+
+
+# Install only the dynamic CTDSE library
+
+For some usecases it might be sufficient to only compile the CTDSE library for running the code on a local machine without the neccessity of having MPI or HDF5 installed.
+
+## Dependencies
+* a **C compiler** (GNU/Intel),
+* **CMake** utility,
+* an **FFTW3** library (for GNU) OR corresponding **MKL** library containing FFTW3 libraries compatible with Intel C compiler,
+* **Python** (3.+) with *h5py, ctypes, numpy, matplotlib* modules.
+
+## CMake installation
+1. Replace ```CMakeLists.txt``` with ```CMakeLists_dll_only.txt``` which contains the following:
+	```cmake
+	### CMake file for The dynamic 1D-TDSE library
+	cmake_minimum_required(VERSION 3.13)
+
+	project(TDSE)
+	enable_language(C)      
+
+	message("Compiler: ${CMAKE_C_COMPILER}")
+	message("Compiler ID: ${CMAKE_C_COMPILER_ID}")
+
+	if(${CMAKE_C_COMPILER_ID} MATCHES Intel)
+		set(MKL_INCLUDE_DIRS ${MKLROOT}/include/fftw)
+		set(MKL_LIB_DIRS ${MKLROOT}/lib)
+		set(FFTW_LIBS mkl_gf_lp64 mkl_sequential mkl_core)
+	elseif(${CMAKE_C_COMPILER_ID} MATCHES GNU)
+		find_library(fftw3 fftw3)
+		set(FFTW_LIBS fftw3) 
+	elseif(${CMAKE_C_COMPILER_ID} MATCHES AppleClang)
+		find_library(fftw3 fftw3)
+		set(FFTW_LIBS fftw3 fftw3_mpi)
+	else()
+		message(FATAL_ERROR "Unsupported C compiler: ${CMAKE_C_COMPILER}")
+	endif()
+
+	set(SOURCE_DLL sources/constants.c sources/tools_algorithmic.c 
+		sources/tridiag.c sources/tools_fftw3.c sources/structures.c 
+		sources/tools.c sources/prop.c sources/singleTDSE.c)
+
+	set(TDSE_LIB singleTDSE)
+
+	add_library(${TDSE_LIB} SHARED ${SOURCE_DLL})
+	target_link_libraries(${TDSE_LIB} PRIVATE ${FFTW_LIBS} ${HDF5_LIBRARIES})
+	target_include_directories(${TDSE_LIB} PRIVATE ${HDF5_INCLUDE_DIRS})
+	target_link_options(${TDSE_LIB} PRIVATE -fPIC)
+	```
+2. Move into the CTDSE root directory and create a new directory ```build``` and move into this directory:
+   ```shell
+   # PWD = ../CUPRAD_TDSE_Hankel/1DTDSE
+   mkdir build
+   cd build
+   ```
+2. The next step involves invoking ```cmake``` command and specification of the compiler.   For GNU compiler do the following:
+   ```shell
+   # GNU Compiler = gcc
+   cmake -D CMAKE_C_COMPILER=gcc ..
+   ```
+
+   For Intel compiler do:
+   ```shell
+   # Intel Compiler = icc
+   cmake -D CMAKE_C_COMPILER=icc ..
+   ```
+
+   If all the environment variables were set properly (see section [Setup environment variables](#setup-environment-variables)) CMake should generate a new ```Makefile``` file in the ```build``` directory. 
+
+3. The code is then compiled using the ```make``` command:
+	```shell
+	# PWD = ../CUPRAD_TDSE_Hankel/1DTDSE/build
+	make
+	```
+4. If no error was displayed, the dynamic library (DLL) ```libsingleTDSE.so``` (or ```libsingleTDSE.dylib``` dependending on the system) has been created.
+
+
 
 ### Local installation (Ubuntu 18.04 subsystem)
 ``apt-get install build-essential``
@@ -141,7 +184,7 @@ check the fftw3 installation (`-fPIC`)
 ## MPI scheduler for the CUPRAD output
 MPI scheduler takes the output field obtained from the previous computation of the CUPRAD code. The scheduler reads fields from HDF5 archive and for each field in $(r, z)$ coordinate executes a single 1DTDSE propagation routine. Each process stores the result data in its dedicated temporary HDF5 archive, e.g. for process 1 it will be ```hdf5_temp_0000001.h5```. 
 
-### Preprocessing of the HDF5 input
+### Preprocessing the HDF5 input
 
 ### Code execution
 
