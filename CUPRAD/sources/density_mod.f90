@@ -70,7 +70,7 @@ subroutine init_density_mod(file_id)
         call read_dset(file_id, density_mod_grpname//'/zgrid', zgrid, Nz)
         zgrid = zgrid/four_z_Rayleigh ! convert units [m -> C.U.]
 
-        rgrid = (/0.d0, delta_r*dim_r/) ! automatic allocation test
+        rgrid = (/0.d0, delta_r*dim_r/)
 
         allocate(density_profile_matrix(2,Nz))
         call read_dset(file_id, density_mod_grpname//'/table', dumr_arr_1D, Nz)
@@ -82,7 +82,7 @@ subroutine init_density_mod(file_id)
         call read_dset(file_id, density_mod_grpname//'/rgrid', rgrid, Nr)
         rgrid = rgrid/w0m ! convert units [m -> C.U.]
 
-        zgrid = (/0.d0, proplength/) ! automatic allocation test
+        zgrid = (/0.d0, proplength/)
 
         allocate(density_profile_matrix(Nr,2))
         call read_dset(file_id, density_mod_grpname//'/table', dumr_arr_1D, Nr)
@@ -142,20 +142,23 @@ subroutine calc_density_mod(z)
     integer, save       :: kz_guess = 1
     integer             :: k1, kr, kz, kr_guess
     real(8)             :: r, density_dum
-    logical             :: first_iteration
+    ! logical             :: first_iteration
 
 
     is_density_changed = .false.
     first_iteration = .true.
 
+    call findinterval(kr,kz,r,z,rgrid,zgrid,Nr,Nz,kx_guess=kr_guess,ky_guess=kz_guess)
+    kz_guess = kz ! see the save attribute
+    
     kr_guess = 1
     do k1 = 1, dim_r
         r=(k1-1)*delta_r
-        call findinterval(kr,kz,r,z,rgrid,zgrid,Nr,Nz,kx_guess=kr_guess,ky_guess=kz_guess)
-        if (first_iteration) then
-            first_iteration = .false.
-            kz_guess = kz
-        endif
+        call findinterval(kr,r,rgrid,Nr,k_guess=kr_guess)
+        ! if (first_iteration) then
+        !     first_iteration = .false.
+        !     ! kz_guess = kz
+        ! endif
 
         call interpolate2D_decomposed_eq(kr,kz,r,z,density_dum,rgrid,zgrid,density_profile_matrix,Nr,Nz)
         if (density_dum /= density_mod(k1)) then
@@ -164,6 +167,8 @@ subroutine calc_density_mod(z)
         endif
         kr_guess = kr
     enddo
+
+    
 
 
 ! NOTE: The procedure is written universally to always interpolate. Can be optimised, e.g. do not recompute at all in the case of purely r-modulation.

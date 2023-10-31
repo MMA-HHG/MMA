@@ -36,6 +36,7 @@ real(8), dimension(:), allocatable      :: table_1D
 real(8)                                 :: rho0_loc ! there is rho0 in the global scope (parameters)
 integer, parameter, dimension(3)        :: table_geometries = (/2,3,4/)
 integer, parameter, dimension(2)        :: table_1D_geometries = (/3,4/)
+logical                                 :: rgrid_exists, zgrid_exists, initial_electrons_ratio_exists, scalar_case = .false.
 
 CONTAINS
 ! preparation
@@ -45,42 +46,91 @@ subroutine init_pre_ionisation(file_id)
 
     print *, 'pre-inoisation accessed, proc', my_rank
 
-    call read_dset(file_id, pre_ionised_grpname//'/method_geometry',method_geometry)
-    call read_dset(file_id, pre_ionised_grpname//'/method_units',method_units)
-    select case (method_geometry)
-        case (1)
-            if (method_units == 1) then
-                call read_dset(file_id, pre_proc_grpname//'/rhoat_inv',dumr) ! inverse of the neutrals density, C.U.
-                call read_dset(file_id, pre_ionised_grpname//'/initial_electrons_ratio',rho0_loc)
-                rho0_loc = rho0_loc/dumr ! C.U.
-                print *, 'the initial atom density is',1.0D0/dumr, 'proc', my_rank
-                print *, 'the initial density is',rho0_loc, 'proc', my_rank
-                return
-            elseif (method_units == 2) then
-                call read_dset(file_id, pre_proc_grpname//'/density_normalisation_factor',dumr) ! conversion factor (cm-3 -> C.U.)
-                call read_dset(file_id, pre_ionised_grpname//'/initial_electron_density',rho0_loc) ! in cm-3
-                rho0_loc = dumr*rho0_loc ! C.U.
-                return
-            endif
-        case (2)
-            call ask_for_size_1D(file_id, pre_ionised_grpname//'/rgrid', Nr)
-            call read_dset(file_id, pre_ionised_grpname//'/rgrid', rgrid, Nr)
-            rgrid = rgrid/w0m ! m -> C.U.
-            call ask_for_size_1D(file_id, pre_ionised_grpname//'/zgrid', Nz)
-            call read_dset(file_id, pre_ionised_grpname//'/zgrid', zgrid, Nz)
-            zgrid = zgrid/four_z_Rayleigh ! m -> C.U.
-            call read_dset(file_id, pre_ionised_grpname//'/table', table_2D, Nr, Nz)
-        case (3)
-            call ask_for_size_1D(file_id, pre_ionised_grpname//'/rgrid', Nr)
-            call read_dset(file_id, pre_ionised_grpname//'/rgrid', rgrid, Nr)
-            rgrid = rgrid/w0m ! m -> C.U.
-            call read_dset(file_id, pre_ionised_grpname//'/table', table_1D, Nr)
-        case (4)
-            call ask_for_size_1D(file_id, pre_ionised_grpname//'/zgrid', Nz)
-            call read_dset(file_id, pre_ionised_grpname//'/zgrid', zgrid, Nz)
-            zgrid = zgrid/four_z_Rayleigh ! m -> C.U.
-            call read_dset(file_id, pre_ionised_grpname//'/table', table_1D, Nz)
-    end select
+
+    call h5lexists_f(file_id, density_mod_grpname//'/zgrid',zgrid_exists,h5err)
+    call h5lexists_f(file_id, density_mod_grpname//'/rgrid',rgrid_exists,h5err)
+    call h5lexists_f(file_id, density_mod_grpname//'/initial_electrons_ratio',table_exists,h5err)
+    
+    ! We create a matrix in all the cases. If only one grid is provided, max-z (-r) values are used
+
+    if (zgrid_exists.and. rgrid_exists) then
+        call ask_for_size_1D(file_id, density_mod_grpname//'/rgrid', Nr)
+        call read_dset(file_id, density_mod_grpname//'/rgrid', rgrid, Nr)
+        rgrid = rgrid/w0m ! convert units [m -> C.U.]
+        call ask_for_size_1D(file_id, density_mod_grpname//'/zgrid', Nz)
+        call read_dset(file_id, density_mod_grpname//'/zgrid', zgrid, Nz)
+        zgrid = zgrid/four_z_Rayleigh ! convert units [m -> C.U.]
+
+        call read_dset(file_id, density_mod_grpname//'/initial_electrons_ratio', density_profile_matrix, Nr, Nz)
+
+    elseif (zgrid_exists) then
+        call ask_for_size_1D(file_id, density_mod_grpname//'/zgrid', Nz)
+        call read_dset(file_id, density_mod_grpname//'/zgrid', zgrid, Nz)
+        zgrid = zgrid/four_z_Rayleigh ! convert units [m -> C.U.]
+
+        rgrid = (/0.d0, delta_r*dim_r/)
+
+        allocate(density_profile_matrix(2,Nz))
+        call read_dset(file_id, density_mod_grpname//'/initial_electrons_ratio', dumr_arr_1D, Nz)
+        density_profile_matrix(1,:) = dumr_arr_1D
+        density_profile_matrix(2,:) = dumr_arr_1D
+
+    elseif (rgrid_exists) then
+        call ask_for_size_1D(file_id, density_mod_grpname//'/rgrid', Nr)
+        call read_dset(file_id, density_mod_grpname//'/rgrid', rgrid, Nr)
+        rgrid = rgrid/w0m ! convert units [m -> C.U.]
+
+        zgrid = (/0.d0, proplength/)
+
+        allocate(density_profile_matrix(Nr,2))
+        call read_dset(file_id, density_mod_grpname//'/initial_electrons_ratio', dumr_arr_1D, Nr)
+        density_profile_matrix(:,1) = dumr_arr_1D
+        density_profile_matrix(:,2) = dumr_arr_1D
+
+    elseif (initial_electrons_ratio_exists) then        
+        call read_dset(file_id, pre_ionised_grpname//'/initial_electrons_ratio',rho0_loc)
+        scalar_case = .true.
+        
+    else
+        error stop 'pre-ionisation group present but grids or initial matrix are wrongly specified'
+    endif
+
+    ! call read_dset(file_id, pre_ionised_grpname//'/method_geometry',method_geometry)
+    ! call read_dset(file_id, pre_ionised_grpname//'/method_units',method_units)
+    ! select case (method_geometry)
+    !     case (1)
+    !         if (method_units == 1) then
+    !             call read_dset(file_id, pre_proc_grpname//'/rhoat_inv',dumr) ! inverse of the neutrals density, C.U.
+    !             call read_dset(file_id, pre_ionised_grpname//'/initial_electrons_ratio',rho0_loc)
+    !             rho0_loc = rho0_loc/dumr ! C.U.
+    !             print *, 'the initial atom density is',1.0D0/dumr, 'proc', my_rank
+    !             print *, 'the initial density is',rho0_loc, 'proc', my_rank
+    !             return
+    !         elseif (method_units == 2) then
+    !             call read_dset(file_id, pre_proc_grpname//'/density_normalisation_factor',dumr) ! conversion factor (cm-3 -> C.U.)
+    !             call read_dset(file_id, pre_ionised_grpname//'/initial_electron_density',rho0_loc) ! in cm-3
+    !             rho0_loc = dumr*rho0_loc ! C.U.
+    !             return
+    !         endif
+    !     case (2)
+    !         call ask_for_size_1D(file_id, pre_ionised_grpname//'/rgrid', Nr)
+    !         call read_dset(file_id, pre_ionised_grpname//'/rgrid', rgrid, Nr)
+    !         rgrid = rgrid/w0m ! m -> C.U.
+    !         call ask_for_size_1D(file_id, pre_ionised_grpname//'/zgrid', Nz)
+    !         call read_dset(file_id, pre_ionised_grpname//'/zgrid', zgrid, Nz)
+    !         zgrid = zgrid/four_z_Rayleigh ! m -> C.U.
+    !         call read_dset(file_id, pre_ionised_grpname//'/table', table_2D, Nr, Nz)
+    !     case (3)
+    !         call ask_for_size_1D(file_id, pre_ionised_grpname//'/rgrid', Nr)
+    !         call read_dset(file_id, pre_ionised_grpname//'/rgrid', rgrid, Nr)
+    !         rgrid = rgrid/w0m ! m -> C.U.
+    !         call read_dset(file_id, pre_ionised_grpname//'/table', table_1D, Nr)
+    !     case (4)
+    !         call ask_for_size_1D(file_id, pre_ionised_grpname//'/zgrid', Nz)
+    !         call read_dset(file_id, pre_ionised_grpname//'/zgrid', zgrid, Nz)
+    !         zgrid = zgrid/four_z_Rayleigh ! m -> C.U.
+    !         call read_dset(file_id, pre_ionised_grpname//'/table', table_1D, Nz)
+    ! end select
 
     !if (method_units == 1)  then ! any( table_geometries == method_geometry) eventual condition for extended prescriptions
     !    call read_dset(file_id, 'pre-processed/rhoat_inv',dumr) ! inverse of the neutrals density, C.U.
@@ -102,7 +152,7 @@ function initial_electron_density(r,z,reset_r_guess) ! already rescaled to C.U.
     integer, save              :: my_first_kr_guess
     integer, save              :: kr_guess, kz_guess
 
-    if (method_geometry == 1) then
+    if (scalar_case) then
         initial_electron_density = rho0_loc;
         return
     endif
