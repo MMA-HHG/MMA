@@ -689,24 +689,24 @@ class TDSE_DLL:
         init_grid = self.DLL.Initialise_grid_and_ground_state
         init_grid.restype = None
         init_grid.argtypes = [POINTER(inputs_def)]
-        init_grid(byref(inputs))
+        init_grid(inputs.ptr)
 
-    def call1DTDSE(self, in_ptr, out_ptr):
+    def call1DTDSE(self, inputs, outputs):
         """
         Propagates the ground state according the field.
 
         Parameters:
         -----------
-        in_ptr: 
-            Ctypes pointer instance of inputs structure
-        out_ptr: 
-            Ctypes pointer instance of outputs structure
+        inputs: 
+            Ctypes inputs structure
+        outputs: 
+            Ctypes outputs structure
         """
         ### Do the propagation
         TDSE = self.DLL.call1DTDSE
         TDSE.restype = None
         TDSE.argtypes = [POINTER(inputs_def), POINTER(outputs_def)]
-        TDSE(in_ptr, out_ptr)
+        TDSE(inputs.ptr, outputs.ptr)
 
     def compute_PES(self, inputs, psi, E_start = -0.6, num_E = 10000, dE = 5e-4, Estep = 5e-4):
         """
