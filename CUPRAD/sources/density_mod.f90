@@ -95,47 +95,6 @@ subroutine init_density_mod(file_id)
         error stop 'density_mod group present but grids are wrongly specified'
     endif
 
-    ! select case (method_geometry)
-    !     case (1)
-    !         if (method_units == 1) then
-    !             call read_dset(file_id, 'pre-processed/rhoat_inv',dumr) ! inverse of the neutrals density, C.U.
-    !             call read_dset(file_id, 'pre_ionised/initial_electrons_ratio',rho0_loc)
-    !             rho0_loc = rho0_loc/dumr ! C.U.
-    !             print *, 'the initial atom density is',1.0D0/dumr, 'proc', my_rank
-    !             print *, 'the initial density is',rho0_loc, 'proc', my_rank
-    !             return
-    !         elseif (method_units == 2) then
-    !             call read_dset(file_id, 'pre-processed/density_normalisation_factor',dumr) ! conversion factor (cm-3 -> C.U.)
-    !             call read_dset(file_id, 'pre_ionised/initial_electron_density',rho0_loc) ! in cm-3
-    !             rho0_loc = dumr*rho0_loc ! C.U.
-    !             return
-    !         endif
-    !     case (2)
-    !         call ask_for_size_1D(file_id, 'pre_ionised/rgrid', Nr)
-    !         call read_dset(file_id, 'pre_ionised/rgrid', rgrid, Nr)
-    !         rgrid = rgrid/w0m ! m -> C.U.
-    !         call ask_for_size_1D(file_id, 'pre_ionised/zgrid', Nz)
-    !         call read_dset(file_id, 'pre_ionised/zgrid', zgrid, Nz)
-    !         zgrid = zgrid/four_z_Rayleigh ! m -> C.U.
-    !         call read_dset(file_id, 'pre_ionised/table', table_2D, Nr, Nz)
-    !     case (3)
-    !         call ask_for_size_1D(file_id, 'pre_ionised/rgrid', Nr)
-    !         call read_dset(file_id, 'pre_ionised/rgrid', rgrid, Nr)
-    !         rgrid = rgrid/w0m ! m -> C.U.
-    !         call read_dset(file_id, 'pre_ionised/table', table_1D, Nr)
-    !     case (4)
-    !         call ask_for_size_1D(file_id, 'pre_ionised/zgrid', Nz)
-    !         call read_dset(file_id, 'pre_ionised/zgrid', zgrid, Nz)
-    !         zgrid = zgrid/four_z_Rayleigh ! m -> C.U.
-    !         call read_dset(file_id, 'pre_ionised/table', table_1D, Nz)
-    ! end select
-
-    !if (method_units == 1)  then ! any( table_geometries == method_geometry) eventual condition for extended prescriptions
-    !    call read_dset(file_id, 'pre-processed/rhoat_inv',dumr) ! inverse of the neutrals density, C.U.
-    !    dumr = 1.D0/dumr ! conversion factor (- -> C.U.)
-    !elseif (method_units == 2) then
-    !    call read_dset(file_id, 'pre-processed/density_normalisation_factor',dumr) ! conversion factor (cm-3 -> C.U.)
-    !endif
 end subroutine init_density_mod
 
 subroutine calc_density_mod(z)
@@ -144,11 +103,9 @@ subroutine calc_density_mod(z)
     integer, save       :: kz_guess = 1
     integer             :: k1, kr, kz, kr_guess
     real(8)             :: r, density_dum
-    ! logical             :: first_iteration
 
 
     is_density_changed = .false.
-    ! first_iteration = .true.
 
     call findinterval(kr,kz,r,z,rgrid,zgrid,Nr,Nz,kx_guess=kr_guess,ky_guess=kz_guess)
     kz_guess = kz ! see the save attribute
@@ -157,10 +114,6 @@ subroutine calc_density_mod(z)
     do k1 = 1, dim_r
         r=(k1-1)*delta_r
         call findinterval(kr,r,rgrid,Nr,k_guess=kr_guess)
-        ! if (first_iteration) then
-        !     first_iteration = .false.
-        !     ! kz_guess = kz
-        ! endif
 
         call interpolate2D_decomposed_eq(kr,kz,r,z,density_dum,rgrid,zgrid,density_profile_matrix,Nr,Nz)
         if (density_dum /= density_mod(k1)) then
@@ -169,9 +122,6 @@ subroutine calc_density_mod(z)
         endif
         kr_guess = kr
     enddo
-
-    
-
 
 ! NOTE: The procedure is written universally to always interpolate. Can be optimised, e.g. do not recompute at all in the case of purely r-modulation.
 end subroutine calc_density_mod

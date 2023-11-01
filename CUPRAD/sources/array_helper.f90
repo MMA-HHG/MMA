@@ -7,6 +7,17 @@ public  :: findinterval, interpolate_lin, findinterval_1D
 public  :: interpolate1D_decomposed_eq
 public  :: interpolate2D_decomposed_eq
 
+!> @brief returns interval where is placed x0 value, ordering <..)<..)..<..>, extrapolation 0, n
+!!
+!! This suboroutine finds the index of the interval where 'x0' is placed within the array 'x'
+!! It uses the bisection lookup and allows for an initial guess 
+!! interface collecting \ref findinterval_1D "testing custom text for a reference" and \ref findinterval_2D
+!!
+!! @param[out]      k1          the seeked index (integer)
+!! @param[in]       x0          real(8)
+!! @param[in]       x           array of real(8), specifying the partial intervals
+!! @param[in]       n           length of x (integer)
+!! @param[in,opt]   k_guess     initial guess (integer)
 INTERFACE findinterval
     procedure findinterval_1D, findinterval_2D
 END INTERFACE
