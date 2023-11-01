@@ -16,6 +16,7 @@ use HDF5
 use HDF5_helper
 use array_helper
 use parameters
+use fields
 use normalization
 use h5namelist
 
@@ -25,12 +26,13 @@ use mpi_stuff ! only for testing ot print procnumber etc., remove after
 
 implicit none
 private
-public  :: init_pre_ionisation, initial_electron_density, initial_electron_density_guess
+public  :: init_pre_ionisation, initial_electron_density !, initial_electron_density_guess
 
 
 logical, public                         :: apply_pre_ionisation
 integer                                 :: method_geometry, method_units
 integer                                 :: Nr, Nz
+integer                                 :: h5err
 real(8), dimension(:), allocatable      :: rgrid
 real(8), dimension(:), allocatable      :: zgrid
 real(8), dimension(:,:), allocatable    :: initial_electrons_ratio_matrix
@@ -56,7 +58,7 @@ subroutine init_pre_ionisation(file_id)
 
     call h5lexists_f(file_id, density_mod_grpname//'/zgrid',zgrid_exists,h5err)
     call h5lexists_f(file_id, density_mod_grpname//'/rgrid',rgrid_exists,h5err)
-    call h5lexists_f(file_id, density_mod_grpname//'/initial_electrons_ratio',table_exists,h5err)
+    call h5lexists_f(file_id, density_mod_grpname//'/initial_electrons_ratio',initial_electrons_ratio_exists,h5err)
 
 
     ! convert units
@@ -163,7 +165,7 @@ end subroutine init_pre_ionisation
 function initial_electron_density(r,z,kr_actual,kr_first) ! already rescaled to C.U.
     real(8)                    :: initial_electron_density
     real(8)                    :: r,z 
-    logical, optional          :: reset_r_guess
+    ! logical, optional          :: reset_r_guess
     integer                    :: kr_actual, kr_first
     integer                    :: kr,kz    
 
@@ -172,7 +174,7 @@ function initial_electron_density(r,z,kr_actual,kr_first) ! already rescaled to 
     ! integer, save              :: kz_guess = 1
 
     if (scalar_case) then
-        initial_electron_density = density_mod(kr_actual)*rho0_loc;
+        initial_electron_density = density_mod(kr_actual)*initial_electrons_ratio_scalar
         return
     endif
 
