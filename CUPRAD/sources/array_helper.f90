@@ -38,7 +38,7 @@ CONTAINS
 !! @param[in]       x0          real(8)
 !! @param[in]       x           array of real(8), specifying the partial intervals
 !! @param[in]       n           length of x (integer)
-!! @param[in,opt]   k_guess     initial guess (integer)
+!! @param[in, opt]   k_guess     initial guess (integer)
 subroutine findinterval_1D(k1,x0,x,n,k_guess)
     integer, intent(out)                :: k1
     integer, intent(in)                 :: n
@@ -103,6 +103,16 @@ subroutine findinterval_1D(k1,x0,x,n,k_guess)
 end subroutine findinterval_1D
 
 
+!> @brief returns interval where is placed x0 value, ordering <..)<..)..<..>, extrapolation 0, n
+!!
+!! This suboroutine finds the index of the interval where 'x0' is placed within the array 'x'
+!! It uses the bisection lookup and allows for an initial guess 
+!!
+!! @param      k1           [out]          the seeked index (integer)
+!! @param      x0           [in]           real(8)
+!! @param      x            [in]           array of real(8), specifying the partial intervals
+!! @param      n            [in]           length of x (integer)
+!! @param      k_guess      [in,opt]        initial guess (integer)
 subroutine findinterval_2D(kx,ky,x0,y0,x,y,Nx,Ny,kx_guess,ky_guess) ! returns interval where is placed x value, if it is out of the range, 0 is used
 !intervals are ordered: <..)<..)<..)...<..>
     integer, intent(out)                :: kx,ky
