@@ -39,6 +39,8 @@ real(8), dimension(:,:), allocatable    :: density_profile_matrix
 integer, parameter, dimension(3)        :: table_geometries = (/2,3,4/)
 integer, parameter, dimension(2)        :: table_1D_geometries = (/3,4/)
 
+
+
 CONTAINS
 
 ! preparation
@@ -146,7 +148,7 @@ subroutine calc_density_mod(z)
 
 
     is_density_changed = .false.
-    first_iteration = .true.
+    ! first_iteration = .true.
 
     call findinterval(kr,kz,r,z,rgrid,zgrid,Nr,Nz,kx_guess=kr_guess,ky_guess=kz_guess)
     kz_guess = kz ! see the save attribute

@@ -19,6 +19,8 @@ use parameters
 use normalization
 use h5namelist
 
+use density_module
+
 use mpi_stuff ! only for testing ot print procnumber etc., remove after
 
 implicit none
@@ -31,12 +33,13 @@ integer                                 :: method_geometry, method_units
 integer                                 :: Nr, Nz
 real(8), dimension(:), allocatable      :: rgrid
 real(8), dimension(:), allocatable      :: zgrid
-real(8), dimension(:,:), allocatable    :: table_2D
-real(8), dimension(:), allocatable      :: table_1D
-real(8)                                 :: rho0_loc ! there is rho0 in the global scope (parameters)
+real(8), dimension(:,:), allocatable    :: initial_electrons_ratio_matrix
+real(8)                                 :: initial_electrons_ratio_scalar
 integer, parameter, dimension(3)        :: table_geometries = (/2,3,4/)
 integer, parameter, dimension(2)        :: table_1D_geometries = (/3,4/)
-logical                                 :: rgrid_exists, zgrid_exists, initial_electrons_ratio_exists, scalar_case = .false.
+logical                                 :: scalar_case = .false.
+
+
 
 CONTAINS
 ! preparation
@@ -44,12 +47,20 @@ subroutine init_pre_ionisation(file_id)
     integer(hid_t)              :: file_id
     real(8)                     :: dumr
 
+    real(8), dimension(:), allocatable      :: dumr_arr_1D
+
+    logical                                 :: rgrid_exists, zgrid_exists, initial_electrons_ratio_exists
+
     print *, 'pre-inoisation accessed, proc', my_rank
 
 
     call h5lexists_f(file_id, density_mod_grpname//'/zgrid',zgrid_exists,h5err)
     call h5lexists_f(file_id, density_mod_grpname//'/rgrid',rgrid_exists,h5err)
     call h5lexists_f(file_id, density_mod_grpname//'/initial_electrons_ratio',table_exists,h5err)
+
+
+    ! convert units
+    ! call read_dset(file_id, pre_proc_grpname//'/rhoat_inv',convert_units) ! inverse of the neutrals density, C.U.
     
     ! We create a matrix in all the cases. If only one grid is provided, max-z (-r) values are used
 
@@ -61,7 +72,10 @@ subroutine init_pre_ionisation(file_id)
         call read_dset(file_id, density_mod_grpname//'/zgrid', zgrid, Nz)
         zgrid = zgrid/four_z_Rayleigh ! convert units [m -> C.U.]
 
-        call read_dset(file_id, density_mod_grpname//'/initial_electrons_ratio', density_profile_matrix, Nr, Nz)
+        call read_dset(file_id, density_mod_grpname//'/initial_electrons_ratio', initial_electrons_ratio_matrix, Nr, Nz)
+
+        initial_electrons_ratio_matrix = initial_electrons_ratio_matrix/rhoat_inv ! convert units
+
 
     elseif (zgrid_exists) then
         call ask_for_size_1D(file_id, density_mod_grpname//'/zgrid', Nz)
@@ -70,10 +84,10 @@ subroutine init_pre_ionisation(file_id)
 
         rgrid = (/0.d0, delta_r*dim_r/)
 
-        allocate(density_profile_matrix(2,Nz))
+        allocate(initial_electrons_ratio_matrix(2,Nz))
         call read_dset(file_id, density_mod_grpname//'/initial_electrons_ratio', dumr_arr_1D, Nz)
-        density_profile_matrix(1,:) = dumr_arr_1D
-        density_profile_matrix(2,:) = dumr_arr_1D
+        initial_electrons_ratio_matrix(1,:) = dumr_arr_1D/rhoat_inv
+        initial_electrons_ratio_matrix(2,:) = dumr_arr_1D/rhoat_inv
 
     elseif (rgrid_exists) then
         call ask_for_size_1D(file_id, density_mod_grpname//'/rgrid', Nr)
@@ -82,18 +96,21 @@ subroutine init_pre_ionisation(file_id)
 
         zgrid = (/0.d0, proplength/)
 
-        allocate(density_profile_matrix(Nr,2))
+        allocate(initial_electrons_ratio_matrix(Nr,2))
         call read_dset(file_id, density_mod_grpname//'/initial_electrons_ratio', dumr_arr_1D, Nr)
-        density_profile_matrix(:,1) = dumr_arr_1D
-        density_profile_matrix(:,2) = dumr_arr_1D
+        initial_electrons_ratio_matrix(:,1) = dumr_arr_1D/rhoat_inv
+        initial_electrons_ratio_matrix(:,2) = dumr_arr_1D/rhoat_inv
 
     elseif (initial_electrons_ratio_exists) then        
-        call read_dset(file_id, pre_ionised_grpname//'/initial_electrons_ratio',rho0_loc)
+        call read_dset(file_id, pre_ionised_grpname//'/initial_electrons_ratio',initial_electrons_ratio_scalar)
+        initial_electrons_ratio_scalar = initial_electrons_ratio_scalar/rhoat_inv
         scalar_case = .true.
         
     else
-        error stop 'pre-ionisation group present but grids or initial matrix are wrongly specified'
+        error stop 'pre-ionisation group present inputs therein are wrongly specified'
     endif
+
+    ! convert to C.U.
 
     ! call read_dset(file_id, pre_ionised_grpname//'/method_geometry',method_geometry)
     ! call read_dset(file_id, pre_ionised_grpname//'/method_units',method_units)
@@ -142,65 +159,88 @@ end subroutine init_pre_ionisation
 
 
 !
-function initial_electron_density(r,z,reset_r_guess) ! already rescaled to C.U.
+! function initial_electron_density(r,z,reset_r_guess) ! already rescaled to C.U.
+function initial_electron_density(r,z,kr_actual,kr_first) ! already rescaled to C.U.
     real(8)                    :: initial_electron_density
     real(8)                    :: r,z 
     logical, optional          :: reset_r_guess
+    integer                    :: kr_actual, kr_first
     integer                    :: kr,kz    
 
     logical, save              :: first_run = .true.
-    integer, save              :: my_first_kr_guess
-    integer, save              :: kr_guess, kz_guess
+    integer, save              :: my_kr_start, kr_guess, kz_guess = 1
+    ! integer, save              :: kz_guess = 1
 
     if (scalar_case) then
-        initial_electron_density = rho0_loc;
+        initial_electron_density = density_mod(kr_actual)*rho0_loc;
         return
     endif
 
+
     if (first_run) then
-        if ( (method_geometry == 2) .or. (method_geometry == 3) ) then
-            call findinterval(my_first_kr_guess,r,rgrid,Nr) ! obtain guess, assume it's first called at right place
-            kr_guess = my_first_kr_guess
+        if (kr_actual == kr_first) then
+            call findinterval(my_kr_start,r,rgrid,Nr) ! obtain guess, assume it's first called at right place
+        else
+            error stop "initial_electron_density requires to be firstly called for kr_actual = kr_first"
         endif
-        if ( (method_geometry == 2) .or. (method_geometry == 4) ) kz_guess = 1
         first_run = .false.
     endif
 
-    if (present(reset_r_guess)) then
-        if ( ( (method_geometry == 2) .or. (method_geometry == 3) ) .and. (reset_r_guess) ) kr_guess = my_first_kr_guess
-    endif
-
-    select case (method_geometry)
-        case (2)
-            call findinterval(kr,kz,r,z,rgrid,zgrid,Nr,Nz,kx_guess=kr_guess,ky_guess=kz_guess)
-            kr_guess = kr; kz_guess = kz
-            call interpolate2D_decomposed_eq(kr,kz,r,z,initial_electron_density,rgrid,zgrid,table_2D,Nr,Nz)
-            return
-        case (3)  
-            call findinterval(kr,r,rgrid,Nr,k_guess=kr_guess)
-            kr_guess = kr;
-            call interpolate1D_decomposed_eq(kr,r,initial_electron_density,rgrid,table_1D,Nr)
-            return
-        case (4)   
-            call findinterval(kz,z,zgrid,Nz,k_guess=kz_guess)
-            kz_guess = kz;
-            call interpolate1D_decomposed_eq(kz,z,initial_electron_density,zgrid,table_1D,Nz)
-            return   
-    end select
-end function
-
-function initial_electron_density_guess(r,z,k_actual,k_first) 
-    real(8)                    :: initial_electron_density_guess
-    real(8)                    :: r,z 
-    integer                    :: k_actual,k_first
-
-    if (k_actual == k_first) then
-        initial_electron_density_guess = initial_electron_density(r,z,reset_r_guess=.TRUE.)
+    if (kr_actual == kr_first) then
+        kr = my_kr_start
     else
-        initial_electron_density_guess = initial_electron_density(r,z)
+        call findinterval(kr,r,rgrid,Nr,k_guess = kr_guess)
     endif
 
+    kr_guess = kr ! bookkeeping: remember kr from the last run
+
+
+    call findinterval(kz,z,zgrid,Nz,k_guess = kz_guess)
+    kz_guess = kz
+
+    call interpolate2D_decomposed_eq(kr,kz,r,z,initial_electron_density,rgrid,zgrid,initial_electrons_ratio_matrix,Nr,Nz)
+    initial_electron_density = density_mod(kr_actual)*initial_electron_density
+    return
+
+
+    ! if (present(reset_r_guess)) then
+    !     if ( ( (method_geometry == 2) .or. (method_geometry == 3) ) .and. (reset_r_guess) ) kr_guess = my_first_kr_guess
+    ! endif
+
+    ! select case (method_geometry)
+    !     case (2)
+    !         call findinterval(kr,kz,r,z,rgrid,zgrid,Nr,Nz,kx_guess=kr_guess,ky_guess=kz_guess)
+    !         kr_guess = kr; kz_guess = kz
+    !         call interpolate2D_decomposed_eq(kr,kz,r,z,initial_electron_density,rgrid,zgrid,table_2D,Nr,Nz)
+    !         return
+    !     case (3)  
+    !         call findinterval(kr,r,rgrid,Nr,k_guess=kr_guess)
+    !         kr_guess = kr;
+    !         call interpolate1D_decomposed_eq(kr,r,initial_electron_density,rgrid,table_1D,Nr)
+    !         return
+    !     case (4)   
+    !         call findinterval(kz,z,zgrid,Nz,k_guess=kz_guess)
+    !         kz_guess = kz;
+    !         call interpolate1D_decomposed_eq(kz,z,initial_electron_density,zgrid,table_1D,Nz)
+    !         return   
+    ! end select
 end function
+
+
+
+
+! function initial_electron_density_guess(r,z,kr_actual,kr_first) 
+!     real(8)                    :: initial_electron_density_guess
+!     real(8)                    :: r,z 
+!     integer                    :: kr_actual,kr_first
+
+!     if (kr_actual == kr_first) then
+!         initial_electron_density_guess = initial_electron_density(r,z,reset_r_guess=.TRUE.)
+!     else
+!         initial_electron_density_guess = initial_electron_density(r,z)
+!     endif
+
+! end function
 
 
 end module pre_ionised

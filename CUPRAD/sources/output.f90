@@ -99,7 +99,7 @@ ENDIF
       e_2=ABS(e(1:dim_t,l))**2
       e_2KK=e_2**KK
       IF (apply_pre_ionisation) THEN
-         rhotemp = initial_electron_density_guess(r,z,l,dim_r_start(num_proc))
+         rhotemp = initial_electron_density(r,z,l,dim_r_start(num_proc))
       ELSE
          rhotemp = 0.D0
       ENDIF
