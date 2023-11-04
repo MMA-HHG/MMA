@@ -22,6 +22,10 @@ MODULE output
   USE HDF5_helper
   USE h5namelist
   USE pre_ionised
+
+  ! for testing
+  USE density_module
+
 CONTAINS
   
   SUBROUTINE write_output
@@ -65,14 +69,17 @@ CONTAINS
 
     REAL(8) :: local_time_MPI
 
+
+    ! DENSITY MOD
+    REAL, ALLOCATABLE, SAVE  :: density_mod_data(:,:)
       
     field_dimensions = 3
     allocate(fields_array(dim_r_local,dim_t, 1))
 
-local_time_MPI  = MPI_Wtime()
-IF (my_rank.EQ.0) THEN
-  print *, "before field conversion:", local_time_MPI - start_time_MPI
-ENDIF  
+      local_time_MPI  = MPI_Wtime()
+      IF (my_rank.EQ.0) THEN
+        print *, "before field conversion:", local_time_MPI - start_time_MPI
+      ENDIF  
 
     r_offset = dim_r_start(num_proc)-1
     DO k1=1, dim_r_local
@@ -85,10 +92,10 @@ ENDIF
     ENDDO
     ENDDO
 
-local_time_MPI  = MPI_Wtime()
-IF (my_rank.EQ.0) THEN
-  print *, "before plasma calculation:", local_time_MPI - start_time_MPI
-ENDIF  
+        local_time_MPI  = MPI_Wtime()
+        IF (my_rank.EQ.0) THEN
+          print *, "before plasma calculation:", local_time_MPI - start_time_MPI
+        ENDIF  
 
     ! allocate(plasma_array(1,dim_r_local,dim_t))
 
@@ -148,10 +155,10 @@ ENDIF
     offset_shape = (/int(dim_r_start(num_proc)-1,HSIZE_T),int(0,HSIZE_T), int(output_write_count-1,HSIZE_T) /)
     ccount_shape = (/int(dim_r_local,HSIZE_T), int(dim_t,HSIZE_T), int(1,HSIZE_T)/)
 
-local_time_MPI  = MPI_Wtime()
-IF (my_rank.EQ.0) THEN
-  print *, "before file openning:", local_time_MPI - start_time_MPI
-ENDIF  
+      local_time_MPI  = MPI_Wtime()
+      IF (my_rank.EQ.0) THEN
+        print *, "before file openning:", local_time_MPI - start_time_MPI
+      ENDIF  
 
     CALL h5open_f(error) 
     CALL h5pcreate_f(H5P_FILE_ACCESS_F, h5parameters, error) ! create HDF5 access parameters
@@ -169,26 +176,26 @@ ENDIF
       ENDIF
           
       ! Call writing routine
-local_time_MPI  = MPI_Wtime()
-IF (my_rank.EQ.0) THEN
-  print *, "before data write:", local_time_MPI - start_time_MPI
-ENDIF  
+        local_time_MPI  = MPI_Wtime()
+        IF (my_rank.EQ.0) THEN
+          print *, "before data write:", local_time_MPI - start_time_MPI
+        ENDIF  
 
       CALL create_3D_array_real_dset_p(file_id, field_dset_name, fields_array, dims_shape, offset_shape, ccount_shape)
 
-local_time_MPI  = MPI_Wtime()
-IF (my_rank.EQ.0) THEN
-  print *, "fields written:", local_time_MPI - start_time_MPI
-ENDIF 
+        local_time_MPI  = MPI_Wtime()
+        IF (my_rank.EQ.0) THEN
+          print *, "fields written:", local_time_MPI - start_time_MPI
+        ENDIF 
       CALL create_3D_array_real_dset_p(file_id, plasma_dset_name, plasma_array, dims_shape, offset_shape, ccount_shape)
 
       ! Terminate
       CALL h5fclose_f(file_id,error)
 
-local_time_MPI  = MPI_Wtime()
-IF (my_rank.EQ.0) THEN
-  print *, "file collectivelly closed:", local_time_MPI - start_time_MPI
-ENDIF
+          local_time_MPI  = MPI_Wtime()
+          IF (my_rank.EQ.0) THEN
+            print *, "file collectivelly closed:", local_time_MPI - start_time_MPI
+          ENDIF
 
       IF (my_rank.EQ.0) THEN ! single-write start
         CALL h5fopen_f (main_h5_fname, H5F_ACC_RDWR_F, file_id, error) ! Open an existing file.
@@ -214,6 +221,13 @@ ENDIF
         CALL create_1D_dset_unlimited(file_id, zgrid_dset_name, (/REAL(four_z_Rayleigh*z,4)/), 1) ! the actual z-coordinate in SI units 
         CALL h5_add_units_1D(file_id, zgrid_dset_name, '[m]')
 
+        !! TEST DENSITY MODULATION
+        ALLOCATE(density_mod_data(1,dim_r))
+        DO k1 = 1, dim_r
+          density_mod_data(1,k1) = REAL( density_mod(k1), 4 ) !!! SINGLE PRECISION
+        ENDDO 
+        CALL create_2D_dset_unlimited(file_id, density_mod_grpname//"test_density", density_mod_data, dim_r) 
+
         CALL h5fclose_f(file_id, error) ! close the file
 
 
@@ -222,25 +236,25 @@ ENDIF
 
     ELSE !!!! APPENDING THE DATA IN NEXT ITERATIONS
 
-local_time_MPI  = MPI_Wtime()
-IF (my_rank.EQ.0) THEN
-  print *, "before data write:", local_time_MPI - start_time_MPI
-ENDIF  
+          local_time_MPI  = MPI_Wtime()
+          IF (my_rank.EQ.0) THEN
+            print *, "before data write:", local_time_MPI - start_time_MPI
+          ENDIF  
 
-      CALL write_hyperslab_to_dset_p(file_id, field_dset_name, fields_array, offset_shape, ccount_shape)
+                CALL write_hyperslab_to_dset_p(file_id, field_dset_name, fields_array, offset_shape, ccount_shape)
 
-local_time_MPI  = MPI_Wtime()
-IF (my_rank.EQ.0) THEN
-  print *, "fields written:", local_time_MPI - start_time_MPI
-ENDIF 
+          local_time_MPI  = MPI_Wtime()
+          IF (my_rank.EQ.0) THEN
+            print *, "fields written:", local_time_MPI - start_time_MPI
+          ENDIF 
 
-      CALL write_hyperslab_to_dset_p(file_id, plasma_dset_name, plasma_array, offset_shape, ccount_shape)
-      CALL h5fclose_f(file_id,error)
+                CALL write_hyperslab_to_dset_p(file_id, plasma_dset_name, plasma_array, offset_shape, ccount_shape)
+                CALL h5fclose_f(file_id,error)
 
-local_time_MPI  = MPI_Wtime()
-IF (my_rank.EQ.0) THEN
-  print *, "file collectivelly closed:", local_time_MPI - start_time_MPI
-ENDIF  
+          local_time_MPI  = MPI_Wtime()
+          IF (my_rank.EQ.0) THEN
+            print *, "file collectivelly closed:", local_time_MPI - start_time_MPI
+          ENDIF  
 
       IF (my_rank.EQ.0) THEN ! only one worker is extending the zgrid
         CALL h5open_f(error)  !Initialize HDF5
@@ -250,6 +264,17 @@ ENDIF
               new_dims=(/int(output_write_count,HSIZE_T)/),  memspace_dims=(/int(1,HSIZE_T)/),&
               offset=(/int(output_write_count-1,HSIZE_T)/), hyperslab_size=(/int(1,HSIZE_T)/))
         CALL h5fclose_f(file_id,error)
+
+        !! TEST DENSITY MODULATION
+        DO k1 = 1, dim_r
+          density_mod_data(1,k1) = REAL( density_mod(k1), 4 ) !!! SINGLE PRECISION
+        ENDDO 
+        CALL extend_2D_dset_unlimited(file_id, density_mod_grpname//"test_density", density_mod_data, & 
+                                      new_dims = (/int(output_write_count, HSIZE_T), int(dim_r, HSIZE_T)/), & 
+                                      memspace_dims = (/int(1,HSIZE_T), int(dim_r, HSIZE_T)/), & 
+                                      offset = (/int(output_write_count-1,HSIZE_T),int(0,HSIZE_T)/), & 
+                                      hyperslab_size = (/int(1,HSIZE_T), int(dim_r, HSIZE_T)/))
+
       ENDIF ! single-write end
     ENDIF
 

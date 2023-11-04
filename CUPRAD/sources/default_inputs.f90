@@ -8,7 +8,7 @@ real(8) :: Intensity_entry, Intensity_focus, waist_focus, Curvature_radius_entry
 character(15)   ::  gas_preset
 
 integer                 :: k1
-integer, parameter      :: N_tests = 31
+integer, parameter      :: N_tests = 33
 !character, parameter :: available_tests(N_tests) = (/ "test", "test2", "GfP", "GfI", "GfFWHME", "GfFWHMI", "GfH5w", &
 !                                                        "PI", "PIPPT", "pressure", "ELI1", "ELI1ppt", "ELI2", "ELI3", &
 !                                                        "ELI4", "ELI_PI_PPT_Kr", "Ar_vacuum1", "Ar_vacuum1_long", &
@@ -22,7 +22,8 @@ character(len=255), parameter :: available_tests(N_tests) = [character(len=255) 
                                                         "Ar_vacuum2_foc_entry", "Ar_vacuum2_foc_half", "Ar_vacuum2_foc_end", &
                                                         "Ar_vacuum2_f_half", "TDSE1", "TDSE1_long", "TDSE1_long2", &
                                                         "TDSE1_10mm", "TDSE1_10mm_one_node", "TDSE1_10mm_sparse", &
-                                                        "TDSE1_1mm", "TDSE1_03mm", "run_test" ] ! "GfH5w_pre_ionised_PPT"
+                                                        "TDSE1_1mm", "TDSE1_03mm", "run_test", "test_modulations_base", &
+                                                        "test_modulations_base_half_dens" ] ! "GfH5w_pre_ionised_PPT"
 ! integer, parameter      :: test_numbers(N_tests) =  (k1, k1=1,N_tests)
 
 CONTAINS
@@ -374,7 +375,7 @@ subroutine preset_numerics_tests(test_number)
     case(23,24)
         num_proc = 32
         time_limit = 1.98d0 
-    case(25,26,28:30)  
+    case(25,26,28:30,32,33)  
         num_proc = 32
         time_limit = 23.95d0 
     case(27)  
@@ -387,7 +388,7 @@ subroutine preset_numerics_tests(test_number)
 
     ! time
     select case(test_number)
-    case(1:14,17,18:30)
+    case(1:14,17,18:30,32,33)
         lt = 8.d0
         dim_t = 2048 ! asymmetric
         absorb = 16
@@ -416,7 +417,7 @@ subroutine preset_numerics_tests(test_number)
     select case(test_number)
     case(1:22)
         delta_z_mm_phys = 1.d-2  
-    case(23:30)
+    case(23:33)
         delta_z_mm_phys = 1.d-3    
     end select
 
@@ -452,6 +453,9 @@ subroutine preset_numerics_tests(test_number)
     !case(31)
     !    outlength_m_phys = 0.000005d0  
     !    outlength_Efield_m_phys = 0.00075d0    
+    case(32,33)
+        outlength_m_phys = 1.d-4  
+        outlength_Efield_m_phys = 0.075d0    
     end select
     call save_or_replace(file_id, 'inputs/numerics_physical_output_distance_for_Efield_only', &
                          outlength_Efield_m_phys, error, units_in = '[m]')
@@ -463,7 +467,7 @@ subroutine preset_physics(test_number)
 
 !---------------------------------------------------------------------------------------------------------------------!    
     select case(test_number)
-    case(1:10,17,18:22)
+    case(1:10,17,18:22,32,33)
         lambda0_cm_phys = 8.d-5
     case(11:16,23:30)
         lambda0_cm_phys = 7.92d-5
@@ -473,7 +477,7 @@ subroutine preset_physics(test_number)
 
 !---------------------------------------------------------------------------------------------------------------------!
     select case(test_number)
-    case(1,9,12,15,17,18:22)
+    case(1,9,12,15,17,18:22,32,33)
         gas_preset = 'Ar_PPT'
     case(2:8,10,11,13,14)
         gas_preset = 'Ar_ext'
@@ -501,7 +505,7 @@ subroutine preset_physics(test_number)
         proplength_m_phys = 0.0002d0
     case(24,25)
         proplength_m_phys = 0.002d0
-    case(26,27,28)
+    case(26,27,28,32,33)
         proplength_m_phys = 0.01d0
     case(29)
         proplength_m_phys = 0.001d0
@@ -521,19 +525,19 @@ subroutine preset_physics(test_number)
         w0_m_phys = 0.0001d0     ! m
     case(19:21)
         waist_focus = 100.d-6   ! m
-    case(23:30)
+    case(23:30,32,33)
         waist_focus = 110.d-6   ! m
     case(31)
         w0_m_phys = 0.001d0      ! m
         !waist_focus = 110.d-6   ! m
     end select
 
-    select case(test_number) ! switch is over this variable
+    select case(test_number)
     case(1:18,22)    
         call save_or_replace(file_id, 'inputs/laser_beamwaist_entry', w0_m_phys, error, units_in = '[m]')
     case(31)    
         call save_or_replace(file_id, 'inputs/laser_beamwaist_entry', w0_m_phys, error, units_in = '[m]')
-    case(19:21,23:30)
+    case(19:21,23:30,32,33)
         call save_or_replace(file_id, 'inputs/laser_focus_beamwaist_Gaussian', waist_focus, error, units_in = '[m]')
     end select
 
@@ -548,7 +552,7 @@ subroutine preset_physics(test_number)
     case(19:21)
         Intensity_focus = 1.d18
         call save_or_replace(file_id, 'inputs/laser_focus_intensity_Gaussian', Intensity_focus, error, units_in = '[SI]')
-    case(23:30)
+    case(23:30,32,33)
         Intensity_focus = 1.8d18
         call save_or_replace(file_id, 'inputs/laser_focus_intensity_Gaussian', Intensity_focus, error, units_in = '[SI]')
     case(31)
@@ -565,7 +569,7 @@ subroutine preset_physics(test_number)
 
 !---------------------------------------------------------------------------------------------------------------------!
     select case(test_number)
-    case(1:4,7:10,17,18:30)
+    case(1:4,7:10,17,18:30,32,33)
         tp_fs_phys = 50.d0
         call save_or_replace(file_id, 'inputs/laser_pulse_duration_in_1_e_Efield', tp_fs_phys, error, units_in = '[fs]')
     case(5)
@@ -595,7 +599,7 @@ subroutine preset_physics(test_number)
         f_cm_phys = 0.d0
     case(31)
         focus_position = 0.0d0
-    case(19,23:30)
+    case(19,23:30,32,33)
         focus_position = 0.0d0
     case(20)
         focus_position = 0.0075d0
@@ -619,6 +623,10 @@ subroutine preset_physics(test_number)
         pressure = 0.025d0
     case(31)
         pressure = 0.025d0
+    case(32)
+        pressure = 0.05d0
+    case(33)
+        pressure = 0.5d0*0.05d0
     end select
     
 

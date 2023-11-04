@@ -33,12 +33,13 @@ CONTAINS
 !!
 !! This suboroutine finds the index of the interval where 'x0' is placed within the array 'x'
 !! It uses the bisection lookup and allows for an initial guess 
+!! Formula test \f$ \int_{0}^{+\infty} \mathrm{e}^{-x^2} \mathrm{d} x\f$ and bigequation \f[ \sum_{n=1}^{+\infty} \frac{1}{n^2} = \frac{\pi^2}{6} \f]
 !!
 !! @param[out]      k1          the seeked index (integer)
 !! @param[in]       x0          real(8)
 !! @param[in]       x           array of real(8), specifying the partial intervals
 !! @param[in]       n           length of x (integer)
-!! @param[in, opt]   k_guess     initial guess (integer)
+!! @param[in]       k_guess     initial guess (integer)
 subroutine findinterval_1D(k1,x0,x,n,k_guess)
     integer, intent(out)                :: k1
     integer, intent(in)                 :: n
