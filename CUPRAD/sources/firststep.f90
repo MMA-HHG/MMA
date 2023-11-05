@@ -140,7 +140,7 @@ CONTAINS
     !read(UNIT=1,fmt=*, IOSTAT=st)
     READ(UNIT=11,fmt=*, IOSTAT=pos) main_h5_fname
     print *, main_h5_fname
-    CLOSE(11, status='delete')
+    CLOSE(11)
     ! stop
 
     ! OPEN HDF5 interface
