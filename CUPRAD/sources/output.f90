@@ -226,7 +226,7 @@ CONTAINS
         DO k1 = 1, dim_r
           density_mod_data(1,k1) = REAL( density_mod(k1), 4 ) !!! SINGLE PRECISION
         ENDDO 
-        CALL create_2D_dset_unlimited(file_id, density_mod_grpname//"/test_density", density_mod_data, dim_r) 
+        CALL create_2D_dset_unlimited(file_id, "test_density", density_mod_data, dim_r) 
 
         CALL h5fclose_f(file_id, error) ! close the file
 
@@ -269,7 +269,7 @@ CONTAINS
         DO k1 = 1, dim_r
           density_mod_data(1,k1) = REAL( density_mod(k1), 4 ) !!! SINGLE PRECISION
         ENDDO 
-        CALL extend_2D_dset_unlimited(file_id, density_mod_grpname//"/test_density", density_mod_data, & 
+        CALL extend_2D_dset_unlimited(file_id, "test_density", density_mod_data, & 
                                       new_dims = (/int(output_write_count, HSIZE_T), int(dim_r, HSIZE_T)/), & 
                                       memspace_dims = (/int(1,HSIZE_T), int(dim_r, HSIZE_T)/), & 
                                       offset = (/int(output_write_count-1,HSIZE_T),int(0,HSIZE_T)/), & 
