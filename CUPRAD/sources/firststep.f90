@@ -155,6 +155,10 @@ CONTAINS
 
     ! inputs from the pre-processor
     CALL h5gopen_f(file_id, pre_proc_grpname, group_id, error) 
+
+    CALL read_dset(group_id,'four_z_rayleigh_cm_phys', four_z_Rayleigh)
+    four_z_Rayleigh = 1.d-2 * four_z_Rayleigh ! convert to meters
+    
     CALL read_dset(group_id, 'num_proc', num_proc)
     CALL read_dset(group_id, 'dim_t', dim_t)
     CALL read_dset(group_id, 'dim_r', dim_r)
@@ -382,8 +386,8 @@ CONTAINS
     CALL read_dset(group_id, "indexes_group/r_vector", xx, i_x_max)
     CALL read_dset(group_id, "indexes_group/z_vector", zz, i_z_max)
     
-    CALL read_dset(group_id,'four_z_rayleigh_cm_phys', four_z_Rayleigh)
-    four_z_Rayleigh = 1.d-2 * four_z_Rayleigh ! convert to meters
+   !  CALL read_dset(group_id,'four_z_rayleigh_cm_phys', four_z_Rayleigh)
+   !  four_z_Rayleigh = 1.d-2 * four_z_Rayleigh ! convert to meters
 
     CALL h5gclose_f(group_id, error) ! all pre-processed inputs read
    
