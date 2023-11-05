@@ -71,7 +71,7 @@ CONTAINS
 
 
     ! DENSITY MOD
-    REAL, ALLOCATABLE, SAVE  :: density_mod_data(:,:)
+    REAL  :: density_mod_data(1,dim_r)
       
     field_dimensions = 3
     allocate(fields_array(dim_r_local,dim_t, 1))
@@ -222,7 +222,7 @@ CONTAINS
         CALL h5_add_units_1D(file_id, zgrid_dset_name, '[m]')
 
         !! TEST DENSITY MODULATION
-        ALLOCATE(density_mod_data(1,dim_r))
+        ! ALLOCATE(density_mod_data(1,dim_r))
         DO k1 = 1, dim_r
           density_mod_data(1,k1) = REAL( density_mod(k1), 4 ) !!! SINGLE PRECISION
         ENDDO 
