@@ -115,7 +115,7 @@ subroutine calc_density_mod(z)
     integer, save       :: kz_guess = 1
     integer             :: k1, kr, kz, kr_guess
     real(8)             :: r, density_dum
-    logical, save       :: first_call 
+    logical, save       :: first_call = .false.
 
     ! testing
     real(8), allocatable :: density_mod_compare(:)
