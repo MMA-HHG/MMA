@@ -143,8 +143,8 @@ subroutine calc_density_mod(z)
     allocate(density_mod_compare(dim_r))
 
     call MPI_SENDRECV( &
-                        density_mod,         dim_r, MPI_DOUBLE_PRECISION, mod(my_rank + 1, num_proc), 0, & ! send
-                        density_mod_compare, dim_r, MPI_DOUBLE_PRECISION, mod(my_rank - 1, num_proc), 0, & ! receive
+                        density_mod,         dim_r, MPI_DOUBLE_PRECISION, mod(my_rank            + 1, num_proc), 0, & ! send
+                        density_mod_compare, dim_r, MPI_DOUBLE_PRECISION, mod(my_rank + num_proc - 1, num_proc), 0, & ! receive
                         MPI_COMM_WORLD, MPI_STATUS_IGNORE, ierr)
 
     if ( any( density_mod /= density_mod_compare ) ) then
