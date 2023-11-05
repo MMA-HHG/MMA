@@ -649,7 +649,7 @@ end subroutine preset_physics
 
 subroutine testing_values(test_number) ! set values for testing
     use HDF5
-    use HDF5_helper
+    use HDF5_helper_serial
     integer :: test_number
 
     call preset_numerics_tests(test_number)

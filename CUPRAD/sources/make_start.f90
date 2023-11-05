@@ -2,7 +2,7 @@ PROGRAM make_start
   USE HDF5
   USE write_listing
   USE default_inputs
-  USE HDF5_helper
+  USE HDF5_helper_serial
 
   IMPLICIT NONE
   integer :: st

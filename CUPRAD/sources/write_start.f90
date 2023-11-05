@@ -1,5 +1,5 @@
 MODULE write_start
-  USE hdf5_helper
+  USE hdf5_helper_serial
   USE HDF5
   USE constants
 
