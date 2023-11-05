@@ -375,13 +375,13 @@ subroutine preset_numerics_tests(test_number)
     case(23,24)
         num_proc = 32
         time_limit = 1.98d0 
-    case(25,26,28:30,32,33)  
+    case(25,26,28:30)  
         num_proc = 32
         time_limit = 23.95d0 
     case(27)  
         num_proc = 16
         time_limit = 23.95d0 
-    case(31)
+    case(31:33)
         num_proc = 4
         time_limit = 23.95d0
     end select

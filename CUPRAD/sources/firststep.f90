@@ -158,7 +158,9 @@ CONTAINS
 
     CALL read_dset(group_id,'four_z_rayleigh_cm_phys', four_z_Rayleigh)
     four_z_Rayleigh = 1.d-2 * four_z_Rayleigh ! convert to meters
-    
+
+    print *, '(density mod) normalisation in z:', four_z_Rayleigh
+
     CALL read_dset(group_id, 'num_proc', num_proc)
     CALL read_dset(group_id, 'dim_t', dim_t)
     CALL read_dset(group_id, 'dim_r', dim_r)
