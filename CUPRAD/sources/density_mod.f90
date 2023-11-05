@@ -127,6 +127,7 @@ subroutine calc_density_mod(z)
     if (first_call) then
         density_mod = 1.d0
         is_density_changed = .true.
+        first_call = .false.
     endif
 
     call findinterval(kr,kz,r,z,rgrid,zgrid,Nr,Nz,kx_guess=kr_guess,ky_guess=kz_guess)
@@ -157,7 +158,10 @@ subroutine calc_density_mod(z)
         print *, "density modulation does not exacly match for rank", my_rank, "and z[m] =", z/four_z_Rayleigh
         error stop "ERROR IN THE DENSITY MODULATION"
     else
-        if (my_rank == 0) print *, "density modulation test passed for z[m] =", z/four_z_Rayleigh
+        if (my_rank == 0) then
+            print *, "density modulation test passed for z[m] =", z/four_z_Rayleigh
+            print *, "density modulation (first, middle, last)", (/ density_mod(1), density_mod(dim_r/2), density_mod(dim_r) /)
+        endif
     endif
 
 
