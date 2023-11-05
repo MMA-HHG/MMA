@@ -59,37 +59,45 @@ subroutine init_density_mod(file_id)
 
     if (zgrid_exists.and. rgrid_exists) then
         call ask_for_size_1D(file_id, density_mod_grpname//'/rgrid', Nr)
-        call read_dset(file_id, density_mod_grpname//'/rgrid', rgrid, Nr)
-        rgrid = rgrid/w0m ! convert units [m -> C.U.]
         call ask_for_size_1D(file_id, density_mod_grpname//'/zgrid', Nz)
+
+        allocate(rgrid(Nr), zgrid(Nz))
+
+        call read_dset(file_id, density_mod_grpname//'/rgrid', rgrid, Nr)
         call read_dset(file_id, density_mod_grpname//'/zgrid', zgrid, Nz)
+
+        rgrid = rgrid/w0m ! convert units [m -> C.U.]  
         zgrid = zgrid/four_z_Rayleigh ! convert units [m -> C.U.]
 
         call read_dset(file_id, density_mod_grpname//'/table', density_profile_matrix, Nr, Nz)
 
     elseif (zgrid_exists) then
         call ask_for_size_1D(file_id, density_mod_grpname//'/zgrid', Nz)
+        allocate(zgrid(Nz))
         call read_dset(file_id, density_mod_grpname//'/zgrid', zgrid, Nz)
         zgrid = zgrid/four_z_Rayleigh ! convert units [m -> C.U.]
 
         rgrid = (/0.d0, delta_r*dim_r/)
 
-        allocate(density_profile_matrix(2,Nz))
+        allocate(density_profile_matrix(2,Nz),dumr_arr_1D(Nz))
         call read_dset(file_id, density_mod_grpname//'/table', dumr_arr_1D, Nz)
         density_profile_matrix(1,:) = dumr_arr_1D
         density_profile_matrix(2,:) = dumr_arr_1D
+        deallocate(dumr_arr_1D)
 
     elseif (rgrid_exists) then
         call ask_for_size_1D(file_id, density_mod_grpname//'/rgrid', Nr)
+        allocate(rgrid(Nr))
         call read_dset(file_id, density_mod_grpname//'/rgrid', rgrid, Nr)
         rgrid = rgrid/w0m ! convert units [m -> C.U.]
 
         zgrid = (/0.d0, proplength/)
 
-        allocate(density_profile_matrix(Nr,2))
+        allocate(density_profile_matrix(Nr,2),dumr_arr_1D(Nr))
         call read_dset(file_id, density_mod_grpname//'/table', dumr_arr_1D, Nr)
         density_profile_matrix(:,1) = dumr_arr_1D
         density_profile_matrix(:,2) = dumr_arr_1D
+        deallocate(dumr_arr_1D)
 
     else
         error stop 'density_mod group present but grids are wrongly specified'
