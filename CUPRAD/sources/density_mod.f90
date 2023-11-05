@@ -115,6 +115,7 @@ subroutine calc_density_mod(z)
     integer, save       :: kz_guess = 1
     integer             :: k1, kr, kz, kr_guess
     real(8)             :: r, density_dum
+    logical, save       :: first_call 
 
     ! testing
     real(8), allocatable :: density_mod_compare(:)
@@ -122,6 +123,11 @@ subroutine calc_density_mod(z)
 
 
     is_density_changed = .false.
+
+    if (first_call) then
+        density_mod = 1.d0
+        is_density_changed = .true.
+    endif
 
     call findinterval(kr,kz,r,z,rgrid,zgrid,Nr,Nz,kx_guess=kr_guess,ky_guess=kz_guess)
     kz_guess = kz ! see the save attribute
