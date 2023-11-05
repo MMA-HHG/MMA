@@ -19,13 +19,12 @@ elseif(${CMAKE_Fortran_COMPILER_ID} MATCHES GNU)
     find_library(fftw3 fftw3)
     set(CMAKE_Fortran_FLAGS "-O3 -Wall -std=gnu -fcheck=all -Wno-compare-reals -fbacktrace -ffixed-line-length-none -ffree-line-length-none -g")
     set(FFTW_LIBS fftw3 fftw3_mpi)
-    set(FFTW_LIBS_SERIAL fftw3)
 else()
     message(FATAL_ERROR "Unsupported Fortran compiler: ${CMAKE_Fortran_COMPILER}")
 endif()
 
 find_package(HDF5 REQUIRED COMPONENTS Fortran HL)
-find_package(MPI)
+find_package(MPI REQUIRED)
 
 ### Define variables
 ### ================
@@ -54,16 +53,12 @@ target_include_directories(${PROPAGATION} PRIVATE ${HDF5_INCLUDE_DIRS} ${MKL_INC
 ### make_start.e
 add_executable(${MAKE_START} ${S_MAKE_START})
 target_include_directories(${MAKE_START} PRIVATE ${HDF5_INCLUDE_DIRS} ${MKL_INCLUDE_DIRS})
-target_link_libraries(${MAKE_START} ${HDF5_LIBRARIES} ${FFTW_LIBS_SERIAL})
+target_link_libraries(${MAKE_START} ${HDF5_LIBRARIES} ${FFTW_LIBS})
 
 ### Add custom commands
 ### ===================
 add_custom_target(clean_preprocessor COMMAND rm -f listing STOP *.DAT *.LOG)
 add_custom_target(clean_modules COMMAND rm -f *.mod)
 add_custom_target(preprocessor DEPENDS clean_preprocessor ${MAKE_START})
-if(MPI_FOUND)
-    add_custom_target(code DEPENDS clean_preprocessor ${MAKE_START} ${PROPAGATION})
-else()
-   message(WARNING "MPI not found. Creating only the receipt for the pre-processor.")
-endif()
+add_custom_target(code DEPENDS clean_preprocessor ${MAKE_START} ${PROPAGATION})
 
