@@ -75,6 +75,10 @@ subroutine init_density_mod(file_id)
         call ask_for_size_1D(file_id, density_mod_grpname//'/zgrid', Nz)
         allocate(zgrid(Nz))
         call read_dset(file_id, density_mod_grpname//'/zgrid', zgrid, Nz)
+
+        print *, 'zgrid created, myrank', my_rank
+        print *, 'normalisation:', four_z_Rayleigh
+
         zgrid = zgrid/four_z_Rayleigh ! convert units [m -> C.U.]
 
         rgrid = (/0.d0, delta_r*dim_r/)
