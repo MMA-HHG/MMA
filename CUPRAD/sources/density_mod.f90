@@ -81,7 +81,7 @@ subroutine init_density_mod(file_id)
 
         zgrid = zgrid/four_z_Rayleigh ! convert units [m -> C.U.]
 
-        rgrid = (/0.d0, delta_r*dim_r/)
+        rgrid = (/0.d0, delta_r*dim_r/); Nr = 2
 
         allocate(density_profile_matrix(2,Nz),dumr_arr_1D(Nz))
         call read_dset(file_id, density_mod_grpname//'/table', dumr_arr_1D, Nz)
@@ -95,7 +95,7 @@ subroutine init_density_mod(file_id)
         call read_dset(file_id, density_mod_grpname//'/rgrid', rgrid, Nr)
         rgrid = rgrid/w0m ! convert units [m -> C.U.]
 
-        zgrid = (/0.d0, proplength/)
+        zgrid = (/0.d0, proplength/); Nz = 2
 
         allocate(density_profile_matrix(Nr,2),dumr_arr_1D(Nr))
         call read_dset(file_id, density_mod_grpname//'/table', dumr_arr_1D, Nr)
@@ -130,7 +130,7 @@ subroutine calc_density_mod(z)
         first_call = .false.
     endif
 
-    call findinterval(kr,kz,r,z,rgrid,zgrid,Nr,Nz,kx_guess=kr_guess,ky_guess=kz_guess)
+    call findinterval(kz,z,zgrid,Nz,k_guess=kz_guess)
     kz_guess = kz ! see the save attribute
     
     kr_guess = 1
@@ -155,11 +155,11 @@ subroutine calc_density_mod(z)
                         MPI_COMM_WORLD, MPI_STATUS_IGNORE, ierr)
 
     if ( any( density_mod /= density_mod_compare ) ) then
-        print *, "density modulation does not exacly match for rank", my_rank, "and z[m] =", z/four_z_Rayleigh
+        print *, "density modulation does not exacly match for rank", my_rank, "and z[m] =", z*four_z_Rayleigh
         error stop "ERROR IN THE DENSITY MODULATION"
     else
         if (my_rank == 0) then
-            print *, "density modulation test passed for z[m] =", z/four_z_Rayleigh
+            print *, "density modulation test passed for z[m] =", z*four_z_Rayleigh
             print *, "density modulation (first, middle, last)", (/ density_mod(1), density_mod(dim_r/2), density_mod(dim_r) /)
         endif
     endif
