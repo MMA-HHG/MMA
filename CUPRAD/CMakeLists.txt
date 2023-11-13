@@ -14,7 +14,7 @@ if(${CMAKE_Fortran_COMPILER_ID} MATCHES Intel)
     include_directories(${MKL_INCLUDE_DIRS})
     link_directories(${MKL_LIB_DIRS})
 #    set(CMAKE_Fortran_FLAGS "-O3")
-    set(CMAKE_Fortran_FLAGS "-check all -warn all -traceback -fpe0 -fp-stack-check -diag-disable=8889 -diag-disable=406") # disabel warning caused by the direct uses of mkl- & mpi-lib procedures
+    set(CMAKE_Fortran_FLAGS "-check all -warn all -traceback -fpe0 -fp-stack-check -diag-disable=8889 -check noarg_temp_created") # disabel warning caused by the direct uses of mkl- & mpi-lib procedures
 elseif(${CMAKE_Fortran_COMPILER_ID} MATCHES GNU)
     find_library(fftw3 fftw3)
     set(CMAKE_Fortran_FLAGS "-O3 -Wall -std=gnu -fcheck=all -Wno-compare-reals -fbacktrace -ffixed-line-length-none -ffree-line-length-none -g")
