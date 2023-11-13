@@ -85,7 +85,7 @@ subroutine init_pre_ionisation(file_id)
         call read_dset(file_id, density_mod_grpname//'/zgrid', zgrid, Nz)
         zgrid = zgrid/four_z_Rayleigh ! convert units [m -> C.U.]
 
-        rgrid = (/0.d0, delta_r*dim_r/)
+        rgrid = (/0.d0, delta_r*dim_r/); Nr = 2
 
         allocate(initial_electrons_ratio_matrix(2,Nz))
         call read_dset(file_id, density_mod_grpname//'/initial_electrons_ratio', dumr_arr_1D, Nz)
@@ -97,7 +97,7 @@ subroutine init_pre_ionisation(file_id)
         call read_dset(file_id, density_mod_grpname//'/rgrid', rgrid, Nr)
         rgrid = rgrid/w0m ! convert units [m -> C.U.]
 
-        zgrid = (/0.d0, proplength/)
+        zgrid = (/0.d0, proplength/); Nz = 2
 
         allocate(initial_electrons_ratio_matrix(Nr,2))
         call read_dset(file_id, density_mod_grpname//'/initial_electrons_ratio', dumr_arr_1D, Nr)
@@ -110,7 +110,7 @@ subroutine init_pre_ionisation(file_id)
         scalar_case = .true.
         
     else
-        error stop 'pre-ionisation group present inputs therein are wrongly specified'
+        error stop 'pre-ionisation group present, but inputs therein are wrongly specified'
     endif
 
 end subroutine init_pre_ionisation
