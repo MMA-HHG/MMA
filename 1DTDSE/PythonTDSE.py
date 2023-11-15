@@ -730,40 +730,42 @@ class TDSE_DLL:
         E_grid = np.linspace(E_start, E_start+(num_E-1)*dE, num_E)
         return E_grid, ctype_arr_to_numpy(res, num_E)
 
-    def gabor_transform(self, signal, dt, N, omega_max, t_min, t_max, N_t, a = 8.):
+    def gabor_transform(self, signal, dt, N, omega_max, t_min, t_max, N_G, a = 8.):
         """
         Computes fast Gabor transform of a signal.
 
         Parameters:
         -----------
-        signal: ctypes double array pointer
-            Signal for the Gabor transform
+        signal: ctypes double array pointer, list or numpy array
+            Signal for the Gabor transform.
         dt: float
-            Time step of the signal
+            Time step of the signal.
         N: int
-            Size of the signal
+            Size of the signal.
         omega_max: float
-            Maximum frequency for the transform in a.u.
+            Maximum frequency for the transform in a.u..
         t_min: float
-            Minimum time for Gabor
+            Minimum time for Gabor.
         t_max: float
-            Maximum time for Gabor
-        N_t: int
-            Resolution for Gabor
+            Maximum time for Gabor.
+        N_G: int
+            Resolution for Gabor.
         a: float, optional, default a = 8.
-            Width of the Gabor window, in a.u.
+            Width of the Gabor window, in a.u..
         """
         gabor = self.DLL.GaborTransform
         gabor.restype = POINTER(POINTER(c_double))
         gabor.argtypes = [POINTER(c_double), c_double, c_int, c_int, c_int, c_double, c_double, c_double]
-        omegas = np.fft.fftfreq(N, dt)[0:N//2]
+        omegas = 2*np.pi*np.fft.fftfreq(N, dt)[0:N//2]
         omega_range = (omegas <= omega_max)
         N_freq = len(omegas[omega_range])
-        res = gabor(signal, c_double(dt), c_int(N), c_int(N_freq), c_int(N_t), 
+        if ((type(signal) == list) or (type(signal) == np.ndarray)):
+            signal = ctypes_arr_ptr(c_double, len(signal), signal)
+        res = gabor(signal, c_double(dt), c_int(N), c_int(N_freq), c_int(N_G), 
                     c_double(t_min), c_double(t_max), c_double(a))
-        gabor_res = ctype_mtrx_to_numpy(res, N_t, N_freq)
-        self.free_mtrx(res, N_t)
-        return np.linspace(t_min, t_max, N_t), omegas[omega_range], np.transpose(gabor_res)
+        gabor_res = ctype_mtrx_to_numpy(res, N_G, N_freq)
+        self.free_mtrx(res, N_G)
+        return np.linspace(t_min, t_max, N_G), omegas[omega_range], np.transpose(gabor_res)
 
     def free_mtrx(self, buffer_ptr, N_rows):
         """

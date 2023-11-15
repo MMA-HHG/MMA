@@ -149,13 +149,13 @@ void calcFFTW3(int N, double dx, double xmax, double *signal, double **xigrid,
  * @param dt Timestep of signal.
  * @param N Number of points in the signal.
  * @param N_freq Number of frequency points to include in the signal (relates to maximum omega).
- * @param N_t Number of temporal points for Gabor evaluation.
+ * @param N_G Number of temporal points for Gabor evaluation.
  * @param t_min Minimum time for Gabor evaluation.
  * @param t_max Maximum time for Gabor evaluation.
  * @param a Gabor parameter.
  * @return double** 
  */
-double ** GaborTransform(double *signal, double dt, int N, int N_freq, int N_t, double t_min, double t_max, double a) // takes real signal speced by given "dx" and it computes and prints its Gabor transform, The parameters of the Gabor transform are new "dxG" (will be adjusted to a close one matching the points) and gabor parameter "a"
+double ** GaborTransform(double *signal, double dt, int N, int N_freq, int N_G, double t_min, double t_max, double a) 
 {
 	// Number of points in the FFT
 	int Nc;
@@ -176,13 +176,13 @@ double ** GaborTransform(double *signal, double dt, int N, int N_freq, int N_t, 
 
 	// Set variables
 	a = 1.0/a;
-	dt_G = (t_max - t_min)/N_t;
+	dt_G = (t_max - t_min)/N_G;
 	Nc = floor(((double)N)/2.); 
 	Nc++;
 
 	// Allocate arrays
-	gabor_transform = malloc(sizeof(double *) * N_t);
-	for (j = 0; j < N_t; j++) {
+	gabor_transform = malloc(sizeof(double *) * N_G);
+	for (j = 0; j < N_G; j++) {
 		gabor_transform[j] = calloc(N_freq, sizeof(double));
 	}
 	in = calloc(2*Nc, sizeof(double));	
@@ -191,7 +191,7 @@ double ** GaborTransform(double *signal, double dt, int N, int N_freq, int N_t, 
 	// DFT normalization coefficient dt/sqrt(2 \pi)
 	norm = dt/sqrt(2.*Pi);
 
-	for (i = 0; i < N_t; i++) // gabor loop
+	for (i = 0; i < N_G; i++) // gabor loop
 	{
 
 		for(j = 0; j < N; j++) {
