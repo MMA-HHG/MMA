@@ -45,21 +45,7 @@ textend	200	R	a.u.	# Extension of the calculation after the last fields ends <--
 ## Target definition
 trg_a	1.3677	R	a.u. # |Krypton Ip = 0.5145 a.u. a = 1.3677, Argon Ip = 0.5792 a = 1.1893
 
-## Analyses
-analy_writewft	0	I	- # Write wavefunction (0 == False, 1 == True)
-analy_tprint	10.	R	- # Write wavefunction every dt = analy_tprint
-
-PrintOutputMethod	1	I	-
-
 ## units
 fieldinau	1	I	-
 input0	1	I	-
 	
-
-
-
-## further analyses
-
-## filenames
-
-## units of inputs

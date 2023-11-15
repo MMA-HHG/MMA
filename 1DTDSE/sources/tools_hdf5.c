@@ -90,18 +90,9 @@ void ReadInputs(hid_t file_id, char *inpath, herr_t *h5error, inputs_def *in)
 	// Extension of the calculation after the last fields ends !!! ONLY FOR ANALYTICAL FIELD
 	path[0] = '\0';	strcat(strcat(path,inpath),"textend");
 	readreal(file_id, path, h5error,&(*in).textend); 
-	// Write wavefunction (1-writing every tprint)
-	path[0] = '\0';	strcat(strcat(path,inpath),"analy_writewft");
-	readint(file_id, path, h5error,&(*in).analy.writewft); 
-	// Time spacing for writing the wavefunction	
-	path[0] = '\0';	strcat(strcat(path,inpath),"analy_tprint");
-	readreal(file_id, path, h5error,&(*in).analy.tprint); 
 	// the limit of the integral for the ionisation (works fine with the lenth gauge and strong fields)
 	path[0] = '\0';	strcat(strcat(path,inpath),"x_int");
 	readreal(file_id, path, h5error,&(*in).x_int);  
-	// (0 - only text, 1 - only binaries, 2 - both)
-	path[0] = '\0';	strcat(strcat(path,inpath),"PrintOutputMethod");
-	readint(file_id, path, h5error,&(*in).PrintOutputMethod); 
 	// Target parameter
 	path[0] = '\0';	strcat(strcat(path,inpath),"trg_a");
 	readreal(file_id, path, h5error,&(*in).trg.a); 

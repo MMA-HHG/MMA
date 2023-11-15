@@ -184,8 +184,6 @@ typedef struct inputs_def {
 	// Switches (1 = yes)
 	int InterpByDTorNT;
 	int Ntinterp; 
-	// Switch (0 - only text, 1 - only binaries, 2 - both)
-	int PrintOutputMethod;	
 	// extension of the calculation after the last fields ends !!! NOW ONLY FOR ANALYTICAL FIELD
 	double textend;
 	// I/O printing structure

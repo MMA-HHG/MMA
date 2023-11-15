@@ -27,9 +27,6 @@
  */
 void call1DTDSE(inputs_def * inputs, outputs_def * outputs)
 {
-	// Output structure
-	//outputs_def outputs;	
-
 	// Wavefunction in time t_n
 	double * psi;
 	// Timestep
@@ -40,8 +37,6 @@ void call1DTDSE(inputs_def * inputs, outputs_def * outputs)
 	int Nt;
 	// Points per cycle of 800nm field
 	int num_t;
-	// Switch
-	int input0 = 1;
 	// Dummy integer
 	int dumint;
 	// Iterable
@@ -56,18 +51,7 @@ void call1DTDSE(inputs_def * inputs, outputs_def * outputs)
 	dt = (*inputs).dt;
 
 	// PREPARATIONAL COMPUTATIONS 
-	
-	// find dt from the grid around 0	
-	switch (input0) {
-	case 0: 
-		dumint = 0; 
-		break; 
-	case 1: 
-		dumint = round((*inputs).Efield.Nt/2.); /* field centered around 0 */ 
-		break;
-	} // choosing the best resolution	
-
-	(*inputs).Efield.dt = (*inputs).Efield.tgrid[dumint+1]-(*inputs).Efield.tgrid[dumint]; 
+	(*inputs).Efield.dt = (*inputs).Efield.tgrid[1]-(*inputs).Efield.tgrid[0]; 
 	
 	// total length of the grid
 	tmax = (*inputs).Efield.tgrid[(*inputs).Efield.Nt-1]-(*inputs).Efield.tgrid[0]; 
@@ -78,7 +62,7 @@ void call1DTDSE(inputs_def * inputs, outputs_def * outputs)
 	} else { 
 		k1 = floor((*inputs).Efield.dt/dt); 
 		(*inputs).Ntinterp = k1; 
-		k1++; 
+		if (k1 != 1) k1++; 
 	}
 	dt = (*inputs).Efield.dt/((double)k1); // redefine dt properly
 

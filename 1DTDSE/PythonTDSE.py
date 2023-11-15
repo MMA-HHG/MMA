@@ -402,9 +402,9 @@ class inputs_def(Structure):
     analy:
         Analytical values print.
     InterpByDTorNT:
-        Interpolate by timestep (dt) or by resolution (Nt)
-    PrintOutputMethod:
-        Print standard output (0 - only text, 1 - only binaries, 2 - both)
+        Interpolate by timestep (dt == 1) or refine init dt by ```Ntinterp``` points (== 0).
+    Ntinterp:
+        Number of points for initial dt refinement.
     textend:
         Extension of calculation after the field end (not yet implemented!)
     Print:
@@ -438,7 +438,6 @@ class inputs_def(Structure):
         ("analy", analy_def),
         ("InterpByDTorNT", c_int),
         ("Ntinterp", c_int),
-        ("PrintOutputMethod", c_int),
         ("textend", c_double),
         ("Print", output_print_def),
         ("CV", c_double),
@@ -466,7 +465,6 @@ class inputs_def(Structure):
             self.analy.writewft = c_int(f["TDSE_inputs/analy_writewft"][()])
             self.analy.tprint = c_double(f["TDSE_inputs/analy_tprint"][()])
             self.x_int = c_double(f["TDSE_inputs/x_int"][()])
-            self.PrintOutputMethod = c_int(f["TDSE_inputs/PrintOutputMethod"][()])
             self.trg.a = c_double(f["TDSE_inputs/trg_a"][()])
             self.CV = c_double(f["TDSE_inputs/CV_criterion_of_GS"][()])
             self.gauge = c_int(f["TDSE_inputs/gauge_type"][()])
@@ -488,7 +486,6 @@ class inputs_def(Structure):
                             writewft = 0,
                             tprint = 10,
                             x_int = 2.,
-                            PrintOutputMethod = 1,
                             precision = np.string_('d')
                             ):
         """
@@ -509,7 +506,6 @@ class inputs_def(Structure):
         self.analy.writewft = c_int(writewft)
         self.analy.tprint = c_double(tprint)
         self.x_int = c_double(x_int)
-        self.PrintOutputMethod = c_int(PrintOutputMethod)
         self.trg.a = c_double(trg_a)
         self.CV = c_double(CV)
         self.gauge = c_int(gauge)
