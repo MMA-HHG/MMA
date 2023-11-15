@@ -11,22 +11,28 @@
 # https://stackoverflow.com/questions/17198319/how-to-configure-custom-pythonpath-with-vm-and-pycharm
 
 import numpy as np
-import os
-import math
-import shutil
 import h5py
-import sys
-import units
 import mynumerics as mn
 import glob
+import sys
+
+available_outputs_list = ['Efield', 'FEfield', 'SourceTerm', 'FSourceTerm', 'FEfieldM2', 'FSourceTermM2', 'PopTot',
+                          'PopInt', 'expval_x'] 
+
+if len(sys.argv) > 1: 
+    args = sys.argv[1:]
+    available_outputs_list = set(args).intersection(available_outputs_list)
+    if available_outputs_list == set():
+        available_outputs_list = ['Efield', 'FEfield', 'SourceTerm', 'FSourceTerm', 'FEfieldM2', 'FSourceTermM2', 'PopTot',
+                          'PopInt', 'expval_x'] 
+    print("Datasets to be printed: ")
+    print(available_outputs_list)
 
 
 files = glob.glob('hdf5_temp_*.h5') # filter all the single-proc files
 outfname = "results_merged.h5"
-available_outputs_list = ['Efield', 'FEfield', 'SourceTerm', 'FSourceTerm', 'FEfieldM2', 'FSourceTermM2', 'PopTot', 'Gabor',
-                          'PopInt', 'expval_x'] # Gabor is not implemented, it's here to test an extra argument
 available_further_data = ['tgrid', 'omegagrid', 'Energy_of_the_ground_state', 'xgrid_micro', 'ground_state', 'zgrid_coarse',
-                          'rgrid_coarse'] # these are in all the files and supposed to be same, e.g. grids
+                          'rgrid_coarse']
 precision = 'd'
 
 def prepare_ouput_file(f,outf,dset_list):
@@ -67,7 +73,7 @@ def print_ouput_file(f,outf,dset_list):
 
 nsim_tot = 0
 with h5py.File(outfname,'w') as outf:
-    firstrun = True;
+    firstrun = True
     for fname in files:
         with h5py.File(fname,'r') as f:
             dset_list = list(f.keys())
