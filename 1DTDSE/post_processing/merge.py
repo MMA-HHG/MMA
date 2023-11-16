@@ -14,13 +14,20 @@ import numpy as np
 import h5py
 import mynumerics as mn
 import glob
-import sys
+import argparse
+
+ap = argparse.ArgumentParser()
+ap.add_argument("-p", "--printdata", nargs='+', required=False, help="Select data to print. Available " \
+                "options are 'Efield', 'FEfield', 'SourceTerm', 'FSourceTerm', 'FEfieldM2', " \
+                "'FSourceTermM2', 'PopTot', " \
+                "'PopInt', 'expval_x'")
+args = vars(ap.parse_args())
 
 available_outputs_list = ['Efield', 'FEfield', 'SourceTerm', 'FSourceTerm', 'FEfieldM2', 'FSourceTermM2', 'PopTot',
                           'PopInt', 'expval_x'] 
 
-if len(sys.argv) > 1: 
-    args = sys.argv[1:]
+if args['printdata'] != None: 
+    args = args['printdata']
     available_outputs_list = set(args).intersection(available_outputs_list)
     if available_outputs_list == set():
         available_outputs_list = ['Efield', 'FEfield', 'SourceTerm', 'FSourceTerm', 'FEfieldM2', 'FSourceTermM2', 'PopTot',
