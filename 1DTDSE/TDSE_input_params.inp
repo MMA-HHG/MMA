@@ -7,9 +7,6 @@
 ## Brief explanation:
 ## HDF5_variable_name  |  <value>  |  <type: real (R), integer (I)>  |  <units>  |  # comment
 
-## Field type
-Efield_type	0	I	-	# 0-numerical, loaded in femtoseconds, 1-numerical, loaded in atomic units in whole grid, 2-analytical
-
 ## Coarser grid parameters
 kz_step 1  I   -
 # Nz_max  1250 I   -
@@ -32,7 +29,6 @@ print_F_Source_Term_M2          0   I   -
 ## Numerical and starting parameters
 Eguess	-1	R	a.u.	# Energy of the initial state (guess)
 N_r_grid	16000	I	-	# Number of points of the initial TDSE spatial grid 
-N_r_grid_exp	0	I	-	# Number of points of the spatial grid for the expansion (expansion NOT IMPLEMENTED now)
 dx	0.4	    R	a.u.	# Resolution for the grid
 x_int	2.0	R	a.u.    # Probability for finding electron in range (x-x_int, x + x_int)
 CV_criterion_of_GS  1e-25   R   -   # Convergence parameter for ground state search
@@ -40,7 +36,6 @@ gauge_type  0   I   -   # Choice of gauge (0 == length) <-- other gauges NOT IMP
 InterpByDTorNT	0	I	-	# Refine resolution only for numerical fields (0 - by dt, 1 - by number of points)
 dt	0.25	R	a.u.	# Resolution in time
 Ntinterp	1	I	-	# Number of intermediate points for the interpolation
-textend	200	R	a.u.	# Extension of the calculation after the last fields ends <-- NOT IMPLEMENTED now
 
 ## Target definition
 trg_a	1.3677	R	a.u. # |Krypton Ip = 0.5145 a.u. a = 1.3677, Argon Ip = 0.5792 a = 1.1893

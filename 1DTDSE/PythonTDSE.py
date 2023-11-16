@@ -405,8 +405,6 @@ class inputs_def(Structure):
         Interpolate by timestep (dt == 1) or refine init dt by ```Ntinterp``` points (== 0).
     Ntinterp:
         Number of points for initial dt refinement.
-    textend:
-        Extension of calculation after the field end (not yet implemented!)
     Print:
         Output prints structure.
     CV:
@@ -429,7 +427,6 @@ class inputs_def(Structure):
         ("num_t", c_int),
         ("dt", c_double),
         ("num_r", c_int),
-        ("num_exp", c_int),
         ("dx", c_double),
         ("psi0", POINTER(c_double)),
         ("x", POINTER(c_double)),
@@ -438,7 +435,6 @@ class inputs_def(Structure):
         ("analy", analy_def),
         ("InterpByDTorNT", c_int),
         ("Ntinterp", c_int),
-        ("textend", c_double),
         ("Print", output_print_def),
         ("CV", c_double),
         ("precision", c_char * 2)
@@ -456,12 +452,10 @@ class inputs_def(Structure):
         with h5py.File(filename, "r") as f:
             self.Eguess = c_double(f["TDSE_inputs/Eguess"][()])
             self.num_r = c_int(f["TDSE_inputs/N_r_grid"][()])
-            self.num_exp = c_int(f["TDSE_inputs/N_r_grid_exp"][()])
             self.dx = c_double(f["TDSE_inputs/dx"][()])
             self.InterpByDTorNT = c_int(f["TDSE_inputs/InterpByDTorNT"][()])
             self.dt = c_double(f["TDSE_inputs/dt"][()])
             self.Ntinterp = c_int(f["TDSE_inputs/Ntinterp"][()])
-            self.textend = c_double(f["TDSE_inputs/textend"][()])
             self.analy.writewft = c_int(f["TDSE_inputs/analy_writewft"][()])
             self.analy.tprint = c_double(f["TDSE_inputs/analy_tprint"][()])
             self.x_int = c_double(f["TDSE_inputs/x_int"][()])
@@ -482,7 +476,6 @@ class inputs_def(Structure):
                             gauge = 0,
                             num_exp = 0,
                             Ntinterp = 1,
-                            textend = 200.0,
                             writewft = 0,
                             tprint = 10,
                             x_int = 2.,
@@ -502,7 +495,6 @@ class inputs_def(Structure):
         self.InterpByDTorNT = c_int(InterpByDTorNT)
         self.dt = c_double(dt)
         self.Ntinterp = c_int(Ntinterp)
-        self.textend = c_double(textend)
         self.analy.writewft = c_int(writewft)
         self.analy.tprint = c_double(tprint)
         self.x_int = c_double(x_int)

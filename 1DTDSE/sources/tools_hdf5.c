@@ -72,9 +72,6 @@ void ReadInputs(hid_t file_id, char *inpath, herr_t *h5error, inputs_def *in)
 	// Number of points of the initial spatial grid
 	path[0] = '\0';	strcat(strcat(path,inpath),"N_r_grid");
 	readint(file_id, path, h5error,&(*in).num_r); 
-	// Number of points of the spatial grid for the expansion
-	path[0] = '\0';	strcat(strcat(path,inpath),"N_r_grid_exp");
-	readint(file_id, path, h5error,&(*in).num_exp); 
 	// resolution for the grid
 	path[0] = '\0';	strcat(strcat(path,inpath),"dx");
 	readreal(file_id, path, h5error,&(*in).dx); 
@@ -87,9 +84,6 @@ void ReadInputs(hid_t file_id, char *inpath, herr_t *h5error, inputs_def *in)
 	// Number of points of the spatial grid for the expansion
 	path[0] = '\0';	strcat(strcat(path,inpath),"Ntinterp");
 	readint(file_id, path, h5error,&(*in).Ntinterp); 
-	// Extension of the calculation after the last fields ends !!! ONLY FOR ANALYTICAL FIELD
-	path[0] = '\0';	strcat(strcat(path,inpath),"textend");
-	readreal(file_id, path, h5error,&(*in).textend); 
 	// the limit of the integral for the ionisation (works fine with the lenth gauge and strong fields)
 	path[0] = '\0';	strcat(strcat(path,inpath),"x_int");
 	readreal(file_id, path, h5error,&(*in).x_int);  

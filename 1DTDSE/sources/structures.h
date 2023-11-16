@@ -167,8 +167,6 @@ typedef struct inputs_def {
 	double dt;
 	// Spatial grid size for TDSE
 	int num_r;
-	// Number of points of the spatial grid for the expansion
-	int num_exp;
 	// Spatial step
 	double dx;
 	// Initial wavefunction
@@ -184,8 +182,6 @@ typedef struct inputs_def {
 	// Switches (1 = yes)
 	int InterpByDTorNT;
 	int Ntinterp; 
-	// extension of the calculation after the last fields ends !!! NOW ONLY FOR ANALYTICAL FIELD
-	double textend;
 	// I/O printing structure
 	struct output_print_def Print;
 	// Precision of the ground state energy
