@@ -4,6 +4,7 @@ This python script checks if the HDF5 file contains necessary inputs for the
 """
 
 import h5py
+import argparse
 
 def test_key(key):
     try:
@@ -14,8 +15,18 @@ def test_key(key):
     else:
         pass
 
-print("Type the HDF5 file to check with relative path: ")
-filename = input()
+
+ap = argparse.ArgumentParser()
+ap.add_argument("-i", "--inhdf5", required=False, help="Path to HDF5 file to check.")
+args = vars(ap.parse_args())
+
+filename = None
+
+if args['inhdf5'] == None:
+    print("Type the HDF5 file to check with relative path: ")
+    filename = input()
+else:
+    filename = args['inhdf5']
 
 with h5py.File(filename, 'r') as f:
     keys = ["TDSE_inputs/Eguess",
