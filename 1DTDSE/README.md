@@ -45,7 +45,7 @@ module load cmake gcc openmpi fftw3 hdf5
 If the modules are selected and installed properly (compatible modules), then the variables ```LD_LIBRARY_PATH``` and ```CPATH``` should include the paths to the dependency libraries and header files.
 
 ### Known issues with environment variables
-For **Intel compiler** and **MKL** binding, the ```CPATH``` variable may be set incorrectly and does not include the correct path to FFTW3 headers. The error will show up during the compilation phase, stating that the header ```<fftw3.h>``` is missing. 
+For **Intel compiler** and **MKL** binding, the ```CPATH``` variable may be set incorrectly and may not include the correct path to the FFTW3 headers. The error will show up during the compilation phase, stating that the header ```<fftw3.h>``` is missing. 
 
 If the problem occurs, the workaround is to set the correct include path for the MKL header either by editing the ```.bashsrc``` file or modifying the ```CPATH``` variable in the current session as follows:
 ```shell
@@ -181,12 +181,150 @@ check the fftw3 installation (`-fPIC`)
 
 # User guide
 
-## MPI scheduler for the CUPRAD output
-MPI scheduler takes the output field obtained from the previous computation of the CUPRAD code. The scheduler reads fields from HDF5 archive and for each field in $(r, z)$ coordinate executes a single 1DTDSE propagation routine. Each process stores the result data in its dedicated temporary HDF5 archive, e.g. for process 1 it will be ```hdf5_temp_0000001.h5```. 
+## MPI-TDSE for the CUPRAD output
+MPI-TDSE scheduler takes the output field obtained from the previous computation of the CUPRAD code. The scheduler reads the fields from an HDF5 archive and for each field in $(r, z)$ coordinate executes a single 1DTDSE propagation routine. Each process stores the result data in its dedicated temporary HDF5 archive, e.g. for process 1 it will be ```hdf5_temp_0000001.h5```. 
+
+Before the execution of the MPI-TDSE, we must preprocess the output ```results.h5``` file from CUPRAD.
 
 ### Preprocessing the HDF5 input
+The file ```results.h5``` is, by default, stored within ```CUPRAD/build/``` directory after the execution of CUPRAD. It will be copied and preprocessed from this directory by default (can be overrided). 
+
+
+#### Parameter file
+The input file `TDSE_input_params.inp` is an example input file containing numerical parameters for the execution of the MPI-TDSE code. **Be advised to keep a backup of this file before overwriting it with custom parameters**. 
+The file has a predefined structure along with explanatory comment for each parameter and looks as follows:
+```
+## Example TDSE input file used for preprocessing of HDF5 file
+## ------------------
+## This file is read by the python preprocessor ```post_processing/prepare_TDSE.py```
+## and saves the values stored here into the HDF5 archive into the group 
+## "TDSE_inputs/". 
+##
+## Brief explanation:
+## HDF5_variable_name  |  <value>  |  <type: real (R), integer (I)>  |  <units>  |  # comment
+
+## Coarser grid parameters
+kz_step 1  I   -
+# Nz_max  1250 I   -
+kr_step 4  I   -
+Nr_max  400 I   -
+
+## Control outputs: here we set the outputs we would like to save into 
+## the temporary HDF5 file (1 == keep, 0 == not keep)
+print_GS_population             1   I   -   
+print_integrated_population     1   I   -
+print_Efield                    1   I   -
+print_F_Efield                  0   I   -
+print_Source_Term               0   I   -
+print_F_Source_Term             1   I   -
+print_x_expectation_value       1   I   -
+print_GS                        1   I   -
+print_F_Efield_M2               0   I   -
+print_F_Source_Term_M2          0   I   -
+
+## Numerical and starting parameters
+Eguess	-1	R	a.u.	# Energy of the initial state (guess)
+N_r_grid	16000	I	-	# Number of points of the initial TDSE spatial grid 
+dx	0.4	    R	a.u.	# Resolution for the grid
+x_int	2.0	R	a.u.    # Probability for finding electron in range (x-x_int, x + x_int)
+CV_criterion_of_GS  1e-25   R   -   # Convergence parameter for ground state search
+gauge_type  0   I   -   # Choice of gauge (0 == length) <-- other gauges NOT IMPLEMENTED
+InterpByDTorNT	0	I	-	# Refine resolution only for numerical fields (0 - by dt, 1 - by number of points)
+dt	0.25	R	a.u.	# Resolution in time
+Ntinterp	1	I	-	# Number of intermediate points for the interpolation
+
+## Target definition
+trg_a	1.3677	R	a.u. # |Krypton Ip = 0.5145 a.u. a = 1.3677, Argon Ip = 0.5792 a = 1.1893
+```
+
+##### Coarser grid parameters
+The parameters `Nz_max` and `Nr_max` for grid coarsening are optional. Enables to coarsen the CUPRAD electric grid for the computation. Basically decreasing the resolution for the MPI-TDSE.
+
+##### Control outputs
+Enables the selection which parameters should be stored in the temporary HDF5 files generated per process containing the results of MPI-TDSE. 
+
+##### Numerical and starting parameters
+The notes are self-explanatory. **Be advised to always check the TDSE parameters such as `dx`, `dt` and `N_r_grid` for a proper wavefunction convergence, the code does not check if the resolution is sufficient!** Note that the `gauge` switch has not been implemented in the current version of the code. 
+
+
+
+#### Saving the parameters into an HDF5 file
+After choosing the desired parameters in the input file, simply run the Python script ```prepare_TDSE.py``` in ```post_processing``` directory from the root TDSE directory using command line keywords `-i` and `-o` (optional) as follows:
+```bash
+# PWD = ../CUPRAD_TDSE_Hankel/1DTDSE
+python3 post_processing/prepare_TDSE.py -i TDSE_input_params.inp -o ../CUPRAD/build/results.h5
+```
+The keyword `-o` does not have to be specified, the default path is `../CUPRAD/build/results.h5` and takes the HDF5 file where the inputs will be written. Keyword `-i` takes the parameter file (`*.inp`). If any of the parameters are invalid, the code throws error. 
+
+For help with running the script, the user can receive a help message simply by
+```bash
+# PWD = ../CUPRAD_TDSE_Hankel/1DTDSE
+python3 post_processing/prepare_TDSE.py -h
+```
+
+The script will create a copy of the HDF5 file in the directory from which the script was called, here the root 1DTDSE directory.
+
+#### Check the HDF5 file before the execution of the MPI-TDSE – non-obligatory
+To check if all the important parameters have been printed successfully by the Python preprocessor, the script ```hdf5_check.py``` skims through the HDF5 file to find the corresponding parameters necessary for running MPI-TDSE. It tells the user which parameters are missing. The script can be executed in two ways. Either through command line arguments:
+```bash
+# PWD = ../CUPRAD_TDSE_Hankel/1DTDSE
+python3 hdf5_check.py -i result_file_to_check.h5
+```
+or by simply running the script without the CL argument as
+```bash
+# PWD = ../CUPRAD_TDSE_Hankel/1DTDSE
+python3 hdf5_check.py
+```
+where the script will interactively ask explicitly for the file to be checked:
+```bash
+Type the HDF5 file to check with relative path: 
+result_file_to_check.h5
+*******************************
+
+All OK.
+Check finished.
+```
 
 ### Code execution
+Now with the HDF5 file already preprocessed, we can execute the MPI-TDSE code **from the same directory where the preprocessed ```results.h5``` file resides** as
+```bash
+# PWD = ../CUPRAD_TDSE_Hankel/1DTDSE
+mpirun -np N_proc ./build/TDSE.e
+```
+or using a batch job script.
+
+The MPI-TDSE schedules each process with a section of data from the output electric field computed from CUPRAD and executes independently a 1D-TDSE per field. It is an *embarassingly parallel* algorithm in principle. 
+
+In the beginning, each process allocates its own temporary output HDF5 file in format ```hdf5_temp_*.h5``` ending with an ID of the corresponding process. Hence for ```N_proc``` processes we get ```N_proc``` number of temporary HDF5 files. The output arrays are preallocated in advance within the MPI-TDSE code and then the code prints the preselected values, see section [Parameter file](#parameter-file), into these arrays. 
+
+### HDF5 temporary files merge
+We need to merge the temporary ```N_proc``` results ```hdf5_temp_*.h5``` into a single HDF5 file for further analysis. This is done using the last script ```merge.py``` within the ```post_processing``` folder. We invoke the script from the directory with the temporary HDF5 files as follows:
+```bash
+# PWD = ../CUPRAD_TDSE_Hankel/1DTDSE
+python3 post_processing/merge.py
+```
+This will automatically align all the output fields into single large array of a new HDF5 file ```results_merged.h5```.
+
+If we want to save some space, we can extract only selected arrays of data. The merging script accepts specific CL arguments which enable to choose only relevant arrays. We can see help information (using CL argument ```-h```) from the script:
+```bash
+# PWD = ../CUPRAD_TDSE_Hankel/1DTDSE
+python3 post_processing/merge.py -h
+usage: merge.py [-h] [-p PRINTDATA [PRINTDATA ...]]
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -p PRINTDATA [PRINTDATA ...], --printdata PRINTDATA [PRINTDATA ...]
+                        Select data to print. Available options are 'Efield',
+                        'FEfield', 'SourceTerm', 'FSourceTerm', 'FEfieldM2',
+                        'FSourceTermM2', 'PopTot', 'PopInt', 'expval_x'
+```
+See we can select only a few specific arrays to store: 'Efield', 'FEfield', 'SourceTerm', 'FSourceTerm', 'FEfieldM2', 'FSourceTermM2', 'PopTot', 'PopInt', 'expval_x'. 
+
+To select only 'Efield' and 'SourceTerm', we can type:
+```bash
+python3 post_processing/merge.py -p Efield SourceTerm
+```
+which will merge the corresponding outputs into the merged results HDF5 file. By default it merges all the available outputs.
 
 ### Simple Slurm script example
 
