@@ -1,22 +1,19 @@
 #!/bin/bash
-#SBATCH -J CUPRAD
-#SBATCH --nodes=2
-#SBATCH --constraint=BDW28
-#SBATCH --ntasks=32
-#SBATCH --ntasks-per-node=16
-#SBATCH --time=06:00:00
-#SBATCH --output CUPRAD-%J.output
+#SBATCH --job-name="CUPRAD"
+#SBATCH -t 0-01:00 # time (D-HH:MM)
+#SBATCH -o CUPRAD.%j.%N.out # STDOUT
+#SBATCH -e CUPRAD.%j.%N.err # STDERR
+#SBATCH --profile=All
 
+### Purge modules
 module purge
-module load intel intelmpi hdf5
 
-#module load GCC/6.1.0 OpenMPI/1.10.2-GCC-6.1.0-psm-dbg HDF5/1.8.13-OpenMPI-1.10.2-GCC-6.1.0-psm FFTW/3.3.5-OpenMPI-1.10.2-GCC-6.1.0-psm-dbg
-#module load intel/19.3 intelmpi/2019.3.199 hdf5/1.10.5-intel-19.0.3-intelmpi-2019.3.199 
-#module load intel/18.1
-#module load intelmpi/2018.1.163
+### Load modules
+module load cmake/3.26.3/gcc@11.2.0-rthuom3
+module load compiler/intel/2020.4.304
+module load mpi/intel/2020.4.304
+module load mkl/2023.0.0
+module load hdf5/1.10.5/openmpi_4.1.2/intel_2022.0.1
+module load hdf5/1.10.5/impi_2019.1.144/intel_2019.1.144
 
-echo 'CUPRAD code executing'
-
-srun --mpi=pmi2 -K1 -n $SLURM_NTASKS $CUPRAD_BINARY/cuprad_occigen.e
-
-echo 'CUPRAD code done'
+mpirun $CUPRAD_HOME/build/cuprad.e
