@@ -1,4 +1,11 @@
-! It was developed by Jan Vabek
+!> @author Jan Vábek
+!! @brief This module contains the lookup subroutine \ref findinterval and
+!! the linear interpolation subroutine \ref interpolate_lin, the procedures are
+!! available up to 2 dimensions. Optionally, bookkeeping is possible (see
+!! their desriptions for details)
+!!
+!! This module contains ...
+!! 
 module array_helper
 
 implicit none
@@ -8,7 +15,7 @@ public  :: interpolate2D_lin, interpolate1D_lin
 public  :: interpolate1D_decomposed_eq
 public  :: interpolate2D_decomposed_eq
 
-!> @brief returns interval where is placed x0 value, ordering <..)<..)..<..>, extrapolation 0, n
+!> @brief returns interval where x0-value is placed, ordering <..)<..)..<..>, extrapolation 0, n
 !!
 !! This suboroutine finds the index of the interval where 'x0' is placed within the array 'x'
 !! It uses the bisection lookup and allows for an initial guess 
@@ -23,6 +30,7 @@ INTERFACE findinterval
     procedure findinterval_1D, findinterval_2D
 END INTERFACE
 
+!> @private
 INTERFACE interpolate_lin
     procedure interpolate1D_lin, interpolate2D_lin
 END INTERFACE
