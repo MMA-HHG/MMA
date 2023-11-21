@@ -138,7 +138,7 @@ subroutine calc_density_mod(z)
         r=(k1-1)*delta_r
         call findinterval(kr,r,rgrid,Nr,k_guess=kr_guess)
 
-        call interpolate2D_decomposed_eq(kr,kz,r,z,density_dum,rgrid,zgrid,density_profile_matrix,Nr,Nz)
+        call interpolate2D_lin(r,z,density_dum,rgrid,zgrid,density_profile_matrix,Nr,Nz,kx_known=kr,ky_know=kz)
         if (density_dum /= density_mod(k1)) then
             density_mod(k1) = density_dum
             is_density_changed = .true.
