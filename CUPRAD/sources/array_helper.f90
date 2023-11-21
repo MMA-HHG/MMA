@@ -194,7 +194,7 @@ subroutine interpolate1D_decomposed_eq(k,x,fx,xgrid,fxgrid,n,tol) !inputs: # of 
 
 end subroutine interpolate1D_decomposed_eq
 
-subroutine interpolate1D_lin(x,fx,xgrid,fxgrid,n,k_known) !inputs: # of points, x(n), y(x(n)), x, returns y(x) (linearinterpolation), extrapolation by the boundary values
+subroutine interpolate1D_lin(x,fx,xgrid,fxgrid,n,k_known,tol) !inputs: # of points, x(n), y(x(n)), x, returns y(x) (linearinterpolation), extrapolation by the boundary values
 	real(8), intent(out)    :: fx
     integer, intent(in)     :: n
 	real(8), intent(in)     :: x, xgrid(n), fxgrid(n)	
