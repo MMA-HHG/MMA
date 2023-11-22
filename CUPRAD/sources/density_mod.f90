@@ -1,7 +1,7 @@
 !> @brief This module contains the lookup subroutine \ref findinterval and
 !! the linear interpolation subroutine \ref interpolate_lin, the procedures are
 !! available up to 2 dimensions. Optionally, bookkeeping is possible (see
-!! their desriptions for details)
+!! their desriptions for details).
 !!
 !! @author Jan Vábek
 !! @author Stefan Skupin
@@ -22,11 +22,10 @@ private
 ! public
 public  :: init_density_mod,calc_density_mod
 
-REAL(8), dimension(:), allocatable, public    :: density_mod
-!> @{
-!! one description
-logical, public                               :: apply_density_mod,is_density_changed
-!> @}
+REAL(8), dimension(:), allocatable, public    :: density_mod            !< vector containg the radial modulation of the density (respective to the reference density \ref parameters::rhoat_inv "rhoat_inv")
+logical, public                               :: apply_density_mod      !< TRUE: the density modulation is applied; FALSE: default value \ref parameters::rhoat_inv "rhoat_inv" is used
+logical, public                               :: is_density_changed     !< maintans if the density is changed from one z-step to another
+
 
 !> @cond INCLUDE_DENSITY_MOD_INTERNALS
 ! module internals
@@ -42,7 +41,10 @@ real(8), dimension(:,:), allocatable    :: density_profile_matrix
 
 CONTAINS
 
-! preparation
+!> @brief This subroutine initialises the interpolation procedure te retrieve the density modulation based
+!! on the table stored in 'file_id'. It is called if \apply_density_mod in the initial phase of the code.
+!!
+!! @param[in]       file_id          The id of the main HDF5 file. 
 subroutine init_density_mod(file_id)
     integer(hid_t)                          :: file_id
     real(8)                                 :: dumr
@@ -108,6 +110,12 @@ subroutine init_density_mod(file_id)
 
 end subroutine init_density_mod
 
+
+
+!> @brief This subroutine returns the radial density modulation for a given 'z'. The result is
+!! stored in \ref density_mod
+!!
+!! @param[in]       z          The local 'z'-coordinate.
 subroutine calc_density_mod(z)
 
     real(8) :: z
@@ -172,9 +180,3 @@ end subroutine calc_density_mod
 
 
 end module density_module
-
-! call mpi_isend(density_mod, ierr)
-! call mpi_recv(density_mod_compare, ierr)
-
-! call mpi_wait()
-! call mpi_wait()
