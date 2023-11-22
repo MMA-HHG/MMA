@@ -24,6 +24,7 @@ public  :: init_density_mod,calc_density_mod
 
 REAL(8), dimension(:), allocatable, public    :: density_mod
 !> @{
+!! one description
 logical, public                               :: apply_density_mod,is_density_changed
 !> @}
 
