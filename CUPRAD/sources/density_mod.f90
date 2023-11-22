@@ -22,9 +22,12 @@ private
 ! public
 public  :: init_density_mod,calc_density_mod
 
-REAL(8), dimension(:), ALLOCATABLE, public    :: density_mod
-logical, public                         :: apply_density_mod,is_density_changed
+REAL(8), dimension(:), allocatable, public    :: density_mod
+!> @{
+logical, public                               :: apply_density_mod,is_density_changed
+!> @}
 
+!> @cond INCLUDE_DENSITY_MOD_INTERNALS
 ! module internals
 integer                                 :: method_geometry
 integer                                 :: Nr, Nz
@@ -33,11 +36,6 @@ real(8), dimension(:), allocatable      :: rgrid !< doxy comment
 real(8), dimension(:), allocatable      :: zgrid
 real(8), dimension(:,:), allocatable    :: table_2D
 real(8), dimension(:,:), allocatable    :: density_profile_matrix
-
-
-!> @cond TEST
-integer, parameter, dimension(3)        :: table_geometries = (/2,3,4/)
-integer, parameter, dimension(2)        :: table_1D_geometries = (/3,4/)
 !> @endcond 
 
 
