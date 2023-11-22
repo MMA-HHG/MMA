@@ -20,7 +20,7 @@ usage: [[[-i (--ihdf5) input HDF5 file]
 slurm()
 {
     module purge
-    source $MULTISCALE_HOME/load_modules.sh
+    source $MULTISCALE_HOME/Modules/load_modules.sh
 }
 
 ### Main
