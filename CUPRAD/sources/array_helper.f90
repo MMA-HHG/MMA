@@ -19,11 +19,11 @@ public  :: interpolate2D_decomposed_eq
 !! It uses the bisection lookup and allows for an initial guess 
 !! interface collecting \ref findinterval_1D "testing custom text for a reference" and \ref findinterval_2D
 !!
-!! @param[out]      k1          the seeked index (integer)
-!! @param[in]       x0          real(8)
-!! @param[in]       x           array of real(8), specifying the partial intervals
-!! @param[in]       n           length of x (integer)
-!! @param[in,opt]   k_guess     initial guess (integer)
+!! @param[out]      k1          the seeked index
+!! @param[in]       x0          
+!! @param[in]       x           array specifying the partial intervals
+!! @param[in]       n           the length of x
+!! @param[in,opt]   k_guess     initial guess
 INTERFACE findinterval
     procedure findinterval_1D, findinterval_2D
 END INTERFACE

@@ -968,7 +968,6 @@ EXCLUDE                = ../sources/pre_ionised.f90 \
                          ../sources/fft_rk.f90 \
                          ../sources/finalize.f90 \
                          ../sources/firststep.f90 \
-                         ../sources/linked_list_module.f90 \
                          ../sources/longstep_rk.f90 \
                          ../sources/make_start.f90 \
                          ../sources/normalisation.f90 \

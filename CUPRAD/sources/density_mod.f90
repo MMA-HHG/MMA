@@ -23,19 +23,16 @@ private
 public  :: init_density_mod,calc_density_mod
 
 REAL(8), dimension(:), allocatable, public    :: density_mod            !< vector containg the radial modulation of the density (respective to the reference density \ref parameters::rhoat_inv "rhoat_inv")
-logical, public                               :: apply_density_mod      !< TRUE: the density modulation is applied; FALSE: default value \ref parameters::rhoat_inv "rhoat_inv" is used
+logical, public                               :: apply_density_mod      !< TRUE: the density modulation is applied; FALSE: default value \ref parameters::rhoat_inv "rhoat_inv" is used. Depends on \ref h5namelist::density_mod_grpname "density_mod_grpname".
 logical, public                               :: is_density_changed     !< maintans if the density is changed from one z-step to another
 
 
 !> @cond INCLUDE_DENSITY_MOD_INTERNALS
 ! module internals
-integer                                 :: method_geometry
-integer                                 :: Nr, Nz
 integer                                 :: h5err
-real(8), dimension(:), allocatable      :: rgrid !< doxy comment
-real(8), dimension(:), allocatable      :: zgrid
-real(8), dimension(:,:), allocatable    :: table_2D
-real(8), dimension(:,:), allocatable    :: density_profile_matrix
+real(8), dimension(:), allocatable      :: rgrid, zgrid                 ! local grids for the interpolation of the density modulation and their dimensions ↓↓
+integer                                 :: Nr, Nz
+real(8), dimension(:,:), allocatable    :: density_profile_matrix       ! matrix to store the density modulation on the input grids ↑↑
 !> @endcond 
 
 
@@ -58,7 +55,7 @@ subroutine init_density_mod(file_id)
     
     ! We create a matrix in all the cases. If only one grid is provided, max-z (-r) values are used
 
-    if (zgrid_exists.and. rgrid_exists) then
+    if (zgrid_exists .and. rgrid_exists) then
         call ask_for_size_1D(file_id, density_mod_grpname//'/rgrid', Nr)
         call ask_for_size_1D(file_id, density_mod_grpname//'/zgrid', Nz)
 

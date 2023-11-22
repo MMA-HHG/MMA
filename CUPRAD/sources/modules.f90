@@ -1,27 +1,29 @@
 MODULE fields
-  INTEGER(4)               :: dim_t,dim_r,dim_t_local,dim_r_local,omega_offset(2), i_x_max, i_z_max
-  INTEGER(4), ALLOCATABLE  :: dim_t_start(:),dim_t_end(:),dim_r_start(:),dim_r_end(:),num_ex(:)
-  INTEGER(4), ALLOCATABLE  :: send_e(:),send_etemp(:),send_efft(:),recv_e(:),recv_etemp(:),recv_efft(:)
-  REAL(8) , ALLOCATABLE    :: bound_t(:),e_2(:),e_2KK(:),e_2KKm2(:),rho(:),fluence(:),rhoabs(:),losses_ionization(:),losses_plasma(:)
-  REAL(8), ALLOCATABLE     :: peakmax(:),rhomax(:),energy(:),z_buff(:),energy_fil(:), rhoabs_max(:), xx(:), zz(:), Indice_norm(:,:)
-  COMPLEX(8), ALLOCATABLE, TARGET  :: e(:,:),etemp(:,:),efft(:,:),ptemp(:,:),jtemp(:,:),D(:,:),DL(:,:),DU(:,:),p_t(:,:),op_t(:),op_t_inv(:),pharm(:,:),hfac(:,:)
-  LOGICAL, ALLOCATABLE     :: send_first(:)
+  INTEGER(4)                        :: dim_t,dim_r,dim_t_local,dim_r_local,omega_offset(2), i_x_max, i_z_max
+  INTEGER(4), ALLOCATABLE           :: dim_t_start(:),dim_t_end(:),dim_r_start(:),dim_r_end(:),num_ex(:)
+  INTEGER(4), ALLOCATABLE           :: send_e(:),send_etemp(:),send_efft(:),recv_e(:),recv_etemp(:),recv_efft(:)
+  REAL(8) , ALLOCATABLE             :: bound_t(:),e_2(:),e_2KK(:),e_2KKm2(:),rho(:),fluence(:),rhoabs(:),losses_ionization(:),losses_plasma(:)
+  REAL(8), ALLOCATABLE              :: peakmax(:),rhomax(:),energy(:),z_buff(:),energy_fil(:), rhoabs_max(:), xx(:), zz(:), Indice_norm(:,:)
+  COMPLEX(8), ALLOCATABLE, TARGET   :: e(:,:),etemp(:,:),efft(:,:),ptemp(:,:),jtemp(:,:),D(:,:),DL(:,:),DU(:,:),p_t(:,:),op_t(:),op_t_inv(:),pharm(:,:),hfac(:,:)
+  LOGICAL, ALLOCATABLE              :: send_first(:)
 END MODULE fields
 
+!> @brief stores the paths within the main hdf5 file. 
+!!
 MODULE h5namelist
   ! USE HDF5
-  CHARACTER(100), SAVE      ::  main_h5_fname =       "results.h5"
-  CHARACTER(*), PARAMETER   ::  in_grpname =          "inputs"
-  CHARACTER(*), PARAMETER   ::  pre_proc_grpname =    "pre-processed"
-  CHARACTER(*), PARAMETER   ::  out_grpname =         "outputs"
-  CHARACTER(*), PARAMETER   ::  outEfield_grpname =   "IRprop"
-  CHARACTER(*), PARAMETER   ::  log_grpname =         "logs"
-  CHARACTER(*), PARAMETER   ::  ionref_grpname =      "ionisation_model"
-  CHARACTER(*), PARAMETER   ::  longstep_grpname =    "longstep"
-  CHARACTER(*), PARAMETER   ::  outcont_grpname =     out_grpname//"/code_continuation"
-  CHARACTER(*), PARAMETER   ::  refrindex_grpname =   pre_proc_grpname//"/indexes_group"
-  CHARACTER(*), PARAMETER   ::  density_mod_grpname =   "density_mod"
-  CHARACTER(*), PARAMETER   ::  pre_ionised_grpname =   "pre_ionised"
+  CHARACTER(100), SAVE      ::  main_h5_fname =         "results.h5" !< 'results.h5' is the dedault name, custom name specified in 'msg.tmp'.
+  CHARACTER(*), PARAMETER   ::  in_grpname =            "inputs"
+  CHARACTER(*), PARAMETER   ::  pre_proc_grpname =      "pre-processed"
+  CHARACTER(*), PARAMETER   ::  out_grpname =           "outputs"
+  CHARACTER(*), PARAMETER   ::  outEfield_grpname =     "IRprop"
+  CHARACTER(*), PARAMETER   ::  log_grpname =           "logs"
+  CHARACTER(*), PARAMETER   ::  ionref_grpname =        "ionisation_model"
+  CHARACTER(*), PARAMETER   ::  longstep_grpname =      "longstep"
+  CHARACTER(*), PARAMETER   ::  outcont_grpname =       out_grpname//"/code_continuation"
+  CHARACTER(*), PARAMETER   ::  refrindex_grpname =     pre_proc_grpname//"/indexes_group"
+  CHARACTER(*), PARAMETER   ::  density_mod_grpname =   "density_mod"                       !< If this group is present, \ref density_module::init_density_mod "init_density_mod" is invoked.
+  CHARACTER(*), PARAMETER   ::  pre_ionised_grpname =   "pre_ionised"                       !< If this group is present, \ref pre_ionised::nit_pre_ionisation "init_pre_ionisation" is invoked.
 END MODULE h5namelist
 
 MODULE longstep_vars
@@ -30,7 +32,8 @@ MODULE longstep_vars
   INTEGER :: original_rhodist
   INTEGER :: dset_write_count = 0
   
-  ! Variables needed for linked list buffering
+  !>@{
+  !! Variables needed for \ref linked_list "linked list" buffering
   REAL, DIMENSION(:), POINTER :: ptr_f
   REAL, DIMENSION(:), POINTER :: ptr_p
   REAL, DIMENSION(:), POINTER :: ptr_lp
@@ -40,6 +43,7 @@ MODULE longstep_vars
   TYPE(list_t), POINTER :: losses_plasma_ll => NULL()
   TYPE(list_t), POINTER :: losses_ionization_ll => NULL()
   INTEGER :: length_of_linked_list = 0
+  !>@}
 
   ! CHARACTER(*), PARAMETER ::  zsteps_name = 'zsteps'
   INTEGER :: dz_write_count = 0
@@ -83,17 +87,19 @@ MODULE mpi_stuff
 
 END MODULE mpi_Stuff
 
+!> @brief stores conversion factors between the SI and computational units.
+!!
 MODULE normalization
-  INTEGER(4) :: Nz_points ! expected number of hdf5 output along z
-  INTEGER(4) :: Nz_points_Efield ! dtto
-  REAL(8) :: tps ! pulse duration in s (normalization factor for time)
-  REAL(8) :: w0m ! beam width in m (normalization factor for transverse length)
-  REAL(8) :: lambdanm ! center wavelength in nm
-  REAL(8) :: rhoc_cm3_phys ! critical plasma density
-  REAL(8) :: four_z_Rayleigh ! 4 times the rayleigh length in m (normalization factor for z)
-  REAL(8) :: efield_factor ! normalization factor electric field V/m
-  REAL(8) :: plasma_normalisation_factor_m3 ! factor to obtain the density of plasma in m^(-3)
-  COMPLEX(8), ALLOCATABLE  :: efield_osc(:) ! fast oscillating term exp(-i*omegauppe*t)
+  INTEGER(4) :: Nz_points !< expected number of hdf5 output along z
+  INTEGER(4) :: Nz_points_Efield !< \copydoc Nz_points
+  REAL(8) :: tps !< pulse duration in s (normalization factor for time)
+  REAL(8) :: w0m !< beam width in m (normalization factor for transverse length)
+  REAL(8) :: lambdanm !< center wavelength in nm
+  REAL(8) :: rhoc_cm3_phys !< critical plasma density
+  REAL(8) :: four_z_Rayleigh !< 4 times the rayleigh length in m (normalization factor for z)
+  REAL(8) :: efield_factor !< normalization factor electric field V/m
+  REAL(8) :: plasma_normalisation_factor_m3 !< factor to obtain the density of plasma in m^(-3)
+  COMPLEX(8), ALLOCATABLE  :: efield_osc(:) !< fast oscillating term exp(-i*omegauppe*t)
 END MODULE normalization
 
 MODULE run_status
