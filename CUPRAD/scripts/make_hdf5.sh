@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 #SBATCH --job-name="MAKE_H5"
 #SBATCH --ntasks=1
@@ -21,7 +21,7 @@ usage: [[[-i (--inp) input file (.inp)]
 slurm()
 {
     module purge
-    module load python
+    source $MULTISCALE_HOME/load_python_modules.sh
 }
 
 
@@ -36,7 +36,6 @@ while [ "$1" != "" ]; do
                                 h5_filename="$1"
                                 ;;
         -s | --slurm )          slurm
-                                exit
                                 ;;
         -h | --help )           usage
                                 exit

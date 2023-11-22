@@ -12,7 +12,6 @@ while [ "$1" != "" ]; do
                                 ;;
         -n | --ncuprad)         shift
                                 ntasks_cuprad="$1"
-                                exit
                                 ;;
         -h | --help )           usage
                                 exit
@@ -46,15 +45,16 @@ echo "Output hdf5 file: ${h5_filename}"
 echo "Number of processes for CUPRAD: ${ntasks_cuprad}"
 
 ### ENVIRONMENT VARIABLES MUST BE SET!
+source set_env_vars.sh
 
 ### Create HDF5 file from parameters
 JOB0=$(sbatch --parsable --export=ALL $CUPRAD_SCRIPTS/make_hdf5.sh \
         --inp $inp_filename --ohdf5 $h5_filename -s);
 
 ### Submit Preprocessor
-JOB1=$(sbatch --parsable --export=ALL --dependency=afterok:$JOB1 \
+JOB1=$(sbatch --parsable --export=ALL --dependency=afterok:$JOB0 \
         $CUPRAD_SCRIPTS/run_preprocessor.sh --ihdf5 $h5_filename -s);
 
 ### Submit CUPRAD
-JOB2=$(sbatch --ntasks=$ntasks_cuprad --parsable --export=ALL --dependency=afterok:$JOB2 \
-        $CUPRAD_SRIPTS/CUPRAD.slurm)
+JOB2=$(sbatch --ntasks=$ntasks_cuprad --parsable --export=ALL --dependency=afterok:$JOB1 \
+        $CUPRAD_SCRIPTS/CUPRAD.sh)

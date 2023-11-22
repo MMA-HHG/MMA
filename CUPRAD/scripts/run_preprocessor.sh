@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 #SBATCH --job-name="PREPROCESSOR"
 #SBATCH --ntasks=1
@@ -20,24 +20,16 @@ usage: [[[-i (--ihdf5) input HDF5 file]
 slurm()
 {
     module purge
-    module load cmake/3.26.3/gcc@11.2.0-rthuom3
-    module load compiler/intel/2020.4.304
-    module load mpi/intel/2020.4.304
-    module load mkl/2023.0.0
-    module load hdf5/1.10.5/openmpi_4.1.2/intel_2022.0.1
-    module load hdf5/1.10.5/impi_2019.1.144/intel_2019.1.144
+    source $MULTISCALE_HOME/load_modules.sh
 }
 
 ### Main
-h5_filename=""
-
 while [ "$1" != "" ]; do
     case $1 in
-        -i | --ihdf5 )           shift
+        -i | --ihdf5 )          shift
                                 h5_filename="$1"
                                 ;;
         -s | --slurm )          slurm
-                                exit
                                 ;;
         -h | --help )           usage
                                 exit
