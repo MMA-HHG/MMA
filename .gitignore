@@ -12,3 +12,10 @@ TDSE.inp.tmp
 .vscode/
 *.so
 Tests.ipynb
+.dat
+.LOG
+results.h5
+test.h5
+STOP
+listing
+msg.tmp
