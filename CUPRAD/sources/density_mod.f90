@@ -1,11 +1,10 @@
-!>
+!> @brief This module contains the lookup subroutine \ref findinterval and
+!! the linear interpolation subroutine \ref interpolate_lin, the procedures are
+!! available up to 2 dimensions. Optionally, bookkeeping is possible (see
+!! their desriptions for details)
 !!
-!!
-!!
-!!
-
-
-
+!! @author Jan Vábek
+!! @author Stefan Skupin
 module density_module
 use HDF5
 use HDF5_helper
@@ -30,15 +29,16 @@ logical, public                         :: apply_density_mod,is_density_changed
 integer                                 :: method_geometry
 integer                                 :: Nr, Nz
 integer                                 :: h5err
-real(8), dimension(:), allocatable      :: rgrid
+real(8), dimension(:), allocatable      :: rgrid !< doxy comment
 real(8), dimension(:), allocatable      :: zgrid
 real(8), dimension(:,:), allocatable    :: table_2D
 real(8), dimension(:,:), allocatable    :: density_profile_matrix
 
 
+!> @cond TEST
 integer, parameter, dimension(3)        :: table_geometries = (/2,3,4/)
 integer, parameter, dimension(2)        :: table_1D_geometries = (/3,4/)
-
+!> @endcond 
 
 
 CONTAINS

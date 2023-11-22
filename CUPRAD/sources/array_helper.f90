@@ -1,11 +1,9 @@
-!> @author Jan Vábek
-!! @brief This module contains the lookup subroutine \ref findinterval and
+!> @brief This module contains the lookup subroutine \ref findinterval and
 !! the linear interpolation subroutine \ref interpolate_lin, the procedures are
 !! available up to 2 dimensions. Optionally, bookkeeping is possible (see
 !! their desriptions for details)
 !!
-!! This module contains ...
-!! 
+!! @author Jan Vábek
 module array_helper
 
 implicit none
