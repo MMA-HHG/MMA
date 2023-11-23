@@ -4,7 +4,7 @@ use array_helper
 
 implicit none
 
-integer, parameter          :: N_elem_max = 3000
+integer, parameter          :: N_elem_max = 2000
 integer                     :: k1, k2, k3, k4, k_found, k_found_guess
 real(8), allocatable        :: testvals(:), array(:)
 
@@ -15,6 +15,10 @@ logical                     :: works_for_all_guesses, found_correctly, test_pass
 ! print *, 'array32:', array32
 ! print *, 'array10:', array10
 ! print *,
+
+integer clock_start, clock_end, clock_rate
+
+call system_clock(clock_start, clock_rate)
 
 k2=0; k4 = 0
 k_found = 0; k_found_guess = 0
@@ -29,7 +33,7 @@ do k1 = 2, N_elem_max
 
     found_correctly = .true.
     do k2 = 1, 2*k1 + 1
-        call findinterval_1D(k_found,testvals(k2),array,k1)
+        call findinterval(k_found,testvals(k2),array,k1)
 
         ! print *, 'value', testvals(k2) ,'interval', k_found, (k_found == k2/2), k2, k1
 
@@ -47,7 +51,7 @@ do k1 = 2, N_elem_max
 
         works_for_all_guesses = .true.
         do k3 = 1, k1
-            call findinterval_1D(k_found_guess,testvals(k2),array,k1,k_guess=k3)
+            call findinterval(k_found_guess,testvals(k2),array,k1,k_guess=k3)
             if (k_found /= k_found_guess)  then
                 works_for_all_guesses = .false.
                 found_correctly = .false.
@@ -70,5 +74,9 @@ if (test_passed) then
 else
     print *, '!!! TEST FAILED !!!'
 endif
+print *, '---------------------------------------'
+call system_clock(clock_end)
+
+print *, "total elapsed time: ", real(clock_end - clock_start) / real(clock_rate)
 
 end program test_bisection_search
