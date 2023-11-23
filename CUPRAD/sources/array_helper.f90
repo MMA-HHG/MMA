@@ -1,7 +1,13 @@
 !> @brief This module contains the lookup subroutine \ref findinterval and
 !! the linear interpolation subroutine \ref interpolate_lin, the procedures are
 !! available up to 2 dimensions. Optionally, bookkeeping is possible (see
-!! their desriptions for details)
+!! their descriptions for details).
+!! 
+!! Precisely, the subroutines are available via the aforementioned generic 
+!! interfaces. For \ref interpolate_lin, the specific subroutines \ref
+!! interpolate1D_lin and \ref interpolate2D_lin are available as well.
+!! For the others, suppplementary procedures are encapsulatd within this
+!! module and not publicly visible.
 !!
 !! @author Jan Vábek
 module array_helper
@@ -13,22 +19,24 @@ public  :: interpolate2D_lin, interpolate1D_lin
 public  :: interpolate1D_decomposed_eq
 public  :: interpolate2D_decomposed_eq
 
+
 !> @brief returns interval where x0-value is placed, ordering <..)<..)..<..>, extrapolation 0, n
 !!
-!! This suboroutine finds the index of the interval where 'x0' is placed within the array 'x'
-!! It uses the bisection lookup and allows for an initial guess 
-!! interface collecting \ref findinterval_1D "testing custom text for a reference" and \ref findinterval_2D
+!! This suboroutine finds the (left) index of the interval where 'x0' is placed within the array 'x'.
+!! The arguments are simply doubled for the 2D case (kx, ky, x0, y0, ...), (details in \ref findinterval_1D
+!! and \ref findinterval_2D). \n 
+!!  It uses the bisection lookup and initial guess(es) 'k_guess' can be used.
 !!
 !! @param[out]      k1          the seeked index
 !! @param[in]       x0          
 !! @param[in]       x           array specifying the partial intervals
 !! @param[in]       n           the length of x
-!! @param[in,opt]   k_guess     initial guess
+!! @param[in]       k_guess     initial guess (optional)
 INTERFACE findinterval
     procedure findinterval_1D, findinterval_2D
 END INTERFACE
 
-!> @private
+
 INTERFACE interpolate_lin
     procedure interpolate1D_lin, interpolate2D_lin
 END INTERFACE
@@ -36,17 +44,18 @@ END INTERFACE
 
 CONTAINS
 
-!> @brief returns interval where is placed x0 value, ordering <..)<..)..<..>, extrapolation 0, n
+!> @brief (Available via \ref findinterval, not publicly visible)
+!! Returns (the left index of) the interval where is placed x0 value,
+!! ordering <..)<..)..<..>, extrapolation 0, n
 !!
 !! This suboroutine finds the index of the interval where 'x0' is placed within the array 'x'
-!! It uses the bisection lookup and allows for an initial guess 
-!! Formula test \f$ \int_{0}^{+\infty} \mathrm{e}^{-x^2} \mathrm{d} x\f$ and bigequation \f[ \sum_{n=1}^{+\infty} \frac{1}{n^2} = \frac{\pi^2}{6} \f]
+!! It uses the bisection lookup and allows for an initial guess.
 !!
-!! @param[out]      k1          the seeked index (integer)
-!! @param[in]       x0          real(8)
-!! @param[in]       x           array of real(8), specifying the partial intervals
-!! @param[in]       n           length of x (integer)
-!! @param[in]       k_guess     initial guess (integer)
+!! @param[out]      k1          the seeked index
+!! @param[in]       x0          
+!! @param[in]       x           array specifying the partial intervals
+!! @param[in]       n           length of 'x'
+!! @param[in]       k_guess     initial guess
 subroutine findinterval_1D(k1,x0,x,n,k_guess)
     integer, intent(out)                :: k1
     integer, intent(in)                 :: n
@@ -111,16 +120,21 @@ subroutine findinterval_1D(k1,x0,x,n,k_guess)
 end subroutine findinterval_1D
 
 
-!> @brief returns interval where is placed x0 value, ordering <..)<..)..<..>, extrapolation 0, n
+!> @brief (Available via \ref findinterval, not publicly visible)
+!! Returns (the left indices of) the intervals where ('x0', 'y0')
+!! are placed. Ordering <..)<..)..<..>, extrapolation 0, n.
 !!
-!! This suboroutine finds the index of the interval where 'x0' is placed within the array 'x'
-!! It uses the bisection lookup and allows for an initial guess 
+!! \ref findinterval_1D is used in each dimension.
 !!
-!! @param      k1           [out]          the seeked index (integer)
-!! @param      x0           [in]           real(8)
-!! @param      x            [in]           array of real(8), specifying the partial intervals
-!! @param      n            [in]           length of x (integer)
-!! @param      k_guess      [in,opt]        initial guess (integer)
+!! @param      kx           [out]          the seeked 'x'-index
+!! @param      ky           [out]          the seeked 'y'-index
+!! @param      x0           [in]       
+!! @param      y0           [in]        
+!! @param      x            [in]           array specifying the partial intervals
+!! @param      y            [in]           array specifying the partial intervals
+!! @param      Nx           [in]           len(x)
+!! @param      Ny           [in]           len(y)
+!! @param      k_guess      [in]           initial guess (integer)
 subroutine findinterval_2D(kx,ky,x0,y0,x,y,Nx,Ny,kx_guess,ky_guess) ! returns interval where is placed x value, if it is out of the range, 0 is used
 !intervals are ordered: <..)<..)<..)...<..>
     integer, intent(out)                :: kx,ky

@@ -960,8 +960,7 @@ RECURSIVE              = YES
 # Note that relative paths are relative to the directory from which doxygen is
 # run.
 
-EXCLUDE                = ../sources/pre_ionised.f90 \
-                         ../sources/test_bisection_search.f90 ../sources/test_bisection_search2.f90 ../sources/test_bisection_search3.f90 \
+EXCLUDE                = ../sources/test_bisection_search.f90 ../sources/test_bisection_search2.f90 ../sources/test_bisection_search3.f90 \
                          ../sources/calc_start.f90 \
                          ../sources/code_ionisation.f90 \
                          ../sources/default_inputs.f90 \
@@ -1000,7 +999,7 @@ EXCLUDE_PATTERNS       =
 # Note that the wildcards are matched against the file with absolute path, so to
 # exclude all test directories use the pattern */test/*
 
-EXCLUDE_SYMBOLS        =    findinterval_2D
+EXCLUDE_SYMBOLS        =
 
 # The EXAMPLE_PATH tag can be used to specify one or more files or directories
 # that contain example code fragments that are included (see the \include

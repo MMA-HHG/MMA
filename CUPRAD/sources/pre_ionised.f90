@@ -1,21 +1,12 @@
-!> @author Jan Vábek
-!! @brief module for pre-ionisation
+!> @brief This module allows for the use of pre-ionised media.
 !!
-!! This module contains ...
+!! The philosophy is similar to \ref density_module. The simplest case is
+!! a constant pre-ionisation, but any pre-ionisation profile can be used.
+!! The pre-ionisation is always relative to the local density (a care is then
+!! needed if combined with non-trivial \ref density_module "density modulation").
 !! 
+!! @author Jan Vábek
 module pre_ionised
-! It was developed by Jan Vabek
-! 
-! method
-! 1 - constant (ratio compared to neutrals)
-! 2 - full-table
-! 3 - r-table
-! 4 - z-table
-! It replaces the original rho0 in the code
-
-! units
-! 1 - relative
-! 2 - cm-3
 
 use HDF5
 use HDF5_helper
@@ -24,7 +15,6 @@ use parameters
 use fields
 use normalization
 use h5namelist
-
 use density_module
 
 use mpi_stuff ! only for testing ot print procnumber etc., remove after
@@ -34,22 +24,23 @@ private
 public  :: init_pre_ionisation, initial_electron_density !, initial_electron_density_guess
 
 
-logical, public                         :: apply_pre_ionisation
-integer                                 :: method_geometry, method_units
-integer                                 :: Nr, Nz
+logical, public                         :: apply_pre_ionisation !< TRUE: the pre-ionisation is applied; FALSE: no pre-ionisation. Depends on \ref h5namelist::pre_ionised_grpname "pre_ionised_grpname".
+!> @cond INCLUDE_PRE_IONISATION_MOD_INTERNALS
 integer                                 :: h5err
-real(8), dimension(:), allocatable      :: rgrid
-real(8), dimension(:), allocatable      :: zgrid
+real(8), dimension(:), allocatable      :: rgrid, zgrid
+integer                                 :: Nr, Nz
 real(8), dimension(:,:), allocatable    :: initial_electrons_ratio_matrix
 real(8)                                 :: initial_electrons_ratio_scalar
-integer, parameter, dimension(3)        :: table_geometries = (/2,3,4/)
-integer, parameter, dimension(2)        :: table_1D_geometries = (/3,4/)
 logical                                 :: scalar_case = .false.
-
+!> @endcond
 
 
 CONTAINS
-! preparation
+
+!> @brief This subroutine initialises the interpolation procedure te retrieve the density modulation based
+!! on the table stored in 'file_id'. It is called if \apply_density_mod in the initial phase of the code.
+!!
+!! @param[in]       file_id          The id of the main HDF5 file. 
 subroutine init_pre_ionisation(file_id)
     integer(hid_t)              :: file_id
     real(8)                     :: dumr
@@ -116,6 +107,14 @@ subroutine init_pre_ionisation(file_id)
 end subroutine init_pre_ionisation
 
 
+!> @brief This function returns the pre-ionisation at (*r*, *z*).
+!!
+!! 'kr_actual', 'kr_first' are needed for bookkeeping.
+!!
+!! @param[in]       r               The local *r*-coordinate.
+!! @param[in]       z               The local *z*-coordinate.
+!! @param[in]       kr_actual       The index of the radial coordinate.
+!! @param[in]       kr_first        The first *r*-index for this MPI process
 function initial_electron_density(r,z,kr_actual,kr_first) ! already rescaled to C.U.
     real(8)                    :: initial_electron_density
     real(8)                    :: r,z 
@@ -148,9 +147,11 @@ function initial_electron_density(r,z,kr_actual,kr_first) ! already rescaled to 
     kr_guess = kr ! bookkeeping: remember kr from the last run
 
     call findinterval(kz,z,zgrid,Nz,k_guess = kz_guess)
-    kz_guess = kz
+    kz_guess = kz ! bookkeeping kz
 
-    call interpolate2D_decomposed_eq(kr,kz,r,z,initial_electron_density,rgrid,zgrid,initial_electrons_ratio_matrix,Nr,Nz)
+    ! call interpolate2D_decomposed_eq(kr,kz,r,z,initial_electron_density,rgrid,zgrid,initial_electrons_ratio_matrix,Nr,Nz)
+    
+    call interpolate2D_lin(r,z,initial_electron_density,rgrid,zgrid,initial_electrons_ratio_matrix,Nr,Nz,kx_known=kr,ky_known=kz)
     initial_electron_density = density_mod(kr_actual)*initial_electron_density
     return
 

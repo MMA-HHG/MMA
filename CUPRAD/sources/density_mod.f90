@@ -1,7 +1,7 @@
-!> @brief This module contains the lookup subroutine \ref findinterval and
-!! the linear interpolation subroutine \ref interpolate_lin, the procedures are
-!! available up to 2 dimensions. Optionally, bookkeeping is possible (see
-!! their desriptions for details).
+!> @brief This module maintains the density modulation in the case there's
+!! a non-trivial density profile. It contains subroutines to initialise and
+!! compute the local densitive relative to the reference density \ref
+!! parameters::rhoat_inv "rhoat_inv".
 !!
 !! @author Jan Vábek
 !! @author Stefan Skupin
@@ -109,7 +109,7 @@ end subroutine init_density_mod
 
 
 
-!> @brief This subroutine returns the radial density modulation for a given 'z'. The result is
+!> @brief This subroutine computes the radial density modulation for a given 'z'. The result is
 !! stored in \ref density_mod
 !!
 !! @param[in]       z          The local 'z'-coordinate.
@@ -139,7 +139,7 @@ subroutine calc_density_mod(z)
     
     kr_guess = 1
     do k1 = 1, dim_r
-        r=(k1-1)*delta_r
+        r = (k1-1)*delta_r
         call findinterval(kr,r,rgrid,Nr,k_guess=kr_guess)
 
         call interpolate2D_lin(r,z,density_dum,rgrid,zgrid,density_profile_matrix,Nr,Nz,kx_known=kr,ky_known=kz)

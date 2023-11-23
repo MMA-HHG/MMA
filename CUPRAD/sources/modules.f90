@@ -9,10 +9,9 @@ MODULE fields
 END MODULE fields
 
 !> @brief stores the paths within the main hdf5 file. 
-!!
 MODULE h5namelist
   ! USE HDF5
-  CHARACTER(100), SAVE      ::  main_h5_fname =         "results.h5" !< 'results.h5' is the dedault name, custom name specified in 'msg.tmp'.
+  CHARACTER(100), SAVE      ::  main_h5_fname =         "results.h5" !< 'results.h5' is the dedault name, a custom name specified in 'msg.tmp'.
   CHARACTER(*), PARAMETER   ::  in_grpname =            "inputs"
   CHARACTER(*), PARAMETER   ::  pre_proc_grpname =      "pre-processed"
   CHARACTER(*), PARAMETER   ::  out_grpname =           "outputs"
@@ -23,7 +22,7 @@ MODULE h5namelist
   CHARACTER(*), PARAMETER   ::  outcont_grpname =       out_grpname//"/code_continuation"
   CHARACTER(*), PARAMETER   ::  refrindex_grpname =     pre_proc_grpname//"/indexes_group"
   CHARACTER(*), PARAMETER   ::  density_mod_grpname =   "density_mod"                       !< If this group is present, \ref density_module::init_density_mod "init_density_mod" is invoked.
-  CHARACTER(*), PARAMETER   ::  pre_ionised_grpname =   "pre_ionised"                       !< If this group is present, \ref pre_ionised::nit_pre_ionisation "init_pre_ionisation" is invoked.
+  CHARACTER(*), PARAMETER   ::  pre_ionised_grpname =   "pre_ionised"                       !< If this group is present, \ref pre_ionised::init_pre_ionisation "init_pre_ionisation" is invoked.
 END MODULE h5namelist
 
 MODULE longstep_vars
@@ -88,7 +87,6 @@ MODULE mpi_stuff
 END MODULE mpi_Stuff
 
 !> @brief stores conversion factors between the SI and computational units.
-!!
 MODULE normalization
   INTEGER(4) :: Nz_points !< expected number of hdf5 output along z
   INTEGER(4) :: Nz_points_Efield !< \copydoc Nz_points
