@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH -J CUPRAD-density-mod
 #SBATCH --nodes=1
-#SBATCH --ntasks=4
+#SBATCH --ntasks=32
 # #SBATCH --mem=16G
 # #SBATCH --cpus-per-task=4 # to allocate memory
 #SBATCH --hint=nomultithread       # 1 MPI process per physical core (no hyperthreading)
