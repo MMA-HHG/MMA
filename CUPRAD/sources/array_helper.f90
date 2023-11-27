@@ -56,14 +56,15 @@ CONTAINS
 !! @param[in]       x           array specifying the partial intervals
 !! @param[in]       n           length of 'x'
 !! @param[in]       k_guess     initial guess
-subroutine findinterval_1D(k1,x0,x,n,k_guess)
+subroutine findinterval_1D(k1,x0,x,k_guess)
     integer, intent(out)                :: k1
-    integer, intent(in)                 :: n
-	real(8), intent(in)                 :: x0, x(n)
+    integer                             :: n
+	real(8), intent(in)                 :: x0, x(:)
  	integer, optional       :: k_guess
 
     integer :: k2, length;
    
+    n = size(x)
 
     k2 = n    
 
@@ -135,23 +136,25 @@ end subroutine findinterval_1D
 !! @param      Nx           [in]           len(x)
 !! @param      Ny           [in]           len(y)
 !! @param      k_guess      [in]           initial guess (integer)
-subroutine findinterval_2D(kx,ky,x0,y0,x,y,Nx,Ny,kx_guess,ky_guess) ! returns interval where is placed x value, if it is out of the range, 0 is used
+subroutine findinterval_2D(kx,ky,x0,y0,x,y,kx_guess,ky_guess) ! returns interval where is placed x value, if it is out of the range, 0 is used
 !intervals are ordered: <..)<..)<..)...<..>
     integer, intent(out)                :: kx,ky
-    integer, intent(in)                 :: Nx,Ny
-	real(8), intent(in)                 :: x0, y0, x(Nx), y(Ny)
+    integer                             :: Nx,Ny
+	real(8), intent(in)                 :: x0, y0, x(:), y(:)
  	integer, intent(in), optional       :: kx_guess, ky_guess
 	
+    Nx = size(x); Ny = size(y)
+
 	if (present(kx_guess)) then
-        call findinterval_1D(kx,x0,x,Nx, k_guess=kx_guess)
+        call findinterval_1D(kx,x0,x, k_guess=kx_guess)
     else
-        call findinterval_1D(kx,x0,x,Nx)
+        call findinterval_1D(kx,x0,x)
     endif
 
     if (present(ky_guess)) then
-        call findinterval_1D(ky,y0,y,Ny, k_guess=ky_guess)
+        call findinterval_1D(ky,y0,y, k_guess=ky_guess)
     else
-        call findinterval_1D(ky,y0,y,Ny)
+        call findinterval_1D(ky,y0,y)
     endif
 
 end subroutine findinterval_2D
@@ -226,7 +229,7 @@ subroutine interpolate1D_lin(x,fx,xgrid,fxgrid,n,k_known,tol) !inputs: # of poin
     if (present(k_known)) then
         k1 = k_known
     else
-        call findinterval_1D(k1,x,xgrid,n)
+        call findinterval_1D(k1,x,xgrid)
     endif
 
     if (present(tol)) then
@@ -293,13 +296,13 @@ subroutine interpolate2D_lin(x,y,fxy,xgrid,ygrid,fxygrid,Nx,Ny,kx_known,ky_known
     if (present(kx_known)) then
         kx = kx_known
     else
-        call findinterval_1D(kx,x,xgrid,Nx)
+        call findinterval_1D(kx,x,xgrid)
     endif
 
     if (present(ky_known)) then
         ky = ky_known
     else
-        call findinterval_1D(ky,y,ygrid,Ny)
+        call findinterval_1D(ky,y,ygrid)
     endif
 
     call interpolate2D_decomposed_eq(kx,ky,x,y,fxy,xgrid,ygrid,fxygrid,Nx,Ny)

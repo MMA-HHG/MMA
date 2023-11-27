@@ -33,7 +33,7 @@ do k1 = 2, N_elem_max
 
     found_correctly = .true.
     do k2 = 1, 2*k1 + 1
-        call findinterval(k_found,testvals(k2),array,k1)
+        call findinterval(k_found,testvals(k2),array)
 
         ! print *, 'value', testvals(k2) ,'interval', k_found, (k_found == k2/2), k2, k1
 
@@ -51,7 +51,7 @@ do k1 = 2, N_elem_max
 
         works_for_all_guesses = .true.
         do k3 = 1, k1
-            call findinterval(k_found_guess,testvals(k2),array,k1,k_guess=k3)
+            call findinterval(k_found_guess,testvals(k2),array,k_guess=k3)
             if (k_found /= k_found_guess)  then
                 works_for_all_guesses = .false.
                 found_correctly = .false.
