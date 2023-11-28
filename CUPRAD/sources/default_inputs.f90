@@ -515,7 +515,7 @@ subroutine preset_physics(test_number)
     case(26,27,28,32:41)
         proplength_m_phys = 0.01d0
     case(42)
-        proplength_m_phys = 1.5d-4
+        proplength_m_phys = 2.5d-4
     case(29)
         proplength_m_phys = 0.001d0
     case(30)
@@ -644,7 +644,7 @@ subroutine preset_physics(test_number)
         pressure = 0.5d0*0.05d0
     case(38,40)
         pressure = 0.05d0
-    case(39,42)
+    case(39,41,42)
         pressure = 1.0d2 * 0.05d0
     end select
     
