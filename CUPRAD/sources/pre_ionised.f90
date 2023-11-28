@@ -131,7 +131,7 @@ function initial_electron_density(r,z,kr_actual,kr_first) ! already rescaled to 
 
     if (first_run) then
         if (kr_actual == kr_first) then
-            call findinterval(my_kr_start,r,rgrid,Nr) ! obtain guess, assume it's first called at right place
+            call findinterval(my_kr_start,r,rgrid) ! obtain guess, assume it's first called at right place
         else
             error stop "initial_electron_density requires to be firstly called for kr_actual = kr_first"
         endif
@@ -141,12 +141,12 @@ function initial_electron_density(r,z,kr_actual,kr_first) ! already rescaled to 
     if (kr_actual == kr_first) then
         kr = my_kr_start
     else
-        call findinterval(kr,r,rgrid,Nr,k_guess = kr_guess)
+        call findinterval(kr,r,rgrid,k_guess = kr_guess)
     endif
 
     kr_guess = kr ! bookkeeping: remember kr from the last run
 
-    call findinterval(kz,z,zgrid,Nz,k_guess = kz_guess)
+    call findinterval(kz,z,zgrid,k_guess = kz_guess)
     kz_guess = kz ! bookkeeping kz
 
     ! call interpolate2D_decomposed_eq(kr,kz,r,z,initial_electron_density,rgrid,zgrid,initial_electrons_ratio_matrix,Nr,Nz)

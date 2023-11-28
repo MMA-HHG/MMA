@@ -134,13 +134,13 @@ subroutine calc_density_mod(z)
         first_call = .false.
     endif
 
-    call findinterval(kz,z,zgrid,Nz,k_guess=kz_guess)
+    call findinterval(kz,z,zgrid,k_guess=kz_guess)
     kz_guess = kz ! see the save attribute
     
     kr_guess = 1
     do k1 = 1, dim_r
         r = (k1-1)*delta_r
-        call findinterval(kr,r,rgrid,Nr,k_guess=kr_guess)
+        call findinterval(kr,r,rgrid,k_guess=kr_guess)
 
         call interpolate2D_lin(r,z,density_dum,rgrid,zgrid,density_profile_matrix,Nr,Nz,kx_known=kr,ky_known=kz)
         if (density_dum /= density_mod(k1)) then
