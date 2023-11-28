@@ -534,7 +534,7 @@ subroutine preset_physics(test_number)
         w0_m_phys = 0.0001d0     ! m
     case(19:21)
         waist_focus = 100.d-6   ! m
-    case(23:30,32:41)
+    case(23:30,32:42)
         waist_focus = 110.d-6   ! m
     case(31)
         w0_m_phys = 0.001d0      ! m
@@ -546,7 +546,7 @@ subroutine preset_physics(test_number)
         call save_or_replace(file_id, 'inputs/laser_beamwaist_entry', w0_m_phys, error, units_in = '[m]')
     case(31)    
         call save_or_replace(file_id, 'inputs/laser_beamwaist_entry', w0_m_phys, error, units_in = '[m]')
-    case(19:21,23:30,32:41)
+    case(19:21,23:30,32:42)
         call save_or_replace(file_id, 'inputs/laser_focus_beamwaist_Gaussian', waist_focus, error, units_in = '[m]')
     end select
 
@@ -576,7 +576,7 @@ subroutine preset_physics(test_number)
     case(35:39)
         Intensity_focus = 2.d0*1.8d18
         call save_or_replace(file_id, 'inputs/laser_focus_intensity_Gaussian', Intensity_focus, error, units_in = '[SI]')
-    case(40:41)
+    case(40:42)
         Intensity_focus = 5.d0*1.8d18
         call save_or_replace(file_id, 'inputs/laser_focus_intensity_Gaussian', Intensity_focus, error, units_in = '[SI]')
     end select
@@ -584,7 +584,7 @@ subroutine preset_physics(test_number)
 
 !---------------------------------------------------------------------------------------------------------------------!
     select case(test_number)
-    case(1:4,7:10,17,18:30,32:41)
+    case(1:4,7:10,17,18:30,32:42)
         tp_fs_phys = 50.d0
         call save_or_replace(file_id, 'inputs/laser_pulse_duration_in_1_e_Efield', tp_fs_phys, error, units_in = '[fs]')
     case(5)
@@ -614,7 +614,7 @@ subroutine preset_physics(test_number)
         f_cm_phys = 0.d0
     case(31)
         focus_position = 0.0d0
-    case(19,23:30,32:41)
+    case(19,23:30,32:42)
         focus_position = 0.0d0
     case(20)
         focus_position = 0.0075d0
@@ -644,8 +644,8 @@ subroutine preset_physics(test_number)
         pressure = 0.5d0*0.05d0
     case(38,40)
         pressure = 0.05d0
-    case(39,41)
-        pressure = 1.0d2 * 00.05d0
+    case(39,42)
+        pressure = 1.0d2 * 0.05d0
     end select
     
 
@@ -667,14 +667,14 @@ subroutine preset_physics(test_number)
 
     !---------------------------------------------------------------------------------------------------------------------!
     ! density modulation
-    if ( any(test_number == (/34,37,39,41/)) ) then
+    if ( any(test_number == (/34,37,39,41,42/)) ) then
         call h5gcreate_f(file_id, 'density_mod', group_id2, error)
 
         call create_dset(group_id2, 'zgrid', (/ 0.d0 , proplength_m_phys /), 2)
         call h5_add_units_1D(group_id2, 'zgrid', '[m]')
 
         if ( any(test_number == (/34,37/)) ) call create_dset(group_id2, 'table', (/ 0.5d0 , 0.5d0 /), 2)
-        if ( any(test_number == (/39,41/)) ) call create_dset(group_id2, 'table', (/ 1.0d-2 , 1.0d-2 /), 2)
+        if ( any(test_number == (/39,41,42/)) ) call create_dset(group_id2, 'table', (/ 1.0d-2 , 1.0d-2 /), 2)
 
         call h5_add_units_1D(group_id2, 'table', '[-]')
 
