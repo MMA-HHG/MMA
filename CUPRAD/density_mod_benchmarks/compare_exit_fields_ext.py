@@ -66,12 +66,20 @@ with ExitStack() as stack:
     for k1 in range(Nsim): image.sf[k1].args = [res[k1].tgrid,res[k1].E_trz[:,0,-1],linestyles[k1%len(linestyles)]]                
     pp.plot_preset(image)  
     
-    for foo in res: foo.vacuum_shift()
+    # for foo in res: foo.vacuum_shift()
+    for k1 in range(Nsim): res[k1].vacuum_shift(output='add')
     
     image = pp.figure_driver()
-    image.sf = [pp.plotter() for k1 in range(Nsim)]
-    for k1 in range(Nsim): image.sf[k1].args = [res[k1].tgrid,res[k1].E_trz[:,0,-1],linestyles[k1%len(linestyles)]]                
+    image.sf = [pp.plotter() for k1 in range(2*Nsim)]
+    
+    for k1 in range(Nsim): image.sf[k1].args = [res[k1].tgrid,res[k1].E_trz[:,0,-1],linestyles[k1%len(linestyles)]]  
+    for k1 in range(Nsim): image.sf[k1].kwargs = {'label' : 'orig '+str(k1)}
+    
+    for k1 in range(Nsim): image.sf[k1+Nsim].args = [res[k1].tgrid,res[k1].E_trz_vac[:,0,-1],linestyles[(k1+Nsim)%len(linestyles)]]               
+    for k1 in range(Nsim): image.sf[k1+Nsim].kwargs = {'label' : 'vacuum '+str(k1)}
+    
     pp.plot_preset(image)  
+    
     
     # zgrid = [arch['/outputs/zgrid'][:] for arch in InArch]; Nz = [len(foo) for foo in zgrid]
     # tgrid = [arch['/outputs/tgrid'][:] for arch in InArch]
