@@ -9,6 +9,7 @@ import mynumerics as mn
 class empty_class:
     pass
 
+
 class get_data:
     def __init__(self,InputArchive,r_resolution=[True]):
         full_resolution = (r_resolution[0] is True)
@@ -47,6 +48,14 @@ class get_data:
         except:
             self.preionisation_ratio = 0
         self.preionisation_string = "{:.1f}".format(100*self.preionisation_ratio) + ' %'
+        
+        if 'density_mod' in InputArchive.keys():
+            self.density_mod_profile_mbar = self.pressure_mbar*InputArchive['/density_mod/table'][:]
+            try: self.density_mod_zgrid = InputArchive['/density_mod/zgrid'][:]
+            except: pass
+        
+            try: self.density_mod_rgrid = InputArchive['/density_mod/rgrid'][:]
+            except: pass
         
         self.w0_entry = mn.h5_seek_for_scalar(InputArchive,'N',
                               '/inputs/laser_beamwaist_entry',

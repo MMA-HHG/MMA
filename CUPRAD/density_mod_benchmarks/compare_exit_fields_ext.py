@@ -36,13 +36,23 @@ sims_to_analyse = []
 # sims_to_analyse.append( os.path.join("halving_test2","half_simple") )
 # sims_to_analyse.append( os.path.join("halving_test2","half_table") )
 
-sims_to_analyse.append( os.path.join("100","100test1","simple") )
-sims_to_analyse.append( os.path.join("100","100test1","table") )
+# sims_to_analyse.append( os.path.join("100","100test1","simple") )
+# sims_to_analyse.append( os.path.join("100","100test1","table") )
+
+
+sims_to_analyse.append( os.path.join("100","100test2","simple_short") )
+sims_to_analyse.append( os.path.join("100","100test2","table_short") )
 
 # sims_to_analyse.append( os.path.join("100","100test2","simple") )
 # sims_to_analyse.append( os.path.join("100","100test2","table") )
 
 results_filename = "results.h5"
+
+plot_vacuum = False
+
+plot_onax = True
+
+fluence_analysis = True
 
 
 file_paths = [os.path.join(base_path,inter_path,results_filename) for inter_path in sims_to_analyse]
@@ -60,30 +70,113 @@ with ExitStack() as stack:
     
     res = [dfC.get_data(arch, r_resolution = [full_resolution, dr, rmax]) for arch in InArch]
     Nsim = len(res) 
+    
+    print('')
+    # characteristics
+    for k1 in range(Nsim):
+        if hasattr(res[k1], 'density_mod_profile_mbar'):
+            pressure_str = "{:.1f}".format(res[k1].density_mod_profile_mbar[0])+' mbar (table applied)'
+        else:
+            pressure_str = res[k1].pressure_string
+            
+        print('simulation '+str(k1)+'\n'+
+              'intensity '+ res[k1].Intensity_entry_string+'\n'+
+              'presure '+ pressure_str+'\n'
+            )
 
     image = pp.figure_driver()
     image.sf = [pp.plotter() for k1 in range(Nsim)]
-    for k1 in range(Nsim): image.sf[k1].args = [res[k1].tgrid,res[k1].E_trz[:,0,-1],linestyles[k1%len(linestyles)]]                
+    image.title = 'endfield'
+    for k1 in range(Nsim): image.sf[k1].args = [1e15*res[k1].tgrid,res[k1].E_trz[:,0,-1],linestyles[k1%len(linestyles)]]                
     pp.plot_preset(image)  
     
-    # for foo in res: foo.vacuum_shift()
-    for k1 in range(Nsim): res[k1].vacuum_shift(output='add')
     
     image = pp.figure_driver()
-    image.sf = [pp.plotter() for k1 in range(2*Nsim)]
-    
-    for k1 in range(Nsim): image.sf[k1].args = [res[k1].tgrid,res[k1].E_trz[:,0,-1],linestyles[k1%len(linestyles)]]  
-    for k1 in range(Nsim): image.sf[k1].kwargs = {'label' : 'orig '+str(k1)}
-    
-    for k1 in range(Nsim): image.sf[k1+Nsim].args = [res[k1].tgrid,res[k1].E_trz_vac[:,0,-1],linestyles[(k1+Nsim)%len(linestyles)]]               
-    for k1 in range(Nsim): image.sf[k1+Nsim].kwargs = {'label' : 'vacuum '+str(k1)}
-    
+    image.sf = [pp.plotter() for k1 in range(Nsim)]
+    image.title = 'startfield'
+    for k1 in range(Nsim): image.sf[k1].args = [1e15*res[k1].tgrid,res[k1].E_trz[:,0,0],linestyles[k1%len(linestyles)]]                
     pp.plot_preset(image)  
-    
-    
-    # zgrid = [arch['/outputs/zgrid'][:] for arch in InArch]; Nz = [len(foo) for foo in zgrid]
-    # tgrid = [arch['/outputs/tgrid'][:] for arch in InArch]
-    # E_slice = [arch['/outputs/output_field'][N-1,:,0] for N, arch in zip(Nz, InArch)]
+  
+  
+    if fluence_analysis:
+        for k1 in range(Nsim):
+            res[k1].get_Fluence(InArch[k1], fluence_source='computed')
+            
+            image = pp.figure_driver()  
+            image.title = 'sim'+str(k1)+' fluence'
+            image.xlabel = 'z [mm]'
+            image.ylabel = r'r [$\mu$m]'
+            
+            image.sf = [pp.plotter() for k1 in range(2)]
+            
+            image.sf[0].method = plt.pcolormesh    
+            image.sf[0].args = [1e3*res[k1].Fluence.zgrid,1e6*res[k1].Fluence.rgrid, res[k1].Fluence.value]    
+            image.sf[0].kwargs = {'shading' : 'auto', 'cmap' : 'plasma'}  
+           
+            
+            image.sf[0].colorbar.show = True  
+            # image.sf[0].colorbar.kwargs = {'label': r'$L_{coh}$ [mm]'}       
+            
+            
+            # image.annotation = [['(b)'],
+            #                 {'xy' : (0.025, .9),
+            #                  'xycoords' : 'axes fraction',
+            #                  'color' : 'w'}]
+            pp.plot_preset(image)
+  
+    if plot_onax:
+        for k1 in range(Nsim):
+            res[k1].complexify_envel(output='add')
+
+            image = pp.figure_driver()  
+            image.title = 'sim'+str(k1)+' onax |envel|'
+            image.ylabel = 't [fs]'
+            image.xlabel = 'z [mm]'
+            
+            image.sf = [pp.plotter() for k1 in range(2)]
+            
+            image.sf[0].method = plt.pcolormesh    
+            image.sf[0].args = [1e3*res[k1].zgrid, 1e15*res[k1].tgrid, np.abs(np.squeeze(res[k1].E_trz_cmplx_envel[:,0,:]))]    
+            image.sf[0].kwargs = {'shading' : 'auto', 'cmap' : 'plasma'}           
+            
+            image.sf[0].colorbar.show = True  
+            pp.plot_preset(image)
+
+
+            image = pp.figure_driver()  
+            image.title = 'sim'+str(k1)+' onax field'
+            image.ylabel = 't [fs]'
+            image.xlabel = 'z [mm]'
+            
+            image.sf = [pp.plotter() for k1 in range(2)]
+            
+            image.sf[0].method = plt.pcolormesh    
+            image.sf[0].args = [1e3*res[k1].zgrid,1e15*res[k1].tgrid, np.abs(np.squeeze(res[k1].E_trz[:,0,:]))]    
+            image.sf[0].kwargs = {'shading' : 'auto', 'cmap' : 'plasma'}           
+            
+            image.sf[0].colorbar.show = True  
+            pp.plot_preset(image)
+            
+            
+    if plot_vacuum:
+        # for foo in res: foo.vacuum_shift()
+        for k1 in range(Nsim): res[k1].vacuum_shift(output='add')
+        
+        image = pp.figure_driver()
+        image.sf = [pp.plotter() for k1 in range(2*Nsim)]
+        
+        for k1 in range(Nsim): image.sf[k1].args = [1e15*res[k1].tgrid,res[k1].E_trz[:,0,-1],linestyles[k1%len(linestyles)]]  
+        for k1 in range(Nsim): image.sf[k1].kwargs = {'label' : 'orig '+str(k1)}
+        
+        for k1 in range(Nsim): image.sf[k1+Nsim].args = [1e15*res[k1].tgrid,res[k1].E_trz_vac[:,0,-1],linestyles[(k1+Nsim)%len(linestyles)]]               
+        for k1 in range(Nsim): image.sf[k1+Nsim].kwargs = {'label' : 'vacuum '+str(k1)}
+        
+        pp.plot_preset(image)  
+        
+        
+        # zgrid = [arch['/outputs/zgrid'][:] for arch in InArch]; Nz = [len(foo) for foo in zgrid]
+        # tgrid = [arch['/outputs/tgrid'][:] for arch in InArch]
+        # E_slice = [arch['/outputs/output_field'][N-1,:,0] for N, arch in zip(Nz, InArch)]
 
 
 
