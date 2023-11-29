@@ -27,7 +27,7 @@ character(len=255), parameter :: available_tests(N_tests) = [character(len=255) 
                                                         "test_modulations_base2", "test_modulations_base_half_dens2", &
                                                         "test_modulations_base_half_dens_table2", "test_modulations_base_100dens", &
                                                         "test_modulations_base_100dens_table", "test_modulations_base_100dens2", &
-                                                        "test_modulations_base_100dens_table2", "test_modulations_base_100dens_table2_short",
+                                                        "test_modulations_base_100dens_table2", "test_modulations_base_100dens_table2_short", &
                                                         "test_modulations_base_100dens2_short"] ! "GfH5w_pre_ionised_PPT"
 ! integer, parameter      :: test_numbers(N_tests) =  (k1, k1=1,N_tests)
 
