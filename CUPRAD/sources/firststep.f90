@@ -22,10 +22,11 @@ MODULE first_step
 CONTAINS
 
   SUBROUTINE calc_time_propagator
+    USE ppt
     IMPLICIT NONE
 
     INTEGER(4)  :: j,k
-    REAL(8) t,cnorm,rek0_local,chi_omega_local
+    REAL(8) t,cnorm,rek0_local,chi_omega_local,z_rayleigh_m_phys,tp_s_phys
 
     delta_zh=0.5D0*delta_z
     
