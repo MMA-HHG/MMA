@@ -425,7 +425,7 @@ CONTAINS
        CALL dfftw_execute(plan_j)
        DO k=dim_r_start(num_proc),dim_r_end(num_proc)
           DO l=1,dim_t
-             etemp(l,k)=etemp(l,k)+op_t(l)*ptemp(l,k)+op_t_inv(l)*jtemp(l,k) ! Euler step in omega-space (intermediate step of Runge-Kutta)
+             etemp(l,k)=etemp(l,k)+op_t(l,k)*ptemp(l,k)+op_t_inv(l,k)*jtemp(l,k) ! Euler step in omega-space (intermediate step of Runge-Kutta)
           ENDDO
        ENDDO
        CALL dfftw_execute(plan_backward_erk) ! field to time domain
@@ -436,7 +436,7 @@ CONTAINS
        CALL dfftw_execute(plan_j)
        DO k=dim_r_start(num_proc),dim_r_end(num_proc)
           DO l=dim_th+1,dim_t ! different range - this is the cutting of high freq. (low-pass filter)
-             etemp(l,k)=etemp(l,k)+op_t(l)*ptemp(l,k)+op_t_inv(l)*jtemp(l,k)
+             etemp(l,k)=etemp(l,k)+op_t(l,k)*ptemp(l,k)+op_t_inv(l,k)*jtemp(l,k)
           ENDDO
        ENDDO
        CALL dfftw_execute(plan_backward_erk)
@@ -447,7 +447,7 @@ CONTAINS
        CALL dfftw_execute(plan_j)
        DO k=dim_r_start(num_proc),dim_r_end(num_proc)
           DO l=1,dim_t
-             etemp(l,k)=etemp(l,k)+op_t(l)*ptemp(l,k)+op_t_inv(l)*jtemp(l,k)
+             etemp(l,k)=etemp(l,k)+op_t(l,k)*ptemp(l,k)+op_t_inv(l,k)*jtemp(l,k)
           ENDDO
        ENDDO
        CALL dfftw_execute(plan_backward_erk)
