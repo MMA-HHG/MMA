@@ -25,19 +25,61 @@ CONTAINS
     IMPLICIT NONE
 
     INTEGER(4)  :: j,k
-    REAL(8) t
+    REAL(8) t,cnorm,rek0_local,chi_omega_local
 
     delta_zh=0.5D0*delta_z
-
+    
+    z_rayleigh_m_phys = PI*beam_waist**2*n0_indice/ConvertPhoton(photon_energy,'omegaau','lambdaSI')
+    tp_s_phys = pulse_duration*1.D-15
+    cnorm = c_light * tp_s_phys / (4*z_rayleigh_m_phys) ! compute vacuum light velocity normalized to pulse duration and 4 times the Rayleigh length
+    
+    DO j=1,dim_t
+       chi_local(j) = cnorm**2*komega(j)**2/(k_t*(REAL(j-dim_th-1,8))+omega_uppe)**2 - 1
+       chi_local(j) = chi_local(j) * density_mod
+       komega_local(j) = (k_t*(REAL(j-dim_th-1,8))+omega_uppe)/cnorm*SQRT(1+chi_local(j))
+       komega_red_local(j)=komega_local(j)-CMPLX(rekp*(k_t*(REAL(j-dim_th-1,8))+omega_uppe),0.D0,8)
+    ENDDO
+    
+    chi_omega_local = cnorm**2*rek0**2/omega**2 - 1
+    chi_omega_local = chi_omega_local * density_mod
+    rek0_local = omega/cnorm*SQRT(1+chi_omega_local)
+    
     IF (dim_t_start(num_proc).LT.dim_th) THEN
        DO j=dim_t_start(num_proc),dim_t_end(num_proc)
-          p_t(:,j)=exp(CMPLX(0.D0,delta_zh,8)*komega_red(dim_th+j)*density_mod)
+          p_t(:,j)=exp(CMPLX(0.D0,delta_zh,8)*komega_red_local(dim_th+j))
        ENDDO
     ELSE
        DO j=dim_t_start(num_proc),dim_t_end(num_proc)
-          p_t(:,j)=exp(CMPLX(0.D0,delta_zh,8)*komega_red(j-dim_th)*density_mod)
+          p_t(:,j)=exp(CMPLX(0.D0,delta_zh,8)*komega_red_local(j-dim_th))
        ENDDO
     ENDIF
+    
+    SELECT CASE (switch_T)
+    CASE(1)
+       op_t=rek0/rek0_local
+       op_t_inv=rek0/rek0_local
+    CASE(2)
+       DO j=1,dim_th
+          op_t(j)=CMPLX(omega_uppe+k_t*REAL(j-1,8),0.D0,8)/omega
+          op_t_inv(j)=CMPLX(omega/(omega_uppe+k_t*REAL(j-1,8)),0.D0,8)
+          op_t(dim_th+j)=CMPLX(omega_uppe+k_t*REAL(j-dim_th-1,8),0.D0,8)/omega
+          op_t_inv(dim_th+j)=CMPLX(omega/(omega_uppe+k_t*REAL(j-dim_th-1,8)),0.D0,8)
+       ENDDO
+    CASE(3)
+       DO j=1,dim_th
+          op_t(j)=rek0/omega**2*(omega_uppe+k_t*REAL(j-1,8))**2/komega_local(dim_th+j)
+          op_t_inv(j)=rek0/komega_local(dim_th+j)
+          op_t(dim_th+j)=rek0/omega**2*(omega_uppe+k_t*REAL(j-dim_th-1,8))**2/komega_local(j)
+          op_t_inv(dim_th+j)=rek0/komega_local(j)
+       ENDDO
+    CASE(4)
+       DO j=1,dim_th
+          op_t(j)=rek0/omega**2*(omega_uppe+k_t*REAL(j-1,8))**2/komega_local(dim_th+j)
+          op_t_inv(j)=rek0/komega_local(dim_th+j)
+          op_t(dim_th+j)=rek0/omega**2*(omega_uppe+k_t*REAL(j-dim_th-1,8))**2/komega_local(j)
+          op_t_inv(dim_th+j)=rek0/komega_local(j)
+       ENDDO
+    END SELECT
     
     RETURN
   END SUBROUTINE calc_time_propagator
@@ -182,7 +224,7 @@ CONTAINS
     CALL read_dset(group_id, 'tdk',tdk)
     CALL read_dset(group_id, 'raman',raman)
     CALL read_dset(group_id, 'omega',omega)
-    ALLOCATE(komega(dim_t),komega_red(dim_t))
+    ALLOCATE(komega(dim_t),komega_red(dim_t),chi_local(dim_t),komega_local(dim_t),komega_red_local(dim_t))
     CALL read_dset(group_id,'komega',komega,dim_t)
     CALL read_dset(group_id, 'NN',NN)
     CALL read_dset(group_id, 'eta1',eta1)
@@ -296,32 +338,6 @@ CONTAINS
     ALLOCATE(p_t(dim_r,dim_t_start(num_proc):dim_t_end(num_proc)),delta_rel(dim_t),op_t(dim_t),op_t_inv(dim_t),hfac(dim_t,0:4))
     ALLOCATE(DL(dim_r-2,dim_t_start(num_proc):dim_t_end(num_proc)),D(dim_r,dim_t_start(num_proc):dim_t_end(num_proc)), & 
     DU(dim_r-1,dim_t_start(num_proc):dim_t_end(num_proc)))
-    SELECT CASE (switch_T)
-    CASE(1)
-       op_t=1.D0
-       op_t_inv=1.D0
-    CASE(2)
-       DO j=1,dim_th
-          op_t(j)=CMPLX(omega_uppe+k_t*REAL(j-1,8),0.D0,8)/omega
-          op_t_inv(j)=CMPLX(omega/(omega_uppe+k_t*REAL(j-1,8)),0.D0,8)
-          op_t(dim_th+j)=CMPLX(omega_uppe+k_t*REAL(j-dim_th-1,8),0.D0,8)/omega
-          op_t_inv(dim_th+j)=CMPLX(omega/(omega_uppe+k_t*REAL(j-dim_th-1,8)),0.D0,8)
-       ENDDO
-    CASE(3)
-       DO j=1,dim_th
-          op_t(j)=rek0/omega**2*(omega_uppe+k_t*REAL(j-1,8))**2/komega(dim_th+j)
-          op_t_inv(j)=rek0/komega(dim_th+j)
-          op_t(dim_th+j)=rek0/omega**2*(omega_uppe+k_t*REAL(j-dim_th-1,8))**2/komega(j)
-          op_t_inv(dim_th+j)=rek0/komega(j)
-       ENDDO
-    CASE(4)
-       DO j=1,dim_th
-          op_t(j)=rek0/omega**2*(omega_uppe+k_t*REAL(j-1,8))**2/komega(dim_th+j)
-          op_t_inv(j)=rek0/komega(dim_th+j)
-          op_t(dim_th+j)=rek0/omega**2*(omega_uppe+k_t*REAL(j-dim_th-1,8))**2/komega(j)
-          op_t_inv(dim_th+j)=rek0/komega(j)
-       ENDDO
-    END SELECT
 
     SELECT CASE (switch_dKerr)
     CASE(1)

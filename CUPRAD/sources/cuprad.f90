@@ -76,7 +76,10 @@ PROGRAM cuprad
         
        IF (apply_density_mod) THEN
          CALL calc_density_mod(z)
-         IF(is_density_changed) call calc_time_propagator
+         IF (is_density_changed) THEN
+            call calc_time_propagator
+            call calc_cn_propagator
+         ENDIF
        ENDIF
 
         ! Adaptive step-size controlling + the duration of the calculation

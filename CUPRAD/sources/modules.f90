@@ -50,7 +50,7 @@ END MODULE longstep_vars
 
 MODULE parameters
   REAL(8) :: rek0,rekp,c3,c5,gamma1,gamma2,muk,beta_inv_2KK,omega, eta1, eta2, omega_uppe
-  COMPLEX(8), ALLOCATABLE :: komega(:),komega_red(:)
+  COMPLEX(8), ALLOCATABLE :: komega(:),komega_red(:),chi_local(:),komega_local(:),komega_red_local(:)
   INTEGER(4) :: KK
   INTEGER(4) :: NN
   REAL(8) :: rho0
