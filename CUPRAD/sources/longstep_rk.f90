@@ -215,7 +215,10 @@ CONTAINS
     rho=rho-alphaquad*rhosave**2*delta_t
     IF (rho.LT.0.D0) rho=0.D0
 
-    IF (rho*rhoat_inv.GT.1.D0) rho=1.D0/rhoat_inv
+    IF (density_mod(l) .GT. 0.D0) THEN
+      IF ( (rho*rhoat_inv/density_mod(l)) .GT.1.D0) rho= density_mod(l)/rhoat_inv
+    ENDIF
+
     IF (rhompi.LT.0.D0) rhompi=0.D0
     IF (rho1.LT.0.D0) rho1=0.D0
     IF (rho2.LT.0.D0) rho2=0.D0
