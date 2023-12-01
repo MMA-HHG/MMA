@@ -126,11 +126,11 @@ CONTAINS
     COMPLEX(8) DLn,help_1,help_2
 
     help_1=B(1)
-    B(1)=(CMPLX(1.D0,0.D0,8)+CMPLX(0.D0,-2.D0,8)*delta_rel(k))*B(1)+CMPLX(0.D0,2.D0,8)*delta_rel(k)*B(2)
+    B(1)=(CMPLX(1.D0,0.D0,8)+CMPLX(0.D0,-2.D0,8)*delta_rel(1,k))*B(1)+CMPLX(0.D0,2.D0,8)*delta_rel(1,k)*B(2)
     DO j=2,dim_r-1
        help_2=help_1
        help_1=B(j)
-       B(j)=-DL(j-1,k)*help_2+(CMPLX(1.D0,0.D0,8)+CMPLX(0.D0,-1.D0,8)*delta_rel(k))*B(j)-DU(j,k)*B(j+1)
+       B(j)=-DL(j-1,k)*help_2+(CMPLX(1.D0,0.D0,8)+CMPLX(0.D0,-1.D0,8)*delta_rel(j,k))*B(j)-DU(j,k)*B(j+1)
     ENDDO
     B(dim_r)=CMPLX(0.D0,0.D0,8)*B(dim_r)
 
