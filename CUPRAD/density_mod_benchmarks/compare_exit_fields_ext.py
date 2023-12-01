@@ -64,6 +64,8 @@ dr = rmax/40.0
     
 linestyles = ['','--',':','-.']
 
+
+
 with ExitStack() as stack:   
     
     InArch = [stack.enter_context(h5py.File(fpath, 'r')) for fpath in file_paths]
@@ -81,8 +83,11 @@ with ExitStack() as stack:
             
         print('simulation '+str(k1)+'\n'+
               'intensity '+ res[k1].Intensity_entry_string+'\n'+
-              'presure '+ pressure_str+'\n'
+              'pressure '+ pressure_str+'\n'+
+              'ref density', res[k1].rho0_init, '\n'+
+              'group vel ', res[k1].VG_IR, '(diff to c {:.2e}'.format(abs(1e2*(res[k1].VG_IR-units.c_light)/units.c_light)) + ' %)\n'
             )
+
 
     image = pp.figure_driver()
     image.sf = [pp.plotter() for k1 in range(Nsim)]
@@ -97,14 +102,76 @@ with ExitStack() as stack:
     for k1 in range(Nsim): image.sf[k1].args = [1e15*res[k1].tgrid,res[k1].E_trz[:,0,0],linestyles[k1%len(linestyles)]]                
     pp.plot_preset(image)  
     
+
+
+    for k1 in range(Nsim): res[k1].compute_spectrum()
+    
+    image = pp.figure_driver()
+    image.sf = [pp.plotter() for k1 in range(Nsim)]
+    image.title = 'endspect'
+    for k1 in range(Nsim): image.sf[k1].args = [res[k1].ogrid,np.abs(res[k1].FE_trz[:,0,-1])**2,linestyles[k1%len(linestyles)]]                
+    pp.plot_preset(image)  
+    
+
+    image = pp.figure_driver()
+    image.sf = [pp.plotter() for k1 in range(Nsim)]
+    image.title = 'endspect log'
+    for k1 in range(Nsim):
+        image.sf[k1].args = [res[k1].ogrid,np.abs(res[k1].FE_trz[:,0,-1])**2,linestyles[k1%len(linestyles)]]        
+        image.sf[k1].method = plt.semilogy        
+    pp.plot_preset(image)  
+    
+ 
+    image = pp.figure_driver()
+    image.sf = [pp.plotter() for k1 in range(Nsim)]
+    image.title = 'endspect real'
+    for k1 in range(Nsim): image.sf[k1].args = [res[k1].ogrid,res[k1].FE_trz[:,0,-1].real,linestyles[k1%len(linestyles)]]                
+    pp.plot_preset(image)  
+    
+    
     
     for k1 in range(Nsim): res[k1].get_plasma(InArch[k1], r_resolution = [full_resolution, dr, rmax])
+    
     image = pp.figure_driver()
     image.sf = [pp.plotter() for k1 in range(Nsim)]
     image.title = 'start ion'
     for k1 in range(Nsim): image.sf[k1].args = [1e15*res[k1].plasma.tgrid,res[k1].plasma.value_trz[:,0,0],linestyles[k1%len(linestyles)]]                
     pp.plot_preset(image)  
+
+    
+    for k1 in range(Nsim): res[k1].get_plasma(InArch[k1], r_resolution = [full_resolution, dr, rmax])
+    image = pp.figure_driver()
+    image.sf = [pp.plotter() for k1 in range(Nsim)]
+    image.title = 'end ion'
+    for k1 in range(Nsim): image.sf[k1].args = [1e15*res[k1].plasma.tgrid,res[k1].plasma.value_trz[:,0,-1],linestyles[k1%len(linestyles)]]                
+    pp.plot_preset(image)  
+    
   
+    for k1 in range(Nsim):
+        
+        image = pp.figure_driver()  
+        image.title = 'sim'+str(k1)+' plasma end'
+        image.xlabel = 'z [mm]'
+        image.ylabel = r'r [$\mu$m]'
+        
+        image.sf = [pp.plotter() for k1 in range(2)]
+        
+        image.sf[0].method = plt.pcolormesh    
+        image.sf[0].args = [1e3*res[k1].plasma.zgrid,1e6*res[k1].plasma.rgrid, res[k1].plasma.value_trz[-1,:,:]]    
+        image.sf[0].kwargs = {'shading' : 'auto', 'cmap' : 'plasma'}  
+       
+        
+        image.sf[0].colorbar.show = True  
+        # image.sf[0].colorbar.kwargs = {'label': r'$L_{coh}$ [mm]'}       
+        
+        
+        # image.annotation = [['(b)'],
+        #                 {'xy' : (0.025, .9),
+        #                  'xycoords' : 'axes fraction',
+        #                  'color' : 'w'}]
+        pp.plot_preset(image)
+  
+    
   
     if fluence_analysis:
         for k1 in range(Nsim):
