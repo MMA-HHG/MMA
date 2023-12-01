@@ -162,7 +162,7 @@ class get_data:
         self.plasma.Nr = Nr; self.plasma.Nt = Nt; self.plasma.Nz = Nz
 
     def compute_spectrum(self,output='add',compute_dE_domega = False):
-        self.ogrid, dum, Nt = mn.fft_t(self.tgrid, self.E_trz[:,0,0])
+        self.ogrid = mn.fft_t(self.tgrid, self.E_trz[:,0,0])[0]
         
         No = len(self.ogrid); Nr = len(self.rgrid); Nz = len(self.zgrid)
                 
