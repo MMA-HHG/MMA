@@ -55,8 +55,10 @@ CONTAINS
        ENDDO
     ELSE
        DO j=dim_t_start(num_proc),dim_t_end(num_proc)
+         DO k=1,dim_r
           CALL calc_komega_local(k_t*(REAL(j-dim_t-1,8))+omega_uppe,density_mod(k),komega_local,komega_red_local)
           p_t(k,j)=exp(CMPLX(0.D0,delta_zh,8)*komega_red_local)
+         ENDDO
        ENDDO
     ENDIF
     
@@ -77,7 +79,7 @@ CONTAINS
          CALL calc_komega_local(omega,density_mod(k),komega_local,komega_red_local)
          DO j=1,dim_th
             IF ((j.GE.dim_t_start(num_proc)) .AND. (j.LE.dim_t_end(num_proc))) op_t_inv_cn(k,j)=CMPLX(omega/(omega_uppe+k_t*REAL(j-1,8)),0.D0,8)*rek0/REAL(komega_local,8)
-            IF ((dim_th+j.GE.dim_t_start(num_proc)) .AND. (dim_th+j.LE.dim_t_end(num_proc))) op_t_inv_cn(k,j)=CMPLX(omega/(omega_uppe+k_t*REAL(j-dim_th-1,8)),0.D0,8)*rek0/REAL(komega_local,8)
+            IF ((dim_th+j.GE.dim_t_start(num_proc)) .AND. (dim_th+j.LE.dim_t_end(num_proc))) op_t_inv_cn(k,dim_th+j)=CMPLX(omega/(omega_uppe+k_t*REAL(j-dim_th-1,8)),0.D0,8)*rek0/REAL(komega_local,8)
             IF ((k.GE.dim_r_start(num_proc)) .AND. (k.LE.dim_r_end(num_proc))) THEN
                op_t(j,k)=CMPLX(omega_uppe+k_t*REAL(j-1,8),0.D0,8)/omega*rek0/REAL(komega_local,8)
                op_t_inv(j,k)=CMPLX(omega/(omega_uppe+k_t*REAL(j-1,8)),0.D0,8)*rek0/REAL(komega_local,8)
@@ -96,7 +98,7 @@ CONTAINS
                   op_t_inv(j,k)=rek0/komega_local
                ENDIF
                CALL calc_komega_local(omega_uppe+k_t*REAL(j-dim_th-1,8),density_mod(k),komega_local,komega_red_local)
-               IF ((dim_th+j.GE.dim_t_start(num_proc)) .AND. (dim_th+j.LE.dim_t_end(num_proc))) op_t_inv_cn(k,j)= rek0/komega_local
+               IF ((dim_th+j.GE.dim_t_start(num_proc)) .AND. (dim_th+j.LE.dim_t_end(num_proc))) op_t_inv_cn(k,dim_th+j)= rek0/komega_local
                IF ((k.GE.dim_r_start(num_proc)) .AND. (k.LE.dim_r_end(num_proc))) THEN 
                   op_t(dim_th+j,k)=rek0/omega**2*(omega_uppe+k_t*REAL(j-dim_th-1,8))**2/komega_local
                   op_t_inv(dim_th+j,k)=rek0/komega_local
@@ -113,7 +115,7 @@ CONTAINS
                   op_t_inv(j,k)=rek0/komega_local
                ENDIF
                CALL calc_komega_local(omega_uppe+k_t*REAL(j-dim_th-1,8),density_mod(k),komega_local,komega_red_local)
-               IF ((dim_th+j.GE.dim_t_start(num_proc)) .AND. (dim_th+j.LE.dim_t_end(num_proc))) op_t_inv_cn(k,j)=rek0/komega_local
+               IF ((dim_th+j.GE.dim_t_start(num_proc)) .AND. (dim_th+j.LE.dim_t_end(num_proc))) op_t_inv_cn(k,dim_th+j)=rek0/komega_local
                IF ((k.GE.dim_r_start(num_proc)) .AND. (k.LE.dim_r_end(num_proc))) THEN
                   op_t(dim_th+j,k)=rek0/omega**2*(omega_uppe+k_t*REAL(j-dim_th-1,8))**2/komega_local
                   op_t_inv(dim_th+j,k)=rek0/komega_local
