@@ -548,6 +548,9 @@ class inputs_def(Structure):
         self.precision = precision
         
     def init_prints(self, path_to_DLL):
+        """
+        Sets all prints to HDF5 to 1.
+        """
         DLL = CDLL(path_to_DLL)
         set_prints = DLL.Set_all_prints
         set_prints.restype = output_print_def
@@ -603,6 +606,15 @@ class inputs_def(Structure):
             #self.InterpByDTorNT = c_int(1)
 
     def save_to_hdf5(self, filename):
+        """
+        Saves all available inputs from the `inputs_def` class into an HDF5 file. 
+        Unavailable or unallocated inputs are neglected (e.g. `Field`, `tgrid`, `psi0`, ..).
+
+        Parameters:
+        -----------
+        filename: str
+            Name of the HDF5 archive for writing. 
+        """
         f = h5py.File(filename, "a")
         try:
             f.create_group('TDSE_inputs')
@@ -747,6 +759,23 @@ class outputs_def(Structure):
     ]
 
     def save_to_hdf5(self, filename, inputs = None):
+        """
+        Saves the outputs into an HDF5 file. 
+
+        To enable saving the wavefunction, user must supply the `inputs_def` 
+        class as `inputs` argument, `inputs_def.analy.write_wft = c_int(1)` must be set.
+
+        Warning: the wavefunction (if available) is stored as real and imaginary 
+        part separately within the HDF5 file - psi_re, psi_im.
+
+
+        Parameters:
+        -----------
+        filename: str
+            Name of the HDF5 archive for writing. 
+        inputs: inputs_def, optional, default {None}
+            If included, the wavefunction can be stored into the HDF5 archive. 
+        """
         f = h5py.File(filename, "a")
         try:
             f.create_group('TDSE_outputs')
