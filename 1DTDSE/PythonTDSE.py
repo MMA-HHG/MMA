@@ -207,22 +207,20 @@ def plot_colormap(
     plt.show()
 
 def plot(
-        x, 
-        y, 
+        *args,
         plot_scale = "linear", 
         figsize = (5, 3),
         y_label = "",
         x_label = "",
+        **kwargs
         ):
     """
     Simple plot method.
 
     Parameters:
     -----------
-    x (numpy.ndarray):
-        x axis.
-    y (numpy.ndarray):
-        y axis.
+    *args
+        Arguments for the plot command, i.e. x, y or x1, y1, x2, y2, .. .
     plot_scale: {'log', 'linear'}, optional, default: 'linear'
         Plot with logarithmic or linear scale.
     figsize (tuple), optional, default: (5, 3)
@@ -231,6 +229,8 @@ def plot(
         Label of the y-axis
     x_label (str), optional, default: ""
         Label of the x-axis
+    **kwargs
+        Keyword arguments for the plot command.
 
     Returns:
     --------
@@ -238,18 +238,18 @@ def plot(
     """
     
     fig, ax = plt.subplots()
+
+    if plot_scale == 'log':
+        plt.semilogy(*args, **kwargs)
+    elif plot_scale == 'linear':
+        plt.plot(*args, **kwargs)
+    else:
+        raise ValueError("Unknown scale '" + plot_scale +"'. "
+                         "Available options are 'log' and 'linear'")
     fig.dpi = 300
     ax.set_ylabel(y_label)
     ax.set_xlabel(x_label)
     fig.set_size_inches(figsize)
-
-    if plot_scale == 'log':
-        plt.semilogy(x, y)
-    elif plot_scale == 'linear':
-        plt.plot(x, y)
-    else:
-        raise ValueError("Unknown scale '" + plot_scale +"'. "
-                         "Available options are 'log' and 'linear'")
     
     plt.show()
 
@@ -465,6 +465,24 @@ class inputs_def(Structure):
             precision = 'd'
             self.precision = precision.encode('utf-8')
 
+            try: 
+                x_grid = np.array(f["TDSE_inputs/x_grid"][()])
+                self.x = ctypes_arr_ptr(c_double, self.num_r+1, x_grid)
+                psi0 = np.array(f["TDSE_inputs/psi0"][()]).flatten()
+                self.psi0 = ctypes_arr_ptr(c_double, 2*(self.num_r+1), psi0)
+                self.Einit = c_double(f["TDSE_inputs/Einit"][()])
+            except KeyError:
+                pass
+
+            try: 
+                self.Efield.Nt = c_int(f["TDSE_inputs/Nt"][()])
+                Efield = np.array(f["TDSE_inputs/Efield"][()])
+                self.Efield.Field = ctypes_arr_ptr(c_double, self.Efield.Nt, Efield)
+                tgrid = np.array(f["TDSE_inputs/tgrid"][()])
+                self.Efield.tgrid = ctypes_arr_ptr(c_double, self.Efield.Nt, tgrid)
+            except KeyError:
+                pass
+
     def init_default_inputs(self,
                             Eguess = -1.,
                             num_r = 16000,
@@ -474,7 +492,6 @@ class inputs_def(Structure):
                             trg_a = 1.3677,
                             CV = 1e-25,
                             gauge = 0,
-                            num_exp = 0,
                             Ntinterp = 1,
                             writewft = 0,
                             tprint = 10,
@@ -485,12 +502,38 @@ class inputs_def(Structure):
         Initializes default inputs for running 1D-TDSE with custom parameters 
         within Python API.
 
-        For details of the arguments see ```inputs_def``` structure.
+        Parameters:
+        -----------
+        Eguess: float, optional, default {-1.}
+            Initial guess for the GS computation.
+        num_r: int, optional, default {16000}
+            Spatial grid resolution.
+        dx: float, optional, default {0.4}
+            Spatial grid stepsize.
+        InterpByDTorNT: int, optional, default {0}
+            Interpolate by 'dt' (0) or number of points 'Ntinterp' (1).
+        dt: float, optional, default {0.25}
+            Temporal step size.
+        trg_a: float, optional, default {1.3677}
+            Rare gas parameter: H {sqrt(2)}, He {0.6950}, Ne {0.8161}, Ar {1.1893}, Kr {1.3676}, Xe {1.6171} 
+            [Dissertation thesis Jan Vabek, tab. 7.1]
+        CV: float, optional, default {1e-25}
+            Convergence value for the GS computation using resolvent
+        gauge: int, optional, default {0}
+            Selection of gauge, length (0), velocity (1) <--- NOT IMPLEMENTED YET
+        Ntinterp: int, optional, default {1}
+            Number of points for the interpolation.
+        writewft: int, optional, default {0}
+            Store the wavefunction during the propagation (0 == No), (1 == Yes).
+        tprint: float, optional, default {10}
+            Store the wavefunction every 'tprint' units of time (a.u.). 
+            If 'tprint' is larger than half of the temporal grid, only the last wavefunction is returned.
+        x_int: float, optional, default {2.}
+            Integration limit for the ionization computation. 
         """
         
         self.Eguess = c_double(Eguess)
         self.num_r = c_int(num_r)
-        self.num_exp = c_int(num_exp)
         self.dx = c_double(dx)
         self.InterpByDTorNT = c_int(InterpByDTorNT)
         self.dt = c_double(dt)
@@ -558,10 +601,87 @@ class inputs_def(Structure):
             self.Efield.Field = ctypes_arr_ptr(c_double, Nt, E)
             ### Do not interpolate
             #self.InterpByDTorNT = c_int(1)
+
+    def save_to_hdf5(self, filename):
+        f = h5py.File(filename, "a")
+        try:
+            f.create_group('TDSE_inputs')
+        except ValueError:
+            pass
+        
+        ### Write default inputs
+        try:
+            f.create_dataset("TDSE_inputs/trg_a", dtype="f", data=self.trg.a)
+            f.create_dataset("TDSE_inputs/dx", dtype="f", data=self.dx)
+            f.create_dataset("TDSE_inputs/dt", dtype="f", data=self.dt)
+            f.create_dataset("TDSE_inputs/Eguess", dtype="f", data=self.Eguess)
+            f.create_dataset("TDSE_inputs/N_r_grid", dtype="i", data=self.num_r)
+            f.create_dataset("TDSE_inputs/gauge_type", dtype="i", data=self.gauge)
+            f.create_dataset("TDSE_inputs/Ntinterp", dtype="i", data=self.Ntinterp)
+            f.create_dataset("TDSE_inputs/InterpByDTorNT", dtype="i", data=self.InterpByDTorNT)
+            f.create_dataset("TDSE_inputs/analy_writewft", dtype="i", data=self.analy.writewft)
+            f.create_dataset("TDSE_inputs/analy_tprint", dtype="f", data=self.analy.tprint)
+            f.create_dataset("TDSE_inputs/CV_criterion_of_GS", dtype="f", data=self.CV)
+            f.create_dataset("TDSE_inputs/x_int", dtype="f", data=self.x_int)
+            f.create_dataset("TDSE_inputs/num_t", dtype="i", data=self.num_t)
+        except ValueError:
+            pass
+
+        ### Write field and time grid
+        if self.Efield.Nt != 0:
+            try:
+                f.create_dataset("TDSE_inputs/Nt", dtype="i", data=self.Efield.Nt)
+                f.create_dataset("TDSE_inputs/Efield", dtype="f", data=ctype_arr_to_numpy(self.Efield.Field, self.Efield.Nt))
+                f.create_dataset("TDSE_inputs/tgrid", dtype="f", data=ctype_arr_to_numpy(self.Efield.tgrid, self.Efield.Nt))
+            except ValueError:
+                pass
+
+
+        ### Write ground state, GS energy and x grid
+        if self.Einit != 0.:
+            try:
+                f.create_dataset("TDSE_inputs/psi0", dtype="f", data=np.array([self.get_GS().real, self.get_GS().imag]).transpose())
+                f.create_dataset("TDSE_inputs/x_grid", dtype="f", data=self.get_xgrid())
+                f.create_dataset("TDSE_inputs/Einit", dtype="f", data=self.Einit)
+            except ValueError:
+                pass
+
+        f.close()
+
+    def get_xgrid(self):
+        """
+        Returns spatial grid.
+        """
+        return ctype_arr_to_numpy(self.x, self.num_r+1)
+    
+    def get_GS(self):
+        """
+        Returns ground state.
+        """
+        return ctype_cmplx_arr_to_numpy(self.psi0, self.num_r+1)
+    
+    def get_tgrid(self):
+        """
+        Returns temporal grid.
+        """
+        return ctype_arr_to_numpy(self.Efield.tgrid, self.Efield.Nt)
+    
+    def get_Efield(self):
+        """
+        Returns electric field.
+        """
+        return ctype_arr_to_numpy(self.Efield.Field, self.Efield.Nt)
         
     def delete(self, DLL):
         """
         Frees structure memory.
+
+        Warning: if called twice on the same input, the kernel crashes.
+
+        Parameters:
+        -----------
+        DLL: TDSE_DLL
+            TDSE dynamic library.
         """
         DLL.free_inputs(self.ptr)
             
@@ -614,10 +734,8 @@ class outputs_def(Structure):
         ("Efield", POINTER(c_double)),
         ("sourceterm", POINTER(c_double)),
         ("omegagrid", POINTER(c_double)),
-        ("FEfield", POINTER(POINTER(c_double))),
-        ("FEfield_data", POINTER(c_double)),
-        ("Fsourceterm", POINTER(POINTER(c_double))),
-        ("Fsourceterm_data", POINTER(c_double)),
+        ("FEfield", POINTER(c_double)),
+        ("Fsourceterm", POINTER(c_double)),
         ("FEfieldM2", POINTER(c_double)),
         ("FsourcetermM2", POINTER(c_double)),
         ("PopTot", POINTER(c_double)),
@@ -628,9 +746,144 @@ class outputs_def(Structure):
         ("psi", POINTER(POINTER(c_double)))
     ]
 
+    def save_to_hdf5(self, filename, inputs = None):
+        f = h5py.File(filename, "a")
+        try:
+            f.create_group('TDSE_outputs')
+        except ValueError:
+            pass
+        
+        ### Write outputs
+        try:
+            f.create_dataset("TDSE_outputs/Nomega", dtype="i", data=self.Nomega)
+            f.create_dataset("TDSE_outputs/Nt", dtype="i", data=self.Nt)
+            f.create_dataset("TDSE_outputs/tgrid", dtype="f", data=self.get_tgrid())
+            f.create_dataset("TDSE_outputs/Efield", dtype="f", data=self.get_Efield())
+            f.create_dataset("TDSE_outputs/sourceterm", dtype="f", data=self.get_sourceterm())
+            f.create_dataset("TDSE_outputs/omegagrid", dtype="f", data=self.get_omegagrid())
+            f.create_dataset("TDSE_outputs/FEfield", dtype="f", data=np.array([self.get_FEfield().real, self.get_FEfield().imag]).transpose())
+            f.create_dataset("TDSE_outputs/Fsourceterm", dtype="f", data=np.array([self.get_Fsourceterm().real, self.get_Fsourceterm().imag]).transpose())
+            f.create_dataset("TDSE_outputs/PopTot", dtype="f", data=self.get_PopTot())
+            f.create_dataset("TDSE_outputs/PopInt", dtype="f", data=self.get_PopInt())
+            f.create_dataset("TDSE_outputs/expval", dtype="f", data=self.get_expval())
+        except ValueError:
+            pass
+        
+        ### Write wavefunction
+        if inputs != None:
+            try:
+                wf = self.get_wavefunction(inputs, grids=False)
+                wf_re = wf.real
+                wf_im = wf.imag
+                f.create_dataset("TDSE_outputs/psi_re", dtype="f", data = wf_re)
+                f.create_dataset("TDSE_outputs/psi_im", dtype="f", data = wf_im)
+            except:
+                pass
+
+        f.close()
+
+    def get_wavefunction(self, inputs, grids = True):
+        """
+        Returns complex ND-array storing the wavefunction in time. 
+
+        Parameters:
+        -----------
+        inputs: inputs_def
+            Input structure with inputs corresponding to outputs.
+        grids: bool, optional, default {True}
+            If true, returns the time and space grids
+        
+        Returns:
+        --------
+        tuple: tgrid, x, wavefunction (if grids == True)
+        """
+        if inputs.analy.writewft == 0:
+            print("No wavefunction is stored!")
+            return
+        
+        ### Number of steps per dt for printing in the temporal grid
+        steps_per_dt = np.floor(inputs.analy.tprint/(self.tgrid[1]-self.tgrid[0]))
+        ### Number of wavefunctions in the final grid
+        size = int(self.Nt/steps_per_dt)
+
+        wavefunction = get_wavefunction(self.psi, size, inputs.num_r+1)
+        
+        if grids:
+            if size == 1:
+                tgrid = np.array([self.tgrid[self.Nt-1]])
+            else:
+                t = self.get_tgrid()
+                tgrid = np.linspace(t[0], t[-1], size)
+            #x = np.linspace(-inputs.dx*inputs.num_r/2, inputs.dx*inputs.num_r/2, inputs.num_r+1)
+            x = inputs.get_xgrid()
+            return tgrid, x, wavefunction
+        
+        return wavefunction
+    
+    def get_tgrid(self):
+        """
+        Returns temporal grid.
+        """
+        return ctype_arr_to_numpy(self.tgrid, self.Nt)
+    
+    def get_Efield(self):
+        """
+        Returns electric field.
+        """
+        return ctype_arr_to_numpy(self.Efield, self.Nt)
+    
+    def get_sourceterm(self):
+        """
+        Returns source term <grad V> + E.
+        """
+        return ctype_arr_to_numpy(self.sourceterm, self.Nt)
+    
+    def get_PopTot(self):
+        """
+        Returns population of the ground state.
+        """
+        return ctype_arr_to_numpy(self.PopTot, self.Nt)
+    
+    def get_PopInt(self):
+        """
+        Returns integrated population.
+        """
+        return ctype_arr_to_numpy(self.PopInt, self.Nt)
+    
+    def get_Fsourceterm(self):
+        """
+        Returns source term <grad V> + E spectrum.
+        """
+        return ctype_cmplx_arr_to_numpy(self.Fsourceterm, self.Nomega)
+    
+    def get_expval(self):
+        """
+        Returns expectation value of x
+        """
+        return ctype_arr_to_numpy(self.expval, self.Nt)
+    
+    def get_omegagrid(self):
+        """
+        Returns omega grid.
+        """
+        return ctype_arr_to_numpy(self.omegagrid, self.Nomega)
+    
+    def get_FEfield(self):
+        """
+        Returns electric field positive spectrum.
+        """
+        return ctype_cmplx_arr_to_numpy(self.FEfield, self.Nomega)
+
     def delete(self, DLL):
         """
         Frees structure memory.
+
+        Warning: if called twice on the same input, the kernel crashes.
+
+        Parameters:
+        -----------
+        DLL: TDSE_DLL
+            TDSE dynamic library.
         """
         DLL.free_outputs(self.ptr)
 
@@ -778,6 +1031,8 @@ class TDSE_DLL:
         """
         Frees outputs structure.
 
+        Warning: if called twice on the same input, the kernel crashes.
+
         Parameters:
         -----------
         out_ptr: ctypes pointer instance
@@ -791,6 +1046,8 @@ class TDSE_DLL:
         """
         Frees inputs structure.
 
+        Warning: if called twice on the same input, the kernel crashes.
+
         Parameters:
         -----------
         out_ptr: ctypes pointer instance
@@ -799,3 +1056,4 @@ class TDSE_DLL:
         self.DLL.inputs_destructor.restype = None
         self.DLL.inputs_destructor.argtypes = [POINTER(inputs_def)]
         self.DLL.inputs_destructor(in_ptr)
+
