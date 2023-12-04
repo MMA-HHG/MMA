@@ -96,10 +96,10 @@ void call1DTDSE(inputs_def * inputs, outputs_def * outputs)
 
 	// Compute FFT
 	calcFFTW3(outputs->Nt, dt, tmax, outputs->Efield, &dum_ptr, 
-			  &(outputs->FEfield_data), &(outputs->FEfieldM2), &(outputs->Nomega)); 
+			  &(outputs->FEfield), &(outputs->FEfieldM2), &(outputs->Nomega)); 
 	free(dum_ptr);
 	calcFFTW3(outputs->Nt, dt, tmax, outputs->sourceterm, 
-			  &(outputs->omegagrid), &(outputs->Fsourceterm_data), &(outputs->FsourcetermM2), 
+			  &(outputs->omegagrid), &(outputs->Fsourceterm), &(outputs->FsourcetermM2), 
 			  &(outputs->Nomega));
 
 	free(psi); 

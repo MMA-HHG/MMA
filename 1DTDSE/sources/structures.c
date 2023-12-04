@@ -19,8 +19,8 @@ void outputs_destructor(outputs_def *outputs)
 	free((*outputs).Efield);
 	free((*outputs).sourceterm);
 	free((*outputs).PopTot);
-	free((*outputs).FEfield_data);
-	free((*outputs).Fsourceterm_data);
+	free((*outputs).FEfield);
+	free((*outputs).Fsourceterm);
 	free((*outputs).FEfieldM2);
 	free((*outputs).FsourcetermM2);
 	free((*outputs).PopInt);

@@ -199,11 +199,9 @@ typedef struct outputs_def{
 	// Angular frequency grid
 	double *omegagrid;
 	// Field spectrum
-	double **FEfield;
-	double *FEfield_data;
+	double *FEfield;
 	// Source term spectrum
-	double **Fsourceterm;
-	double *Fsourceterm_data;
+	double *Fsourceterm;
 	double *FEfieldM2;
 	double *FsourcetermM2;
 	// Population of the ground state
