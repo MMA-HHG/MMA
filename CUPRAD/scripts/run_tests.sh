@@ -16,7 +16,7 @@ echo ${test_presets[4]}
 
 
 module purge
-module hdf5
+module load hdf5
 module load intel-mkl
 
 mkdir ${test_presets[k1]}
