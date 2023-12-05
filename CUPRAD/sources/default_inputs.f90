@@ -343,6 +343,7 @@ integer function get_test_number(testname)
     do k1 = 1, N_tests
         if (testname.EQ.available_tests(k1)) then
             if (testname.eq.'undefined') stop "udenfined test"
+            print *, "TEST:", testname
             get_test_number = k1
             return
         endif

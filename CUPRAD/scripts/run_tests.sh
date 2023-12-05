@@ -19,6 +19,10 @@ module purge
 module load hdf5
 module load intel-mkl
 
+for i in ${!test_presets[@]}; do
+
+echo ${test_presets[k1]}
+
 mkdir ${test_presets[k1]}
 cd ${test_presets[k1]}
 $CUPRAD_HOME/build/make_start.e <<INPUTS
@@ -28,6 +32,8 @@ ${test_presets[k1]}
 0
 INPUTS
 cd ..
+
+done
 
 
 # while getopts :i:f: flags; do
