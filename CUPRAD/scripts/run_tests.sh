@@ -19,7 +19,7 @@ module purge
 module load hdf5
 module load intel-mkl
 
-for i in ${!test_presets[@]}; do
+for k1 in ${!test_presets[@]}; do
 
 echo ${test_presets[k1]}
 
