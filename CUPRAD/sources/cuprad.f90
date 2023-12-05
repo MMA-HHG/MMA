@@ -19,6 +19,9 @@ PROGRAM cuprad
   USE run_status
   USE longstep_vars
   USE density_module
+
+  USE normalization
+
   IMPLICIT NONE 
   
 
@@ -61,6 +64,7 @@ PROGRAM cuprad
            IF (my_rank.EQ.0) THEN
             print *, '-------------------------------------------------------------------------------'
             print *, "printing number:", output_write_count, ":"
+            print *, "z[m]=", z*four_z_Rayleigh
             print *, "before printing:", local_time_MPI - start_time_MPI
            ENDIF
            CALL write_output
