@@ -371,4 +371,13 @@ double * projection_analysis_EV(inputs_def inputs, double *psi, int num_E, doubl
 	return projection;
 }
 
-
+/**
+ * @brief Deletes a 1D array.
+ * 
+ * @details Used for the Python wrapper - Python TDSE. 
+ * 
+ * @param buffer Pointer to be freed.
+ */
+void free_arr(double * buffer) {
+	free(buffer);
+}

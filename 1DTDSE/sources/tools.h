@@ -23,9 +23,8 @@ void Initialise_grid_and_D2(double, int, double **, double **, double **);
 void Initialise_grid_and_ground_state(inputs_def *);
 double * projection_analysis_EV(inputs_def inputs, double *psi, int num_E, double dE);
 double * window_analysis(inputs_def inputs, double *psi, int num_E, double dE, double Estep, double E_start);
-//void window_analysis(trg_def,double,double,double,int,int,double,double*,double*,double*,double*,double*);
-//void dipole_analysis(double,double,double*,double*,int,int);
 double* extend_grid(double *,int,int,int);
+void free_arr(double *);
 
 
 
