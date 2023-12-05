@@ -14,6 +14,22 @@ echo ${test_presets[1]}
 echo ${test_presets[4]}
 
 
+
+module purge
+module hdf5
+module load intel-mkl
+
+mkdir ${test_presets[k1]}
+cd ${test_presets[k1]}
+$CUPRAD_HOME/build/make_start.e <<INPUTS
+${test_presets[k1]}
+0
+0
+0
+INPUTS
+cd ..
+
+
 # while getopts :i:f: flags; do
 #   case "${flags}" in
 #     i)
