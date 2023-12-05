@@ -26,7 +26,9 @@ module load intel-mkl
 
 for k1 in ${!test_presets[@]}; do
 
+echo "----------------------------------------------------------------------"
 echo ${test_presets[k1]}
+echo "----------------------------------------------------------------------"
 
 mkdir ${test_presets[k1]}
 cd ${test_presets[k1]}
