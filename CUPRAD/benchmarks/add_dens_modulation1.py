@@ -1,5 +1,6 @@
 import numpy as np
 import h5py
+import sys
 import mynumerics as mn
 
 
@@ -10,7 +11,7 @@ def Gaussian_jet(zgrid_, z0_, a_, peak_max = 1.):
 
 # prepare zgrid
 zmin = 0.
-zmax = 1e-2
+zmax = float(sys.argv[1]) # 1e-2
 dz = 100e-6
 zgrid = np.ogrid[zmin:zmax+dz:dz]
 
