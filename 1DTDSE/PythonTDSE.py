@@ -1001,7 +1001,7 @@ class TDSE_DLL:
         PES.restype = POINTER(c_double)
         PES.argtypes = [inputs_def, POINTER(c_double), c_int, c_double, c_double, c_double]
         res = PES(inputs, psi, c_int(num_E), c_double(dE), c_double(Estep), c_double(E_start))
-        E_grid = np.linspace(E_start, E_start+(num_E-1)*dE, num_E)
+        E_grid = np.linspace(E_start, E_start+(num_E-1)*Estep, num_E)
         res_np = ctype_arr_to_numpy(res, num_E)
         self.free_arr(res)
         return E_grid, res_np
