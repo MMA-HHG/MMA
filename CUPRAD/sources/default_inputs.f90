@@ -725,7 +725,7 @@ subroutine preset_physics(test_number)
     case(102,105,108,112,115,118)
         pressure = 1.0d2 * 0.05d0
     case(103,106,109,113,116,119)
-        pressure = 0.5d0 * 0.05d0
+        pressure = 1.0d0 * 0.05d0
     end select
     
 
@@ -760,7 +760,7 @@ subroutine preset_physics(test_number)
         if ( any(test_number == (/39,41,42/)) ) call create_dset(group_id2, 'table', (/ 1.0d-2 , 1.0d-2 /), 2)
 
         if ( any(test_number == (/102,105,108,112,115,118/)) ) call create_dset(group_id2, 'table', (/ 1.0d-2 , 1.0d-2 /), 2)
-        if ( any(test_number == (/103,106,109,113,116,119/)) ) call create_dset(group_id2, 'table', (/ 2.0d0 , 2.0d0 /), 2)
+        if ( any(test_number == (/103,106,109,113,116,119/)) ) call create_dset(group_id2, 'table', (/ 1.0d0 , 1.0d0 /), 2)
 
         call h5_add_units_1D(group_id2, 'table', '[-]')
 
