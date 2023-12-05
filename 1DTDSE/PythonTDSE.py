@@ -1002,7 +1002,9 @@ class TDSE_DLL:
         PES.argtypes = [inputs_def, POINTER(c_double), c_int, c_double, c_double, c_double]
         res = PES(inputs, psi, c_int(num_E), c_double(dE), c_double(Estep), c_double(E_start))
         E_grid = np.linspace(E_start, E_start+(num_E-1)*dE, num_E)
-        return E_grid, ctype_arr_to_numpy(res, num_E)
+        res_np = ctype_arr_to_numpy(res, num_E)
+        self.free_arr(res)
+        return E_grid, res_np
 
     def gabor_transform(self, signal, dt, N, omega_max, t_min, t_max, N_G, a = 8.):
         """
@@ -1055,6 +1057,19 @@ class TDSE_DLL:
         self.DLL.free_mtrx.restype = None
         self.DLL.free_mtrx.argtypes = [POINTER(POINTER(c_double)), c_int]
         self.DLL.free_mtrx(buffer_ptr, c_int(N_rows))
+
+    def free_arr(self, buffer_ptr):
+        """
+        Frees 1-D C array.
+
+        Parameters:
+        -----------
+        buffer_ptr: ctypes pointer instance
+            Pointer to the buffer to be freed
+        """
+        self.DLL.free_arr.restype = None
+        self.DLL.free_arr.argtypes = [POINTER(c_double)]
+        self.DLL.free_arr(buffer_ptr)
 
     def free_outputs(self, out_ptr):
         """
