@@ -10,8 +10,9 @@
 #               "test2_modT3" "test2_mod_incT3" "test2_mod_decT3")
 
 
-test_presets=("test1_modT1"
-              "test1_mod_incT1")
+test_presets=("test1_modT1" "test1_mod_incT1" "test1_mod_decT1"
+              "test1_modT2" "test1_mod_incT2" "test1_mod_decT2"
+              "test1_modT3" "test1_mod_incT3" "test1_mod_decT3")
 
 
 echo ${test_presets[1]}
@@ -35,6 +36,9 @@ ${test_presets[k1]}
 0
 0
 INPUTS
+
+wait
+
 cd ..
 
 done
