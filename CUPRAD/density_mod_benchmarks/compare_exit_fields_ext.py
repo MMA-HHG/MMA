@@ -119,6 +119,14 @@ with ExitStack() as stack:
     for k1 in range(Nsim): image.sf[k1].args = [1e15*res[k1].tgrid,res[k1].E_trz[:,0,1],linestyles[k1%len(linestyles)]]                
     pp.plot_preset(image)  
     
+    kz = mn.FindInterval(res[k1].zgrid, 2e-3)
+    print('kz', kz)
+    image = pp.figure_driver()
+    image.sf = [pp.plotter() for k1 in range(res[0].Nz)]
+    image.title = 'field'
+    for k1 in range(20,60): image.sf[k1].args = [1e15*res[0].tgrid,res[0].E_trz[:,0,k1]]                
+    pp.plot_preset(image)  
+    
 
 
     for k1 in range(Nsim): res[k1].compute_spectrum()
