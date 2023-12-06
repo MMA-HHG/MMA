@@ -31,6 +31,33 @@ def ctypes_arr_ptr(ctype_, size_, arr_):
     arr = ctype_ * size_
     return arr(*arr_)
 
+def ctypes_mtrx_ptr(ctype_, size_, mtrx_):
+    """
+    Creates ctypes array from a numpy array
+
+    Parameters:
+    -----------
+    ctype_:
+        Data type of the matrix.
+    size_: tuple
+        Size tuple of the ctypes matrix.
+    mtrx_:
+        2D list or numpy array containing the data.
+
+    Returns:
+    --------
+    ctypes pointer to an array
+    """
+    row_ptr = (POINTER(c_double)*size_[0])()
+    arr_ptr = c_double*size_[1]
+    
+    for i in range(size_[0]):
+        row_ptr[i] = arr_ptr()
+        for j in range(size_[1]):
+            row_ptr[i][j] = mtrx_[i][j]
+
+    return row_ptr
+
 ### return numpy array from c_types array
 def ctype_arr_to_numpy(c_arr, size):
     """
@@ -810,6 +837,46 @@ class outputs_def(Structure):
                 pass
 
         f.close()
+
+    def load_from_hdf5(self, filename):
+        """
+        Loads the contents of the HDF5 archive into the `outputs_def` class.
+
+        Parameters:
+        -----------
+        filename: str
+            Name of the HDF5 archive for loading.         
+        """
+        with h5py.File(filename, "r") as f:
+            try:
+                self.Nomega = c_int(f["TDSE_outputs/Nomega"][()])
+                self.Nt = c_int(f["TDSE_outputs/Nt"][()])
+                self.tgrid = ctypes_arr_ptr(c_double, self.Nt, f["TDSE_outputs/tgrid"][()])
+                self.Efield = ctypes_arr_ptr(c_double, self.Nt, f["TDSE_outputs/Efield"][()])
+                self.sourceterm = ctypes_arr_ptr(c_double, self.Nt, f["TDSE_outputs/sourceterm"][()])
+                self.expval = ctypes_arr_ptr(c_double, self.Nt, f["TDSE_outputs/expval"][()])
+                self.omegagrid = ctypes_arr_ptr(c_double, self.Nomega, f["TDSE_outputs/omegagrid"][()])
+                self.FEfield = ctypes_arr_ptr(c_double, 2*self.Nomega, np.array(f["TDSE_outputs/FEfield"][()]).flatten())
+                self.Fsourceterm = ctypes_arr_ptr(c_double, 2*self.Nomega, np.array(f["TDSE_outputs/Fsourceterm"][()]).flatten())
+                self.PopTot = ctypes_arr_ptr(c_double, self.Nt, f["TDSE_outputs/PopTot"][()])
+                self.PopInt = ctypes_arr_ptr(c_double, self.Nt, f["TDSE_outputs/PopInt"][()])
+            except KeyError:
+                print("No output data stored in the HDF5 file.")
+                return
+            
+            try:
+                psi_re = f["TDSE_outputs/psi_re"][()]
+                psi_im = f["TDSE_outputs/psi_im"][()]
+
+                psi = np.array([np.array([[psi_r, psi_i] for psi_r, psi_i in 
+                                          zip(psi_re[i], psi_im[i])]).flatten() 
+                                          for i in range(len(psi_re))])
+                
+                self.psi = ctypes_mtrx_ptr(c_double, psi.shape, psi)
+            except KeyError:
+                pass
+                
+
 
     def get_wavefunction(self, inputs, grids = True):
         """
