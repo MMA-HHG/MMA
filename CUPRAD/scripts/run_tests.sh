@@ -55,7 +55,7 @@ INPUTS
 
 module purge
 module load python
-python3 $CUPRAD_HOME/benchmarks/add_dens_modulation1.py 1e-5
+python3 $CUPRAD_HOME/benchmarks/add_dens_modulation1.py 0.01
 sbatch $CUPRAD_HOME/scripts/cuprad_JZ32.slurm
 
 cd ..
@@ -78,7 +78,7 @@ INPUTS
 
 module purge
 module load python
-python3 $CUPRAD_HOME/benchmarks/add_dens_modulation1.py 5e-4
+python3 $CUPRAD_HOME/benchmarks/add_dens_modulation1.py 0.005
 sbatch $CUPRAD_HOME/scripts/cuprad_JZ32.slurm
 cd ..
 

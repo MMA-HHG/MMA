@@ -25,7 +25,8 @@ cwd = os.getcwd()
 
 vacuum_frame = True
 
-base_path = os.path.join("C:\data", "JZ","density_mod")
+# base_path = os.path.join("C:\data", "JZ","density_mod")
+base_path = os.path.join("E:\data", "JZ","density_mod")
 
 sims_to_analyse = []
 
@@ -36,8 +37,8 @@ sims_to_analyse = []
 # sims_to_analyse.append( os.path.join("halving_test2","half_simple") )
 # sims_to_analyse.append( os.path.join("halving_test2","half_table") )
 
-sims_to_analyse.append( os.path.join("100","100test1","simple") )
-sims_to_analyse.append( os.path.join("100","100test1","table") )
+# sims_to_analyse.append( os.path.join("100","100test1","simple") )
+# sims_to_analyse.append( os.path.join("100","100test1","table") )
 
 
 # sims_to_analyse.append( os.path.join("100","100test2","simple_short") )
@@ -45,6 +46,15 @@ sims_to_analyse.append( os.path.join("100","100test1","table") )
 
 # sims_to_analyse.append( os.path.join("100","100test2","simple") )
 # sims_to_analyse.append( os.path.join("100","100test2","table") )
+
+# sims_to_analyse.append( os.path.join("series3","test1_modT2") )
+# sims_to_analyse.append( os.path.join("series3","test1_mod_incT2") )
+sims_to_analyse.append( os.path.join("series3","test1_GaussT2") )
+
+
+# sims_to_analyse=[os.path.join("C:\data", "JZ","density_mod","100","100test1","simple"),
+#                  os.path.join("E:\data", "JZ","density_mod","series3","test1_modT2")]
+
 
 results_filename = "results.h5"
 
@@ -100,6 +110,13 @@ with ExitStack() as stack:
     image.sf = [pp.plotter() for k1 in range(Nsim)]
     image.title = 'startfield'
     for k1 in range(Nsim): image.sf[k1].args = [1e15*res[k1].tgrid,res[k1].E_trz[:,0,0],linestyles[k1%len(linestyles)]]                
+    pp.plot_preset(image)  
+   
+    
+    image = pp.figure_driver()
+    image.sf = [pp.plotter() for k1 in range(Nsim)]
+    image.title = 'startfield + 1'
+    for k1 in range(Nsim): image.sf[k1].args = [1e15*res[k1].tgrid,res[k1].E_trz[:,0,1],linestyles[k1%len(linestyles)]]                
     pp.plot_preset(image)  
     
 
