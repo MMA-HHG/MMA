@@ -244,20 +244,20 @@ double * window_analysis(inputs_def inputs, double *psi, int num_E, double dE, d
 	for (i = 0; i < num_E; i++) {
 		for (j = 0; j <= num_r; j++) 
 		{	
-			dnew[2*j] = 10*(E_start+Estep*i-dE/sqrt(8)-potential(x[j],inputs.trg))/12. - diagonal[2*j]; 
-			dnew[2*j+1] = -diagonal[2*j+1]-10*dE/(12*sqrt(8));
-			dnew2[2*j] = 10*(E_start+Estep*i+dE/sqrt(8)-potential(x[j],inputs.trg))/12. - diagonal[2*j]; 
-			dnew2[2*j+1] = -diagonal[2*j+1]+10*dE/(12*sqrt(8));
+			dnew[2*j] = 10*(E_start+Estep*i-dE-potential(x[j],inputs.trg))/12. - diagonal[2*j]; 
+			dnew[2*j+1] = -diagonal[2*j+1]-10*dE/12;
+			dnew2[2*j] = 10*(E_start+Estep*i+dE-potential(x[j],inputs.trg))/12. - diagonal[2*j]; 
+			dnew2[2*j+1] = -diagonal[2*j+1]+10*dE/12;
 			
-			dinfnew[2*j] = (E_start+Estep*i-dE/sqrt(8)-potential(x[j],inputs.trg))/12. - off_diagonal[2*j]; 
-			dinfnew[2*j+1] = -off_diagonal[2*j+1]-dE/(12*sqrt(8));
-			dsupnew[2*j] = (E_start+Estep*i-dE/sqrt(8)-potential(x[j+1],inputs.trg))/12. - off_diagonal[2*j]; 
-			dsupnew[2*j+1] = -off_diagonal[2*j+1]-dE/(12*sqrt(8));	 
+			dinfnew[2*j] = (E_start+Estep*i-dE-potential(x[j],inputs.trg))/12. - off_diagonal[2*j]; 
+			dinfnew[2*j+1] = -off_diagonal[2*j+1]-dE/12;
+			dsupnew[2*j] = (E_start+Estep*i-dE-potential(x[j+1],inputs.trg))/12. - off_diagonal[2*j]; 
+			dsupnew[2*j+1] = -off_diagonal[2*j+1]-dE/12;	 
 
-			dinfnew2[2*j] = (E_start+Estep*i+dE/sqrt(8)-potential(x[j],inputs.trg))/12. - off_diagonal[2*j]; 
-			dinfnew2[2*j+1] = -off_diagonal[2*j+1]+dE/(12*sqrt(8));
-			dsupnew2[2*j] = (E_start+Estep*i+dE/sqrt(8)-potential(x[j+1],inputs.trg))/12. - off_diagonal[2*j]; 
-			dsupnew2[2*j+1] = -off_diagonal[2*j+1]+dE/(12*sqrt(8));
+			dinfnew2[2*j] = (E_start+Estep*i+dE-potential(x[j],inputs.trg))/12. - off_diagonal[2*j]; 
+			dinfnew2[2*j+1] = -off_diagonal[2*j+1]+dE/12;
+			dsupnew2[2*j] = (E_start+Estep*i+dE-potential(x[j+1],inputs.trg))/12. - off_diagonal[2*j]; 
+			dsupnew2[2*j+1] = -off_diagonal[2*j+1]+dE/12;
 		}
 
 		Inv_Tridiagonal_Matrix_complex_Numerov(dinfnew, dnew, dsupnew, psi, res, num_r);
