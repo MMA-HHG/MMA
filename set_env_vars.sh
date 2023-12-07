@@ -7,6 +7,8 @@
 ### Default path with directories - should contain all the necessary git repos
 export GIT_PATH=/Users/tadeasnemec/Programming/Git
 
+export HPC=Curta
+
 export UNIV_INPUT_PATH=$GIT_PATH/universal_input
 
 export MSM_PATH=$GIT_PATH/CUPRAD_TDSE_Hankel
