@@ -1,5 +1,22 @@
 #!/bin/bash
 
+### Usage information
+usage()
+{
+    echo "A script for running the whole multiscale model.
+----------------------------------------------------
+usage: [[[-i (--inp) input file with CUPRAD parameters (.inp)] 
+         [-o (--ohdf5) output HDF5 file] 
+         [-n (--ncuprad) number of processes for CUPRAD execution (must fit input file!)]] | 
+         [-h help]]
+
+----------------------------------------------------
+run: source /path/to/script/../run_multiscale.sh -i [input_file.inp] -o [result.h5] -n [32]
+
+In order to run the script properly, environment variables must be set using 'set_env_vars.sh' 
+script in the current terminal shell as we execute the 'run_multiscale.sh' script.
+"
+}
 
 ### Main
 while [ "$1" != "" ]; do

@@ -43,4 +43,4 @@ export MULTISCALE_HOME=$MSM_PATH
 
 export MULTISCALE_SCRIPTS=$MSM_PATH/multiscale/scripts
 
-source Modules/load_modules.sh
+source $MSM_PATH/Modules/load_modules.sh
