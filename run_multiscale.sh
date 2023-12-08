@@ -45,10 +45,10 @@ while [ "$1" != "" ]; do
                                 printdata="$1"
                                 ;;
         -h | --help )           usage
-                                exit
+                                return 0
                                 ;;
         * )                     usage
-                                exit
+                                return 1
     esac
     shift
 done
@@ -56,25 +56,25 @@ done
 if [ "$inp_filename" = "" ]
 then
     echo "No input file (.inp) added. Use option [-i (--inp)]."
-    exit
+    return 1
 fi
 
 if [ "$h5_filename" = "" ]
 then
     echo "No output HDF5 file added. Use option [-o (--ohdf5)]."
-    exit
+    return 1
 fi
 
 if [ "$ntasks_cuprad" = "" ]
 then
     echo "Unspecified number of processes for CUPRAD. Use option [-n (--ncuprad)]."
-    exit
+    return 1
 fi
 
 if [ "$ntasks_tdse" = "" ]
 then
     echo "Unspecified number of processes for MPI-TDSE. Use option [-m (--ntdse)]."
-    exit
+    return 1
 fi
 
 echo "Input file: ${inp_filename}"
