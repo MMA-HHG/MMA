@@ -41,10 +41,10 @@ while [ "$1" != "" ]; do
         -s | --slurm )          slurm
                                 ;;
         -h | --help )           usage
-                                exit
+                                return 0
                                 ;;
         * )                     usage
-                                exit 1
+                                return 1
     esac
     shift
 done
@@ -54,4 +54,4 @@ then
     printdata="Efield FEfield SourceTerm FSourceTerm FEfieldM2 FSourceTermM2 PopTot PopInt expval_x"
 fi
 
-python3 $TDSE_1D_HOME/post_processing/merge.py --printdata $printdata
+python3 $TDSE_1D_POST_PROCESSING/merge.py --printdata $printdata

@@ -32,10 +32,10 @@ while [ "$1" != "" ]; do
         -s | --slurm )          slurm
                                 ;;
         -h | --help )           usage
-                                exit
+                                return 0
                                 ;;
         * )                     usage
-                                exit 1
+                                return 1
     esac
     shift
 done
