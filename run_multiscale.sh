@@ -45,7 +45,7 @@ echo "Output hdf5 file: ${h5_filename}"
 echo "Number of processes for CUPRAD: ${ntasks_cuprad}"
 
 ### ENVIRONMENT VARIABLES MUST BE SET!
-source set_env_vars.sh
+#source set_env_vars.sh
 
 ### Create HDF5 file from parameters
 JOB0=$(sbatch --parsable --export=ALL $CUPRAD_SCRIPTS/make_hdf5.sh \

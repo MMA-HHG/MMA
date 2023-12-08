@@ -28,7 +28,7 @@ load_modules() {
 export -f load_modules
 
 load_python_modules() {
-    if ["$HPC" = "Curta"] 
+    if [ "$HPC" = "Curta" ] 
     then
         Curta_python_modules
     fi

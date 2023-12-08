@@ -5,7 +5,7 @@
 ### ```. ./set_env_vars.sh```.
 
 ### Default path with directories - should contain all the necessary git repos
-export GIT_PATH=/Users/tadeasnemec/Programming/Git
+export GIT_PATH=/gpfs/home/tnemec
 
 export HPC=Curta
 
@@ -42,3 +42,5 @@ export TDSE_1D_HOME=$MSM_PATH/1DTDSE
 export MULTISCALE_HOME=$MSM_PATH
 
 export MULTISCALE_SCRIPTS=$MSM_PATH/multiscale/scripts
+
+source Modules/load_modules.sh

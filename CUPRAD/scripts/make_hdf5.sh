@@ -21,7 +21,7 @@ usage: [[[-i (--inp) input file (.inp)]
 slurm()
 {
     module purge
-    source $MULTISCALE_HOME/Modules/load_python_modules.sh
+    load_python_modules
 }
 
 

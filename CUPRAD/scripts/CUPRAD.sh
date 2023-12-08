@@ -9,6 +9,6 @@
 module purge
 
 ### Load modules
-source $MULTISCALE_HOME/Modules/load_modules.sh
+load_modules
 
 mpirun $CUPRAD_HOME/build/cuprad.e
