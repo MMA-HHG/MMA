@@ -9,28 +9,45 @@ Curta_modules() {
     module load mkl/2023.0.0
     module load hdf5/1.10.5/openmpi_4.1.2/intel_2022.0.1
     module load hdf5/1.10.5/impi_2019.1.144/intel_2019.1.144
+    export CPATH=$CPATH:$MKLROOT/include/fftw
 }
 export -f Curta_modules
 
+Sunrise_modules() {
+    module load GCC OpenMPI HDF5 FFTW3
+}
+export -f Sunrise_modules
+
+### Python modules
 Curta_python_modules() {
     module load python/3.9
 }
 export -f Curta_python_modules
+
+Sunrise_python_modules() {
+    module load GCC Python
+}
+export -f Sunrise_python_modules
 
 ### Load cmake, MPI, HDF5, FFTW/MKL
 load_modules() {
     if [ "$HPC" == "Curta" ] 
     then
         Curta_modules
+    elif [ "$HPC" == "Sunrise" ]
+    then
+        Sunrise_modules
     fi
 
 }
 export -f load_modules
 
 load_python_modules() {
-    if [ "$HPC" = "Curta" ] 
+    if [ "$HPC" == "Curta" ] 
     then
         Curta_python_modules
+    elif [ "$HPC" == "Sunrise" ]
+        Sunrise_python_modules
     fi
 
 }
