@@ -14,7 +14,7 @@ Curta_modules() {
 export -f Curta_modules
 
 Sunrise_modules() {
-    module load GCC OpenMPI HDF5 FFTW3
+    module load GCC OpenMPI HDF5 FFTW3 CMake 
 }
 export -f Sunrise_modules
 
