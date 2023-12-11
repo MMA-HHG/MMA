@@ -184,7 +184,7 @@ int main(int argc, char *argv[])
 
 		// Close HDF5 file
 		h5error = H5Fclose(file_id);
-
+		
 		// convert units
 		for(k1 = 0 ; k1 < inputs.Efield.Nt; k1++) {
 			inputs.Efield.Field[k1] = inputs.Efield.Field[k1]/EFIELDau;

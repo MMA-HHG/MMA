@@ -49,7 +49,7 @@ void call1DTDSE(inputs_def * inputs, outputs_def * outputs)
 	
 	// local copies of variables given by inputs
 	dt = (*inputs).dt;
-
+	
 	// PREPARATIONAL COMPUTATIONS 
 	(*inputs).Efield.dt = (*inputs).Efield.tgrid[1]-(*inputs).Efield.tgrid[0]; 
 	
@@ -65,7 +65,7 @@ void call1DTDSE(inputs_def * inputs, outputs_def * outputs)
 		if (k1 != 1) k1++; 
 	}
 	dt = (*inputs).Efield.dt/((double)k1); // redefine dt properly
-
+	
 	// Free field and allocate new field array
 	// make the interpolation, note: tgrid does not correspond any more
 	field = FourInterp(k1, (*inputs).Efield.Field, (*inputs).Efield.Nt); 

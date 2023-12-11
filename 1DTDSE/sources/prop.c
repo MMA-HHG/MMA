@@ -59,8 +59,8 @@ double * propagation(inputs_def *inputs, outputs_def *outputs)
 	// Wavefunction write iteration
 	int i_wf = 0;
 	// Number of stored wavefunctions
-	int size = Nt/steps_per_dt;
-
+	int size;
+	if (inputs->analy.writewft != 0) size = Nt/steps_per_dt;
 	// Allocate arrays
 	psi = calloc(2*(num_r+1),sizeof(double));
 	psi_inter1 = calloc(2*(num_r+1),sizeof(double));
@@ -81,7 +81,7 @@ double * propagation(inputs_def *inputs, outputs_def *outputs)
 			outputs->psi[j] = calloc(2*(num_r+1),sizeof(double));
 		}
 	}
-
+	
 	// Gauge independent probability of the electron being between -x_int and x_int
 	k1 = 0; k2 = 0; k3 = 0; k4 = 0;
 	findinterval(num_r, -x_int, x, &k1, &k2);
