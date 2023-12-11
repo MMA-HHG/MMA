@@ -47,6 +47,7 @@ load_python_modules() {
     then
         Curta_python_modules
     elif [ "$HPC" == "Sunrise" ]
+    then
         Sunrise_python_modules
     fi
 
