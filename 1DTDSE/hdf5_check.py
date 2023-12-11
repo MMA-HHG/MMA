@@ -35,8 +35,6 @@ with h5py.File(filename, 'r') as f:
               "TDSE_inputs/InterpByDTorNT",
               "TDSE_inputs/dt",
               "TDSE_inputs/Ntinterp",
-              "TDSE_inputs/analy_writewft",
-              "TDSE_inputs/analy_tprint",
               "TDSE_inputs/x_int",
               "TDSE_inputs/trg_a",
               "TDSE_inputs/CV_criterion_of_GS",
