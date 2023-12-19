@@ -30,7 +30,8 @@ CONTAINS
    
    cnorm = c_light * pulse_duration*1.D-15 / four_z_Rayleigh ! compute vacuum light velocity normalized to pulse duration and 4 times the Rayleigh length
         
-   chi_local = (cnorm*komega_local/omega_local)**2 - 1
+   !chi_local = (cnorm*komega_local/omega_local)**2 - 1
+   chi_local = exp(2.D0*(log(cnorm)+log(komega_local)-log(omega_local))) - 1.D0! testing exponentionate multiplication to avoid overflows
    chi_local = chi_local * density_mod_local
    komega_local =omega_local/cnorm*SQRT(1+chi_local)
    komega_red_local=komega_local-CMPLX(rekp*omega_local,0.D0,8)
