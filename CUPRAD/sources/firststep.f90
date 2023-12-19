@@ -30,8 +30,7 @@ CONTAINS
    
    cnorm = c_light * pulse_duration*1.D-15 / four_z_Rayleigh ! compute vacuum light velocity normalized to pulse duration and 4 times the Rayleigh length
         
-   !chi_local = (cnorm*komega_local/omega_local)**2 - 1
-   chi_local = exp(2.D0*(log(cnorm)+log(komega_local)-log(omega_local))) - 1.D0! testing exponentionate multiplication to avoid overflows
+   chi_local = (cnorm*komega_local/omega_local)**2 - 1
    chi_local = chi_local * density_mod_local
    komega_local =omega_local/cnorm*SQRT(1+chi_local)
    komega_red_local=komega_local-CMPLX(rekp*omega_local,0.D0,8)
@@ -50,6 +49,7 @@ CONTAINS
     IF (dim_t_start(num_proc).LT.dim_th) THEN
        DO j=dim_t_start(num_proc),dim_t_end(num_proc)
           DO k=1,dim_r
+             komega_local = komega(dim_th+j)
              CALL calc_komega_local(k_t*(REAL(j-1,8))+omega_uppe,density_mod(k),komega_local,komega_red_local)
              p_t(k,j)=exp(CMPLX(0.D0,delta_zh,8)*komega_red_local)
           ENDDO
@@ -57,6 +57,7 @@ CONTAINS
     ELSE
        DO j=dim_t_start(num_proc),dim_t_end(num_proc)
          DO k=1,dim_r
+          komega_local = komega(j-dim_th)
           CALL calc_komega_local(k_t*(REAL(j-dim_t-1,8))+omega_uppe,density_mod(k),komega_local,komega_red_local)
           p_t(k,j)=exp(CMPLX(0.D0,delta_zh,8)*komega_red_local)
          ENDDO
@@ -66,6 +67,7 @@ CONTAINS
     SELECT CASE (switch_T)
     CASE(1)
        DO k=1,dim_r
+         komega_local = CMPLX(rek0,0.D0,8)
          CALL calc_komega_local(omega,density_mod(k),komega_local,komega_red_local)
          DO j=1,dim_t
             IF ((j.GE.dim_t_start(num_proc)) .AND. (j.LE.dim_t_end(num_proc))) op_t_inv_cn(k,j)=rek0/REAL(komega_local,8)
@@ -77,6 +79,7 @@ CONTAINS
       ENDDO
     CASE(2)
         DO k=1,dim_r
+         komega_local = CMPLX(rek0,0.D0,8)
          CALL calc_komega_local(omega,density_mod(k),komega_local,komega_red_local)
          DO j=1,dim_th
             IF ((j.GE.dim_t_start(num_proc)) .AND. (j.LE.dim_t_end(num_proc))) op_t_inv_cn(k,j)=CMPLX(omega/(omega_uppe+k_t*REAL(j-1,8)),0.D0,8)*rek0/REAL(komega_local,8)
@@ -92,12 +95,14 @@ CONTAINS
     CASE(3)
         DO k=1,dim_r
             DO j=1,dim_th
+               komega_local = komega(dim_th+j)
                CALL calc_komega_local(omega_uppe+k_t*REAL(j-1,8),density_mod(k),komega_local,komega_red_local)
                IF ((j.GE.dim_t_start(num_proc)) .AND. (j.LE.dim_t_end(num_proc))) op_t_inv_cn(k,j)=rek0/komega_local
                IF ((k.GE.dim_r_start(num_proc)) .AND. (k.LE.dim_r_end(num_proc))) THEN
                   op_t(j,k)=rek0/omega**2*(omega_uppe+k_t*REAL(j-1,8))**2/komega_local
                   op_t_inv(j,k)=rek0/komega_local
                ENDIF
+               komega_local = komega(j)
                CALL calc_komega_local(omega_uppe+k_t*REAL(j-dim_th-1,8),density_mod(k),komega_local,komega_red_local)
                IF ((dim_th+j.GE.dim_t_start(num_proc)) .AND. (dim_th+j.LE.dim_t_end(num_proc))) op_t_inv_cn(k,dim_th+j)= rek0/komega_local
                IF ((k.GE.dim_r_start(num_proc)) .AND. (k.LE.dim_r_end(num_proc))) THEN 
@@ -109,12 +114,14 @@ CONTAINS
     CASE(4)
         DO k=1,dim_r
             DO j=1,dim_th
+               komega_local = komega(dim_th+j)
                CALL calc_komega_local(omega_uppe+k_t*REAL(j-1,8),density_mod(k),komega_local,komega_red_local)
                IF ((j.GE.dim_t_start(num_proc)) .AND. (j.LE.dim_t_end(num_proc))) op_t_inv_cn(k,j)=rek0/komega_local
                IF ((k.GE.dim_r_start(num_proc)) .AND. (k.LE.dim_r_end(num_proc))) THEN
                   op_t(j,k)=rek0/omega**2*(omega_uppe+k_t*REAL(j-1,8))**2/komega_local
                   op_t_inv(j,k)=rek0/komega_local
                ENDIF
+               komega_local = komega(j)
                CALL calc_komega_local(omega_uppe+k_t*REAL(j-dim_th-1,8),density_mod(k),komega_local,komega_red_local)
                IF ((dim_th+j.GE.dim_t_start(num_proc)) .AND. (dim_th+j.LE.dim_t_end(num_proc))) op_t_inv_cn(k,dim_th+j)=rek0/komega_local
                IF ((k.GE.dim_r_start(num_proc)) .AND. (k.LE.dim_r_end(num_proc))) THEN
