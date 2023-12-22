@@ -47,9 +47,15 @@ sims_to_analyse = []
 # sims_to_analyse.append( os.path.join("100","100test2","simple") )
 # sims_to_analyse.append( os.path.join("100","100test2","table") )
 
-sims_to_analyse.append( os.path.join("series3","test1_modT2") )
+# sims_to_analyse.append( os.path.join("series6","test1_modT2") )
 # sims_to_analyse.append( os.path.join("series3","test1_mod_incT2") )
-# sims_to_analyse.append( os.path.join("series3","test1_GaussT2") )
+
+# sims_to_analyse.append( os.path.join("series6","test1_GaussT2") )
+# sims_to_analyse.append( os.path.join("series6","test2_GaussT2") )
+
+sims_to_analyse.append( os.path.join("series6","test1_modT2") )
+sims_to_analyse.append( os.path.join("series6","test1_mod_incT2") )
+sims_to_analyse.append( os.path.join("series6","test1_mod_decT2") )
 
 
 # sims_to_analyse=[os.path.join("C:\data", "JZ","density_mod","100","100test1","simple"),
@@ -61,6 +67,8 @@ results_filename = "results.h5"
 plot_vacuum = True
 
 plot_onax = True
+
+plot_density = True
 
 fluence_analysis = True
 
@@ -82,6 +90,8 @@ with ExitStack() as stack:
     
     res = [dfC.get_data(arch, r_resolution = [full_resolution, dr, rmax]) for arch in InArch]
     Nsim = len(res) 
+    
+    dens_profile = [arch['test_density'][:] for arch in InArch]
     
     print('')
     # characteristics
@@ -284,7 +294,12 @@ with ExitStack() as stack:
 
 
 
-
+    if plot_density:
+        image = pp.figure_driver()
+        image.sf = [pp.plotter() for k1 in range(Nsim)]
+        image.title = 'density profile (onax)'
+        for k1 in range(Nsim): image.sf[k1].args = [1e3*res[k1].zgrid,dens_profile[k1][0,:],linestyles[k1%len(linestyles)]]                
+        pp.plot_preset(image)  
 
 
 
