@@ -53,9 +53,13 @@ sims_to_analyse = []
 # sims_to_analyse.append( os.path.join("series6","test1_GaussT2") )
 # sims_to_analyse.append( os.path.join("series6","test2_GaussT2") )
 
-sims_to_analyse.append( os.path.join("series6","test1_modT2") )
-sims_to_analyse.append( os.path.join("series6","test1_mod_incT2") )
-sims_to_analyse.append( os.path.join("series6","test1_mod_decT2") )
+# sims_to_analyse.append( os.path.join("series6","test1_modT2") )
+# sims_to_analyse.append( os.path.join("series6","test1_mod_incT2") )
+# sims_to_analyse.append( os.path.join("series6","test1_mod_decT2") )
+
+sims_to_analyse.append( os.path.join("series7","test2_modT2") )
+sims_to_analyse.append( os.path.join("series7","test2_mod_incT2") )
+sims_to_analyse.append( os.path.join("series7","test2_mod_decT2") )
 
 
 # sims_to_analyse=[os.path.join("C:\data", "JZ","density_mod","100","100test1","simple"),
