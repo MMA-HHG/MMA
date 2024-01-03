@@ -61,10 +61,23 @@ sims_to_analyse = []
 # sims_to_analyse.append( os.path.join("series7","test1_mod_incT2") )
 # sims_to_analyse.append( os.path.join("dec1","test1_mod_decT2") )
 
-sims_to_analyse.append( os.path.join("series7","test1_modT1") )
-sims_to_analyse.append( os.path.join("series7","test1_modT2") )
-sims_to_analyse.append( os.path.join("series7","test1_modT3") )
+# sims_to_analyse.append( os.path.join("series8","test1_modT1") )
+# sims_to_analyse.append( os.path.join("series8","test1_modT2") )
+# sims_to_analyse.append( os.path.join("series8","test1_modT3") )
 
+
+# sims_to_analyse.append( os.path.join("series8","test3_modT2") )
+# sims_to_analyse.append( os.path.join("series8","test3_mod_incT2") )
+# sims_to_analyse.append( os.path.join("series8","test3_mod_decT2") )
+
+# sims_to_analyse.append( os.path.join("series7","test1_modT2") )
+# sims_to_analyse.append( os.path.join("series8","test3_modT2") )
+# sims_to_analyse.append( os.path.join("series8","test4_modT2") )
+
+
+sims_to_analyse.append( os.path.join("series7","test1_mod_decT2") )
+sims_to_analyse.append( os.path.join("series8","test3_mod_decT2") )
+sims_to_analyse.append( os.path.join("series8","test4_mod_decT2") )
 
 # sims_to_analyse=[os.path.join("C:\data", "JZ","density_mod","100","100test1","simple"),
 #                  os.path.join("E:\data", "JZ","density_mod","series3","test1_modT2")]
