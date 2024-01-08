@@ -822,7 +822,8 @@ subroutine preset_physics(test_number)
 
     if ( any(test_number == (/ (k1, k1 = 161, 169) /)) ) then
         Ui_eV_phys = 1e3 * 15.75962D0 ! ionisation potential (eV)
-        call save_or_replace(file_id, 'inputs/Kerr_nonlinear_refractive_index_kerr_coefficient', n2_phys, error)
+        CALL save_or_replace(file_id, 'inputs/ionization_ionization_potential_of_neutral_molecules', Ui_eV_phys, &
+        error, units_in = '[eV]')
     endif
 
 end subroutine preset_physics
