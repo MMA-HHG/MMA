@@ -26,7 +26,7 @@ cwd = os.getcwd()
 vacuum_frame = True
 
 # base_path = os.path.join("C:\data", "JZ","density_mod")
-base_path = os.path.join("E:\data", "JZ","density_mod")
+base_path = os.path.join("D:\data", "JZ","density_mod")
 
 sims_to_analyse = []
 
@@ -65,7 +65,7 @@ sims_to_analyse = []
 # sims_to_analyse.append( os.path.join("series8","test1_modT2") )
 # sims_to_analyse.append( os.path.join("series8","test1_modT3") )
 
-
+## !!!!
 # sims_to_analyse.append( os.path.join("series8","test3_modT2") )
 # sims_to_analyse.append( os.path.join("series8","test3_mod_incT2") )
 # sims_to_analyse.append( os.path.join("series8","test3_mod_decT2") )
@@ -85,12 +85,15 @@ sims_to_analyse.append( os.path.join("series8","test4_mod_decT2") )
 
 results_filename = "results.h5"
 
+# plot_vacuum = False
+# plot_onax = False
+# plot_density = False
+# fluence_analysis = False
+
+
 plot_vacuum = True
-
 plot_onax = True
-
 plot_density = True
-
 fluence_analysis = True
 
 
@@ -134,6 +137,26 @@ with ExitStack() as stack:
     image.sf = [pp.plotter() for k1 in range(Nsim)]
     image.title = 'endfield'
     for k1 in range(Nsim): image.sf[k1].args = [1e15*res[k1].tgrid,res[k1].E_trz[:,0,-1],linestyles[k1%len(linestyles)]]                
+    pp.plot_preset(image)  
+    
+
+    z_fix = 2.3e-3 # SI
+    image = pp.figure_driver()
+    image.sf = [pp.plotter() for k1 in range(Nsim)]
+    image.title = 'fix-field'
+    for k1 in range(Nsim):
+        kz_loc = mn.FindInterval(res[k1].zgrid, z_fix)
+        image.sf[k1].args = [1e15*res[k1].tgrid,res[k1].E_trz[:,0,kz_loc],linestyles[k1%len(linestyles)]]                
+    pp.plot_preset(image)  
+
+
+    for k1 in range(Nsim): res[k1].get_plasma(InArch[k1], r_resolution = [full_resolution, dr, rmax])
+    image = pp.figure_driver()
+    image.sf = [pp.plotter() for k1 in range(Nsim)]
+    image.title = 'fix-plasma'
+    for k1 in range(Nsim):
+        kz_loc = mn.FindInterval(res[k1].zgrid, z_fix)
+        image.sf[k1].args = [1e15*res[k1].plasma.tgrid,res[k1].plasma.value_trz[:,0,kz_loc],linestyles[k1%len(linestyles)]]                
     pp.plot_preset(image)  
     
     
