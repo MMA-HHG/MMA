@@ -830,7 +830,7 @@ subroutine preset_physics(test_number)
     endif
 
     if ( any(test_number == (/ (k1, k1 = 161, 169) /)) ) then
-        Ui_eV_phys = 1e3 * 15.75962D0 ! ionisation potential (eV)
+        Ui_eV_phys = 2e1 * 15.75962D0 ! ionisation potential (eV)
         CALL save_or_replace(file_id, 'inputs/ionization_ionization_potential_of_neutral_molecules', Ui_eV_phys, &
         error, units_in = '[eV]')
     endif
