@@ -59,6 +59,15 @@ character(len=255), parameter :: available_tests(N_tests) = [character(len=255) 
                                                         "test7_modT3", "test7_mod_incT3", "test7_mod_decT3" ] ! "GfH5w_pre_ionised_PPT"
 ! integer, parameter      :: test_numbers(N_tests) =  (k1, k1=1,N_tests)
 
+! tests list:
+! 1 - default
+! 2 - high intensity
+! 3 - dt/2
+! 4 - dt/2 & 2Tmax
+! 5 - only linear (small intensity)
+! 6 - no Kerr
+! 7 - no ionisation
+
 CONTAINS
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
