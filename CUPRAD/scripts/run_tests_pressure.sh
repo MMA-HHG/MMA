@@ -3,7 +3,10 @@
 
 test_presets=("test9_modT1" "test9_mod_incT1" "test9_mod_decT1"
               "test9_modT2" "test9_mod_incT2" "test9_mod_decT2"
-              "test9_modT3" "test9_mod_incT3" "test9_mod_decT3")
+              "test9_modT3" "test9_mod_incT3" "test9_mod_decT3"
+              "test10_modT1" "test10_mod_incT1" "test10_mod_decT1"
+              "test10_modT2" "test10_mod_incT2" "test10_mod_decT2"
+              "test10_modT3" "test10_mod_incT3" "test10_mod_decT3")
 
 
 
