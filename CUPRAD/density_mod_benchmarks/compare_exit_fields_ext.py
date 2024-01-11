@@ -75,9 +75,22 @@ sims_to_analyse = []
 # sims_to_analyse.append( os.path.join("series8","test4_modT2") )
 
 
-sims_to_analyse.append( os.path.join("series7","test1_mod_decT2") )
-sims_to_analyse.append( os.path.join("series8","test3_mod_decT2") )
-sims_to_analyse.append( os.path.join("series8","test4_mod_decT2") )
+# sims_to_analyse.append( os.path.join("series7","test1_mod_decT2") )
+# sims_to_analyse.append( os.path.join("series8","test3_mod_decT2") )
+# sims_to_analyse.append( os.path.join("series8","test4_mod_decT2") )
+
+sims_to_analyse.append( os.path.join("series9","test7_modT2") )
+sims_to_analyse.append( os.path.join("series9","test7_mod_incT2") )
+sims_to_analyse.append( os.path.join("series9","test7_mod_decT2") )
+
+# sims_to_analyse.append( os.path.join("series9","test1_modT2") )
+# sims_to_analyse.append( os.path.join("series9","test7_modT2") )
+
+
+
+# sims_to_analyse.append( os.path.join("series9","test1_modT2") )
+# sims_to_analyse.append( os.path.join("series9","oldcodeT2") )
+
 
 # sims_to_analyse=[os.path.join("C:\data", "JZ","density_mod","100","100test1","simple"),
 #                  os.path.join("E:\data", "JZ","density_mod","series3","test1_modT2")]
@@ -85,16 +98,17 @@ sims_to_analyse.append( os.path.join("series8","test4_mod_decT2") )
 
 results_filename = "results.h5"
 
-# plot_vacuum = False
-# plot_onax = False
-# plot_density = False
-# fluence_analysis = False
+plot_vacuum = False
+plot_onax = False
+plot_density = False
+fluence_analysis = False
 
 
-plot_vacuum = True
-plot_onax = True
-plot_density = True
-fluence_analysis = True
+# plot_vacuum = True
+# plot_onax = True
+# plot_density = True
+# fluence_analysis = True
+
 
 
 file_paths = [os.path.join(base_path,inter_path,results_filename) for inter_path in sims_to_analyse]
@@ -115,7 +129,8 @@ with ExitStack() as stack:
     res = [dfC.get_data(arch, r_resolution = [full_resolution, dr, rmax]) for arch in InArch]
     Nsim = len(res) 
     
-    dens_profile = [arch['test_density'][:] for arch in InArch]
+    try: dens_profile = [arch['test_density'][:] for arch in InArch]
+    except: dens_profile = np.asarray([[1]])
     
     print('')
     # characteristics
@@ -156,7 +171,9 @@ with ExitStack() as stack:
     image.title = 'fix-plasma'
     for k1 in range(Nsim):
         kz_loc = mn.FindInterval(res[k1].zgrid, z_fix)
-        image.sf[k1].args = [1e15*res[k1].plasma.tgrid,res[k1].plasma.value_trz[:,0,kz_loc],linestyles[k1%len(linestyles)]]                
+        image.sf[k1].args = [1e15*res[k1].plasma.tgrid,res[k1].plasma.value_trz[:,0,kz_loc]/(res[k1].rho0_init*dens_profile[k1][0,0]),linestyles[k1%len(linestyles)]]
+            
+                        
     pp.plot_preset(image)  
     
     
@@ -214,7 +231,7 @@ with ExitStack() as stack:
     image = pp.figure_driver()
     image.sf = [pp.plotter() for k1 in range(Nsim)]
     image.title = 'start ion'
-    for k1 in range(Nsim): image.sf[k1].args = [1e15*res[k1].plasma.tgrid,res[k1].plasma.value_trz[:,0,0],linestyles[k1%len(linestyles)]]                
+    for k1 in range(Nsim): image.sf[k1].args = [1e15*res[k1].plasma.tgrid,res[k1].plasma.value_trz[:,0,0]/(res[k1].rho0_init*dens_profile[k1][0,0]),linestyles[k1%len(linestyles)]]                
     pp.plot_preset(image)  
 
     
@@ -222,7 +239,7 @@ with ExitStack() as stack:
     image = pp.figure_driver()
     image.sf = [pp.plotter() for k1 in range(Nsim)]
     image.title = 'end ion'
-    for k1 in range(Nsim): image.sf[k1].args = [1e15*res[k1].plasma.tgrid,res[k1].plasma.value_trz[:,0,-1],linestyles[k1%len(linestyles)]]                
+    for k1 in range(Nsim): image.sf[k1].args = [1e15*res[k1].plasma.tgrid,res[k1].plasma.value_trz[:,0,-1]/(res[k1].rho0_init*dens_profile[k1][0,0]),linestyles[k1%len(linestyles)]]                
     pp.plot_preset(image)  
     
   
