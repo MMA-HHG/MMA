@@ -79,9 +79,9 @@ sims_to_analyse = []
 # sims_to_analyse.append( os.path.join("series8","test3_mod_decT2") )
 # sims_to_analyse.append( os.path.join("series8","test4_mod_decT2") )
 
-sims_to_analyse.append( os.path.join("series9","test7_modT2") )
-sims_to_analyse.append( os.path.join("series9","test7_mod_incT2") )
-sims_to_analyse.append( os.path.join("series9","test7_mod_decT2") )
+sims_to_analyse.append( os.path.join("series9","test8_modT2") )
+sims_to_analyse.append( os.path.join("series9","test8_mod_incT2") )
+sims_to_analyse.append( os.path.join("series9","test8_mod_decT2") )
 
 # sims_to_analyse.append( os.path.join("series9","test1_modT2") )
 # sims_to_analyse.append( os.path.join("series9","test7_modT2") )
@@ -98,16 +98,16 @@ sims_to_analyse.append( os.path.join("series9","test7_mod_decT2") )
 
 results_filename = "results.h5"
 
-plot_vacuum = False
-plot_onax = False
-plot_density = False
-fluence_analysis = False
+# plot_vacuum = False
+# plot_onax = False
+# plot_density = False
+# fluence_analysis = False
 
 
-# plot_vacuum = True
-# plot_onax = True
-# plot_density = True
-# fluence_analysis = True
+plot_vacuum = True
+plot_onax = True
+plot_density = True
+fluence_analysis = True
 
 
 
