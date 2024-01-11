@@ -56,7 +56,7 @@ character(len=255), parameter :: available_tests(N_tests) = [character(len=255) 
                                                         "undefined", &
                                                         "test7_modT1", "test7_mod_incT1", "test7_mod_decT1", &
                                                         "test7_modT2", "test7_mod_incT2", "test7_mod_decT2", &
-                                                        "test7_modT3", "test7_mod_incT3", "test7_mod_decT3" 
+                                                        "test7_modT3", "test7_mod_incT3", "test7_mod_decT3", &
                                                         "undefined", &
                                                         "test8_modT1", "test8_mod_incT1", "test8_mod_decT1", &
                                                         "test8_modT2", "test8_mod_incT2", "test8_mod_decT2", &
