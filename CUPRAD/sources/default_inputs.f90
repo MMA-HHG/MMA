@@ -797,7 +797,6 @@ subroutine preset_physics(test_number)
     ! case(103,106,109,113,116,119)
     !     pressure = 1.0d-1 * 0.05d0
     
-        181:189, 191:199, 201:209, 211:219)
 
     case(181,184,187)
         pressure = 0.5d0 * 0.05d0
