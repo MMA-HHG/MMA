@@ -731,49 +731,49 @@ CONTAINS
     INTEGER(4) startcut,endcut,l
     REAL(8) help1
 
-    IF(endcut-startcut.GT.500) THEN
-       IF((startcut.EQ.1).AND.(ABS(REAL(komega(dim_t)-rek0-rekp*(8.D0*DATAN(1.D0)* &
-         REAL(dim_t/2-1)/lt+omega_uppe-omega))).GT.help1)) THEN
-          DO l=startcut,startcut+249
-             komega(l) = komega(l)+CMPLX(0.D0,1.D4,8)
-          ENDDO
-       ELSE
-          DO l=startcut,startcut+249
-             komega(l) = komega(l)+CMPLX(0.D0,1.D4*exp(-(4.5D0*(REAL(l-startcut,8)-250.D0)/500.D0)**4),8)
-          ENDDO
-       ENDIF
-       DO l=startcut+250,endcut-250
-          komega(l) = komega(l)+CMPLX(0.D0,1.D4,8)
-       ENDDO
-       IF((endcut.EQ.dim_t).AND.(ABS(REAL(komega(1)-rek0-rekp*(8.D0*DATAN(1.D0)* &
-         REAL(-dim_t/2)/lt+omega_uppe-omega))).GT.help1)) THEN
-          DO l=endcut-249,endcut
-             komega(l) = komega(l)+CMPLX(0.D0,1.D4,8)
-          ENDDO
-       ELSE
-          DO l=endcut-249,endcut
-             komega(l) = komega(l)+CMPLX(0.D0,1.D4*exp(-(4.5D0*(REAL(l-endcut,8)+250.D0)/500.D0)**4),8)
-          ENDDO
-       ENDIF
-    ELSE
-       IF((startcut.EQ.1).AND.(ABS(REAL(komega(dim_t)-rek0-rekp*(8.D0*DATAN(1.D0)* &
-         REAL(dim_t/2-1)/lt+omega_uppe-omega))).GT.help1)) THEN
-          DO l=startcut,endcut
-             komega(l) = komega(l)+CMPLX(0.D0,1.D4*exp(-(2.25D0*REAL(l-startcut,8)/REAL(endcut-startcut,8))**4),8)
-          ENDDO
-       ELSEIF ((endcut.EQ.dim_t).AND.(ABS(REAL(komega(1)-rek0-rekp*(8.D0*DATAN(1.D0)* &
-           REAL(-dim_t/2)/lt+omega_uppe-omega))).GT.help1)) THEN
-          DO l=startcut,endcut
-             komega(l) = komega(l)+CMPLX(0.D0,1.D4*exp(-(2.25D0*(REAL(l-startcut,8)-REAL(endcut-startcut,8))/ &
-               REAL(endcut-startcut,8))**4),8)
-          ENDDO
-       ELSE
-          DO l=startcut,endcut
-             komega(l) = komega(l)+CMPLX(0.D0,1.D4*exp(-(4.5D0*(REAL(l-startcut,8)-0.5D0*REAL(endcut-startcut,8))/ &
-               REAL(endcut-startcut,8))**4),8)
-          ENDDO
-       ENDIF
-    ENDIF
+!     IF(endcut-startcut.GT.500) THEN
+!        IF((startcut.EQ.1).AND.(ABS(REAL(komega(dim_t)-rek0-rekp*(8.D0*DATAN(1.D0)* &
+!          REAL(dim_t/2-1)/lt+omega_uppe-omega))).GT.help1)) THEN
+!           DO l=startcut,startcut+249
+!              komega(l) = komega(l)+CMPLX(0.D0,1.D6,8)
+!           ENDDO
+!        ELSE
+!           DO l=startcut,startcut+249
+!              komega(l) = komega(l)+CMPLX(0.D0,1.D6*exp(-(4.5D0*(REAL(l-startcut,8)-250.D0)/500.D0)**4),8)
+!           ENDDO
+!        ENDIF
+!        DO l=startcut+250,endcut-250
+!           komega(l) = komega(l)+CMPLX(0.D0,1.D6,8)
+!        ENDDO
+!        IF((endcut.EQ.dim_t).AND.(ABS(REAL(komega(1)-rek0-rekp*(8.D0*DATAN(1.D0)* &
+!          REAL(-dim_t/2)/lt+omega_uppe-omega))).GT.help1)) THEN
+!           DO l=endcut-249,endcut
+!              komega(l) = komega(l)+CMPLX(0.D0,1.D6,8)
+!           ENDDO
+!        ELSE
+!           DO l=endcut-249,endcut
+!              komega(l) = komega(l)+CMPLX(0.D0,1.D6*exp(-(4.5D0*(REAL(l-endcut,8)+250.D0)/500.D0)**4),8)
+!           ENDDO
+!        ENDIF
+!     ELSE
+!        IF((startcut.EQ.1).AND.(ABS(REAL(komega(dim_t)-rek0-rekp*(8.D0*DATAN(1.D0)* &
+!          REAL(dim_t/2-1)/lt+omega_uppe-omega))).GT.help1)) THEN
+!           DO l=startcut,endcut
+!              komega(l) = komega(l)+CMPLX(0.D0,1.D6*exp(-(2.25D0*REAL(l-startcut,8)/REAL(endcut-startcut,8))**4),8)
+!           ENDDO
+!        ELSEIF ((endcut.EQ.dim_t).AND.(ABS(REAL(komega(1)-rek0-rekp*(8.D0*DATAN(1.D0)* &
+!            REAL(-dim_t/2)/lt+omega_uppe-omega))).GT.help1)) THEN
+!           DO l=startcut,endcut
+!              komega(l) = komega(l)+CMPLX(0.D0,1.D6*exp(-(2.25D0*(REAL(l-startcut,8)-REAL(endcut-startcut,8))/ &
+!                REAL(endcut-startcut,8))**4),8)
+!           ENDDO
+!        ELSE
+!           DO l=startcut,endcut
+!              komega(l) = komega(l)+CMPLX(0.D0,1.D6*exp(-(4.5D0*(REAL(l-startcut,8)-0.5D0*REAL(endcut-startcut,8))/ &
+!                REAL(endcut-startcut,8))**4),8)
+!           ENDDO
+!        ENDIF
+!     ENDIF
 
     RETURN
   END SUBROUTINE artifabs  
