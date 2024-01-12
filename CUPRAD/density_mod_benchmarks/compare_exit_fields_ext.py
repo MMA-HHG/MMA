@@ -79,13 +79,40 @@ sims_to_analyse = []
 # sims_to_analyse.append( os.path.join("series8","test3_mod_decT2") )
 # sims_to_analyse.append( os.path.join("series8","test4_mod_decT2") )
 
-sims_to_analyse.append( os.path.join("series9","test8_modT2") )
-sims_to_analyse.append( os.path.join("series9","test8_mod_incT2") )
-sims_to_analyse.append( os.path.join("series9","test8_mod_decT2") )
+# sims_to_analyse.append( os.path.join("series9","test8_modT2") )
+# sims_to_analyse.append( os.path.join("series9","test8_mod_incT2") )
+# sims_to_analyse.append( os.path.join("series9","test8_mod_decT2") )
 
 # sims_to_analyse.append( os.path.join("series9","test1_modT2") )
 # sims_to_analyse.append( os.path.join("series9","test7_modT2") )
 
+sims_to_analyse.append( os.path.join("series10","test1_modT2") )
+sims_to_analyse.append( os.path.join("series10","test1_mod_incT2") )
+sims_to_analyse.append( os.path.join("series10","test1_mod_decT2") )
+
+# sims_to_analyse.append( os.path.join("series10","test1_modT2") )
+# sims_to_analyse.append( os.path.join("series10","test12_modT2") )
+
+
+# sims_to_analyse.append( os.path.join("series10","test1_modT2") )
+# sims_to_analyse.append( os.path.join("series10","test9_modT2") )
+# sims_to_analyse.append( os.path.join("series10","test10_modT2") )
+
+# sims_to_analyse.append( os.path.join("series10","test1_mod_decT2") )
+# sims_to_analyse.append( os.path.join("series10","test9_mod_decT2") )
+# sims_to_analyse.append( os.path.join("series10","test10_mod_decT2") )
+
+# sims_to_analyse.append( os.path.join("series10","test1_mod_incT2") )
+# sims_to_analyse.append( os.path.join("series10","test9_mod_incT2") )
+# sims_to_analyse.append( os.path.join("series10","test10_mod_incT2") )
+
+# sims_to_analyse.append( os.path.join("series10","test1_mod_decT1") )
+# sims_to_analyse.append( os.path.join("series10","test1_mod_decT2") )
+# sims_to_analyse.append( os.path.join("series10","test1_mod_decT3") )
+
+# sims_to_analyse.append( os.path.join("series10","test1_modT1") )
+# sims_to_analyse.append( os.path.join("series10","test1_modT2") )
+# sims_to_analyse.append( os.path.join("series10","test1_modT3") )
 
 
 # sims_to_analyse.append( os.path.join("series9","test1_modT2") )
@@ -98,16 +125,18 @@ sims_to_analyse.append( os.path.join("series9","test8_mod_decT2") )
 
 results_filename = "results.h5"
 
-# plot_vacuum = False
-# plot_onax = False
-# plot_density = False
-# fluence_analysis = False
+plot_vacuum = False
+plot_onax = False
+plot_density = False
+fluence_analysis = False
+plot_endplane_r = True
 
 
-plot_vacuum = True
-plot_onax = True
-plot_density = True
-fluence_analysis = True
+# plot_vacuum = True
+# plot_onax = True
+# plot_density = True
+# fluence_analysis = True
+# plot_endplane_r = True
 
 
 
@@ -323,6 +352,55 @@ with ExitStack() as stack:
             
             image.sf[0].method = plt.pcolormesh    
             image.sf[0].args = [1e3*res[k1].zgrid,1e15*res[k1].tgrid, np.abs(np.squeeze(res[k1].E_trz[:,0,:]))]    
+            image.sf[0].kwargs = {'shading' : 'auto', 'cmap' : 'plasma'}           
+            
+            image.sf[0].colorbar.show = True  
+            pp.plot_preset(image)
+            
+
+    if plot_endplane_r:
+        for k1 in range(Nsim):
+            res[k1].complexify_envel(output='add')
+
+            # image = pp.figure_driver()  
+            # image.title = 'sim'+str(k1)+' onax |envel|'
+            # image.ylabel = 't [fs]'
+            # image.xlabel = 'r [-]'
+            
+            # image.sf = [pp.plotter() for k1 in range(2)]
+            
+            # image.sf[0].method = plt.pcolormesh    
+            # image.sf[0].args = [1e3*res[k1].zgrid, 1e15*res[k1].tgrid, np.abs(np.squeeze(res[k1].E_trz_cmplx_envel[:,0,:]))]    
+            # image.sf[0].kwargs = {'shading' : 'auto', 'cmap' : 'plasma'}           
+            
+            # image.sf[0].colorbar.show = True  
+            # pp.plot_preset(image)
+
+
+            image = pp.figure_driver()  
+            image.title = 'sim'+str(k1)+' startplane field'
+            image.ylabel = 't [fs]'
+            image.xlabel = 'r [mum]'
+            
+            image.sf = [pp.plotter() for k1 in range(2)]
+            
+            image.sf[0].method = plt.pcolormesh    
+            image.sf[0].args = [1e6*res[k1].rgrid,1e15*res[k1].tgrid, np.abs(np.squeeze(res[k1].E_trz[:,:,0]))]    
+            image.sf[0].kwargs = {'shading' : 'auto', 'cmap' : 'plasma'}           
+            
+            image.sf[0].colorbar.show = True  
+            pp.plot_preset(image)
+            
+            
+            image = pp.figure_driver()  
+            image.title = 'sim'+str(k1)+' endplane field'
+            image.ylabel = 't [fs]'
+            image.xlabel = 'r [mum]'
+            
+            image.sf = [pp.plotter() for k1 in range(2)]
+            
+            image.sf[0].method = plt.pcolormesh    
+            image.sf[0].args = [1e6*res[k1].rgrid,1e15*res[k1].tgrid, np.abs(np.squeeze(res[k1].E_trz[:,:,-1]))]    
             image.sf[0].kwargs = {'shading' : 'auto', 'cmap' : 'plasma'}           
             
             image.sf[0].colorbar.show = True  
