@@ -86,9 +86,9 @@ sims_to_analyse = []
 # sims_to_analyse.append( os.path.join("series9","test1_modT2") )
 # sims_to_analyse.append( os.path.join("series9","test7_modT2") )
 
-sims_to_analyse.append( os.path.join("series10","test1_modT2") )
-sims_to_analyse.append( os.path.join("series10","test1_mod_incT2") )
-sims_to_analyse.append( os.path.join("series10","test1_mod_decT2") )
+# sims_to_analyse.append( os.path.join("series10","test1_modT2") )
+# sims_to_analyse.append( os.path.join("series10","test1_mod_incT2") )
+# sims_to_analyse.append( os.path.join("series10","test1_mod_decT2") )
 
 # sims_to_analyse.append( os.path.join("series10","test1_modT2") )
 # sims_to_analyse.append( os.path.join("series10","test12_modT2") )
@@ -117,6 +117,15 @@ sims_to_analyse.append( os.path.join("series10","test1_mod_decT2") )
 
 # sims_to_analyse.append( os.path.join("series9","test1_modT2") )
 # sims_to_analyse.append( os.path.join("series9","oldcodeT2") )
+
+# sims_to_analyse.append( os.path.join("nod","test_no_dispersion","test1_modT2") )
+# sims_to_analyse.append( os.path.join("nod","test_no_dispersion","test1_mod_incT2") )
+# sims_to_analyse.append( os.path.join("nod","test_no_dispersion","test1_mod_decT2") )
+
+sims_to_analyse.append( os.path.join("nod","test_finer_decrements","test13_modT2") )
+sims_to_analyse.append( os.path.join("nod","test_finer_decrements","test13_mod_dec2T2") )
+sims_to_analyse.append( os.path.join("nod","test_finer_decrements","test13_mod_dec10T2") )
+sims_to_analyse.append( os.path.join("nod","test_no_dispersion","test1_mod_decT2") )
 
 
 # sims_to_analyse=[os.path.join("C:\data", "JZ","density_mod","100","100test1","simple"),

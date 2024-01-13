@@ -877,9 +877,13 @@ subroutine preset_physics(test_number)
         call create_dset(group_id2, 'zgrid', (/ 0.d0 , proplength_m_phys /), 2)
         call h5_add_units_1D(group_id2, 'zgrid', '[m]')
 
-        if ( any(test_number == (/34,37,222,225,228/)) ) call create_dset(group_id2, 'table', (/ 0.5d0 , 0.5d0 /), 2)
+        if ( any(test_number == (/34,37/)) ) call create_dset(group_id2, 'table', (/ 0.5d0 , 0.5d0 /), 2)
 
-        if ( any(test_number == (/39,41,42,223,226,229/)) ) call create_dset(group_id2, 'table', (/ 1.0d-2 , 1.0d-2 /), 2)
+        if ( any(test_number == (/39,41,42/)) ) call create_dset(group_id2, 'table', (/ 1.0d-2 , 1.0d-2 /), 2)
+
+        if ( any(test_number == (/222,225,228/)) ) call create_dset(group_id2, 'table', (/ 2.d0 , 2.d0 /), 2)
+
+        if ( any(test_number == (/223,226,229/)) ) call create_dset(group_id2, 'table', (/ 1.0d1 , 1.0d1 /), 2)
 
         if ( any(test_number == (/102,105,108,112,115,118,122,125,128,132,135,138, &
                                   142,145,148,152,155,158,162,165,168,172,175,178, &
