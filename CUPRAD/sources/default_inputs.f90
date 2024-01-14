@@ -848,26 +848,26 @@ subroutine preset_physics(test_number)
         pressure = 1.0d-1 * 0.05d0
 
     case(231)
-        pressure = 1.d2 * 0.05d0
-    case(231)
-        pressure = 8.d1 * 0.05d0
-    case(231)
-        pressure = 6.d1 * 0.05d0
-    case(231)
-        pressure = 4.d1 * 0.05d0
-    case(231)
-        pressure = 2.d1 * 0.05d0
-    case(231)
+        pressure = 1.d2  * 0.05d0
+    case(232)
+        pressure = 8.d1  * 0.05d0
+    case(233)
+        pressure = 6.d1  * 0.05d0
+    case(234)
+        pressure = 4.d1  * 0.05d0
+    case(235)
+        pressure = 2.d1  * 0.05d0
+    case(236)
         pressure =        0.05d0
-    case(231)
+    case(237)
         pressure = 2.d-1 * 0.05d0
-    case(231)
+    case(238)
         pressure = 4.d-1 * 0.05d0
-    case(231)
+    case(239)
         pressure = 6.d-1 * 0.05d0
-    case(231)
+    case(240)
         pressure = 8.d-1 * 0.05d0
-    case(231)
+    case(241)
         pressure = 1.d-2 * 0.05d0
 
     end select
