@@ -537,7 +537,7 @@ subroutine preset_numerics_tests(test_number)
          231:241, 254:256, 261:263)
         switch_T = 2
     case(107:109, 117:119, 127:129, 137:139, 147:149, 157:159, 167:169, 177:179, 187:189, 197:199, 207:209, 217:219, 227:229, &
-         257:159)
+         257:259)
         switch_T = 3
     end select
 
@@ -901,7 +901,7 @@ subroutine preset_physics(test_number)
         pressure = 1.0d-1 * 0.05d0
     case(262)
         pressure =          0.05d0
-    case(262)
+    case(263)
         pressure = 1.0d2  * 0.05d0    
 
     end select
