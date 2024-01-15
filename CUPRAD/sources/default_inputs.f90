@@ -8,7 +8,7 @@ real(8) :: Intensity_entry, Intensity_focus, waist_focus, Curvature_radius_entry
 character(15)   ::  gas_preset
 
 integer                 :: k1
-integer, parameter      :: N_tests = 259
+integer, parameter      :: N_tests = 263
 !character, parameter :: available_tests(N_tests) = (/ "test", "test2", "GfP", "GfI", "GfFWHME", "GfFWHMI", "GfH5w", &
 !                                                        "PI", "PIPPT", "pressure", "ELI1", "ELI1ppt", "ELI2", "ELI3", &
 !                                                        "ELI4", "ELI_PI_PPT_Kr", "Ar_vacuum1", "Ar_vacuum1_long", &
@@ -89,7 +89,9 @@ character(len=255), parameter :: available_tests(N_tests) = [character(len=255) 
                                                         ("undefined", k1 = 243, 250), &
                                                         "test15_modT1", "test15_mod_incT1", "test15_mod_decT1", &
                                                         "test15_modT2", "test15_mod_incT2", "test15_mod_decT2", &
-                                                        "test15_modT3", "test15_mod_incT3", "test15_mod_decT3"] ! "GfH5w_pre_ionised_PPT"
+                                                        "test15_modT3", "test15_mod_incT3", "test15_mod_decT3", &
+                                                        "undefined",
+                                                        "test16_vac", "test16_100modulation", "test16_100pressure"] ! "GfH5w_pre_ionised_PPT"
 ! integer, parameter      :: test_numbers(N_tests) =  (k1, k1=1,N_tests)
 
 ! tests list:
@@ -108,6 +110,7 @@ character(len=255), parameter :: available_tests(N_tests) = [character(len=255) 
 ! 13 - finer modulations tests
 ! 14 - finer modulations tests (more detailed)
 ! 15 - test smaller adaptive steps
+! 16 - different pressures: vacuum, dense medium (by mod or by pressure)
 
 CONTAINS
 
@@ -471,7 +474,7 @@ subroutine preset_numerics_tests(test_number)
         time_limit = 23.95d0
 
     case(101:109, 111:119, 121:129, 131:139, 141:149, 151:159, 161:169, 171:179, 181:189, 191:199, 201:209, 211:219, 221:229, &
-         231:241, 251:259)
+         231:241, 251:259, 261:263)
         num_proc = 32
         time_limit = 19.9d0 
     end select
@@ -497,7 +500,7 @@ subroutine preset_numerics_tests(test_number)
         dim_t = 2048 ! asymmetric
         absorb = 16  
 
-    case(121:129,231:241)
+    case(121:129,231:241,261:263)
         lt = 16.d0
         dim_t = 4096 ! asymmetric
         absorb = 32  
@@ -531,7 +534,7 @@ subroutine preset_numerics_tests(test_number)
          251:253)
         switch_T = 1
     case(104:106, 114:116, 124:126, 134:136, 144:146, 154:156, 164:166, 174:176, 184:186, 194:196, 204:206, 214:216, 224:226, &
-         231:241, 254:256)
+         231:241, 254:256, 261:263)
         switch_T = 2
     case(107:109, 117:119, 127:129, 137:139, 147:149, 157:159, 167:169, 177:179, 187:189, 197:199, 207:209, 217:219, 227:229, &
          257:159)
@@ -545,7 +548,7 @@ subroutine preset_numerics_tests(test_number)
         delta_z_mm_phys = 1.d-3    
 
     case(101:109,111:119,121:129,131:139, 141:149, 151:159, 161:169, 171:179, 181:189, 191:199, 201:209, 211:219, 221:229,231:241, &
-         251:259)
+         251:259,261:263)
         delta_z_mm_phys = 1.d-3   
     end select
 
@@ -588,7 +591,8 @@ subroutine preset_numerics_tests(test_number)
         outlength_m_phys = 1.d-5  
         outlength_Efield_m_phys = 0.075d0  
         
-    case(101:109, 121:129, 131:139, 141:149, 151:159, 161:169, 171:179, 181:189, 191:199, 201:209, 211:219, 221:229, 231:241, 251:259)
+    case(101:109, 121:129, 131:139, 141:149, 151:159, 161:169, 171:179, 181:189, 191:199, 201:209, 211:219, 221:229, 231:241, 251:259, &
+         261:263)
         outlength_m_phys = 1.d-4  
         outlength_Efield_m_phys = 0.075d0
     case(111:119)
@@ -613,7 +617,8 @@ subroutine preset_physics(test_number)
     case(31)
         lambda0_cm_phys = 7.92d-5
 
-    case(101:109,111:119,121:129,131:139, 141:149, 151:159, 161:169, 171:179, 181:189, 191:199, 201:209, 211:219, 221:229, 231:241, 251:259)
+    case(101:109,111:119,121:129,131:139, 141:149, 151:159, 161:169, 171:179, 181:189, 191:199, 201:209, 211:219, 221:229, 231:241, &
+        251:259, 261:263)
         lambda0_cm_phys = 8.d-5
     end select
 
@@ -628,7 +633,8 @@ subroutine preset_physics(test_number)
     case(31)
         gas_preset = 'Ar_PPT'
 
-    case(101:109,111:119,121:129,131:139, 141:149, 151:159, 161:169, 171:179, 181:189, 191:199, 201:209, 211:219, 221:229, 231:241, 251:259)
+    case(101:109,111:119,121:129,131:139, 141:149, 151:159, 161:169, 171:179, 181:189, 191:199, 201:209, 211:219, 221:229, 231:241, 251:259, &
+         261:263)
         gas_preset = 'Ar_PPT'
     end select
     call save_or_replace(file_id, 'inputs/gas_preset', gas_preset, error, units_in = '[-]')
@@ -661,7 +667,7 @@ subroutine preset_physics(test_number)
     case(31)
         proplength_m_phys = 0.0003d0
 
-    case(101:109,121:129,131:139, 141:149, 151:159, 161:169, 171:179, 181:189, 191:199, 201:209, 211:219, 221:229, 231:241, 251:259)
+    case(101:109,121:129,131:139, 141:149, 151:159, 161:169, 171:179, 181:189, 191:199, 201:209, 211:219, 221:229, 231:241, 251:259,261:263)
         proplength_m_phys = 0.01d0
     case(111:119)
         proplength_m_phys = 0.005d0
@@ -683,7 +689,8 @@ subroutine preset_physics(test_number)
         w0_m_phys = 0.001d0      ! m
         !waist_focus = 110.d-6   ! m
 
-    case(101:109,111:119,121:129,131:139, 141:149, 151:159, 161:169, 171:179, 181:189, 191:199, 201:209, 211:219, 221:229, 231:241, 251:259)
+    case(101:109,111:119,121:129,131:139, 141:149, 151:159, 161:169, 171:179, 181:189, 191:199, 201:209, 211:219, 221:229, 231:241, 251:259, &
+         261:263)
         waist_focus = 110.d-6   ! m
     end select
 
@@ -696,7 +703,7 @@ subroutine preset_physics(test_number)
         call save_or_replace(file_id, 'inputs/laser_focus_beamwaist_Gaussian', waist_focus, error, units_in = '[m]')
 
     case(101:109,111:119,121:129,131:139, 141:149, 151:159, 161:169, 171:179, 181:189, 191:199, 201:209, 211:219, 221:229, 231:241, &
-         251:259)
+         251:259,261:263)
         call save_or_replace(file_id, 'inputs/laser_focus_beamwaist_Gaussian', waist_focus, error, units_in = '[m]')
     end select
 
@@ -730,7 +737,8 @@ subroutine preset_physics(test_number)
         Intensity_focus = 5.d0*1.8d18
         call save_or_replace(file_id, 'inputs/laser_focus_intensity_Gaussian', Intensity_focus, error, units_in = '[SI]')
 
-    case(101:109,121:129,131:139, 151:159, 161:169, 171:179, 181:189, 191:199, 201:209, 211:219, 221:229, 231:241, 251:259)
+    case(101:109,121:129,131:139, 151:159, 161:169, 171:179, 181:189, 191:199, 201:209, 211:219, 221:229, 231:241, 251:259, &
+         261:263)
         Intensity_focus = 2.d0*1.8d18
         call save_or_replace(file_id, 'inputs/laser_focus_intensity_Gaussian', Intensity_focus, error, units_in = '[SI]')
     case(111:119)
@@ -762,7 +770,7 @@ subroutine preset_physics(test_number)
         call save_or_replace(file_id, 'inputs/laser_pulse_duration_in_FWHM_Intensity', tp_fs_phys, error, units_in = '[fs]')
 
     case(101:109,111:119,121:129,131:139, 141:149, 151:159, 161:169, 171:179, 181:189, 191:199, 201:209, 211:219, 221:229, &
-         231:241, 251:259)
+         231:241, 251:259,261:263)
         tp_fs_phys = 50.d0
         call save_or_replace(file_id, 'inputs/laser_pulse_duration_in_1_e_Efield', tp_fs_phys, error, units_in = '[fs]')
     end select   
@@ -788,7 +796,7 @@ subroutine preset_physics(test_number)
         focus_position = 0.015d0
 
     case(101:109,111:119,121:129,131:139, 141:149, 151:159, 161:169, 171:179, 181:189, 191:199, 201:209, 211:219, 221:229, &
-         231:241, 251:259)
+         231:241, 251:259, 261:263)
         focus_position = 0.0d0
     end select
 
@@ -888,6 +896,13 @@ subroutine preset_physics(test_number)
         pressure = 8.d-1 * 0.05d0
     case(241)
         pressure = 1.d-2 * 0.05d0
+    
+    case(261)
+        pressure = 1.0d-1 * 0.05d0
+    case(262)
+        pressure =          0.05d0
+    case(262)
+        pressure = 1.0d2  * 0.05d0    
 
     end select
     
@@ -926,7 +941,8 @@ subroutine preset_physics(test_number)
                               222,223,225,226,228,229, &
                               (k1, k1=231, 235),       &
                               (k1, k1=237, 241),       &
-                              252,253,255,256,258,259/)) ) then
+                              252,253,255,256,258,259, &
+                              262                      /)) ) then
         call h5gcreate_f(file_id, 'density_mod', group_id2, error)
 
         call create_dset(group_id2, 'zgrid', (/ 0.d0 , proplength_m_phys /), 2)
@@ -961,6 +977,8 @@ subroutine preset_physics(test_number)
         if ( test_number == 239 ) call create_dset(group_id2, 'table', (/ 1.d0/6.0d-1  , 1.d0/6.0d-1 /), 2)
         if ( test_number == 240 ) call create_dset(group_id2, 'table', (/ 1.d0/8.0d-1  , 1.d0/8.0d-1 /), 2)
         if ( test_number == 241 ) call create_dset(group_id2, 'table', (/ 1.d0/1.0d-2  , 1.d0/1.0d-2 /), 2)
+
+        if ( test_number == 262 ) call create_dset(group_id2, 'table', (/ 1.d0/1.0d-2  , 1.d0/1.0d-2 /), 2)
 
         call h5_add_units_1D(group_id2, 'table', '[-]')
 
