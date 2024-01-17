@@ -177,7 +177,7 @@ MODULE hdf5_helper_serial
       CALL h5dclose_f(dset_id, error)
       ! Use the temporary variable to fill in the output variable
       DO i = 1, dims_y
-        var(i) = CMPLX(res(1,i),res(2,i))
+        var(i) = CMPLX(res(1,i),res(2,i),8)
       END DO
     END SUBROUTINE read_array_complex_dset
     
@@ -204,7 +204,7 @@ MODULE hdf5_helper_serial
       ! Use the temporary variable to fill in the output variable      
       DO i = 1, dims_y
         DO j = 1, dims_x
-          var(i,j) = CMPLX(res(j,i,1),res(j,i,2))
+          var(i,j) = CMPLX(res(j,i,1),res(j,i,2),8)
         END DO
       END DO
     END SUBROUTINE read_2D_array_complex_dset
@@ -249,7 +249,7 @@ MODULE hdf5_helper_serial
       ! Use the temporary variable to fill in the output variable
       DO i = 1, slice_y
         DO j = 1, slice_x
-           var(i,j) = CMPLX(res(j,i,1),res(j,i,2))
+           var(i,j) = CMPLX(res(j,i,1),res(j,i,2),8)
         END DO
       END DO
     END SUBROUTINE read_2D_array_complex_dset_slice
