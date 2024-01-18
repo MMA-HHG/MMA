@@ -18,6 +18,11 @@ echo "----------------------------------------------------------------------"
 
 mkdir ${test_1_jet[k1]}
 cd ${test_1_jet[k1]}
+
+module purge
+module load hdf5
+module load intel-mkl
+
 $CUPRAD_HOME/build/make_start.e <<INPUTS
 ${test17_presets[k1]}
 0
@@ -45,6 +50,11 @@ echo "----------------------------------------------------------------------"
 
 mkdir ${test_2_jet[k1]}
 cd ${test_2_jet[k1]}
+
+module purge
+module load hdf5
+module load intel-mkl
+
 $CUPRAD_HOME/build/make_start.e <<INPUTS
 ${test17_presets[k1]}
 0
@@ -73,6 +83,11 @@ echo "----------------------------------------------------------------------"
 
 mkdir ${test_10_jet[k1]}
 cd ${test_10_jet[k1]}
+
+module purge
+module load hdf5
+module load intel-mkl
+
 $CUPRAD_HOME/build/make_start.e <<INPUTS
 ${test18_presets[k1]}
 0
