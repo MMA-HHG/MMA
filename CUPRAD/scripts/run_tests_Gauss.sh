@@ -2,8 +2,8 @@
 
 
 
-test17_presets=( "test17_modT1" "test17_modT1" "test17_modT1")
-test18_presets=("test18_modT1" "test18_modT1" "test18_modT1")
+test17_presets=( "test17_modT1" "test17_modT2" "test17_modT3")
+test18_presets=("test18_modT1" "test18_modT2" "test18_modT3")
 test_1_jet=("jet1_GaussT1" "jet1_GaussT2" "jet1_GaussT3")
 test_2_jet=("jet2_GaussT1" "jet2_GaussT2" "jet2_GaussT3")
 test_10_jet=("jet10_GaussT1" "jet10_GaussT2" "jet10_GaussT3")
