@@ -86,9 +86,9 @@ sims_to_analyse = []
 # sims_to_analyse.append( os.path.join("series9","test1_modT2") )
 # sims_to_analyse.append( os.path.join("series9","test7_modT2") )
 
-sims_to_analyse.append( os.path.join("series10","test1_modT2") )
-sims_to_analyse.append( os.path.join("series10","test1_mod_incT2") )
-sims_to_analyse.append( os.path.join("series10","test1_mod_decT2") )
+# sims_to_analyse.append( os.path.join("series10","test1_modT2") )
+# sims_to_analyse.append( os.path.join("series10","test1_mod_incT2") )
+# sims_to_analyse.append( os.path.join("series10","test1_mod_decT2") )
 
 # sims_to_analyse.append( os.path.join("series10","test1_modT2") )
 # sims_to_analyse.append( os.path.join("series10","test12_modT2") )
@@ -127,6 +127,27 @@ sims_to_analyse.append( os.path.join("series10","test1_mod_decT2") )
 # sims_to_analyse.append( os.path.join("nod","test_finer_decrements","test13_mod_dec10T2") )
 # sims_to_analyse.append( os.path.join("nod","test_no_dispersion","test1_mod_decT2") )
 
+# sims_to_analyse.append( os.path.join("correctionv1","test1_modT2") )
+# sims_to_analyse.append( os.path.join("correctionv1","test1_mod_incT2") )
+# sims_to_analyse.append( os.path.join("correctionv1","test1_mod_decT2") )
+
+# sims_to_analyse.append( os.path.join("correctionv1","test1_modT1") )
+# sims_to_analyse.append( os.path.join("correctionv1","test1_modT2") )
+# sims_to_analyse.append( os.path.join("correctionv1","test1_modT3") )
+
+
+# sims_to_analyse.append( os.path.join("correctionv1","test5_modT2") )
+# sims_to_analyse.append( os.path.join("correctionv1","test5_mod_incT2") )
+# sims_to_analyse.append( os.path.join("correctionv1","test5_mod_decT2") )
+
+# sims_to_analyse.append( os.path.join("correctionv1","test4_modT3") )
+# sims_to_analyse.append( os.path.join("correctionv1","test4_mod_incT3") )
+# sims_to_analyse.append( os.path.join("correctionv1","test4_mod_decT3") )
+
+sims_to_analyse.append( os.path.join("correctionv1","test1_mod_decT1") )
+sims_to_analyse.append( os.path.join("correctionv1","test1_mod_decT2") )
+sims_to_analyse.append( os.path.join("correctionv1","test1_mod_decT3") )
+
 
 # sims_to_analyse=[os.path.join("C:\data", "JZ","density_mod","100","100test1","simple"),
 #                  os.path.join("E:\data", "JZ","density_mod","series3","test1_modT2")]
@@ -134,18 +155,18 @@ sims_to_analyse.append( os.path.join("series10","test1_mod_decT2") )
 
 results_filename = "results.h5"
 
-plot_vacuum = False
-plot_onax = False
-plot_density = False
-fluence_analysis = False
-plot_endplane_r = True
-
-
-# plot_vacuum = True
-# plot_onax = True
-# plot_density = True
-# fluence_analysis = True
+# plot_vacuum = False
+# plot_onax = False
+# plot_density = False
+# fluence_analysis = False
 # plot_endplane_r = True
+
+
+plot_vacuum = True
+plot_onax = True
+plot_density = True
+fluence_analysis = True
+plot_endplane_r = True
 
 
 
