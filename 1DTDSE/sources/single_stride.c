@@ -52,6 +52,7 @@ int main()
     int kr, kz; 
     char h5_filename[1000];
     get_filename(h5_filename);
+    char output_h5_file[50];
 
 	int comment_operation = 1;
 
@@ -182,15 +183,14 @@ int main()
     coarsen_grid_real(zgrid_CUPRAD, &zgrid_coarse, &Nz_coarse, kz_step, Nz_max);
 
     // create local output .h5 file
-    local_filename[0] = '\0'; 
-    dumchar1[0] = '\0'; 
-    sprintf(dumchar1, "%07d", 0);
-    strcat(local_filename,filename_stub); 
-    strcat(local_filename,dumchar1); 
-    strcat(local_filename,".h5");		
+    // Construct the string
+    sprintf(output_h5_file, "results_(%d,%d).h5", kr, kz);
+
+    // Print the result
+    printf("Resulting string: %s\n", output_h5_file);	
 
     // Create a new temporary HDF5 file	
-    file_id = H5Fcreate (local_filename, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
+    file_id = H5Fcreate (output_h5_file, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
 
     prepare_local_output_fixed_print_grids_h5(file_id, "", &h5error, &inputs, &outputs, 1, dims);
     print_local_output_fixed_h5(file_id,"", &h5error, &inputs, &outputs, 1, 0, 0);
