@@ -423,7 +423,11 @@ Set the index in the propagation dimension: 75
 The binary then computes the CTDSE given the input parameters in the preprocessed `CUPRAD_results_file.h5` and indices of the field. The output is stored in the new HDF5 file `results_(512,75).h5`.
 
 ## Python-TDSE wrapper
+The Python-TDSE wrapper is an API that binds compiled C dynamic library, containing CTDSE functions, with the convenient Python interface. The methods and classes are located in the `PythonTDSE.py` file. 
 
+Because the C language utilizes allocatable arrays and pointers, the approach inevitably comes with many caveats such as memory freeing, etc. The methods for loading the C arrays and freeing memory are implemented, however the user has to manually delete memory once access to the data is no longer required. 
+
+A detailed explanation of the Python-TDSE wrapper is provided in the Jupyter Notebook file `PythonTDSE.ipynb`.
 
 
 <!-- # Development
