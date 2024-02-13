@@ -521,7 +521,7 @@ class inputs_def(Structure):
                             gauge = 0,
                             Ntinterp = 1,
                             writewft = 0,
-                            tprint = 10,
+                            tprint = 10.,
                             x_int = 2.,
                             precision = np.string_('d')
                             ):
@@ -552,7 +552,7 @@ class inputs_def(Structure):
             Number of points for the interpolation.
         writewft: int, optional, default {0}
             Store the wavefunction during the propagation (0 == No), (1 == Yes).
-        tprint: float, optional, default {10}
+        tprint: float, optional, default {10.}
             Store the wavefunction every 'tprint' units of time (a.u.). 
             If 'tprint' is larger than half of the temporal grid, only the last wavefunction is returned.
         x_int: float, optional, default {2.}

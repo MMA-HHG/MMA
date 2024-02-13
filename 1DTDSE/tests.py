@@ -29,14 +29,14 @@ class TestTDSE(unittest.TestCase):
         sin_2 = lambda t: np.sin(np.pi*t/T_max)**2
 
         ### Field
-        Efield = E_0*sin_2(t)*np.sin(omega_0*t)
+        Efield = E_0*sin_2(t)*np.cos(omega_0*t)
 
         ### Init variables
         cls.inputs.init_time_and_field(t = t, E = Efield)
         ### Set writing true
         cls.inputs.analy.writewft = c_int(1)
         ### Set wavefunction writing each 10 au in time
-        cls.inputs.analy.tprint = c_double(1.)
+        cls.inputs.analy.tprint = c_double(10.)
 
         ### Init ground state
         cls.DLL.init_GS(cls.inputs)
@@ -73,6 +73,10 @@ class TestTDSE(unittest.TestCase):
         inputs.init_inputs("ionization.h5")
         output.load_from_hdf5("ionization.h5")
 
+        ### Check output length
+        self.assertEqual(len(output.get_sourceterm()), len(self.output.get_sourceterm()))
+        ### Check fields
+        self.assertTrue(np.allclose(output.get_Efield(), self.output.get_Efield()))
         ### Check source term
         self.assertTrue(np.allclose(output.get_sourceterm(), self.output.get_sourceterm()))
         self.assertTrue(np.allclose(output.get_Fsourceterm(), self.output.get_Fsourceterm()))
@@ -81,12 +85,11 @@ class TestTDSE(unittest.TestCase):
         ### Check population of GS
         self.assertTrue(np.allclose(output.get_PopTot(), self.output.get_PopTot()))
         self.assertTrue(np.allclose(output.get_PopInt(), self.output.get_PopInt()))
-
         ### Check wavefunction
         wavefunction = output.get_wavefunction(inputs, grids = False)
         self.assertTrue(np.allclose(wavefunction, self.wavefunction))
         
-        self.DLL.free_mtrx(output.psi, len(wavefunction))
+        #self.DLL.free_mtrx(output.psi, len(wavefunction))
         inputs.delete(self.DLL)
         output.delete(self.DLL)
 
