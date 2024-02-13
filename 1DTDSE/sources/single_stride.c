@@ -50,6 +50,8 @@ int main()
 	// Processing the queue
 	// counter of simulations, indices in the Field array
     int kr, kz; 
+    char h5_filename[1000];
+    get_filename(h5_filename);
 
 	int comment_operation = 1;
 
@@ -66,7 +68,7 @@ int main()
     start_main = clock(); 
 
 	// Create parameters & load initial data
-	file_id = H5Fopen("results.h5", H5F_ACC_RDONLY, H5P_DEFAULT); 
+	file_id = H5Fopen(h5_filename, H5F_ACC_RDONLY, H5P_DEFAULT); 
 	ReadInputs(file_id, "TDSE_inputs/", &h5error, &inputs);
 	inputs.Print = Set_prints_from_HDF5(file_id, "TDSE_inputs/", &h5error);
 	dims = get_dimensions_h5(file_id, "outputs/output_field", &h5error, &ndims, &datatype);
@@ -148,7 +150,7 @@ int main()
     double *rgrid_CUPRAD, *zgrid_CUPRAD;
 
     // find proper simulation & load the field
-    file_id = H5Fopen("results.h5", H5F_ACC_RDONLY, H5P_DEFAULT);
+    file_id = H5Fopen(h5_filename, H5F_ACC_RDONLY, H5P_DEFAULT);
     
     dum3int[0] = kz; 
     dum3int[1] = -1; 

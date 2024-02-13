@@ -389,3 +389,19 @@ double * projection_analysis_EV(inputs_def inputs, double *psi, int num_E, doubl
 void free_arr(double * buffer) {
 	free(buffer);
 }
+
+void get_filename(char * filename) {
+    FILE *fileStream;
+
+    // Open the file for reading
+    if ((fileStream = fopen("msg.tmp", "r")) == NULL) {
+        printf("Error! File cannot be opened.\n");
+        exit(1);
+    }
+
+    // Read the first line until a newline character is encountered
+    fscanf(fileStream, "%[^\n]", filename);
+
+    // Close the file
+    fclose(fileStream);
+}

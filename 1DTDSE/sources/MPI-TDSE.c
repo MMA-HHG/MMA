@@ -41,6 +41,9 @@ int main(int argc, char *argv[])
 	const char filename_stub[] = "hdf5_temp_";
 	// Name of the temporary HDF5 file, local
 	char local_filename[50];
+	// Main HDF5 file name
+	char h5_filename[1000];
+	get_filename(h5_filename);
 
 	// Dummy variables
 	int dum3int[3];
@@ -77,7 +80,7 @@ int main(int argc, char *argv[])
 	t_mpi[0] = MPI_Wtime();	start_main = clock(); // the clock	
 
 	// create parameters & load initial data
-	file_id = H5Fopen("results.h5", H5F_ACC_RDONLY, H5P_DEFAULT); // the file is opened for read only by all the processes independently, every process then has its own copy of variables.
+	file_id = H5Fopen(h5_filename, H5F_ACC_RDONLY, H5P_DEFAULT); // the file is opened for read only by all the processes independently, every process then has its own copy of variables.
 	ReadInputs(file_id, "TDSE_inputs/", &h5error, &inputs);
 	inputs.Print = Set_prints_from_HDF5(file_id, "TDSE_inputs/", &h5error);
 	dims = get_dimensions_h5(file_id, "outputs/output_field", &h5error, &ndims, &datatype);
@@ -165,7 +168,7 @@ int main(int argc, char *argv[])
 		double *rgrid_CUPRAD, *zgrid_CUPRAD;
 
 		// find proper simulation & load the field
-		file_id = H5Fopen ("results.h5", H5F_ACC_RDONLY, H5P_DEFAULT);
+		file_id = H5Fopen (h5_filename, H5F_ACC_RDONLY, H5P_DEFAULT);
 		// compute offsets in each dimension
 		kr = Nsim % dim_r; 
 		kz = Nsim - kr;  
@@ -272,7 +275,7 @@ int main(int argc, char *argv[])
 		inputs.Efield.Field = malloc(((int)dim_t)*sizeof(double));
 
 		// read the HDF5 file
-		file_id = H5Fopen("results.h5", H5F_ACC_RDONLY, H5P_DEFAULT);
+		file_id = H5Fopen(h5_filename, H5F_ACC_RDONLY, H5P_DEFAULT);
 		rw_real_fullhyperslab_nd_h5(file_id,"outputs/output_field", &h5error, 3,
 									dims_input, dum3int, inputs.Efield.Field, "r");
 		h5error = H5Fclose(file_id);

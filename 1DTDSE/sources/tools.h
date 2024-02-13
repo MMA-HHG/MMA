@@ -25,7 +25,7 @@ double * projection_analysis_EV(inputs_def inputs, double *psi, int num_E, doubl
 double * window_analysis(inputs_def inputs, double *psi, int num_E, double dE, double Estep, double E_start);
 double* extend_grid(double *,int,int,int);
 void free_arr(double *);
-
+void get_filename(char *);
 
 
 #endif
