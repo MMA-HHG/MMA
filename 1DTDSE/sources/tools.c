@@ -79,6 +79,9 @@ void Initialise_grid_and_D2(double dx, int num_r, double **x, double **diagonal,
 /**
  * @brief Computes potential of the Hamiltonian.
  * 
+ * @details See the choice of different soft-core potentials in 
+ * https://journals.aps.org/pra/abstract/10.1103/PhysRevA.98.023401
+ * 
  * @param x Position on the grid.
  * @param trg Target specification.
  * @return double 
@@ -87,10 +90,14 @@ double potential(double x, trg_def trg)
 {
 	// Soft core potential V = -1/sqrt(x^2 + a^2)
 	return -1.0/sqrt(trg.a*trg.a+x*x);
+	//return -0.5*trg.a/sqrt(x*x + 1/(4*trg.a*trg.a));
 }
 
 /**
  * @brief Computes gradient of potential from Hamiltonian.
+ * 
+ * @details See the choice of different soft-core potentials in 
+ * https://journals.aps.org/pra/abstract/10.1103/PhysRevA.98.023401
  * 
  * @param x Position on the grid.
  * @param trg Target specification.
@@ -100,6 +107,7 @@ double gradpot(double x,  trg_def trg)
 {
 	// Returns -grad V
   	return x*pow(trg.a*trg.a+x*x,-1.5);
+	//return 0.5*trg.a*x*pow(x*x + 1/(4*trg.a*trg.a), -1.5);
 }
 
 /**
