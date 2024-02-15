@@ -15,7 +15,7 @@ module array_helper
 implicit none
 private
 public  :: findinterval, interpolate_lin
-public  :: interpolate2D_lin, interpolate1D_lin
+! public  :: interpolate2D_lin, interpolate1D_lin
 
 !> @brief returns interval where x0-value is placed, ordering <..)<..)..<..>, extrapolation 0, n
 !!
