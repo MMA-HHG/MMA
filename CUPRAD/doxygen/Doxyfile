@@ -32,7 +32,7 @@ DOXYFILE_ENCODING      = UTF-8
 # title of most generated pages and in a few other places.
 # The default value is: My Project.
 
-PROJECT_NAME           = "My Project"
+PROJECT_NAME           = "CUPRAD"
 
 # The PROJECT_NUMBER tag can be used to enter a project or revision number. This
 # could be handy for archiving the generated documentation or if some version
@@ -962,15 +962,9 @@ RECURSIVE              = YES
 
 EXCLUDE                = ../sources/test_bisection_search.f90 ../sources/test_bisection_search2.f90 ../sources/test_bisection_search3.f90 \
                          ../sources/calc_start.f90 \
-                         ../sources/code_ionisation.f90 \
                          ../sources/default_inputs.f90 \
-                         ../sources/fft_rk.f90 \
-                         ../sources/finalize.f90 \
-                         ../sources/firststep.f90 \
-                         ../sources/longstep_rk.f90 \
                          ../sources/make_start.f90 \
                          ../sources/normalisation.f90 \
-                         ../sources/output.f90 \
                          ../sources/write_listing.f90 \
                          ../sources/write_start.f90
 

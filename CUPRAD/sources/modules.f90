@@ -1,3 +1,6 @@
+
+
+!> @brief module doc
 MODULE fields
   INTEGER(4)                        :: dim_t,dim_r,dim_t_local,dim_r_local,omega_offset(2), i_x_max, i_z_max
   INTEGER(4), ALLOCATABLE           :: dim_t_start(:),dim_t_end(:),dim_r_start(:),dim_r_end(:),num_ex(:)
@@ -11,7 +14,7 @@ END MODULE fields
 !> @brief stores the paths within the main hdf5 file. 
 MODULE h5namelist
   ! USE HDF5
-  CHARACTER(100), SAVE      ::  main_h5_fname =         "results.h5" !< 'results.h5' is the default name, a custom name is specified in 'msg.tmp'.
+  CHARACTER(255), SAVE      ::  main_h5_fname =         "results.h5" !< 'results.h5' is the default name, a custom name is specified in 'msg.tmp'.
   CHARACTER(*), PARAMETER   ::  in_grpname =            "inputs"
   CHARACTER(*), PARAMETER   ::  pre_proc_grpname =      "pre-processed"
   CHARACTER(*), PARAMETER   ::  out_grpname =           "outputs"

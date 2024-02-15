@@ -144,10 +144,10 @@ function initial_electron_density(r,z,kr_actual,kr_first) ! already rescaled to 
         call findinterval(kr,r,rgrid,k_guess = kr_guess)
     endif
 
-    kr_guess = kr ! bookkeeping: remember kr from the last run
+    kr_guess = kr ! save kr for the next run
 
     call findinterval(kz,z,zgrid,k_guess = kz_guess)
-    kz_guess = kz ! bookkeeping kz
+    kz_guess = kz ! save kz for the next run
 
     ! call interpolate2D_decomposed_eq(kr,kz,r,z,initial_electron_density,rgrid,zgrid,initial_electrons_ratio_matrix,Nr,Nz)
     

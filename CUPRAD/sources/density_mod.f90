@@ -121,11 +121,7 @@ subroutine calc_density_mod(z)
     real(8)             :: r, density_dum
     logical, save       :: first_call = .false.
 
-    ! testing
-    real(8), allocatable :: density_mod_compare(:)
-    integer(4)           :: mpi_snd, mpi_rcv
-
-
+    
     is_density_changed = .false.
 
     if (first_call) then
@@ -150,27 +146,6 @@ subroutine calc_density_mod(z)
         kr_guess = kr
     enddo
 
-    !!! TEST MPI, compare accross workers
-    allocate(density_mod_compare(dim_r))
-
-    call MPI_SENDRECV( &
-                        density_mod,         dim_r, MPI_DOUBLE_PRECISION, mod(my_rank            + 1, num_proc), 0, & ! send
-                        density_mod_compare, dim_r, MPI_DOUBLE_PRECISION, mod(my_rank + num_proc - 1, num_proc), 0, & ! receive
-                        MPI_COMM_WORLD, MPI_STATUS_IGNORE, ierr)
-
-    if ( any( density_mod /= density_mod_compare ) ) then
-        print *, "density modulation does not exacly match for rank", my_rank, "and z[m] =", z*four_z_Rayleigh
-        error stop "ERROR IN THE DENSITY MODULATION"
-    else
-        if (my_rank == 0) then
-            print *, "density modulation test passed for z[m] =", z*four_z_Rayleigh
-            print *, "density modulation (first, middle, last)", (/ density_mod(1), density_mod(dim_r/2), density_mod(dim_r) /)
-        endif
-    endif
-
-
-
-    deallocate(density_mod_compare)
 
 ! NOTE: The procedure is written universally to always interpolate. Can be optimised, e.g. do not recompute at all in the case of purely r-modulation.
 end subroutine calc_density_mod

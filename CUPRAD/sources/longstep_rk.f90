@@ -1,4 +1,4 @@
-! This is the main computational module stating exlicite operations withi every step
+! This is the main computational module stating explicite operations within every step
 ! 
 ! TABLE OF CONTENTS:
 ! "index_interpolation": inrepolate the refractive index if it varies in the medium
