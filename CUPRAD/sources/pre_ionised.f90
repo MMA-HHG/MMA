@@ -151,7 +151,7 @@ function initial_electron_density(r,z,kr_actual,kr_first) ! already rescaled to 
 
     ! call interpolate2D_decomposed_eq(kr,kz,r,z,initial_electron_density,rgrid,zgrid,initial_electrons_ratio_matrix,Nr,Nz)
     
-    call interpolate2D_lin(r,z,initial_electron_density,rgrid,zgrid,initial_electrons_ratio_matrix,Nr,Nz,kx_known=kr,ky_known=kz)
+    call interpolate_lin(r,z,initial_electron_density,rgrid,zgrid,initial_electrons_ratio_matrix,Nr,Nz,kx_known=kr,ky_known=kz)
     initial_electron_density = density_mod(kr_actual)*initial_electron_density
     return
 

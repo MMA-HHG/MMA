@@ -11,7 +11,7 @@ END MODULE fields
 !> @brief stores the paths within the main hdf5 file. 
 MODULE h5namelist
   ! USE HDF5
-  CHARACTER(100), SAVE      ::  main_h5_fname =         "results.h5" !< 'results.h5' is the dedault name, a custom name specified in 'msg.tmp'.
+  CHARACTER(100), SAVE      ::  main_h5_fname =         "results.h5" !< 'results.h5' is the default name, a custom name is specified in 'msg.tmp'.
   CHARACTER(*), PARAMETER   ::  in_grpname =            "inputs"
   CHARACTER(*), PARAMETER   ::  pre_proc_grpname =      "pre-processed"
   CHARACTER(*), PARAMETER   ::  out_grpname =           "outputs"
@@ -32,7 +32,7 @@ MODULE longstep_vars
   INTEGER :: dset_write_count = 0
   
   !>@{
-  !! Variables needed for \ref linked_list "linked list" buffering
+  !! Variable needed for \ref linked_list "linked list" buffering
   REAL, DIMENSION(:), POINTER :: ptr_f
   REAL, DIMENSION(:), POINTER :: ptr_p
   REAL, DIMENSION(:), POINTER :: ptr_lp
@@ -97,7 +97,7 @@ MODULE normalization
   REAL(8) :: four_z_Rayleigh !< 4 times the rayleigh length in m (normalization factor for z)
   REAL(8) :: efield_factor !< normalization factor electric field V/m
   REAL(8) :: plasma_normalisation_factor_m3 !< factor to obtain the density of plasma in m^(-3)
-  COMPLEX(8), ALLOCATABLE  :: efield_osc(:) !< fast oscillating term exp(-i*omegauppe*t)
+  COMPLEX(8), ALLOCATABLE  :: efield_osc(:) !< fast oscillating term exp(-i*omegauppe*t), used to subtract/reintroduce the oscillations for I/O
 END MODULE normalization
 
 MODULE run_status

@@ -6,8 +6,8 @@
 !! Precisely, the subroutines are available via the aforementioned generic 
 !! interfaces. For \ref interpolate_lin, the specific subroutines \ref
 !! interpolate1D_lin and \ref interpolate2D_lin are available as well.
-!! For the others, suppplementary procedures are encapsulatd within this
-!! module and not publicly visible.
+!! Others suppplementary procedures are encapsulatd within this module
+!! and not publicly visible.
 !!
 !! @author Jan Vábek
 module array_helper
@@ -16,9 +16,6 @@ implicit none
 private
 public  :: findinterval, interpolate_lin
 public  :: interpolate2D_lin, interpolate1D_lin
-public  :: interpolate1D_decomposed_eq
-public  :: interpolate2D_decomposed_eq
-
 
 !> @brief returns interval where x0-value is placed, ordering <..)<..)..<..>, extrapolation 0, n
 !!
@@ -37,9 +34,21 @@ INTERFACE findinterval
 END INTERFACE
 
 
+!> @brief Interpolates a functions based on tabulated values. (Available in 1D & 2D)
+!!
+!! This subroutines returns the interpolated value 'fx=f(x)' ('fxy=f(x,y)' in 2D, respectively)
+!! It finds the interval where 'x' is placed. This interval can be specified by 'kx_known'. There's no (!) further check whether it's correct. 
+!!
+!! @param[in]       x           ('x','y' in 2D)           
+!! @param[out]      fx          ('fxy' in 2D)
+!! @param[in]       xgrid       array for tabulated values ( ... , 'ygrid' in 2D)
+!! @param[in]       fxgrid      tabulated values ('fxygrid' in 2D)
+!! @param[in]       Nx          the length of xgrid ( ... , 'Ny' in 2D)
+!! @param[in]       kx_known    left-boundary of the interval, where we interpolate (optional)
 INTERFACE interpolate_lin
     procedure interpolate1D_lin, interpolate2D_lin
 END INTERFACE
+
 
 
 CONTAINS
@@ -160,7 +169,7 @@ subroutine findinterval_2D(kx,ky,x0,y0,x,y,kx_guess,ky_guess) ! returns interval
 end subroutine findinterval_2D
 
 
-!subroutine interpolate(n,x,y,x_grid,y_grid) !inputs: # of points, x(n), y(x(n)), x, returns y(x) (linearinterpolation), extrapolation by the boundary values
+!> @cond INCLUDE_ARRAY_HELPER_INTERNALS
 subroutine interpolate1D_decomposed_eq(k,x,fx,xgrid,fxgrid,n,tol) !inputs: # of points, x(n), y(x(n)), x, returns y(x) (linearinterpolation), extrapolation by the boundary values
 	real(8), intent(out)    :: fx
     integer, intent(in)     :: k,n
@@ -204,18 +213,8 @@ subroutine interpolate1D_decomposed_eq(k,x,fx,xgrid,fxgrid,n,tol) !inputs: # of 
         endif
     endif
 
-	
-	! call findinterval(n,x,x_grid,k1,k2);
-	! !write(*,*) k1;
-	! if ( k1==0 ) then
-	! 	y=y_grid(1);
-	! elseif ( k2 == 0 ) then
-	! 	y=y_grid(n);
-	! else
-	! 	y=y_grid(k1)+(x-x_grid(k1))*(y_grid(k2)-y_grid(k1))/(x_grid(k2)-x_grid(k1));
-	! endif
-
 end subroutine interpolate1D_decomposed_eq
+!> @endcond 
 
 subroutine interpolate1D_lin(x,fx,xgrid,fxgrid,n,k_known,tol) !inputs: # of points, x(n), y(x(n)), x, returns y(x) (linearinterpolation), extrapolation by the boundary values
 	real(8), intent(out)    :: fx
@@ -240,6 +239,7 @@ subroutine interpolate1D_lin(x,fx,xgrid,fxgrid,n,k_known,tol) !inputs: # of poin
 
 end subroutine interpolate1D_lin
 
+!> @cond INCLUDE_ARRAY_HELPER_INTERNALS
 subroutine interpolate2D_decomposed_eq(kx,ky,x,y,fxy,xgrid,ygrid,fxygrid,Nx,Ny) !inputs: # of points, x(n), y(x(n)), x, returns y(x) (linearinterpolation), extrapolation by the boundary values
 	real(8), intent(out)    :: fxy
     integer, intent(in)     :: kx,ky,Nx,Ny
@@ -284,6 +284,7 @@ subroutine interpolate2D_decomposed_eq(kx,ky,x,y,fxy,xgrid,ygrid,fxygrid,Nx,Ny) 
     endif
 
 end subroutine interpolate2D_decomposed_eq
+!> @endcond 
 
 subroutine interpolate2D_lin(x,y,fxy,xgrid,ygrid,fxygrid,Nx,Ny,kx_known,ky_known) !inputs: # of points, x(n), y(x(n)), x, returns y(x) (linearinterpolation), extrapolation by the boundary values
 	real(8), intent(out)                :: fxy
