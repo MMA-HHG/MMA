@@ -32,7 +32,7 @@ find_package(MPI REQUIRED)
 set(PROPAGATION cuprad.e)
 set(S_PROPAGATION sources/constants.f90 sources/linked_list_module.f90 
     sources/hdf5_helper_serial.f90 sources/hdf5_helper.f90 sources/array_helper.f90 
-    sources/modules.f90 sources/pre_ionised.f90 sources/density_mod.f90 sources/code_ionisation.f90 
+    sources/global_variables.f90 sources/pre_ionised.f90 sources/density_mod.f90 sources/code_ionisation.f90 
     sources/fft_rk.f90 sources/finalize.f90 sources/firststep.f90 sources/longstep_rk.f90 
     sources/output.f90 sources/cuprad.f90)
 
