@@ -1,15 +1,25 @@
 ! This is the collection of HDF5 operations on the files used in the code
-! This module was designed by Jakub Jelinek & Jan Vabek
 
+!> @brief This module contains customised HDF5 subroutines for parallel operations. 
+!!
+!! @author Jan Vábek
+!! @author Jakub Jelínek
 MODULE hdf5_helper_parallel
   USE HDF5
   ! USE H5LT ! lite
-  ! Create an interface for reading a dset. It includes most of the reading subroutines, the ones that are uniquely identifiable by their parameters.
 
   IMPLICIT NONE
   CONTAINS
 
-      ! This subroutine creates two dimensional real dataset for parallel writting
+
+    !> @brief  This subroutine creates two dimensional real dataset for parallel writting. (File has to be opened collectively!)
+    !!
+    !! @param[in]       file_id            file or group identifier 
+    !! @param[in]       name               name of the dataset
+    !! @param[in]       var                variable to be written to the dataset
+    !! @param[in]       data_dims          dimensions of data
+    !! @param[in]       offset             offset of the data
+    !! @param[in]       hyperslab_size     the hyperslab size
     SUBROUTINE create_2D_array_real_dset_p(file_id, name, var, data_dims, offset, hyperslab_size)
       REAL(4), DIMENSION(:,:)   :: var ! variable to be written to the dataset
       INTEGER(HID_T)            :: file_id ! file or group identifier 
@@ -34,8 +44,15 @@ MODULE hdf5_helper_parallel
       CALL h5pclose_f(h5_parameters,error)
     END SUBROUTINE create_2D_array_real_dset_p
 
-    ! This subroutine creates 3D array of real numbers parallelly
-    ! File has to be opened collectively
+
+    !> @brief  This subroutine creates 3D array of real numbers parallelly. (File has to be opened collectively!)
+    !!
+    !! @param[in]       file_id            file or group identifier 
+    !! @param[in]       name               name of the dataset
+    !! @param[in]       var                variable to be written to the dataset
+    !! @param[in]       data_dims          dimensions of data
+    !! @param[in]       offset             offset of the data
+    !! @param[in]       hyperslab_size     the hyperslab size
     SUBROUTINE create_3D_array_real_dset_p(file_id, name, var, data_dims, offset, hyperslab_size)
       REAL, DIMENSION(:,:,:)   :: var ! variable to be written to the dataset
       INTEGER(HID_T)           :: file_id ! file or group identifier
@@ -61,7 +78,14 @@ MODULE hdf5_helper_parallel
       CALL h5pclose_f(h5_parameters,error)
     END SUBROUTINE create_3D_array_real_dset_p
   
-    ! this subroutine writes a hyperslab to a three dimensional dataset parallelly
+  
+      !> @brief  This subroutine writes a hyperslab to a three dimensional dataset parallelly. (File has to be opened collectively!)
+    !!
+    !! @param[in]       file_id            file or group identifier 
+    !! @param[in]       name               name of the dataset
+    !! @param[in]       var                variable to be written to the dataset
+    !! @param[in]       offset             offset of the data
+    !! @param[in]       hyperslab_size     the hyperslab size
     SUBROUTINE write_hyperslab_to_dset_p(file_id, name, var, offset, hyperslab_size)
       REAL, DIMENSION(:,:,:)   :: var ! variable to be written to the hyperslab
       INTEGER(HID_T)           :: file_id ! file or group identifier
@@ -88,6 +112,11 @@ MODULE hdf5_helper_parallel
 
 END MODULE hdf5_helper_parallel
 
+
+!> @brief This module unifies \ref hdf5_helper_serial and \ref hdf5_helper_parallel.
+!!
+!! @author Jan Vábek
+!! @author Jakub Jelínek
 MODULE hdf5_helper
   USE hdf5_helper_serial
   USE hdf5_helper_parallel
