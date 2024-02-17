@@ -15,16 +15,37 @@
 void outputs_destructor(outputs_def *outputs)
 {
 	free((*outputs).tgrid);
+	(*outputs).tgrid = NULL;
+
 	free((*outputs).omegagrid);
+	(*outputs).omegagrid = NULL;
+
 	free((*outputs).Efield);
+	(*outputs).Efield = NULL;
+
 	free((*outputs).sourceterm);
+	(*outputs).sourceterm = NULL;
+
 	free((*outputs).PopTot);
+	(*outputs).PopTot = NULL;
+	
 	free((*outputs).FEfield);
+	(*outputs).FEfield = NULL;
+
 	free((*outputs).Fsourceterm);
+	(*outputs).Fsourceterm = NULL;
+
 	free((*outputs).FEfieldM2);
+	(*outputs).FEfieldM2 = NULL;
+
 	free((*outputs).FsourcetermM2);
+	(*outputs).FsourcetermM2 = NULL;
+	
 	free((*outputs).PopInt);
+	(*outputs).PopInt = NULL;
+	
 	free((*outputs).expval);
+	(*outputs).expval = NULL;
 }
 /**
  * @brief Frees up the memory of the input struct.
@@ -34,9 +55,16 @@ void outputs_destructor(outputs_def *outputs)
 void inputs_destructor(inputs_def *in) 
 {
 	free((*in).psi0);
+	(*in).psi0 = NULL;
+
 	free((*in).x);
+	(*in).x = NULL;
+
 	free((*in).Efield.tgrid);
+	(*in).Efield.tgrid = NULL;
+	
 	free((*in).Efield.Field);
+	(*in).Efield.Field = NULL;
 }
 
 /**
@@ -49,8 +77,11 @@ void free_mtrx(double ** buf, int N_rows) {
 	int i;
 	for (i = 0; i < N_rows; i++) {
 		free(buf[i]);
+		buf[i] = NULL;
 	}
 	free(buf);
+	buf = NULL;
+
 }
 
 /**

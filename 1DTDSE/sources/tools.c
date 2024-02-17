@@ -45,7 +45,9 @@ void Initialise_grid_and_ground_state(inputs_def *in) {
 	(*in).Einit = Einitialise((*in).trg, (*in).psi0, off_diagonal, diagonal, 
 							  off_diagonal, (*in).x, (*in).Eguess, (*in).CV, (*in).num_r); 
 	free(diagonal); 
+	diagonal = NULL;
 	free(off_diagonal);
+	off_diagonal = NULL;
 }
 
 /**
@@ -183,6 +185,7 @@ double * extend_grid(double *pold, int size, int oldsize, int shift)
 	}
 	
 	free(pold);
+	pold = NULL;
 	return pnew;
 }
 
@@ -285,17 +288,29 @@ double * window_analysis(inputs_def inputs, double *psi, int num_E, double dE, d
 
 	// Free arrays
 	free(dnew); 
+	dnew = NULL;
 	free(dnew2); 
+	dnew2 = NULL;
 	free(dinfnew);
+	dinfnew = NULL;
 	free(res);
+	res = NULL;
 	free(dsupnew);
+	dsupnew = NULL;
 	free(dinfnew2);
+	dinfnew2 = NULL;
 	free(dsupnew2);
+	dsupnew2 = NULL;
 	free(res2);
+	res2 = NULL;
 	free(psi2); 
+	psi2 = NULL;
 	free(diagonal);
+	diagonal = NULL;
 	free(off_diagonal);
+	off_diagonal = NULL;
 	free(x);
+	x = NULL;
 
 	return PES;
 }
@@ -372,9 +387,13 @@ double * projection_analysis_EV(inputs_def inputs, double *psi, int num_E, doubl
 	}
 
 	free(psi_EV);
+	psi_EV = NULL;
 	free(diagonal);
+	diagonal = NULL;
 	free(off_diagonal);
+	off_diagonal = NULL;
 	free(x);
+	x = NULL;
 
 	return projection;
 }
@@ -388,6 +407,27 @@ double * projection_analysis_EV(inputs_def inputs, double *psi, int num_E, doubl
  */
 void free_arr(double * buffer) {
 	free(buffer);
+	buffer = NULL;
+}
+
+/**
+ * @brief Set the time and field of the input structure
+ * 
+ * @details Used for the Python wrapper - Python TDSE.
+ * 
+ * @param in Input structure pointer
+ * @param time Time array pointer
+ * @param field Field array pointer
+ * @param N Size of the arrays
+ */
+void set_time_and_field(inputs_def * in, double * time, double * field, int N) {
+	int i;
+	(*in).Efield.tgrid = calloc(N, sizeof(double));
+	(*in).Efield.Field = calloc(N, sizeof(double));
+	for (i = 0; i < N; i++) {
+		(*in).Efield.tgrid[i] = time[i];
+		(*in).Efield.Field[i] = field[i];
+	}
 }
 
 void get_filename(char * filename) {

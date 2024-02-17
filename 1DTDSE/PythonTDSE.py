@@ -571,7 +571,6 @@ class inputs_def(Structure):
         self.trg.a = c_double(trg_a)
         self.CV = c_double(CV)
         self.gauge = c_int(gauge)
-        #precision = precision
         self.precision = precision
         
     def init_prints(self, path_to_DLL):
@@ -583,12 +582,14 @@ class inputs_def(Structure):
         set_prints.restype = output_print_def
         self.Print = set_prints()
 
-    def init_time_and_field(self, filename = "", z_i = 0, r_i = 0, E = None, t = None):
+    def init_time_and_field(self, DLL, filename = "", z_i = 0, r_i = 0, E = None, t = None):
         """
         Initializes field and temporal grid from custom arrays or from an hdf5 archive.
 
         Parameters:
         -----------
+        DLL: TDSE_DLL class
+            TDSE_DLL instance.
         filename: str, optional, default {""}
             HDF5 filename.
         z_i: int, optional, default {0}
@@ -619,18 +620,20 @@ class inputs_def(Structure):
             Nt = len(tgrid)
             self.Efield.Nt = Nt
             ### Init temporal grid
-            self.Efield.tgrid = ctypes_arr_ptr(c_double, Nt, tgrid)
-            self.Efield.Field = ctypes_arr_ptr(c_double, Nt, field)
+            DLL.set_time_and_field(self.ptr, tgrid, field, Nt)
+            #self.Efield.tgrid = ctypes_arr_ptr(c_double, Nt, tgrid)
+            #self.Efield.Field = ctypes_arr_ptr(c_double, Nt, field)
             f.close()
 
         else:
             Nt = len(t)
             assert(Nt == len(E))
             self.Efield.Nt = Nt
-            self.Efield.tgrid = ctypes_arr_ptr(c_double, Nt, t)
-            self.Efield.Field = ctypes_arr_ptr(c_double, Nt, E)
-            ### Do not interpolate
-            #self.InterpByDTorNT = c_int(1)
+            DLL.set_time_and_field(self.ptr, t, E, Nt)
+            #DLL.set_arr_vals(self.Efield.tgrid, ctypes_arr_ptr(c_double, Nt, t), Nt)
+            #DLL.set_arr_vals(self.Efield.Field, ctypes_arr_ptr(c_double, Nt, E), Nt)
+            #self.Efield.tgrid = ctypes_arr_ptr(c_double, Nt, t)
+            #self.Efield.Field = ctypes_arr_ptr(c_double, Nt, E)
 
     def save_to_hdf5(self, filename):
         """
@@ -1142,8 +1145,6 @@ class TDSE_DLL:
         """
         Frees outputs structure.
 
-        Warning: if called twice on the same input, the kernel crashes.
-
         Parameters:
         -----------
         out_ptr: ctypes pointer instance
@@ -1157,8 +1158,6 @@ class TDSE_DLL:
         """
         Frees inputs structure.
 
-        Warning: if called twice on the same input, the kernel crashes.
-
         Parameters:
         -----------
         out_ptr: ctypes pointer instance
@@ -1168,3 +1167,21 @@ class TDSE_DLL:
         self.DLL.inputs_destructor.argtypes = [POINTER(inputs_def)]
         self.DLL.inputs_destructor(in_ptr)
 
+    def set_time_and_field(self, in_ptr, time, field, N):
+        """
+        Sets time and fields from Numpy arrays using C allocation.
+
+        Parameters:
+        -----------
+        in_ptr: ctypes pointer instance
+            Pointer to the input structure
+        time: ctypes pointer instance
+            Pointer to the time array
+        field: ctypes pointer instance
+            Pointer to the field array
+        """
+        self.DLL.set_time_and_field.restype = None
+        self.DLL.set_time_and_field.argtypes = [POINTER(inputs_def), POINTER(c_double), POINTER(c_double), c_int]
+        time_ptr = ctypes_arr_ptr(c_double, N, time)
+        field_ptr = ctypes_arr_ptr(c_double, N, field)
+        self.DLL.set_time_and_field(in_ptr, time_ptr, field_ptr, N)
