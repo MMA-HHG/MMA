@@ -32,7 +32,7 @@ class TestTDSE(unittest.TestCase):
         Efield = E_0*sin_2(t)*np.cos(omega_0*t)
 
         ### Init variables
-        cls.inputs.init_time_and_field(t = t, E = Efield)
+        cls.inputs.init_time_and_field(cls.DLL, t = t, E = Efield)
         ### Set writing true
         cls.inputs.analy.writewft = c_int(1)
         ### Set wavefunction writing each 10 au in time
