@@ -10,6 +10,12 @@
 ! The change to HDF5 was designed by Jan Vabek and 
 ! co-implemented by Jakub Jelinek
 
+
+!> @brief This module collect all the procedures for storing outputs of the code.
+!!
+!! @author Jan Vábek
+!! @author Stefan Skupin
+!! @author Jakub Jelínek
 MODULE output
   USE constants
   USE fields

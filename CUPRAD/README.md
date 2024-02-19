@@ -5,14 +5,15 @@
     * $\chi_5$-processes
     * $T$-operator case 4
     * (?) Raman remove option 2
-* doxygen4FOrtran (useful links https://fortran-lang.discourse.group/t/fortran-2018-keywords/2555, https://github.com/cdslaborg/paramonte, https://cdslaborg.github.io/paramonte-kernel-doc/html)
+* doxygen4Fortran (useful links https://fortran-lang.discourse.group/t/fortran-2018-keywords/2555, https://github.com/cdslaborg/paramonte, https://cdslaborg.github.io/paramonte-kernel-doc/html)
+* Refactor ouptut routines (unife writting into the file + clean up in `longstep_rk.f90`)
 
 ### Documentation
 Doxygen done for
- * `array_helper.f90` `density_mod.f90` `pre_ionised.f90` `linked_list_module.f90` `constants.f90`
+ * `array_helper.f90` `density_mod.f90` `pre_ionised.f90` `linked_list_module.f90` `constants.f90` `hdf5_*.f90`
 
 
- Missing: `calc_start.f90` `code_ionisation.f90` `cuprad.f90` `default_inputs.f90` `fft_rk.f90` `finalize.f90` `firststep.f90` `hdf5_*.f90` `longstep_rf.f90` `make_start.f90` `global_variables.f90` `normalisation.f90` `output.f90` `write_*.f90`
+ Missing: `calc_start.f90` `code_ionisation.f90` `cuprad.f90` `default_inputs.f90` `fft_rk.f90` `finalize.f90` `firststep.f90` `longstep_rf.f90` `make_start.f90` `global_variables.f90` `normalisation.f90` `output.f90` `write_*.f90`
 
  ? Contain pre-processor in the documentation, or make an independent documetnaiton for it ?
 

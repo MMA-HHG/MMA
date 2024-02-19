@@ -34,6 +34,8 @@ module constants
     !! * `eV`       - energy in eV
     !! * `Joule`    - period in atomic units
     !!
+    !! Note: If needed to use for an array/in a loop, consider calling once with x=1 to get conversion numerical factor.
+    !!
     !! @param[in]       x           input
     !! @param[in]       inp         specifier of the input
     !! @param[in]       outp        specifier of the output
