@@ -5,7 +5,7 @@ use write_listing
 
 IMPLICIT NONE
 real(8) :: Intensity_entry, Intensity_focus, waist_focus, Curvature_radius_entry, invCurvature_radius_entry, focus_position
-character(15)   ::  gas_preset
+character(255)   ::  gas_preset
 
 integer                 :: k1
 integer, parameter      :: N_tests = 276
