@@ -47,10 +47,10 @@ set(TDSE_STRIDE TDSE_stride.e)
 set(TDSE_LIB singleTDSE)
 
 
-### Parallel TDSE
-add_executable(${TDSE} ${SOURCE})
-target_link_libraries(${TDSE} mpi ${FFTW_LIBS} ${HDF5_LIBRARIES})
-target_include_directories(${TDSE} PRIVATE ${HDF5_INCLUDE_DIRS})
+# ### Parallel TDSE
+# add_executable(${TDSE} ${SOURCE})
+# target_link_libraries(${TDSE} mpi ${FFTW_LIBS} ${HDF5_LIBRARIES})
+# target_include_directories(${TDSE} PRIVATE ${HDF5_INCLUDE_DIRS})
 
 ### Single TDSE
 add_executable(${TDSE_STRIDE} ${SOURCE_STRIDE})
