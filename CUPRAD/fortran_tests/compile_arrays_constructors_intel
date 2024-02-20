@@ -1,0 +1,9 @@
+#!/bin/bash
+
+SRC="../sources"
+
+ifort -c -g -cpp -DINTEL test_arrays_constructors.f90 
+ifort -o arr_constr_intel.e -g -DINTEL *.o
+
+rm *.o
+

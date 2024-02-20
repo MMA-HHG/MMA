@@ -11,7 +11,7 @@ MODULE fft
 
 CONTAINS
 
-  SUBROUTINE fft_init
+  SUBROUTINE fft_init ! open the channels, persistent communication (equivalent to "MPI all to all")
     IMPLICIT NONE
 
     INTEGER(4) schema(num_proc),i,j,power,help,m,n,s
@@ -144,12 +144,14 @@ CONTAINS
 
   SUBROUTINE fft_forward_inplace(nlinstep)
     IMPLICIT NONE
+    ! nlinstep - applying non-linearities
+    ! FALSE - only FFT + transpose
 
     LOGICAL nlinstep
     INTEGER(4) k,l,i
 
     CALL dfftw_execute(plan_forward1)
-    IF (nlinstep) THEN
+    IF (nlinstep) THEN 
        SELECT CASE (switch_T)
        CASE(1)
           continue
@@ -158,7 +160,7 @@ CONTAINS
           CALL dfftw_execute(plan_j)
           DO k=dim_r_start(num_proc),dim_r_end(num_proc)
              DO l=1,dim_t
-                e(l,k)=e(l,k)+op_t(l)*ptemp(l,k)+op_t_inv(l)*jtemp(l,k)
+                e(l,k)=e(l,k)+op_t(l,k)*ptemp(l,k)+op_t_inv(l,k)*jtemp(l,k)
              ENDDO
           ENDDO
        CASE(3)
@@ -166,7 +168,7 @@ CONTAINS
           CALL dfftw_execute(plan_j)
           DO k=dim_r_start(num_proc),dim_r_end(num_proc)
              DO l=dim_th+1,dim_t
-                e(l,k)=e(l,k)+(op_t(l)*ptemp(l,k)+op_t_inv(l)*jtemp(l,k))
+                e(l,k)=e(l,k)+(op_t(l,k)*ptemp(l,k)+op_t_inv(l,k)*jtemp(l,k))
              ENDDO
           ENDDO
        CASE(4)
@@ -174,7 +176,7 @@ CONTAINS
           CALL dfftw_execute(plan_j)
           DO k=dim_r_start(num_proc),dim_r_end(num_proc)
              DO l=1,dim_t
-                e(l,k)=e(l,k)+op_t(l)*ptemp(l,k)+op_t_inv(l)*jtemp(l,k)
+                e(l,k)=e(l,k)+op_t(l,k)*ptemp(l,k)+op_t_inv(l,k)*jtemp(l,k)
              ENDDO
           ENDDO
        END SELECT

@@ -1,4 +1,4 @@
-! This is the main computational module stating exlicite operations withi every step
+! This is the main computational module stating explicite operations within every step
 ! 
 ! TABLE OF CONTENTS:
 ! "index_interpolation": inrepolate the refractive index if it varies in the medium
@@ -19,10 +19,11 @@
 MODULE long_step
   USE constants
   USE parameters
+  USE density_module
   REAL(8) rhompi,rho1,rho2,rhoth,rhotr,rhofh,rhoslg2,rhoav
 CONTAINS
 
-  SUBROUTINE index_interpolation(phase_index,r)
+  SUBROUTINE index_interpolation(phase_index,r) ! refractive index lookup
     USE fields
     IMPLICIT NONE
 
@@ -71,7 +72,7 @@ CONTAINS
   END SUBROUTINE index_interpolation
 
   
-  SUBROUTINE absorbation
+  SUBROUTINE absorbation ! apply absorption using cosh in time on the boundary (see firstep.f90) 
     USE fields
     USE mpi_stuff
     IMPLICIT NONE
@@ -125,11 +126,11 @@ CONTAINS
     COMPLEX(8) DLn,help_1,help_2
 
     help_1=B(1)
-    B(1)=(CMPLX(1.D0,0.D0,8)+CMPLX(0.D0,-2.D0,8)*delta_rel(k))*B(1)+CMPLX(0.D0,2.D0,8)*delta_rel(k)*B(2)
+    B(1)=(CMPLX(1.D0,0.D0,8)+CMPLX(0.D0,-2.D0,8)*delta_rel(1,k))*B(1)+CMPLX(0.D0,2.D0,8)*delta_rel(1,k)*B(2)
     DO j=2,dim_r-1
        help_2=help_1
        help_1=B(j)
-       B(j)=-DL(j-1,k)*help_2+(CMPLX(1.D0,0.D0,8)+CMPLX(0.D0,-1.D0,8)*delta_rel(k))*B(j)-DU(j,k)*B(j+1)
+       B(j)=-DL(j-1,k)*help_2+(CMPLX(1.D0,0.D0,8)+CMPLX(0.D0,-1.D0,8)*delta_rel(j,k))*B(j)-DU(j,k)*B(j+1)
     ENDDO
     B(dim_r)=CMPLX(0.D0,0.D0,8)*B(dim_r)
 
@@ -145,28 +146,32 @@ CONTAINS
     RETURN
   END SUBROUTINE cn
 
-  SUBROUTINE mult_propagator
+  SUBROUTINE mult_propagator ! it does the porpagation in z (linear dispersion - linar part of the porpagator)
     USE fields
     USE mpi_stuff
     IMPLICIT NONE
 
-    INTEGER(4) k
+    INTEGER(4) k,l
 
     DO k=dim_t_start(num_proc),dim_t_end(num_proc)
        CALL cn(efft(1:dim_r,k),k)
-       efft(1:dim_r,k)=efft(1:dim_r,k)*p_t(k)
+       DO l=1,dim_r
+         efft(l,k)=efft(l,k)*p_t(l,k) ! p_t - the dispersion "p_t =  exp(i*(k(omega)*z-k' * omega*z)" (co-moving frame taken)
+                                              ! k(omega) = (omega/c)*sqrt(eps(omega))
+                                              ! k' evaluated at omega0 defines our co-moving frame, in fact exp(i*(k(omega)*z-(omega*z/vg) )
+      ENDDO
     ENDDO
 
     RETURN
   END SUBROUTINE mult_propagator
 
-  SUBROUTINE calc_absorption(rhoabs, mediumabs, eti, etip1)
+  SUBROUTINE calc_absorption(rhoabs, mediumabs, eti, etip1)    ! N-photon absorption (to be removed)
     REAL(8) :: rhoabs, mediumabs, eti, etip1
     REAL(8) :: intF
 
     IF ( eta1.NE.0.D0 ) THEN
        intF = -eta2 * 0.5d0 *( eti**Nn + etip1**NN) * delta_t  
-       rhoabs = 1.d0 - (1.D0 - rhoabs) * exp(intF)
+       rhoabs = 1.d0 - (1.D0 - rhoabs) * exp(intF) ! rate eq. for excited molecules
        IF (rhoabs.LT.0.D0) rhoabs = 0.D0
        mediumabs = eta1 * etip1**(NN-1)*(1.D0-rhoabs)
     ENDIF
@@ -174,11 +179,12 @@ CONTAINS
     RETURN
   END SUBROUTINE calc_absorption
 
-  SUBROUTINE calc_rho(rho,mpa,eti,etip1)
+  SUBROUTINE calc_rho(rho,mpa,eti,etip1,l)
     USE PPT
     USE External_ionisation_table
     IMPLICIT NONE
 
+    INTEGER(4) :: l
     REAL(8) :: rho,mpa
     REAL(8) :: eti,etip1
     REAL(8) intF,var1,rhosave
@@ -187,29 +193,32 @@ CONTAINS
     SELECT CASE (switch_rho)
     CASE(8)
        CALL interpolate_ext(var1,mpa,etip1)
-       intF=(nu*0.5d0*(etip1+eti)-rhoat_inv*var1-alpha)*delta_t
-       rho=rho*exp(intF)+var1*delta_t
-       mpa=mpa*(1.D0-rhosave*rhoat_inv)
+       intF=(nu*0.5d0*(etip1+eti)*density_mod(l)-rhoat_inv*var1-alpha)*delta_t
+       rho=rho*exp(intF)+var1*density_mod(l)*delta_t
+       mpa=mpa*(density_mod(l)-rhosave*rhoat_inv)
     CASE(1)
-       rho=rho+(nu*rho*eti+beta_inv_2KK*eti**KK*(1.D0-rho*rhoat_inv)-alpha*rho)*delta_t
-       mpa=muk*etip1**(KK-1)*(1.D0-rhosave*rhoat_inv)
+       rho=rho+(nu*rho*eti*density_mod(l)+beta_inv_2KK*eti**KK*(density_mod(l)-rho*rhoat_inv)-alpha*rho)*delta_t
+       mpa=muk*etip1**(KK-1)*(density_mod(l)-rhosave*rhoat_inv)
     CASE(2)
        var1=0.5d0*beta_inv_2KK*(etip1**KK+eti**KK)
-       intF=(nu*0.5d0*(etip1+eti)-rhoat_inv*var1-alpha)*delta_t
-       rho=rho*exp(intF)+var1*delta_t
-       mpa=muk*etip1**(KK-1)*(1.D0-rhosave*rhoat_inv)
+       intF=(nu*0.5d0*(etip1+eti)*density_mod(l)-rhoat_inv*var1-alpha)*delta_t
+       rho=rho*exp(intF)+var1*density_mod(l)*delta_t
+       mpa=muk*etip1**(KK-1)*(density_mod(l)-rhosave*rhoat_inv)
    !  CASE(3,4)
     CASE(3)
        CALL interpolate_ppt(var1,mpa,etip1)
-       intF=(nu*0.5d0*(etip1+eti)-rhoat_inv*var1-alpha)*delta_t
-       rho=rho*exp(intF)+var1*delta_t
-       mpa=mpa*(1.D0-rhosave*rhoat_inv)
+       intF=(nu*0.5d0*(etip1+eti)*density_mod(l)-rhoat_inv*var1-alpha)*delta_t
+       rho=rho*exp(intF)+var1*density_mod(l)*delta_t
+       mpa=mpa*(density_mod(l)-rhosave*rhoat_inv)
     END SELECT
     !print *, 'alpha4', alphaquad
     rho=rho-alphaquad*rhosave**2*delta_t
     IF (rho.LT.0.D0) rho=0.D0
 
-    IF (rho*rhoat_inv.GT.1.D0) rho=1.D0/rhoat_inv
+    IF (density_mod(l) .GT. 0.D0) THEN
+      IF ( (rho*rhoat_inv/density_mod(l)) .GT.1.D0) rho= density_mod(l)/rhoat_inv
+    ENDIF
+
     IF (rhompi.LT.0.D0) rhompi=0.D0
     IF (rho1.LT.0.D0) rho1=0.D0
     IF (rho2.LT.0.D0) rho2=0.D0
@@ -312,18 +321,18 @@ CONTAINS
     energy_fil_part=0.D0
     maxphase_part=0.D0
 
-    DO l=dim_r_start(num_proc),dim_r_end(num_proc)
+    DO l=dim_r_start(num_proc),dim_r_end(num_proc) !
        r=REAL(l-1)*delta_r
        e_2=ABS(e(1:dim_t,l))
        peakmax_part=MAX(peakmax_part,MAXVAL(e_2))
        e_2=e_2**2
-       fluence(l)=SUM(e_2)
-       energy_part=energy_part+fluence(l)*REAL(l-1,8)
-       IF (rfil.GT.r) energy_fil_part=energy_fil_part+fluence(l)*REAL(l-1,8)
+       fluence(l)=SUM(e_2)                                                    ! get fluence
+       energy_part=energy_part+fluence(l)*REAL(l-1,8)                         ! get energy
+       IF (rfil.GT.r) energy_fil_part=energy_fil_part+fluence(l)*REAL(l-1,8)  ! fluence(l)*REAL(l-1,8) for the radial Jacobian
        delkerr=0.D0
        delkerrp=0.d0
-      IF (apply_pre_ionisation) THEN
-         rhotemp = initial_electron_density_tip(r,z,l,dim_r_start(num_proc))
+      IF (apply_pre_ionisation) THEN                                          ! initial electron density
+         rhotemp = initial_electron_density(r,z,l,dim_r_start(num_proc))
       ELSE
          rhotemp = 0.D0
       ENDIF
@@ -346,19 +355,24 @@ CONTAINS
        ! Physical effects
        CALL index_interpolation(phase_index,r) ! refractive index
        phase_index=phase_index*delta_zh
-       CALL calc_rho(rhotemp,mpa,0.D0,e_2(1)) ! ionisation
-       CALL calc_absorption(rhoabstemp, mediumabs, 0.D0,e_2(1)) ! absorption
+       CALL calc_rho(rhotemp,mpa,0.D0,e_2(1),l) ! compute ionisation
+       CALL calc_absorption(rhoabstemp, mediumabs, 0.D0,e_2(1)) ! N-photon absorption (to be removed)
 
        DO j=1,dim_t
-          phase_p=(c3i*e_2(j)+c3d*delkerr-c5*e_2(j)**2)*((1.D0-rhotemp*rhoat_inv)+ions_Kerr_ratio*rhotemp*rhoat_inv)*delta_zh
+          phase_p=(c3i*e_2(j)+c3d*delkerr-c5*e_2(j)**2)*((density_mod(l)-rhotemp*rhoat_inv)+ions_Kerr_ratio*rhotemp*rhoat_inv)*delta_zh ! phase_p is polarisation
+          ! polarisation = i*phase_p
+          ! c3i: instanataneous Kerr
+          ! c3d: delayed Kerr (Raman)
           phase_j=-gamma2*rhotemp*delta_zh
-          losses_j=-gamma1*rhotemp*delta_zh
+          losses_j=-gamma1*density_mod(l)*rhotemp*delta_zh ! ~ losses_plasma(l)
           rho(l)=MAX(rho(l),rhotemp)
           rhoabs(l) = MAX(rhoabs(l),rhoabstemp)
-          losses_plasma(l)=losses_plasma(l)+2.D0*e_2(j)*gamma1*rhotemp
-          losses_ionization(l)=losses_ionization(l)+2.D0*e_2(j)*mpa
+          losses_plasma(l)=losses_plasma(l)+2.D0*e_2(j)*gamma1*density_mod(l)*rhotemp  ! losses for diagnostic
+          losses_ionization(l)=losses_ionization(l)+2.D0*e_2(j)*mpa     ! losses for diagnostic (from ionization rate eq.)
           phase=phase_p+phase_j+phase_index
           maxphase_part=MAX(maxphase_part,ABS(phase))
+          
+! till here
 
           SELECT CASE (switch_T) ! decision over various propagators
           CASE(1)
@@ -366,29 +380,35 @@ CONTAINS
           CASE(2)
              ptemp(j,l)=e(j,l)*CMPLX(0.D0,phase_p)
              jtemp(j,l)=e(j,l)*CMPLX(0.D0,phase_j)
-             etemp(j,l)=e(j,l)*exp(CMPLX(losses_j-delta_zh*(mpa+mediumabs),phase_index,8))
+             etemp(j,l)=e(j,l)*exp(CMPLX(losses_j-delta_zh*(mpa+mediumabs),phase_index,8)) ! applying the losses, T-operator does not affect
           CASE(3)
-             ptemp(j,l)=e(j,l)*CMPLX(0.D0,phase_p) + hfac(j,4)*CONJG(hfac(j,0)*e(j,l))*CMPLX(0.D0,phase_p) &
+             ptemp(j,l)=e(j,l)*CMPLX(0.D0,phase_p) + (hfac(j,4)*CONJG(hfac(j,0)*e(j,l))*CMPLX(0.D0,phase_p) &
                   + (hfac(j,1)*(hfac(j,0)*e(j,l))**3 + hfac(j,2)*(hfac(j,0)*e(j,l))**3*e_2(j)) &
-                  + (hfac(j,3)*(hfac(j,0)*e(j,l))**5)
-             jtemp(j,l)=e(j,l)*CMPLX(0.D0,phase_j)
-             etemp(j,l)=e(j,l)*exp(CMPLX(losses_j-delta_zh*(mpa+mediumabs),phase_index,8))
-          CASE(4)
+                  + (hfac(j,3)*(hfac(j,0)*e(j,l))**5))*((density_mod(l)-rhotemp*rhoat_inv)+ions_Kerr_ratio*rhotemp*rhoat_inv)
+            ! terms comes from the expansion (E+E*)^3
+            ! e(j,l)*CMPLX(0.D0,phase_p) - the same as above (usual Kerr)
+            ! hfac(j,4)*CONJG(hfac(j,0)*e(j,l))*CMPLX(0.D0,phase_p) 3E*^2E (-omega process)
+            ! (hfac(j,1)*(hfac(j,0)*e(j,l))**3 - E^3 (3omega)
+            ! hfac(j,2)*(hfac(j,0)*e(j,l))**3*e_2(j)) - 5th-order process
+            ! (hfac(j,3)*(hfac(j,0)*e(j,l))**5) - 5th-order process
+             jtemp(j,l)=e(j,l)*CMPLX(0.D0,phase_j)                                                  ! same treatment of the losses
+             etemp(j,l)=e(j,l)*exp(CMPLX(losses_j-delta_zh*(mpa+mediumabs),phase_index,8)) 
+          CASE(4)                                                                                   ! to be removed
              ptemp(j,l)=e(j,l)*CMPLX(0.D0,phase_p)
              jtemp(j,l)=e(j,l)*CMPLX(0.D0,phase_j)
              etemp(j,l)=e(j,l)*exp(CMPLX(losses_j-delta_zh*(mpa+mediumabs),phase_index,8))
           END SELECT
           IF (j.NE.dim_t) THEN
-             CALL calc_rho(rhotemp,mpa,e_2(j),e_2(j+1))
+             CALL calc_rho(rhotemp,mpa,e_2(j),e_2(j+1),l) ! update ionization
              CALL calc_absorption(rhoabstemp, mediumabs, e_2(j), e_2(j+1))
-             CALL calc_delkerr(delkerr,delkerrp,e_2(j),e_2(j+1))
+             CALL calc_delkerr(delkerr,delkerrp,e_2(j),e_2(j+1)) ! 2nd ored eq.; it requires derivative
           ENDIF
        ENDDO
     ENDDO
 
 
     !==================================
-    ! THE APPLICATION OF THE PROPAGATOR
+    ! THE APPLICATION OF THE PROPAGATOR (physics in omega-domain)
     !==================================
 
     ! This is the core of the propagation. As the code works in the omega-domain:
@@ -397,26 +417,26 @@ CONTAINS
     !  3) it goes back to time domain
 
     SELECT CASE (switch_T) ! decision over various propagators
-    CASE(1)
-       continue
-    CASE(2)
+    CASE(1) 
+       continue ! non-lin step is done becasue the full exponential was applied in the previous switch
+    CASE(2) 
        CALL dfftw_execute(plan_forward_erk)
        CALL dfftw_execute(plan_p)
        CALL dfftw_execute(plan_j)
        DO k=dim_r_start(num_proc),dim_r_end(num_proc)
           DO l=1,dim_t
-             etemp(l,k)=etemp(l,k)+op_t(l)*ptemp(l,k)+op_t_inv(l)*jtemp(l,k)
+             etemp(l,k)=etemp(l,k)+op_t(l,k)*ptemp(l,k)+op_t_inv(l,k)*jtemp(l,k) ! Euler step in omega-space (intermediate step of Runge-Kutta)
           ENDDO
        ENDDO
-       CALL dfftw_execute(plan_backward_erk)
-       etemp=diminv*etemp
-    CASE(3)
+       CALL dfftw_execute(plan_backward_erk) ! field to time domain
+       etemp=diminv*etemp ! fft - normalization
+    CASE(3) ! possibly merge with the previous case (CASE(2,3))
        CALL dfftw_execute(plan_forward_erk) 
        CALL dfftw_execute(plan_p)
        CALL dfftw_execute(plan_j)
        DO k=dim_r_start(num_proc),dim_r_end(num_proc)
-          DO l=dim_th+1,dim_t
-             etemp(l,k)=etemp(l,k)+op_t(l)*ptemp(l,k)+op_t_inv(l)*jtemp(l,k)
+          DO l=dim_th+1,dim_t ! different range - this is the cutting of high freq. (low-pass filter)
+             etemp(l,k)=etemp(l,k)+op_t(l,k)*ptemp(l,k)+op_t_inv(l,k)*jtemp(l,k)
           ENDDO
        ENDDO
        CALL dfftw_execute(plan_backward_erk)
@@ -427,7 +447,7 @@ CONTAINS
        CALL dfftw_execute(plan_j)
        DO k=dim_r_start(num_proc),dim_r_end(num_proc)
           DO l=1,dim_t
-             etemp(l,k)=etemp(l,k)+op_t(l)*ptemp(l,k)+op_t_inv(l)*jtemp(l,k)
+             etemp(l,k)=etemp(l,k)+op_t(l,k)*ptemp(l,k)+op_t_inv(l,k)*jtemp(l,k)
           ENDDO
        ENDDO
        CALL dfftw_execute(plan_backward_erk)
@@ -439,6 +459,8 @@ CONTAINS
     ! PHYSICS IN TIME DOMAIN
     !=======================
 
+    ! The second step of the Runge-Kutta (fft (correxponding to the previous case) is done in the main cuprad routine)
+
     ! Physical effects in time domain and on-the-fly analyses are computed here:
 
     DO l=dim_r_start(num_proc),dim_r_end(num_proc)
@@ -448,7 +470,7 @@ CONTAINS
        delkerr=0.D0
        delkerrp=0.d0
       IF (apply_pre_ionisation) THEN
-         rhotemp = initial_electron_density_tip(r,z,l,dim_r_start(num_proc))
+         rhotemp = initial_electron_density(r,z,l,dim_r_start(num_proc))
       ELSE
          rhotemp = 0.D0
       ENDIF
@@ -465,13 +487,13 @@ CONTAINS
        mediumabs=0.D0
        CALL index_interpolation(phase_index,r)
        phase_index=phase_index*delta_z
-       CALL calc_rho(rhotemp,mpa,0.D0,e_2(1))
+       CALL calc_rho(rhotemp,mpa,0.D0,e_2(1),l)
        CALL calc_absorption(rhoabstemp, mediumabs, 0.D0,e_2(1))
        DO j=1,dim_t
-          phase_p=(c3i*e_2(j)+c3d*delkerr-c5*e_2(j)**2)*((1.D0-rhotemp*rhoat_inv)+ions_Kerr_ratio*rhotemp*rhoat_inv)*delta_z
+          phase_p=(c3i*e_2(j)+c3d*delkerr-c5*e_2(j)**2)*((density_mod(l)-rhotemp*rhoat_inv)+ions_Kerr_ratio*rhotemp*rhoat_inv)*delta_z
           !phase_p=(c3i*e_2(j)+c3d*delkerr-c5*e_2(j)**2)*delta_z
           phase_j=-gamma2*rhotemp*delta_z
-          losses_j=-gamma1*rhotemp*delta_z
+          losses_j=-gamma1*density_mod(l)*rhotemp*delta_z
           phase=phase_p+phase_j+phase_index
           SELECT CASE (switch_T)
           CASE(1)
@@ -481,9 +503,9 @@ CONTAINS
              jtemp(j,l)=etemp(j,l)*CMPLX(0.D0,phase_j)
              e(j,l)=e(j,l)*exp(CMPLX(losses_j-delta_z*(mpa+mediumabs),phase_index,8))
           CASE(3)
-             ptemp(j,l)=etemp(j,l)*CMPLX(0.D0,phase_p) + hfac(j,4)*CONJG(hfac(j,0)*etemp(j,l))*CMPLX(0.D0,phase_p) &
+             ptemp(j,l)=etemp(j,l)*CMPLX(0.D0,phase_p) + (hfac(j,4)*CONJG(hfac(j,0)*etemp(j,l))*CMPLX(0.D0,phase_p) &
                   + 2.D0*(hfac(j,1)*(hfac(j,0)*etemp(j,l))**3 + hfac(j,2)*(hfac(j,0)*etemp(j,l))**3*e_2(j)) &
-                  + 2.D0*(hfac(j,3)*(hfac(j,0)*etemp(j,l))**5)
+                  + 2.D0*(hfac(j,3)*(hfac(j,0)*etemp(j,l))**5))*((density_mod(l)-rhotemp*rhoat_inv)+ions_Kerr_ratio*rhotemp*rhoat_inv)
              jtemp(j,l)=etemp(j,l)*CMPLX(0.D0,phase_j)
              e(j,l)=e(j,l)*exp(CMPLX(losses_j-delta_z*(mpa+mediumabs),phase_index,8))
           CASE(4)
@@ -492,7 +514,7 @@ CONTAINS
              e(j,l)=e(j,l)*exp(CMPLX(losses_j-delta_z*(mpa+mediumabs),phase_index,8))
           END SELECT
           IF (j.NE.dim_t) THEN
-             CALL calc_rho(rhotemp,mpa,e_2(j),e_2(j+1))
+             CALL calc_rho(rhotemp,mpa,e_2(j),e_2(j+1),l)
              CALL calc_absorption(rhoabstemp, mediumabs, e_2(j), e_2(j+1))
              CALL calc_delkerr(delkerr,delkerrp,e_2(j),e_2(j+1))
           ENDIF

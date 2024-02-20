@@ -1,0 +1,13 @@
+#!/bin/bash
+
+SRC="../sources"
+SRC_TEST="../benchmarks/interps"
+
+# gfortran -c -g  -Wconversion -fimplicit-none -fbacktrace -ffree-line-length-0 -fcheck=all -ffpe-trap=invalid,zero,overflow,underflow -finit-real=nan ${SRC}/array_helper.f90 ${SRC}/test_bisection_search.f90 
+gfortran -c -g  -Wconversion -fimplicit-none -fbacktrace -ffree-line-length-0 -fcheck=all -ffpe-trap=invalid,zero,overflow,underflow -finit-real=nan ${SRC}/array_helper.f90 ${SRC_TEST}/test_interps.f90 
+gfortran -o arrays.e -g -Wconversion -fimplicit-none -fbacktrace -ffree-line-length-0 -fcheck=all -ffpe-trap=invalid,zero,overflow,underflow -finit-real=nan *.o
+
+rm *.o
+
+
+# Wall -Wextra -Warray-temporaries -Wconversion -fimplicit-none -fbacktrace -ffree-line-length-0 -fcheck=all -ffpe-trap=invalid,zero,overflow,underflow -finit-real=nan

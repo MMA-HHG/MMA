@@ -13,7 +13,8 @@ if(${CMAKE_Fortran_COMPILER_ID} MATCHES Intel)
     set(FFTW_LIBS mkl_gf_lp64 mkl_sequential mkl_core)
     include_directories(${MKL_INCLUDE_DIRS})
     link_directories(${MKL_LIB_DIRS})
-    set(CMAKE_Fortran_FLAGS "-O3 -warn")
+#    set(CMAKE_Fortran_FLAGS "-O3")
+    set(CMAKE_Fortran_FLAGS "-check all -warn all -traceback -fpe0 -fp-stack-check -diag-disable=8889 -check noarg_temp_created") # disabel warning caused by the direct uses of mkl- & mpi-lib procedures
 elseif(${CMAKE_Fortran_COMPILER_ID} MATCHES GNU)
     find_library(fftw3 fftw3)
     set(CMAKE_Fortran_FLAGS "-O3 -Wall -std=gnu -fcheck=all -Wno-compare-reals -fbacktrace -ffixed-line-length-none -ffree-line-length-none -g")
@@ -23,7 +24,8 @@ else()
 endif()
 
 find_package(HDF5 REQUIRED COMPONENTS Fortran HL)
-find_package(MPI REQUIRED Fortran)
+find_package(MPI REQUIRED)
+
 
 ### Define variables
 ### ================
@@ -31,14 +33,14 @@ find_package(MPI REQUIRED Fortran)
 set(PROPAGATION cuprad.e)
 set(S_PROPAGATION sources/constants.f90 sources/linked_list_module.f90 
     sources/hdf5_helper_serial.f90 sources/hdf5_helper.f90 sources/array_helper.f90 
-    sources/modules.f90 sources/pre_ionised.f90 sources/code_ionisation.f90 
+    sources/global_variables.f90 sources/pre_ionised.f90 sources/density_mod.f90 sources/code_ionisation.f90 
     sources/fft_rk.f90 sources/finalize.f90 sources/firststep.f90 sources/longstep_rk.f90 
     sources/output.f90 sources/cuprad.f90)
 
 ### Preprocessor - preparation of 'results.h5' file
 set(MAKE_START make_start.e)
 set(S_MAKE_START sources/constants.f90 sources/hdf5_helper_serial.f90 
-    sources/hdf5_helper.f90 sources/write_start.f90 sources/calc_start.f90 
+    sources/write_start.f90 sources/calc_start.f90 
     sources/normalisation.f90 sources/write_listing.f90 sources/default_inputs.f90 
     sources/make_start.f90)
 
@@ -58,5 +60,6 @@ target_link_libraries(${MAKE_START} ${HDF5_LIBRARIES} ${FFTW_LIBS})
 ### ===================
 add_custom_target(clean_preprocessor COMMAND rm -f listing STOP *.DAT *.LOG)
 add_custom_target(clean_modules COMMAND rm -f *.mod)
-add_custom_target(code DEPENDS clean_preprocessor ${MAKE_START} ${PROPAGATION})
 add_custom_target(preprocessor DEPENDS clean_preprocessor ${MAKE_START})
+add_custom_target(code DEPENDS clean_preprocessor ${MAKE_START} ${PROPAGATION})
+

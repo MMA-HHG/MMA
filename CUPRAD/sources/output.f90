@@ -10,6 +10,12 @@
 ! The change to HDF5 was designed by Jan Vabek and 
 ! co-implemented by Jakub Jelinek
 
+
+!> @brief This module collect all the procedures for storing outputs of the code.
+!!
+!! @author Jan Vábek
+!! @author Stefan Skupin
+!! @author Jakub Jelínek
 MODULE output
   USE constants
   USE fields
@@ -22,6 +28,10 @@ MODULE output
   USE HDF5_helper
   USE h5namelist
   USE pre_ionised
+
+  ! for testing
+  USE density_module
+
 CONTAINS
   
   SUBROUTINE write_output
@@ -65,14 +75,17 @@ CONTAINS
 
     REAL(8) :: local_time_MPI
 
+
+    ! DENSITY MOD
+    REAL  :: density_mod_data(1,dim_r)
       
     field_dimensions = 3
     allocate(fields_array(dim_r_local,dim_t, 1))
 
-local_time_MPI  = MPI_Wtime()
-IF (my_rank.EQ.0) THEN
-  print *, "before field conversion:", local_time_MPI - start_time_MPI
-ENDIF  
+      local_time_MPI  = MPI_Wtime()
+      IF (my_rank.EQ.0) THEN
+        print *, "before field conversion:", local_time_MPI - start_time_MPI
+      ENDIF  
 
     r_offset = dim_r_start(num_proc)-1
     DO k1=1, dim_r_local
@@ -85,10 +98,10 @@ ENDIF
     ENDDO
     ENDDO
 
-local_time_MPI  = MPI_Wtime()
-IF (my_rank.EQ.0) THEN
-  print *, "before plasma calculation:", local_time_MPI - start_time_MPI
-ENDIF  
+        local_time_MPI  = MPI_Wtime()
+        IF (my_rank.EQ.0) THEN
+          print *, "before plasma calculation:", local_time_MPI - start_time_MPI
+        ENDIF  
 
     ! allocate(plasma_array(1,dim_r_local,dim_t))
 
@@ -99,7 +112,7 @@ ENDIF
       e_2=ABS(e(1:dim_t,l))**2
       e_2KK=e_2**KK
       IF (apply_pre_ionisation) THEN
-         rhotemp = initial_electron_density_tip(r,z,l,dim_r_start(num_proc))
+         rhotemp = initial_electron_density(r,z,l,dim_r_start(num_proc))
       ELSE
          rhotemp = 0.D0
       ENDIF
@@ -120,7 +133,7 @@ ENDIF
       DO j=1,dim_t
          e_2KKm2(j)=rhotemp
          IF (j.NE.dim_t) THEN
-            CALL calc_rho(rhotemp,mpa,e_2(j),e_2(j+1))
+            CALL calc_rho(rhotemp,mpa,e_2(j),e_2(j+1),l)
          ENDIF
       ENDDO
       
@@ -148,10 +161,10 @@ ENDIF
     offset_shape = (/int(dim_r_start(num_proc)-1,HSIZE_T),int(0,HSIZE_T), int(output_write_count-1,HSIZE_T) /)
     ccount_shape = (/int(dim_r_local,HSIZE_T), int(dim_t,HSIZE_T), int(1,HSIZE_T)/)
 
-local_time_MPI  = MPI_Wtime()
-IF (my_rank.EQ.0) THEN
-  print *, "before file openning:", local_time_MPI - start_time_MPI
-ENDIF  
+      local_time_MPI  = MPI_Wtime()
+      IF (my_rank.EQ.0) THEN
+        print *, "before file openning:", local_time_MPI - start_time_MPI
+      ENDIF  
 
     CALL h5open_f(error) 
     CALL h5pcreate_f(H5P_FILE_ACCESS_F, h5parameters, error) ! create HDF5 access parameters
@@ -169,26 +182,26 @@ ENDIF
       ENDIF
           
       ! Call writing routine
-local_time_MPI  = MPI_Wtime()
-IF (my_rank.EQ.0) THEN
-  print *, "before data write:", local_time_MPI - start_time_MPI
-ENDIF  
+        local_time_MPI  = MPI_Wtime()
+        IF (my_rank.EQ.0) THEN
+          print *, "before data write:", local_time_MPI - start_time_MPI
+        ENDIF  
 
       CALL create_3D_array_real_dset_p(file_id, field_dset_name, fields_array, dims_shape, offset_shape, ccount_shape)
 
-local_time_MPI  = MPI_Wtime()
-IF (my_rank.EQ.0) THEN
-  print *, "fields written:", local_time_MPI - start_time_MPI
-ENDIF 
+        local_time_MPI  = MPI_Wtime()
+        IF (my_rank.EQ.0) THEN
+          print *, "fields written:", local_time_MPI - start_time_MPI
+        ENDIF 
       CALL create_3D_array_real_dset_p(file_id, plasma_dset_name, plasma_array, dims_shape, offset_shape, ccount_shape)
 
       ! Terminate
       CALL h5fclose_f(file_id,error)
 
-local_time_MPI  = MPI_Wtime()
-IF (my_rank.EQ.0) THEN
-  print *, "file collectivelly closed:", local_time_MPI - start_time_MPI
-ENDIF
+          local_time_MPI  = MPI_Wtime()
+          IF (my_rank.EQ.0) THEN
+            print *, "file collectivelly closed:", local_time_MPI - start_time_MPI
+          ENDIF
 
       IF (my_rank.EQ.0) THEN ! single-write start
         CALL h5fopen_f (main_h5_fname, H5F_ACC_RDWR_F, file_id, error) ! Open an existing file.
@@ -214,6 +227,13 @@ ENDIF
         CALL create_1D_dset_unlimited(file_id, zgrid_dset_name, (/REAL(four_z_Rayleigh*z,4)/), 1) ! the actual z-coordinate in SI units 
         CALL h5_add_units_1D(file_id, zgrid_dset_name, '[m]')
 
+        !! TEST DENSITY MODULATION
+        ! ALLOCATE(density_mod_data(1,dim_r))
+        DO k1 = 1, dim_r
+          density_mod_data(1,k1) = REAL( density_mod(k1), 4 ) !!! SINGLE PRECISION
+        ENDDO 
+        CALL create_2D_dset_unlimited(file_id, "test_density", density_mod_data, dim_r) 
+
         CALL h5fclose_f(file_id, error) ! close the file
 
 
@@ -222,25 +242,25 @@ ENDIF
 
     ELSE !!!! APPENDING THE DATA IN NEXT ITERATIONS
 
-local_time_MPI  = MPI_Wtime()
-IF (my_rank.EQ.0) THEN
-  print *, "before data write:", local_time_MPI - start_time_MPI
-ENDIF  
+          local_time_MPI  = MPI_Wtime()
+          IF (my_rank.EQ.0) THEN
+            print *, "before data write:", local_time_MPI - start_time_MPI
+          ENDIF  
 
-      CALL write_hyperslab_to_dset_p(file_id, field_dset_name, fields_array, offset_shape, ccount_shape)
+                CALL write_hyperslab_to_dset_p(file_id, field_dset_name, fields_array, offset_shape, ccount_shape)
 
-local_time_MPI  = MPI_Wtime()
-IF (my_rank.EQ.0) THEN
-  print *, "fields written:", local_time_MPI - start_time_MPI
-ENDIF 
+          local_time_MPI  = MPI_Wtime()
+          IF (my_rank.EQ.0) THEN
+            print *, "fields written:", local_time_MPI - start_time_MPI
+          ENDIF 
 
-      CALL write_hyperslab_to_dset_p(file_id, plasma_dset_name, plasma_array, offset_shape, ccount_shape)
-      CALL h5fclose_f(file_id,error)
+                CALL write_hyperslab_to_dset_p(file_id, plasma_dset_name, plasma_array, offset_shape, ccount_shape)
+                CALL h5fclose_f(file_id,error)
 
-local_time_MPI  = MPI_Wtime()
-IF (my_rank.EQ.0) THEN
-  print *, "file collectivelly closed:", local_time_MPI - start_time_MPI
-ENDIF  
+          local_time_MPI  = MPI_Wtime()
+          IF (my_rank.EQ.0) THEN
+            print *, "file collectivelly closed:", local_time_MPI - start_time_MPI
+          ENDIF  
 
       IF (my_rank.EQ.0) THEN ! only one worker is extending the zgrid
         CALL h5open_f(error)  !Initialize HDF5
@@ -249,7 +269,20 @@ ENDIF
         CALL extend_1D_dset_unlimited(file_id, zgrid_dset_name, (/REAL(four_z_Rayleigh*z,4)/),& ! the actual z-coordinate in SI units 
               new_dims=(/int(output_write_count,HSIZE_T)/),  memspace_dims=(/int(1,HSIZE_T)/),&
               offset=(/int(output_write_count-1,HSIZE_T)/), hyperslab_size=(/int(1,HSIZE_T)/))
+        
+
+        !! TEST DENSITY MODULATION
+        DO k1 = 1, dim_r
+          density_mod_data(1,k1) = REAL( density_mod(k1), 4 ) !!! SINGLE PRECISION
+        ENDDO 
+        CALL extend_2D_dset_unlimited(file_id, "test_density", density_mod_data, & 
+                                      new_dims = (/int(output_write_count, HSIZE_T), int(dim_r, HSIZE_T)/), & 
+                                      memspace_dims = (/int(1,HSIZE_T), int(dim_r, HSIZE_T)/), & 
+                                      offset = (/int(output_write_count-1,HSIZE_T),int(0,HSIZE_T)/), & 
+                                      hyperslab_size = (/int(1,HSIZE_T), int(dim_r, HSIZE_T)/))
+
         CALL h5fclose_f(file_id,error)
+
       ENDIF ! single-write end
     ENDIF
 
@@ -777,110 +810,3 @@ ENDIF
   END SUBROUTINE  Efield_out
 
 END MODULE output
-
-
-
-!  SUBROUTINE matlab_out
-!     USE fft
-!     IMPLICIT NONE
-
-!     INTEGER(4) j,k,l
-!     REAL(8) rhotemp,r,mpa
-!     COMPLEX(8) help
-!     CHARACTER*10 iz,filename
-        
-
-!     WRITE(iz,920) z
-!     DO k=1,10
-!        IF (iz(k:k).EQ.' ') iz(k:k)='0'
-!        IF (iz(k:k).EQ.'.') iz(k:k)='_'
-!     ENDDO
-!     IF (my_rank.EQ.0) THEN
-!        filename='non'
-!        OPEN(unit_logfile,FILE='MERGE_RAD.LOG',STATUS='UNKNOWN')
-!        DO
-!           READ(unit_logfile,*,END=999) filename
-!        ENDDO
-! 999    CONTINUE
-!        CLOSE(unit_logfile)
-!     ENDIF
-
-!     CALL MPI_BCAST(filename,10,MPI_CHARACTER,0,MPI_COMM_WORLD,ierr)
-
-!     IF (filename.NE.iz) THEN
-
-!        IF(my_rank.EQ.0) THEN
-!           OPEN(unit_logfile,FILE='MERGE_RAD.LOG',STATUS='UNKNOWN',POSITION='APPEND')
-!           WRITE(unit_logfile,*) iz
-!           CLOSE(unit_logfile)
-!        ENDIF
-!        OPEN(unit_field,FILE=iz//'_FIELD_'//ip//'.DAT',STATUS='UNKNOWN',FORM='UNFORMATTED')
-!        WRITE(unit_field) dim_t,dim_r,num_proc
-!        WRITE(unit_field) REAL(delta_t,4),REAL(delta_r,4),REAL(tlo,4)
-!        DO j=dim_r_start(num_proc),dim_r_end(num_proc)
-!           WRITE(unit_field) CMPLX(e(1:dim_t,j),KIND=4)
-!        ENDDO
-!        CLOSE(unit_field)
-
-!        OPEN(unit_field,FILE=iz//'_PLASMA_'//ip//'.DAT',STATUS='UNKNOWN',FORM='UNFORMATTED')
-!        WRITE(unit_field) dim_t,dim_r,num_proc
-!        WRITE(unit_field) REAL(delta_t,4),REAL(delta_r,4),REAL(tlo,4)
-!        DO l=dim_r_start(num_proc),dim_r_end(num_proc)
-!           e_2=ABS(e(1:dim_t,l))**2
-!           e_2KK=e_2**KK
-!           rhotemp=rho0
-!           rhompi=0.D0
-!           rho1=0.D0
-!           rho2=0.D0
-!           rhoth=0.D0
-!           rhotr=0.D0
-!           rhofh=0.D0
-!           rhoslg2=0.D0
-!           rhoav=0.D0
-!           rhoO2=rho0
-!           rhoN2=0.D0
-!           Tev=T_init_eV_phys
-!           DO j=1,dim_t
-!              e_2KKm2(j)=rhotemp
-!              IF (j.NE.dim_t) THEN
-!                 CALL calc_rho(rhotemp,mpa,e_2(j),e_2(j+1))
-!              ENDIF
-!           ENDDO
-!           WRITE(unit_field) REAL(e_2KKm2,4)
-!        ENDDO
-!        CLOSE(unit_field)
-
-!        etemp=CSHIFT(e,dim_t/2-1,1)
-!        CALL dfftw_execute(plan_spec)
-!        DO l=dim_r_start(num_proc),dim_r_end(num_proc)
-!           DO  j=1,dim_th
-!              help=etemp(j+dim_t/2,l)
-!              etemp(j+dim_t/2,l)=etemp(j,l)
-!              etemp(j,l)=help
-!           ENDDO
-!        ENDDO
-       
-!        e_2(1:dim_t)=0.D0
-!        e_2KKm2(1:dim_t)=0.D0
-!        DO l=dim_r_start(num_proc),dim_r_end(num_proc)
-!           r=REAL(l-1)*delta_r
-!           e_2(1:dim_t)=e_2(1:dim_t)+ABS(etemp(1:dim_t,l))**2*REAL(l-1,8)
-!           IF (rfil.GT.r) e_2KKm2(1:dim_t)=e_2KKm2(1:dim_t)+ABS(etemp(1:dim_t,l))**2*REAL(l-1,8)
-!        ENDDO
-
-
-!        CALL MPI_REDUCE(e_2(1:dim_t),e_2KK(1:dim_t),dim_t,MPI_DOUBLE_PRECISION,MPI_SUM,0,MPI_COMM_WORLD,ierr)
-!        CALL MPI_REDUCE(e_2KKm2(1:dim_t),e_2(1:dim_t),dim_t,MPI_DOUBLE_PRECISION,MPI_SUM,0,MPI_COMM_WORLD,ierr)
-!        IF (my_rank.EQ.0) THEN
-!           OPEN(unit_field,FILE=iz//'_spect_1d.dat',STATUS='UNKNOWN',RECL=2**10)
-!           DO j=1,dim_t
-!              WRITE(unit_field,*) REAL(k_t*REAL(j-1-dim_th,8)+omega_uppe,4),REAL(e_2KK(j),4),REAL(e_2(j),4), &
-!                   REAL(ABS(etemp(j,1))**2,4),REAL(ATAN2(AIMAG(etemp(j,1)),REAL(etemp(j,1))+1.D-20),4)
-!           ENDDO
-!           CLOSE(unit_field)
-!        ENDIF
-!     ENDIF
-
-! 920 FORMAT (F10.6)
-!     RETURN
-!   END SUBROUTINE  matlab_out

@@ -1,7 +1,8 @@
-! This module is used for buffering data during the computation
-!
-! This module was taken directly from http://fortranwiki.org/fortran/show/gen_list
-
+!> @brief This module is used for buffering data during the computation.
+!!
+!! The implementation is taken from https://web.archive.org/web/20230509021941/https://fortranwiki.org/fortran/show/gen_list
+!!
+!! @author Jason R. Blevins
 MODULE linked_list
   IMPLICIT NONE
 

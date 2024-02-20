@@ -1,153 +1,159 @@
-! It was developed by Jan Vabek
-! 
-! method
-! 1 - constant (ratio compared to neutrals)
-! 2 - full-table
-! 3 - r-table
-! 4 - z-table
-! It replaces the original rho0 in the code
-
-! units
-! 1 - relative
-! 2 - cm-3
-
+!> @brief This module allows for the use of pre-ionised media.
+!!
+!! The philosophy is similar to \ref density_module. The simplest case is
+!! a constant pre-ionisation, but any pre-ionisation profile can be used.
+!! The pre-ionisation is always relative to the local density (a care is then
+!! needed if combined with non-trivial \ref density_module "density modulation").
+!! 
+!! @author Jan Vábek
 module pre_ionised
+
 use HDF5
 use HDF5_helper
 use array_helper
 use parameters
+use fields
 use normalization
+use h5namelist
+use density_module
 
 use mpi_stuff ! only for testing ot print procnumber etc., remove after
 
 implicit none
 private
-public  :: init_pre_ionisation, initial_electron_density, initial_electron_density_tip
+public  :: init_pre_ionisation, initial_electron_density !, initial_electron_density_guess
 
 
-logical, public                         :: apply_pre_ionisation
-integer                                 :: method_geometry, method_units
+logical, public                         :: apply_pre_ionisation !< TRUE: the pre-ionisation is applied; FALSE: no pre-ionisation. Depends on \ref h5namelist::pre_ionised_grpname "pre_ionised_grpname".
+!> @cond INCLUDE_PRE_IONISATION_MOD_INTERNALS
+integer                                 :: h5err
+real(8), dimension(:), allocatable      :: rgrid, zgrid
 integer                                 :: Nr, Nz
-real(8), dimension(:), allocatable      :: rgrid
-real(8), dimension(:), allocatable      :: zgrid
-real(8), dimension(:,:), allocatable    :: table_2D
-real(8), dimension(:), allocatable      :: table_1D
-real(8)                                 :: rho0_loc ! there is rho0 in the global scope (parameters)
-integer, parameter, dimension(3)        :: table_geometries = (/2,3,4/)
-integer, parameter, dimension(2)        :: table_1D_geometries = (/3,4/)
+real(8), dimension(:,:), allocatable    :: initial_electrons_ratio_matrix
+real(8)                                 :: initial_electrons_ratio_scalar
+logical                                 :: scalar_case = .false.
+!> @endcond
+
 
 CONTAINS
-! preparation
+
+!> @brief This subroutine initialises the interpolation procedure te retrieve the density modulation based
+!! on the table stored in 'file_id'. It is called if \apply_density_mod in the initial phase of the code.
+!!
+!! @param[in]       file_id          The id of the main HDF5 file. 
 subroutine init_pre_ionisation(file_id)
     integer(hid_t)              :: file_id
     real(8)                     :: dumr
 
+    real(8), dimension(:), allocatable      :: dumr_arr_1D
+
+    logical                                 :: rgrid_exists, zgrid_exists, initial_electrons_ratio_exists
+
     print *, 'pre-inoisation accessed, proc', my_rank
 
-    call read_dset(file_id, 'pre_ionised/method_geometry',method_geometry)
-    call read_dset(file_id, 'pre_ionised/method_units',method_units)
-    select case (method_geometry)
-        case (1)
-            if (method_units == 1) then
-                call read_dset(file_id, 'pre-processed/rhoat_inv',dumr) ! inverse of the neutrals density, C.U.
-                call read_dset(file_id, 'pre_ionised/initial_electrons_ratio',rho0_loc)
-                rho0_loc = rho0_loc/dumr ! C.U.
-                print *, 'the initial atom density is',1.0D0/dumr, 'proc', my_rank
-                print *, 'the initial density is',rho0_loc, 'proc', my_rank
-                return
-            elseif (method_units == 2) then
-                call read_dset(file_id, 'pre-processed/density_normalisation_factor',dumr) ! conversion factor (cm-3 -> C.U.)
-                call read_dset(file_id, 'pre_ionised/initial_electron_density',rho0_loc) ! in cm-3
-                rho0_loc = dumr*rho0_loc ! C.U.
-                return
-            endif
-        case (2)
-            call ask_for_size_1D(file_id, 'pre_ionised/rgrid', Nr)
-            call read_dset(file_id, 'pre_ionised/rgrid', rgrid, Nr)
-            rgrid = rgrid/w0m ! m -> C.U.
-            call ask_for_size_1D(file_id, 'pre_ionised/zgrid', Nz)
-            call read_dset(file_id, 'pre_ionised/zgrid', zgrid, Nz)
-            zgrid = zgrid/four_z_Rayleigh ! m -> C.U.
-            call read_dset(file_id, 'pre_ionised/table', table_2D, Nr, Nz)
-        case (3)
-            call ask_for_size_1D(file_id, 'pre_ionised/rgrid', Nr)
-            call read_dset(file_id, 'pre_ionised/rgrid', rgrid, Nr)
-            rgrid = rgrid/w0m ! m -> C.U.
-            call read_dset(file_id, 'pre_ionised/table', table_1D, Nr)
-        case (4)
-            call ask_for_size_1D(file_id, 'pre_ionised/zgrid', Nz)
-            call read_dset(file_id, 'pre_ionised/zgrid', zgrid, Nz)
-            zgrid = zgrid/four_z_Rayleigh ! m -> C.U.
-            call read_dset(file_id, 'pre_ionised/table', table_1D, Nz)
-    end select
 
-    !if (method_units == 1)  then ! any( table_geometries == method_geometry) eventual condition for extended prescriptions
-    !    call read_dset(file_id, 'pre-processed/rhoat_inv',dumr) ! inverse of the neutrals density, C.U.
-    !    dumr = 1.D0/dumr ! conversion factor (- -> C.U.)
-    !elseif (method_units == 2) then
-    !    call read_dset(file_id, 'pre-processed/density_normalisation_factor',dumr) ! conversion factor (cm-3 -> C.U.)
-    !endif
+    call h5lexists_f(file_id, density_mod_grpname//'/zgrid',zgrid_exists,h5err)
+    call h5lexists_f(file_id, density_mod_grpname//'/rgrid',rgrid_exists,h5err)
+    call h5lexists_f(file_id, density_mod_grpname//'/initial_electrons_ratio',initial_electrons_ratio_exists,h5err)
+    
+    ! We create a matrix in all the cases. If only one grid is provided, max-z (-r) values are used
+
+    if (zgrid_exists.and. rgrid_exists) then
+        call ask_for_size_1D(file_id, density_mod_grpname//'/rgrid', Nr)
+        call read_dset(file_id, density_mod_grpname//'/rgrid', rgrid, Nr)
+        rgrid = rgrid/w0m ! convert units [m -> C.U.]
+        call ask_for_size_1D(file_id, density_mod_grpname//'/zgrid', Nz)
+        call read_dset(file_id, density_mod_grpname//'/zgrid', zgrid, Nz)
+        zgrid = zgrid/four_z_Rayleigh ! convert units [m -> C.U.]
+
+        call read_dset(file_id, density_mod_grpname//'/initial_electrons_ratio', initial_electrons_ratio_matrix, Nr, Nz)
+
+        initial_electrons_ratio_matrix = initial_electrons_ratio_matrix/rhoat_inv ! convert units
+
+
+    elseif (zgrid_exists) then
+        call ask_for_size_1D(file_id, density_mod_grpname//'/zgrid', Nz)
+        call read_dset(file_id, density_mod_grpname//'/zgrid', zgrid, Nz)
+        zgrid = zgrid/four_z_Rayleigh ! convert units [m -> C.U.]
+
+        rgrid = (/0.d0, delta_r*dim_r/); Nr = 2
+
+        allocate(initial_electrons_ratio_matrix(2,Nz))
+        call read_dset(file_id, density_mod_grpname//'/initial_electrons_ratio', dumr_arr_1D, Nz)
+        initial_electrons_ratio_matrix(1,:) = dumr_arr_1D/rhoat_inv
+        initial_electrons_ratio_matrix(2,:) = dumr_arr_1D/rhoat_inv
+
+    elseif (rgrid_exists) then
+        call ask_for_size_1D(file_id, density_mod_grpname//'/rgrid', Nr)
+        call read_dset(file_id, density_mod_grpname//'/rgrid', rgrid, Nr)
+        rgrid = rgrid/w0m ! convert units [m -> C.U.]
+
+        zgrid = (/0.d0, proplength/); Nz = 2
+
+        allocate(initial_electrons_ratio_matrix(Nr,2))
+        call read_dset(file_id, density_mod_grpname//'/initial_electrons_ratio', dumr_arr_1D, Nr)
+        initial_electrons_ratio_matrix(:,1) = dumr_arr_1D/rhoat_inv
+        initial_electrons_ratio_matrix(:,2) = dumr_arr_1D/rhoat_inv
+
+    elseif (initial_electrons_ratio_exists) then        
+        call read_dset(file_id, pre_ionised_grpname//'/initial_electrons_ratio',initial_electrons_ratio_scalar)
+        initial_electrons_ratio_scalar = initial_electrons_ratio_scalar/rhoat_inv
+        scalar_case = .true.
+        
+    else
+        error stop 'pre-ionisation group present, but inputs therein are wrongly specified'
+    endif
+
 end subroutine init_pre_ionisation
 
 
-!
-function initial_electron_density(r,z,reset_rtip) ! already rescaled to C.U.
+!> @brief This function returns the pre-ionisation at (*r*, *z*).
+!!
+!! 'kr_actual', 'kr_first' are needed for bookkeeping.
+!!
+!! @param[in]       r               The local *r*-coordinate.
+!! @param[in]       z               The local *z*-coordinate.
+!! @param[in]       kr_actual       The index of the radial coordinate.
+!! @param[in]       kr_first        The first *r*-index for this MPI process
+function initial_electron_density(r,z,kr_actual,kr_first) ! already rescaled to C.U.
     real(8)                    :: initial_electron_density
     real(8)                    :: r,z 
-    logical, optional          :: reset_rtip
+    integer                    :: kr_actual, kr_first
     integer                    :: kr,kz    
 
     logical, save              :: first_run = .true.
-    integer, save              :: my_first_kr_tip
-    integer, save              :: kr_tip, kz_tip
+    integer, save              :: my_kr_start, kr_guess, kz_guess = 1
 
-    if (method_geometry == 1) then
-        initial_electron_density = rho0_loc;
+    if (scalar_case) then
+        initial_electron_density = density_mod(kr_actual)*initial_electrons_ratio_scalar
         return
     endif
 
     if (first_run) then
-        if ( (method_geometry == 2) .or. (method_geometry == 3) ) then
-            call findinterval(my_first_kr_tip,r,rgrid,Nr) ! obtain tip, assume it's first called at right place
-            kr_tip = my_first_kr_tip
+        if (kr_actual == kr_first) then
+            call findinterval(my_kr_start,r,rgrid) ! obtain guess, assume it's first called at right place
+        else
+            error stop "initial_electron_density requires to be firstly called for kr_actual = kr_first"
         endif
-        if ( (method_geometry == 2) .or. (method_geometry == 4) ) kz_tip = 1
         first_run = .false.
     endif
 
-    if (present(reset_rtip)) then
-        if ( ( (method_geometry == 2) .or. (method_geometry == 3) ) .and. (reset_rtip) ) kr_tip = my_first_kr_tip
-    endif
-
-    select case (method_geometry)
-        case (2)
-            call findinterval(kr,kz,r,z,rgrid,zgrid,Nr,Nz,kx_tip=kr_tip,ky_tip=kz_tip)
-            kr_tip = kr; kz_tip = kz
-            call interpolate2D_decomposed_eq(kr,kz,r,z,initial_electron_density,rgrid,zgrid,table_2D,Nr,Nz)
-            return
-        case (3)  
-            call findinterval(kr,r,rgrid,Nr,k_tip=kr_tip)
-            kr_tip = kr;
-            call interpolate1D_decomposed_eq(kr,r,initial_electron_density,rgrid,table_1D,Nr)
-            return
-        case (4)   
-            call findinterval(kz,z,zgrid,Nz,k_tip=kz_tip)
-            kz_tip = kz;
-            call interpolate1D_decomposed_eq(kz,z,initial_electron_density,zgrid,table_1D,Nz)
-            return   
-    end select
-end function
-
-function initial_electron_density_tip(r,z,k_actual,k_first) 
-    real(8)                    :: initial_electron_density_tip
-    real(8)                    :: r,z 
-    integer                    :: k_actual,k_first
-
-    if (k_actual == k_first) then
-        initial_electron_density_tip = initial_electron_density(r,z,reset_rtip=.TRUE.)
+    if (kr_actual == kr_first) then
+        kr = my_kr_start
     else
-        initial_electron_density_tip = initial_electron_density(r,z)
+        call findinterval(kr,r,rgrid,k_guess = kr_guess)
     endif
+
+    kr_guess = kr ! save kr for the next run
+
+    call findinterval(kz,z,zgrid,k_guess = kz_guess)
+    kz_guess = kz ! save kz for the next run
+
+    ! call interpolate2D_decomposed_eq(kr,kz,r,z,initial_electron_density,rgrid,zgrid,initial_electrons_ratio_matrix,Nr,Nz)
+    
+    call interpolate_lin(r,z,initial_electron_density,rgrid,zgrid,initial_electrons_ratio_matrix,Nr,Nz,kx_known=kr,ky_known=kz)
+    initial_electron_density = density_mod(kr_actual)*initial_electron_density
+    return
 
 end function
 

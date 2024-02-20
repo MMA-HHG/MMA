@@ -33,7 +33,7 @@ PROGRAM test_modules
 
   print *,"tip"
   do k1 = 1,11
-    call interpolate_lin(x_test(k1),fx,default_array,default_array+2,Np, k_tip = 50)
+    call interpolate_lin(x_test(k1),fx,default_array,default_array+2,Np, k_guess = 50)
     print *, x_test(k1), fx  
   enddo
 
@@ -42,13 +42,13 @@ PROGRAM test_modules
   call interpolate_lin(1.5D0,1.5D0,fxy,default_array0,default_array0,array2d,Np,Np)
   print *, 1.5D0, 1.5D0, fxy 
 
-  call interpolate_lin(1.5D0,1.5D0,fxy,default_array0,default_array0,array2d,Np,Np, kx_tip = 50)
+  call interpolate_lin(1.5D0,1.5D0,fxy,default_array0,default_array0,array2d,Np,Np, kx_guess = 50)
   print *, 1.5D0, 1.5D0, fxy 
 
-  call interpolate_lin(1.5D0,1.5D0,fxy,default_array0,default_array0,array2d,Np,Np, ky_tip = 50)
+  call interpolate_lin(1.5D0,1.5D0,fxy,default_array0,default_array0,array2d,Np,Np, ky_guess = 50)
   print *, 1.5D0, 1.5D0, fxy 
 
-  call interpolate_lin(1.5D0,1.5D0,fxy,default_array0,default_array0,array2d,Np,Np, kx_tip = 50, ky_tip = 50)
+  call interpolate_lin(1.5D0,1.5D0,fxy,default_array0,default_array0,array2d,Np,Np, kx_guess = 50, ky_guess = 50)
   print *, 1.5D0, 1.5D0, fxy 
 
   call interpolate_lin(-1.0D0,-1.0D0,fxy,default_array0,default_array0,array2d,Np,Np)
