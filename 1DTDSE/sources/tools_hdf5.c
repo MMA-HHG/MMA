@@ -72,9 +72,6 @@ void ReadInputs(hid_t file_id, char *inpath, herr_t *h5error, inputs_def *in)
 	// Number of points of the initial spatial grid
 	path[0] = '\0';	strcat(strcat(path,inpath),"N_r_grid");
 	readint(file_id, path, h5error,&(*in).num_r); 
-	// Number of points of the spatial grid for the expansion
-	path[0] = '\0';	strcat(strcat(path,inpath),"N_r_grid_exp");
-	readint(file_id, path, h5error,&(*in).num_exp); 
 	// resolution for the grid
 	path[0] = '\0';	strcat(strcat(path,inpath),"dx");
 	readreal(file_id, path, h5error,&(*in).dx); 
@@ -87,45 +84,9 @@ void ReadInputs(hid_t file_id, char *inpath, herr_t *h5error, inputs_def *in)
 	// Number of points of the spatial grid for the expansion
 	path[0] = '\0';	strcat(strcat(path,inpath),"Ntinterp");
 	readint(file_id, path, h5error,&(*in).Ntinterp); 
-	// Extension of the calculation after the last fields ends !!! ONLY FOR ANALYTICAL FIELD
-	path[0] = '\0';	strcat(strcat(path,inpath),"textend");
-	readreal(file_id, path, h5error,&(*in).textend); 
-	// Write wavefunction (1-writing every tprint)
-	path[0] = '\0';	strcat(strcat(path,inpath),"analy_writewft");
-	readint(file_id, path, h5error,&(*in).analy.writewft); 
-	// Time spacing for writing the wavefunction	
-	path[0] = '\0';	strcat(strcat(path,inpath),"analy_tprint");
-	readreal(file_id, path, h5error,&(*in).analy.tprint); 
 	// the limit of the integral for the ionisation (works fine with the lenth gauge and strong fields)
 	path[0] = '\0';	strcat(strcat(path,inpath),"x_int");
 	readreal(file_id, path, h5error,&(*in).x_int);  
-	// print Gabor and partial spectra
-	path[0] = '\0';	strcat(strcat(path,inpath),"PrintGaborAndSpectrum");
-	readint(file_id, path, h5error,&(*in).PrintGaborAndSpectrum); 
-	// the parameter of the gabor window [a.u.]
-	path[0] = '\0';	strcat(strcat(path,inpath),"a_Gabor");
-	readreal(file_id, path, h5error,&(*in).a_Gabor); 
-	// maximal frequency in Gabor [a.u.]
-	path[0] = '\0';	strcat(strcat(path,inpath),"omegaMaxGabor");
-	readreal(file_id, path, h5error,&(*in).omegaMaxGabor); 
-	// spacing in Gabor
-	path[0] = '\0';	strcat(strcat(path,inpath),"dtGabor");
-	readreal(file_id, path, h5error,&(*in).dtGabor); 
-	// analyse 1st part of the dipole
-	path[0] = '\0';	strcat(strcat(path,inpath),"tmin1window");
-	readreal(file_id, path, h5error,&(*in).tmin1window); 
-	// analyse 1st part of the dipole
-	path[0] = '\0';	strcat(strcat(path,inpath),"tmax1window");
-	readreal(file_id, path, h5error,&(*in).tmax1window); 
-	// analyse 2nd part of the dipole
-	path[0] = '\0';	strcat(strcat(path,inpath),"tmin2window");
-	readreal(file_id, path, h5error,&(*in).tmin2window); 
-	// analyse 2nd part of the dipole
-	path[0] = '\0';	strcat(strcat(path,inpath),"tmax2window");
-	readreal(file_id, path, h5error,&(*in).tmax2window); 
-	// (0 - only text, 1 - only binaries, 2 - both)
-	path[0] = '\0';	strcat(strcat(path,inpath),"PrintOutputMethod");
-	readint(file_id, path, h5error,&(*in).PrintOutputMethod); 
 	// Target parameter
 	path[0] = '\0';	strcat(strcat(path,inpath),"trg_a");
 	readreal(file_id, path, h5error,&(*in).trg.a); 
@@ -246,13 +207,13 @@ void PrintOutputs(hid_t file_id, char *inpath, herr_t *h5error,  inputs_def *in,
 	if ( (*in).Print.FEfield == 1 )
 	{
 		path[0] = '\0';	strcat(strcat(path,inpath),"FEfield");
-		print_nd_array_h5(file_id, path, h5error, 2, output_dims, (*out).FEfield_data, H5T_NATIVE_DOUBLE);
+		print_nd_array_h5(file_id, path, h5error, 2, output_dims, (*out).FEfield, H5T_NATIVE_DOUBLE);
 	}
 
 	if ( (*in).Print.Fsourceterm == 1 )
 	{
 		path[0] = '\0';	strcat(strcat(path,inpath),"FSourceTerm");
-		print_nd_array_h5(file_id, path, h5error, 2, output_dims, (*out).Fsourceterm_data, H5T_NATIVE_DOUBLE);
+		print_nd_array_h5(file_id, path, h5error, 2, output_dims, (*out).Fsourceterm, H5T_NATIVE_DOUBLE);
 	}
 
 	// omega domain - real
@@ -682,13 +643,13 @@ void print_local_output_fixed_h5(hid_t file_id, char *inpath, herr_t *h5error,
 	if ( (*in).Print.FEfield == 1 )
 	{
 		path[0] = '\0';	strcat(strcat(path,inpath),"FEfield");	
-		rw_hyperslab_nd_h5(file_id, path, h5error, 2, dimsloc, hoffset, hcount, (*out).FEfield_data, "w");
+		rw_hyperslab_nd_h5(file_id, path, h5error, 2, dimsloc, hoffset, hcount, (*out).FEfield, "w");
 	}
 
 	if ( (*in).Print.Fsourceterm == 1 )
 	{
 		path[0] = '\0';	strcat(strcat(path,inpath),"FSourceTerm");
-		rw_hyperslab_nd_h5(file_id, path, h5error, 2, dimsloc, hoffset, hcount, (*out).Fsourceterm_data, "w");
+		rw_hyperslab_nd_h5(file_id, path, h5error, 2, dimsloc, hoffset, hcount, (*out).Fsourceterm, "w");
 		printf("Print FSourceTerm \n");
 	}
 
@@ -720,4 +681,60 @@ void print_local_output_fixed_h5(hid_t file_id, char *inpath, herr_t *h5error,
 	*h5error = H5Dwrite (dset_id, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, H5P_DEFAULT, &foo);
 	printf("Print number_of_local_simulations \n");
 	*h5error = H5Dclose(dset_id); // dataset
+}
+
+
+/**
+ * @brief Returns printing structure for HDF5 writing and sets all prints according
+ * to the input HDF5 file.
+ * 
+ * @return output_print_def 
+ */
+output_print_def Set_prints_from_HDF5(hid_t file_id, char *inpath, herr_t *h5error)
+{
+	output_print_def res;
+	char path[50];
+	int dum_int;
+
+	res = Initialise_Printing_struct();
+	path[0] = '\0';	strcat(strcat(path,inpath),"print_Efield");
+	readint(file_id, path, h5error,&dum_int);
+	if(dum_int==1){res.Efield = 1;}
+
+	path[0] = '\0';	strcat(strcat(path,inpath),"print_Source_Term");
+	readint(file_id, path, h5error,&dum_int);
+	if(dum_int==1){res.sourceterm = 1;}
+
+	path[0] = '\0';	strcat(strcat(path,inpath),"print_F_Source_Term");
+	readint(file_id, path, h5error,&dum_int);
+	if(dum_int==1){res.Fsourceterm = 1;}
+
+	path[0] = '\0';	strcat(strcat(path,inpath),"print_F_Efield_M2");
+	readint(file_id, path, h5error,&dum_int);
+	if(dum_int==1){res.FEfieldM2 = 1;}
+
+	path[0] = '\0';	strcat(strcat(path,inpath),"print_F_Efield");
+	readint(file_id, path, h5error,&dum_int);
+	if(dum_int==1){res.FEfield = 1;}
+
+	path[0] = '\0';	strcat(strcat(path,inpath),"print_F_Source_Term_M2");
+	readint(file_id, path, h5error,&dum_int);
+	if(dum_int==1){res.FsourceTermM2 = 1;}
+
+	path[0] = '\0';	strcat(strcat(path,inpath),"print_GS_population");
+	readint(file_id, path, h5error,&dum_int);
+	if(dum_int==1){res.PopTot = 1;}
+
+	path[0] = '\0';	strcat(strcat(path,inpath),"print_integrated_population");
+	readint(file_id, path, h5error,&dum_int);
+	if(dum_int==1){res.PopInt = 1;}
+
+	path[0] = '\0';	strcat(strcat(path,inpath),"print_x_expectation_value");
+	readint(file_id, path, h5error,&dum_int);
+	if(dum_int==1){res.expval_x = 1;}
+
+	res.tgrid = 1; // not memory consuming
+	res.omegagrid = 1; // not memory consuming
+
+	return res;
 }

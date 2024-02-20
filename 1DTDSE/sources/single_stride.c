@@ -35,7 +35,7 @@ int k1;
 clock_t start_main, finish_main;
 
 
-int main(int argc, char *argv[]) 
+int main() 
 {
 	// vars:
 	const char filename_stub[] = "hdf5_temp_";
@@ -50,6 +50,9 @@ int main(int argc, char *argv[])
 	// Processing the queue
 	// counter of simulations, indices in the Field array
     int kr, kz; 
+    char h5_filename[1000];
+    get_filename(h5_filename);
+    char output_h5_file[50];
 
 	int comment_operation = 1;
 
@@ -66,7 +69,7 @@ int main(int argc, char *argv[])
     start_main = clock(); 
 
 	// Create parameters & load initial data
-	file_id = H5Fopen("results.h5", H5F_ACC_RDONLY, H5P_DEFAULT); 
+	file_id = H5Fopen(h5_filename, H5F_ACC_RDONLY, H5P_DEFAULT); 
 	ReadInputs(file_id, "TDSE_inputs/", &h5error, &inputs);
 	inputs.Print = Set_prints_from_HDF5(file_id, "TDSE_inputs/", &h5error);
 	dims = get_dimensions_h5(file_id, "outputs/output_field", &h5error, &ndims, &datatype);
@@ -91,11 +94,11 @@ int main(int argc, char *argv[])
     kz = dims[2];
 
     // Prompt the particular field from the output field array
-    while (kr >= dims[1] || kr < 0) {
+    while (kr >= (int)dims[1] || kr < 0) {
         printf("Set the index in the radial dimension: ");
         scanf("%d", &kr);
     }
-    while (kz >= dims[2] || kz < 0) {
+    while (kz >= (int)dims[2] || kz < 0) {
         printf("Set the index in the propagation dimension: ");
         scanf("%d", &kz);
     }
@@ -148,7 +151,7 @@ int main(int argc, char *argv[])
     double *rgrid_CUPRAD, *zgrid_CUPRAD;
 
     // find proper simulation & load the field
-    file_id = H5Fopen("results.h5", H5F_ACC_RDONLY, H5P_DEFAULT);
+    file_id = H5Fopen(h5_filename, H5F_ACC_RDONLY, H5P_DEFAULT);
     
     dum3int[0] = kz; 
     dum3int[1] = -1; 
@@ -172,23 +175,22 @@ int main(int argc, char *argv[])
 
     // do the TDSE calculation
     printf("Starting the computation.\n");
-    outputs = call1DTDSE(&inputs); // THE TDSE
+    call1DTDSE(&inputs, &outputs); // THE TDSE
 
     // resize grids
     int Nr_coarse, Nz_coarse;
-    coarsen_grid_real(rgrid_CUPRAD, Nr_CUPRAD, &rgrid_coarse, &Nr_coarse, kr_step, Nr_max);
-    coarsen_grid_real(zgrid_CUPRAD, Nz_CUPRAD, &zgrid_coarse, &Nz_coarse, kz_step, Nz_max);
+    coarsen_grid_real(rgrid_CUPRAD, &rgrid_coarse, &Nr_coarse, kr_step, Nr_max);
+    coarsen_grid_real(zgrid_CUPRAD, &zgrid_coarse, &Nz_coarse, kz_step, Nz_max);
 
     // create local output .h5 file
-    local_filename[0] = '\0'; 
-    dumchar1[0] = '\0'; 
-    sprintf(dumchar1, "%07d", 0);
-    strcat(local_filename,filename_stub); 
-    strcat(local_filename,dumchar1); 
-    strcat(local_filename,".h5");		
+    // Construct the string
+    sprintf(output_h5_file, "results_(%d,%d).h5", kr, kz);
+
+    // Print the result
+    printf("Resulting string: %s\n", output_h5_file);	
 
     // Create a new temporary HDF5 file	
-    file_id = H5Fcreate (local_filename, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
+    file_id = H5Fcreate (output_h5_file, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
 
     prepare_local_output_fixed_print_grids_h5(file_id, "", &h5error, &inputs, &outputs, 1, dims);
     print_local_output_fixed_h5(file_id,"", &h5error, &inputs, &outputs, 1, 0, 0);

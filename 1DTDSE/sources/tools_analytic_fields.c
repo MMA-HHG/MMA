@@ -5,8 +5,6 @@
 clock_t start, finish;
 clock_t start2, finish2;
 
-extern double* timet,dipole;
-
 // extern struct Efield_var;
 
 double AField(struct Efield_var F, double t) // ANAlytic field is -dA/dt, the sign!

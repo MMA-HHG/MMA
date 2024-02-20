@@ -167,28 +167,14 @@ typedef struct inputs_def {
 	double dt;
 	// Spatial grid size for TDSE
 	int num_r;
-	// Number of points of the spatial grid for the expansion
-	int num_exp;
 	// Spatial step
 	double dx;
 	// Initial wavefunction
 	double *psi0;
-	// Wavefunction in time t
-	double *psi;
 	// Spatial grid for the TDSE
 	double *x;
-	// Start of the envelope
-	double ton;
-	// End of the envelope
-	double toff;
-	// Time grid TDSE
-	double *timet;
-	// TDSE dipole
-	double *dipole;
 	// Choice of gauge
 	int gauge;
-	// Gauge transform
-	int transformgauge;
 	// Integration limit for the ionization computation, note: 2 works fine with the lenth gauge and strong fields
 	double x_int;
 	// Specifies output dataset
@@ -196,19 +182,6 @@ typedef struct inputs_def {
 	// Switches (1 = yes)
 	int InterpByDTorNT;
 	int Ntinterp; 
-	int PrintGaborAndSpectrum;
-	// Switch (0 - only text, 1 - only binaries, 2 - both)
-	int PrintOutputMethod;	
-	// extension of the calculation after the last fields ends !!! NOW ONLY FOR ANALYTICAL FIELD
-	double textend;
-	// Gabor variables
-	double dtGabor;
-	double tmin1window;
-	double tmin2window; 
-	double tmax1window; 
-	double tmax2window; 
-	double a_Gabor; 
-	double omegaMaxGabor;
 	// I/O printing structure
 	struct output_print_def Print;
 	// Precision of the ground state energy
@@ -219,8 +192,6 @@ typedef struct inputs_def {
 typedef struct outputs_def{ 
 	// Temporal grid
 	double *tgrid;
-	// Temporal grid for FFTW
-	double *tgrid_fftw;
 	// Electric field
 	double *Efield;
 	// Source term (current)
@@ -228,17 +199,13 @@ typedef struct outputs_def{
 	// Angular frequency grid
 	double *omegagrid;
 	// Field spectrum
-	double **FEfield;
-	double *FEfield_data;
+	double *FEfield;
 	// Source term spectrum
-	double **Fsourceterm;
-	double *Fsourceterm_data;
+	double *Fsourceterm;
 	double *FEfieldM2;
 	double *FsourcetermM2;
 	// Population of the ground state
 	double *PopTot;
-	// Filtered source term
-	double *sourcetermfiltered;
 	// Ionization probability
 	double *PopInt;
 	// Expectation value of x
@@ -247,12 +214,15 @@ typedef struct outputs_def{
 	int Nt; 
 	// Number of frequency gridpoints
 	int Nomega;
+	// Wavefunction in time t
+	double **psi;
 } outputs_def;
 
 // functions operating on them
 output_print_def Initialise_Printing_struct(void);
 void outputs_destructor(outputs_def *);
 void inputs_destructor(inputs_def *);
+void free_mtrx(double ** buf, int N_rows);
 output_print_def Initialise_Printing_struct(void);
 output_print_def Set_all_prints(void);
 

@@ -1,4 +1,436 @@
-# Development
+<!-- omit in toc -->
+# CTDSE
+CTDSE is a 1-dimensional time-dependent Schrödinger equation solver (1D-TDSE) written in C language. The purpose of the code is to evaluate the microscopic response, i.e. the observables, during the propagation of the electric field. The solver is based on the grid method and the propagation scheme employs operator splitting and the Crank-Nicolson method. 
+
+The code offers multiple binaries and interactive interfaces for various tasks:
+* **MPI-CTDSE**: computation of microscopic responses in the whole medium for cylindrically symmetrical macroscopic fields from CUPRAD,
+* **single-CTDSE**: evaluation of a single microscopic response for only one field from the macroscopic CUPRAD field
+* **CTDSE as a dynamic library**: interactive Python interface wrapping C routines for the propagation enabling advanced analysis of the microscopic response as well as the ability to impose arbitrary electric field. 
+
+The default recipe allows the installation of all the binaries. We provide also a simpler installation for the *CTDSE as a dynamic library*.
+
+<!-- omit in toc -->
+# Table of contents
+- [Install CTDSE as a part of the multiscale model](#install-ctdse-as-a-part-of-the-multiscale-model)
+	- [Dependencies](#dependencies)
+	- [Setup environment variables](#setup-environment-variables)
+		- [Known issues with environment variables](#known-issues-with-environment-variables)
+	- [CMake installation](#cmake-installation)
+		- [Built targets](#built-targets)
+- [Install only the dynamic CTDSE library](#install-only-the-dynamic-ctdse-library)
+	- [Dependencies](#dependencies-1)
+	- [CMake installation](#cmake-installation-1)
+- [Test installation](#test-installation)
+- [User guide](#user-guide)
+	- [MPI-TDSE for the CUPRAD output](#mpi-tdse-for-the-cuprad-output)
+		- [Preprocessing the HDF5 input](#preprocessing-the-hdf5-input)
+		- [MPI-TDSE code execution](#mpi-tdse-code-execution)
+		- [HDF5 temporary files merge](#hdf5-temporary-files-merge)
+		- [Batch job pipeline for MPI-TDSE](#batch-job-pipeline-for-mpi-tdse)
+	- [Single field caller](#single-field-caller)
+	- [Python-TDSE wrapper](#python-tdse-wrapper)
+
+# Install CTDSE as a part of the multiscale model
+## Dependencies
+Before installing CTDSE, a few dependencies are required:
+* a **C compiler** (GNU/Intel),
+* **CMake** utility,
+* an **MPI** library,
+* an **HDF5** library,
+* an **FFTW3** library (for GNU) OR corresponding **MKL** library containing FFTW3 libraries compatible with Intel C compiler,
+* **Python** (3.+) with *h5py, ctypes, numpy, matplotlib* modules.
+* **Universal inputs** Python module (see README in the home directory of CUPRAD_TDSE_Hankel)
+
+**NOTE**: MPI library is not required for **single-CTDSE** code. *If MPI is not found on the system*, the following steps apply, however, **MPI-CTDSE** *will not be built!*
+
+## Setup environment variables
+
+On HPC the variables are set by loading the corresponding modules, e.g.
+```shell
+module load cmake gcc openmpi fftw3 hdf5
+```
+If the modules are selected and installed properly (compatible modules), then the variables ```LD_LIBRARY_PATH``` and ```CPATH``` should include the paths to the dependency libraries and header files.
+
+### Known issues with environment variables
+For the **Intel compiler** and **MKL** binding, the ```CPATH``` variable may be set incorrectly and may not include the correct path to the FFTW3 headers. The error will show up during the compilation phase, stating that the header ```<fftw3.h>``` is missing. 
+
+If the problem occurs, the workaround is to set the correct include path for the MKL header either by editing the ```.bashsrc``` file or modifying the ```CPATH``` variable in the current session as follows:
+```shell
+export CPATH=${CPATH}:${MKLROOT}/include/fftw
+```
+where ```MKLROOT``` is a variable pointing towards the MKL installation and is set on HPC by loading the module MKL.
+
+## CMake installation
+The CMake utility is used to build a Makefile that eventually builds the CDTSE code. 
+
+1. First move into the CTDSE root directory, create a new directory ```build```, and move into this directory as follows
+   ```shell
+   # PWD = ../CUPRAD_TDSE_Hankel/1DTDSE
+   mkdir build
+   cd build
+   ```
+2. The next step involves invoking the ```cmake``` command and specification of the compiler. For the GNU compiler do the following:
+   ```shell
+   # GNU Compiler = mpicc
+   cmake -D CMAKE_C_COMPILER=mpicc ..
+   ```
+
+   For the Intel compiler do:
+   ```shell
+   # Intel Compiler = mpiicc
+   cmake -D CMAKE_C_COMPILER=mpiicc ..
+   ```
+
+   If all the environment variables were set properly (see section [Setup environment variables](#setup-environment-variables)) or modules loaded correctly, CMake should generate a new ```Makefile``` file in the ```build``` directory. 
+
+3. The code is then compiled with the ```make``` command:
+	```shell
+	# PWD = ../CUPRAD_TDSE_Hankel/1DTDSE/build
+	make
+	```
+4. If no error was displayed, the following files were generated by the makefile: ```TDSE.e```, ```TDSE_stride.e```, ```libsingleTDSE.so``` (or ```libsingleTDSE.dylib``` depending on the system)
+
+**NOTE**: ```CMAKE_C_COMPILER``` variable can also be set to ```gcc``` (for GNU compiler) or ```icc``` (for Intel compiler). This is necessary for building only the **single-CTDSE** and the **CTDSE as a dynamic library** without an MPI library (necessary for **MPI-CTDSE**).
+
+### Built targets
+* ```TDSE.e``` (**MPI-CTDSE**): MPI scheduler for the execution of the parallel computation of the microscopic response for the field from CUPRAD,
+* ```TDSE_stride.e``` (**Single-CTDSE**): serial code for running 1D-TDSE on a single output from the CUPRAD field. 
+* ```libsingleTDSE.so``` (**CTDSE as a dynamic library**): core C dynamic library for running the 1DTDSE from the interactive Python environment. 
+<!--
+## Advanced compilation options
+
+## Python-TDSE library compilation
+-->
+
+
+# Install only the dynamic CTDSE library
+
+For some use cases, it might be sufficient to only compile the CTDSE library for running the code on a local machine without the necessity of having MPI or HDF5 installed.
+
+## Dependencies
+* a **C compiler** (GNU/Intel),
+* **CMake** utility,
+* an **FFTW3** library (for GNU) OR corresponding **MKL** library containing FFTW3 libraries compatible with Intel C compiler,
+* **Python** (3.+) with *h5py, ctypes, numpy, matplotlib* modules.
+
+## CMake installation
+1. Replace ```CMakeLists.txt``` with ```CMakeLists_dll_only.txt``` which contains the following:
+	```cmake
+	### CMake file for The dynamic 1D-TDSE library
+	cmake_minimum_required(VERSION 3.13)
+
+	project(TDSE)
+	enable_language(C)      
+
+	message("Compiler: ${CMAKE_C_COMPILER}")
+	message("Compiler ID: ${CMAKE_C_COMPILER_ID}")
+
+	if(${CMAKE_C_COMPILER_ID} MATCHES Intel)
+		set(MKL_INCLUDE_DIRS ${MKLROOT}/include/fftw)
+		set(MKL_LIB_DIRS ${MKLROOT}/lib)
+		set(FFTW_LIBS mkl_gf_lp64 mkl_sequential mkl_core)
+	elseif(${CMAKE_C_COMPILER_ID} MATCHES GNU)
+		find_library(fftw3 fftw3)
+		set(FFTW_LIBS fftw3) 
+	elseif(${CMAKE_C_COMPILER_ID} MATCHES AppleClang)
+		find_library(fftw3 fftw3)
+		set(FFTW_LIBS fftw3 fftw3_mpi)
+	else()
+		message(FATAL_ERROR "Unsupported C compiler: ${CMAKE_C_COMPILER}")
+	endif()
+
+	set(SOURCE_DLL sources/constants.c sources/tools_algorithmic.c 
+		sources/tridiag.c sources/tools_fftw3.c sources/structures.c 
+		sources/tools.c sources/prop.c sources/singleTDSE.c)
+
+	set(TDSE_LIB singleTDSE)
+
+	add_library(${TDSE_LIB} SHARED ${SOURCE_DLL})
+	target_link_libraries(${TDSE_LIB} PRIVATE ${FFTW_LIBS} ${HDF5_LIBRARIES})
+	target_include_directories(${TDSE_LIB} PRIVATE ${HDF5_INCLUDE_DIRS})
+	target_link_options(${TDSE_LIB} PRIVATE -fPIC)
+	```
+2. Move into the CTDSE root directory to create a new directory ```build``` and move into this directory:
+   ```shell
+   # PWD = ../CUPRAD_TDSE_Hankel/1DTDSE
+   mkdir build
+   cd build
+   ```
+2. The next step involves invoking the ```cmake``` command and specification of the compiler. For the GNU compiler do the following:
+   ```shell
+   # GNU Compiler = gcc
+   cmake -D CMAKE_C_COMPILER=gcc ..
+   ```
+
+   For the Intel compiler do:
+   ```shell
+   # Intel Compiler = icc
+   cmake -D CMAKE_C_COMPILER=icc ..
+   ```
+
+   If all the environment variables were set properly (see section [Setup environment variables](#setup-environment-variables)) CMake should generate a new ```Makefile``` file in the ```build``` directory. 
+
+3. The code is then compiled using the ```make``` command:
+	```shell
+	# PWD = ../CUPRAD_TDSE_Hankel/1DTDSE/build
+	make
+	```
+4. If no error was displayed, the dynamic library (DLL) ```libsingleTDSE.so``` (or ```libsingleTDSE.dylib``` depending on the system) has been created.
+
+
+<!-- omit in toc -->
+### Local installation (Ubuntu 18.04 subsystem) 
+``apt-get install build-essential``
+``apt-get install libhdf5-dev``
+`` sudo apt-get install hdf5-helpers ``
+cmake may have problems with h5cc (worked with v3.15.7)
+check the fftw3 installation (`-fPIC`)
+
+# Test installation
+The validity of the installation can be checked using the Python `unittest` module. The tests are implemented within the `tests.py` file. After successful compilation of the C-TDSE dynamic library `libsingleTDSE.dll` located in `build/`, run the script as follows with command line argument `-d` or `--dll`, which specifies the path to the DLL, to check the results:
+```bash
+python tests.py -d build/libsingleTDSE.dll
+```
+The test executes a single 1D-TDSE computation and compares the results with precomputed dataset `ionization.h5`.
+
+# User guide
+
+## MPI-TDSE for the CUPRAD output
+MPI-TDSE scheduler takes the output field obtained from the previous computation of the CUPRAD code. The scheduler reads the fields from an HDF5 archive and for each field in $(r, z)$ coordinate executes a single 1DTDSE propagation routine. Each process stores the result data in its dedicated temporary HDF5 archive, e.g. for process 1 it will be ```hdf5_temp_0000001.h5```. 
+
+Before the execution of the MPI-TDSE, we must preprocess the output ```results.h5``` file from CUPRAD.
+
+### Preprocessing the HDF5 input
+The file ```results.h5``` is, by default, stored within the ```CUPRAD/build/``` directory after the execution of CUPRAD. It will be copied and preprocessed from this directory by default (can be overridden). 
+
+<!-- omit in toc -->
+#### Parameter file
+The input file `TDSE_input_params.inp` is an example input file containing numerical parameters for the execution of the MPI-TDSE code. **Be advised to keep a backup of this file before overwriting it with custom parameters**. 
+The file has a predefined structure along with explanatory comments for each parameter and looks as follows:
+```
+## Example TDSE input file used for preprocessing of HDF5 file
+## ------------------
+## This file is read by the python preprocessor ```post_processing/prepare_TDSE.py```
+## and saves the values stored here into the HDF5 archive into the group 
+## "TDSE_inputs/". 
+##
+## Brief explanation:
+## HDF5_variable_name  |  <value>  |  <type: real (R), integer (I)>  |  <units>  |  # comment
+
+## Coarser grid parameters
+kz_step 1  I   -
+# Nz_max  1250 I   -
+kr_step 4  I   -
+Nr_max  400 I   -
+
+## Control outputs: here we set the outputs we would like to save into 
+## the temporary HDF5 file (1 == keep, 0 == not keep)
+print_GS_population             1   I   -   
+print_integrated_population     1   I   -
+print_Efield                    1   I   -
+print_F_Efield                  0   I   -
+print_Source_Term               0   I   -
+print_F_Source_Term             1   I   -
+print_x_expectation_value       1   I   -
+print_GS                        1   I   -
+print_F_Efield_M2               0   I   -
+print_F_Source_Term_M2          0   I   -
+
+## Numerical and starting parameters
+Eguess	-1	R	a.u.	# Energy of the initial state (guess)
+N_r_grid	16000	I	-	# Number of points of the initial TDSE spatial grid 
+dx	0.4	    R	a.u.	# Resolution for the grid
+x_int	2.0	R	a.u.    # Probability for finding electron in range (x-x_int, x + x_int)
+CV_criterion_of_GS  1e-25   R   -   # Convergence parameter for ground state search
+gauge_type  0   I   -   # Choice of gauge (0 == length) <-- other gauges NOT IMPLEMENTED
+InterpByDTorNT	0	I	-	# Refine resolution only for numerical fields (0 - by dt, 1 - by number of points)
+dt	0.25	R	a.u.	# Resolution in time
+Ntinterp	1	I	-	# Number of intermediate points for the interpolation
+
+## Target definition
+trg_a	1.3677	R	a.u. # |Krypton Ip = 0.5145 a.u. a = 1.3677, Argon Ip = 0.5792 a = 1.1893
+```
+
+<!-- omit in toc -->
+##### Coarser grid parameters
+The parameters `Nz_max` and `Nr_max` for grid coarsening are optional. Enables to coarsen the CUPRAD electric grid for the computation, decreasing the resolution for the MPI-TDSE.
+
+<!-- omit in toc -->
+##### Control outputs
+Enables the selection of which parameters should be stored in the temporary HDF5 files generated per process containing the results of MPI-TDSE. 
+
+<!-- omit in toc -->
+##### Numerical and starting parameters
+The notes are self-explanatory. **Be advised to always check the TDSE parameters such as `dx`, `dt`, and `N_r_grid` for a proper wavefunction convergence, the code does not check if the resolution is sufficient!** Note that the `gauge` switch has not been implemented in the current version of the code. 
+
+
+<!-- omit in toc -->
+#### Saving the parameters into an HDF5 file
+After choosing the desired parameters in the input file, simply run the Python script ```prepare_TDSE.py``` in the ```post_processing``` directory from the root TDSE directory using command line keywords `-i (--paramfile)` (.inp parameter file)  and `-o (--outhdf5)` (.h5 output file) as follows:
+```bash
+# PWD = ../CUPRAD_TDSE_Hankel/1DTDSE
+python3 post_processing/prepare_TDSE.py -i input_parameters.inp -o output_archive.h5
+```
+
+For help with the script execution, the user can receive a help message simply by
+```bash
+# PWD = ../CUPRAD_TDSE_Hankel/1DTDSE
+python3 post_processing/prepare_TDSE.py -h
+```
+
+The script will create a copy of the HDF5 file in the directory from which the script was called. If the output hdf5 file is in the same directory as the .h5 results file from CUPRAD, the TDSE inputs are appended to the archive.
+
+We can also preprocess the HDF5 file using a batch job Slurm script as follows:
+```bash
+# PWD = ../CUPRAD_TDSE_Hankel/1DTDSE
+sbatch --export=ALL scripts/prepare_TDSE.sh -i input_parameters.inp -o output_archive.h5 -s
+```
+The option ```--export=ALL``` is necessary for passing the exported variables from the current terminal instance to the batch job. The `-s (--slurm)` option tells the script it is running within the Slurm environment and needs to load the corresponding Python modules. You can again invoke `-h` command for help.
+
+<!-- omit in toc -->
+#### Check the HDF5 file before the execution of the MPI-TDSE – non-obligatory
+To check if all the important parameters have been printed successfully by the Python preprocessor, the script ```hdf5_check.py``` skims through the HDF5 file to find the corresponding parameters necessary for running the MPI-TDSE. It tells the user which parameters are missing. The script can be executed in two ways. Either through command line arguments:
+```bash
+# PWD = ../CUPRAD_TDSE_Hankel/1DTDSE
+python3 hdf5_check.py -i result_file_to_check.h5
+```
+or by simply running the script without the CL argument as
+```bash
+# PWD = ../CUPRAD_TDSE_Hankel/1DTDSE
+python3 hdf5_check.py
+```
+where the script will interactively ask explicitly for the file to be checked:
+```bash
+Type the HDF5 file to check with relative path: 
+result_file_to_check.h5
+*******************************
+
+All OK.
+Check finished.
+```
+
+### MPI-TDSE code execution
+Now with the HDF5 file already preprocessed, we can execute the MPI-TDSE code as
+```bash
+# PWD = ../CUPRAD_TDSE_Hankel/1DTDSE
+mpirun -np N_proc ./build/TDSE.e
+```
+or using a batch job Slurm script ```MPI_TDSE.sh``` as follows:
+```bash
+# PWD = ../CUPRAD_TDSE_Hankel/1DTDSE
+sbatch --ntasks=N_proc --export=ALL scripts/MPI_TDSE.sh
+```
+The option ```--export=ALL``` is necessary for passing the exported variables from the current terminal instance to the batch job. The number of tasks ```--ntasks=N_proc``` must be specified.
+
+**Note: the file `msg.tmp` containing the name of the preprocessed CUPRAD file with the TDSE input parameters must be located in the code execution directory!** If no `msg.tmp` file is available, the code exits with an error! The "msg.tmp" contains the HDF5 archive name on the first line:
+```
+CUPRAD_results_file.h5
+
+
+```
+
+
+The MPI-TDSE schedules each process with a section of data from the output electric field computed from CUPRAD and executes independently a 1D-TDSE per field. It is an *embarrassingly parallel* algorithm in principle. 
+
+In the beginning, each process allocates its own temporary output HDF5 file in the format ```hdf5_temp_*.h5``` ending with an ID of the corresponding process. Hence for ```N_proc``` processes, we get the ```N_proc``` number of temporary HDF5 files. The output arrays are preallocated in advance within the MPI-TDSE code and then the code prints the preselected values, see section [Parameter file](#parameter-file), into these arrays. 
+
+### HDF5 temporary files merge
+We need to merge the temporary ```N_proc``` results ```hdf5_temp_*.h5``` into a single HDF5 file for further analysis. This is done using the last script ```merge.py``` within the ```post_processing``` folder. We invoke the script from the directory with the temporary HDF5 files as follows:
+```bash
+# PWD = ../CUPRAD_TDSE_Hankel/1DTDSE
+python3 post_processing/merge.py
+```
+This will automatically align all the output fields into a single large array of a new HDF5 file ```results_merged.h5```.
+
+If we want to save some space, we can extract only selected arrays of data. The merging script accepts specific CL arguments that enable the choice of relevant arrays. We can see help information (using CL argument ```-h```) from the script:
+```bash
+# PWD = ../CUPRAD_TDSE_Hankel/1DTDSE
+python3 post_processing/merge.py -h
+usage: merge.py [-h] [-p PRINTDATA [PRINTDATA ...]]
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -p PRINTDATA [PRINTDATA ...], --printdata PRINTDATA [PRINTDATA ...]
+                        Select data to print. Available options are 'Efield',
+                        'FEfield', 'SourceTerm', 'FSourceTerm', 'FEfieldM2',
+                        'FSourceTermM2', 'PopTot', 'PopInt', 'expval_x'
+```
+See we can select only a few specific arrays to store: 'Efield', 'FEfield', 'SourceTerm', 'FSourceTerm', 'FEfieldM2', 'FSourceTermM2', 'PopTot', 'PopInt', 'expval_x'. 
+
+To select only 'Efield' and 'SourceTerm', we can type:
+```bash
+python3 post_processing/merge.py -p Efield SourceTerm
+```
+which will merge the corresponding outputs into the merged results HDF5 file. By default, it merges all the available outputs.
+
+We can also merge the data using a batch job Slurm script ```merge_hdf5.sh``` as follows
+```bash
+# PWD = ../CUPRAD_TDSE_Hankel/1DTDSE
+sbatch --export=ALL scripts/merge_hdf5.sh -p "Efield SourceTerm" -s
+```
+The user can specify which variables are stored with the merge operation by the ```-p (--printdata)``` option, the available options as mentioned above. The `-s (--slurm)` option tells the script it is running within the Slurm environment and needs to load the corresponding Python modules. You can again invoke the `-h` command for help.
+
+### Batch job pipeline for MPI-TDSE
+To summarize, we provide the following Slurm batch job pipeline for the MPI-TDSE. For start, we assume having the data from CUPRAD saved as `results.h5`, without the TDSE inputs group embedded in. 
+
+1. We create a copy of the parameter file `TDSE_input_params.inp` with the desired input parameters for the MPI-TDSE as `inp_file.inp`.
+2. The following bash commands are executed:
+	```bash
+	### Input file
+	inp_tdse_filename=/path/to/inp_file/inp_file.inp 
+	### HDF5 archive
+	h5_filename=/path/to/res_file/results.h5
+	### Number of tasks for the MPI-TDSE, say 32
+	ntasks_tdse=32
+	### Print data
+	printdata="Efield SourceTerm"
+
+	### Preprocess input for MPI-TDSE
+	JOB1=$(sbatch --parsable --export=ALL \
+        $TDSE_1D_SCRIPTS/prepare_TDSE.sh --inp $inp_tdse_filename --ohdf5 $h5_filename -s)
+
+	### Submit MPI-TDSE
+	JOB2=$(sbatch --ntasks=$ntasks_tdse --parsable --export=ALL --dependency=afterok:$JOB1 \
+        $TDSE_1D_SCRIPTS/MPI_TDSE.sh)
+
+	### Merge TDSEs
+	JOB3=$(sbatch --parsable --export=ALL --dependency=afterok:$JOB2 \
+        $TDSE_1D_SCRIPTS/merge_hdf5.sh -p $printdata -s)
+	```
+	Note the variable `TDSE_1D_SCRIPTS` is set in advance for the whole multiscale model. 
+3. The dependency jobs are then submitted to the Slurm queue. 
+
+## Single field caller
+The single field caller is the option to run the C-TDSE on a single input from the CUPRAD field output without the Pythonic environment and MPI. 
+
+**Note: the file `msg.tmp` containing the name of the preprocessed CUPRAD file with the TDSE input parameters must be located in the code execution directory!** If no `msg.tmp` file is available, the code exits with an error! The "msg.tmp" contains the HDF5 archive name on the first line:
+```
+CUPRAD_results_file.h5
+
+
+```
+
+First, the caller prints out the dimensions of the CUPRAD field array, e.g.:
+```
+Radial (r) dimension: 1024 
+Propagation (z) dimension: 151
+```
+The caller then asks the user for the indices in the CUPRAD field array. For indices (512, 75) we type:
+```
+Set the index in the radial dimension: 512
+Set the index in the propagation dimension: 75
+```
+The binary then computes the CTDSE given the input parameters in the preprocessed `CUPRAD_results_file.h5` and indices of the field. The output is stored in the new HDF5 file `results_(512,75).h5`.
+
+## Python-TDSE wrapper
+The Python-TDSE wrapper is an API that binds compiled C dynamic library, containing CTDSE functions, with the convenient Python interface. The methods and classes are located in the `PythonTDSE.py` file. 
+
+Because the C language utilizes allocatable arrays and pointers, the approach inevitably comes with many caveats such as memory freeing, etc. The methods for loading the C arrays and freeing memory are implemented, however the user has to manually delete memory once access to the data is no longer required. 
+
+A detailed explanation of the Python-TDSE wrapper is provided in the Jupyter Notebook file `PythonTDSE.ipynb`.
+
+
+<!-- # Development
 
 ## Goals
 TDSE is used as a part of the multi-scale model. It is also usefull itself for various solely microscopic studies. Furthemore, it might have more usages for the macroscopic studies: 1) to process numerical fields from CUPRADS, 2) to create a list of microscopic currents that are used to intepolate the HHG sources in a macroscopic medium.
@@ -249,3 +681,4 @@ Efield.Field = FourInterp(k1, Efield.Field, Efield.Nt); // make the interpolatio
 </pre>
 tricky since a pointer may be lost
 
+-->

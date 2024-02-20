@@ -7,7 +7,6 @@
  */
 
 #include "constants.h"
-#include "tools_hdf5.h"
 #include "singleTDSE.h"
 #include "structures.h"
 #include "prop.h"
@@ -26,11 +25,8 @@
  * @param inputs Input structure.
  * @return outputs_def 
  */
-outputs_def call1DTDSE(inputs_def * inputs)
+void call1DTDSE(inputs_def * inputs, outputs_def * outputs)
 {
-	// Output structure
-	outputs_def outputs;	
-
 	// Wavefunction in time t_n
 	double * psi;
 	// Timestep
@@ -41,34 +37,21 @@ outputs_def call1DTDSE(inputs_def * inputs)
 	int Nt;
 	// Points per cycle of 800nm field
 	int num_t;
-	// Switch
-	int input0 = 1;
 	// Dummy integer
 	int dumint;
 	// Iterable
 	int k1;
 	// Dummy pointer
-	double * dumptrs_real[2];
+	double * dum_ptr;
 	// Local field
 	double * field;
 
 	
 	// local copies of variables given by inputs
 	dt = (*inputs).dt;
-
-	// PREPARATIONAL COMPUTATIONS 
 	
-	// find dt from the grid around 0	
-	switch (input0) {
-	case 0: 
-		dumint = 0; 
-		break; 
-	case 1: 
-		dumint = round((*inputs).Efield.Nt/2.); /* field centered around 0 */ 
-		break;
-	} // choosing the best resolution	
-
-	(*inputs).Efield.dt = (*inputs).Efield.tgrid[dumint+1]-(*inputs).Efield.tgrid[dumint]; 
+	// PREPARATIONAL COMPUTATIONS 
+	(*inputs).Efield.dt = (*inputs).Efield.tgrid[1]-(*inputs).Efield.tgrid[0]; 
 	
 	// total length of the grid
 	tmax = (*inputs).Efield.tgrid[(*inputs).Efield.Nt-1]-(*inputs).Efield.tgrid[0]; 
@@ -79,10 +62,10 @@ outputs_def call1DTDSE(inputs_def * inputs)
 	} else { 
 		k1 = floor((*inputs).Efield.dt/dt); 
 		(*inputs).Ntinterp = k1; 
-		k1++; 
+		if (k1 != 1) k1++; 
 	}
 	dt = (*inputs).Efield.dt/((double)k1); // redefine dt properly
-
+	
 	// Free field and allocate new field array
 	// make the interpolation, note: tgrid does not correspond any more
 	field = FourInterp(k1, (*inputs).Efield.Field, (*inputs).Efield.Nt); 
@@ -99,33 +82,27 @@ outputs_def call1DTDSE(inputs_def * inputs)
 	(*inputs).Efield.dt = dt;
 	(*inputs).num_t = num_t;
 	// Outputs
-	outputs.tgrid = calloc((Nt+1),sizeof(double));
-	outputs.Efield = calloc((Nt+1),sizeof(double));
-	outputs.sourceterm = calloc((Nt+1),sizeof(double));
-	outputs.PopTot = calloc((Nt+1),sizeof(double));
-	outputs.PopInt = calloc((Nt+1),sizeof(double));
-	outputs.expval = calloc((Nt+1),sizeof(double));
-	outputs.Nt = (Nt+1);
+	(*outputs).tgrid = calloc((Nt+1),sizeof(double));
+	(*outputs).Efield = calloc((Nt+1),sizeof(double));
+	(*outputs).sourceterm = calloc((Nt+1),sizeof(double));
+	(*outputs).PopTot = calloc((Nt+1),sizeof(double));
+	(*outputs).PopInt = calloc((Nt+1),sizeof(double));
+	(*outputs).expval = calloc((Nt+1),sizeof(double));
+	(*outputs).Nt = (Nt+1);
 
-	// do the calculation
-	
+	// do the calculation	
 	// Propagate the solution
-	psi = propagation(inputs, &outputs);
+	psi = propagation(inputs, outputs);
 
 	// Compute FFT
-	calcFFTW3(outputs.Nt, dt, tmax, outputs.Efield, &(dumptrs_real[0]), &(dumptrs_real[1]), 
-			  &outputs.FEfield_data, &outputs.FEfieldM2, &outputs.Nomega); 
-	free(dumptrs_real[0]); 
-	free(dumptrs_real[1]);
-	calcFFTW3(outputs.Nt, dt, tmax, outputs.sourceterm, &outputs.tgrid_fftw, 
-			  &outputs.omegagrid, &outputs.Fsourceterm_data, &outputs.FsourcetermM2, 
-			  &outputs.Nomega);
+	calcFFTW3(outputs->Nt, dt, tmax, outputs->Efield, &dum_ptr, 
+			  &(outputs->FEfield), &(outputs->FEfieldM2), &(outputs->Nomega)); 
+	free(dum_ptr);
+	calcFFTW3(outputs->Nt, dt, tmax, outputs->sourceterm, 
+			  &(outputs->omegagrid), &(outputs->Fsourceterm), &(outputs->FsourcetermM2), 
+			  &(outputs->Nomega));
 
-	//free((*inputs).x); 
 	free(psi); 
-	//free((*inputs).psi0);
-	//free((*inputs).Efield.Field);
 	
-	return outputs;
 }
 

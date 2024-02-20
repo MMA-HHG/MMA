@@ -26,6 +26,7 @@ endif()
 find_package(HDF5 REQUIRED COMPONENTS Fortran HL)
 find_package(MPI REQUIRED)
 
+
 ### Define variables
 ### ================
 ### Main propagation

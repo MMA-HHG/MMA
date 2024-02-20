@@ -1,4 +1,10 @@
+"""
+This python script checks if the HDF5 file contains necessary inputs for the 
+1DTDSE.
+"""
+
 import h5py
+import argparse
 
 def test_key(key):
     try:
@@ -9,28 +15,27 @@ def test_key(key):
     else:
         pass
 
-with h5py.File("results.h5", 'r') as f:
+
+ap = argparse.ArgumentParser()
+ap.add_argument("-i", "--inhdf5", required=False, help="Path to HDF5 file to check.")
+args = vars(ap.parse_args())
+
+filename = None
+
+if args['inhdf5'] == None:
+    print("Type the HDF5 file to check with relative path: ")
+    filename = input()
+else:
+    filename = args['inhdf5']
+
+with h5py.File(filename, 'r') as f:
     keys = ["TDSE_inputs/Eguess",
               "TDSE_inputs/N_r_grid",
-              "TDSE_inputs/N_r_grid_exp",
               "TDSE_inputs/dx",
               "TDSE_inputs/InterpByDTorNT",
               "TDSE_inputs/dt",
               "TDSE_inputs/Ntinterp",
-              "TDSE_inputs/textend",
-              "TDSE_inputs/analy_writewft",
-              "TDSE_inputs/analy_tprint",
               "TDSE_inputs/x_int",
-              "TDSE_inputs/textend",
-              "TDSE_inputs/PrintGaborAndSpectrum",
-              "TDSE_inputs/a_Gabor",
-              "TDSE_inputs/omegaMaxGabor",
-              "TDSE_inputs/dtGabor",
-              "TDSE_inputs/tmin1window",
-              "TDSE_inputs/tmax1window",
-              "TDSE_inputs/tmin2window",
-              "TDSE_inputs/tmax2window",
-              "TDSE_inputs/PrintOutputMethod",
               "TDSE_inputs/trg_a",
               "TDSE_inputs/CV_criterion_of_GS",
               "TDSE_inputs/gauge_type",
@@ -43,6 +48,10 @@ with h5py.File("results.h5", 'r') as f:
         if out is not None:
             missing_keys.append(out)
 
-    print("Missing keys:")
-    print(missing_keys)
+    print("*******************************\n")
+    if missing_keys!=[]:
+        print("Missing keys:")
+        print(missing_keys)
+    else:
+        print("All OK.")
     print("Check finished.")

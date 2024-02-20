@@ -13,7 +13,6 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <time.h>
-#include <mpi.h>
 #include "structures.h"
 
 double* propagation(inputs_def * inputs, outputs_def * outputs);

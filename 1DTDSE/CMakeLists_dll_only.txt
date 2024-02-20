@@ -1,0 +1,35 @@
+### CMake file for The dynamic 1D-TDSE library
+cmake_minimum_required(VERSION 3.13)
+
+project(TDSE)
+enable_language(C)      
+
+message("Compiler: ${CMAKE_C_COMPILER}")
+message("Compiler ID: ${CMAKE_C_COMPILER_ID}")
+
+if(${CMAKE_C_COMPILER_ID} MATCHES Intel)
+    set(MKL_INCLUDE_DIRS ${MKLROOT}/include/fftw)
+    set(MKL_LIB_DIRS ${MKLROOT}/lib)
+    set(FFTW_LIBS mkl_gf_lp64 mkl_sequential mkl_core)
+elseif(${CMAKE_C_COMPILER_ID} MATCHES GNU)
+    find_library(fftw3 fftw3)
+    set(FFTW_LIBS fftw3) 
+elseif(${CMAKE_C_COMPILER_ID} MATCHES AppleClang)
+    find_library(fftw3 fftw3)
+    set(FFTW_LIBS fftw3 fftw3_mpi)
+else()
+    message(FATAL_ERROR "Unsupported C compiler: ${CMAKE_C_COMPILER}")
+endif()
+
+set(SOURCE_DLL sources/constants.c sources/tools_algorithmic.c 
+	sources/tridiag.c sources/tools_fftw3.c sources/structures.c 
+	sources/tools.c sources/prop.c sources/singleTDSE.c)
+
+set(TDSE_LIB singleTDSE)
+
+add_library(${TDSE_LIB} SHARED ${SOURCE_DLL})
+target_link_libraries(${TDSE_LIB} PRIVATE ${FFTW_LIBS} ${HDF5_LIBRARIES})
+target_include_directories(${TDSE_LIB} PRIVATE ${HDF5_INCLUDE_DIRS})
+target_link_options(${TDSE_LIB} PRIVATE -fPIC)
+
+
