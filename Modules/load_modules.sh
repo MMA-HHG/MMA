@@ -2,7 +2,9 @@
 
 ### Define your modules and HPCs here
 ### Define separately modules for compiling and modules for Python
+### We use 'module purge' policy for loading the module to prevent conflict with already modified environment.
 Curta_modules() {
+    module purge
     module load cmake/3.26.3/gcc@11.2.0-rthuom3
     module load compiler/intel/2020.4.304
     module load mpi/intel/2020.4.304
@@ -14,20 +16,39 @@ Curta_modules() {
 export -f Curta_modules
 
 Sunrise_modules() {
+    module purge
     module load GCC OpenMPI HDF5 FFTW3 CMake 
 }
 export -f Sunrise_modules
 
+JeanZay_intel_modules() {
+    module purge
+    module load hdf5 
+    module load intel-mkl
+    module load cmake
+}
+export -f JeanZay_intel_modules
+
+
 ### Python modules
 Curta_python_modules() {
+    module purge
     module load python/3.9
 }
 export -f Curta_python_modules
 
 Sunrise_python_modules() {
+    module purge
     module load GCC Python
 }
 export -f Sunrise_python_modules
+
+
+JeanZay_python_modules() {
+    module purge
+    module load python/3.9.12
+}
+export -f JeanZay_python_modules
 
 ### Load cmake, MPI, HDF5, FFTW/MKL
 load_modules() {
@@ -37,6 +58,9 @@ load_modules() {
     elif [ "$HPC" == "Sunrise" ]
     then
         Sunrise_modules
+    elif [ "$HPC" == "JeanZay-intel" ]
+    then
+        JeanZay_intel_modules
     fi
 
 }
@@ -49,6 +73,9 @@ load_python_modules() {
     elif [ "$HPC" == "Sunrise" ]
     then
         Sunrise_python_modules
+    elif [ "$HPC" == "JeanZay-intel" ]
+    then
+        JeanZay_python_modules
     fi
 
 }

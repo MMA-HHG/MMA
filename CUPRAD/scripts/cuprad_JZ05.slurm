@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH -J CUPRAD-density-mod
+#SBATCH -J CUPRAD-TDSE-base
 #SBATCH --nodes=1
 #SBATCH --ntasks=32
 # #SBATCH --mem=16G
