@@ -315,10 +315,10 @@ Now with the HDF5 file already preprocessed, we can execute the MPI-TDSE code as
 # PWD = ../CUPRAD_TDSE_Hankel/1DTDSE
 mpirun -np N_proc ./build/TDSE.e
 ```
-or using a batch job Slurm script ```MPI_TDSE.sh``` as follows:
+or using a batch job Slurm script ```MPI_TDSE.slurm``` as follows:
 ```bash
 # PWD = ../CUPRAD_TDSE_Hankel/1DTDSE
-sbatch --ntasks=N_proc --export=ALL scripts/MPI_TDSE.sh
+sbatch --ntasks=N_proc --export=ALL scripts/MPI_TDSE.slurm
 ```
 The option ```--export=ALL``` is necessary for passing the exported variables from the current terminal instance to the batch job. The number of tasks ```--ntasks=N_proc``` must be specified.
 
