@@ -489,12 +489,12 @@ subroutine preset_numerics_tests(test_number)
          231:241, 251:259, 261:263, 271:276)
         num_proc = 32
         time_limit = 19.9d0 
-    case(281,282)
+    case(281:283)
         num_proc = 32
         time_limit = 1.59d0 
-    case(283)
-        num_proc = 32
-        time_limit = 1.59d0 
+    ! case(282)
+    !     num_proc = 4
+    !     time_limit = 1.59d0 
     end select
 
     ! time

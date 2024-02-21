@@ -52,46 +52,50 @@ subroutine init_pre_ionisation(file_id)
     print *, 'pre-inoisation accessed, proc', my_rank
 
 
-    call h5lexists_f(file_id, density_mod_grpname//'/zgrid',zgrid_exists,h5err)
-    call h5lexists_f(file_id, density_mod_grpname//'/rgrid',rgrid_exists,h5err)
-    call h5lexists_f(file_id, density_mod_grpname//'/initial_electrons_ratio',initial_electrons_ratio_exists,h5err)
+    call h5lexists_f(file_id, pre_ionised_grpname//'/zgrid',zgrid_exists,h5err)
+    call h5lexists_f(file_id, pre_ionised_grpname//'/rgrid',rgrid_exists,h5err)
+    call h5lexists_f(file_id, pre_ionised_grpname//'/initial_electrons_ratio',initial_electrons_ratio_exists,h5err)
+
+    print *, 'zgrid E', zgrid_exists
+    print *, 'rgrid E', rgrid_exists
+    print *, 'table E', initial_electrons_ratio_exists
     
     ! We create a matrix in all the cases. If only one grid is provided, max-z (-r) values are used
 
     if (zgrid_exists.and. rgrid_exists) then
-        call ask_for_size_1D(file_id, density_mod_grpname//'/rgrid', Nr)
-        call read_dset(file_id, density_mod_grpname//'/rgrid', rgrid, Nr)
+        call ask_for_size_1D(file_id, pre_ionised_grpname//'/rgrid', Nr)
+        call read_dset(file_id, pre_ionised_grpname//'/rgrid', rgrid, Nr)
         rgrid = rgrid/w0m ! convert units [m -> C.U.]
-        call ask_for_size_1D(file_id, density_mod_grpname//'/zgrid', Nz)
-        call read_dset(file_id, density_mod_grpname//'/zgrid', zgrid, Nz)
+        call ask_for_size_1D(file_id, pre_ionised_grpname//'/zgrid', Nz)
+        call read_dset(file_id, pre_ionised_grpname//'/zgrid', zgrid, Nz)
         zgrid = zgrid/four_z_Rayleigh ! convert units [m -> C.U.]
 
-        call read_dset(file_id, density_mod_grpname//'/initial_electrons_ratio', initial_electrons_ratio_matrix, Nr, Nz)
+        call read_dset(file_id, pre_ionised_grpname//'/initial_electrons_ratio', initial_electrons_ratio_matrix, Nr, Nz)
 
         initial_electrons_ratio_matrix = initial_electrons_ratio_matrix/rhoat_inv ! convert units
 
 
     elseif (zgrid_exists) then
-        call ask_for_size_1D(file_id, density_mod_grpname//'/zgrid', Nz)
-        call read_dset(file_id, density_mod_grpname//'/zgrid', zgrid, Nz)
+        call ask_for_size_1D(file_id, pre_ionised_grpname//'/zgrid', Nz)
+        call read_dset(file_id, pre_ionised_grpname//'/zgrid', zgrid, Nz)
         zgrid = zgrid/four_z_Rayleigh ! convert units [m -> C.U.]
 
         rgrid = (/0.d0, delta_r*dim_r/); Nr = 2
 
         allocate(initial_electrons_ratio_matrix(2,Nz))
-        call read_dset(file_id, density_mod_grpname//'/initial_electrons_ratio', dumr_arr_1D, Nz)
+        call read_dset(file_id, pre_ionised_grpname//'/initial_electrons_ratio', dumr_arr_1D, Nz)
         initial_electrons_ratio_matrix(1,:) = dumr_arr_1D/rhoat_inv
         initial_electrons_ratio_matrix(2,:) = dumr_arr_1D/rhoat_inv
 
     elseif (rgrid_exists) then
-        call ask_for_size_1D(file_id, density_mod_grpname//'/rgrid', Nr)
-        call read_dset(file_id, density_mod_grpname//'/rgrid', rgrid, Nr)
+        call ask_for_size_1D(file_id, pre_ionised_grpname//'/rgrid', Nr)
+        call read_dset(file_id, pre_ionised_grpname//'/rgrid', rgrid, Nr)
         rgrid = rgrid/w0m ! convert units [m -> C.U.]
 
         zgrid = (/0.d0, proplength/); Nz = 2
 
         allocate(initial_electrons_ratio_matrix(Nr,2))
-        call read_dset(file_id, density_mod_grpname//'/initial_electrons_ratio', dumr_arr_1D, Nr)
+        call read_dset(file_id, pre_ionised_grpname//'/initial_electrons_ratio', dumr_arr_1D, Nr)
         initial_electrons_ratio_matrix(:,1) = dumr_arr_1D/rhoat_inv
         initial_electrons_ratio_matrix(:,2) = dumr_arr_1D/rhoat_inv
 
