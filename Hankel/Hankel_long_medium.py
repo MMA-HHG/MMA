@@ -50,7 +50,7 @@ try:
         
 except:
     print('error reading hdf5 file, using defaults') 
-    gas_type = 'Kr'
+    gas_type = 'Ar'
     XUV_table_type_diffraction = 'NIST' # {Henke, NIST}
     XUV_table_type_absorption = 'Henke' # {Henke, NIST} 
     apply_diffraction = ['dispersion', 'absorption']
@@ -68,9 +68,9 @@ except:
     FF_orders_plot = 4    
     Nz_max_sum = 5 # 41
     
-    file_CUPRAD = 'results_1.h5'
-    file_TDSE = 'results_merged_Fsource.h5'
-    out_h5name = 'Hankel.h5'
+    file_CUPRAD = 'results.h5'
+    file_TDSE = 'results_merged.h5'
+    out_h5name = 'test_Hankel.h5'
 
 
 arguments = sys.argv
@@ -83,11 +83,13 @@ if ('-here' in arguments):
     results_TDSE = os.getcwd()
 else:
     results_CUPRAD = os.path.join("D:\data", "Discharges", "TDSE", "t6")
+    results_CUPRAD = os.path.join("C:\sharepoint", "OneDrive - ELI Beamlines", "TEMP", "Sunrise","test1")
     # results_CUPRAD = os.path.join("/mnt","d","data", "Discharges", "TDSE", "t6")
     results_TDSE = os.path.join("D:\data", "Discharges", "TDSE", "TDSEH1")
     results_TDSE = os.path.join("D:\data", "Discharges", "TDSE", "TDSE40planes1")
     results_TDSE = os.path.join("C:\data", "Discharges", "TDSE", "TDSE50planes1") # fine up to 46  
     # results_TDSE = os.path.join("/mnt","c","data", "Discharges", "TDSE", "TDSE50planes1")
+    results_TDSE = os.path.join("C:\sharepoint", "OneDrive - ELI Beamlines", "TEMP", "Sunrise","test1")
     
 
 
@@ -112,6 +114,9 @@ with h5py.File(file_CUPRAD, 'r') as InputArchiveCUPRAD, h5py.File(file_TDSE, 'r'
    zgrid_macro = InputArchiveTDSE['zgrid_coarse'][:]
 
 print('data loaded:')
+
+Nz_max_sum = len(zgrid_macro)
+
 omega_au2SI = mn.ConvertPhoton(1.0, 'omegaau', 'omegaSI')
 ogridSI = omega_au2SI * ogrid
 Hgrid = ogrid/omega0

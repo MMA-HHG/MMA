@@ -1,7 +1,8 @@
 """
 This module creates the interpolation functions from tabulated scattering factors
 (in the XUV range) for noble gases stored in the external 'XUV_refractive_index_tables.h5'
-h5-file (see detaild in the h5-file constructor). These functions are:  
+h5-file (the available tables are Henke: https://henke.lbl.gov/optical_constants/asf.html
+and NIST: https://physics.nist.gov/PhysRefData/FFast/html/form.html). These functions are:  
     
     getf, getf1, getf2
     
@@ -9,11 +10,13 @@ Next, there are other functions to access directly polarisabilities, susceptibil
 absorption lengths, ... (see their descriptions).  
 The functions are:
     
-    dispersion_function, beta_factor_atm, L_abs, susc_atm, polarisability
-    
-Note: The reference is provided in 'atmospheric pressure' characterised by the
-Loschmidt constant (https://en.wikipedia.org/wiki/Loschmidt_constant),
-the default value is N_atm = 2.7e25 m-3.
+    dispersion_function, beta_factor_ref, L_abs, susc_ref, polarisability
+
+The module also provides the reference particle density 'N_ref_default'  for
+p = 1 bar & T = 20 °C
+
+Note: The reference particle density is given by the ideal-gas law. Assuming this law,
+it is directly scalable to any pressure p temperature T by p[bar]*((273.15+20)/T[Kelvin])
 
 -------
 Jan Vabek   
@@ -116,9 +119,9 @@ def getf2(g,E):
 
 ## VARIOUS FUNCTIONS TO PROVIDE DIRECTLY POLARISABILITIES, SUSCEPTIBILITIES, ...
 
-N_atm_default = 2.7e19*1e6
+N_ref_default = 1e5/(units.Boltzmann_constant*(273.15+20.)) # reference gas number density (p = 1 bar & T = 20 °C)
 
-def dispersion_function(omega, pressure, gas, n_IR=1., N_atm=N_atm_default):
+def dispersion_function(omega, pressure, gas, n_IR=1., N_ref=N_ref_default):
     """
     Returns the part of the dephasing caused by the different phase velocities
     of the IR and XUV fields. The output quantity is  
@@ -139,9 +142,9 @@ def dispersion_function(omega, pressure, gas, n_IR=1., N_atm=N_atm_default):
         'Kr', 'Xe'}+'_'+{'NIST','Henke'}. For example gas='Ar_NIST'.  
     n_IR : scalar, optional
         The refractive index in the IR range. The default is 1 (i.e. vacuum progation).  
-    N_atm : scalar, optional
-        gas number density for atmospheric pressure (see the module description).
-        The default is N_atm_default.
+    N_ref : scalar, optional
+        gas number density for  (see the module description).
+        The default is N_ref_default.
 
     Returns
     -------
@@ -149,19 +152,17 @@ def dispersion_function(omega, pressure, gas, n_IR=1., N_atm=N_atm_default):
     """
     f1_value = getf1(gas,mn.ConvertPhoton(omega, 'omegaSI', 'eV'))
     lambdaSI = mn.ConvertPhoton(omega, 'omegaSI', 'lambdaSI')
-    nXUV     = 1.0 - pressure*N_atm*units.r_electron_classical * ((lambdaSI**2)*f1_value/(2.0*np.pi))           
+    nXUV     = 1.0 - pressure*N_ref*units.r_electron_classical * ((lambdaSI**2)*f1_value/(2.0*np.pi))           
     phase_velocity_XUV  = units.c_light / nXUV    
     phase_velocity_IR = units.c_light / n_IR
     return ((1./phase_velocity_IR) - (1./phase_velocity_XUV))
 
 
-def beta_factor_atm(omega, gas, N_atm=N_atm_default):
+def beta_factor_ref(omega, gas, N_ref=N_ref_default):
     """
-    It returns the imaginary part 'beta' of the refractive index  
+    It returns the imaginary poart 'beta' of the refractive index  
                  n = n0 + 1j*beta   
-    at atmospúheric pressure using tabulated scattering factors. Usage for
-    arbitrary pressure:
-                 n = n0(p) + 1j*(p/p_atm)*beta_atm . 
+    using tabulated scattering factors
 
     Parameters
     ----------
@@ -170,9 +171,9 @@ def beta_factor_atm(omega, gas, N_atm=N_atm_default):
     gas : string
         The specifier of gas and used tables, it has the form {'He', 'Ne', 'Ar',
         'Kr', 'Xe'}+'_'+{'NIST','Henke'}. For example gas='Ar_NIST'.  
-    N_atm : scalar, optional
-        gas number density for atmospheric pressure (see the module description).
-        The default is N_atm_default.
+    N_ref : scalar, optional
+        gas number particle density
+        The default is N_ref_default (p = 1 bar & T = 20 °C)
 
     Returns
     -------
@@ -185,12 +186,12 @@ def beta_factor_atm(omega, gas, N_atm=N_atm_default):
     """
     f2_value    = getf2(gas,mn.ConvertPhoton(omega, 'omegaSI', 'eV'))
     lambdaXUV    = mn.ConvertPhoton(omega, 'omegaSI', 'lambdaSI')
-    beta_factor = N_atm*units.r_electron_classical * \
+    beta_factor = N_ref*units.r_electron_classical * \
                   ((lambdaXUV**2)*f2_value/(2.0*np.pi))
     return beta_factor
 
 
-def L_abs(omega, pressure, gas, N_atm=N_atm_default):
+def L_abs(omega, pressure, gas, N_ref=N_ref_default):
     """
     Returns absorption length in XUV range.
 
@@ -202,9 +203,9 @@ def L_abs(omega, pressure, gas, N_atm=N_atm_default):
     gas : string
         The specifier of gas and used tables, it has the form {'He', 'Ne', 'Ar',
         'Kr', 'Xe'}+'_'+{'NIST','Henke'}. For example gas='Ar_NIST'.  
-    N_atm : scalar, optional
-        gas number density for atmospheric pressure (see the module description).
-        The default is N_atm_default.
+    N_ref : scalar, optional
+        gas number particle density
+        The default is N_ref_default (p = 1 bar & T = 20 °C)
 
     Returns
     -------
@@ -212,12 +213,12 @@ def L_abs(omega, pressure, gas, N_atm=N_atm_default):
     """
     f2_value    = getf2(gas,mn.ConvertPhoton(omega, 'omegaSI', 'eV'))
     lambdaXUV   = mn.ConvertPhoton(omega, 'omegaSI', 'lambdaSI')
-    return 1.0 / (2.0 * pressure * N_atm * units.r_electron_classical * lambdaXUV * f2_value) 
+    return 1.0 / (2.0 * pressure * N_ref * units.r_electron_classical * lambdaXUV * f2_value) 
 
 
-def susc_atm(omega, gas, N_atm=N_atm_default):
+def susc_ref(omega, gas, N_ref=N_ref_default):
     """
-    Returns susceptibility for atmospheric pressure.
+    Returns susceptibility for p = 1 bar & T = 20 °C.
 
     Parameters
     ----------
@@ -226,20 +227,20 @@ def susc_atm(omega, gas, N_atm=N_atm_default):
     gas : string
         The specifier of gas and used tables, it has the form {'He', 'Ne', 'Ar',
         'Kr', 'Xe'}+'_'+{'NIST','Henke'}. For example gas='Ar_NIST'.  
-    N_atm : scalar, optional
-        gas number density for atmospheric pressure (see the module description).
-        The default is N_atm_default.
+    N_ref : scalar, optional
+        gas number particle density
+        The default is N_ref_default (p = 1 bar & T = 20 °C)
 
     Returns
     -------
     susceptibility
     """
     f1 = getf1(gas,mn.ConvertPhoton(omega, 'omegaSI', 'eV'))
-    nXUV_atm = 1.0 - N_atm*units.r_electron_classical*(mn.ConvertPhoton(omega,'omegaSI','lambdaSI')**2)*f1/(2.0*np.pi)
-    return nXUV_atm**2 - 1
+    nXUV_ref = 1.0 - N_ref*units.r_electron_classical*(mn.ConvertPhoton(omega,'omegaSI','lambdaSI')**2)*f1/(2.0*np.pi)
+    return nXUV_ref**2 - 1
 
 
-def polarisability(omega, gas, N_atm=N_atm_default):
+def polarisability(omega, gas, N_ref=N_ref_default):
     """
     Returns polarisability.
 
@@ -250,16 +251,16 @@ def polarisability(omega, gas, N_atm=N_atm_default):
     gas : string
         The specifier of gas and used tables, it has the form {'He', 'Ne', 'Ar',
         'Kr', 'Xe'}+'_'+{'NIST','Henke'}. For example gas='Ar_NIST'.  
-    N_atm : scalar, optional
+    N_ref : scalar, optional
         gas number density for atmospheric pressure (see the module description).
-        The default is N_atm_default.
+        The default is N_ref_default.
 
     Returns
     -------
     polarisability
     """
     f1 = getf1(gas,mn.ConvertPhoton(omega, 'omegaSI', 'eV'))
-    nXUV_atm = 1.0 - N_atm*units.r_electron_classical*(mn.ConvertPhoton(omega,'omegaSI','lambdaSI')**2)*f1/(2.0*np.pi)
-    susc_XUV_atm = nXUV_atm**2 - 1
-    pol_XUV = susc_XUV_atm/N_atm
+    nXUV_ref = 1.0 - N_ref*units.r_electron_classical*(mn.ConvertPhoton(omega,'omegaSI','lambdaSI')**2)*f1/(2.0*np.pi)
+    susc_XUV_ref = nXUV_ref**2 - 1
+    pol_XUV = susc_XUV_ref/N_ref
     return pol_XUV
