@@ -171,51 +171,50 @@ for k1 in Hgrid_I_study:
         )
 
 # The main integration
-FField_FF_integrated= Hfn2.HankelTransform_long(
+FField_FF_integrated, source_maxima = Hfn2.HankelTransform_long(
                                                ogrid_select_SI,
                                                rgrid_macro[0:Nr_max:kr_step],
                                                zgrid_macro[:Nz_max_sum],
                                                FSourceTerm[0:Nr_max:kr_step,:Nz_max_sum,H_indices[0]:H_indices[1]:ko_step],
                                                distance_FF,
                                                rgrid_FF,
-                                               pressure={
-                                                   'zgrid': # from file
-                                                   'value': # from file
-                                                   })
+                                               dispersion_function = dispersion_function, # None, #dispersion_function,
+                                               absorption_function = absorption_function,
+                                               frequencies_to_trace_maxima = omega_I_study_intervals)
 
 
-# # Save the data
-# Hgrid_select = Hgrid[H_indices[0]:H_indices[1]:ko_step]
-# with h5py.File(out_h5name,'w') as OutFile:
-#     grp = OutFile.create_group('XUV')
-#     grp.create_dataset('Spectrum_on_screen',
-#                                           data = np.stack((FField_FF_integrated.real, FField_FF_integrated.imag),axis=-1)
-#                                           )
-#     grp.create_dataset('Maxima_of_planes',
-#                                           data = np.asarray(source_maxima)
-#                                           )
-#     grp.create_dataset('Maxima_Hgrid',
-#                                           data = Hgrid_I_study
-#                                           )
-#     grp.create_dataset('rgrid_FF',
-#                                           data = rgrid_FF
-#                                           )    
-#     grp.create_dataset('Hgrid_select',
-#                                           data = Hgrid_select
-#                                           )
+# Save the data
+Hgrid_select = Hgrid[H_indices[0]:H_indices[1]:ko_step]
+with h5py.File(out_h5name,'w') as OutFile:
+    grp = OutFile.create_group('XUV')
+    grp.create_dataset('Spectrum_on_screen',
+                                          data = np.stack((FField_FF_integrated.real, FField_FF_integrated.imag),axis=-1)
+                                          )
+    grp.create_dataset('Maxima_of_planes',
+                                          data = np.asarray(source_maxima)
+                                          )
+    grp.create_dataset('Maxima_Hgrid',
+                                          data = Hgrid_I_study
+                                          )
+    grp.create_dataset('rgrid_FF',
+                                          data = rgrid_FF
+                                          )    
+    grp.create_dataset('Hgrid_select',
+                                          data = Hgrid_select
+                                          )
         
 
 
-# # vmin = np.max(np.log(Gaborr))-6.
-# fig, ax = plt.subplots()   
-# FF_spectrum_logscale = np.log10(abs(FField_FF_integrated.T)**2);
-# vmin = np.max(FF_spectrum_logscale)-FF_orders_plot
-# map1 = ax.pcolor(Hgrid_select,rgrid_FF,FF_spectrum_logscale, shading='auto',vmin=vmin)
-# # plt.pcolor(t_Gr,o_Gr/omega0,(np.log(Gaborr)).T, shading='auto',vmin=vmin)
-# fig.colorbar(map1)
-# plt.title('Far-field spectrum (30 cm), integrated, log')
-# plt.xlabel('H [-]')
-# plt.ylabel('r [m]')
-# if showplots: plt.show()
-# # plt.close(fig)
-# # sys.exit()
+# vmin = np.max(np.log(Gaborr))-6.
+fig, ax = plt.subplots()   
+FF_spectrum_logscale = np.log10(abs(FField_FF_integrated.T)**2);
+vmin = np.max(FF_spectrum_logscale)-FF_orders_plot
+map1 = ax.pcolor(Hgrid_select,rgrid_FF,FF_spectrum_logscale, shading='auto',vmin=vmin)
+# plt.pcolor(t_Gr,o_Gr/omega0,(np.log(Gaborr)).T, shading='auto',vmin=vmin)
+fig.colorbar(map1)
+plt.title('Far-field spectrum (30 cm), integrated, log')
+plt.xlabel('H [-]')
+plt.ylabel('r [m]')
+if showplots: plt.show()
+# plt.close(fig)
+# sys.exit()

@@ -21,8 +21,6 @@ import sys
 import units
 import mynumerics as mn
 
-import XUV_refractive_index as XUV_index
-
 def HankelTransform(ogrid, rgrid, FField, distance, rgrid_FF, integrator = integrate.trapz, near_field_factor = True):
     """
     It computes Hanikel transform with an optional near-field factor.
@@ -73,13 +71,8 @@ def HankelTransform(ogrid, rgrid, FField, distance, rgrid_FF, integrator = integ
 
 def HankelTransform_long(ogrid, rgrid, zgrid, FSourceTerm, # FSourceTerm(r,z,omega)
                          distance, rgrid_FF,
-                         preset_gas = 'vacuum',
-                         pressure = 1.,
-                         absorption_tables = 'Henke',
-                         dispersion_tables = 'Henke',
-                         effective_IR_refrective_index = 1.,
-                         integrator_Hankel = integrate.trapz,
-                         integrator_longitudinal = 'trapezoidal',
+                         dispersion_function = None, absorption_function = None,
+                         integrator_Hankel = integrate.trapz, integrator_longitudinal = 'trapezoidal',
                          near_field_factor = True,
                          store_cummulative_result = False,
                          frequencies_to_trace_maxima = None
@@ -134,23 +127,6 @@ def HankelTransform_long(ogrid, rgrid, zgrid, FSourceTerm, # FSourceTerm(r,z,ome
     include_dispersion = not(dispersion_function is None)
     include_absorption = not(absorption_function is None)
     trace_maxima_log = not(frequencies_to_trace_maxima is None)
-    
-    
-    
-    phase_factor = interpolate.interp1d(integrate.cumtrapz(
-                                            pressure['zgrid'],
-                                            XUV_index.dispersion_function(
-                                                omega, 
-                                                pressure['value'],
-                                                gas,
-                                                n_IR = effective_IR_refrective_index),
-                                            initial=0.
-                                            ),
-                                            
-                                        )(zgrid)
-    # pressure_modulation = 
-    
-    
     
     if include_dispersion:
         dispersion_factor = np.empty(No)
