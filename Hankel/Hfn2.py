@@ -23,6 +23,8 @@ import mynumerics as mn
 
 import XUV_refractive_index as XUV_index
 
+from Hankel_tools import linear_propagation_e_factor
+
 def HankelTransform(ogrid, rgrid, FField, distance, rgrid_FF, integrator = integrate.trapz, near_field_factor = True):
     """
     It computes Hankel transform with an optional near-field factor.
@@ -94,7 +96,7 @@ def HankelTransform_long(target, # FSourceTerm(r,z,omega)
         
     pressure : scalar or dict [SI]
         scalar is used to scale the result and compute the dispersion & absorption, 
-        dict: 'zgrid' - pressure modulation zgrid; 'value' - the modulation
+        dict: 'zgrid' - pressure modulation zgrid; 'value' - the modulation \n
     NOTE: grid might need to be finer to properly retrieve the XUV phase
                     
 
@@ -132,6 +134,14 @@ def HankelTransform_long(target, # FSourceTerm(r,z,omega)
     """
 
     
+
+    if not(
+            ((preset_gas+'_'+absorption_tables in XUV_index.gases)
+             and
+             (preset_gas+'_'+dispersion_tables in XUV_index.gases)
+             )
+             or (preset_gas == 'vacuum')): raise ValueError('Wrongly specified preset gas (or tables).')
+
     No = len(ogrid); Nz = len(zgrid); Nr_FF = len(rgrid_FF)
     include_dispersion = not(dispersion_function is None)
     include_absorption = not(absorption_function is None)
@@ -139,25 +149,6 @@ def HankelTransform_long(target, # FSourceTerm(r,z,omega)
     
     
     
-    
-    integral_for_phase_factor = integrate.cumtrapz(
-                                            pressure['zgrid'],
-                                            XUV_index.dispersion_function(
-                                                omega, 
-                                                pressure['value'],
-                                                preset_gas+'_'+dispersion_tables,
-                                                n_IR = effective_IR_refrective_index),
-                                            initial=0.
-                                            )
-    
-    phase_factor = interpolate.interp1d(
-                                    pressure['zgrid'],
-                                    integral_for_phase_factor,
-                                    bounds_error = False,
-                                    fill_value = (integral_for_phase_factor[0],
-                                                  integral_for_phase_factor[-1]),
-                                    copy = False
-                                    )(zgrid)
     
     pressure_modulation = interpolate.interp1d(
                                     pressure['zgrid'],
@@ -167,22 +158,48 @@ def HankelTransform_long(target, # FSourceTerm(r,z,omega)
                                                   pressure['value'][-1]),
                                     copy = False
                                     )(zgrid)
+        
+    phase_factor = np.empty(Nz,No); absorption_factor = np.empty(Nz,No)
+    for k1 in range(No):
+        integral_for_phase_factor = integrate.cumtrapz(
+                                                pressure['zgrid'],
+                                                XUV_index.dispersion_function(
+                                                    omega, 
+                                                    pressure['value'],
+                                                    preset_gas+'_'+dispersion_tables,
+                                                    n_IR = effective_IR_refrective_index),
+                                                initial=0.
+                                                )
+        
+        phase_factor[:,k1] =  ogrid[k1] * \
+                              interpolate.interp1d(
+                                    pressure['zgrid'],
+                                    integral_for_phase_factor,
+                                    bounds_error = False,
+                                    fill_value = (integral_for_phase_factor[0],
+                                                  integral_for_phase_factor[-1]),
+                                    copy = False
+                                    )(zgrid)
     
-    integral_beta_factor = XUV_index.beta_factor_ref(omega, gas) * \
-                           integrate.cumtrapz(
-                                pressure['zgrid'],
-                                pressure['value'],
-                                initial=0.
-                                )
-                           
-    absorption_factor = interpolate.interp1d(
-                            pressure['zgrid'],
-                            integral_beta_factor,
-                            bounds_error = False,
-                            fill_value = (pressure['value'][0],
-                                          pressure['value'][-1]),
-                            copy = False
-                            )(zgrid)
+        
+        integral_beta_factor = XUV_index.beta_factor_ref(
+                                    omega,
+                                    preset_gas+'_'+dispersion_tables) * \
+                               integrate.cumtrapz(
+                                    pressure['zgrid'],
+                                    pressure['value'],
+                                    initial=0.
+                                    )
+                               
+        absorption_factor[:,k1] = ogrid[k1] * \ 
+                                  interpolate.interp1d(
+                                    pressure['zgrid'],
+                                    integral_beta_factor,
+                                    bounds_error = False,
+                                    fill_value = (integral_beta_factor[0],
+                                                  integral_beta_factor[-1]),
+                                    copy = False
+                                  )(zgrid)
 
     
     
