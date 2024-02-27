@@ -39,7 +39,7 @@ class FSources_provider:
             def FSource_plane_():
                 for k1 in range(len(self.zgrid)):
                     yield np.squeeze(
-                            dynamic['FSource'][:,k1,:,0] + 1j*dynamic['FSource'][:,k1,:,1])
+                            dynamic['FSource'][:,k1,:,0] + 1j*dynamic['FSource'][:,k1,:,1]).T
                     
             self.Fsource_plane = FSource_plane_()
             
@@ -74,11 +74,75 @@ def get_propagation_pre_factor():
         elif (('zgrid' in pressure.keys()) and ('rgrid' in pressure.keys())):
             pass
             # full case megamatrix
+            # NOW: ASSUMIG (Z,R)-order
+            pre_factor_value = np.empty(Nz,No,Nr)
+            for k1 in range(Nr):
+                for k2 in range(No):
+                    
+                    integral_for_phase_factor = integrate.cumtrapz(
+                                                            pressure['zgrid'],
+                                                            XUV_index.dispersion_function(
+                                                                omega, 
+                                                                pressure['value'][:,k1],                # value - matrix
+                                                                preset_gas+'_'+dispersion_tables,
+                                                                n_IR = effective_IR_refrective_index),
+                                                            initial=0.
+                                                            )
+                    integral_beta_factor = XUV_index.beta_factor_ref(
+                                                omega,
+                                                preset_gas+'_'+dispersion_tables) * \
+                                           integrate.cumtrapz(
+                                                pressure['zgrid'],
+                                                pressure['value'][:,k1],
+                                                initial=0.
+                                                )
+                                           
+                    # phase_factor[:,k1] =  ogrid[k1] * \
+                    #                       interpolate.interp1d(
+                    #                             pressure['zgrid'],
+                    #                             integral_for_phase_factor,
+                    #                             bounds_error = False,
+                    #                             fill_value = (integral_for_phase_factor[0],
+                    #                                           integral_for_phase_factor[-1]),
+                    #                             copy = False
+                    #                             )(zgrid)
+                                          
+                    
+                    pre_factor_value[:,k2,k1] = pressure['value'][:,k1] *\
+                                                np.exp(
+                                                    ogrid[k2] *
+                                                        (
+                                                        1j *
+                                                        interpolate.interp1d(                               # dispersion factor
+                                                          pressure['zgrid'],
+                                                          integral_for_phase_factor,
+                                                          bounds_error = False,
+                                                          fill_value = (integral_for_phase_factor[0],
+                                                                        integral_for_phase_factor[-1]),
+                                                          copy = False
+                                                          )(zgrid)
+                                                        + 
+                                                        interpolate.interp1d(                               # absorption factor
+                                                          pressure['zgrid'],
+                                                          integral_beta_factor,
+                                                          bounds_error = False,
+                                                          fill_value = (integral_beta_factor[0],
+                                                                        integral_beta_factor[-1]),
+                                                          copy = False
+                                                        )(zgrid)
+                                                        )
+                                                )
         else:
             raise ValueError('Pressure modulation wrongly specified.')
     else:
         pass
         # from previous version: no integrals, np.outer-stuff
+        # pre_factor_value = np.empty(Nz,No,Nr)
+        # for k1 in range(Nr):
+        #     for k2 in range(No):
+        #         for k3 in range(Nz):
+        #             pre_factor_value[k3,k2,k1] = ogrid[k2]*dispersion_function(ogrid[k2])
+        
             
             
     

@@ -78,7 +78,9 @@ def HankelTransform_long(target, # FSourceTerm(r,z,omega)
                          preset_gas = 'vacuum',
                          pressure = 1.,
                          absorption_tables = 'Henke',
+                         include_absorption = True,
                          dispersion_tables = 'Henke',
+                         include_dispersion = True,
                          effective_IR_refrective_index = 1.,
                          integrator_Hankel = integrate.trapz,
                          integrator_longitudinal = 'trapezoidal',
@@ -140,7 +142,8 @@ def HankelTransform_long(target, # FSourceTerm(r,z,omega)
              and
              (preset_gas+'_'+dispersion_tables in XUV_index.gases)
              )
-             or (preset_gas == 'vacuum')): raise ValueError('Wrongly specified preset gas (or tables).')
+             or (preset_gas == 'vacuum')
+        ): raise ValueError('Wrongly specified preset gas (or tables).')
 
     No = len(ogrid); Nz = len(zgrid); Nr_FF = len(rgrid_FF)
     include_dispersion = not(dispersion_function is None)
@@ -206,7 +209,7 @@ def HankelTransform_long(target, # FSourceTerm(r,z,omega)
     if include_dispersion:
         dispersion_factor = np.empty(No)
         for k1 in range(No):
-            dispersion_factor[k1] = ogrid[k1]*dispersion_function(ogrid[k1])        
+            dispersion_factor[k1] = ogrid[k1]*dispersion_function(ogrid[k1])
         
     if include_absorption:
         absorption_factor = np.empty(No)
