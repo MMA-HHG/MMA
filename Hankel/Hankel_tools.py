@@ -49,7 +49,7 @@ class FSources_provider:
 
 
 # this function will provide a fuction that gives the pre-factor for the integration in long media:
-# it loads preset gases - easy use for phhysical situations
+# it loads preset gases - easy use for physical situations
 #  
 
 def get_propagation_pre_factor():
@@ -61,6 +61,26 @@ def get_propagation_pre_factor():
         DESCRIPTION.
 
     """
+    
+    # switch over geometries
+    
+    if isinstance(pressure,dict):
+        if (('zgrid' in pressure.keys()) and not('rgrid' in pressure.keys())):
+            pass
+            # usual case: omega-and-z-integrals, r on-the-fly
+        elif (not('zgrid' in pressure.keys()) and ('rgrid' in pressure.keys())):
+            pass
+            # no integrals, only r-scaling, z on-the-fly
+        elif (('zgrid' in pressure.keys()) and ('rgrid' in pressure.keys())):
+            pass
+            # full case megamatrix
+        else:
+            raise ValueError('Pressure modulation wrongly specified.')
+    else:
+        pass
+        # from previous version: no integrals, np.outer-stuff
+            
+            
     
     def pre_factor(kz):
         pressure_modulation = interpolate.interp1d(
@@ -104,7 +124,7 @@ def get_propagation_pre_factor():
                                         initial=0.
                                         )
                                    
-            absorption_factor[:,k1] = ogrid[k1] * \ 
+            absorption_factor[:,k1] = ogrid[k1] * \
                                       interpolate.interp1d(
                                         pressure['zgrid'],
                                         integral_beta_factor,
@@ -114,7 +134,7 @@ def get_propagation_pre_factor():
                                         copy = False
                                       )(zgrid)
                                       
-        pass
+        return pre_factor_
     
     return pre_factor
 
