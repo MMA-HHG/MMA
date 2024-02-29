@@ -10,6 +10,8 @@ import mynumerics as mn
 import Hfn
 import Hfn2
 
+from scipy import integrate
+
 
 import Hankel_tools
 
@@ -17,6 +19,9 @@ import Hankel_tools
 import matplotlib.pyplot as plt
 
 import XUV_refractive_index as XUV_index
+
+
+import plot_presets as pp
 
 
 
@@ -36,8 +41,8 @@ kr_step = 2 # descending order, the last is "the most accurate"
 ko_step = 2
 
 rmax_FF = 8*1e-4
-Nr_FF = 200 # 10 # 200
-distance_FF = 0.3
+Nr_FF = 10 # 10 # 200
+distance_FF = 1.
 
 FF_orders_plot = 4    
 Nz_max_sum = 5 # 41
@@ -69,6 +74,9 @@ file_CUPRAD = os.path.join(results_CUPRAD,file_CUPRAD)
 file_TDSE = os.path.join(results_TDSE,file_TDSE)
 
 
+rgrid_FF = np.linspace(0.0, rmax_FF, Nr_FF)
+
+
 # load data
 print('processing:', file_CUPRAD, file_TDSE)             
 with h5py.File(file_CUPRAD, 'r') as InputArchiveCUPRAD, h5py.File(file_TDSE, 'r') as InputArchiveTDSE:
@@ -85,12 +93,30 @@ with h5py.File(file_CUPRAD, 'r') as InputArchiveCUPRAD, h5py.File(file_TDSE, 'r'
     
     FSourceTerm_sparse = InputArchiveTDSE['FSourceTerm'][:,:,0:-1:2,0] + \
                         1j*InputArchiveTDSE['FSourceTerm'][:,:,0:-1:2,1]
+  
                         
+    image = pp.figure_driver()
+    image.sf = [pp.plotter() for k1 in range(32)]
+    image.sf[0].args = [ogrid, np.abs(FSourceTerm[0,0,:])]
+    image.sf[0].method = plt.semilogy
+    pp.plot_preset(image)
+    
+    image = pp.figure_driver()
+    image.sf = [pp.plotter() for k1 in range(32)]
+    image.sf[0].args = [ogrid/omega0, np.abs(FSourceTerm[0,0,:])]
+    image.sf[0].method = plt.semilogy
+    pp.plot_preset(image)
+    
+    ko_min = mn.FindInterval(ogrid/omega0, 10)
+    ko_max = mn.FindInterval(ogrid/omega0, 20)
+    
     target_static = Hankel_tools.FSources_provider(static={
                                                     'zgrid'   : InputArchiveTDSE['rgrid_coarse'][:],
                                                     'rgrid'   : InputArchiveTDSE['rgrid_coarse'][:],
                                                     'ogrid'   : InputArchiveTDSE['omegagrid'][:],
-                                                    'FSource' : np.transpose(FSourceTerm,axes=(1,2,0))})
+                                                    'FSource' : np.transpose(FSourceTerm,axes=(1,2,0))},
+                                                     ko_min = ko_min,
+                                                     No_max = ko_max)
     
     target_dynamic = Hankel_tools.FSources_provider(dynamic={
                                                     'zgrid'   : InputArchiveTDSE['rgrid_coarse'][:],
@@ -99,8 +125,41 @@ with h5py.File(file_CUPRAD, 'r') as InputArchiveCUPRAD, h5py.File(file_TDSE, 'r'
                                                     'h5_file' : InputArchiveTDSE,
                                                     'Fsource_path' : 'FSourceTerm'})
     
-    plane1_dyn = next(target_dynamic.Fsource_plane)
-    plane2_dyn = next(target_dynamic.Fsource_plane)
+    
+    # plane1_dyn = next(target_dynamic.Fsource_plane)
+    # plane2_dyn = next(target_dynamic.Fsource_plane)
+    
+    Hankel_long_dynamic = Hfn2.HankelTransform_long(target_dynamic, # FSourceTerm(r,z,omega)
+                              distance_FF, rgrid_FF,
+                              preset_gas = 'vacuum',
+                              pressure = 1.,
+                              absorption_tables = 'Henke',
+                              include_absorption = True,
+                              dispersion_tables = 'Henke',
+                              include_dispersion = True,
+                              effective_IR_refrective_index = 1.,
+                              integrator_Hankel = integrate.trapz,
+                              integrator_longitudinal = 'trapezoidal',
+                              near_field_factor = True,
+                              store_cummulative_result = False,
+                              frequencies_to_trace_maxima = None
+                              )
+    
+    Hankel_long_static = Hfn2.HankelTransform_long(target_static, # FSourceTerm(r,z,omega)
+                              distance_FF, rgrid_FF,
+                              preset_gas = 'vacuum',
+                              pressure = 1.,
+                              absorption_tables = 'Henke',
+                              include_absorption = True,
+                              dispersion_tables = 'Henke',
+                              include_dispersion = True,
+                              effective_IR_refrective_index = 1.,
+                              integrator_Hankel = integrate.trapz,
+                              integrator_longitudinal = 'trapezoidal',
+                              near_field_factor = True,
+                              store_cummulative_result = False,
+                              frequencies_to_trace_maxima = None
+                              )
 
 
 # sys.exit(0)

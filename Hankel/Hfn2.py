@@ -145,10 +145,12 @@ def HankelTransform_long(target, # FSourceTerm(r,z,omega)
              or (preset_gas == 'vacuum')
         ): raise ValueError('Wrongly specified preset gas (or tables).')
 
-    No = len(ogrid); Nz = len(zgrid); Nr_FF = len(rgrid_FF)
-    include_dispersion = not(dispersion_function is None)
-    include_absorption = not(absorption_function is None)
-    trace_maxima_log = not(frequencies_to_trace_maxima is None)
+    No = len(target.ogrid);
+    Nz = len(target.zgrid);
+    Nr_FF = len(rgrid_FF)
+    # include_dispersion = not(dispersion_function is None)
+    # include_absorption = not(absorption_function is None)
+    # trace_maxima_log = not(frequencies_to_trace_maxima is None)
     
     
     
@@ -200,7 +202,6 @@ def HankelTransform_long(target, # FSourceTerm(r,z,omega)
         
         if store_cummulative_result:
             cummulative_field[k1,:,:] = 1.*FF_integrated
-        
         
         Fsource_plane1 = Fsource_plane2
     

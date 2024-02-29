@@ -25,6 +25,7 @@ class FSources_provider:
     """
     
     def __init__(self,static=None,dynamic=None,
+                 ko_min  =  0,
                  ko_step =  1,
                  No_max  = 'end',
                  kr_step =  1,
@@ -48,12 +49,12 @@ class FSources_provider:
             if (No_max  == 'end'): No_max = len(static['ogrid'])
             if (Nr_max  == 'end'): Nr_max = len(static['rgrid'])
             
-            self.ogrid = static['ogrid'][0:No_max:ko_step]
+            self.ogrid = static['ogrid'][ko_min:No_max:ko_step]
             self.rgrid = static['rgrid'][0:Nr_max:kr_step]
             self.zgrid = static['zgrid'][0:-1:kz_step]
             def FSource_plane_():
                 for k1 in range(len(self.zgrid)):
-                    yield static['FSource'][k1*kz_step,0:No_max:ko_step,0:Nr_max:kr_step]
+                    yield static['FSource'][k1*kz_step,ko_min:No_max:ko_step,0:Nr_max:kr_step]
             self.Fsource_plane = FSource_plane_()
             
         elif ((static is None) and isinstance(dynamic,dict)):
@@ -61,15 +62,15 @@ class FSources_provider:
             if (No_max  == 'end'): No_max = len(dynamic['ogrid'])
             if (Nr_max  == 'end'): Nr_max = len(dynamic['rgrid'])
             
-            self.ogrid = dynamic['ogrid']
-            self.rgrid = dynamic['rgrid']
-            self.zgrid = dynamic['zgrid']
+            self.ogrid = dynamic['ogrid'][ko_min:No_max:ko_step]
+            self.rgrid = dynamic['rgrid'][0:Nr_max:kr_step]
+            self.zgrid = dynamic['zgrid'][0:-1:kz_step]
             def FSource_plane_():
                 for k1 in range(len(self.zgrid)):
                     yield np.squeeze(
-                            dynamic['h5_file'][dynamic['Fsource_path']][0:Nr_max:kr_step,k1*kz_step,0:No_max:ko_step,0]
+                            dynamic['h5_file'][dynamic['Fsource_path']][0:Nr_max:kr_step,k1*kz_step,ko_min:No_max:ko_step,0]
                             +
-                            1j*dynamic['h5_file'][dynamic['Fsource_path']][0:Nr_max:kr_step,k1*kz_step,0:No_max:ko_step,1]).T
+                            1j*dynamic['h5_file'][dynamic['Fsource_path']][0:Nr_max:kr_step,k1*kz_step,ko_min:No_max:ko_step,1]).T
                     
             self.Fsource_plane = FSource_plane_()
             
@@ -106,6 +107,7 @@ def get_propagation_pre_factor_function(zgrid,
     
     if isinstance(pressure,dict):
         if (('zgrid' in pressure.keys()) and not('rgrid' in pressure.keys())):
+            print('z modulation')
             # pass
             # usual case: omega-and-z-integrals, r on-the-fly
             
@@ -184,11 +186,15 @@ def get_propagation_pre_factor_function(zgrid,
             
             
         elif (not('zgrid' in pressure.keys()) and ('rgrid' in pressure.keys())):
-            pass
+            print('r modulation')
+            def pre_factor(kz):
+                return 1.
+            # pass
             # no integrals, only r-scaling, z on-the-fly
             
             
         elif (('zgrid' in pressure.keys()) and ('rgrid' in pressure.keys())):
+            print('zr modulation')
             # pass
             # full case megamatrix
             # NOW: ASSUMIG (Z,R)-order
@@ -318,123 +324,45 @@ def get_propagation_pre_factor_function(zgrid,
     else:
         # from previous version: no integrals, np.outer-stuff
         # pass
-        if include_dispersion:                
-                dispersion_factor = 1j * XUV_index.dispersion_function(
-                                            ogrid, 
-                                            pressure,                                   # scalar               
-                                            preset_gas+'_'+dispersion_tables,
-                                            n_IR = effective_IR_refrective_index)
-        else:
-            dispersion_factor = 0.    
- 
     
-    
-        if include_absorption:                
-            absorption_factor = (pressure/units.c_light) *\
-                                XUV_index.beta_factor_ref(
-                                    ogrid,
-                                    preset_gas+'_'+dispersion_tables)
-        else:
-            absorption_factor = 0.
+        print('no modulation')
+        if not(preset_gas == 'vacuum'):
+            if include_dispersion:                
+                    dispersion_factor = 1j * XUV_index.dispersion_function(
+                                                ogrid, 
+                                                pressure,                                   # scalar               
+                                                preset_gas+'_'+dispersion_tables,
+                                                n_IR = effective_IR_refrective_index)
+            else:
+                dispersion_factor = 0.    
+     
+        
+        
+            if include_absorption:                
+                absorption_factor = (pressure/units.c_light) *\
+                                    XUV_index.beta_factor_ref(
+                                        ogrid,
+                                        preset_gas+'_'+dispersion_tables)
+            else:
+                absorption_factor = 0.
+                
             
-        
-        lin_prop_factor = ogrid * (dispersion_factor + absorption_factor)
-        
-        
-        # if include_dispersion:
-        #     dispersion_factor = np.empty(No)
-        #     for k1 in range(No):
-        #         dispersion_factor[k1] = ogrid[k1]*dispersion_function(ogrid[k1])        
+            lin_prop_factor = ogrid * (dispersion_factor + absorption_factor)
             
-        # if include_absorption:
-        #     absorption_factor = np.empty(No)
-        #     for k1 in range(No):
-        #         absorption_factor[k1] = ogrid[k1]*absorption_function(ogrid[k1])
-          
-        # # compute z-evolution of the factors        
-        # if (include_dispersion and include_absorption):
-        #     factor_e = np.exp(
-        #                       1j*np.outer(zgrid,dispersion_factor) +
-        #                       np.outer(zgrid-zgrid[-1] ,absorption_factor)
-        #                       )
-        # elif include_dispersion:
-        #     factor_e = np.exp(1j*np.outer(zgrid,dispersion_factor))
+             
+                
+            def pre_factor(kz):
+                return pressure * np.exp(
+                                    zgrid[kz]*np.outer(
+                                        np.ones(len(rgrid)),lin_prop_factor
+                                        )
+                                    )            
+        
 
-        # elif include_absorption:
-        #     factor_e = np.exp(np.outer(zgrid-zgrid[-1] ,absorption_factor))  
-         
-            
-        def pre_factor(kz):
-            return pressure * np.exp(
-                                zgrid[kz]*np.outer(
-                                    np.ones(len(rgrid)),lin_prop_factor
-                                    )
-                                )            
-        
-        # pre_factor_value = np.empty(Nz,No,Nr)
-        # for k1 in range(Nr):
-        #     for k2 in range(No):
-        #         for k3 in range(Nz):
-        #             pre_factor_value[k3,k2,k1] = ogrid[k2]*dispersion_function(ogrid[k2])
-        
-            
-            
+    def pre_factor_empty(kz):
+        return 1.
     
-    # def pre_factor(kz):
-    #     pressure_modulation = interpolate.interp1d(
-    #                                     pressure['zgrid'],
-    #                                     pressure['value'],
-    #                                     bounds_error = False,
-    #                                     fill_value = (pressure['value'][0],
-    #                                                   pressure['value'][-1]),
-    #                                     copy = False
-    #                                     )(zgrid)
-            
-    #     phase_factor = np.empty(Nz,No); absorption_factor = np.empty(Nz,No)
-    #     for k1 in range(No):
-    #         integral_for_phase_factor = integrate.cumtrapz(
-    #                                                 pressure['zgrid'],
-    #                                                 XUV_index.dispersion_function(
-    #                                                     omega, 
-    #                                                     pressure['value'],
-    #                                                     preset_gas+'_'+dispersion_tables,
-    #                                                     n_IR = effective_IR_refrective_index),
-    #                                                 initial=0.
-    #                                                 )
-            
-    #         phase_factor[:,k1] =  ogrid[k1] * \
-    #                               interpolate.interp1d(
-    #                                     pressure['zgrid'],
-    #                                     integral_for_phase_factor,
-    #                                     bounds_error = False,
-    #                                     fill_value = (integral_for_phase_factor[0],
-    #                                                   integral_for_phase_factor[-1]),
-    #                                     copy = False
-    #                                     )(zgrid)
-        
-            
-    #         integral_beta_factor = XUV_index.beta_factor_ref(
-    #                                     omega,
-    #                                     preset_gas+'_'+dispersion_tables) * \
-    #                                integrate.cumtrapz(
-    #                                     pressure['zgrid'],
-    #                                     pressure['value'],
-    #                                     initial=0.
-    #                                     )
-                                   
-    #         absorption_factor[:,k1] = ogrid[k1] * \
-    #                                   interpolate.interp1d(
-    #                                     pressure['zgrid'],
-    #                                     integral_beta_factor,
-    #                                     bounds_error = False,
-    #                                     fill_value = (integral_beta_factor[0],
-    #                                                   integral_beta_factor[-1]),
-    #                                     copy = False
-    #                                   )(zgrid)
-                                      
-    #     return pre_factor_
-    
-    return pre_factor
+    return pre_factor_empty
 
 # class linear_propagation_e_factor():
 #     """
