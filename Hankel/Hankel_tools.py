@@ -24,24 +24,52 @@ class FSources_provider:
                 (e.g. inside a 'with' block)
     """
     
-    def __init__(self,static=None,dynamic=None):
+    def __init__(self,static=None,dynamic=None,
+                 ko_step =  1,
+                 No_max  = 'end',
+                 kr_step =  1,
+                 Nr_max  = 'end',
+                 kz_step =  1):
+        
+        
+        # ko_step = 1; No_max = -1
+        # kr_step = 1; Nr_max = -1
+        # kz_step = 1
+        # if not(reduce_resolution is None):
+        #     if ('ko_step' in reduce_resolution.keys()): ko_step = reduce_resolution['ko_step']
+        #     if ('No_max'  in reduce_resolution.keys()): No_max  = reduce_resolution['No_max']
+        #     if ('kr_step' in reduce_resolution.keys()): kr_step = reduce_resolution['kr_step']
+        #     if ('Nr_max'  in reduce_resolution.keys()): Nr_max  = reduce_resolution['Nr_max']
+        #     if ('kz_step' in reduce_resolution.keys()): kz_step = reduce_resolution['kz_step']
+        
+        
         if (isinstance(static,dict) and (dynamic is None)):
-            self.ogrid = static['ogrid']
-            self.rgrid = static['rgrid']
-            self.zgrid = static['zgrid']
+            
+            if (No_max  == 'end'): No_max = len(static['ogrid'])
+            if (Nr_max  == 'end'): Nr_max = len(static['rgrid'])
+            
+            self.ogrid = static['ogrid'][0:No_max:ko_step]
+            self.rgrid = static['rgrid'][0:Nr_max:kr_step]
+            self.zgrid = static['zgrid'][0:-1:kz_step]
             def FSource_plane_():
                 for k1 in range(len(self.zgrid)):
-                    yield static['FSource'][k1,:,:]
+                    yield static['FSource'][k1*kz_step,0:No_max:ko_step,0:Nr_max:kr_step]
             self.Fsource_plane = FSource_plane_()
             
         elif ((static is None) and isinstance(dynamic,dict)):
+            
+            if (No_max  == 'end'): No_max = len(dynamic['ogrid'])
+            if (Nr_max  == 'end'): Nr_max = len(dynamic['rgrid'])
+            
             self.ogrid = dynamic['ogrid']
             self.rgrid = dynamic['rgrid']
             self.zgrid = dynamic['zgrid']
             def FSource_plane_():
                 for k1 in range(len(self.zgrid)):
                     yield np.squeeze(
-                            dynamic['FSource'][:,k1,:,0] + 1j*dynamic['FSource'][:,k1,:,1]).T
+                            dynamic['h5_file'][dynamic['Fsource_path']][0:Nr_max:kr_step,k1*kz_step,0:No_max:ko_step,0]
+                            +
+                            1j*dynamic['h5_file'][dynamic['Fsource_path']][0:Nr_max:kr_step,k1*kz_step,0:No_max:ko_step,1]).T
                     
             self.Fsource_plane = FSource_plane_()
             

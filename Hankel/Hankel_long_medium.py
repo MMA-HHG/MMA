@@ -69,8 +69,41 @@ file_CUPRAD = os.path.join(results_CUPRAD,file_CUPRAD)
 file_TDSE = os.path.join(results_TDSE,file_TDSE)
 
 
+# load data
+print('processing:', file_CUPRAD, file_TDSE)             
+with h5py.File(file_CUPRAD, 'r') as InputArchiveCUPRAD, h5py.File(file_TDSE, 'r') as InputArchiveTDSE:
+    omega0 = mn.ConvertPhoton(1e-2*mn.readscalardataset(InputArchiveCUPRAD,'/inputs/laser_wavelength','N'),'lambdaSI','omegaau')
+    inverse_GV_IR = InputArchiveCUPRAD['/logs/inverse_group_velocity_SI'][()]; group_velocity_IR = 1./inverse_GV_IR
+    # pressure_mbar = 1e3*InputArchiveCUPRAD['/inputs/medium_pressure_in_bar'][()]
+    rho0_init = 1e6 * mn.readscalardataset(InputArchiveCUPRAD, '/inputs/calculated/medium_effective_density_of_neutral_molecules','N') # SI
+   
+    FSourceTerm = InputArchiveTDSE['FSourceTerm'][:,:,:,0] + \
+                        1j*InputArchiveTDSE['FSourceTerm'][:,:,:,1]
+    ogrid = InputArchiveTDSE['omegagrid'][:]
+    rgrid_macro = InputArchiveTDSE['rgrid_coarse'][:]
+    zgrid_macro = InputArchiveTDSE['zgrid_coarse'][:]
+    
+    FSourceTerm_sparse = InputArchiveTDSE['FSourceTerm'][:,:,0:-1:2,0] + \
+                        1j*InputArchiveTDSE['FSourceTerm'][:,:,0:-1:2,1]
+                        
+    target_static = Hankel_tools.FSources_provider(static={
+                                                    'zgrid'   : InputArchiveTDSE['rgrid_coarse'][:],
+                                                    'rgrid'   : InputArchiveTDSE['rgrid_coarse'][:],
+                                                    'ogrid'   : InputArchiveTDSE['omegagrid'][:],
+                                                    'FSource' : np.transpose(FSourceTerm,axes=(1,2,0))})
+    
+    target_dynamic = Hankel_tools.FSources_provider(dynamic={
+                                                    'zgrid'   : InputArchiveTDSE['rgrid_coarse'][:],
+                                                    'rgrid'   : InputArchiveTDSE['rgrid_coarse'][:],
+                                                    'ogrid'   : InputArchiveTDSE['omegagrid'][:],
+                                                    'h5_file' : InputArchiveTDSE,
+                                                    'Fsource_path' : 'FSourceTerm'})
+    
+    plane1_dyn = next(target_dynamic.Fsource_plane)
+    plane2_dyn = next(target_dynamic.Fsource_plane)
 
-sys.exit(0)
+
+# sys.exit(0)
 
 # # load data
 # print('processing:', file_CUPRAD, file_TDSE)             
