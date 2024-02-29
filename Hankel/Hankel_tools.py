@@ -1,4 +1,5 @@
 import numpy as np
+from scipy import integrate
 from scipy import interpolate
 import units
 # import h5py
@@ -53,7 +54,16 @@ class FSources_provider:
 # it loads preset gases - easy use for physical situations
 #  
 
-def get_propagation_pre_factor(rgrid):
+def get_propagation_pre_factor_function(zgrid,
+                                rgrid,
+                                ogrid,
+                                preset_gas = 'vacuum',
+                                pressure = 1.,
+                                absorption_tables = 'Henke',
+                                include_absorption = True,
+                                dispersion_tables = 'Henke',
+                                include_dispersion = True,
+                                effective_IR_refrective_index = 1.):
     """
 
     Returns
@@ -63,6 +73,7 @@ def get_propagation_pre_factor(rgrid):
 
     """
     
+    Nz = len(zgrid); Nr = len(rgrid); No = len(ogrid)
     # switch over geometries
     
     if isinstance(pressure,dict):
@@ -88,7 +99,7 @@ def get_propagation_pre_factor(rgrid):
                     integral_for_phase_factor = integrate.cumtrapz(
                                                         pressure['zgrid'],
                                                         XUV_index.dispersion_function(
-                                                            omega[k1], 
+                                                            ogrid[k1], 
                                                             pressure['value'],                
                                                             preset_gas+'_'+dispersion_tables,
                                                             n_IR = effective_IR_refrective_index),
@@ -110,7 +121,7 @@ def get_propagation_pre_factor(rgrid):
                     
                 if include_absorption:
                     integral_beta_factor = XUV_index.beta_factor_ref(
-                                            omega[k1],
+                                            ogrid[k1],
                                             preset_gas+'_'+dispersion_tables) * \
                                        integrate.cumtrapz(
                                             pressure['zgrid'],
@@ -156,7 +167,7 @@ def get_propagation_pre_factor(rgrid):
             Nz_table = len(pressure['zgrid'])
             pressure_my_rgrid = np.empty((Nz_table,Nr))
             for k1 in range(Nz_table):
-                pressure_my_rgrid[k1,:] = interpolate.interp1d(                               # dispersion factor
+                pressure_my_rgrid[k1,:] = interpolate.interp1d(
                                               pressure['rgrid'],
                                               pressure['value'][k1,:],
                                               bounds_error = False,
@@ -185,7 +196,7 @@ def get_propagation_pre_factor(rgrid):
                         integral_for_phase_factor = integrate.cumtrapz(
                                                             pressure['zgrid'],
                                                             XUV_index.dispersion_function(
-                                                                omega[k2], 
+                                                                ogrid[k2], 
                                                                 pressure_my_rgrid[:,k1],                # value - matrix
                                                                 preset_gas+'_'+dispersion_tables,
                                                                 n_IR = effective_IR_refrective_index),
@@ -207,7 +218,7 @@ def get_propagation_pre_factor(rgrid):
                         
                     if include_absorption:
                         integral_beta_factor = XUV_index.beta_factor_ref(
-                                                omega[k2],
+                                                ogrid[k2],
                                                 preset_gas+'_'+dispersion_tables) * \
                                            integrate.cumtrapz(
                                                 pressure['zgrid'],
@@ -281,7 +292,7 @@ def get_propagation_pre_factor(rgrid):
         # pass
         if include_dispersion:                
                 dispersion_factor = 1j * XUV_index.dispersion_function(
-                                            omega, 
+                                            ogrid, 
                                             pressure,                                   # scalar               
                                             preset_gas+'_'+dispersion_tables,
                                             n_IR = effective_IR_refrective_index)
@@ -293,13 +304,13 @@ def get_propagation_pre_factor(rgrid):
         if include_absorption:                
             absorption_factor = (pressure/units.c_light) *\
                                 XUV_index.beta_factor_ref(
-                                    omega,
+                                    ogrid,
                                     preset_gas+'_'+dispersion_tables)
         else:
             absorption_factor = 0.
             
         
-        lin_prop_factor = omega * (dispersion_factor + absorption_factor)
+        lin_prop_factor = ogrid * (dispersion_factor + absorption_factor)
         
         
         # if include_dispersion:

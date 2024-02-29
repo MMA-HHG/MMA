@@ -23,7 +23,7 @@ import mynumerics as mn
 
 import XUV_refractive_index as XUV_index
 
-from Hankel_tools import linear_propagation_e_factor
+from Hankel_tools import get_propagation_pre_factor_function
 
 def HankelTransform(ogrid, rgrid, FField, distance, rgrid_FF, integrator = integrate.trapz, near_field_factor = True):
     """
@@ -88,52 +88,52 @@ def HankelTransform_long(target, # FSourceTerm(r,z,omega)
                          store_cummulative_result = False,
                          frequencies_to_trace_maxima = None
                          ):
-    """
-    It computes XUV propagation using a sum of Hankel transforms along the medium.
+    # """
+    # It computes XUV propagation using a sum of Hankel transforms along the medium.
 
-    Parameters
-    ----------
-    target : an instance of 'FSource_provider' class
-        Provides all the field in the long medium together with its respective grids [SI]
+    # Parameters
+    # ----------
+    # target : an instance of 'FSource_provider' class
+    #     Provides all the field in the long medium together with its respective grids [SI]
         
-    pressure : scalar or dict [SI]
-        scalar is used to scale the result and compute the dispersion & absorption, 
-        dict: 'zgrid' - pressure modulation zgrid; 'value' - the modulation \n
-    NOTE: grid might need to be finer to properly retrieve the XUV phase
+    # pressure : scalar or dict [SI]
+    #     scalar is used to scale the result and compute the dispersion & absorption, 
+    #     dict: 'zgrid' - pressure modulation zgrid; 'value' - the modulation \n
+    # NOTE: grid might need to be finer to properly retrieve the XUV phase
                     
 
-        order: (r,z,omega); there is no inter check of dimensions, it has to match
-    distance : scalar
-        The distance from the first point of the medium [SI]
-    rgrid_FF : array_like
-        the required radial grid in far-field [SI]
-    dispersion_function : function, optional
-        The dispersion is factored as exp(i*z*omega*dispersion_function(omega)). The default is None.
-    absorption_function : function, optional
-        Analogical to dispersion. The default is None.
-    integrator_Hankel : function, optional
-        used method to integrate in the radial direction. The default is integrate.trapz.
-    integrator_longitudinal : function, optional
-        used method to integrate in the longitudinal direction. The default is 'trapezoidal'.
-    near_field_factor : logical, optional
-        False for far field without the Fresnel term. The default is True.    
-    frequencies_to_trace_maxima : list of 2D-array_like, optional
-        If present, these windows given by the 2-D-array-likes are used to trace maxima of respective planes of integration.
-        The default is None.
+    #     order: (r,z,omega); there is no inter check of dimensions, it has to match
+    # distance : scalar
+    #     The distance from the first point of the medium [SI]
+    # rgrid_FF : array_like
+    #     the required radial grid in far-field [SI]
+    # dispersion_function : function, optional
+    #     The dispersion is factored as exp(i*z*omega*dispersion_function(omega)). The default is None.
+    # absorption_function : function, optional
+    #     Analogical to dispersion. The default is None.
+    # integrator_Hankel : function, optional
+    #     used method to integrate in the radial direction. The default is integrate.trapz.
+    # integrator_longitudinal : function, optional
+    #     used method to integrate in the longitudinal direction. The default is 'trapezoidal'.
+    # near_field_factor : logical, optional
+    #     False for far field without the Fresnel term. The default is True.    
+    # frequencies_to_trace_maxima : list of 2D-array_like, optional
+    #     If present, these windows given by the 2-D-array-likes are used to trace maxima of respective planes of integration.
+    #     The default is None.
 
-    Raises
-    ------
-    NotImplementedError
-        In the case a non-implemented integration rule is inputed.
+    # Raises
+    # ------
+    # NotImplementedError
+    #     In the case a non-implemented integration rule is inputed.
 
-    Returns
-    -------
-    result : the field in the radial grid of the observation plane
+    # Returns
+    # -------
+    # result : the field in the radial grid of the observation plane
     
-    result , planes_maxima: if frequencies_to_trace_maxima are present
-        .
+    # result , planes_maxima: if frequencies_to_trace_maxima are present
+    #     .
 
-    """
+    # """
 
     
 
@@ -153,162 +153,147 @@ def HankelTransform_long(target, # FSourceTerm(r,z,omega)
     
     
     
-    pressure_modulation = interpolate.interp1d(
-                                    pressure['zgrid'],
-                                    pressure['value'],
-                                    bounds_error = False,
-                                    fill_value = (pressure['value'][0],
-                                                  pressure['value'][-1]),
-                                    copy = False
-                                    )(zgrid)
-        
-    phase_factor = np.empty(Nz,No); absorption_factor = np.empty(Nz,No)
-    for k1 in range(No):
-        integral_for_phase_factor = integrate.cumtrapz(
-                                                pressure['zgrid'],
-                                                XUV_index.dispersion_function(
-                                                    omega, 
-                                                    pressure['value'],
-                                                    preset_gas+'_'+dispersion_tables,
-                                                    n_IR = effective_IR_refrective_index),
-                                                initial=0.
-                                                )
-        
-        phase_factor[:,k1] =  ogrid[k1] * \
-                              interpolate.interp1d(
-                                    pressure['zgrid'],
-                                    integral_for_phase_factor,
-                                    bounds_error = False,
-                                    fill_value = (integral_for_phase_factor[0],
-                                                  integral_for_phase_factor[-1]),
-                                    copy = False
-                                    )(zgrid)
-    
-        
-        integral_beta_factor = XUV_index.beta_factor_ref(
-                                    omega,
-                                    preset_gas+'_'+dispersion_tables) * \
-                               integrate.cumtrapz(
-                                    pressure['zgrid'],
-                                    pressure['value'],
-                                    initial=0.
-                                    )
-                               
-        absorption_factor[:,k1] = ogrid[k1] * \ 
-                                  interpolate.interp1d(
-                                    pressure['zgrid'],
-                                    integral_beta_factor,
-                                    bounds_error = False,
-                                    fill_value = (integral_beta_factor[0],
-                                                  integral_beta_factor[-1]),
-                                    copy = False
-                                  )(zgrid)
-
-    
-    
-    if include_dispersion:
-        dispersion_factor = np.empty(No)
-        for k1 in range(No):
-            dispersion_factor[k1] = ogrid[k1]*dispersion_function(ogrid[k1])
-        
-    if include_absorption:
-        absorption_factor = np.empty(No)
-        for k1 in range(No):
-            absorption_factor[k1] = ogrid[k1]*absorption_function(ogrid[k1])
-      
-    # compute z-evolution of the factors        
-    if (include_dispersion and include_absorption):
-        factor_e = np.exp(
-                          1j*np.outer(zgrid,dispersion_factor) +
-                          np.outer(zgrid-zgrid[-1] ,absorption_factor)
-                          )
-    elif include_dispersion:
-        factor_e = np.exp(1j*np.outer(zgrid,dispersion_factor))
-
-    elif include_absorption:
-        factor_e = np.exp(np.outer(zgrid-zgrid[-1] ,absorption_factor))     
+    # integral & init pre_factor
+    FF_integrated = 0.
+    pre_factor = get_propagation_pre_factor_function(
+                                    target.zgrid,
+                                    target.rgrid,
+                                    target.ogrid,
+                                    preset_gas = preset_gas,
+                                    pressure = pressure,
+                                    absorption_tables = absorption_tables,
+                                    include_absorption = include_dispersion,
+                                    dispersion_tables = dispersion_tables,
+                                    include_dispersion = include_dispersion,
+                                    effective_IR_refrective_index = effective_IR_refrective_index)
 
             
     # we keep the data for now, consider on-the-fly change
     print('Computing Hankel from planes')
     t_start = time.perf_counter()
-    for k1 in range(Nz):
+    
+    Fsource_plane1 = pre_factor(0) *\
+                     HankelTransform(target.ogrid,
+                                     target.rgrid,
+                                     next(target.Fsource_plane),
+                                     distance-target.zgrid[0],
+                                     rgrid_FF,
+                                     integrator = integrator_Hankel,
+                                     near_field_factor = near_field_factor)
+    if store_cummulative_result:
+         cummulative_field = np.empty((Nz,) + Fsource_plane1.shape, dtype=np.cdouble)
+         cummulative_field[0,:,:] = 1.*Fsource_plane1
+    
+    
+    for k1 in range(Nz-1):
         print('plane', k1, 'time:', time.perf_counter()-t_start)
-        FSourceTerm_select = np.squeeze(FSourceTerm[:,k1,:]).T
-        FField_FF = HankelTransform(ogrid,
-                                  rgrid,
-                                  FSourceTerm_select,
-                                  distance-zgrid[k1],
-                                  rgrid_FF,
-                                  integrator = integrator_Hankel,
-                                  near_field_factor = near_field_factor)
+        Fsource_plane2 = pre_factor(k1+1) *\
+                         HankelTransform(target.ogrid,
+                                         target.rgrid,
+                                         next(target.Fsource_plane),
+                                         distance-target.zgrid[k1+1],
+                                         rgrid_FF,
+                                         integrator = integrator_Hankel,
+                                         near_field_factor = near_field_factor)        
+                         
+        FF_integrated += 0.5*(target.zgrid[k1+1]-target.zgrid[k1])*(Fsource_plane1 + Fsource_plane2)
         
-        if (k1 == 0): # allocate space
-            FField_FF_z = np.zeros( (Nz,) + FField_FF.shape,dtype=np.cdouble) 
+        if store_cummulative_result:
+            cummulative_field[k1,:,:] = 1.*FF_integrated
         
-        if (include_dispersion or include_absorption):  
-             FField_FF_z[k1,:,:] = np.outer(factor_e[k1,:],np.ones(FField_FF.shape[1]))*FField_FF
-        else:
-            FField_FF_z[k1,:,:] = FField_FF # (z,omega,r)
+        
+        Fsource_plane1 = Fsource_plane2
+    
+    
     
     if store_cummulative_result:
-        cummulative_field = np.empty((Nz-1,) + FField_FF.shape, dtype=np.cdouble)
-        
-    if (integrator_longitudinal == 'trapezoidal'):        
-        for k1 in range(Nz-1):    
-            k_step = 1
-            if (k1 == 0):
-                dum = 0.5*(zgrid[(k1+1)*k_step]-zgrid[k1*k_step]) * \
-                      (FField_FF_z[k1*k_step,:,:] + FField_FF_z[(k1+1)*k_step,:,:])
-            else:
-                dum = dum + \
-                      0.5*(zgrid[(k1+1)*k_step]-zgrid[k1*k_step]) * \
-                      (FField_FF_z[k1*k_step,:,:] + FField_FF_z[(k1+1)*k_step,:,:])
-                      
-            if store_cummulative_result:
-                if include_absorption:
-                    # we need renormalise the end of the medium
-                    exp_renorm = np.exp( (zgrid[-1]-zgrid[k1]) * absorption_factor)
-                    for k2 in range(No):
-                        for k3 in range(Nr_FF):
-                            cummulative_field[k1,k2,k3] = exp_renorm[k2]*dum[k2,k3]
-                else:
-                    cummulative_field[k1,:,:] = dum
-                
+        return FF_integrated, cummulative_field
     else:
-        raise NotImplementedError('Only trapezoidal rule implemented now')
+        return FF_integrated
         
-    if trace_maxima_log:
         
-        frequency_indices = []
-        planes_maxima = []
-        for frequency_list in frequencies_to_trace_maxima:
-            try:
-                frequency_indices.append(mn.FindInterval(ogrid, frequency_list))
-                planes_maxima.append([])
-            except:
-                warnings.warn("A frequency from frequencies_to_trace_maxima doesn't match ogrid.")
         
-        if (len(frequency_indices)>0):
-            for k1 in range(Nz):
-                for k2 in range(len(frequency_indices)):
-                    planes_maxima[k2].append(np.max(abs(
-                                      FField_FF_z[k1,frequency_indices[k2][0]:frequency_indices[k2][1],:]
-                                            )))
+        
+        
+        
+        
+        
+        
+    #     FSourceTerm_select = np.squeeze(FSourceTerm[:,k1,:]).T
+    #     FField_FF = HankelTransform(ogrid,
+    #                               rgrid,
+    #                               FSourceTerm_select,
+    #                               distance-zgrid[k1],
+    #                               rgrid_FF,
+    #                               integrator = integrator_Hankel,
+    #                               near_field_factor = near_field_factor)
+        
+    #     if (k1 == 0): # allocate space
+    #         FField_FF_z = np.zeros( (Nz,) + FField_FF.shape,dtype=np.cdouble) 
+        
+    #     if (include_dispersion or include_absorption):  
+    #         FField_FF_z[k1,:,:] = np.outer(factor_e[k1,:],np.ones(FField_FF.shape[1]))*FField_FF
+    #     else:
+    #         FField_FF_z[k1,:,:] = FField_FF # (z,omega,r)
+    
+    # if store_cummulative_result:
+    #     cummulative_field = np.empty((Nz-1,) + FField_FF.shape, dtype=np.cdouble)
+        
+    # if (integrator_longitudinal == 'trapezoidal'):        
+    #     for k1 in range(Nz-1):    
+    #         k_step = 1
+    #         if (k1 == 0):
+    #             dum = 0.5*(zgrid[(k1+1)*k_step]-zgrid[k1*k_step]) * \
+    #                   (FField_FF_z[k1*k_step,:,:] + FField_FF_z[(k1+1)*k_step,:,:])
+    #         else:
+    #             dum = dum + \
+    #                   0.5*(zgrid[(k1+1)*k_step]-zgrid[k1*k_step]) * \
+    #                   (FField_FF_z[k1*k_step,:,:] + FField_FF_z[(k1+1)*k_step,:,:])
+                      
+    #         if store_cummulative_result:
+    #             if include_absorption:
+    #                 # we need renormalise the end of the medium
+    #                 exp_renorm = np.exp( (zgrid[-1]-zgrid[k1]) * absorption_factor)
+    #                 for k2 in range(No):
+    #                     for k3 in range(Nr_FF):
+    #                         cummulative_field[k1,k2,k3] = exp_renorm[k2]*dum[k2,k3]
+    #             else:
+    #                 cummulative_field[k1,:,:] = dum
+                
+    # else:
+    #     raise NotImplementedError('Only trapezoidal rule implemented now')
+        
+    # if trace_maxima_log:
+        
+    #     frequency_indices = []
+    #     planes_maxima = []
+    #     for frequency_list in frequencies_to_trace_maxima:
+    #         try:
+    #             frequency_indices.append(mn.FindInterval(ogrid, frequency_list))
+    #             planes_maxima.append([])
+    #         except:
+    #             warnings.warn("A frequency from frequencies_to_trace_maxima doesn't match ogrid.")
+        
+    #     if (len(frequency_indices)>0):
+    #         for k1 in range(Nz):
+    #             for k2 in range(len(frequency_indices)):
+    #                 planes_maxima[k2].append(np.max(abs(
+    #                                   FField_FF_z[k1,frequency_indices[k2][0]:frequency_indices[k2][1],:]
+    #                                         )))
                     
-            for k1 in range(len(frequency_indices)):
-                planes_maxima[k1] = np.asarray(planes_maxima[k1])
+    #         for k1 in range(len(frequency_indices)):
+    #             planes_maxima[k1] = np.asarray(planes_maxima[k1])
         
-        if store_cummulative_result:
-            return dum , planes_maxima, cummulative_field
-        else:
-            return dum , planes_maxima
+    #     if store_cummulative_result:
+    #         return dum , planes_maxima, cummulative_field
+    #     else:
+    #         return dum , planes_maxima
             
-    else: 
-        if store_cummulative_result:
-            return dum, cummulative_field
-        else:
-            return dum
+    # else: 
+    #     if store_cummulative_result:
+    #         return dum, cummulative_field
+    #     else:
+    #         return dum
                 
                 
 
@@ -322,3 +307,89 @@ def Signal_cum_integrator(ogrid, zgrid, FSourceTerm,
         signal[k1,1:] = integrator(integrand[k1,:],zgrid)
     return signal    
     
+
+
+
+
+
+
+
+
+
+
+
+
+    # pressure_modulation = interpolate.interp1d(
+    #                                 pressure['zgrid'],
+    #                                 pressure['value'],
+    #                                 bounds_error = False,
+    #                                 fill_value = (pressure['value'][0],
+    #                                               pressure['value'][-1]),
+    #                                 copy = False
+    #                                 )(zgrid)
+        
+    # phase_factor = np.empty(Nz,No); absorption_factor = np.empty(Nz,No)
+    # for k1 in range(No):
+    #     integral_for_phase_factor = integrate.cumtrapz(
+    #                                             pressure['zgrid'],
+    #                                             XUV_index.dispersion_function(
+    #                                                 omega, 
+    #                                                 pressure['value'],
+    #                                                 preset_gas+'_'+dispersion_tables,
+    #                                                 n_IR = effective_IR_refrective_index),
+    #                                             initial=0.
+    #                                             )
+        
+    #     phase_factor[:,k1] =  ogrid[k1] * \
+    #                           interpolate.interp1d(
+    #                                 pressure['zgrid'],
+    #                                 integral_for_phase_factor,
+    #                                 bounds_error = False,
+    #                                 fill_value = (integral_for_phase_factor[0],
+    #                                               integral_for_phase_factor[-1]),
+    #                                 copy = False
+    #                                 )(zgrid)
+    
+        
+    #     integral_beta_factor = XUV_index.beta_factor_ref(
+    #                                 omega,
+    #                                 preset_gas+'_'+dispersion_tables) * \
+    #                            integrate.cumtrapz(
+    #                                 pressure['zgrid'],
+    #                                 pressure['value'],
+    #                                 initial=0.
+    #                                 )
+                               
+    #     absorption_factor[:,k1] = ogrid[k1] * \ 
+    #                               interpolate.interp1d(
+    #                                 pressure['zgrid'],
+    #                                 integral_beta_factor,
+    #                                 bounds_error = False,
+    #                                 fill_value = (integral_beta_factor[0],
+    #                                               integral_beta_factor[-1]),
+    #                                 copy = False
+    #                               )(zgrid)
+
+    
+    
+    # if include_dispersion:
+    #     dispersion_factor = np.empty(No)
+    #     for k1 in range(No):
+    #         dispersion_factor[k1] = ogrid[k1]*dispersion_function(ogrid[k1])
+        
+    # if include_absorption:
+    #     absorption_factor = np.empty(No)
+    #     for k1 in range(No):
+    #         absorption_factor[k1] = ogrid[k1]*absorption_function(ogrid[k1])
+      
+    # # compute z-evolution of the factors        
+    # if (include_dispersion and include_absorption):
+    #     factor_e = np.exp(
+    #                       1j*np.outer(zgrid,dispersion_factor) +
+    #                       np.outer(zgrid-zgrid[-1] ,absorption_factor)
+    #                       )
+    # elif include_dispersion:
+    #     factor_e = np.exp(1j*np.outer(zgrid,dispersion_factor))
+
+    # elif include_absorption:
+    #     factor_e = np.exp(np.outer(zgrid-zgrid[-1] ,absorption_factor)) 
