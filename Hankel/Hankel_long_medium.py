@@ -110,20 +110,26 @@ with h5py.File(file_CUPRAD, 'r') as InputArchiveCUPRAD, h5py.File(file_TDSE, 'r'
     ko_min = mn.FindInterval(ogrid/omega0, 10)
     ko_max = mn.FindInterval(ogrid/omega0, 20)
     
-    target_static = Hankel_tools.FSources_provider(static={
-                                                    'zgrid'   : InputArchiveTDSE['zgrid_coarse'][:],
-                                                    'rgrid'   : InputArchiveTDSE['rgrid_coarse'][:],
-                                                    'ogrid'   : InputArchiveTDSE['omegagrid'][:],
-                                                    'FSource' : np.transpose(FSourceTerm,axes=(1,2,0))},
-                                                     ko_min = ko_min,
-                                                     No_max = ko_max)
+    # print(type(InputArchiveTDSE))
+    # grp =  InputArchiveCUPRAD['/logs']
+    # print(type(grp))
     
-    target_dynamic = Hankel_tools.FSources_provider(dynamic={
-                                                    'zgrid'   : InputArchiveTDSE['zgrid_coarse'][:],
-                                                    'rgrid'   : InputArchiveTDSE['rgrid_coarse'][:],
-                                                    'ogrid'   : InputArchiveTDSE['omegagrid'][:],
-                                                    'h5_file' : InputArchiveTDSE,
-                                                    'Fsource_path' : 'FSourceTerm'})
+    target_static = Hankel_tools.FSources_provider(InputArchiveTDSE['zgrid_coarse'][:],
+                                                   InputArchiveTDSE['rgrid_coarse'][:],
+                                                   InputArchiveTDSE['omegagrid'][:],
+                                                   FSource = np.transpose(FSourceTerm,axes=(1,2,0)),
+                                                   data_source = 'static',
+                                                   ko_min = ko_min,
+                                                   ko_max = ko_max)
+    
+    target_dynamic = Hankel_tools.FSources_provider(InputArchiveTDSE['zgrid_coarse'][:],
+                                                   InputArchiveTDSE['rgrid_coarse'][:],
+                                                   InputArchiveTDSE['omegagrid'][:],
+                                                   h5_handle = InputArchiveTDSE,
+                                                   h5_path = 'FSourceTerm',
+                                                   data_source = 'dynamic',
+                                                   ko_min = ko_min,
+                                                   ko_max = ko_max)
     
     
     # plane1_dyn = next(target_dynamic.Fsource_plane)

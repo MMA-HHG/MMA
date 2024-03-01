@@ -24,12 +24,17 @@ class FSources_provider:
                 (e.g. inside a 'with' block)
     """
     
-    def __init__(self,static=None,dynamic=None,
+    def __init__(self, # static=None,dynamic=None,
+                 zgrid, rgrid, ogrid,
+                 data_source = 'static',
+                 FSource = None,
+                 h5_handle = None,
+                 h5_path = None,
                  ko_min  =  0,
                  ko_step =  1,
-                 No_max  = 'end',
+                 ko_max  = 'end',
                  kr_step =  1,
-                 Nr_max  = 'end',
+                 kr_max  = 'end',
                  kz_step =  1):
         
         
@@ -44,41 +49,66 @@ class FSources_provider:
         #     if ('kz_step' in reduce_resolution.keys()): kz_step = reduce_resolution['kz_step']
         
         
-        if (isinstance(static,dict) and (dynamic is None)):
-            
-            if (No_max  == 'end'): No_max = len(static['ogrid'])
-            if (Nr_max  == 'end'): Nr_max = len(static['rgrid'])
-            
-            self.ogrid = static['ogrid'][ko_min:No_max:ko_step]
-            self.rgrid = static['rgrid'][0:Nr_max:kr_step]
-            self.zgrid = static['zgrid'][0:-1:kz_step]
+        if (ko_max  == 'end'): ko_max = len(ogrid)
+        if (kr_max  == 'end'): kr_max = len(rgrid)
+        self.zgrid = zgrid[0:-1:kz_step]
+        self.rgrid = rgrid[0:kr_max:kr_step]
+        self.ogrid = ogrid[ko_min:ko_max:ko_step]
+        
+        if (data_source == 'static'):
             def FSource_plane_():
                 for k1 in range(len(self.zgrid)):
-                    yield static['FSource'][k1*kz_step,ko_min:No_max:ko_step,0:Nr_max:kr_step]
+                    yield FSource[k1*kz_step,ko_min:ko_max:ko_step,0:kr_max:kr_step]
             self.Fsource_plane = FSource_plane_()
-            
-        elif ((static is None) and isinstance(dynamic,dict)):
-            
-            if (No_max  == 'end'): No_max = len(dynamic['ogrid'])
-            if (Nr_max  == 'end'): Nr_max = len(dynamic['rgrid'])
-            
-            self.ogrid = dynamic['ogrid'][ko_min:No_max:ko_step]
-            self.rgrid = dynamic['rgrid'][0:Nr_max:kr_step]
-            self.zgrid = dynamic['zgrid'][0:-1:kz_step]
+        elif (data_source == 'dynamic'):
             def FSource_plane_():
                 for k1 in range(len(self.zgrid)):
                     yield np.squeeze(
-                            dynamic['h5_file'][dynamic['Fsource_path']][0:Nr_max:kr_step,k1*kz_step,ko_min:No_max:ko_step,0]
+                            h5_handle[h5_path][0:kr_max:kr_step,k1*kz_step,ko_min:ko_max:ko_step,0]
                             +
-                            1j*dynamic['h5_file'][dynamic['Fsource_path']][0:Nr_max:kr_step,k1*kz_step,ko_min:No_max:ko_step,1]).T
+                            1j*h5_handle[h5_path][0:kr_max:kr_step,k1*kz_step,ko_min:ko_max:ko_step,1]).T
                     # !!!! THIS IS SUPER SLOW, try:
                     # https://docs.h5py.org/en/stable/high/dataset.html#:~:text=)%0Adataset%20inaccessible-,read_direct,-(array%2C
                     # https://stackoverflow.com/a/72397433
-                    
             self.Fsource_plane = FSource_plane_()
-            
         else:
             raise ValueError('Wrongly specified input of the class.')
+            
+        # if (isinstance(static,dict) and (dynamic is None)):
+            
+        #     if (No_max  == 'end'): No_max = len(static['ogrid'])
+        #     if (Nr_max  == 'end'): Nr_max = len(static['rgrid'])
+            
+        #     self.ogrid = static['ogrid'][ko_min:No_max:ko_step]
+        #     self.rgrid = static['rgrid'][0:Nr_max:kr_step]
+        #     self.zgrid = static['zgrid'][0:-1:kz_step]
+        #     def FSource_plane_():
+        #         for k1 in range(len(self.zgrid)):
+        #             yield static['FSource'][k1*kz_step,ko_min:No_max:ko_step,0:Nr_max:kr_step]
+        #     self.Fsource_plane = FSource_plane_()
+            
+        # elif ((static is None) and isinstance(dynamic,dict)):
+            
+        #     if (No_max  == 'end'): No_max = len(dynamic['ogrid'])
+        #     if (Nr_max  == 'end'): Nr_max = len(dynamic['rgrid'])
+            
+        #     self.ogrid = dynamic['ogrid'][ko_min:No_max:ko_step]
+        #     self.rgrid = dynamic['rgrid'][0:Nr_max:kr_step]
+        #     self.zgrid = dynamic['zgrid'][0:-1:kz_step]
+        #     def FSource_plane_():
+        #         for k1 in range(len(self.zgrid)):
+        #             yield np.squeeze(
+        #                     dynamic['h5_file'][dynamic['Fsource_path']][0:Nr_max:kr_step,k1*kz_step,ko_min:No_max:ko_step,0]
+        #                     +
+        #                     1j*dynamic['h5_file'][dynamic['Fsource_path']][0:Nr_max:kr_step,k1*kz_step,ko_min:No_max:ko_step,1]).T
+        #             # !!!! THIS IS SUPER SLOW, try:
+        #             # https://docs.h5py.org/en/stable/high/dataset.html#:~:text=)%0Adataset%20inaccessible-,read_direct,-(array%2C
+        #             # https://stackoverflow.com/a/72397433
+                    
+        #     self.Fsource_plane = FSource_plane_()
+            
+        # else:
+        #     raise ValueError('Wrongly specified input of the class.')
 
 
 
