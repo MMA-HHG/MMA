@@ -28,6 +28,7 @@
     * *Long medium* (either this or the previus with a Gaussian density-modulation.)
     * *Pre-ionised medium*
     * *Interactive python* ✔️ via Jupyter
+        * ***Promote invariant ionisation***
     * *?* Some filamentation form Stefan's papers, ...
 * Writing the paper (all)
     * CPC: no new physics, only the code and its usage + already published results
@@ -35,7 +36,9 @@
 * Test cases & tutorials
     * ***Create a YouTube video-tutorial***
         * Go through the whole code installation and execution, comment it.
-    * (?) Jupyter notebook    
+    * (?) Jupyter notebook  
+* Documentation
+    * README.md's in the git-repo + webpage genrated by doxygen + sphynx
 * Check conventions
     * The conventions in the code shall correspond the written ones in supplmentary materials. I did checks during the development, that the code works intrinsically. However, there might be a mistake in the sign of the $e^-$ charge in TDSE etc.
     * Photoelectron spectrum norm.
