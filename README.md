@@ -1,26 +1,49 @@
-# Development notes
-Here are notes to the development of the whole model. The development of the particular modules - ***CUPRAD***, ***1D-TDSE*** and ***Hankel*** - are in the `README.md`'s in their respective directories.
-
-The work on the publication is being done in an independet repo `XXX`.
-
-
-## To do list
-* *Make compilation smooth and easy on various machines (ongoing)*
-* Clean-up the code
-* Check conventions
-    * The conventions in the code shall correspond the written ones in supplmentary materials. I did checks during the development, that the code works intrinsically. However, there might be a mistake in the sign of the $e^-$ charge in TDSE etc.
-* Implement density modulation (CUPRAD + Hankel), implement $(1-\eta) \alpha_{\mathrm{n}} + \eta \alpha_{\mathrm{X^+}}$ contribution to dispersion from ions
-* Test a full $\rho z$-pre-ionisation profile
-* Organise Pythonic procedures (Hankel + various post-processings)
-    * There is used the module `mynumerics`, this shall be cleaned & integrated in the multiscale model
-* Enhance code + executables (compilation with a 'pedantic' compiler, valgrind)
+# To do list
+* Code + documentation
+    * *Make compilation smooth and easy on various machines (ongoing)*
+    * ***CUPRAD*** (Jan + Stefan), **[Doxygen]((https://www.doxygen.nl/)) documentation**
+        * Jan - `output.f90` is missing
+        * Stefan - the core routines
+        * **pre-processor**: potentially very tedious, do up to some extent
+    * ***1D-TDSE*** (Tadeáš) **Doxygen documentation** ✔️
+    * ***interactive TDSE*** (Tadeáš)
+        * Ensure compatibility of the dll library
+    * ***Hankel*** (Jan) **Python docstrings** (process by [sphynx](https://www.sphinx-doc.org/en/master/tutorial/index.html))
+        * *refactoring*
+            * Implement density modulation
+            * hard-code preset gases with their scattering factors
+            * data processing (either load all $\mathscr{F}$-sources or chunk reading from the drive)
+    * ***Assembling the code***
+        * Work with all the modules
+        * Make the execution smooth (slurm dependecies etc.)
+        * Fine-adjustments of all codes
+            * HDF5-organisation
+            * array orderings
+    * ***Pre/post-processing, data plotting***
+        * organise Pythonic libraries, integrare `mynumerics` int the model, ...
+    * ***CodeOcean capsule*** (Tadeáš + Jan)
+    * Enhance code + executables (compilation with a 'pedantic' compiler, valgrind) (to some extent)
+* Prepare test cases (integrate within the CodeOcean capsule)
+    * *Thin medium*
+    * *Long medium* (either this or the previus with a Gaussian density-modulation.)
+    * *Pre-ionised medium*
+    * *Interactive python* ✔️ via Jupyter
+    * *?* Some filamentation form Stefan's papers, ...
+* Writing the paper (all)
+    * CPC: no new physics, only the code and its usage + already published results
+    * see below independent repo + Overlaf
 * Test cases & tutorials
     * ***Create a YouTube video-tutorial***
-        * Go through the whole code execution and comment it.
+        * Go through the whole code installation and execution, comment it.
     * (?) Jupyter notebook    
-* CodeOcean capsule
-* (?) Documentation: the basic overview will be given in the paper, Shall we use [doxygen](https://www.doxygen.nl/) to create more technical documentation capturing the structure of the code?
+* Check conventions
+    * The conventions in the code shall correspond the written ones in supplmentary materials. I did checks during the development, that the code works intrinsically. However, there might be a mistake in the sign of the $e^-$ charge in TDSE etc.
+    * Photoelectron spectrum norm.
 
+## Notes
+Here are notes to the development of the whole model. The development of the particular modules - ***CUPRAD***, ***1D-TDSE*** and ***Hankel*** - are in the `README.md`'s in their respective directories.
+
+The work on the publication is being done in an independet [repo](https://github.com/sskupin/XUVIR) morrored with its [Overleaf](https://www.overleaf.com/project/64f9ee5fb00b8a641fe54780).
 
 # General notes
 ## PYTHONPATH organisation

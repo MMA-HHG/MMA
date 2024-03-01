@@ -111,7 +111,7 @@ with h5py.File(file_CUPRAD, 'r') as InputArchiveCUPRAD, h5py.File(file_TDSE, 'r'
     ko_max = mn.FindInterval(ogrid/omega0, 20)
     
     target_static = Hankel_tools.FSources_provider(static={
-                                                    'zgrid'   : InputArchiveTDSE['rgrid_coarse'][:],
+                                                    'zgrid'   : InputArchiveTDSE['zgrid_coarse'][:],
                                                     'rgrid'   : InputArchiveTDSE['rgrid_coarse'][:],
                                                     'ogrid'   : InputArchiveTDSE['omegagrid'][:],
                                                     'FSource' : np.transpose(FSourceTerm,axes=(1,2,0))},
@@ -119,7 +119,7 @@ with h5py.File(file_CUPRAD, 'r') as InputArchiveCUPRAD, h5py.File(file_TDSE, 'r'
                                                      No_max = ko_max)
     
     target_dynamic = Hankel_tools.FSources_provider(dynamic={
-                                                    'zgrid'   : InputArchiveTDSE['rgrid_coarse'][:],
+                                                    'zgrid'   : InputArchiveTDSE['zgrid_coarse'][:],
                                                     'rgrid'   : InputArchiveTDSE['rgrid_coarse'][:],
                                                     'ogrid'   : InputArchiveTDSE['omegagrid'][:],
                                                     'h5_file' : InputArchiveTDSE,

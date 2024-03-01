@@ -71,6 +71,9 @@ class FSources_provider:
                             dynamic['h5_file'][dynamic['Fsource_path']][0:Nr_max:kr_step,k1*kz_step,ko_min:No_max:ko_step,0]
                             +
                             1j*dynamic['h5_file'][dynamic['Fsource_path']][0:Nr_max:kr_step,k1*kz_step,ko_min:No_max:ko_step,1]).T
+                    # !!!! THIS IS SUPER SLOW, try:
+                    # https://docs.h5py.org/en/stable/high/dataset.html#:~:text=)%0Adataset%20inaccessible-,read_direct,-(array%2C
+                    # https://stackoverflow.com/a/72397433
                     
             self.Fsource_plane = FSource_plane_()
             
