@@ -38,10 +38,10 @@ Nr_max = 235 #470; 235; 155-still fine
 Hrange = [16, 18] # [17, 18] # [14, 36] [17, 18] [16, 20] [14, 22]
 
 kr_step = 2 # descending order, the last is "the most accurate"
-ko_step = 2
+ko_step = 1
 
 rmax_FF = 8*1e-4
-Nr_FF = 10 # 10 # 200
+Nr_FF = 50 # 10 # 200
 distance_FF = 1.
 
 FF_orders_plot = 4    
@@ -107,16 +107,20 @@ with h5py.File(file_CUPRAD, 'r') as InputArchiveCUPRAD, h5py.File(file_TDSE, 'r'
     image.sf[0].method = plt.semilogy
     pp.plot_preset(image)
     
-    ko_min = mn.FindInterval(ogrid/omega0, 10)
+    ko_min = mn.FindInterval(ogrid/omega0, 16)
     ko_max = mn.FindInterval(ogrid/omega0, 20)
     
     # print(type(InputArchiveTDSE))
     # grp =  InputArchiveCUPRAD['/logs']
     # print(type(grp))
     
+    omega_au2SI = mn.ConvertPhoton(1.0, 'omegaau', 'omegaSI')
+    ogridSI = omega_au2SI * ogrid
+    omega0SI = omega_au2SI * omega0
+    
     target_static = Hankel_tools.FSources_provider(InputArchiveTDSE['zgrid_coarse'][:],
                                                    InputArchiveTDSE['rgrid_coarse'][:],
-                                                   InputArchiveTDSE['omegagrid'][:],
+                                                   omega_au2SI*InputArchiveTDSE['omegagrid'][:],
                                                    FSource = np.transpose(FSourceTerm,axes=(1,2,0)),
                                                    data_source = 'static',
                                                    ko_min = ko_min,
@@ -124,7 +128,7 @@ with h5py.File(file_CUPRAD, 'r') as InputArchiveCUPRAD, h5py.File(file_TDSE, 'r'
     
     target_dynamic = Hankel_tools.FSources_provider(InputArchiveTDSE['zgrid_coarse'][:],
                                                    InputArchiveTDSE['rgrid_coarse'][:],
-                                                   InputArchiveTDSE['omegagrid'][:],
+                                                   omega_au2SI*InputArchiveTDSE['omegagrid'][:],
                                                    h5_handle = InputArchiveTDSE,
                                                    h5_path = 'FSourceTerm',
                                                    data_source = 'dynamic',
@@ -166,7 +170,13 @@ with h5py.File(file_CUPRAD, 'r') as InputArchiveCUPRAD, h5py.File(file_TDSE, 'r'
                               store_cummulative_result = False,
                               frequencies_to_trace_maxima = None
                               )
-
+    
+    
+    image = pp.figure_driver()
+    image.sf = [pp.plotter() for k1 in range(32)]
+    image.sf[0].args = [target_dynamic.ogrid/omega0SI, rgrid_FF, np.abs(Hankel_long_dynamic.T)]
+    image.sf[0].method = plt.pcolormesh
+    pp.plot_preset(image)
 
 # sys.exit(0)
 

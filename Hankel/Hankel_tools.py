@@ -36,18 +36,7 @@ class FSources_provider:
                  kr_step =  1,
                  kr_max  = 'end',
                  kz_step =  1):
-        
-        
-        # ko_step = 1; No_max = -1
-        # kr_step = 1; Nr_max = -1
-        # kz_step = 1
-        # if not(reduce_resolution is None):
-        #     if ('ko_step' in reduce_resolution.keys()): ko_step = reduce_resolution['ko_step']
-        #     if ('No_max'  in reduce_resolution.keys()): No_max  = reduce_resolution['No_max']
-        #     if ('kr_step' in reduce_resolution.keys()): kr_step = reduce_resolution['kr_step']
-        #     if ('Nr_max'  in reduce_resolution.keys()): Nr_max  = reduce_resolution['Nr_max']
-        #     if ('kz_step' in reduce_resolution.keys()): kz_step = reduce_resolution['kz_step']
-        
+
         
         if (ko_max  == 'end'): ko_max = len(ogrid)
         if (kr_max  == 'end'): kr_max = len(rgrid)
@@ -73,42 +62,6 @@ class FSources_provider:
             self.Fsource_plane = FSource_plane_()
         else:
             raise ValueError('Wrongly specified input of the class.')
-            
-        # if (isinstance(static,dict) and (dynamic is None)):
-            
-        #     if (No_max  == 'end'): No_max = len(static['ogrid'])
-        #     if (Nr_max  == 'end'): Nr_max = len(static['rgrid'])
-            
-        #     self.ogrid = static['ogrid'][ko_min:No_max:ko_step]
-        #     self.rgrid = static['rgrid'][0:Nr_max:kr_step]
-        #     self.zgrid = static['zgrid'][0:-1:kz_step]
-        #     def FSource_plane_():
-        #         for k1 in range(len(self.zgrid)):
-        #             yield static['FSource'][k1*kz_step,ko_min:No_max:ko_step,0:Nr_max:kr_step]
-        #     self.Fsource_plane = FSource_plane_()
-            
-        # elif ((static is None) and isinstance(dynamic,dict)):
-            
-        #     if (No_max  == 'end'): No_max = len(dynamic['ogrid'])
-        #     if (Nr_max  == 'end'): Nr_max = len(dynamic['rgrid'])
-            
-        #     self.ogrid = dynamic['ogrid'][ko_min:No_max:ko_step]
-        #     self.rgrid = dynamic['rgrid'][0:Nr_max:kr_step]
-        #     self.zgrid = dynamic['zgrid'][0:-1:kz_step]
-        #     def FSource_plane_():
-        #         for k1 in range(len(self.zgrid)):
-        #             yield np.squeeze(
-        #                     dynamic['h5_file'][dynamic['Fsource_path']][0:Nr_max:kr_step,k1*kz_step,ko_min:No_max:ko_step,0]
-        #                     +
-        #                     1j*dynamic['h5_file'][dynamic['Fsource_path']][0:Nr_max:kr_step,k1*kz_step,ko_min:No_max:ko_step,1]).T
-        #             # !!!! THIS IS SUPER SLOW, try:
-        #             # https://docs.h5py.org/en/stable/high/dataset.html#:~:text=)%0Adataset%20inaccessible-,read_direct,-(array%2C
-        #             # https://stackoverflow.com/a/72397433
-                    
-        #     self.Fsource_plane = FSource_plane_()
-            
-        # else:
-        #     raise ValueError('Wrongly specified input of the class.')
 
 
 
@@ -215,6 +168,8 @@ def get_propagation_pre_factor_function(zgrid,
                 
             def pre_factor(kz):
                 return np.outer(np.ones(len(rgrid)),np.squeeze(pre_factor_value[kz,:]))
+            
+            return pre_factor
                 
             
             
@@ -222,6 +177,8 @@ def get_propagation_pre_factor_function(zgrid,
             print('r modulation')
             def pre_factor(kz):
                 return 1.
+            
+            return pre_factor
             # pass
             # no integrals, only r-scaling, z on-the-fly
             
@@ -316,6 +273,8 @@ def get_propagation_pre_factor_function(zgrid,
             def pre_factor(kz):
                 return np.squeeze(pre_factor_value[kz,:,:])
             
+            return pre_factor
+            
             
                     # phase_factor[:,k1] =  ogrid[k1] * \
                     #                       interpolate.interp1d(
@@ -386,16 +345,26 @@ def get_propagation_pre_factor_function(zgrid,
                 
             def pre_factor(kz):
                 return pressure * np.exp(
-                                    zgrid[kz]*np.outer(
-                                        np.ones(len(rgrid)),lin_prop_factor
-                                        )
-                                    )            
+                                    zgrid[kz]*lin_prop_factor
+                                    )  
+            return pre_factor
         
+        else:
+            def pre_factor(kz):
+                return 1.
+            
+            return pre_factor
 
-    def pre_factor_empty(kz):
-        return 1.
+    # def pre_factor_empty(kz):
+    #     return 1.
     
-    return pre_factor_empty
+    # return pre_factor_empty
+
+
+
+
+
+
 
 # class linear_propagation_e_factor():
 #     """

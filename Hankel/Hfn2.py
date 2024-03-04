@@ -25,7 +25,10 @@ import XUV_refractive_index as XUV_index
 
 from Hankel_tools import get_propagation_pre_factor_function
 
-def HankelTransform(ogrid, rgrid, FField, distance, rgrid_FF, integrator = integrate.trapz, near_field_factor = True):
+def HankelTransform(ogrid, rgrid, FField, distance, rgrid_FF,
+                    integrator = integrate.trapz,
+                    near_field_factor = True,
+                    pre_factor = 1.):
     """
     It computes Hankel transform with an optional near-field factor.
     
@@ -56,6 +59,9 @@ def HankelTransform(ogrid, rgrid, FField, distance, rgrid_FF, integrator = integ
          The far-field spectra on ogrid and rgrid_FF
 
     """
+    
+    apply_radial_factor = (len(np.shape(pre_factor))==2)
+    
     No = len(ogrid); Nr = len(rgrid); Nr_FF = len(rgrid_FF)
     FField_FF = np.empty((No,Nr_FF), dtype=np.cdouble)
     integrand = np.empty((Nr), dtype=np.cdouble)
@@ -64,11 +70,22 @@ def HankelTransform(ogrid, rgrid, FField, distance, rgrid_FF, integrator = integ
         for k2 in range(Nr_FF):
             for k3 in range(Nr):
                 if near_field_factor:
-                    integrand[k3] = np.exp(-1j * k_omega * (rgrid[k3] ** 2) / (2.0 * distance)) * rgrid[k3] *\
+                    if apply_radial_factor:  radial_factor_local = pre_factor[k1,k3]
+                    else:                    radial_factor_local = 1.
+                    integrand[k3] = radial_factor_local *\
+                                    np.exp(-1j * k_omega * (rgrid[k3] ** 2) / (2.0 * distance)) * rgrid[k3] *\
                                     FField[k1,k3] * special.jn(0, k_omega * rgrid[k3] * rgrid_FF[k2] / distance)
                 else:
-                    integrand[k3] = rgrid[k3] * FField[k1,k3] * special.jn(0, k_omega * rgrid[k3] * rgrid_FF[k2] / distance)
+                    if apply_radial_factor:  radial_factor_local = pre_factor[k1,k3]
+                    else:                    radial_factor_local = 1.
+                    integrand[k3] = radial_factor_local *\
+                                    rgrid[k3] * FField[k1,k3] * special.jn(0, k_omega * rgrid[k3] * rgrid_FF[k2] / distance)
             FField_FF[k1,k2] = integrator(integrand,rgrid)
+
+    if   (len(np.shape(pre_factor))==1):
+        FField_FF *= np.outer(pre_factor,np.ones(FField_FF.shape[1]))
+    elif (len(np.shape(pre_factor))==0):
+        FField_FF *= pre_factor
 
     return FField_FF
 
@@ -174,14 +191,14 @@ def HankelTransform_long(target, # FSourceTerm(r,z,omega)
     print('Computing Hankel from planes')
     t_start = time.perf_counter()
     
-    Fsource_plane1 = pre_factor(0) *\
-                     HankelTransform(target.ogrid,
+    Fsource_plane1 = HankelTransform(target.ogrid,
                                      target.rgrid,
                                      next(target.Fsource_plane),
                                      distance-target.zgrid[0],
                                      rgrid_FF,
                                      integrator = integrator_Hankel,
-                                     near_field_factor = near_field_factor)
+                                     near_field_factor = near_field_factor,
+                                     pre_factor = pre_factor(0))
     if store_cummulative_result:
          cummulative_field = np.empty((Nz,) + Fsource_plane1.shape, dtype=np.cdouble)
          cummulative_field[0,:,:] = 1.*Fsource_plane1
@@ -189,14 +206,14 @@ def HankelTransform_long(target, # FSourceTerm(r,z,omega)
     
     for k1 in range(Nz-1):
         print('plane', k1, 'time:', time.perf_counter()-t_start)
-        Fsource_plane2 = pre_factor(k1+1) *\
-                         HankelTransform(target.ogrid,
+        Fsource_plane2 = HankelTransform(target.ogrid,
                                          target.rgrid,
                                          next(target.Fsource_plane),
                                          distance-target.zgrid[k1+1],
                                          rgrid_FF,
                                          integrator = integrator_Hankel,
-                                         near_field_factor = near_field_factor)        
+                                         near_field_factor = near_field_factor,
+                                         pre_factor = pre_factor(k1+1))        
                          
         FF_integrated += 0.5*(target.zgrid[k1+1]-target.zgrid[k1])*(Fsource_plane1 + Fsource_plane2)
         
