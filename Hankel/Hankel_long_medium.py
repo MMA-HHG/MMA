@@ -5,6 +5,7 @@ import time
 import shutil
 import h5py
 import sys
+import copy
 import units
 import mynumerics as mn
 import Hfn
@@ -135,11 +136,20 @@ with h5py.File(file_CUPRAD, 'r') as InputArchiveCUPRAD, h5py.File(file_TDSE, 'r'
                                                    ko_min = ko_min,
                                                    ko_max = ko_max)
     
+    target_static_Ar = Hankel_tools.FSources_provider(InputArchiveTDSE['zgrid_coarse'][:],
+                                                   InputArchiveTDSE['rgrid_coarse'][:],
+                                                   omega_au2SI*InputArchiveTDSE['omegagrid'][:],
+                                                   FSource = np.transpose(FSourceTerm,axes=(1,2,0)),
+                                                   data_source = 'static',
+                                                   ko_min = ko_min,
+                                                   ko_max = ko_max)
+    
     
     # plane1_dyn = next(target_dynamic.Fsource_plane)
     # plane2_dyn = next(target_dynamic.Fsource_plane)
+        
     
-    Hankel_long_dynamic = Hfn2.HankelTransform_long(target_dynamic, # FSourceTerm(r,z,omega)
+    Hankel_long_static = Hfn2.HankelTransform_long(target_static, # FSourceTerm(r,z,omega)
                               distance_FF, rgrid_FF,
                               preset_gas = 'vacuum',
                               pressure = 1.,
@@ -155,7 +165,23 @@ with h5py.File(file_CUPRAD, 'r') as InputArchiveCUPRAD, h5py.File(file_TDSE, 'r'
                               frequencies_to_trace_maxima = None
                               )
     
-    Hankel_long_static = Hfn2.HankelTransform_long(target_static, # FSourceTerm(r,z,omega)
+    Hankel_long_static_Ar = Hfn2.HankelTransform_long(target_static_Ar, # FSourceTerm(r,z,omega)
+                              distance_FF, rgrid_FF,
+                              preset_gas = 'Ar',
+                              pressure = 1.,
+                              absorption_tables = 'Henke',
+                              include_absorption = True,
+                              dispersion_tables = 'Henke',
+                              include_dispersion = True,
+                              effective_IR_refrective_index = 1.,
+                              integrator_Hankel = integrate.trapz,
+                              integrator_longitudinal = 'trapezoidal',
+                              near_field_factor = True,
+                              store_cummulative_result = False,
+                              frequencies_to_trace_maxima = None
+                              )
+
+    Hankel_long_dynamic = Hfn2.HankelTransform_long(target_dynamic, # FSourceTerm(r,z,omega)
                               distance_FF, rgrid_FF,
                               preset_gas = 'vacuum',
                               pressure = 1.,
@@ -175,6 +201,12 @@ with h5py.File(file_CUPRAD, 'r') as InputArchiveCUPRAD, h5py.File(file_TDSE, 'r'
     image = pp.figure_driver()
     image.sf = [pp.plotter() for k1 in range(32)]
     image.sf[0].args = [target_dynamic.ogrid/omega0SI, rgrid_FF, np.abs(Hankel_long_dynamic.T)]
+    image.sf[0].method = plt.pcolormesh
+    pp.plot_preset(image)
+    
+    image = pp.figure_driver()
+    image.sf = [pp.plotter() for k1 in range(32)]
+    image.sf[0].args = [target_static.ogrid/omega0SI, rgrid_FF, np.abs(Hankel_long_static_Ar.T)]
     image.sf[0].method = plt.pcolormesh
     pp.plot_preset(image)
 
