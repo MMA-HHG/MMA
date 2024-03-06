@@ -82,12 +82,12 @@ void call1DTDSE(inputs_def * inputs, outputs_def * outputs)
 	(*inputs).Efield.dt = dt;
 	(*inputs).num_t = num_t;
 	// Outputs
-	(*outputs).tgrid = calloc((Nt+1),sizeof(double));
-	(*outputs).Efield = calloc((Nt+1),sizeof(double));
-	(*outputs).sourceterm = calloc((Nt+1),sizeof(double));
-	(*outputs).PopTot = calloc((Nt+1),sizeof(double));
-	(*outputs).PopInt = calloc((Nt+1),sizeof(double));
-	(*outputs).expval = calloc((Nt+1),sizeof(double));
+	(*outputs).tgrid = calloc((Nt+2),sizeof(double));
+	(*outputs).Efield = calloc((Nt+2),sizeof(double));
+	(*outputs).sourceterm = calloc((Nt+2),sizeof(double));
+	(*outputs).PopTot = calloc((Nt+2),sizeof(double));
+	(*outputs).PopInt = calloc((Nt+2),sizeof(double));
+	(*outputs).expval = calloc((Nt+2),sizeof(double));
 	(*outputs).Nt = (Nt+1);
 
 	// do the calculation	
