@@ -64,8 +64,6 @@ class TestTDSE(unittest.TestCase):
         ### Check Energy
         self.assertAlmostEqual(inputs.Einit, self.inputs.Einit)
 
-        inputs.delete(self.DLL)
-
     def test_outputs(self):
         ### Load data from the HDF5 archive
         inputs = inputs_def()
@@ -88,10 +86,6 @@ class TestTDSE(unittest.TestCase):
         ### Check wavefunction
         wavefunction = output.get_wavefunction(inputs, grids = False)
         self.assertTrue(np.allclose(wavefunction, self.wavefunction))
-        
-        #self.DLL.free_mtrx(output.psi, len(wavefunction))
-        inputs.delete(self.DLL)
-        output.delete(self.DLL)
 
     @classmethod
     def tearDownClass(cls):
