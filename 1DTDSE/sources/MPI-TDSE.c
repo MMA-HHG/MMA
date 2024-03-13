@@ -87,16 +87,16 @@ int main(int argc, char *argv[])
 	dims_input = get_dimensions_h5(file_id, "outputs/output_field", &h5error, &ndims, &datatype);
 
 	// Get dims from the arrays
-	hsize_t dim_t = *get_dimensions_h5(file_id, "outputs/tgrid", &h5error, &ndims, &datatype), \
-            dim_r = *get_dimensions_h5(file_id, "outputs/rgrid", &h5error, &ndims, &datatype), \
-            dim_z = *get_dimensions_h5(file_id, "outputs/zgrid", &h5error, &ndims, &datatype); 
+	hsize_t *dim_t = get_dimensions_h5(file_id, "outputs/tgrid", &h5error, &ndims, &datatype), \
+            *dim_r = get_dimensions_h5(file_id, "outputs/rgrid", &h5error, &ndims, &datatype), \
+            *dim_z = get_dimensions_h5(file_id, "outputs/zgrid", &h5error, &ndims, &datatype); 
 	// label the dims by physical axes	
-    dims[0] = dim_t; 
-	dims[1] = dim_r; 
-	dims[2] = dim_z;
-	dims_input[0] = dim_z; 
-	dims_input[1] = dim_t; 
-	dims_input[2] = dim_r;
+    dims[0] = *dim_t; 
+	dims[1] = *dim_r; 
+	dims[2] = *dim_z;
+	dims_input[0] = *dim_z; 
+	dims_input[1] = *dim_t; 
+	dims_input[2] = *dim_r;
 
 	// Allocate space for the fields & load the tgrid
 	inputs.Efield.Field = malloc(((int)dims[0])*sizeof(double));
@@ -114,11 +114,11 @@ int main(int argc, char *argv[])
     readint(file_id, "TDSE_inputs/Nr_max", &h5error, &Nr_max);
 
     // Coarsening: redefine dimensions, t-not affected
-    dim_z = Nz_max/kz_step; 
-	dim_r = Nr_max/kr_step;
-    dims[0] = dim_z; 
-	dims[1] = dim_t; 
-	dims[2] = dim_r;
+    *dim_z = Nz_max/kz_step; 
+	*dim_r = Nr_max/kr_step;
+    dims[0] = *dim_z; 
+	dims[1] = *dim_t; 
+	dims[2] = *dim_r;
     
 	// Close file access (dataset with the field).
     h5error = H5Fclose(file_id);
@@ -132,7 +132,7 @@ int main(int argc, char *argv[])
 		printf("Proc %i uses dx = %e \n",myrank,inputs.dx);
 	}
 	if ((comment_operation == 1) && (myrank == 0)) {
-		printf("Fields dimensions (t,r,z) = (%llu,%llu,%llu)\n",
+		printf("Fields dimensions (z,t,r) = (%llu,%llu,%llu)\n",
 			   dims[0],dims[1],dims[2]);
 		printf("Fields dimensions (z,t,r) = (%llu,%llu,%llu)\n",
 			   dims_input[0],dims_input[1],dims_input[2]);
@@ -143,7 +143,7 @@ int main(int argc, char *argv[])
 	Initialise_grid_and_ground_state(&inputs);
 	
 	// Counter - queue length
-	int Ntot = dim_r*dim_z; 	
+	int Ntot = (*dim_r)*(*dim_z); 	
 
 	/*
 	//////////////////////////
@@ -170,9 +170,9 @@ int main(int argc, char *argv[])
 		// find proper simulation & load the field
 		file_id = H5Fopen (h5_filename, H5F_ACC_RDONLY, H5P_DEFAULT);
 		// compute offsets in each dimension
-		kr = Nsim % dim_r; 
+		kr = Nsim % (*dim_r); 
 		kz = Nsim - kr;  
-		kz = kz/dim_r; 
+		kz = kz/(*dim_r); 
 		// coarsen the access	
 		dum3int[0] = kz_step*kz; 
 		dum3int[1] = -1; 
@@ -184,6 +184,17 @@ int main(int argc, char *argv[])
 		int Nz_CUPRAD, Nr_CUPRAD;
 		rgrid_CUPRAD = readreal1Darray_fort(file_id, "outputs/rgrid", &h5error, &Nr_CUPRAD);
 		zgrid_CUPRAD = readreal1Darray_fort(file_id, "outputs/zgrid", &h5error, &Nz_CUPRAD);
+
+		// Kill the program if Nr_max > Nr_CUPRAD
+		if (Nr_max > Nr_CUPRAD) {
+			printf("'Nr_max' must be smaller than 'numerics_number_of_points_in_r in the fields array input!");
+			free(dims);
+			free(dims_input);
+			free(rgrid_CUPRAD);
+			free(zgrid_CUPRAD);
+			inputs_destructor(&inputs);
+			exit(1);
+		}
 
 		// Close HDF5 file
 		h5error = H5Fclose(file_id);
@@ -259,9 +270,9 @@ int main(int argc, char *argv[])
 		t_mpi[3] = MPI_Wtime(); 
 
 		// compute offsets in each dimension
-		kr = Nsim % dim_r; 
+		kr = Nsim % (*dim_r); 
 		kz = Nsim - kr;  
-		kz = kz/dim_r; 
+		kz = kz/(*dim_r); 
 
 		// prepare the part in the arrray to r/w
 		// coarsen the access
@@ -272,7 +283,7 @@ int main(int argc, char *argv[])
 		//dims_input[0] = dim_t;
 
 		// Alloc input field array again – it has been reallocated within call1DTDSE()
-		inputs.Efield.Field = malloc(((int)dim_t)*sizeof(double));
+		inputs.Efield.Field = malloc(((int)(*dim_t))*sizeof(double));
 
 		// read the HDF5 file
 		file_id = H5Fopen(h5_filename, H5F_ACC_RDONLY, H5P_DEFAULT);
@@ -311,6 +322,10 @@ int main(int argc, char *argv[])
 	}
 
 	free(dims);
+	free(dims_input);
+	free(dim_r);
+	free(dim_t);
+	free(dim_z);
 	// Free inputs
 	inputs_destructor(&inputs);
  
