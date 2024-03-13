@@ -24,9 +24,10 @@
     * ***CodeOcean capsule*** (Tadeáš + Jan)
     * Enhance code + executables (compilation with a 'pedantic' compiler, valgrind) (to some extent)
 * Prepare test cases (integrate within the CodeOcean capsule)
-    * *Thin medium*
-    * *Long medium* (either this or the previus with a Gaussian density-modulation.)
-    * *Pre-ionised medium*
+    * *HHG in gas jet*
+    * *HHG in gas cell* (either this or the previus with a Gaussian density-modulation.)
+    * *Absorption-limited HHG wit pre-ionisation in gas cell*
+    * *HHG with Bessel beams*
     * *Interactive python* ✔️ via Jupyter
         * ***Promote invariant ionisation***
     * *?* Some filamentation form Stefan's papers, ...

@@ -218,7 +218,7 @@ def HankelTransform_long(target, # FSourceTerm(r,z,omega)
         FF_integrated += 0.5*(target.zgrid[k1+1]-target.zgrid[k1])*(Fsource_plane1 + Fsource_plane2)
         
         if store_cummulative_result:
-            cummulative_field[k1,:,:] = 1.*FF_integrated
+            cummulative_field[k1+1,:,:] = 1.*FF_integrated
         
         Fsource_plane1 = Fsource_plane2
     
