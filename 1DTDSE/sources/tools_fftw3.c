@@ -18,13 +18,12 @@
  * @param k Number of points to add between the two consecutive points in the original signal. 
  * @param signal Signal for the interpolation.
  * @param N Number of points in the original signal.
- * @return Interpolated signal.
  */
-double* FourInterp(int k, double *signal, int N)
+void FourInterp(int k, double *signal, double *interp_signal, int N)
 {
 	int Nc, N2, Nc2;
 	fftw_complex *out, *in2;
-	double *in, *out2;
+	double *in;
 	fftw_plan p;
 	int k1;
 
@@ -36,7 +35,6 @@ double* FourInterp(int k, double *signal, int N)
 	out = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * Nc);
 
 	for(k1 = 0; k1 <= (N-1); k1++){in[k1]=signal[k1];} // !!! REDUNDANT
-
 	
 	p = fftw_plan_dft_r2c_1d(N, in, out, FFTW_ESTIMATE); //fftw_plan_dft_r2c_1d(int n, double *in, fftw_complex *out, unsigned flags); // plan FFTW
 	fftw_execute(p); // run FFTW
@@ -49,22 +47,21 @@ double* FourInterp(int k, double *signal, int N)
 	Nc2 = floor(((double)N2) / 2.); Nc2++;
 	
 	in2 = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * Nc2);
-	out2 =  calloc(2*Nc2,sizeof(double));
-	
+
+	//free(signal);
+	//signal = calloc(2*Nc2,sizeof(double));
 	
 	// zeroes
 	for(k1 = 0; k1 <= (Nc2-1); k1++){in2[k1][0]=0.; in2[k1][1]=0.;}// zeroes initialised
 	for(k1 = 0; k1 <= (Nc-1); k1++){in2[k1][0]=out[k1][0]/N; in2[k1][1]=out[k1][1]/N;} // previous data + normalisation	
 
-	p = fftw_plan_dft_c2r_1d(N2, in2, out2, FFTW_ESTIMATE); // plan iFFTW
+	p = fftw_plan_dft_c2r_1d(N2, in2, interp_signal, FFTW_ESTIMATE); // plan iFFTW
 	fftw_execute(p); // run iFFTW
 
 	fftw_destroy_plan(p); // deallocate plan memory
 
 	
 	free(in); fftw_free(in2); fftw_free(out);
-	return out2;
-
 }
 
 /**
