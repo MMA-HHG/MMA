@@ -13,7 +13,7 @@ args = vars(ap.parse_args())
 param_file = args['paramfile']
 print("Parameter file: ", param_file)
 results_file = glob.glob(args['outhdf5'])
-print("Results file: ", results_file)
+print("Results file: ", results_file[0])
 
 try:
     with h5py.File(results_file[0], 'r') as InputArchive:
@@ -31,7 +31,7 @@ with open(param_file,'r') as inp_part, open('TDSE.inp.tmp','w') as inp_tmp:
 run_args = ['python3', os.path.join(os.environ['UNIV_INPUT_PATH'],'create_universal_HDF5.py'),
             '-i', 'TDSE.inp.tmp',
             '-ihdf5', results_file[0],
-            '-ohdf5', 'results.h5',
+            '-ohdf5', results_file[0],
             '-g', 'TDSE_inputs']
 
 subprocess.run(run_args)
