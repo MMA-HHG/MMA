@@ -18,12 +18,14 @@
  * @param k Number of points to add between the two consecutive points in the original signal. 
  * @param signal Signal for the interpolation.
  * @param N Number of points in the original signal.
+ * 
+ * @return Interpolated signal.
  */
-void FourInterp(int k, double *signal, double *interp_signal, int N)
+double * FourInterp(int k, double *signal, int N)
 {
 	int Nc, N2, Nc2;
 	fftw_complex *out, *in2;
-	double *in;
+	double *in, *interp_signal;
 	fftw_plan p;
 	int k1;
 
@@ -45,11 +47,11 @@ void FourInterp(int k, double *signal, double *interp_signal, int N)
 	N2 = k*N;
 
 	Nc2 = floor(((double)N2) / 2.); Nc2++;
-	
 	in2 = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * Nc2);
+	interp_signal = calloc(2*Nc2, sizeof(double));
 
-	//free(signal);
-	//signal = calloc(2*Nc2,sizeof(double));
+	//free(*signal);
+	//(*signal) = calloc(2*Nc2,sizeof(double));
 	
 	// zeroes
 	for(k1 = 0; k1 <= (Nc2-1); k1++){in2[k1][0]=0.; in2[k1][1]=0.;}// zeroes initialised
@@ -62,6 +64,7 @@ void FourInterp(int k, double *signal, double *interp_signal, int N)
 
 	
 	free(in); fftw_free(in2); fftw_free(out);
+	return interp_signal;
 }
 
 /**

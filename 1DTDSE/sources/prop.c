@@ -18,9 +18,10 @@
  * 
  * @param inputs Input parameters.
  * @param outputs Computation results.
+ * @param in_field Input field.
  * @return double* wavefunction in final time.
  */
-double * propagation(inputs_def *inputs, outputs_def *outputs)
+double * propagation(inputs_def *inputs, outputs_def *outputs, double * in_field)
 {
 	// Intermediate and tridiagonal variables
 	double *res1, *dnew1, *dinfnew1, *dsupnew1, *psi_inter1;
@@ -121,12 +122,14 @@ double * propagation(inputs_def *inputs, outputs_def *outputs)
 		*  get rid of the initial nonzero pulse front.
 		*/
 		if (add_zeros) {
-			if((*inputs).Efield.Field[k]*(*inputs).Efield.Field[k+1] <= 0.0) {
+			//if((*inputs).Efield.Field[k]*(*inputs).Efield.Field[k+1] <= 0.0) {
+			if(in_field[k]*in_field[k+1] <= 0.0) {
 				add_zeros = false;
 			}
 			Field = 0.;
 		} else {
-			Field = (*inputs).Efield.Field[k]; 
+			//Field = (*inputs).Efield.Field[k]; 
+			Field = in_field[k]; 
 		}
 
 

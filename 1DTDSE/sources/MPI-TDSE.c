@@ -283,7 +283,7 @@ int main(int argc, char *argv[])
 		//dims_input[0] = dim_t;
 
 		// Alloc input field array again – it has been reallocated within call1DTDSE()
-		inputs.Efield.Field = malloc(((int)(*dim_t))*sizeof(double));
+		//inputs.Efield.Field = malloc(((int)(*dim_t))*sizeof(double));
 
 		// read the HDF5 file
 		file_id = H5Fopen(h5_filename, H5F_ACC_RDONLY, H5P_DEFAULT);

@@ -45,7 +45,7 @@ void call1DTDSE(inputs_def * inputs, outputs_def * outputs)
 	// Dummy pointer
 	double * dum_ptr;
 	// Local field
-	//double * field;
+	double *interp_field;
 
 	
 	// local copies of variables given by inputs
@@ -69,19 +69,19 @@ void call1DTDSE(inputs_def * inputs, outputs_def * outputs)
 	
 	// Free field and allocate new field array
 	// make the interpolation, note: tgrid does not correspond any more
-	int Nc2 = floor(((double)(k1*(*inputs).Efield.Nt)) / 2.) + 1; 
-	double *interp_field = calloc(2*Nc2, sizeof(double));
-	FourInterp(k1, (*inputs).Efield.Field, interp_field, (*inputs).Efield.Nt); 
-	free((*inputs).Efield.Field);
-	(*inputs).Efield.Field = NULL;
-	(*inputs).Efield.Field = calloc(2*Nc2, sizeof(double));
+	
+	//int Nc2 = floor(((double)(k1*(*inputs).Efield.Nt)) / 2.) + 1; 
+	interp_field = FourInterp(k1, (*inputs).Efield.Field, (*inputs).Efield.Nt); 
+	//free((*inputs).Efield.Field);
+	//(*inputs).Efield.Field = NULL;
+	//(*inputs).Efield.Field = calloc(2*Nc2, sizeof(double));
 	
 	Nt = k1*(*inputs).Efield.Nt + 1;
-	for (i = 0; i < 2*Nc2; i++) {
-		(*inputs).Efield.Field[i] = interp_field[i];
-	}
-	free(interp_field);
-	interp_field = NULL;
+	//for (i = 0; i < 2*Nc2; i++) {
+	//	(*inputs).Efield.Field[i] = interp_field[i];
+	//}
+	//free(interp_field);
+	//interp_field = NULL;
 	
 	// the length of one cycle for 800 nm (i.e. omega=0.057) 
 	num_t = floor((2*Pi)/(0.057*dt)); 
@@ -102,7 +102,7 @@ void call1DTDSE(inputs_def * inputs, outputs_def * outputs)
 
 	// do the calculation	
 	// Propagate the solution
-	psi = propagation(inputs, outputs);
+	psi = propagation(inputs, outputs, interp_field);
 
 	// Compute FFT
 	calcFFTW3(outputs->Nt, dt, tmax, outputs->Efield, &dum_ptr, 
@@ -111,7 +111,7 @@ void call1DTDSE(inputs_def * inputs, outputs_def * outputs)
 	calcFFTW3(outputs->Nt, dt, tmax, outputs->sourceterm, 
 			  &(outputs->omegagrid), &(outputs->Fsourceterm), &(outputs->FsourcetermM2), 
 			  &(outputs->Nomega));
-
+	free(interp_field);
 	free(psi); 
 	
 }
