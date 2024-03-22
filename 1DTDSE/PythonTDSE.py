@@ -281,70 +281,10 @@ def plot(
     plt.show()
 
 ### Define structures
-class sin2_definition(Structure):
-    _fields_ = [
-        ("oc", c_double),
-        ("o", c_double),
-        ("A0", c_double),
-        ("nc", c_double),
-        ("phi", c_double),
-        ("phi0", c_double),
-        ("ti", c_double),
-        ("E0", c_double)
-    ]
 
-class trap_definition(Structure):
-    _fields_ = [
-        ("omega", c_double),
-        ("E0", c_double),
-        ("phi", c_double),
-        ("ton", c_double),
-        ("toff", c_double),
-        ("nc", c_int)
-    ]
-
-
-class Esin2_definition(Structure):
-    _fields_ = [
-        ("oc", c_double),
-        ("o", c_double),
-        ("A0", c_double),
-        ("nc", c_double),
-        ("phi", c_double),
-        ("phi0", c_double),
-        ("ti", c_double),
-        ("E0", c_double)
-    ]
-
-class flattop1_definition(Structure):
-    _fields_ = [
-        ("ton", c_double),
-        ("toff", c_double),
-        ("T", c_double),
-        ("o", c_double),
-        ("phi", c_double),
-        ("A", c_double),
-        ("ti", c_double)
-    ]
-
-class flattop1chirp_definition(Structure):
-    _fields_ = [
-        ("ton", c_double),
-        ("toff", c_double),
-        ("T", c_double),
-        ("o", c_double),
-        ("phi", c_double),
-        ("A", c_double),
-        ("ti", c_double),
-        ("b", c_double),
-        ("c", c_double)
-    ]
-    
 ### Field structure
 class Efield_var(Structure):
     _fields_ = [
-        ("fieldtype", c_int),
-        ("fieldtype2", c_int),
         ("tgrid", POINTER(c_double)),
         ("Field", POINTER(c_double)),
         ("dt", c_double),
@@ -354,16 +294,7 @@ class Efield_var(Structure):
         ("ton", c_double),
         ("toff", c_double),
         ("Nt", c_int),
-        ("Nftlt1", c_int),
-        ("Nftlt1ch", c_int),
-        ("Nsin2", c_int),
-        ("NEsin2", c_int),
-        ("nc", c_int),
-        ("trap", trap_definition),
-        ("sin2", POINTER(sin2_definition)),
-        ("Esin2", POINTER(Esin2_definition)),
-        ("flt1", POINTER(flattop1_definition)),
-        ("flt1ch", POINTER(flattop1chirp_definition)),
+        ("nc", c_int)
     ]
 
 class trg_def(Structure):
@@ -1048,7 +979,7 @@ class TDSE_DLL:
         TDSE.argtypes = [POINTER(inputs_def), POINTER(outputs_def)]
         TDSE(inputs.ptr, outputs.ptr)
 
-    def compute_PES(self, inputs, psi, E_start = -0.6, num_E = 10000, dE = 5e-4, Estep = 5e-4):
+    def compute_PES(self, inputs, psi, E_start = -0.6, num_E = 10000, epsilon = 5e-4, Estep = 5e-4):
         """
         Computes photoelectron spectrum (PES) from a wavefunction.
 
@@ -1062,15 +993,15 @@ class TDSE_DLL:
             Initial energy for the PES
         num_E: int, optional, default num_E = 10000
             Energy grid resolution
-        dE: float, optional, default dE = 5e-4
-            Integration energy step
+        epsilon: float, optional, default epsilon = 5e-4
+            Window size for resolvent
         E_step: float, optional, default E_step = 5e-4
             Energy step for the PES
         """
         PES = self.DLL.window_analysis
         PES.restype = POINTER(c_double)
         PES.argtypes = [inputs_def, POINTER(c_double), c_int, c_double, c_double, c_double]
-        res = PES(inputs, psi, c_int(num_E), c_double(dE), c_double(Estep), c_double(E_start))
+        res = PES(inputs, psi, c_int(num_E), c_double(epsilon), c_double(Estep), c_double(E_start))
         E_grid = np.linspace(E_start, E_start+(num_E-1)*Estep, num_E)
         res_np = ctype_arr_to_numpy(res, num_E)
         self.free_arr(res)

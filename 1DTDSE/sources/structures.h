@@ -10,67 +10,10 @@
 
 #include <stdlib.h>
 
-// various analytic envelopes (not reintroduced yet)
-typedef struct sin2_definition {
-	double oc;
-	double o;
-	double A0;
-	double nc;
-	double phi;
-	double phi0;
-	double ti;
-	double E0;
-} sin2_definition;
-
-typedef struct Esin2_definition {
-	double oc;
- 	double o;
-	double A0;
-	double nc;
-	double phi;
-	double phi0;
-	double ti;
-	double E0;
-} Esin2_definition;
-
-typedef struct trap_definition {
-	double omega;
-	double E0;
-	double phi;
-	double ton;
-	double toff;
-	int nc;
-} trap_definition;
-
-typedef struct flattop1_definition {
-	double ton;
-	double toff;
-	double T;
-	double o;
-	double phi;
-	double A;
-	double ti;
-} flattop1_definition;
-
-typedef struct flattop1chirp_definition {
-	double ton;
-	double toff;
-	double T;
-	double o;
-	double phi;
-	double A;
-	double ti;
-	double b;
-	double c;
-} flattop1chirp_definition;
-
 /**
  * @brief Full specification of the input field.
  */
 typedef struct Efield_var {
-	// Type of field – numerical/analytical.
-	int fieldtype;
-	int fieldtype2;
 	// Time grid
 	double *tgrid;
 	// Field array
@@ -87,21 +30,6 @@ typedef struct Efield_var {
 	int Nt;
 	// Number of points in one cycle
 	int nc;
-	int Nftlt1;
-	int N;
-	int NEsin2;
-	int Nftlt1ch;
-	// Trapezoidal envelope
-	struct trap_definition trap;
-	// Sine-squared envelope of vector potential
-	struct sin2_definition *sin2;
-	// Sine-squared envelope of electric field
-	struct Esin2_definition *Esin2;
-	// Flat-top envelope
-	struct flattop1_definition *flt1;
-	// Flat-top envelope with chirp
-	struct flattop1chirp_definition *flt1ch;
-	// Number of points in the envelope
 } Efield_var;
 
 /**
