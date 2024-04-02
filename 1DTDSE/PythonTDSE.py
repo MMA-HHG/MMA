@@ -86,7 +86,7 @@ class TDSE_DLL:
         inputs:
             Ctypes input structure instance
         psi:
-            Ctypes pointer to C array with wavefunction
+            Numpy array with wavefunction or ctypes pointer to C array with wavefunction
         E_start: float, optional, default E_start = -0.6
             Initial energy for the PES
         num_E: int, optional, default num_E = 10000
@@ -99,7 +99,11 @@ class TDSE_DLL:
         PES = self.DLL.window_analysis
         PES.restype = POINTER(c_double)
         PES.argtypes = [inputs_def, POINTER(c_double), c_int, c_double, c_double, c_double]
-        res = PES(inputs, psi, c_int(num_E), c_double(epsilon), c_double(Estep), c_double(E_start))
+        if type(psi) is np.ndarray:
+            psi = np.array([[x.real, x.imag] for x in psi]).flatten()
+            res = PES(inputs, ctypes_arr_ptr(c_double, len(psi), psi), c_int(num_E), c_double(epsilon), c_double(Estep), c_double(E_start))
+        else:
+            res = PES(inputs, psi, c_int(num_E), c_double(epsilon), c_double(Estep), c_double(E_start))
         E_grid = np.linspace(E_start, E_start+(num_E-1)*Estep, num_E)
         res_np = ctype_arr_to_numpy(res, num_E)
         self.free_arr(res)

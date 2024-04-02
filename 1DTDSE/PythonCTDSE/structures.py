@@ -129,7 +129,7 @@ class inputs_def(Structure):
         ("precision", c_char * 2)
     ]
 
-    def init_inputs(self, filename):
+    def load_from_hdf5(self, filename):
         """
         Initializes input structure from an HDF5 archive.
 
