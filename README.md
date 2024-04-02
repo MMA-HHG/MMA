@@ -1,5 +1,7 @@
 # To do list
 * Code + documentation
+    * ***I/O handling + HDF5 structure***
+        * 3 groups for each module + one global group for shared parameters (gas type) 
     * *Make compilation smooth and easy on various machines (ongoing)*
     * ***CUPRAD*** (Jan + Stefan), **[Doxygen]((https://www.doxygen.nl/)) documentation**
         * Jan - `output.f90` is missing
