@@ -2,7 +2,7 @@
 
 module default_inputs
 use write_listing
-use hdfnamelist
+use h5namelist
 
 IMPLICIT NONE
 real(8) :: Intensity_entry, Intensity_focus, waist_focus, Curvature_radius_entry, invCurvature_radius_entry, focus_position

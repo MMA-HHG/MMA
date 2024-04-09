@@ -2,7 +2,7 @@ MODULE write_start
   USE hdf5_helper_serial
   USE HDF5
   USE constants
-  USE hdfnamelist
+  USE h5namelist
 
   ! REAL(8), PARAMETER  :: Pi = acos(-1.0d0)
 
