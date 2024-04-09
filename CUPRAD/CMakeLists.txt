@@ -31,7 +31,7 @@ find_package(MPI REQUIRED)
 ### ================
 ### Main propagation
 set(PROPAGATION cuprad.e)
-set(S_PROPAGATION sources/constants.f90 sources/linked_list_module.f90 
+set(S_PROPAGATION sources/constants.f90 sources/linked_list_module.f90 sources/mpi_stuff.f90
     sources/hdf5_helper_serial.f90 sources/hdf5_helper.f90 sources/array_helper.f90 
     sources/global_variables.f90 sources/pre_ionised.f90 sources/density_mod.f90 sources/code_ionisation.f90 
     sources/fft_rk.f90 sources/finalize.f90 sources/firststep.f90 sources/longstep_rk.f90 
@@ -40,7 +40,7 @@ set(S_PROPAGATION sources/constants.f90 sources/linked_list_module.f90
 ### Preprocessor - preparation of 'results.h5' file
 set(MAKE_START make_start.e)
 set(S_MAKE_START sources/constants.f90 sources/hdf5_helper_serial.f90 
-    sources/write_start.f90 sources/calc_start.f90 
+    sources/global_variables.f90 sources/write_start.f90 sources/calc_start.f90 
     sources/normalisation.f90 sources/write_listing.f90 sources/default_inputs.f90 
     sources/make_start.f90)
 

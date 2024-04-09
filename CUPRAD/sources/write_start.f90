@@ -2,6 +2,7 @@ MODULE write_start
   USE hdf5_helper_serial
   USE HDF5
   USE constants
+  USE hdfnamelist
 
   ! REAL(8), PARAMETER  :: Pi = acos(-1.0d0)
 
@@ -25,7 +26,7 @@ MODULE write_start
   COMPLEX(8), ALLOCATABLE :: e(:,:),e_full(:,:),komega(:)
   INTEGER(HID_T) :: file_id, group_id, group_id2
   INTEGER :: error
-  CHARACTER(LEN = *), PARAMETER :: output_groupname = "pre-processed"
+  CHARACTER(LEN = *), PARAMETER :: output_groupname = pre_proc_grpname
   CHARACTER(100) :: filename  ! File name variable, which is assigned a value by user eg.: results.h5
   INTEGER(HSIZE_T), DIMENSION(1:1) :: data_dims       
   
