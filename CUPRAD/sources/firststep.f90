@@ -317,11 +317,13 @@ CONTAINS
       CALL read_dset(group_id, 'outlength_Efield', outlength_Efield)
     ENDIF  
     
- ! density_mod
+    ! density_mod
+    print *, "bread density modulation:"
     CALL h5lexists_f(file_id,density_mod_grpname,apply_density_mod,error) ! it finds only if it's applied, the rest is fully encapsulated in the module        
     IF (apply_density_mod) CALL init_density_mod(file_id)
 
     ! pre-ionisation
+    print *, "bread pre-ionisation:"
     CALL h5lexists_f(file_id,pre_ionised_grpname,apply_pre_ionisation,error) ! it finds only if it's applied, the rest is fully encapsulated in the module        
     IF (apply_pre_ionisation) CALL init_pre_ionisation(file_id)
 
@@ -429,6 +431,7 @@ CONTAINS
     CALL calc_time_propagator
     CALL calc_cn_propagator
     ALLOCATE(real_e(dim_t,dim_r/num_proc),imag_e(dim_t,dim_r/num_proc))
+    print *, "bread efields:"
     CALL read_dset(group_id,'startfield_r',real_e,dim_t,dim_r,dim_t,dim_r/num_proc,0,(dim_r/num_proc)*my_rank)
     CALL read_dset(group_id,'startfield_i',imag_e,dim_t,dim_r,dim_t,dim_r/num_proc,0,(dim_r/num_proc)*my_rank)
     efield_factor = SQRT(critical_power*1.D9*c_light*4.D0*PI*1.D-7/(4.D0*PI*beam_waist**2*1.D-4*2.D0*n0_indice))*2.D0 ! normalization factor electric field V/m
@@ -449,6 +452,7 @@ CONTAINS
     !e = CMPLX(real_e,imag_e)
 
     !CALL read_dset(group_id,'startfield',e,dim_r,dim_t,dim_r/num_proc,dim_t,(dim_r/num_proc)*my_rank,0)
+    print *, "bread indexes:"
     CALL ask_for_size_1D(file_id, refrindex_grpname//"/r_vector", i_x_max)
     CALL ask_for_size_1D(file_id, refrindex_grpname//"/z_vector", i_z_max)
     ALLOCATE(xx(i_x_max),zz(i_z_max),Indice_norm(i_x_max,i_z_max))
@@ -459,6 +463,7 @@ CONTAINS
    !  CALL read_dset(group_id,'four_z_rayleigh_cm_phys', four_z_Rayleigh)
    !  four_z_Rayleigh = 1.d-2 * four_z_Rayleigh ! convert to meters
 
+    print *, "aread indexes:"
     CALL h5gclose_f(group_id, error) ! all pre-processed inputs read
    
    
