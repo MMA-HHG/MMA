@@ -24,8 +24,8 @@ MODULE h5namelist
   CHARACTER(*), PARAMETER   ::  log_grpname =           CUPRAD_grp//"/logs"
   CHARACTER(*), PARAMETER   ::  ionref_grpname =        CUPRAD_grp//"/ionisation_model"
   CHARACTER(*), PARAMETER   ::  longstep_grpname =      CUPRAD_grp//"/longstep"
-  CHARACTER(*), PARAMETER   ::  outcont_grpname =       out_grpname//"/code_continuation"
-  CHARACTER(*), PARAMETER   ::  refrindex_grpname =     pre_proc_grpname//"/indexes_group"
+  CHARACTER(*), PARAMETER   ::  outcont_grpname =       CUPRAD_grp//out_grpname//"/code_continuation"
+  CHARACTER(*), PARAMETER   ::  refrindex_grpname =     CUPRAD_grp//pre_proc_grpname//"/indexes_group"
   CHARACTER(*), PARAMETER   ::  density_mod_grpname =   global_inps_grp//"/density_mod"              !< If this group is present, \ref density_module::init_density_mod "init_density_mod" is invoked.
   CHARACTER(*), PARAMETER   ::  pre_ionised_grpname =   global_inps_grp//"/pre_ionised"              !< If this group is present, \ref pre_ionised::init_pre_ionisation "init_pre_ionisation" is invoked.
 END MODULE h5namelist
