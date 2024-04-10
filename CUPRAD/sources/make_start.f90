@@ -36,6 +36,12 @@ PROGRAM make_start
       CALL h5fopen_f (filename, H5F_ACC_RDWR_F, file_id, error)
     ENDIF
 
+    CALL h5lexists_f(file_id, CUPRAD_grp, dumlog, error)
+    IF (.NOT.dumlog) THEN
+      CALL h5gcreate_f(file_id, CUPRAD_grp, group_id, error)
+      CALL h5gclose_f(group_id, error)   
+    ENDIF
+
     CALL h5lexists_f(file_id, in_grpname, dumlog, error)
     
     IF (.NOT.dumlog) THEN
