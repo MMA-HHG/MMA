@@ -450,7 +450,7 @@ CONTAINS
 
     !CALL read_dset(group_id,'startfield',e,dim_r,dim_t,dim_r/num_proc,dim_t,(dim_r/num_proc)*my_rank,0)
     CALL ask_for_size_1D(file_id, refrindex_grpname//"/r_vector", i_x_max)
-    CALL ask_for_size_1D(file_id,, refrindex_grpname//"/z_vector", i_z_max)
+    CALL ask_for_size_1D(file_id, refrindex_grpname//"/z_vector", i_z_max)
     ALLOCATE(xx(i_x_max),zz(i_z_max),Indice_norm(i_x_max,i_z_max))
     CALL read_dset(file_id, refrindex_grpname//"/indexes", Indice_norm, i_x_max, i_z_max)
     CALL read_dset(file_id, refrindex_grpname//"/r_vector", xx, i_x_max)
