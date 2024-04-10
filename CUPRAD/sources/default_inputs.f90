@@ -963,7 +963,7 @@ subroutine preset_physics(test_number)
 ! pre-ionized
     if ( any(test_number == (/8, 9, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, &
                               282                                                                       /)) ) then
-        call h5gcreate_f(file_id, 'pre_ionised', group_id2, error)
+        call h5gcreate_f(file_id, pre_ionised_grpname, group_id2, error)
         call save_or_replace(group_id2, 'method_geometry', 1, error, units_in = '[-]')
         call save_or_replace(group_id2, 'method_units', 1, error, units_in = '[-]')
         if ( any(test_number == (/8, 9, 14, 16/)) ) then
@@ -997,7 +997,7 @@ subroutine preset_physics(test_number)
                               (k1, k1=237, 241),       &
                               252,253,255,256,258,259, &
                               262                      /)) ) then
-        call h5gcreate_f(file_id, 'density_mod', group_id2, error)
+        call h5gcreate_f(file_id, density_mod_grpname, group_id2, error)
 
         call create_dset(group_id2, 'zgrid', (/ 0.d0 , proplength_m_phys /), 2)
         call h5_add_units_1D(group_id2, 'zgrid', '[m]')
