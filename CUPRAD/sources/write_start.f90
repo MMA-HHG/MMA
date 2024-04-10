@@ -42,7 +42,7 @@ CONTAINS
     REAL(8) :: efield_factor ! normalization factor electric field V/m
     COMPLEX(8), ALLOCATABLE  :: efield_osc(:) ! fast oscillating term exp(-i*omegauppe*t)
     INTEGER(HID_T) :: indexes_group_id
-    CHARACTER(*), PARAMETER :: refrindex_grpname    
+    CHARACTER(*), PARAMETER :: indexes_groupname=refrindex_grpname    
     INTEGER(HID_T) :: tables_file_id
     CHARACTER(LEN=25) :: tables_filename="calculated_tables.h5"
     WRITE(iz,920) z
