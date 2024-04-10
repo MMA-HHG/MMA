@@ -317,6 +317,8 @@ CONTAINS
       CALL read_dset(group_id, 'outlength_Efield', outlength_Efield)
     ENDIF  
     
+    ERROR STOP 'stopping bdens'
+
     ! density_mod
     print *, "bread density modulation:"
     CALL h5lexists_f(file_id,density_mod_grpname,apply_density_mod,error) ! it finds only if it's applied, the rest is fully encapsulated in the module
