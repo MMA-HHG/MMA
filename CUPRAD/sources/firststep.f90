@@ -326,7 +326,9 @@ CONTAINS
 
     ! pre-ionisation
     print *, "bread pre-ionisation:"
-    CALL h5lexists_f(file_id,pre_ionised_grpname,apply_pre_ionisation,error) ! it finds only if it's applied, the rest is fully encapsulated in the module        
+    CALL h5lexists_f(file_id,pre_ionised_grpname,apply_pre_ionisation,error) ! it finds only if it's applied, the rest is fully encapsulated in the module    
+    print *, "pre-ion h5path:" , pre_ionised_grpname       
+    print *, "pre-ion" , apply_pre_ionisation
     IF (apply_pre_ionisation) CALL init_pre_ionisation(file_id)
 
       ALLOCATE(density_mod(dim_r))
@@ -335,6 +337,8 @@ CONTAINS
       ELSE
          density_mod = 1.D0
       ENDIF
+
+      ERROR STOP 'stopping after pre-ion'
 
 
     ! Prepare the fourier transforms
