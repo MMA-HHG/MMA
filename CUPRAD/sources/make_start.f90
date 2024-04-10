@@ -93,7 +93,8 @@ PROGRAM make_start
       print *, 'WARNING: gas is specified, but not the ionization model, PPT used'
       ionization_model = 'PPT'
     ENDIF
-    gas_preset = gas_preset//'_'//ionization_model   
+    gas_preset = gas_preset//'_'//ionization_model  
+    print *, 'USED GAS IS',  gas_preset
     CALL preset_parameters_gas
   ENDIF
 
