@@ -83,9 +83,17 @@ PROGRAM make_start
   !---------------------------!
 
   ! All the parameters of the medium (dispersion, ionization, Kerr, absrption, ...) are defined if this directive is present
-  CALL  h5lexists_f(file_id, in_grpname//'/gas_preset', dumlog, error)
+  CALL h5lexists_f(file_id, global_inps_grp//'/gas_preset', dumlog, error)
   IF (dumlog) THEN
-    CALL read_dset(file_id, in_grpname//'/gas_preset', gas_preset)
+    CALL read_dset(file_id, global_inps_grp//'/gas_preset', gas_preset)
+    CALL h5lexists_f(file_id, in_grpname//'/ionization_model', dumlog, error)    
+    IF (dumlog) THEN
+      CALL read_dset(file_id, in_grpname//'/ionization_model', ionization_model)
+    ELSE
+      print *, 'WARNING: gas is specified, but not the ionization model, PPT used'
+      ionization_model = 'PPT'
+    ENDIF
+    gas_preset = gas_preset//'_'//ionization_model   
     CALL preset_parameters_gas
   ENDIF
 

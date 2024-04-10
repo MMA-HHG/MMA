@@ -6,7 +6,7 @@ use h5namelist
 
 IMPLICIT NONE
 real(8) :: Intensity_entry, Intensity_focus, waist_focus, Curvature_radius_entry, invCurvature_radius_entry, focus_position
-character(255)   ::  gas_preset
+character(255)   ::  gas_preset, ionization_model
 
 integer                 :: k1
 integer, parameter      :: N_tests = 283
@@ -655,20 +655,26 @@ subroutine preset_physics(test_number)
 !---------------------------------------------------------------------------------------------------------------------!
     select case(test_number)
     case(1,9,12,15,17,18:22,32:43)
-        gas_preset = 'Ar_PPT'
+        gas_preset = 'Ar'
+        ionization_model = 'PPT'
     case(2:8,10,11,13,14)
-        gas_preset = 'Ar_ext'
+        gas_preset = 'Ar'
+        ionization_model = 'ext'
     case(16,23:30)
-        gas_preset = 'Kr_PPT'
+        gas_preset = 'Kr'
+        ionization_model = 'PPT'
     case(31)
-        gas_preset = 'Ar_PPT'
+        gas_preset = 'Ar'
+        ionization_model = 'PPT'
 
     case(101:109,111:119,121:129,131:139, 141:149, 151:159, 161:169, 171:179, 181:189, 191:199, 201:209, 211:219, 221:229, 231:241, 251:259, &
          261:263,271:276, &
          281:283)
-        gas_preset = 'Ar_PPT'
+        gas_preset = 'Ar'
+        ionization_model = 'PPT'
     end select
-    call save_or_replace(file_id, in_grpname//'/gas_preset', gas_preset, error, units_in = '[-]')
+    call save_or_replace(file_id, global_inps_grp//'/gas_preset', gas_preset, error, units_in = '[-]')
+    call save_or_replace(file_id, in_grpname//'/ionization_model', ionization_model, error, units_in = '[-]')
 
 !---------------------------------------------------------------------------------------------------------------------!
  
