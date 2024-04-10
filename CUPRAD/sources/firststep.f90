@@ -319,7 +319,9 @@ CONTAINS
     
     ! density_mod
     print *, "bread density modulation:"
-    CALL h5lexists_f(file_id,density_mod_grpname,apply_density_mod,error) ! it finds only if it's applied, the rest is fully encapsulated in the module        
+    CALL h5lexists_f(file_id,density_mod_grpname,apply_density_mod,error) ! it finds only if it's applied, the rest is fully encapsulated in the module
+    print *, "density modulation h5path:" , density_mod_grpname       
+    print *, "density modulation applied" , apply_density_mod  
     IF (apply_density_mod) CALL init_density_mod(file_id)
 
     ! pre-ionisation
