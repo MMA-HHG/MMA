@@ -449,12 +449,12 @@ CONTAINS
     !e = CMPLX(real_e,imag_e)
 
     !CALL read_dset(group_id,'startfield',e,dim_r,dim_t,dim_r/num_proc,dim_t,(dim_r/num_proc)*my_rank,0)
-    CALL ask_for_size_1D(group_id, refrindex_grpname//"/r_vector", i_x_max)
-    CALL ask_for_size_1D(group_id, refrindex_grpname//"/z_vector", i_z_max)
+    CALL ask_for_size_1D(file_id, refrindex_grpname//"/r_vector", i_x_max)
+    CALL ask_for_size_1D(file_id,, refrindex_grpname//"/z_vector", i_z_max)
     ALLOCATE(xx(i_x_max),zz(i_z_max),Indice_norm(i_x_max,i_z_max))
-    CALL read_dset(group_id, refrindex_grpname//"/indexes", Indice_norm, i_x_max, i_z_max)
-    CALL read_dset(group_id, refrindex_grpname//"/r_vector", xx, i_x_max)
-    CALL read_dset(group_id, refrindex_grpname//"/z_vector", zz, i_z_max)
+    CALL read_dset(file_id,, refrindex_grpname//"/indexes", Indice_norm, i_x_max, i_z_max)
+    CALL read_dset(file_id,, refrindex_grpname//"/r_vector", xx, i_x_max)
+    CALL read_dset(file_id,, refrindex_grpname//"/z_vector", zz, i_z_max)
     
    !  CALL read_dset(group_id,'four_z_rayleigh_cm_phys', four_z_Rayleigh)
    !  four_z_Rayleigh = 1.d-2 * four_z_Rayleigh ! convert to meters
