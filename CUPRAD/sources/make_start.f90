@@ -42,8 +42,13 @@ PROGRAM make_start
       CALL h5gclose_f(group_id, error)   
     ENDIF
 
-    CALL h5lexists_f(file_id, in_grpname, dumlog, error)
-    
+    CALL h5lexists_f(file_id, global_inps_grp, dumlog, error)
+    IF (.NOT.dumlog) THEN
+      CALL h5gcreate_f(file_id, global_inps_grp, group_id, error)
+      CALL h5gclose_f(group_id, error)   
+    ENDIF
+
+    CALL h5lexists_f(file_id, in_grpname, dumlog, error)    
     IF (.NOT.dumlog) THEN
       CALL h5gcreate_f(file_id, in_grpname, group_id, error)
       CALL h5gclose_f(group_id, error)   
