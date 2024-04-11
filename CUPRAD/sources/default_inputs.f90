@@ -2,10 +2,11 @@
 
 module default_inputs
 use write_listing
+use h5namelist
 
 IMPLICIT NONE
 real(8) :: Intensity_entry, Intensity_focus, waist_focus, Curvature_radius_entry, invCurvature_radius_entry, focus_position
-character(255)   ::  gas_preset
+character(255)   ::  gas_preset, ionization_model
 
 integer                 :: k1
 integer, parameter      :: N_tests = 283
@@ -116,7 +117,7 @@ character(len=255), parameter :: available_tests(N_tests) = [character(len=255) 
 ! 14 - finer modulations tests (more detailed)
 ! 15 - test smaller adaptive steps
 ! 16 - different pressures: vacuum, dense medium (by mod or by pressure)
-! 17+18 - bases for externally added field [start 270]
+! 17+18 - bases for externally added density modulations [start 270]
 
 ! TDSE's:
 ! 1 - 0.1 mm, 0.01 mm spacing ~ 10 planes
@@ -470,16 +471,16 @@ subroutine preset_numerics_tests(test_number)
     ! computer time & procs
     select case(test_number)
     case(1:22)
-        num_proc = 32
+        ! num_proc = 32
         time_limit = 0.48d0
     case(23,24)
-        num_proc = 32
+        ! num_proc = 32
         time_limit = 1.98d0 
     case(25,26,28:30, 38:43)  
-        num_proc = 32
+        ! num_proc = 32
         time_limit = 23.95d0 
     case(27)  
-        num_proc = 16
+        ! num_proc = 16
         time_limit = 23.95d0 
     case(31:37)
         num_proc = 4
@@ -487,14 +488,14 @@ subroutine preset_numerics_tests(test_number)
 
     case(101:109, 111:119, 121:129, 131:139, 141:149, 151:159, 161:169, 171:179, 181:189, 191:199, 201:209, 211:219, 221:229, &
          231:241, 251:259, 261:263, 271:276)
-        num_proc = 32
+        ! num_proc = 32
         time_limit = 19.9d0 
     case(281:283)
-        num_proc = 32
+        ! num_proc = 32
         time_limit = 1.59d0 
     ! case(282)
-    !     num_proc = 4
-    !     time_limit = 1.59d0 
+        ! num_proc = 4
+        time_limit = 1.59d0 
     end select
 
     ! time
@@ -628,7 +629,7 @@ subroutine preset_numerics_tests(test_number)
        outlength_Efield_m_phys = 0.075d0
 
     end select
-    call save_or_replace(file_id, 'inputs/numerics_physical_output_distance_for_Efield_only', &
+    call save_or_replace(file_id, in_grpname//'/numerics_physical_output_distance_for_Efield_only', &
                          outlength_Efield_m_phys, error, units_in = '[m]')
     
 end subroutine preset_numerics_tests
@@ -654,20 +655,26 @@ subroutine preset_physics(test_number)
 !---------------------------------------------------------------------------------------------------------------------!
     select case(test_number)
     case(1,9,12,15,17,18:22,32:43)
-        gas_preset = 'Ar_PPT'
+        gas_preset = 'Ar'
+        ionization_model = 'PPT'
     case(2:8,10,11,13,14)
-        gas_preset = 'Ar_ext'
+        gas_preset = 'Ar'
+        ionization_model = 'ext'
     case(16,23:30)
-        gas_preset = 'Kr_PPT'
+        gas_preset = 'Kr'
+        ionization_model = 'PPT'
     case(31)
-        gas_preset = 'Ar_PPT'
+        gas_preset = 'Ar'
+        ionization_model = 'PPT'
 
     case(101:109,111:119,121:129,131:139, 141:149, 151:159, 161:169, 171:179, 181:189, 191:199, 201:209, 211:219, 221:229, 231:241, 251:259, &
          261:263,271:276, &
          281:283)
-        gas_preset = 'Ar_PPT'
+        gas_preset = 'Ar'
+        ionization_model = 'PPT'
     end select
-    call save_or_replace(file_id, 'inputs/gas_preset', gas_preset, error, units_in = '[-]')
+    call save_or_replace(file_id, global_inps_grp//'/gas_preset', gas_preset, error, units_in = '[-]')
+    call save_or_replace(file_id, in_grpname//'/ionization_model', ionization_model, error, units_in = '[-]')
 
 !---------------------------------------------------------------------------------------------------------------------!
  
@@ -732,64 +739,64 @@ subroutine preset_physics(test_number)
 
     select case(test_number)
     case(1:18,22)    
-        call save_or_replace(file_id, 'inputs/laser_beamwaist_entry', w0_m_phys, error, units_in = '[m]')
+        call save_or_replace(file_id, in_grpname//'/laser_beamwaist_entry', w0_m_phys, error, units_in = '[m]')
     case(31)    
-        call save_or_replace(file_id, 'inputs/laser_beamwaist_entry', w0_m_phys, error, units_in = '[m]')
+        call save_or_replace(file_id, in_grpname//'/laser_beamwaist_entry', w0_m_phys, error, units_in = '[m]')
     case(19:21,23:30,32:43)
-        call save_or_replace(file_id, 'inputs/laser_focus_beamwaist_Gaussian', waist_focus, error, units_in = '[m]')
+        call save_or_replace(file_id, in_grpname//'/laser_focus_beamwaist_Gaussian', waist_focus, error, units_in = '[m]')
 
     case(101:109,111:119,121:129,131:139, 141:149, 151:159, 161:169, 171:179, 181:189, 191:199, 201:209, 211:219, 221:229, 231:241, &
          251:259,261:263, &
          281:283)
-        call save_or_replace(file_id, 'inputs/laser_focus_beamwaist_Gaussian', waist_focus, error, units_in = '[m]')
+        call save_or_replace(file_id, in_grpname//'/laser_focus_beamwaist_Gaussian', waist_focus, error, units_in = '[m]')
     end select
 
 !---------------------------------------------------------------------------------------------------------------------!
     select case(test_number)
     case(1:3,5:10)
         numcrit = 2.0d0
-        call save_or_replace(file_id, 'inputs/laser_ratio_pin_pcr', numcrit, error, units_in = '[-]')
+        call save_or_replace(file_id, in_grpname//'/laser_ratio_pin_pcr', numcrit, error, units_in = '[-]')
     case(4,15,16,17,18,22)
         Intensity_entry = 1.d18
-        call save_or_replace(file_id, 'inputs/laser_intensity_entry', Intensity_entry, error, units_in = '[SI]')
+        call save_or_replace(file_id, in_grpname//'/laser_intensity_entry', Intensity_entry, error, units_in = '[SI]')
     case(19:21)
         Intensity_focus = 1.d18
-        call save_or_replace(file_id, 'inputs/laser_focus_intensity_Gaussian', Intensity_focus, error, units_in = '[SI]')
+        call save_or_replace(file_id, in_grpname//'/laser_focus_intensity_Gaussian', Intensity_focus, error, units_in = '[SI]')
     case(31)
         Intensity_focus = 1.8d18
-        call save_or_replace(file_id, 'inputs/laser_focus_intensity_Gaussian', Intensity_focus, error, units_in = '[SI]')
+        call save_or_replace(file_id, in_grpname//'/laser_focus_intensity_Gaussian', Intensity_focus, error, units_in = '[SI]')
     case(11,12)
         Intensity_entry = 1.129755554227896d19
-        call save_or_replace(file_id, 'inputs/laser_intensity_entry', Intensity_entry, error, units_in = '[SI]')
+        call save_or_replace(file_id, in_grpname//'/laser_intensity_entry', Intensity_entry, error, units_in = '[SI]')
     case(13,14)
         Intensity_entry = 1.5d18
-        call save_or_replace(file_id, 'inputs/laser_intensity_entry', Intensity_entry, error, units_in = '[SI]')
+        call save_or_replace(file_id, in_grpname//'/laser_intensity_entry', Intensity_entry, error, units_in = '[SI]')
     case(23:30,32:34)
         Intensity_focus = 1.8d18
-        call save_or_replace(file_id, 'inputs/laser_focus_intensity_Gaussian', Intensity_focus, error, units_in = '[SI]')
+        call save_or_replace(file_id, in_grpname//'/laser_focus_intensity_Gaussian', Intensity_focus, error, units_in = '[SI]')
     case(35:39)
         Intensity_focus = 2.d0*1.8d18
-        call save_or_replace(file_id, 'inputs/laser_focus_intensity_Gaussian', Intensity_focus, error, units_in = '[SI]')
+        call save_or_replace(file_id, in_grpname//'/laser_focus_intensity_Gaussian', Intensity_focus, error, units_in = '[SI]')
     case(40:43)
         Intensity_focus = 5.d0*1.8d18
-        call save_or_replace(file_id, 'inputs/laser_focus_intensity_Gaussian', Intensity_focus, error, units_in = '[SI]')
+        call save_or_replace(file_id, in_grpname//'/laser_focus_intensity_Gaussian', Intensity_focus, error, units_in = '[SI]')
 
     case(101:109,121:129,131:139, 151:159, 161:169, 171:179, 181:189, 191:199, 201:209, 211:219, 221:229, 231:241, 251:259, &
          261:263,271:273, &
          281:283)
         Intensity_focus = 2.d0*1.8d18
-        call save_or_replace(file_id, 'inputs/laser_focus_intensity_Gaussian', Intensity_focus, error, units_in = '[SI]')
+        call save_or_replace(file_id, in_grpname//'/laser_focus_intensity_Gaussian', Intensity_focus, error, units_in = '[SI]')
     case(111:119)
         Intensity_focus = 5.d0*1.8d18
-        call save_or_replace(file_id, 'inputs/laser_focus_intensity_Gaussian', Intensity_focus, error, units_in = '[SI]')
+        call save_or_replace(file_id, in_grpname//'/laser_focus_intensity_Gaussian', Intensity_focus, error, units_in = '[SI]')
 
     case(141:149)  
         Intensity_focus = 1.d-3 * 2.d0*1.8d18
-        call save_or_replace(file_id, 'inputs/laser_focus_intensity_Gaussian', Intensity_focus, error, units_in = '[SI]')
+        call save_or_replace(file_id, in_grpname//'/laser_focus_intensity_Gaussian', Intensity_focus, error, units_in = '[SI]')
 
     case(274:276)
         Intensity_focus = 1.95d18
-        call save_or_replace(file_id, 'inputs/laser_focus_intensity_Gaussian', Intensity_focus, error, units_in = '[SI]')
+        call save_or_replace(file_id, in_grpname//'/laser_focus_intensity_Gaussian', Intensity_focus, error, units_in = '[SI]')
     end select
     
 
@@ -797,27 +804,27 @@ subroutine preset_physics(test_number)
     select case(test_number)
     case(1:4,7:10,17,18:30,32:43)
         tp_fs_phys = 50.d0
-        call save_or_replace(file_id, 'inputs/laser_pulse_duration_in_1_e_Efield', tp_fs_phys, error, units_in = '[fs]')
+        call save_or_replace(file_id, in_grpname//'/laser_pulse_duration_in_1_e_Efield', tp_fs_phys, error, units_in = '[fs]')
     case(5)
         tp_fs_phys = 50.d0
-        call save_or_replace(file_id, 'inputs/laser_pulse_duration_in_FWHM_Efield', tp_fs_phys, error, units_in = '[fs]')
+        call save_or_replace(file_id, in_grpname//'/laser_pulse_duration_in_FWHM_Efield', tp_fs_phys, error, units_in = '[fs]')
     case(6)
         tp_fs_phys = 50.d0
-        call save_or_replace(file_id, 'inputs/laser_pulse_duration_in_FWHM_Intensity', tp_fs_phys, error, units_in = '[fs]')
+        call save_or_replace(file_id, in_grpname//'/laser_pulse_duration_in_FWHM_Intensity', tp_fs_phys, error, units_in = '[fs]')
     case(31)
         tp_fs_phys = 10.d0
-        call save_or_replace(file_id, 'inputs/laser_pulse_duration_in_FWHM_Intensity', tp_fs_phys, error, units_in = '[fs]')
+        call save_or_replace(file_id, in_grpname//'/laser_pulse_duration_in_FWHM_Intensity', tp_fs_phys, error, units_in = '[fs]')
     case(11:16)
         tp_fs_phys = 35.d0
-        call save_or_replace(file_id, 'inputs/laser_pulse_duration_in_FWHM_Intensity', tp_fs_phys, error, units_in = '[fs]')
+        call save_or_replace(file_id, in_grpname//'/laser_pulse_duration_in_FWHM_Intensity', tp_fs_phys, error, units_in = '[fs]')
 
     case(101:109,111:119,121:129,131:139, 141:149, 151:159, 161:169, 171:179, 181:189, 191:199, 201:209, 211:219, 221:229, &
          231:241, 251:259, 261:263, 271:276)
         tp_fs_phys = 50.d0
-        call save_or_replace(file_id, 'inputs/laser_pulse_duration_in_1_e_Efield', tp_fs_phys, error, units_in = '[fs]')
+        call save_or_replace(file_id, in_grpname//'/laser_pulse_duration_in_1_e_Efield', tp_fs_phys, error, units_in = '[fs]')
     case(281:283)
        tp_fs_phys = 30.d0
-       call save_or_replace(file_id, 'inputs/laser_pulse_duration_in_1_e_Efield', tp_fs_phys, error, units_in = '[fs]')
+       call save_or_replace(file_id, in_grpname//'/laser_pulse_duration_in_1_e_Efield', tp_fs_phys, error, units_in = '[fs]')
     end select   
     
     !call save_or_replace(file_id, 'inputs/laser_pulse_duration_in_1_e_Efield', tp_fs_phys, error, units_in = '[fs]')
@@ -962,7 +969,7 @@ subroutine preset_physics(test_number)
 ! pre-ionized
     if ( any(test_number == (/8, 9, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, &
                               282                                                                       /)) ) then
-        call h5gcreate_f(file_id, 'pre_ionised', group_id2, error)
+        call h5gcreate_f(file_id, pre_ionised_grpname, group_id2, error)
         call save_or_replace(group_id2, 'method_geometry', 1, error, units_in = '[-]')
         call save_or_replace(group_id2, 'method_units', 1, error, units_in = '[-]')
         if ( any(test_number == (/8, 9, 14, 16/)) ) then
@@ -996,7 +1003,7 @@ subroutine preset_physics(test_number)
                               (k1, k1=237, 241),       &
                               252,253,255,256,258,259, &
                               262                      /)) ) then
-        call h5gcreate_f(file_id, 'density_mod', group_id2, error)
+        call h5gcreate_f(file_id, density_mod_grpname, group_id2, error)
 
         call create_dset(group_id2, 'zgrid', (/ 0.d0 , proplength_m_phys /), 2)
         call h5_add_units_1D(group_id2, 'zgrid', '[m]')
@@ -1044,17 +1051,17 @@ subroutine preset_physics(test_number)
     
     if ( any(test_number == (/ (k1, k1 = 151, 159) /)) ) then
         n2_phys = 1e-3 * 1.04d-19 ! Kerr as in n_2*I (cm2/W)
-        call save_or_replace(file_id, 'inputs/Kerr_nonlinear_refractive_index_kerr_coefficient', n2_phys, error)
+        call save_or_replace(file_id, in_grpname//'/Kerr_nonlinear_refractive_index_kerr_coefficient', n2_phys, error)
     endif
 
     if ( any(test_number == (/ (k1, k1 = 171, 179) /)) ) then
         n2_phys = 1e1 * 1.04d-19 ! Kerr as in n_2*I (cm2/W)
-        call save_or_replace(file_id, 'inputs/Kerr_nonlinear_refractive_index_kerr_coefficient', n2_phys, error)
+        call save_or_replace(file_id, in_grpname//'/Kerr_nonlinear_refractive_index_kerr_coefficient', n2_phys, error)
     endif
 
     if ( any(test_number == (/ (k1, k1 = 161, 169), (k1, k1 = 171, 179) /)) ) then
         Ui_eV_phys = 2e0 * 15.75962D0 ! ionisation potential (eV)
-        CALL save_or_replace(file_id, 'inputs/ionization_ionization_potential_of_neutral_molecules', Ui_eV_phys, &
+        CALL save_or_replace(file_id, in_grpname//'/ionization_ionization_potential_of_neutral_molecules', Ui_eV_phys, &
         error, units_in = '[eV]')
     endif
 

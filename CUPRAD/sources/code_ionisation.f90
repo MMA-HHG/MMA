@@ -241,7 +241,7 @@ CONTAINS
     INTEGER                     :: i,error
     INTEGER(HID_T)              :: file_id, group_id
     DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: Egrid, ionisation_rates
-    CHARACTER(*), PARAMETER     :: outgroupname="ionisation_model"
+    CHARACTER(*), PARAMETER     :: outgroupname=ionref_grpname
 
     INTERFACE
      FUNCTION IONISATION_RATE_PPT(intensity)

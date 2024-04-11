@@ -2,6 +2,7 @@ MODULE write_start
   USE hdf5_helper_serial
   USE HDF5
   USE constants
+  USE h5namelist
 
   ! REAL(8), PARAMETER  :: Pi = acos(-1.0d0)
 
@@ -25,7 +26,7 @@ MODULE write_start
   COMPLEX(8), ALLOCATABLE :: e(:,:),e_full(:,:),komega(:)
   INTEGER(HID_T) :: file_id, group_id, group_id2
   INTEGER :: error
-  CHARACTER(LEN = *), PARAMETER :: output_groupname = "pre-processed"
+  CHARACTER(LEN = *), PARAMETER :: output_groupname = pre_proc_grpname
   CHARACTER(100) :: filename  ! File name variable, which is assigned a value by user eg.: results.h5
   INTEGER(HSIZE_T), DIMENSION(1:1) :: data_dims       
   
@@ -41,7 +42,7 @@ CONTAINS
     REAL(8) :: efield_factor ! normalization factor electric field V/m
     COMPLEX(8), ALLOCATABLE  :: efield_osc(:) ! fast oscillating term exp(-i*omegauppe*t)
     INTEGER(HID_T) :: indexes_group_id
-    CHARACTER(LEN=35) :: indexes_groupname="/pre-processed/indexes_group"    
+    CHARACTER(*), PARAMETER :: indexes_groupname=refrindex_grpname    
     INTEGER(HID_T) :: tables_file_id
     CHARACTER(LEN=25) :: tables_filename="calculated_tables.h5"
     WRITE(iz,920) z

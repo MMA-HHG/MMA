@@ -36,10 +36,21 @@ PROGRAM make_start
       CALL h5fopen_f (filename, H5F_ACC_RDWR_F, file_id, error)
     ENDIF
 
-    CALL h5lexists_f(file_id, 'inputs', dumlog, error)
-    
+    CALL h5lexists_f(file_id, CUPRAD_grp, dumlog, error)
     IF (.NOT.dumlog) THEN
-      CALL h5gcreate_f(file_id, 'inputs', group_id, error)
+      CALL h5gcreate_f(file_id, CUPRAD_grp, group_id, error)
+      CALL h5gclose_f(group_id, error)   
+    ENDIF
+
+    CALL h5lexists_f(file_id, global_inps_grp, dumlog, error)
+    IF (.NOT.dumlog) THEN
+      CALL h5gcreate_f(file_id, global_inps_grp, group_id, error)
+      CALL h5gclose_f(group_id, error)   
+    ENDIF
+
+    CALL h5lexists_f(file_id, in_grpname, dumlog, error)    
+    IF (.NOT.dumlog) THEN
+      CALL h5gcreate_f(file_id, in_grpname, group_id, error)
       CALL h5gclose_f(group_id, error)   
     ENDIF
 
@@ -53,7 +64,7 @@ PROGRAM make_start
   
   ! Open the file
   CALL h5fopen_f (filename, H5F_ACC_RDWR_F, file_id, error)
-  CALL h5gcreate_f(file_id, 'inputs/calculated', group_id, error)
+  CALL h5gcreate_f(file_id, in_grpname//'/calculated', group_id, error)
 
 
   !-------------!
@@ -63,7 +74,7 @@ PROGRAM make_start
   ! Testing mode presets all parameters and the code may run with an empty input.
   ! If some inputs are preent in the input file, they are superior.
   IF (testingmode) THEN
-    CALL create_dset(file_id, 'inputs/calculated/test_test_number', test_number)
+    CALL create_dset(file_id, in_grpname//'/calculated/test_test_number', test_number)
     CALL testing_values(test_number)
   ENDIF
 
@@ -72,9 +83,18 @@ PROGRAM make_start
   !---------------------------!
 
   ! All the parameters of the medium (dispersion, ionization, Kerr, absrption, ...) are defined if this directive is present
-  CALL  h5lexists_f(file_id, 'inputs/gas_preset', dumlog, error)
+  CALL h5lexists_f(file_id, global_inps_grp//'/gas_preset', dumlog, error)
   IF (dumlog) THEN
-    CALL read_dset(file_id, 'inputs/gas_preset', gas_preset)
+    CALL read_dset(file_id, global_inps_grp//'/gas_preset', gas_preset)
+    CALL h5lexists_f(file_id, in_grpname//'/ionization_model', dumlog, error)    
+    IF (dumlog) THEN
+      CALL read_dset(file_id, in_grpname//'/ionization_model', ionization_model)
+    ELSE
+      print *, 'WARNING: gas is specified, but not the ionization model, PPT used'
+      ionization_model = 'PPT'
+    ENDIF
+    gas_preset = TRIM(gas_preset)//'_'//TRIM(ionization_model)  
+    print *, 'USED GAS IS ',  gas_preset
     CALL preset_parameters_gas
   ENDIF
 
@@ -87,19 +107,20 @@ PROGRAM make_start
   ! Numerical properties !
   !----------------------!
 
-  CALL save_or_replace(file_id, 'inputs/numerics_number_of_processors', num_proc, error, units_in = '[-]')
-  CALL save_or_replace(file_id, 'inputs/numerics_run_time_in_hours', time_limit, error, units_in = '[h]')
-  CALL save_or_replace(file_id, 'inputs/numerics_length_of_window_for_t_normalized_to_pulse_duration', lt, error)
-  CALL save_or_replace(file_id, 'inputs/numerics_number_of_points_in_t', dim_t, error)
-  CALL save_or_replace(file_id, 'inputs/numerics_length_of_window_for_r_normalized_to_beamwaist', lr, error)
-  CALL save_or_replace(file_id, 'inputs/numerics_number_of_points_in_r', dim_r, error)
-  CALL save_or_replace(file_id, 'inputs/numerics_number_of_absorber_points_in_time', absorb, error)
-  CALL save_or_replace(file_id, 'inputs/numerics_phase_threshold_for_decreasing_delta_z', decrease, error)
+  ! CALL save_or_replace(file_id, in_grpname//'/numerics_number_of_processors', num_proc, error, units_in = '[-]')
+  num_proc = 4 ! kept from obsolete design, where the I/O handling depended on num_proc, no real use now
+  CALL save_or_replace(file_id, in_grpname//'/numerics_run_time_in_hours', time_limit, error, units_in = '[h]')
+  CALL save_or_replace(file_id, in_grpname//'/numerics_length_of_window_for_t_normalized_to_pulse_duration', lt, error)
+  CALL save_or_replace(file_id, in_grpname//'/numerics_number_of_points_in_t', dim_t, error)
+  CALL save_or_replace(file_id, in_grpname//'/numerics_length_of_window_for_r_normalized_to_beamwaist', lr, error)
+  CALL save_or_replace(file_id, in_grpname//'/numerics_number_of_points_in_r', dim_r, error)
+  CALL save_or_replace(file_id, in_grpname//'/numerics_number_of_absorber_points_in_time', absorb, error)
+  CALL save_or_replace(file_id, in_grpname//'/numerics_phase_threshold_for_decreasing_delta_z', decrease, error)
   
-  CALL save_or_replace(file_id, 'inputs/numerics_output_distance_in_z-steps_for_fluence_and_power', rhodist, error)
-  CALL save_or_replace(file_id, 'inputs/numerics_radius_for_diagnostics', rfil_mm_phys, error)
-  CALL save_or_replace(file_id, 'inputs/numerics_physical_first_stepwidth', delta_z_mm_phys, error)
-  CALL save_or_replace(file_id, 'inputs/numerics_operators_t_t-1', switch_T, error)
+  CALL save_or_replace(file_id, in_grpname//'/numerics_output_distance_in_z-steps_for_fluence_and_power', rhodist, error)
+  CALL save_or_replace(file_id, in_grpname//'/numerics_radius_for_diagnostics', rfil_mm_phys, error)
+  CALL save_or_replace(file_id, in_grpname//'/numerics_physical_first_stepwidth', delta_z_mm_phys, error)
+  CALL save_or_replace(file_id, in_grpname//'/numerics_operators_t_t-1', switch_T, error)
   
   IF (switch_T.GT.4) THEN
       write(6,*) 'You have selected a bad value for the type of equation'
@@ -108,7 +129,7 @@ PROGRAM make_start
       STOP
   ENDIF
 
-  CALL save_or_replace(file_id, 'inputs/numerics_type_of_input_beam', switch_start, error)
+  CALL save_or_replace(file_id, in_grpname//'/numerics_type_of_input_beam', switch_start, error)
 
   !IF (NOT(ANY(available_beams == switch_start))) THEN
   IF (.NOT.ANY(available_beams == switch_start)) THEN
@@ -120,21 +141,21 @@ PROGRAM make_start
   ENDIF   
 
   IF (2 == switch_start) THEN
-    CALL save_or_replace(file_id, 'inputs/numerics_filename_for_method_2', inputfilename_t, error) 
+    CALL save_or_replace(file_id, in_grpname//'/numerics_filename_for_method_2', inputfilename_t, error) 
   ELSEIF (3 == switch_start) THEN
     ! CALL save_or_replace(file_id, 'inputs/filename_for_method_3', inputfilename_c, error)
-    CALL save_or_replace(file_id, 'inputs/numerics_amplituderatio_for_method_3', restartamp, error)
+    CALL save_or_replace(file_id, in_grpname//'/numerics_amplituderatio_for_method_3', restartamp, error)
   ENDIF  
 
-  CALL save_or_replace(file_id, 'inputs/numerics_spatial_noise_on_the_input_shape', noise_s, error)
-  CALL save_or_replace(file_id, 'inputs/numerics_temporal_noise_on_the_input_shape', noise_t, error)
-  CALL save_or_replace(file_id, 'inputs/numerics_noise_on_the_input_shape', noise, error)
+  CALL save_or_replace(file_id, in_grpname//'/numerics_spatial_noise_on_the_input_shape', noise_s, error)
+  CALL save_or_replace(file_id, in_grpname//'/numerics_temporal_noise_on_the_input_shape', noise_t, error)
+  CALL save_or_replace(file_id, in_grpname//'/numerics_noise_on_the_input_shape', noise, error)
 
 
-  CALL save_or_replace(file_id, 'inputs/numerics_physical_output_distance_for_plasma_and_Efield', outlength_m_phys, error)
+  CALL save_or_replace(file_id, in_grpname//'/numerics_physical_output_distance_for_plasma_and_Efield', outlength_m_phys, error)
 
-  CALL h5lexists_f(file_id, 'inputs/numerics_physical_output_distance_for_Efield_only', out_Efield, error)
-  IF (out_Efield)  CALL save_or_replace(file_id, 'inputs/numerics_physical_output_distance_for_Efield_only', &
+  CALL h5lexists_f(file_id, in_grpname//'/numerics_physical_output_distance_for_Efield_only', out_Efield, error)
+  IF (out_Efield)  CALL save_or_replace(file_id, in_grpname//'/numerics_physical_output_distance_for_Efield_only', &
                                         outlength_Efield_m_phys, error)
 
 
@@ -142,9 +163,9 @@ PROGRAM make_start
   ! Medium !
   !--------!
 
-  CALL save_or_replace(file_id, 'inputs/medium_physical_distance_of_propagation', proplength_m_phys, error)
-  CALL save_or_replace(file_id, 'inputs/medium_pressure_in_bar', pressure, error)
-  CALL save_or_replace(file_id, 'inputs/medium_effective_atmospheric_density_of_neutral_molecules', rhont_cm3_phys, &
+  CALL save_or_replace(file_id, in_grpname//'/medium_physical_distance_of_propagation', proplength_m_phys, error)
+  CALL save_or_replace(file_id, in_grpname//'/medium_pressure_in_bar', pressure, error)
+  CALL save_or_replace(file_id, in_grpname//'/medium_effective_atmospheric_density_of_neutral_molecules', rhont_cm3_phys, &
                        error, units_in = '[1/cm3]')
   !CALL read_dset(file_id, 'inputs/effective_density_of_neutral_molecules', rhont_cm3_phys)
   !rhont_cm3_phys = 0.5
@@ -157,7 +178,7 @@ PROGRAM make_start
   ! Dispersion + Kerr + ionisation !
   !--------------------------------!
 
-  CALL save_or_replace(file_id, 'inputs/dispersion_type_of_dispersion_law', switch_dispersion, error)
+  CALL save_or_replace(file_id, in_grpname//'/dispersion_type_of_dispersion_law', switch_dispersion, error)
   
   IF (.NOT.ANY(available_dispersions == switch_dispersion)) THEN
     write(6,*) 'You have selected a bad value for the dispersion law'
@@ -168,24 +189,24 @@ PROGRAM make_start
 
   SELECT CASE(switch_dispersion)
   CASE(1) ! Taylor
-    CALL save_or_replace(file_id, 'inputs/dispersion_linear_refractive_index', n0, error)
-    CALL save_or_replace(file_id, 'inputs/dispersion_inverse_gv_coefficient-n0_c', delta_k_p_fs_per_cm_phys, error)
-    CALL save_or_replace(file_id, 'inputs/dispersion_gvd_coefficient', k_pp_fs2_per_cm_phys, error)
-    CALL save_or_replace(file_id, 'inputs/dispersion_third_order_dispersion_coefficient', k_ppp_fs3_per_cm_phys, error)
-    CALL save_or_replace(file_id, 'inputs/dispersion_fourth_order_dispersion_coefficient', k_pppp_fs4_per_cm_phys, error)
-    CALL save_or_replace(file_id, 'inputs/dispersion_fifth_order_dispersion_coefficient', k_ppppp_fs5_per_cm_phys, error)
+    CALL save_or_replace(file_id, in_grpname//'/dispersion_linear_refractive_index', n0, error)
+    CALL save_or_replace(file_id, in_grpname//'/dispersion_inverse_gv_coefficient-n0_c', delta_k_p_fs_per_cm_phys, error)
+    CALL save_or_replace(file_id, in_grpname//'/dispersion_gvd_coefficient', k_pp_fs2_per_cm_phys, error)
+    CALL save_or_replace(file_id, in_grpname//'/dispersion_third_order_dispersion_coefficient', k_ppp_fs3_per_cm_phys, error)
+    CALL save_or_replace(file_id, in_grpname//'/dispersion_fourth_order_dispersion_coefficient', k_pppp_fs4_per_cm_phys, error)
+    CALL save_or_replace(file_id, in_grpname//'/dispersion_fifth_order_dispersion_coefficient', k_ppppp_fs5_per_cm_phys, error)
   CASE(4) ! from file
-    CALL save_or_replace(file_id, 'inputs/dispersion_filename_for_method_4', dispfilename, error)
+    CALL save_or_replace(file_id, in_grpname//'/dispersion_filename_for_method_4', dispfilename, error)
   END SELECT
 
   ! Kerr
-  CALL save_or_replace(file_id, 'inputs/Kerr_ionised_atoms_relative_Kerr_response', ions_Kerr_ratio, error) 
+  CALL save_or_replace(file_id, in_grpname//'/Kerr_ionised_atoms_relative_Kerr_response', ions_Kerr_ratio, error) 
 
-  CALL save_or_replace(file_id, 'inputs/Kerr_nonlinear_refractive_index_kerr_coefficient', n2_phys, error)
-  CALL save_or_replace(file_id, 'inputs/Kerr_chi5_coefficient', n4_phys, error)
+  CALL save_or_replace(file_id, in_grpname//'/Kerr_nonlinear_refractive_index_kerr_coefficient', n2_phys, error)
+  CALL save_or_replace(file_id, in_grpname//'/Kerr_chi5_coefficient', n4_phys, error)
 
   ! delayed Kerr
-  CALL save_or_replace(file_id, 'inputs/Kerr_type_of_delayed_kerr_response', switch_dKerr, error)
+  CALL save_or_replace(file_id, in_grpname//'/Kerr_type_of_delayed_kerr_response', switch_dKerr, error)
 
   IF (switch_dKerr.GT.3) THEN
     write(6,*) 'You have selected a bad value for the type of Delayed Kerr response'
@@ -195,15 +216,15 @@ PROGRAM make_start
   ENDIF
 
   IF (ANY( (/2, 3/) ==  switch_dKerr )) THEN
-    CALL save_or_replace(file_id, 'inputs/Kerr_ratio_of_delayed_kerr_xdk', xdk, error)
-    CALL save_or_replace(file_id, 'inputs/Kerr_time_of_delayed_kerr_tdk', tdk_fs_phys, error)
+    CALL save_or_replace(file_id, in_grpname//'/Kerr_ratio_of_delayed_kerr_xdk', xdk, error)
+    CALL save_or_replace(file_id, in_grpname//'/Kerr_time_of_delayed_kerr_tdk', tdk_fs_phys, error)
     IF (3==switch_dKerr) THEN
-      CALL save_or_replace(file_id, 'inputs/Kerr_frequency_in_delayed_kerr_wr', raman_phys, error)
+      CALL save_or_replace(file_id, in_grpname//'/Kerr_frequency_in_delayed_kerr_wr', raman_phys, error)
     ENDIF
   ENDIF
 
 
- CALL save_or_replace(file_id, 'inputs/ionization_type_of_ionization_method', switch_rho, error, units_in = '[-]')
+ CALL save_or_replace(file_id, in_grpname//'/ionization_type_of_ionization_method', switch_rho, error, units_in = '[-]')
 
   IF (.NOT.ANY(available_ionisations == switch_rho)) THEN
     write(6,*) 'You have selected a bad value for the type ionization method'
@@ -213,70 +234,70 @@ PROGRAM make_start
   ENDIF
 
   IF (ANY( (/1, 2/) ==  switch_rho)) THEN
-    CALL save_or_replace(file_id, 'inputs/ionization_mpi_cross_section_for_method_1-2', sigmak_phys, error, &
+    CALL save_or_replace(file_id, in_grpname//'/ionization_mpi_cross_section_for_method_1-2', sigmak_phys, error, &
                          units_in = '[s-1cm2K/WK]')
   ELSEIF (3 == switch_rho) THEN
-    CALL save_or_replace(file_id, 'inputs/ionization_ionization_potential_of_neutral_molecules', Ui_eV_phys, &
+    CALL save_or_replace(file_id, in_grpname//'/ionization_ionization_potential_of_neutral_molecules', Ui_eV_phys, &
                          error, units_in = '[eV]')
-    CALL save_or_replace(file_id, 'inputs/ionization_angular_momentum_for_method_3_7', angular_momentum, error, &
+    CALL save_or_replace(file_id, in_grpname//'/ionization_angular_momentum_for_method_3_7', angular_momentum, error, &
                          units_in = '[-]')
-    CALL save_or_replace(file_id, 'inputs/ionization_effective_residue_charge_for_method_3-4_7', residue_charge, &
+    CALL save_or_replace(file_id, in_grpname//'/ionization_effective_residue_charge_for_method_3-4_7', residue_charge, &
                          error, units_in = '[-]')
   ENDIF
 
   
-  CALL save_or_replace(file_id, 'inputs/plasma_initial_electron_density', rho0_phys, error, units_in = '[1/cm3]')
-  CALL save_or_replace(file_id, 'inputs/plasma_electron_colision_time', tauc_fs_phys, error, units_in = '[fs]')
-  CALL save_or_replace(file_id, 'inputs/plasma_linear_recombination_coefficient', alpha_fs_phys, error, units_in = '[fs-1]')
-  CALL save_or_replace(file_id, 'inputs/plasma_quadratic_recombination_(gasses)', alphaquad_fscm3_phys, error, &
+  CALL save_or_replace(file_id, in_grpname//'/plasma_initial_electron_density', rho0_phys, error, units_in = '[1/cm3]')
+  CALL save_or_replace(file_id, in_grpname//'/plasma_electron_colision_time', tauc_fs_phys, error, units_in = '[fs]')
+  CALL save_or_replace(file_id, in_grpname//'/plasma_linear_recombination_coefficient', alpha_fs_phys, error, units_in = '[fs-1]')
+  CALL save_or_replace(file_id, in_grpname//'/plasma_quadratic_recombination_(gasses)', alphaquad_fscm3_phys, error, &
                        units_in = '[fs-1cm3]')
-  CALL save_or_replace(file_id, 'inputs/plasma_number_of_photons_involved_in_the_n-absorption', NN, error, units_in = '[-]')
-  CALL save_or_replace(file_id, 'inputs/plasma_the_n-photon_absoption_cross_section', sigman_phys, error, &
+  CALL save_or_replace(file_id, in_grpname//'/plasma_number_of_photons_involved_in_the_n-absorption', NN, error, units_in = '[-]')
+  CALL save_or_replace(file_id, in_grpname//'/plasma_the_n-photon_absoption_cross_section', sigman_phys, error, &
                        units_in = '[s-1cm2N/Wn]')
-  CALL save_or_replace(file_id, 'inputs/plasma_density_of_absorbing_molecules', rhoabs_cm3_phys, error, units_in = '[1/cm3]?')
+  CALL save_or_replace(file_id, in_grpname//'/plasma_density_of_absorbing_molecules', rhoabs_cm3_phys, error, units_in = '[1/cm3]?')
 
 
   !-------!
   ! Laser !
   !-------!  
   
-  CALL save_or_replace(file_id, 'inputs/laser_wavelength', lambda0_cm_phys, error)
+  CALL save_or_replace(file_id, in_grpname//'/laser_wavelength', lambda0_cm_phys, error)
 
-  CALL save_or_replace(file_id, 'inputs/laser_degree_of_supergaussian', super_N, error)
+  CALL save_or_replace(file_id, in_grpname//'/laser_degree_of_supergaussian', super_N, error)
   IF (super_N .NE. 1) THEN
     write(6,*) 'Warning, chosen beam shape differs from the Gaussian.'
     write(6,*) 'The Gaussian reference may not be representative.'
   ENDIF
 
-  CALL save_or_replace(file_id, 'inputs/laser_degree_of_supergaussian_in_time', super_t, error)
+  CALL save_or_replace(file_id, in_grpname//'/laser_degree_of_supergaussian_in_time', super_t, error)
   IF (super_N .NE. 1) THEN
     write(6,*) 'Warning, chosen temporal profile differs from the Gaussian.'
     write(6,*) 'The Gaussian reference may not be representative.'
   ENDIF
 
-  CALL h5lexists_f(file_id, 'inputs/laser_pulse_duration_in_FWHM_Efield', dumlog, error)
+  CALL h5lexists_f(file_id, in_grpname//'/laser_pulse_duration_in_FWHM_Efield', dumlog, error)
   IF (dumlog) THEN
-    dumstring = 'FWHM'; dumstring2 = 'Efield'; dumstring3 = 'inputs/laser_pulse_duration_in_FWHM_Efield'
+    dumstring = 'FWHM'; dumstring2 = 'Efield'; dumstring3 = in_grpname//'/laser_pulse_duration_in_FWHM_Efield'
   ENDIF
-  CALL h5lexists_f(file_id, 'inputs/laser_pulse_duration_in_FWHM_Intensity', dumlog, error)
+  CALL h5lexists_f(file_id, in_grpname//'/laser_pulse_duration_in_FWHM_Intensity', dumlog, error)
   IF (dumlog) THEN
-    dumstring = 'FWHM'; dumstring2 = 'Intensity'; dumstring3 = 'inputs/laser_pulse_duration_in_FWHM_Intensity'
+    dumstring = 'FWHM'; dumstring2 = 'Intensity'; dumstring3 = in_grpname//'/laser_pulse_duration_in_FWHM_Intensity'
   ENDIF
-  CALL h5lexists_f(file_id, 'inputs/laser_pulse_duration_in_rms_Efield', dumlog, error)
+  CALL h5lexists_f(file_id, in_grpname//'/laser_pulse_duration_in_rms_Efield', dumlog, error)
   IF (dumlog) THEN
-    dumstring = 'rms'; dumstring2 = 'Efield'; dumstring3 = 'inputs/laser_pulse_duration_in_rms_Efield'
+    dumstring = 'rms'; dumstring2 = 'Efield'; dumstring3 = in_grpname//'/laser_pulse_duration_in_rms_Efield'
   ENDIF
-  CALL h5lexists_f(file_id, 'inputs/laser_pulse_duration_in_rms_Intensity', dumlog, error)
+  CALL h5lexists_f(file_id, in_grpname//'/laser_pulse_duration_in_rms_Intensity', dumlog, error)
   IF (dumlog) THEN
-    dumstring = 'rms'; dumstring2 = 'Intensity'; dumstring3 = 'inputs/laser_pulse_duration_in_rms_Intensity'
+    dumstring = 'rms'; dumstring2 = 'Intensity'; dumstring3 = in_grpname//'/laser_pulse_duration_in_rms_Intensity'
   ENDIF
-  CALL h5lexists_f(file_id, 'inputs/laser_pulse_duration_in_1_e_Intensity', dumlog, error)
+  CALL h5lexists_f(file_id, in_grpname//'/laser_pulse_duration_in_1_e_Intensity', dumlog, error)
   IF (dumlog) THEN
-    dumstring = '1/e'; dumstring2 = 'Intensity'; dumstring3 = 'inputs/laser_pulse_duration_in_1_e_Intensity'
+    dumstring = '1/e'; dumstring2 = 'Intensity'; dumstring3 = in_grpname//'/laser_pulse_duration_in_1_e_Intensity'
   ENDIF
-  CALL h5lexists_f(file_id, 'inputs/laser_pulse_duration_in_1_e_Efield', dumlog, error)
+  CALL h5lexists_f(file_id, in_grpname//'/laser_pulse_duration_in_1_e_Efield', dumlog, error)
   IF (dumlog) THEN
-    dumstring = '1/e'; dumstring2 = 'Efield'; dumstring3 = 'inputs/laser_pulse_duration_in_1_e_Efield'
+    dumstring = '1/e'; dumstring2 = 'Efield'; dumstring3 = in_grpname//'/laser_pulse_duration_in_1_e_Efield'
   ENDIF
 
   ! CALL h5lexists_f(file_id, 'inputs/laser_pulse_duration_in_rms', dumlog, error)
@@ -339,24 +360,24 @@ PROGRAM make_start
 
 
   
-  CALL save_or_replace(file_id, 'inputs/laser_initial_chirp_phase', chirp_factor, error)
+  CALL save_or_replace(file_id, in_grpname//'/laser_initial_chirp_phase', chirp_factor, error)
   
-  CALL h5lexists_f(file_id, 'inputs/laser_beamwaist_entry', dumlog, error)
+  CALL h5lexists_f(file_id, in_grpname//'/laser_beamwaist_entry', dumlog, error)
   IF (dumlog) THEN
-    CALL save_or_replace(file_id, 'inputs/laser_focal_length_in_the_medium_cm', f_cm_phys, error) !! input given at the entrance plane, it's equal to the radius of the curvature
+    CALL save_or_replace(file_id, in_grpname//'/laser_focal_length_in_the_medium_cm', f_cm_phys, error) !! input given at the entrance plane, it's equal to the radius of the curvature
                                                                                                   ! this dataset in HDF5 has wrong unit [0 for no lense]
     
     Curvature_radius_entry = f_cm_phys * 1.D-2                              !!!!!!!!!!!!!!! CHECK SIGN
     
-    CALL save_or_replace(file_id, 'inputs/laser_beamwaist_entry', w0_m_phys, error)
-    CALL h5lexists_f(file_id, 'inputs/laser_ratio_pin_pcr', dumlog, error)
+    CALL save_or_replace(file_id, in_grpname//'/laser_beamwaist_entry', w0_m_phys, error)
+    CALL h5lexists_f(file_id, in_grpname//'/laser_ratio_pin_pcr', dumlog, error)
     IF (dumlog) THEN ! input given in the P_in/P_cr
-      CALL save_or_replace(file_id, 'inputs/laser_ratio_pin_pcr', numcrit, error)
+      CALL save_or_replace(file_id, in_grpname//'/laser_ratio_pin_pcr', numcrit, error)
       ! convert
       Intensity_entry = ratio_Pin_Pcr_entry2I_entry(numcrit,w0_m_phys,pressure*n2_phys*1.D-4,lambda0_cm_phys*1.D-2)
       CALL save_or_replace(group_id, 'laser_intensity_entry', Intensity_entry, error, units_in = '[SI]')
     ELSE ! input given in the entrance intensity
-      CALL save_or_replace(file_id, 'inputs/laser_intensity_entry', Intensity_entry, error)
+      CALL save_or_replace(file_id, in_grpname//'/laser_intensity_entry', Intensity_entry, error)
       ! convert
 
 	    print *, 'in make_start'
@@ -385,9 +406,9 @@ PROGRAM make_start
   ELSE
 
     ! Input given by the reference Gaussian beam
-    CALL save_or_replace(file_id, 'inputs/laser_focus_beamwaist_Gaussian', waist_focus, error)
-    CALL save_or_replace(file_id, 'inputs/laser_focus_intensity_Gaussian', Intensity_focus, error)
-    CALL save_or_replace(file_id, 'inputs/laser_focus_position_Gaussian', focus_position, error) !!!!!!!!!!!!!!! CHECK SIGN
+    CALL save_or_replace(file_id, in_grpname//'/laser_focus_beamwaist_Gaussian', waist_focus, error)
+    CALL save_or_replace(file_id, in_grpname//'/laser_focus_intensity_Gaussian', Intensity_focus, error)
+    CALL save_or_replace(file_id, in_grpname//'/laser_focus_position_Gaussian', focus_position, error) !!!!!!!!!!!!!!! CHECK SIGN
 
     ! Convert
     CALL Gaussian_focus2Gaussian_entry(Intensity_focus,waist_focus,focus_position,Intensity_entry,w0_m_phys,&
