@@ -260,7 +260,7 @@ CONTAINS
 
     ! Perform dimension & num_proc compatibility
    
-    IF (.NOT.((MOD(dim_t,num_proc)==0) .AND. (MOD(dim_t,num_proc)))) ERROR STOP 'INCOMPATIBLE GRID DIMENSION WITH THE NUMBER OF PROCESSORS (num_proc must be a divisor of both dim_r and dim_t)'
+    IF (.NOT.((MOD(dim_t,num_proc)==0) .AND. (MOD(dim_t,num_proc)==0))) ERROR STOP 'INCOMPATIBLE GRID DIMENSION WITH THE NUMBER OF PROCESSORS (num_proc must be a divisor of both dim_r and dim_t)'
 
     CALL read_dset(group_id, 'rek0', rek0)
     CALL read_dset(group_id, 'rekp',rekp)
