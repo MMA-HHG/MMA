@@ -468,35 +468,35 @@ subroutine preset_numerics_tests(test_number)
     integer :: test_number
 
 
-    ! ! computer time & procs
-    ! select case(test_number)
-    ! case(1:22)
-    !     num_proc = 32
-    !     time_limit = 0.48d0
-    ! case(23,24)
-    !     num_proc = 32
-    !     time_limit = 1.98d0 
-    ! case(25,26,28:30, 38:43)  
-    !     num_proc = 32
-    !     time_limit = 23.95d0 
-    ! case(27)  
-    !     num_proc = 16
-    !     time_limit = 23.95d0 
-    ! case(31:37)
-    !     num_proc = 4
-    !     time_limit = 23.95d0
+    ! computer time & procs
+    select case(test_number)
+    case(1:22)
+        ! num_proc = 32
+        time_limit = 0.48d0
+    case(23,24)
+        ! num_proc = 32
+        time_limit = 1.98d0 
+    case(25,26,28:30, 38:43)  
+        ! num_proc = 32
+        time_limit = 23.95d0 
+    case(27)  
+        ! num_proc = 16
+        time_limit = 23.95d0 
+    case(31:37)
+        num_proc = 4
+        time_limit = 23.95d0
 
-    ! case(101:109, 111:119, 121:129, 131:139, 141:149, 151:159, 161:169, 171:179, 181:189, 191:199, 201:209, 211:219, 221:229, &
-    !      231:241, 251:259, 261:263, 271:276)
-    !     num_proc = 32
-    !     time_limit = 19.9d0 
-    ! case(281:283)
-    !     num_proc = 32
-    !     time_limit = 1.59d0 
-    ! ! case(282)
-    ! !     num_proc = 4
-    ! !     time_limit = 1.59d0 
-    ! end select
+    case(101:109, 111:119, 121:129, 131:139, 141:149, 151:159, 161:169, 171:179, 181:189, 191:199, 201:209, 211:219, 221:229, &
+         231:241, 251:259, 261:263, 271:276)
+        ! num_proc = 32
+        time_limit = 19.9d0 
+    case(281:283)
+        ! num_proc = 32
+        time_limit = 1.59d0 
+    ! case(282)
+        ! num_proc = 4
+        time_limit = 1.59d0 
+    end select
 
     ! time
     select case(test_number)
