@@ -107,7 +107,8 @@ PROGRAM make_start
   ! Numerical properties !
   !----------------------!
 
-  CALL save_or_replace(file_id, in_grpname//'/numerics_number_of_processors', num_proc, error, units_in = '[-]')
+  ! CALL save_or_replace(file_id, in_grpname//'/numerics_number_of_processors', num_proc, error, units_in = '[-]')
+  num_proc = 4 ! kept from obsolete design, where the I/O handling depended on num_proc, no real use now
   CALL save_or_replace(file_id, in_grpname//'/numerics_run_time_in_hours', time_limit, error, units_in = '[h]')
   CALL save_or_replace(file_id, in_grpname//'/numerics_length_of_window_for_t_normalized_to_pulse_duration', lt, error)
   CALL save_or_replace(file_id, in_grpname//'/numerics_number_of_points_in_t', dim_t, error)

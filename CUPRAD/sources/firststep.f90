@@ -254,9 +254,14 @@ CONTAINS
 
     print *, '(density mod) normalisation in z:', four_z_Rayleigh
 
-    CALL read_dset(group_id, 'num_proc', num_proc)
+   !  CALL read_dset(group_id, 'num_proc', num_proc)
     CALL read_dset(group_id, 'dim_t', dim_t)
     CALL read_dset(group_id, 'dim_r', dim_r)
+
+    ! Perform dimension & num_proc compatibility
+   
+    IF .NOT.((MOD(dim_t,num_proc)==0) .AND. (MOD(dim_t,num_proc))) ERROR STOP 'INCOMPATIBLE GRID DIMENSION WITH THE NUMBER OF PROCESSORS (num_proc must be a divisor of both dim_r and dim_t)'
+
     CALL read_dset(group_id, 'rek0', rek0)
     CALL read_dset(group_id, 'rekp',rekp)
     CALL read_dset(group_id, 'c3',c3)
@@ -533,6 +538,10 @@ CONTAINS
        CALL h5_add_units_1D(group_id, 'maxphase', '[-]')
        CALL create_dset(group_id, 'z-length_conversion', four_z_Rayleigh)
        CALL h5_add_units_1D(group_id, 'z-length_conversion', '[SI]/[C.U.]')
+
+       CALL create_dset(group_id, 'number_of_processors', num_proc)
+       CALL h5_add_units_1D(group_id, 'number_of_processors', '[-]')
+
        dz_write_count = dz_write_count + 1
 
        ! group velocity
