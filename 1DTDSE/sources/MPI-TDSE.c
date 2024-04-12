@@ -50,7 +50,7 @@ int main(int argc, char *argv[])
 	int dum3int[3];
 	hsize_t * dims, * dims_input; int ndims; hid_t datatype; // ! hot-fixed to have input dimension different
 	char dumchar1[50];
-	char dum_h5_paths[3][100]
+	char dum_h5_paths[3][100];
 	// Processing the queue
 	// counter of simulations
 	int Nsim, Nsim_loc = -1;
