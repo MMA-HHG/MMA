@@ -62,7 +62,7 @@ hid_t dtype_h5(char *foo)
  * @param h5error Status.
  * @param in Input structure.
  */
-void ReadInputs(hid_t file_id, char *inpath, herr_t *h5error, inputs_def *in)
+void ReadInputs(hid_t file_id, char *inpath, char *inpath_glob, herr_t *h5error, inputs_def *in)
 {
 	// Dummy string with path to the input value
 	char path[50];
@@ -87,6 +87,7 @@ void ReadInputs(hid_t file_id, char *inpath, herr_t *h5error, inputs_def *in)
 	// the limit of the integral for the ionisation (works fine with the lenth gauge and strong fields)
 	path[0] = '\0';	strcat(strcat(path,inpath),"x_int");
 	readreal(file_id, path, h5error,&(*in).x_int);  
+
 	// Target parameter
 	path[0] = '\0';	strcat(strcat(path,inpath),"trg_a");
 	readreal(file_id, path, h5error,&(*in).trg.a); 

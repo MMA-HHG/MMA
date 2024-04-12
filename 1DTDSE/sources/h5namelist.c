@@ -10,5 +10,12 @@
 
 #include "h5namelist.h"
 
-const char * CTDSE_inputs='CTDSE/inputs';
-const char * CUPRAD_outputs='CUPRAD/outputs';
+const char * CTDSE_inputs='CTDSE/inputs/';
+const char * CUPRAD_outputs='CUPRAD/outputs/';
+const char * global_outputs='global_inputs/';
+
+
+
+void Init_h5_paths(){
+    
+}
