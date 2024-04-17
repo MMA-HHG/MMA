@@ -83,15 +83,15 @@ int main(int argc, char *argv[])
 
 	// create parameters & load initial data
 	file_id = H5Fopen(h5_filename, H5F_ACC_RDONLY, H5P_DEFAULT); // the file is opened for read only by all the processes independently, every process then has its own copy of variables.
-	ReadInputs(file_id, "TDSE_inputs/", &h5error, &inputs);
-	inputs.Print = Set_prints_from_HDF5(file_id, "TDSE_inputs/", &h5error);
-	dims = get_dimensions_h5(file_id, "outputs/output_field", &h5error, &ndims, &datatype);
-	dims_input = get_dimensions_h5(file_id, "outputs/output_field", &h5error, &ndims, &datatype);
+	ReadInputs(file_id, CTDSE_INPUTS, &h5error, &inputs);
+	inputs.Print = Set_prints_from_HDF5(file_id, CTDSE_INPUTS, &h5error);
+	dims = get_dimensions_h5(file_id, CUPRAD_OUTPUTS_EFIELD, &h5error, &ndims, &datatype);
+	dims_input = get_dimensions_h5(file_id, CUPRAD_OUTPUTS_EFIELD, &h5error, &ndims, &datatype);
 
 	// Get dims from the arrays
-	hsize_t *dim_t = get_dimensions_h5(file_id, "outputs/tgrid", &h5error, &ndims, &datatype), \
-            *dim_r = get_dimensions_h5(file_id, "outputs/rgrid", &h5error, &ndims, &datatype), \
-            *dim_z = get_dimensions_h5(file_id, "outputs/zgrid", &h5error, &ndims, &datatype); 
+	hsize_t *dim_t = get_dimensions_h5(file_id, CUPRAD_OUTPUTS_TGRID, &h5error, &ndims, &datatype), \
+            *dim_r = get_dimensions_h5(file_id, CUPRAD_OUTPUTS_RGRID, &h5error, &ndims, &datatype), \
+            *dim_z = get_dimensions_h5(file_id, CUPRAD_OUTPUTS_ZGRID, &h5error, &ndims, &datatype); 
 	// label the dims by physical axes	
     dims[0] = *dim_t; 
 	dims[1] = *dim_r; 
@@ -102,7 +102,7 @@ int main(int argc, char *argv[])
 
 	// Allocate space for the fields & load the tgrid
 	inputs.Efield.Field = malloc(((int)dims[0])*sizeof(double));
-	inputs.Efield.tgrid =  readreal1Darray_fort(file_id, "outputs/tgrid",&h5error,&inputs.Efield.Nt); // tgrid is not changed when program runs
+	inputs.Efield.tgrid =  readreal1Darray_fort(file_id, CUPRAD_OUTPUTS_TGRID, &h5error,&inputs.Efield.Nt); // tgrid is not changed when program runs
 	
     /*
 	Coarsing procedure:
@@ -110,10 +110,10 @@ int main(int argc, char *argv[])
 	steps in each dimension. More computationally effective.
 	*/
     int kz_step, Nz_max, kr_step, Nr_max;
-    readint(file_id, "TDSE_inputs/kz_step", &h5error, &kz_step);
-    readint(file_id, "TDSE_inputs/Nz_max", &h5error, &Nz_max);
-    readint(file_id, "TDSE_inputs/kr_step", &h5error, &kr_step);
-    readint(file_id, "TDSE_inputs/Nr_max", &h5error, &Nr_max);
+    readint(file_id, CTDSE_INPUTS_KZ_STEP, &h5error, &kz_step);
+    readint(file_id, CTDSE_INPUTS_NZ_MAX,  &h5error, &Nz_max);
+    readint(file_id, CTDSE_INPUTS_KR_STEP, &h5error, &kr_step);
+    readint(file_id, CTDSE_INPUTS_NR_MAX,  &h5error, &Nr_max);
 
     // Coarsening: redefine dimensions, t-not affected
     *dim_z = Nz_max/kz_step; 
@@ -181,11 +181,11 @@ int main(int argc, char *argv[])
 		dum3int[2] = kr_step*kr;	
 
 		// Read the electric field from the hdf5 file with the indices
-		rw_real_fullhyperslab_nd_h5(file_id,"outputs/output_field",&h5error,3,dims_input,dum3int,inputs.Efield.Field,"r");
+		rw_real_fullhyperslab_nd_h5(file_id,CUPRAD_OUTPUTS_EFIELD,&h5error,3,dims_input,dum3int,inputs.Efield.Field,"r");
 
 		int Nz_CUPRAD, Nr_CUPRAD;
-		rgrid_CUPRAD = readreal1Darray_fort(file_id, "outputs/rgrid", &h5error, &Nr_CUPRAD);
-		zgrid_CUPRAD = readreal1Darray_fort(file_id, "outputs/zgrid", &h5error, &Nz_CUPRAD);
+		rgrid_CUPRAD = readreal1Darray_fort(file_id, CUPRAD_OUTPUTS_RGRID, &h5error, &Nr_CUPRAD);
+		zgrid_CUPRAD = readreal1Darray_fort(file_id, CUPRAD_OUTPUTS_ZGRID, &h5error, &Nz_CUPRAD);
 
 		// Kill the program if Nr_max > Nr_CUPRAD
 		if (Nr_max > Nr_CUPRAD) {
@@ -289,7 +289,7 @@ int main(int argc, char *argv[])
 
 		// read the HDF5 file
 		file_id = H5Fopen(h5_filename, H5F_ACC_RDONLY, H5P_DEFAULT);
-		rw_real_fullhyperslab_nd_h5(file_id,"outputs/output_field", &h5error, 3,
+		rw_real_fullhyperslab_nd_h5(file_id,CUPRAD_OUTPUTS_EFIELD, &h5error, 3,
 									dims_input, dum3int, inputs.Efield.Field, "r");
 		h5error = H5Fclose(file_id);
 
