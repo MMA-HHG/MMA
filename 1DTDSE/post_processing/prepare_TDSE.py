@@ -19,7 +19,7 @@ print("Results file: ", results_file[0])
 
 try:
     with h5py.File(results_file[0], 'r') as InputArchive:
-        Nz = len(InputArchive[MMA.paths['CUPRAD_output']+'/zgrid'][:])
+        Nz = len(InputArchive[MMA.paths['CUPRAD_outputs']+'/zgrid'][:])
 except FileNotFoundError:
     print("File '{}' not found, check the repository!".format(results_file[0]))
 
