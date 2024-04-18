@@ -15,6 +15,7 @@
 #include "structures.h"
 #include "tools_algorithmic.h"
 #include "tools.h"
+#include "h5namelist.h"
 
 // hdf5 operation
 herr_t  h5error;
@@ -70,15 +71,15 @@ int main()
 
 	// Create parameters & load initial data
 	file_id = H5Fopen(h5_filename, H5F_ACC_RDONLY, H5P_DEFAULT); 
-	ReadInputs(file_id, "TDSE_inputs/", &h5error, &inputs);
-	inputs.Print = Set_prints_from_HDF5(file_id, "TDSE_inputs/", &h5error);
-	dims = get_dimensions_h5(file_id, "outputs/output_field", &h5error, &ndims, &datatype);
-	dims_input = get_dimensions_h5(file_id, "outputs/output_field", &h5error, &ndims, &datatype);
+	ReadInputs(file_id, CTDSE_INPUTS, GLOBAL_INPUTS, &h5error, &inputs);
+	inputs.Print = Set_prints_from_HDF5(file_id, CTDSE_INPUTS, &h5error);
+	dims = get_dimensions_h5(file_id, CUPRAD_OUTPUTS_EFIELD, &h5error, &ndims, &datatype);
+	dims_input = get_dimensions_h5(file_id, CUPRAD_OUTPUTS_EFIELD, &h5error, &ndims, &datatype);
 
     // Load dimensions of the output field
-	hsize_t dim_t = *get_dimensions_h5(file_id, "outputs/tgrid", &h5error, &ndims, &datatype);
-    hsize_t dim_r = *get_dimensions_h5(file_id, "outputs/rgrid", &h5error, &ndims, &datatype);
-    hsize_t dim_z = *get_dimensions_h5(file_id, "outputs/zgrid", &h5error, &ndims, &datatype); // label the dims by physical axes	
+	hsize_t dim_t = *get_dimensions_h5(file_id, CUPRAD_OUTPUTS_TGRID, &h5error, &ndims, &datatype);
+    hsize_t dim_r = *get_dimensions_h5(file_id, CUPRAD_OUTPUTS_RGRID, &h5error, &ndims, &datatype);
+    hsize_t dim_z = *get_dimensions_h5(file_id, CUPRAD_OUTPUTS_ZGRID, &h5error, &ndims, &datatype); // label the dims by physical axes	
 
     dims[0] = dim_t; 
     dims[1] = dim_r; 
@@ -105,14 +106,14 @@ int main()
 
 	// Allocate space for the fields & load the tgrid
 	inputs.Efield.Field = malloc(((int)dims[0])*sizeof(double));
-	inputs.Efield.tgrid = readreal1Darray_fort(file_id, "outputs/tgrid",&h5error,&inputs.Efield.Nt); // tgrid is not changed when program runs
+	inputs.Efield.tgrid = readreal1Darray_fort(file_id, CUPRAD_OUTPUTS_TGRID, &h5error,&inputs.Efield.Nt); // tgrid is not changed when program runs
 	
     // coarsing procedure
     int kz_step, Nz_max, kr_step, Nr_max;
-    readint(file_id, "TDSE_inputs/kz_step", &h5error, &kz_step);
-    readint(file_id, "TDSE_inputs/Nz_max", &h5error, &Nz_max);
-    readint(file_id, "TDSE_inputs/kr_step", &h5error, &kr_step);
-    readint(file_id, "TDSE_inputs/Nr_max", &h5error, &Nr_max);
+    readint(file_id, CTDSE_INPUTS_KZ_STEP, &h5error, &kz_step);
+    readint(file_id, CTDSE_INPUTS_NZ_MAX,  &h5error, &Nz_max);
+    readint(file_id, CTDSE_INPUTS_KR_STEP, &h5error, &kr_step);
+    readint(file_id, CTDSE_INPUTS_NR_MAX,  &h5error, &Nr_max);
 
     // redefine dimensions, t-not affected
     dim_z = Nz_max/kz_step; 
