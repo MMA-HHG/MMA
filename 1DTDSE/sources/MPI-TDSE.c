@@ -242,6 +242,10 @@ int main(int argc, char *argv[])
 		print_nd_array_h5(file_id, "xgrid_micro", &h5error, 1, output_dims, inputs.x, H5T_NATIVE_DOUBLE);
 		print_nd_array_h5(file_id, "ground_state", &h5error, 2, output_dims, inputs.psi0, H5T_NATIVE_DOUBLE);
 
+		// print soft-Coulomb parameter for reference
+		output_dims[0] = 1;
+    	print_nd_array_h5(file_id, 'trg_a', &h5error, 1, output_dims, &(inputs.trg.a), H5T_NATIVE_DOUBLE);
+
 		// Close .h5 file
 		h5error = H5Fclose(file_id); 
 		// clean outputs
