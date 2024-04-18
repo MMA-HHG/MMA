@@ -67,6 +67,7 @@ void ReadInputs(hid_t file_id, char *inpath, char *inpath_glob, herr_t *h5error,
 	// Dummy string with path to the input value
 	char path[50];
 	char *dumstring;
+	int gas_preset_exists=1;
 	// Energy of the initial state
 	path[0] = '\0';	strcat(strcat(path,inpath),"Eguess");
 	readreal(file_id, path, h5error,&(*in).Eguess); 
@@ -95,9 +96,20 @@ void ReadInputs(hid_t file_id, char *inpath, char *inpath_glob, herr_t *h5error,
 		readstring(file_id, path, h5error, &dumstring);
 		Soft_Coulomb_parameters(dumstring, &(*in).trg.a);
 		free(dumstring);
+		gas_preset_exists=0;
 	}
 	path[0] = '\0';	strcat(strcat(path,inpath),"trg_a");
-	readreal(file_id, path, h5error,&(*in).trg.a); 
+	if (H5Lexists(file_id, path, H5P_DEFAULT)>=0){
+		readreal(file_id, path, h5error,&(*in).trg.a);
+		if (gas_preset_exists==0){
+			printf("WARNING: Using soft-Coulomb from CTDSE inputs, ignoring gas_preset.");
+		}
+
+	}else if (gas_preset_exists==1){
+        printf("The soft-Coulomb parameter in 1D-TDSE not specified.");
+        exit(EXIT_FAILURE);
+	}
+	 
 
 	// *NOTE* CV criterion is added as an input 
 	// Load CV criterion
