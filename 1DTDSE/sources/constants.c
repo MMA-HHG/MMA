@@ -11,6 +11,8 @@
 #endif
 #include<math.h>
 #include<stdlib.h>
+#include <string.h>
+#include <stdio.h>
 
 #include "constants.h"
 
@@ -18,6 +20,9 @@ const double Pi = M_PI;
 double Ip_HeV, hbar, alpha_fine, c_light, elcharge, elmass, mu0, eps0, r_Bohr, 
     TIMEau, EFIELDau, k_Boltz, absolute_zero, torr2SI;
 
+/**
+ * @brief Inits physical constants
+ */
 void Init_constants(){
     Ip_HeV = 27.21138602;
     hbar = 1.054571800e-34;
@@ -33,4 +38,40 @@ void Init_constants(){
     k_Boltz = 1.38064852e-23;
     absolute_zero = -273.15;
     torr2SI = 101325./760.;
+}
+
+/**
+ * @brief Tabulated values for 1D-soft-Coulomb
+ * 
+ * see table 7.1 of https://theses.hal.science/tel-04192431v1/document
+ * 
+ */
+void Soft_Coulomb_parameters(char * gas_type, double * a_value){
+
+    if (strcmp(gas_type, "He") == 0) 
+    {
+       *a_value = 0.6950;
+    } 
+    else if (strcmp(gas_type, "Ne") == 0)
+    {
+        *a_value = 0.8161;
+    }
+    else if (strcmp(gas_type, "Ar") == 0)
+    {
+        *a_value = 1.1893;
+    }
+    else if (strcmp(gas_type, "Kr") == 0)
+    {
+        *a_value = 1.3676;
+    }
+    else if (strcmp(gas_type, "Xe") == 0)
+    {
+        *a_value = 1.6171;
+    }
+    else
+    {
+        printf("Soft-coulomb parmaeter for this input not supported");
+        exit(EXIT_FAILURE);
+    }
+
 }

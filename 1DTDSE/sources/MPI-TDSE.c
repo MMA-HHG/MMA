@@ -83,7 +83,7 @@ int main(int argc, char *argv[])
 
 	// create parameters & load initial data
 	file_id = H5Fopen(h5_filename, H5F_ACC_RDONLY, H5P_DEFAULT); // the file is opened for read only by all the processes independently, every process then has its own copy of variables.
-	ReadInputs(file_id, CTDSE_INPUTS, &h5error, &inputs);
+	ReadInputs(file_id, CTDSE_INPUTS, GLOBAL_INPUTS, &h5error, &inputs);
 	inputs.Print = Set_prints_from_HDF5(file_id, CTDSE_INPUTS, &h5error);
 	dims = get_dimensions_h5(file_id, CUPRAD_OUTPUTS_EFIELD, &h5error, &ndims, &datatype);
 	dims_input = get_dimensions_h5(file_id, CUPRAD_OUTPUTS_EFIELD, &h5error, &ndims, &datatype);

@@ -25,6 +25,8 @@
 #define CTDSE_INPUTS_NZ_MAX     CTDSE_INPUTS "Nz_max"
 #define CTDSE_INPUTS_NR_MAX     CTDSE_INPUTS "Nr_step"
 
+#define GLOBAL_INPUTS_GAS_TYPE  GLOBAL_INPUTS "gas_preset"
+
 #endif
 
 
