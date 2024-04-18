@@ -244,7 +244,7 @@ int main(int argc, char *argv[])
 
 		// print soft-Coulomb parameter for reference
 		output_dims[0] = 1;
-    	print_nd_array_h5(file_id, 'trg_a', &h5error, 1, output_dims, &(inputs.trg.a), H5T_NATIVE_DOUBLE);
+    	print_nd_array_h5(file_id, "trg_a", &h5error, 1, output_dims, &(inputs.trg.a), H5T_NATIVE_DOUBLE);
 
 		// Close .h5 file
 		h5error = H5Fclose(file_id); 
