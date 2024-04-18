@@ -32,7 +32,7 @@ run_args = ['python3', os.path.join(os.environ['UNIV_INPUT_PATH'],'create_univer
             '-i', 'TDSE.inp.tmp',
             '-ihdf5', results_file[0],
             '-ohdf5', results_file[0],
-            '-g', 'TDSE_inputs']
+            '-g', 'CTDSE/inputs']
 
 subprocess.run(run_args)
 
