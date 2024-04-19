@@ -124,7 +124,7 @@ character(len=255), parameter :: available_tests(N_tests) = [character(len=255) 
 ! 1 - 0.1 mm, 0.01 mm spacing ~ 10 planes
 ! 2 - 0.1 mm, 0.01 mm spacing ~ 10 planes + 5.87 % pre-ionised (Henke optimal)
 ! 3 - 0.2 mm, 0.01 mm spacing ~ 10 planes (to be combined with a Gaussian jet)
-! 4 - 0.02 mm, 0.01 mm spacing ~ 3 planes 
+! 4 - 0.04 mm, 0.01 mm spacing ~ 5 planes 
 
 
 CONTAINS
@@ -721,7 +721,7 @@ subroutine preset_physics(test_number)
     case(283)
         proplength_m_phys = 0.2d-3
     case(284)
-        proplength_m_phys = 0.2d-4
+        proplength_m_phys = 0.4d-4
     end select   
 
 !---------------------------------------------------------------------------------------------------------------------!
