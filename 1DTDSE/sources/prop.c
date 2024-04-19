@@ -114,9 +114,6 @@ double * propagation(inputs_def *inputs, outputs_def *outputs, double * in_field
 	*/
 	for(k = 0; k < Nt; k++)
 	{
-		if ( k % 10 ){
-			printf("TDSE propagation step %d \n",k);
-		}
 
 		tt = tt + dt;		
 		coef = 0.5*dt/(dx*dx);
