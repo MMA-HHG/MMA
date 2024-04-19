@@ -96,7 +96,7 @@ void ReadInputs(hid_t file_id, char *inpath, char *inpath_glob, herr_t *h5error,
 	printf("Path to preset %s.\n", path);
 	printf("Path to preset exists %d.\n", H5Lexists(file_id, path, H5P_DEFAULT));
 
-	if (H5Lexists(file_id, path, H5P_DEFAULT)>=0){
+	if (H5Lexists(file_id, path, H5P_DEFAULT)>0){
 		readstring(file_id, path, h5error, &dumstring);
 		Soft_Coulomb_parameters(dumstring, &(*in).trg.a);
 		free(dumstring);
@@ -108,7 +108,7 @@ void ReadInputs(hid_t file_id, char *inpath, char *inpath_glob, herr_t *h5error,
 	printf("Path to trg_a %s.\n", path);
 	printf("Path to trg_a exists %d.\n", H5Lexists(file_id, path, H5P_DEFAULT));
 
-	if (H5Lexists(file_id, path, H5P_DEFAULT)>=0){
+	if (H5Lexists(file_id, path, H5P_DEFAULT)>0){
 		readreal(file_id, path, h5error,&(*in).trg.a);
 		if (gas_preset_exists==0){
 			printf("WARNING: Using soft-Coulomb from CTDSE inputs, ignoring gas_preset.\n");
