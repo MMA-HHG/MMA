@@ -92,13 +92,22 @@ void ReadInputs(hid_t file_id, char *inpath, char *inpath_glob, herr_t *h5error,
 
 	// Target parameter
 	path[0] = '\0';	strcat(strcat(path,inpath_glob),"gas_preset");
+
+	printf("Path to preset %s.\n", path);
+	printf("Path to preset exists %d.\n", H5Lexists(file_id, path, H5P_DEFAULT));
+
 	if (H5Lexists(file_id, path, H5P_DEFAULT)>=0){
 		readstring(file_id, path, h5error, &dumstring);
 		Soft_Coulomb_parameters(dumstring, &(*in).trg.a);
 		free(dumstring);
 		gas_preset_exists=0;
 	}
+
 	path[0] = '\0';	strcat(strcat(path,inpath),"trg_a");
+
+	printf("Path to trg_a %s.\n", path);
+	printf("Path to trg_a exists %d.\n", H5Lexists(file_id, path, H5P_DEFAULT));
+
 	if (H5Lexists(file_id, path, H5P_DEFAULT)>=0){
 		readreal(file_id, path, h5error,&(*in).trg.a);
 		if (gas_preset_exists==0){
