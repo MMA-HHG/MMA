@@ -165,9 +165,12 @@ int main(int argc, char *argv[])
 	Nsim_loc++;
 	t_mpi[1] = MPI_Wtime(); 
 
+    printf("Nsim %d, Ntot %d.\n",Nsim,Ntot);
 	if (Nsim < Ntot){
 		double *rgrid_coarse, *zgrid_coarse;
 		double *rgrid_CUPRAD, *zgrid_CUPRAD;
+
+		printf("In firstcalc.\n",Nsim,Ntot);
 
 		// find proper simulation & load the field
 		file_id = H5Fopen (h5_filename, H5F_ACC_RDONLY, H5P_DEFAULT);
@@ -207,7 +210,7 @@ int main(int argc, char *argv[])
 		}
 
 		// do the TDSE calculation
-		printf("Before first calc.");
+		printf("Before first calc.\n");
 		call1DTDSE(&inputs, &outputs); 
 
 		// resize grids
