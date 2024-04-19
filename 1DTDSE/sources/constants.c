@@ -48,6 +48,7 @@ void Init_constants(){
  */
 void Soft_Coulomb_parameters(char * gas_type, double * a_value){
 
+    printf("Setting gas preset\n");
     if (strcmp(gas_type, "He") == 0) 
     {
        *a_value = 0.6950;
@@ -70,7 +71,7 @@ void Soft_Coulomb_parameters(char * gas_type, double * a_value){
     }
     else
     {
-        printf("Soft-coulomb parmaeter for this input not supported");
+        printf("Soft-coulomb parameter for this input not supported\n");
         exit(EXIT_FAILURE);
     }
 

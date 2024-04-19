@@ -23,7 +23,7 @@
 #define CTDSE_INPUTS_KZ_STEP    CTDSE_INPUTS "kz_step"
 #define CTDSE_INPUTS_KR_STEP    CTDSE_INPUTS "kr_step"
 #define CTDSE_INPUTS_NZ_MAX     CTDSE_INPUTS "Nz_max"
-#define CTDSE_INPUTS_NR_MAX     CTDSE_INPUTS "Nr_step"
+#define CTDSE_INPUTS_NR_MAX     CTDSE_INPUTS "Nr_max"
 
 #define GLOBAL_INPUTS_GAS_TYPE  GLOBAL_INPUTS "gas_preset"
 

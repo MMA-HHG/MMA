@@ -102,7 +102,7 @@ void ReadInputs(hid_t file_id, char *inpath, char *inpath_glob, herr_t *h5error,
 	if (H5Lexists(file_id, path, H5P_DEFAULT)>=0){
 		readreal(file_id, path, h5error,&(*in).trg.a);
 		if (gas_preset_exists==0){
-			printf("WARNING: Using soft-Coulomb from CTDSE inputs, ignoring gas_preset.");
+			printf("WARNING: Using soft-Coulomb from CTDSE inputs, ignoring gas_preset.\n");
 		}
 
 	}else if (gas_preset_exists==1){
