@@ -207,6 +207,7 @@ int main(int argc, char *argv[])
 		}
 
 		// do the TDSE calculation
+		printf("Before first calc.");
 		call1DTDSE(&inputs, &outputs); 
 
 		// resize grids
