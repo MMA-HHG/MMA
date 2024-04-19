@@ -159,12 +159,12 @@ int main()
     dum3int[2] = kr;
 
     // Read the electric field from the hdf5 file with the indices
-    rw_real_fullhyperslab_nd_h5(file_id,"outputs/output_field",&h5error,3,dims_input,dum3int,inputs.Efield.Field,"r");
+    rw_real_fullhyperslab_nd_h5(file_id,CUPRAD_OUTPUTS_EFIELD,&h5error,3,dims_input,dum3int,inputs.Efield.Field,"r");
 
     // Number of points in the grid
     int Nz_CUPRAD, Nr_CUPRAD;
-    rgrid_CUPRAD = readreal1Darray_fort(file_id, "outputs/rgrid", &h5error, &Nr_CUPRAD);
-    zgrid_CUPRAD = readreal1Darray_fort(file_id, "outputs/zgrid", &h5error, &Nz_CUPRAD);
+		rgrid_CUPRAD = readreal1Darray_fort(file_id, CUPRAD_OUTPUTS_RGRID, &h5error, &Nr_CUPRAD);
+		zgrid_CUPRAD = readreal1Darray_fort(file_id, CUPRAD_OUTPUTS_ZGRID, &h5error, &Nz_CUPRAD)
 
     // Close HDF5 file
     h5error = H5Fclose(file_id);

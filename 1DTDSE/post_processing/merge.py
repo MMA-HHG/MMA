@@ -15,6 +15,7 @@ import h5py
 import mynumerics as mn
 import glob
 import argparse
+import MMA_administration as MMA
 
 ap = argparse.ArgumentParser()
 ap.add_argument("-p", "--printdata", nargs='+', required=False, help="Select data to print. Available " \
