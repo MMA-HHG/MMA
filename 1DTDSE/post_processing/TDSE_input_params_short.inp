@@ -30,7 +30,7 @@ Eguess	-1	R	a.u.	# Energy of the initial state (guess)
 N_r_grid	16000	I	-	# Number of points of the initial TDSE spatial grid 
 dx	0.4	    R	a.u.	# Resolution for the grid
 x_int	2.0	R	a.u.    # Probability for finding electron in range (x-x_int, x + x_int)
-CV_criterion_of_GS  1e-25   R   -   # Convergence parameter for ground state search
+CV_criterion_of_GS  1e-16   R   -   # Convergence parameter for ground state search
 gauge_type  0   I   -   # Choice of gauge (0 == length) <-- other gauges NOT IMPLEMENTED
 InterpByDTorNT	0	I	-	# Refine resolution only for numerical fields (0 - by dt, 1 - by number of points)
 dt	0.25	R	a.u.	# Resolution in time
