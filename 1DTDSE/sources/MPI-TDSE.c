@@ -142,7 +142,9 @@ int main(int argc, char *argv[])
 
 
 	// Prepare the ground state (it's the state of the atom before the interaction)
+	printf("binit.\n");
 	Initialise_grid_and_ground_state(&inputs);
+	printf("ainit.\n");
 	
 	// Counter - queue length
 	int Ntot = (*dim_r)*(*dim_z); 	
