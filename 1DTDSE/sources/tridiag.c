@@ -88,7 +88,7 @@ double Einitialise(trg_def trg, double *psi0, double *dinf, double *d, double *d
 {
     double *res,*dnew,*diag,*dinfnew,*dsupnew;
 	double Energy,test,Eold,dx;
-	int i,size = 2*(num_r+1);
+	int i,num_it=0,size = 2*(num_r+1);
 
 	res = (double *)calloc(size,sizeof(double));
 	dnew = (double *)calloc(size,sizeof(double));
@@ -134,8 +134,17 @@ double Einitialise(trg_def trg, double *psi0, double *dinf, double *d, double *d
 		test = sqrt((Energy-Eold)*(Energy-Eold));
 		Eold = Energy;
 
+		++num_it;
+		
+		if (num_it==1000){
+			printf("Too many iterations in initialising GS, code stopping.\n");
+        	exit(EXIT_FAILURE);
+		}
+		
 	}
 	while(test > CV);
+
+	printf("Ground state found in %d iterations.\n", num_it)
 	
 	// Normalise the ground state
 	normalise(psi0, num_r);

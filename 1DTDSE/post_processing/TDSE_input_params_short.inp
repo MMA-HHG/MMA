@@ -9,8 +9,8 @@
 
 ## Coarser grid parameters
 kz_step 1  I   -
-kr_step 10  I   -
-Nr_max  200 I   -
+kr_step 1  I   -
+Nr_max  2 I   -
 
 ## Control outputs: here we set the outputs we would like to save into 
 ## the temporary HDF5 file (1 == keep, 0 == not keep)
