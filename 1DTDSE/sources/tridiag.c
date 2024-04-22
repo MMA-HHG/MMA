@@ -144,7 +144,7 @@ double Einitialise(trg_def trg, double *psi0, double *dinf, double *d, double *d
 	}
 	while(test > CV);
 
-	printf("Ground state found in %d iterations.\n", num_it)
+	printf("Ground state found in %d iterations.\n", num_it);
 	
 	// Normalise the ground state
 	normalise(psi0, num_r);
