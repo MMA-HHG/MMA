@@ -33,8 +33,22 @@ with open('msg.tmp') as f: outfname = f.readline().rstrip()  # "results_merged.h
 
 h5path = MMA.paths['CTDSE_outputs']
 
-available_outputs_list = ['Efield', 'FEfield', 'SourceTerm', 'FSourceTerm', 'FEfieldM2', 'FSourceTermM2', 'PopTot',
-                          'PopInt', 'expval_x'] 
+available_outputs = {'Efield'          : '[a.u.]',
+                     'FEfield'         : '[a.u.]',
+                     'SourceTerm'      : '[a.u.]',
+                     'FSourceTerm'     : '[a.u.]',
+                     'FEfieldM2'       : '[a.u.]',
+                     'FSourceTermM2'   : '[a.u.]',
+                     'PopInt'          : '[-]', 
+                     'expval_x'        : '[a.u.]'}
+
+available_further_data = {'tgrid'                       : '[a.u.]',
+                          'omegagrid'                   : '[a.u.]',
+                          'Energy_of_the_ground_state'  : '[a.u.]',
+                          'xgrid_micro'                 : '[a.u.]',
+                          'ground_state'                : '[a.u.]',
+                          'zgrid_coarse'                : '[a.u.]',
+                          'rgrid_coarse'                : '[a.u.]'}
 
 # if args['printdata'] != None: 
 #     args = args['printdata']
@@ -48,21 +62,23 @@ available_outputs_list = ['Efield', 'FEfield', 'SourceTerm', 'FSourceTerm', 'FEf
 
 files = glob.glob('hdf5_temp_*.h5') # filter all the single-proc files
 # outfname = "results_merged.h5"
-available_further_data = ['tgrid', 'omegagrid', 'Energy_of_the_ground_state', 'xgrid_micro', 'ground_state', 'zgrid_coarse',
-                          'rgrid_coarse']
+
 precision = 'd'
 
 def prepare_ouput_file(f,outf,dset_list):
     joint_rz_shape = (mn.readscalardataset(f,'Nr_orig','N')[0], mn.readscalardataset(f,'Nz_orig','N')[0])
     for dsetname in dset_list:
 
-        if (dsetname in available_outputs_list):
+        if (dsetname in available_outputs.keys()):
             dset = f[dsetname]
             newshape =  joint_rz_shape + dset.shape[0:-1]
             newdset = outf.create_dataset(h5path+'/'+dsetname, newshape,precision)
+            newdset.attrs['units'] = np.string_(available_outputs[dsetname]) # add units
 
-        if (dsetname in available_further_data):
+        if (dsetname in available_further_data.keys()):
             f.copy(dsetname,outf[h5path])
+            outf[h5path+'/'+dsetname].attrs['units'] = np.string_(available_further_data[dsetname]) # add units
+            
 
 
 def print_ouput_file(f,outf,dset_list):
@@ -71,7 +87,7 @@ def print_ouput_file(f,outf,dset_list):
     nsim_loc = mn.readscalardataset(f, 'number_of_local_simulations', 'N')[0]
     ks_loc = f['keys'][()]
     for dsetname in dset_list:
-        if (dsetname in available_outputs_list):
+        if (dsetname in available_outputs.keys()):
             dset = f[dsetname]
             ndims = len(dset.shape)
             newdset = outf[h5path+'/'+dsetname]
