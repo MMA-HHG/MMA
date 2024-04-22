@@ -59,7 +59,7 @@ def prepare_ouput_file(f,outf,dset_list):
         if (dsetname in available_outputs_list):
             dset = f[dsetname]
             newshape =  joint_rz_shape + dset.shape[0:-1]
-            newdset = outf.create_dataset(h5path+dsetname, newshape,precision)
+            newdset = outf.create_dataset(h5path+'/'+dsetname, newshape,precision)
 
         if (dsetname in available_further_data):
             f.copy(dsetname,outf[h5path])
@@ -74,7 +74,7 @@ def print_ouput_file(f,outf,dset_list):
         if (dsetname in available_outputs_list):
             dset = f[dsetname]
             ndims = len(dset.shape)
-            newdset = outf[h5path+dsetname]
+            newdset = outf[h5path+'/'+dsetname]
             data = dset[()]
             for k1 in range(nsim_loc):
                 if (ks_loc[k1] >= 0): # only for used keys
