@@ -117,4 +117,11 @@ with h5py.File(outfname,'w') as outf:
             nsim_tot = nsim_tot + print_ouput_file(f, outf, dset_list) # here is the printing
 
 print("total number of TDSE's merged:",nsim_tot)
+
+if not('-keep-files' in arguments):
+    [os.remove(f) for f in files]
+    print("intermediate files deleted.")
+else:
+     print("intermediate files kept.")
+     
 print('Done')
