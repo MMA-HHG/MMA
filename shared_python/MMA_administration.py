@@ -6,6 +6,7 @@ Hankel_group = 'Hankel'
 paths={'CUPRAD'             : CUPRAD_group,
        'CUPRAD_inputs'      : CUPRAD_group + '/inputs',
        'CUPRAD_outputs'     : CUPRAD_group + '/outputs',
+       'CUPRAD_logs'        : CUPRAD_group + '/logs',
        
        'CTDSE '             : CTDSE_group,
        'CTDSE_inputs'       : CTDSE_group + '/inputs',

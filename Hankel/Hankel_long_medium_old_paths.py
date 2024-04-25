@@ -65,43 +65,37 @@ if ('-here' in arguments):
     results_TDSE = os.getcwd()
 else:
 
-    results_path = os.path.join("D:\sharepoint", "OneDrive - ELI Beamlines",
-                    "data", "Sunrise","tmp","h5debug","TDSEs","t4_tmp")
+    results_CUPRAD = os.path.join("D:\sharepoint", "OneDrive - ELI Beamlines", "TEMP", "Sunrise","test1")
 
+    results_TDSE = os.path.join("D:\sharepoint", "OneDrive - ELI Beamlines", "TEMP", "Sunrise","test1")
     
 
 
 
-file = "results_TDSE.h5"
-file = os.path.join(results_path,file)
 
+file_CUPRAD = os.path.join(results_CUPRAD,file_CUPRAD)
+file_TDSE = os.path.join(results_TDSE,file_TDSE)
 
 
 rgrid_FF = np.linspace(0.0, rmax_FF, Nr_FF)
 
 
 # load data
-print('processing:', file)             
-with h5py.File(file, 'r') as InpArch:
-    # print(InpArch.keys())
-    # print('h5path',MMA.paths['CUPRAD_inputs']+'/laser_wavelength')
-    omega0 = mn.ConvertPhoton(1e-2*mn.readscalardataset(InpArch,
-                                                        MMA.paths['CUPRAD_inputs']+
-                                                        '/laser_wavelength','N'),'lambdaSI','omegaau')
-    inverse_GV_IR = InpArch[MMA.paths['CUPRAD_logs']+'/inverse_group_velocity_SI'][()]; group_velocity_IR = 1./inverse_GV_IR
+print('processing:', file_CUPRAD, file_TDSE)             
+with h5py.File(file_CUPRAD, 'r') as InputArchiveCUPRAD, h5py.File(file_TDSE, 'r') as InputArchiveTDSE:
+    omega0 = mn.ConvertPhoton(1e-2*mn.readscalardataset(InputArchiveCUPRAD,'/inputs/laser_wavelength','N'),'lambdaSI','omegaau')
+    inverse_GV_IR = InputArchiveCUPRAD['/logs/inverse_group_velocity_SI'][()]; group_velocity_IR = 1./inverse_GV_IR
     # pressure_mbar = 1e3*InputArchiveCUPRAD['/inputs/medium_pressure_in_bar'][()]
-    rho0_init = 1e6 * mn.readscalardataset(InpArch, MMA.paths['CUPRAD_inputs']+
-                                           '/calculated/medium_effective_density_of_neutral_molecules','N') # SI
-
+    rho0_init = 1e6 * mn.readscalardataset(InputArchiveCUPRAD, '/inputs/calculated/medium_effective_density_of_neutral_molecules','N') # SI
+   
+    FSourceTerm = InputArchiveTDSE['FSourceTerm'][:,:,:,0] + \
+                        1j*InputArchiveTDSE['FSourceTerm'][:,:,:,1]
+    ogrid = InputArchiveTDSE['omegagrid'][:]
+    rgrid_macro = InputArchiveTDSE['rgrid_coarse'][:]
+    zgrid_macro = InputArchiveTDSE['zgrid_coarse'][:]
     
-    FSourceTerm =    InpArch[MMA.paths['CTDSE_outputs']+'/FSourceTerm'][:,:,:,0] + \
-                  1j*InpArch[MMA.paths['CTDSE_outputs']+'/FSourceTerm'][:,:,:,1]
-    ogrid = InpArch[MMA.paths['CTDSE_outputs']+'/omegagrid'][:]
-    rgrid_macro = InpArch[MMA.paths['CTDSE_outputs']+'/rgrid_coarse'][:]
-    zgrid_macro = InpArch[MMA.paths['CTDSE_outputs']+'/zgrid_coarse'][:]
-    
-    FSourceTerm_sparse = InpArch[MMA.paths['CTDSE_outputs']+'/FSourceTerm'][:,:,0:-1:2,0] + \
-                        1j*InpArch[MMA.paths['CTDSE_outputs']+'/FSourceTerm'][:,:,0:-1:2,1]
+    FSourceTerm_sparse = InputArchiveTDSE['FSourceTerm'][:,:,0:-1:2,0] + \
+                        1j*InputArchiveTDSE['FSourceTerm'][:,:,0:-1:2,1]
   
                         
     image = pp.figure_driver()
@@ -127,9 +121,9 @@ with h5py.File(file, 'r') as InpArch:
     ogridSI = omega_au2SI * ogrid
     omega0SI = omega_au2SI * omega0
     
-    target_static = Hankel_tools.FSources_provider(InpArch[MMA.paths['CTDSE_outputs']+'/zgrid_coarse'][:],
-                                                   InpArch[MMA.paths['CTDSE_outputs']+'/rgrid_coarse'][:],
-                                                   omega_au2SI*InpArch[MMA.paths['CTDSE_outputs']+'/omegagrid'][:],
+    target_static = Hankel_tools.FSources_provider(InputArchiveTDSE['zgrid_coarse'][:],
+                                                   InputArchiveTDSE['rgrid_coarse'][:],
+                                                   omega_au2SI*InputArchiveTDSE['omegagrid'][:],
                                                    FSource = np.transpose(FSourceTerm,axes=(1,2,0)),
                                                    data_source = 'static',
                                                    ko_min = ko_min,
