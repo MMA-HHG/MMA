@@ -426,15 +426,11 @@ void readstring(hid_t file_id, char *dset_name, herr_t *h5error, char **value)
 	size_t str_size = H5Tget_size(dtype_id); // Get the size of the datatype (string length)
 	*value = (char *)malloc((str_size + 1) * sizeof(char)); // +1 for null terminator
 
-	printf("bread \n");
 	H5Dread(dset_id, dtype_id, H5S_ALL, H5S_ALL, H5P_DEFAULT, *value);
 
-	printf("readstring1: %s\n", *value);
 
-	printf("bnull \n");
 	(*value)[str_size] = '\0'; // make it a valid C string
 
-	printf("readstring: %s\n", *value);
 	
 	*h5error = H5Tclose(dtype_id);
 	*h5error = H5Dclose(dset_id);
@@ -652,9 +648,7 @@ void print_local_output_fixed_h5(hid_t file_id, char *inpath, herr_t *h5error,
 	// keys for post-processing
 	output_dims[0] = nsimulations;
 	path[0] = '\0';	strcat(strcat(path,inpath),"keys");
-	printf("print Keys \n");
 	rw_hyperslab_nd_h5(file_id, path, h5error, one, &one, &Nsim_loc, &one, &Nsim, "w");
-	printf("Keys printed \n");
 
 	// time domain
 	output_dims[0] = (*out).Nt; output_dims[1] = nsimulations;
@@ -663,35 +657,30 @@ void print_local_output_fixed_h5(hid_t file_id, char *inpath, herr_t *h5error,
 	{
 		path[0] = '\0';	strcat(strcat(path,inpath),"Efield");
 		rw_real_fullhyperslab_nd_h5(file_id, path, h5error, 2, output_dims, offsets, (*out).Efield, "w");
-		printf("Print field \n");
 	}
 
 	if ( (*in).Print.sourceterm == 1 )
 	{
 		path[0] = '\0';	strcat(strcat(path,inpath),"SourceTerm");
 		rw_real_fullhyperslab_nd_h5(file_id, path, h5error, 2, output_dims, offsets, (*out).sourceterm, "w");
-		printf("Print SourceTerm \n");
 	}
 
 	if ( (*in).Print.PopTot == 1 )
 	{
 		path[0] = '\0';	strcat(strcat(path,inpath),"PopTot");
 		rw_real_fullhyperslab_nd_h5(file_id, path, h5error, 2, output_dims, offsets, (*out).PopTot, "w");
-		printf("Print PopTot \n");
 	}
 
 	if ( (*in).Print.PopTot == 1 ) 
 	{
 		path[0] = '\0';	strcat(strcat(path,inpath),"PopInt");
 		rw_real_fullhyperslab_nd_h5(file_id, path, h5error, 2, output_dims, offsets, (*out).PopInt, "w");
-		printf("Print PopInt \n");
 	}
 
 	if ( (*in).Print.PopTot == 1 )
 	{
 		path[0] = '\0';	strcat(strcat(path,inpath),"expval_x");
 		rw_real_fullhyperslab_nd_h5(file_id, path, h5error, 2, output_dims, offsets, (*out).expval, "w");
-		printf("Print expval_x \n");
 	}
 
 	// omega domain - complex
@@ -712,7 +701,6 @@ void print_local_output_fixed_h5(hid_t file_id, char *inpath, herr_t *h5error,
 	{
 		path[0] = '\0';	strcat(strcat(path,inpath),"FSourceTerm");
 		rw_hyperslab_nd_h5(file_id, path, h5error, 2, dimsloc, hoffset, hcount, (*out).Fsourceterm, "w");
-		printf("Print FSourceTerm \n");
 	}
 
 	// omega domain - real
@@ -741,7 +729,6 @@ void print_local_output_fixed_h5(hid_t file_id, char *inpath, herr_t *h5error,
 	int foo = Nsim_loc + 1;
 	hid_t dset_id = H5Dopen2 (file_id, path, H5P_DEFAULT);
 	*h5error = H5Dwrite (dset_id, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, H5P_DEFAULT, &foo);
-	printf("Print number_of_local_simulations \n");
 	*h5error = H5Dclose(dset_id); // dataset
 }
 
