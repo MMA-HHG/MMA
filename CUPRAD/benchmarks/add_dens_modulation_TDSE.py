@@ -3,6 +3,8 @@ import h5py
 # import sys
 import mynumerics as mn
 
+import MMA_administration as MMA
+
 # import plot_presets as pp
 
 # import HHG
@@ -46,11 +48,14 @@ a_Gauss = 50e-6
 
 # add to file
 with h5py.File('results.h5', 'a') as f:
-    mn.adddataset(f, 'density_mod/zgrid', zgrid, '[m]')
-    mn.adddataset(f, 'density_mod/table', Gaussian_jet(zgrid, zmax/2., a_Gauss), '[-]')
+    mn.adddataset(f, MMA.paths['global_inputs']+'/density_mod/zgrid', zgrid, '[m]')
+    mn.adddataset(f, MMA.paths['global_inputs']+'/density_mod/table', Gaussian_jet(zgrid, zmax/2., a_Gauss), '[-]')
     
     # f['density_mod/zgrid'] = zgrid
     # f['density_mod/table'] = Gaussian_jet(zgrid, 0.5*zmax, 5e-3)
+    
+    
+    # outf.require_group(h5path)
     
 
 
