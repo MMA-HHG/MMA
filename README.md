@@ -14,7 +14,7 @@
         * *refactoring*
             * Implement density modulation
             * hard-code preset gases with their scattering factors
-            * data processing (either load all $\mathscr{F}$-sources or chunk reading from the drive)
+            * data processing (either load all $\mathscr{F}$-sources or chunk reading from the drive) ✔️
     * ***Assembling the code***
         * Work with all the modules
         * Make the execution smooth (slurm dependecies etc.)
