@@ -72,7 +72,7 @@ else:
 
 
 
-file = "results_TDSE.h5"
+file = "results_TDSEM.h5"
 file = os.path.join(results_path,file)
 
 
@@ -182,20 +182,20 @@ with h5py.File(file, 'r') as InpArch:
     pp.plot_preset(image)
     
     
-    image.sf[0].args[-1] = np.abs(HL_cum[1].T)
-    pp.plot_preset(image)
+    # image.sf[0].args[-1] = np.abs(HL_cum[1].T)
+    # pp.plot_preset(image)
 
 
-    image.sf[0].args[-1] = np.abs(HL_cum[3].T)
-    pp.plot_preset(image)
+    # image.sf[0].args[-1] = np.abs(HL_cum[3].T)
+    # pp.plot_preset(image)
     
 
-    image.sf[0].args[-1] = np.abs(HL_cum[6].T)
-    pp.plot_preset(image)
+    # image.sf[0].args[-1] = np.abs(HL_cum[6].T)
+    # pp.plot_preset(image)
     
 
-    image.sf[0].args[-1] = np.abs(HL_cum[9].T)
-    pp.plot_preset(image)    
+    # image.sf[0].args[-1] = np.abs(HL_cum[9].T)
+    # pp.plot_preset(image)    
     
     # image = pp.figure_driver()
     # image.sf = [pp.plotter() for k1 in range(32)]
