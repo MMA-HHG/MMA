@@ -60,6 +60,13 @@ def HankelTransform(ogrid, rgrid, FField, distance, rgrid_FF,
 
     """
     
+    # print('pre-factor shape ', np.shape(pre_factor))
+    # print('rgrid_int len ', len(rgrid))
+    # print('ogrid     len ', len(ogrid))
+    
+    
+    t_start = time.perf_counter()
+    
     apply_radial_factor = (len(np.shape(pre_factor))==2)
     
     No = len(ogrid); Nr = len(rgrid); Nr_FF = len(rgrid_FF)
@@ -70,23 +77,29 @@ def HankelTransform(ogrid, rgrid, FField, distance, rgrid_FF,
         for k2 in range(Nr_FF):
             for k3 in range(Nr):
                 if near_field_factor:
-                    if apply_radial_factor:  radial_factor_local = pre_factor[k1,k3]
+                    if apply_radial_factor:  radial_factor_local = pre_factor[k3,k1]
                     else:                    radial_factor_local = 1.
                     integrand[k3] = radial_factor_local *\
                                     np.exp(-1j * k_omega * (rgrid[k3] ** 2) / (2.0 * distance)) * rgrid[k3] *\
                                     FField[k1,k3] * special.jn(0, k_omega * rgrid[k3] * rgrid_FF[k2] / distance)
                 else:
-                    if apply_radial_factor:  radial_factor_local = pre_factor[k1,k3]
+                    if apply_radial_factor:  radial_factor_local = pre_factor[k3,k1]
                     else:                    radial_factor_local = 1.
                     integrand[k3] = radial_factor_local *\
                                     rgrid[k3] * FField[k1,k3] * special.jn(0, k_omega * rgrid[k3] * rgrid_FF[k2] / distance)
             FField_FF[k1,k2] = integrator(integrand,rgrid)
 
-    if   (len(np.shape(pre_factor))==1):
-        FField_FF *= np.outer(pre_factor,np.ones(FField_FF.shape[1]))
-    elif (len(np.shape(pre_factor))==0):
+    # if   (len(np.shape(pre_factor))==1):
+    #     FField_FF *= np.outer(pre_factor,np.ones(FField_FF.shape[1]))
+    # elif (len(np.shape(pre_factor))==0):
+    #     FField_FF *= pre_factor
+    
+    if (len(np.shape(pre_factor))==0):
         FField_FF *= pre_factor
 
+
+    print('time spent only in the integrator ', time.perf_counter()-t_start)
+    
     return FField_FF
 
 
@@ -189,7 +202,8 @@ def HankelTransform_long(target, # FSourceTerm(r,z,omega)
             
     # we keep the data for now, consider on-the-fly change
     print('Computing Hankel from planes')
-    t_start = time.perf_counter()
+    t_start  = time.perf_counter()
+    t_check1 = t_start
     
     Fsource_plane1 = HankelTransform(target.ogrid,
                                      target.rgrid,
@@ -205,7 +219,9 @@ def HankelTransform_long(target, # FSourceTerm(r,z,omega)
     
     
     for k1 in range(Nz-1):
-        print('plane', k1, 'time:', time.perf_counter()-t_start)
+        t_check2 = time.perf_counter()
+        print('plane', k1, 'time:', t_check2-t_start, 'this iteration: ', t_check2-t_check1)
+        t_check1 = t_check2
         Fsource_plane2 = HankelTransform(target.ogrid,
                                          target.rgrid,
                                          next(target.Fsource_plane),

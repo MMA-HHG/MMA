@@ -14,7 +14,7 @@ END MODULE fields
 !> @brief stores the paths within the main hdf5 file. 
 MODULE h5namelist
   ! USE HDF5
-  CHARACTER(255), SAVE      ::  main_h5_fname =         "results.h5" !< 'results.h5' is the default name, a custom name is specified in 'msg.tmp'.
+  CHARACTER(255), SAVE      ::  main_h5_fname =         "results.h5"                                !< 'results.h5' is the default name, a custom name is specified in 'msg.tmp'.
   CHARACTER(*), PARAMETER   ::  CUPRAD_grp =            "CUPRAD"                                    !< The group where CUPRAD operates
   CHARACTER(*), PARAMETER   ::  global_inps_grp =       "global_inputs"                             !< The group for inputs shared accros modules (e.g. density modulation). 
   CHARACTER(*), PARAMETER   ::  in_grpname =            CUPRAD_grp//"/inputs"

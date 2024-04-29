@@ -4,6 +4,7 @@ from scipy import interpolate
 import units
 # import h5py
 import XUV_refractive_index as XUV_index
+import MMA_administration as MMA
 
 
 
@@ -362,7 +363,22 @@ def get_propagation_pre_factor_function(zgrid,
 
 
 
-
+def pressure_constructor(h5_handle):
+    
+    # obtain the base unmodulated pressure
+    pressure_base = h5_handle[MMA.paths['CUPRAD_inputs']+'/medium_pressure_in_bar'][()]
+    # check whether the density modulation is applied
+    if ('density_mod' in h5_handle[MMA.paths['global_inputs']].keys()):
+        dens_mod_grp = h5_handle[MMA.paths['global_inputs']+'/'+'density_mod']
+        pressure = {'value' : pressure_base*dens_mod_grp['table'][:]}
+        if ('zgrid' in dens_mod_grp.keys()):
+            pressure['zgrid'] = dens_mod_grp['zgrid'][:]
+        if ('rgrid' in dens_mod_grp.keys()):
+            pressure['rgrid'] = dens_mod_grp['rgrid'][:]
+    else:
+        pressure = pressure_base
+        
+    return pressure
 
 
 
