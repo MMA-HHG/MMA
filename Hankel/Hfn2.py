@@ -116,7 +116,8 @@ def HankelTransform_long(target, # FSourceTerm(r,z,omega)
                          integrator_longitudinal = 'trapezoidal',
                          near_field_factor = True,
                          store_cummulative_result = False,
-                         frequencies_to_trace_maxima = None
+                         frequencies_to_trace_maxima = None,
+                         store_entry_plane_transform = False
                          ):
     # """
     # It computes XUV propagation using a sum of Hankel transforms along the medium.
@@ -214,8 +215,10 @@ def HankelTransform_long(target, # FSourceTerm(r,z,omega)
                                      near_field_factor = near_field_factor,
                                      pre_factor = pre_factor(0))
     if store_cummulative_result:
-         cummulative_field = np.empty((Nz,) + Fsource_plane1.shape, dtype=np.cdouble)
-         cummulative_field[0,:,:] = 1.*Fsource_plane1
+         cummulative_field = np.empty((Nz-1,) + Fsource_plane1.shape, dtype=np.cdouble)
+         # cummulative_field[0,:,:] = 1.*Fsource_plane1
+    if store_entry_plane_transform:
+        entry_plane_transform = 1.*Fsource_plane1
     
     
     for k1 in range(Nz-1):
@@ -234,7 +237,7 @@ def HankelTransform_long(target, # FSourceTerm(r,z,omega)
         FF_integrated += 0.5*(target.zgrid[k1+1]-target.zgrid[k1])*(Fsource_plane1 + Fsource_plane2)
         
         if store_cummulative_result:
-            cummulative_field[k1+1,:,:] = 1.*FF_integrated
+            cummulative_field[k1,:,:] = 1.*FF_integrated
         
         Fsource_plane1 = Fsource_plane2
     

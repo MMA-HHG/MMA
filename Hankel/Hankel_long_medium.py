@@ -354,6 +354,20 @@ with h5py.File(file, 'r') as InpArch:
     image.sf[0].method = plt.pcolormesh
     image.sf[0].colorbar.show = True
     pp.plot_preset(image)
+    
+    
+    
+    # signal build-up for H19
+    ko_19 = mn.FindInterval(target_static.ogrid/omega0SI, 19)
+    
+    image = pp.figure_driver()
+    image.sf = [pp.plotter() for k1 in range(32)]
+    image.title = "H19"
+    image.sf[0].args = [target_static.zgrid[1:], np.max(np.abs(HL_cum[:,ko_19,:]),axis=1)]
+    image.sf[1].args = [target_static.zgrid[1:], np.max(np.abs(HL_cum_vac[:,ko_19,:]),axis=1)]
+    pp.plot_preset(image)
+    
+
 
 
 
