@@ -233,8 +233,8 @@ def get_propagation_pre_factor_function(zgrid,
                         
                         dispersion_factor = 1j *\
                                             interpolate.interp1d(                               # dispersion factor
-                                              pressure['zgrid'],
                                               integral_for_phase_factor,
+                                              pressure['zgrid'],
                                               bounds_error = False,
                                               fill_value = (integral_for_phase_factor[0],
                                                             integral_for_phase_factor[-1]),
@@ -249,8 +249,8 @@ def get_propagation_pre_factor_function(zgrid,
                                                 ogrid[k2],
                                                 preset_gas+'_'+dispersion_tables) * \
                                            integrate.cumtrapz(
-                                                pressure['zgrid'],
                                                 pressure_my_rgrid[:,k1],
+                                                pressure['zgrid'],
                                                 initial=0.
                                                 )
                                            

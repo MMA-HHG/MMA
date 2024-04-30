@@ -314,8 +314,46 @@ with h5py.File(file, 'r') as InpArch:
     # image.sf[0].args = [target_static.ogrid/omega0SI, rgrid_FF, np.abs(Hankel_long_static_Ar.T)]
     # image.sf[0].method = plt.pcolormesh
     # pp.plot_preset(image)
+    
+    
+    ko_19 = mn.FindInterval(target_static.ogrid/omega0SI, 19)
+    pref_val = np.squeeze(np.asarray([pf(k1)[:,ko_19] for k1 in range(len(target_static.zgrid))]))
+    pref_val_vac = np.squeeze(np.asarray([pf_vac(k1)[:,ko_19] for k1 in range(len(target_static.zgrid))]))
+    
+    image = pp.figure_driver()
+    image.sf = [pp.plotter() for k1 in range(32)]
+    image.title = 'pref mod'
+    image.sf[0].args = [target_static.zgrid, target_static.rgrid, np.abs(pref_val.T)]
+    image.sf[0].method = plt.pcolormesh
+    image.sf[0].colorbar.show = True
+    pp.plot_preset(image)
 
 
+    image = pp.figure_driver()
+    image.sf = [pp.plotter() for k1 in range(32)]
+    image.title = 'pref phase'
+    image.sf[0].args = [target_static.zgrid, target_static.rgrid, np.angle(pref_val.T)]
+    image.sf[0].method = plt.pcolormesh
+    image.sf[0].colorbar.show = True
+    pp.plot_preset(image)
+
+
+    image = pp.figure_driver()
+    image.sf = [pp.plotter() for k1 in range(32)]
+    image.title = 'pref phase vac'
+    image.sf[0].args = [target_static.zgrid, target_static.rgrid, np.angle(pref_val_vac.T)]
+    image.sf[0].method = plt.pcolormesh
+    image.sf[0].colorbar.show = True
+    pp.plot_preset(image)
+    
+
+    image = pp.figure_driver()
+    image.sf = [pp.plotter() for k1 in range(32)]
+    image.title = "arg(z/z')"
+    image.sf[0].args = [target_static.zgrid, target_static.rgrid, np.angle((pref_val/pref_val_vac).T)]
+    image.sf[0].method = plt.pcolormesh
+    image.sf[0].colorbar.show = True
+    pp.plot_preset(image)
 
 
 
