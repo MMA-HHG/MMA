@@ -123,7 +123,7 @@ character(len=255), parameter :: available_tests(N_tests) = [character(len=255) 
 ! TDSE's:
 ! 1 - 0.1 mm, 0.01 mm spacing ~ 10 planes
 ! 2 - 0.1 mm, 0.01 mm spacing ~ 10 planes + 5.87 % pre-ionised (Henke optimal)
-! 3 - 0.2 mm, 0.01 mm spacing ~ 10 planes (to be combined with a Gaussian jet)
+! 3 - 0.2 mm, 0.01 mm spacing ~ 20 planes (to be combined with a Gaussian jet)
 ! 4 - 0.02 mm, 0.01 mm spacing ~ 5 planes 
 
 

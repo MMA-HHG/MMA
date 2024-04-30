@@ -348,9 +348,15 @@ def get_propagation_pre_factor_function(zgrid,
              
                 
             def pre_factor(kz):
-                return pressure * np.exp(
-                                    zgrid[kz]*lin_prop_factor
-                                    )  
+                # print('no-mod pre-factor')
+                
+                # np.outer(np.ones(len(rgrid)),np.squeeze(pre_factor_value[kz,:]))
+                
+                return pressure * np.outer(np.ones(len(rgrid)),
+                                           np.exp(
+                                                  zgrid[kz]*lin_prop_factor
+                                                  )
+                                           )
             return pre_factor
         
         else:
