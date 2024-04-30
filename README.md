@@ -23,6 +23,7 @@
             * array orderings
     * ***Pre/post-processing, data plotting***
         * organise Pythonic libraries, integrare `mynumerics` int the model, ...
+        * *Jupyter notebook* showing processing the outputs
     * ***CodeOcean capsule*** (Tadeáš + Jan)
     * Enhance code + executables (compilation with a 'pedantic' compiler, valgrind) (to some extent)
 * Prepare test cases (integrate within the CodeOcean capsule)
