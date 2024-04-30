@@ -241,7 +241,7 @@ def HankelTransform_long(target, # FSourceTerm(r,z,omega)
     
     
     if store_cummulative_result:
-        return FF_integrated, cummulative_field
+        return FF_integrated, cummulative_field, pre_factor
     else:
         return FF_integrated
         

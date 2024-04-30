@@ -107,6 +107,8 @@ with h5py.File(file, 'r') as InpArch:
     # yyy = InpArch[MMA.paths['global_inputs']+'/gas_preset'].decode()
     preset_gas = mn.readscalardataset(InpArch,MMA.paths['global_inputs']+'/gas_preset','S')
     
+    effective_IR_refrective_index = inverse_GV_IR*units.c_light
+    
     # try:
     #     preset_gas = mn.readscalardataset(InpArch,MMA.paths['global_inputs']+'/gas_preset','S')
     # except:
@@ -179,8 +181,61 @@ with h5py.File(file, 'r') as InpArch:
     # plane1_dyn = next(target_dynamic.Fsource_plane)
     # plane2_dyn = next(target_dynamic.Fsource_plane)
         
+ 
     
-    HL_end, HL_cum = Hfn2.HankelTransform_long(target_static, # FSourceTerm(r,z,omega)
+ 
+    pf1 = Hankel_tools.get_propagation_pre_factor_function( target_static.zgrid,
+                                                            target_static.rgrid,
+                                                            target_static.ogrid,
+                                                            preset_gas = 'Ar',
+                                                            pressure = pressure,
+                                                            absorption_tables = 'Henke',
+                                                            include_absorption = True,
+                                                            dispersion_tables = 'Henke',
+                                                            include_dispersion = True,
+                                                            effective_IR_refrective_index = effective_IR_refrective_index)
+    
+
+    pf2 = Hankel_tools.get_propagation_pre_factor_function( target_static.zgrid,
+                                                            target_static.rgrid,
+                                                            target_static.ogrid,
+                                                            preset_gas = 'Ar',
+                                                            pressure = pressure,
+                                                            absorption_tables = 'Henke',
+                                                            include_absorption = True,
+                                                            dispersion_tables = 'Henke',
+                                                            include_dispersion = True,
+                                                            effective_IR_refrective_index = 1.0)
+    
+    
+    # sys.exit(0)
+    
+    HL_end_full, HL_cum_full, pf = Hfn2.HankelTransform_long(target_static, # FSourceTerm(r,z,omega)
+                              distance_FF, rgrid_FF,
+                              preset_gas = preset_gas,
+                              pressure = pressure,
+                              absorption_tables = 'Henke',
+                              include_absorption = True,
+                              dispersion_tables = 'Henke',
+                              include_dispersion = True,
+                              effective_IR_refrective_index = effective_IR_refrective_index,
+                              integrator_Hankel = integrate.trapz,
+                              integrator_longitudinal = 'trapezoidal',
+                              near_field_factor = True,
+                              store_cummulative_result = True,
+                              frequencies_to_trace_maxima = None,
+                              )
+    
+    
+    target_static = Hankel_tools.FSources_provider(InpArch[MMA.paths['CTDSE_outputs']+'/zgrid_coarse'][:],
+                                                   InpArch[MMA.paths['CTDSE_outputs']+'/rgrid_coarse'][:],
+                                                   omega_au2SI*InpArch[MMA.paths['CTDSE_outputs']+'/omegagrid'][:],
+                                                   FSource = np.transpose(FSourceTerm,axes=(1,2,0)),
+                                                   data_source = 'static',
+                                                   ko_min = ko_min,
+                                                   ko_max = ko_max)
+    
+    HL_end_vac, HL_cum_vac, pf_vac = Hfn2.HankelTransform_long(target_static, # FSourceTerm(r,z,omega)
                               distance_FF, rgrid_FF,
                               preset_gas = preset_gas,
                               pressure = pressure,
@@ -198,6 +253,8 @@ with h5py.File(file, 'r') as InpArch:
     
 
 
+    HL_end, HL_cum = HL_end_full, HL_cum_full
+    
     image = pp.figure_driver()
     image.sf = [pp.plotter() for k1 in range(32)]
     image.sf[0].args = [target_static.ogrid/omega0SI, rgrid_FF, np.abs(HL_cum[0].T)]
@@ -220,11 +277,37 @@ with h5py.File(file, 'r') as InpArch:
     # image.sf[0].args[-1] = np.abs(HL_cum[9].T)
     # pp.plot_preset(image)    
     
-    # image = pp.figure_driver()
-    # image.sf = [pp.plotter() for k1 in range(32)]
-    # image.sf[0].args = [target_static.ogrid/omega0SI, rgrid_FF, np.abs(HL_end.T)]
-    # image.sf[0].method = plt.pcolormesh
-    # pp.plot_preset(image)
+    image = pp.figure_driver()
+    image.sf = [pp.plotter() for k1 in range(32)]
+    image.title = 'disp'
+    image.sf[0].args = [target_static.ogrid/omega0SI, rgrid_FF, np.abs(HL_end.T)]
+    image.sf[0].method = plt.pcolormesh
+    image.sf[0].colorbar.show = True
+    pp.plot_preset(image)
+    
+    image = pp.figure_driver()
+    image.sf = [pp.plotter() for k1 in range(32)]
+    image.title = 'vac'
+    image.sf[0].args = [target_static.ogrid/omega0SI, rgrid_FF, np.abs(HL_end_vac.T)]
+    image.sf[0].method = plt.pcolormesh
+    image.sf[0].colorbar.show = True
+    pp.plot_preset(image)
+    
+    image = pp.figure_driver()
+    image.sf = [pp.plotter() for k1 in range(32)]
+    image.title = 'dif'
+    image.sf[0].args = [target_static.ogrid/omega0SI, rgrid_FF, np.abs(HL_end_vac.T-HL_end.T)]
+    image.sf[0].method = plt.pcolormesh
+    image.sf[0].colorbar.show = True
+    pp.plot_preset(image)
+    
+    image = pp.figure_driver()
+    image.sf = [pp.plotter() for k1 in range(32)]
+    image.title = 'dif_rel'
+    image.sf[0].args = [target_static.ogrid/omega0SI, rgrid_FF, np.abs(HL_end_vac.T)/np.max(np.abs(HL_end.T))]
+    image.sf[0].method = plt.pcolormesh
+    image.sf[0].colorbar.show = True
+    pp.plot_preset(image)
     
     # image = pp.figure_driver()
     # image.sf = [pp.plotter() for k1 in range(32)]

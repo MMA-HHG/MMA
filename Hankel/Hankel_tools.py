@@ -113,13 +113,16 @@ def get_propagation_pre_factor_function(zgrid,
             
             for k1 in range(No):
                 if include_dispersion: 
+                    
+                    integrand = XUV_index.dispersion_function(
+                        ogrid[k1], 
+                        pressure['value'],                
+                        preset_gas+'_'+dispersion_tables,
+                        n_IR = effective_IR_refrective_index)
+                    
                     integral_for_phase_factor = integrate.cumtrapz(
+                                                        integrand,
                                                         pressure['zgrid'],
-                                                        XUV_index.dispersion_function(
-                                                            ogrid[k1], 
-                                                            pressure['value'],                
-                                                            preset_gas+'_'+dispersion_tables,
-                                                            n_IR = effective_IR_refrective_index),
                                                         initial=0.
                                                         )
                     
@@ -141,8 +144,8 @@ def get_propagation_pre_factor_function(zgrid,
                                             ogrid[k1],
                                             preset_gas+'_'+dispersion_tables) * \
                                        integrate.cumtrapz(
-                                            pressure['zgrid'],
                                             pressure['value'],
+                                            pressure['zgrid'],
                                             initial=0.
                                             )
                                        
