@@ -94,8 +94,8 @@ def HankelTransform(ogrid, rgrid, FField, distance, rgrid_FF,
     # elif (len(np.shape(pre_factor))==0):
     #     FField_FF *= pre_factor
     
-    if (len(np.shape(pre_factor))==0):
-        FField_FF *= pre_factor
+    # if (len(np.shape(pre_factor))==0):
+    #     FField_FF *= pre_factor
 
 
     print('time spent only in the integrator ', time.perf_counter()-t_start)

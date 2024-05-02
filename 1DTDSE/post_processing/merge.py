@@ -66,12 +66,12 @@ files = glob.glob('hdf5_temp_*.h5') # filter all the single-proc files
 precision = 'd'
 
 def prepare_ouput_file(f,outf,dset_list):
-    joint_rz_shape = (mn.readscalardataset(f,'Nr_orig','N')[0], mn.readscalardataset(f,'Nz_orig','N')[0])
+    joint_zr_shape = (mn.readscalardataset(f,'Nz_orig','N')[0],mn.readscalardataset(f,'Nr_orig','N')[0])
     for dsetname in dset_list:
 
         if (dsetname in available_outputs.keys()):
             dset = f[dsetname]
-            newshape =  joint_rz_shape + dset.shape[0:-1]
+            newshape =  joint_zr_shape + dset.shape[0:-1]
             newdset = outf.create_dataset(h5path+'/'+dsetname, newshape,precision)
             newdset.attrs['units'] = np.string_(available_outputs[dsetname]) # add units
 
@@ -97,9 +97,9 @@ def print_ouput_file(f,outf,dset_list):
                     kr, kz = mn.n1n2mapping_inv(ks_loc[k1], Nr)
                     # print(kr,kz)
                     if (ndims == 2): # for reals
-                        newdset[kr,kz,:] = dset[:,k1]
+                        newdset[kz,kr,:] = dset[:,k1]
                     elif (ndims == 3):  # for complex
-                        newdset[kr,kz,:,:] = dset[:,:,k1]
+                        newdset[kz,kr,:,:] = dset[:,:,k1]
                     else:
                         print('warning, dataset with unsupported dimension: ' + dsetname + ', nothing done')# general procedure should be possible
     return nsim_loc
@@ -120,7 +120,7 @@ print("total number of TDSE's merged:",nsim_tot)
 
 
 if not('-keep-files' in arguments):
-    [os.remove(f) for f in files]
+    for f in files: os.remove(f)
     print("Intermediate files deleted.")
 else:
      print("Intermediate files kept.")
