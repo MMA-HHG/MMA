@@ -5,7 +5,7 @@
 ### We use 'module purge' policy for loading the module to prevent conflict with already modified environment.
 Curta_modules() {
     module purge
-    module load cmake/3.26.3/gcc@11.2.0-rthuom3
+    module load cmake/3.26.3/gcc@11.2.0-qh75jnq
     module load compiler/intel/2020.4.304
     module load mpi/intel/2020.4.304
     module load mkl/2023.0.0
