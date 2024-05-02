@@ -40,6 +40,7 @@ General remarks & problems occured along the way
 * The makefile is built using the following command:
     ```cmake -D CMAKE_Fortran_COMPILER=mpifort ..```
     <--- Not necessary with proper installation of the packages (non-Conda env).
+    * You can enter interactive cmake cofiguration by using `ccmake`
 
 * In order to compile the code using non-GNU standard (flag -std=gnu, -std=2003 etc.),
     several modifications had to be done. First, non-gnu standards do not support

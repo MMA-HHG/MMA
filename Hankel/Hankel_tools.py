@@ -54,9 +54,9 @@ class FSources_provider:
             def FSource_plane_():
                 for k1 in range(len(self.zgrid)):
                     yield np.squeeze(
-                            h5_handle[h5_path][0:kr_max:kr_step,k1*kz_step,ko_min:ko_max:ko_step,0]
+                            h5_handle[h5_path][k1*kz_step,0:kr_max:kr_step,ko_min:ko_max:ko_step,0]
                             +
-                            1j*h5_handle[h5_path][0:kr_max:kr_step,k1*kz_step,ko_min:ko_max:ko_step,1]).T
+                            1j*h5_handle[h5_path][k1*kz_step,0:kr_max:kr_step,ko_min:ko_max:ko_step,1]).T
                     # !!!! THIS IS SUPER SLOW, try:
                     # https://docs.h5py.org/en/stable/high/dataset.html#:~:text=)%0Adataset%20inaccessible-,read_direct,-(array%2C
                     # https://stackoverflow.com/a/72397433

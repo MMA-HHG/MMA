@@ -158,19 +158,19 @@ with h5py.File(file, 'r') as InpArch:
     target_static = Hankel_tools.FSources_provider(InpArch[MMA.paths['CTDSE_outputs']+'/zgrid_coarse'][:],
                                                    InpArch[MMA.paths['CTDSE_outputs']+'/rgrid_coarse'][:],
                                                    omega_au2SI*InpArch[MMA.paths['CTDSE_outputs']+'/omegagrid'][:],
-                                                   FSource = np.transpose(FSourceTerm,axes=(1,2,0)),
+                                                   FSource = np.transpose(FSourceTerm,axes=(0,2,1)),
                                                    data_source = 'static',
                                                    ko_min = ko_min,
                                                    ko_max = ko_max)
     
-    # target_dynamic = Hankel_tools.FSources_provider(InpArch[MMA.paths['CTDSE_outputs']+'/zgrid_coarse'][:],
-    #                                                 InpArch[MMA.paths['CTDSE_outputs']+'/rgrid_coarse'][:],
-    #                                                 omega_au2SI*InpArch[MMA.paths['CTDSE_outputs']+'/omegagrid'][:],
-    #                                                 h5_handle = InpArch,
-    #                                                 h5_path = MMA.paths['CTDSE_outputs']+'/FSourceTerm',
-    #                                                 data_source = 'dynamic',
-    #                                                 ko_min = ko_min,
-    #                                                 ko_max = ko_max)
+    target_dynamic = Hankel_tools.FSources_provider(InpArch[MMA.paths['CTDSE_outputs']+'/zgrid_coarse'][:],
+                                                    InpArch[MMA.paths['CTDSE_outputs']+'/rgrid_coarse'][:],
+                                                    omega_au2SI*InpArch[MMA.paths['CTDSE_outputs']+'/omegagrid'][:],
+                                                    h5_handle = InpArch,
+                                                    h5_path = MMA.paths['CTDSE_outputs']+'/FSourceTerm',
+                                                    data_source = 'dynamic',
+                                                    ko_min = ko_min,
+                                                    ko_max = ko_max)
     
     # target_static_Ar = Hankel_tools.FSources_provider(InputArchiveTDSE['zgrid_coarse'][:],
     #                                                InputArchiveTDSE['rgrid_coarse'][:],
@@ -233,7 +233,7 @@ with h5py.File(file, 'r') as InpArch:
     target_static = Hankel_tools.FSources_provider(InpArch[MMA.paths['CTDSE_outputs']+'/zgrid_coarse'][:],
                                                    InpArch[MMA.paths['CTDSE_outputs']+'/rgrid_coarse'][:],
                                                    omega_au2SI*InpArch[MMA.paths['CTDSE_outputs']+'/omegagrid'][:],
-                                                   FSource = np.transpose(FSourceTerm,axes=(1,2,0)),
+                                                   FSource = np.transpose(FSourceTerm,axes=(0,2,1)),
                                                    data_source = 'static',
                                                    ko_min = ko_min,
                                                    ko_max = ko_max)
@@ -391,19 +391,19 @@ with h5py.File(file, 'r') as InpArch:
     #                           frequencies_to_trace_maxima = None
     #                           )
 
-    # Hankel_long_dynamic = Hfn2.HankelTransform_long(target_dynamic, # FSourceTerm(r,z,omega)
-    #                           distance_FF, rgrid_FF,
-    #                           preset_gas = 'vacuum',
-    #                           pressure = 1.,
-    #                           absorption_tables = 'Henke',
-    #                           include_absorption = True,
-    #                           dispersion_tables = 'Henke',
-    #                           include_dispersion = True,
-    #                           effective_IR_refrective_index = 1.,
-    #                           integrator_Hankel = integrate.trapz,
-    #                           integrator_longitudinal = 'trapezoidal',
-    #                           near_field_factor = True,
-    #                           store_cummulative_result = False,
-    #                           frequencies_to_trace_maxima = None
-    #                           )
-    # print(np.array_equal(Hankel_long_dynamic,HL_end))
+    Hankel_long_dynamic = Hfn2.HankelTransform_long(target_dynamic, # FSourceTerm(r,z,omega)
+                              distance_FF, rgrid_FF,
+                              preset_gas = preset_gas,
+                              pressure = pressure,
+                              absorption_tables = 'Henke',
+                              include_absorption = True,
+                              dispersion_tables = 'Henke',
+                              include_dispersion = True,
+                              effective_IR_refrective_index = effective_IR_refrective_index,
+                              integrator_Hankel = integrate.trapz,
+                              integrator_longitudinal = 'trapezoidal',
+                              near_field_factor = True,
+                              store_cummulative_result = False,
+                              frequencies_to_trace_maxima = None,
+                              )
+    print(np.array_equal(Hankel_long_dynamic,HL_end))
