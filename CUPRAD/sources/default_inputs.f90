@@ -552,7 +552,7 @@ subroutine preset_numerics_tests(test_number)
         lt = 8.d0
         dim_t = 2048 ! asymmetric
         absorb = 16  
-        
+
     end select
 
 
@@ -597,7 +597,7 @@ subroutine preset_numerics_tests(test_number)
 
     case(101:109,111:119,121:129,131:139, 141:149, 151:159, 161:169, 171:179, 181:189, 191:199, 201:209, 211:219, 221:229,231:241, &
          251:259,261:263,271:276, &
-         281:284,291:293,
+         281:284,291:293, &
          301)
         delta_z_mm_phys = 1.d-3   
     end select
