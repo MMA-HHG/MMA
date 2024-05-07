@@ -9,7 +9,7 @@ real(8) :: Intensity_entry, Intensity_focus, waist_focus, Curvature_radius_entry
 character(255)   ::  gas_preset, ionization_model
 
 integer                 :: k1
-integer, parameter      :: N_tests = 301
+integer, parameter      :: N_tests = 302
 !character, parameter :: available_tests(N_tests) = (/ "test", "test2", "GfP", "GfI", "GfFWHME", "GfFWHMI", "GfH5w", &
 !                                                        "PI", "PIPPT", "pressure", "ELI1", "ELI1ppt", "ELI2", "ELI3", &
 !                                                        "ELI4", "ELI_PI_PPT_Kr", "Ar_vacuum1", "Ar_vacuum1_long", &
@@ -102,7 +102,7 @@ character(len=255), parameter :: available_tests(N_tests) = [character(len=255) 
                                                         ("undefined", k1 = 285, 290), &
                                                         "test1_TDSE_mod", "test1_TDSE_mod_inc", "test1_TDSE_mod_dec", &
                                                         ("undefined", k1 = 294, 300), &
-                                                        "test_SciRep12-7715-1"] ! "GfH5w_pre_ionised_PPT"
+                                                        "test_SciRep12-7715-1", "test_SciRep12-7715-2"] ! "GfH5w_pre_ionised_PPT"
 
                                                         ! integer, parameter      :: test_numbers(N_tests) =  (k1, k1=1,N_tests)
 
@@ -503,7 +503,7 @@ subroutine preset_numerics_tests(test_number)
     case(281:284, 291:293)
         time_limit = 1.59d0 
 
-    case(301)
+    case(301,302)
         time_limit = 1.59d0 
 
     end select
@@ -548,7 +548,7 @@ subroutine preset_numerics_tests(test_number)
         dim_t = 2048 ! asymmetric
         absorb = 16
 
-    case(301)
+    case(301,302)
         lt = 8.d0
         dim_t = 2048 ! asymmetric
         absorb = 16  
@@ -581,7 +581,7 @@ subroutine preset_numerics_tests(test_number)
     case(104:106, 114:116, 124:126, 134:136, 144:146, 154:156, 164:166, 174:176, 184:186, 194:196, 204:206, 214:216, 224:226, &
          231:241, 254:256, 261:263, 272, 275, &
          281:284, 291:293, &
-         301)
+         301,302)
         switch_T = 2
     case(107:109, 117:119, 127:129, 137:139, 147:149, 157:159, 167:169, 177:179, 187:189, 197:199, 207:209, 217:219, 227:229, &
          257:259, 273, 276)
@@ -598,7 +598,7 @@ subroutine preset_numerics_tests(test_number)
     case(101:109,111:119,121:129,131:139, 141:149, 151:159, 161:169, 171:179, 181:189, 191:199, 201:209, 211:219, 221:229,231:241, &
          251:259,261:263,271:276, &
          281:284,291:293, &
-         301)
+         301,302)
         delta_z_mm_phys = 1.d-3   
     end select
 
@@ -652,7 +652,7 @@ subroutine preset_numerics_tests(test_number)
        outlength_m_phys = 1.d-5  
        outlength_Efield_m_phys = 0.075d0
 
-    case(301)
+    case(301,302)
         outlength_m_phys = 1.d-5  
         outlength_Efield_m_phys = 0.075d0
 
@@ -672,7 +672,7 @@ subroutine preset_physics(test_number)
         lambda0_cm_phys = 8.d-5
     case(11:16,23:30)
         lambda0_cm_phys = 7.92d-5
-    case(31, 301)
+    case(31, 301, 302)
         lambda0_cm_phys = 7.92d-5
 
     case(101:109,111:119,121:129,131:139, 141:149, 151:159, 161:169, 171:179, 181:189, 191:199, 201:209, 211:219, 221:229, 231:241, &
@@ -702,7 +702,7 @@ subroutine preset_physics(test_number)
         gas_preset = 'Ar'
         ionization_model = 'PPT'
 
-    case(301)
+    case(301, 302)
         gas_preset = 'Kr'
         ionization_model = 'PPT'
     end select
@@ -751,7 +751,7 @@ subroutine preset_physics(test_number)
     case(291:293)
         proplength_m_phys = 1.0d-3
 
-    case(301)
+    case(301,302)
         proplength_m_phys = 0.015d0
     end select   
 
@@ -776,7 +776,7 @@ subroutine preset_physics(test_number)
          281:284,291:293)
         waist_focus = 110.d-6   ! m
 
-    case(301)
+    case(301, 302)
        waist_focus = 110.d-6   ! m
 
     end select
@@ -791,7 +791,7 @@ subroutine preset_physics(test_number)
 
     case(101:109,111:119,121:129,131:139, 141:149, 151:159, 161:169, 171:179, 181:189, 191:199, 201:209, 211:219, 221:229, 231:241, &
          251:259,261:263, &
-         281:284,291:293,301)
+         281:284,291:293,301,302)
         call save_or_replace(file_id, in_grpname//'/laser_focus_beamwaist_Gaussian', waist_focus, error, units_in = '[m]')
     end select
 
@@ -842,7 +842,7 @@ subroutine preset_physics(test_number)
         Intensity_focus = 1.95d18
         call save_or_replace(file_id, in_grpname//'/laser_focus_intensity_Gaussian', Intensity_focus, error, units_in = '[SI]')
 
-    case(301)
+    case(301,302)
         Intensity_focus = 0.9d18
         call save_or_replace(file_id, in_grpname//'/laser_focus_intensity_Gaussian', Intensity_focus, error, units_in = '[SI]')
 
@@ -875,7 +875,7 @@ subroutine preset_physics(test_number)
        tp_fs_phys = 30.d0
        call save_or_replace(file_id, in_grpname//'/laser_pulse_duration_in_1_e_Efield', tp_fs_phys, error, units_in = '[fs]')
 
-    case(301)
+    case(301,302)
         tp_fs_phys = 35.d0
         call save_or_replace(file_id, in_grpname//'/laser_pulse_duration_in_FWHM_Intensity', tp_fs_phys, error, units_in = '[fs]')
     end select   
@@ -907,7 +907,7 @@ subroutine preset_physics(test_number)
     case(274:276)
         focus_position = 0.5*proplength_m_phys
 
-    case(301)
+    case(301,302)
         focus_position = 0.5*proplength_m_phys
     end select
 
@@ -1025,7 +1025,7 @@ subroutine preset_physics(test_number)
     case(293)
         pressure = 1.0d-2 * 0.05d0 
 
-    case(301)
+    case(301, 302)
         pressure = 0.035d0 
     end select
     
@@ -1034,7 +1034,7 @@ subroutine preset_physics(test_number)
 !---------------------------------------------------------------------------------------------------------------------!
 ! pre-ionized
     if ( any(test_number == (/8, 9, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, &
-                              282                                                                       /)) ) then
+                              282, 302                                                                  /)) ) then
         call h5gcreate_f(file_id, pre_ionised_grpname, group_id2, error)
         call save_or_replace(group_id2, 'method_geometry', 1, error, units_in = '[-]')
         call save_or_replace(group_id2, 'method_units', 1, error, units_in = '[-]')
@@ -1042,6 +1042,8 @@ subroutine preset_physics(test_number)
             call save_or_replace(group_id2, 'initial_electrons_ratio', 0.04d0, error, units_in = '[-]')
         elseif (test_number == 282) then
             call save_or_replace(group_id2, 'initial_electrons_ratio', 0.0587d0, error, units_in = '[-]')
+        elseif (test_number == 302) then
+                call save_or_replace(group_id2, 'initial_electrons_ratio', 0.08d0, error, units_in = '[-]')
         else
             call save_or_replace(group_id2, 'initial_electrons_ratio', 0.0d0, error, units_in = '[-]')
         endif
