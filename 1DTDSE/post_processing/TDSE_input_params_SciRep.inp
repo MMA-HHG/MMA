@@ -1,0 +1,40 @@
+## Example TDSE input file used for preprocessing of HDF5 file
+## ------------------
+## This file is read by the python preprocessor ```post_processing/prepare_TDSE.py```
+## and saves the values stored here into the HDF5 archive into the group 
+## "TDSE_inputs/". 
+##
+## Brief explanation:
+## HDF5_variable_name  |  <value>  |  <type: real (R), integer (I)>  |  <units>  |  # comment
+
+## Coarser grid parameters
+kz_step 1  I   -
+kr_step 2  I   -
+Nr_max  400 I   -
+
+## Control outputs: here we set the outputs we would like to save into 
+## the temporary HDF5 file (1 == keep, 0 == not keep)
+print_GS_population             0   I   -   
+print_integrated_population     1   I   -
+print_Efield                    0   I   -
+print_F_Efield                  0   I   -
+print_Source_Term               0   I   -
+print_F_Source_Term             1   I   -
+print_x_expectation_value       0   I   -
+print_GS                        1   I   -
+print_F_Efield_M2               0   I   -
+print_F_Source_Term_M2          0   I   -
+
+## Numerical and starting parameters
+Eguess	-1	R	a.u.	# Energy of the initial state (guess)
+N_r_grid	12000	I	-	# Number of points of the initial TDSE spatial grid 
+dx	0.4	    R	a.u.	# Resolution for the grid
+x_int	2.0	R	a.u.    # Probability for finding electron in range (x-x_int, x + x_int)
+CV_criterion_of_GS  1e-12   R   -   # Convergence parameter for ground state search
+gauge_type  0   I   -   # Choice of gauge (0 == length) <-- other gauges NOT IMPLEMENTED
+InterpByDTorNT	0	I	-	# Refine resolution only for numerical fields (0 - by dt, 1 - by number of points)
+dt	0.35	R	a.u.	# Resolution in time
+Ntinterp	1	I	-	# Number of intermediate points for the interpolation
+
+
+	
