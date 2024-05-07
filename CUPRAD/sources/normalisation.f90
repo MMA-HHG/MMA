@@ -881,9 +881,9 @@ CONTAINS
     outlength = outlength_m_phys*100.D0/(4.D0*z_rayleigh_cm_phys)  !adimmensionned output distance for whole field
     IF (out_Efield) outlength_Efield = outlength_Efield_m_phys*100.D0/(4.D0*z_rayleigh_cm_phys) ! dtto
     delta_z = delta_z_mm_phys/(40.D0*z_rayleigh_cm_phys)  !adimmensionned (first) stepwidth for whole field
-    z=0.D0
-    z_out=z
-    z_out_Efield=z
+   !  z=0.D0
+   !  z_out=z
+   !  z_out_Efield=z
     rfil=0.1D0*rfil_mm_phys/w0_cm_phys ! adimensioned radius for diagnostics
     c3=1.d0  !adimensionned coefficient for kerr effect
     c5=(n4_phys)/(n2_phys)*(Pcr_phys)/(4.D0*PI*w0_cm_phys**2)  !adimensionned coefficient for chi5 effect

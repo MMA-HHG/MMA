@@ -41,7 +41,6 @@ CONTAINS
     ! General purpose variables: looping, dummy variables
     INTEGER(4) k1,k2
     
-    INTEGER :: field_dimensions ! Dataset rank & # of points in z
     ! the kind of this variable has to correspond with the precision stored in HDF5-file
     REAL(4), ALLOCATABLE :: fields_array(:,:,:), plasma_array(:,:,:), rgrid(:), tgrid(:)  
     REAL(4), ALLOCATABLE :: spect_array_1(:),  spect_array_2(:,:), spect_array_3(:,:), spect_array_4(:,:), spect_array_5(:,:) 
@@ -50,7 +49,7 @@ CONTAINS
     INTEGER(4) j,l
     REAL(8) rhotemp,r,mpa
     COMPLEX(8) help
-    LOGICAL :: first = .FALSE.
+    LOGICAL, SAVE  :: first = .TRUE.
     INTEGER(HID_T) :: file_id       ! File identifier 
     INTEGER(HID_T) :: group_id      ! Group identifier 
     INTEGER(HID_T) :: h5parameters  ! Property list identifier 
@@ -79,34 +78,20 @@ CONTAINS
     ! DENSITY MOD
     REAL  :: density_mod_data(1,dim_r)
       
-    field_dimensions = 3
+
+
+    ! convert actual electric field into SI units and prepare to write
     allocate(fields_array(dim_r_local,dim_t, 1))
-
-      local_time_MPI  = MPI_Wtime()
-      IF (my_rank.EQ.0) THEN
-        print *, "before field conversion:", local_time_MPI - start_time_MPI
-      ENDIF  
-
     r_offset = dim_r_start(num_proc)-1
     DO k1=1, dim_r_local
-    DO k2=1, dim_t
-      ! fields_array(1,k1,k2) = REAL( efield_factor*REAL( (efield_osc(k2)*e(k2,r_offset+k1)) ) , 4 ) ! SINGLE PRECISION, corresponding H5T_NATIVE_REAL (REAL(.,8) corresponds to H5T_NATIVE_DOUBLE)
-
-      fields_array(k1,k2,1) = REAL( efield_factor*REAL( (efield_osc(k2)*e(k2,r_offset+k1)) ) , 4 ) ! SINGLE PRECISION, corresponding H5T_NATIVE_REAL (REAL(.,8) corresponds to H5T_NATIVE_DOUBLE)
-
-      ! e(t,r)
-    ENDDO
+      DO k2=1, dim_t
+        fields_array(k1,k2,1) = REAL( efield_factor*REAL( (efield_osc(k2)*e(k2,r_offset+k1)) ) , 4 ) ! SINGLE PRECISION, corresponding H5T_NATIVE_REAL (REAL(.,8) corresponds to H5T_NATIVE_DOUBLE)
+      ENDDO
     ENDDO
 
-        local_time_MPI  = MPI_Wtime()
-        IF (my_rank.EQ.0) THEN
-          print *, "before plasma calculation:", local_time_MPI - start_time_MPI
-        ENDIF  
-
-    ! allocate(plasma_array(1,dim_r_local,dim_t))
-
+    ! obtain local time-dependent plasma density (the same procedure as in longstep_rk)
+    ! (the computation is redundant, but it's not a critical performance issue, kept as is for clarity)
     allocate(plasma_array(dim_r_local,dim_t,1))
-
     k1 = 1
     DO l=dim_r_start(num_proc),dim_r_end(num_proc)
       e_2=ABS(e(1:dim_t,l))**2
@@ -116,10 +101,6 @@ CONTAINS
       ELSE
          rhotemp = 0.D0
       ENDIF
-
-      !print *, 'rhotmp', rhotemp, 'myrank', my_rank
-      !print *, 'rhoatm', 1.d0/rhoat_inv, 'myrank', my_rank
-
       rhompi=0.D0
       rho1=0.D0
       rho2=0.D0
@@ -129,7 +110,6 @@ CONTAINS
       rhoslg2=0.D0
       rhoav=0.D0
 
-
       DO j=1,dim_t
          e_2KKm2(j)=rhotemp
          IF (j.NE.dim_t) THEN
@@ -137,20 +117,10 @@ CONTAINS
          ENDIF
       ENDDO
       
-      ! plasma_array(1,k1,:) = REAL(plasma_normalisation_factor_m3*e_2KKm2,4) ! SI units
-
       plasma_array(k1,:,1) = REAL(plasma_normalisation_factor_m3*e_2KKm2,4) ! SI units
-
-      !plasma_array(1,k1,:) = REAL(e_2KKm2,4) ! SI units
-      !plasma_array(1,k1,:) = REAL(e_2KKm2,4) ! computational units
       k1 = k1 + 1
-    ENDDO
 
-    IF ( output_write_count .EQ. 1) THEN
-      first = .TRUE.
-    ELSE
-      first = .FALSE.
-    ENDIF
+    ENDDO
 
     ! Calculate dimensions for the field to be preallocated, the offset and the hyperslab size
     dims = (/int(Nz_points,HSIZE_T),int(dim_r,HSIZE_T), int(dim_t,HSIZE_T)/)
@@ -161,11 +131,6 @@ CONTAINS
     offset_shape = (/int(dim_r_start(num_proc)-1,HSIZE_T),int(0,HSIZE_T), int(output_write_count-1,HSIZE_T) /)
     ccount_shape = (/int(dim_r_local,HSIZE_T), int(dim_t,HSIZE_T), int(1,HSIZE_T)/)
 
-      local_time_MPI  = MPI_Wtime()
-      IF (my_rank.EQ.0) THEN
-        print *, "before file openning:", local_time_MPI - start_time_MPI
-      ENDIF  
-
     CALL h5open_f(error) 
     CALL h5pcreate_f(H5P_FILE_ACCESS_F, h5parameters, error) ! create HDF5 access parameters
     CALL h5pset_fapl_mpio_f(h5parameters, MPI_COMM_WORLD, MPI_INFO_NULL, error) ! set parameters for MPI access
@@ -173,7 +138,11 @@ CONTAINS
     CALL h5pclose_f(h5parameters,error) ! close the parameters
 
 
+    ! The datasets are initiated in the first call of this subroutine, filled in next calls
     IF ( first ) THEN
+
+      first = .FALSE.
+
       !Create group for the output if it does not already exist
       CALL h5lexists_f(file_id, out_grpname, group_status, error)
       IF ( group_status .EQV. .FALSE. ) THEN
@@ -181,35 +150,25 @@ CONTAINS
         CALL h5gclose_f(group_id, error)
       ENDIF
           
-      ! Call writing routine
-        local_time_MPI  = MPI_Wtime()
-        IF (my_rank.EQ.0) THEN
-          print *, "before data write:", local_time_MPI - start_time_MPI
-        ENDIF  
-
+      ! Create dataset for electric fields and write the first plane
       CALL create_3D_array_real_dset_p(file_id, field_dset_name, fields_array, dims_shape, offset_shape, ccount_shape)
 
-        local_time_MPI  = MPI_Wtime()
-        IF (my_rank.EQ.0) THEN
-          print *, "fields written:", local_time_MPI - start_time_MPI
-        ENDIF 
+      ! Create dataset for plasma density and write the first plane
       CALL create_3D_array_real_dset_p(file_id, plasma_dset_name, plasma_array, dims_shape, offset_shape, ccount_shape)
 
-      ! Terminate
       CALL h5fclose_f(file_id,error)
 
-          local_time_MPI  = MPI_Wtime()
-          IF (my_rank.EQ.0) THEN
-            print *, "file collectivelly closed:", local_time_MPI - start_time_MPI
-          ENDIF
-
+      ! The main process adds units + writes the grids + prepare extendable z-grid
+      ! (It's easier to write attributes serially https://forum.hdfgroup.org/t/write-attributes-collectively-in-mpi-run/4902/2)
       IF (my_rank.EQ.0) THEN ! single-write start
-        CALL h5fopen_f (main_h5_fname, H5F_ACC_RDWR_F, file_id, error) ! Open an existing file.
+
+        CALL h5fopen_f (main_h5_fname, H5F_ACC_RDWR_F, file_id, error) ! Reopen file.
+
         CALL h5_add_units_1D(file_id, field_dset_name, '[V/m]') 
 	      CALL h5_add_units_1D(file_id, plasma_dset_name, '[m^(-3)]') 
 
-        ! r and t grids saved in the first run
-	      allocate(tgrid(dim_t),rgrid(dim_r)) ! space for grids: first itration, proc # 0
+        ! Prepare r- and t-grids in SI units
+	      allocate(tgrid(dim_t),rgrid(dim_r))
         DO k1=1, dim_t
           tgrid(k1) = REAL( tps*(tlo+REAL(k1,8)*delta_t) , 4)
         ENDDO
@@ -220,15 +179,15 @@ CONTAINS
         CALL create_dset(file_id, rgrid_dset_name, rgrid, dim_r)
         CALL h5_add_units_1D(file_id, rgrid_dset_name, '[m]')
         CALL create_dset(file_id, tgrid_dset_name, tgrid, dim_t)
-        CALL h5_add_units_1D(file_id, tgrid_dset_name, '[m]')
+        CALL h5_add_units_1D(file_id, tgrid_dset_name, '[s]')
         deallocate(tgrid,rgrid)
 
-
+        ! prepare extendable z-grid
         CALL create_1D_dset_unlimited(file_id, zgrid_dset_name, (/REAL(four_z_Rayleigh*z,4)/), 1) ! the actual z-coordinate in SI units 
         CALL h5_add_units_1D(file_id, zgrid_dset_name, '[m]')
 
-        !! TEST DENSITY MODULATION
-        ! ALLOCATE(density_mod_data(1,dim_r))
+
+        !! TEST DENSITY MODULATION (same principle, prepare + extend in next iterations)
         DO k1 = 1, dim_r
           density_mod_data(1,k1) = REAL( density_mod(k1), 4 ) !!! SINGLE PRECISION
         ENDDO 
@@ -237,40 +196,28 @@ CONTAINS
         CALL h5fclose_f(file_id, error) ! close the file
 
 
-      ENDIF ! single-write end
+      ENDIF ! single-writer
 
 
-    ELSE !!!! APPENDING THE DATA IN NEXT ITERATIONS
+    ELSE ! next iterations where fields are already prepared
 
-          local_time_MPI  = MPI_Wtime()
-          IF (my_rank.EQ.0) THEN
-            print *, "before data write:", local_time_MPI - start_time_MPI
-          ENDIF  
+      ! write electric field
+      CALL write_hyperslab_to_dset_p(file_id, field_dset_name, fields_array, offset_shape, ccount_shape)
 
-                CALL write_hyperslab_to_dset_p(file_id, field_dset_name, fields_array, offset_shape, ccount_shape)
+      ! write plasma density
+      CALL write_hyperslab_to_dset_p(file_id, plasma_dset_name, plasma_array, offset_shape, ccount_shape)
 
-          local_time_MPI  = MPI_Wtime()
-          IF (my_rank.EQ.0) THEN
-            print *, "fields written:", local_time_MPI - start_time_MPI
-          ENDIF 
+      CALL h5fclose_f(file_id,error)
 
-                CALL write_hyperslab_to_dset_p(file_id, plasma_dset_name, plasma_array, offset_shape, ccount_shape)
-                CALL h5fclose_f(file_id,error)
-
-          local_time_MPI  = MPI_Wtime()
-          IF (my_rank.EQ.0) THEN
-            print *, "file collectivelly closed:", local_time_MPI - start_time_MPI
-          ENDIF  
-
-      IF (my_rank.EQ.0) THEN ! only one worker is extending the zgrid
-        CALL h5open_f(error)  !Initialize HDF5
+      ! extend z-grid
+      IF (my_rank.EQ.0) THEN 
+        CALL h5open_f(error)
         CALL h5fopen_f(main_h5_fname, H5F_ACC_RDWR_F, file_id, error)
         ! only z-grid in 1D
         CALL extend_1D_dset_unlimited(file_id, zgrid_dset_name, (/REAL(four_z_Rayleigh*z,4)/),& ! the actual z-coordinate in SI units 
               new_dims=(/int(output_write_count,HSIZE_T)/),  memspace_dims=(/int(1,HSIZE_T)/),&
               offset=(/int(output_write_count-1,HSIZE_T)/), hyperslab_size=(/int(1,HSIZE_T)/))
         
-
         !! TEST DENSITY MODULATION
         DO k1 = 1, dim_r
           density_mod_data(1,k1) = REAL( density_mod(k1), 4 ) !!! SINGLE PRECISION
@@ -291,6 +238,9 @@ CONTAINS
     deallocate(plasma_array)
     CALL h5close_f(error) ! Close fortran H5 interface
 
+
+    ! Various diagnostics
+    !!!!!!!!!!!!!!!!!! TO BE DISCUSSED !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     etemp=CSHIFT(e,dim_t/2-1,1)
     CALL dfftw_execute(plan_spec)
     DO l=dim_r_start(num_proc),dim_r_end(num_proc)
@@ -323,10 +273,10 @@ CONTAINS
         allocate(spect_array_2(1,1:dim_t),spect_array_3(1,1:dim_t), spect_array_4(1,1:dim_t),spect_array_5(1,1:dim_t))
       ENDIF
 
-local_time_MPI  = MPI_Wtime()
-IF (my_rank.EQ.0) THEN
-  print *, "second data write, file open, only 0th worker:", local_time_MPI - start_time_MPI
-ENDIF  
+! local_time_MPI  = MPI_Wtime()
+! IF (my_rank.EQ.0) THEN
+!   print *, "second data write, file open, only 0th worker:", local_time_MPI - start_time_MPI
+! ENDIF  
 
       CALL h5open_f(error)
       CALL h5fopen_f(main_h5_fname, H5F_ACC_RDWR_F, file_id, error)
@@ -365,17 +315,17 @@ ENDIF
       CALL h5fclose_f(file_id, error)
       CALL h5close_f(error) ! close the HDF5 workspace
 
-local_time_MPI  = MPI_Wtime()
-IF (my_rank.EQ.0) THEN
-  print *, "second data write, file close, only 0th worker:", local_time_MPI - start_time_MPI
-ENDIF  
+! local_time_MPI  = MPI_Wtime()
+! IF (my_rank.EQ.0) THEN
+!   print *, "second data write, file close, only 0th worker:", local_time_MPI - start_time_MPI
+! ENDIF  
 
     ENDIF
     output_write_count = output_write_count + 1 !increase counter in all cases
     RETURN
   END SUBROUTINE  write_output
 
-  SUBROUTINE  field_out
+  SUBROUTINE  code_continuation_output
     USE ppt
     USE normalization
     USE HDF5
@@ -522,7 +472,7 @@ ENDIF
 920 FORMAT (F10.6)
 
     RETURN
-  END SUBROUTINE field_out
+  END SUBROUTINE code_continuation_output
   
   SUBROUTINE linked_list_out
     USE linked_list
@@ -652,161 +602,161 @@ ENDIF
   END SUBROUTINE write_extended_dz
 
 
-  SUBROUTINE Efield_out
-  ! It is still used for printig fields only, it is still used because the main
-  ! printing procedure prints more outputs. It should be merged with the option 
-  ! to print only the fields.
-  !
-  ! It was developed mainly by Jan Vabek
+  ! SUBROUTINE Efield_out
+  ! ! It is still used for printig fields only, it is still used because the main
+  ! ! printing procedure prints more outputs. It should be merged with the option 
+  ! ! to print only the fields.
+  ! !
+  ! ! It was developed mainly by Jan Vabek
 
-  ! This implementation almost straightforwadly follows tutorials from HDF5 portal. The only extension is our 3-dimensionality of the code.
-  ! The code is in a "raw" form, without encapsulating in functions (see comment below).
-  ! This is a stable version. However, it's probably not the final version. THere rest some serious things to test (row-, column-majorness etc.).
-  ! We use pre-allocation of the file. The reason is that appending would require chunking, that is a rather advanced HDF5 topic, especially for performance issues.
-  ! There is need to call some operations collectivelly https://portal.hdfgroup.org/display/HDF5/Collective+Calling+Requirements+in+Parallel+HDF5+Applications
-  !   - It seems that barriers are induced by these commands.
-  !   - We encountered a problem when we tried to do single-worker operation before the collective open. Working with one file has to be done with cre if the file is accessed both sequentially and parallelly. We encountered some problems with that, doing collective first and sequential after seems stable.
+  ! ! This implementation almost straightforwadly follows tutorials from HDF5 portal. The only extension is our 3-dimensionality of the code.
+  ! ! The code is in a "raw" form, without encapsulating in functions (see comment below).
+  ! ! This is a stable version. However, it's probably not the final version. THere rest some serious things to test (row-, column-majorness etc.).
+  ! ! We use pre-allocation of the file. The reason is that appending would require chunking, that is a rather advanced HDF5 topic, especially for performance issues.
+  ! ! There is need to call some operations collectivelly https://portal.hdfgroup.org/display/HDF5/Collective+Calling+Requirements+in+Parallel+HDF5+Applications
+  ! !   - It seems that barriers are induced by these commands.
+  ! !   - We encountered a problem when we tried to do single-worker operation before the collective open. Working with one file has to be done with cre if the file is accessed both sequentially and parallelly. We encountered some problems with that, doing collective first and sequential after seems stable.
 
-    USE fft
-    USE HDF5
-    IMPLICIT NONE
+  !   USE fft
+  !   USE HDF5
+  !   IMPLICIT NONE
 
-    ! General purpose variables: looping, dummy variables
-    INTEGER(4) k1,k2
-    REAL(4), DIMENSION(1) :: dumr4
-    INTEGER(HSIZE_T), DIMENSION(1):: dumh51D, dumh51D2
+  !   ! General purpose variables: looping, dummy variables
+  !   INTEGER(4) k1,k2
+  !   REAL(4), DIMENSION(1) :: dumr4
+  !   INTEGER(HSIZE_T), DIMENSION(1):: dumh51D, dumh51D2
 
-    ! HDF5 general purpose variables
-    INTEGER(HID_T) :: file_id       ! File identifier 
-    INTEGER(HID_T) :: group_id      ! Group identifier 
-    INTEGER(HID_T) :: h5parameters  ! Property list identifier 
-    INTEGER(HSIZE_T), DIMENSION(3) :: dims
-    INTEGER(HSIZE_T), DIMENSION(3) :: ccount  
-    INTEGER(HSIZE_T), DIMENSION(3) :: offset 
-    INTEGER :: error ! Error flags
+  !   ! HDF5 general purpose variables
+  !   INTEGER(HID_T) :: file_id       ! File identifier 
+  !   INTEGER(HID_T) :: group_id      ! Group identifier 
+  !   INTEGER(HID_T) :: h5parameters  ! Property list identifier 
+  !   INTEGER(HSIZE_T), DIMENSION(3) :: dims
+  !   INTEGER(HSIZE_T), DIMENSION(3) :: ccount  
+  !   INTEGER(HSIZE_T), DIMENSION(3) :: offset 
+  !   INTEGER :: error ! Error flags
 
-    ! HDF specific variables
-    INTEGER(HSIZE_T)               :: r_offset
+  !   ! HDF specific variables
+  !   INTEGER(HSIZE_T)               :: r_offset
 
-    ! code variables: the physical quantities etc.
-    INTEGER :: field_dimensions ! Dataset rank & # of points in z
-    ! the kind of this variable has to correspond with the precision stored in HDF5-file
-    REAL(4), ALLOCATABLE :: fields_array(:,:,:), rgrid(:), tgrid(:) 
+  !   ! code variables: the physical quantities etc.
+  !   INTEGER :: field_dimensions ! Dataset rank & # of points in z
+  !   ! the kind of this variable has to correspond with the precision stored in HDF5-file
+  !   REAL(4), ALLOCATABLE :: fields_array(:,:,:), rgrid(:), tgrid(:) 
 
-    ! file & dataset names
-    CHARACTER(*), PARAMETER :: Fields_dset_name = outEfield_grpname//"/Fields_rzt" ! Dataset name
-    CHARACTER(*), PARAMETER :: zgrid_dset_name = outEfield_grpname//"/zgrid" ! Dataset name
-    CHARACTER(*), PARAMETER :: tgrid_dset_name = outEfield_grpname//"/tgrid" ! Dataset name
-    CHARACTER(*), PARAMETER :: rgrid_dset_name = outEfield_grpname//"/rgrid" ! Dataset name
+  !   ! file & dataset names
+  !   CHARACTER(*), PARAMETER :: Fields_dset_name = outEfield_grpname//"/Fields_rzt" ! Dataset name
+  !   CHARACTER(*), PARAMETER :: zgrid_dset_name = outEfield_grpname//"/zgrid" ! Dataset name
+  !   CHARACTER(*), PARAMETER :: tgrid_dset_name = outEfield_grpname//"/tgrid" ! Dataset name
+  !   CHARACTER(*), PARAMETER :: rgrid_dset_name = outEfield_grpname//"/rgrid" ! Dataset name
 
-    ! THE CODE
+  !   ! THE CODE
 
     
-    IF (my_rank.EQ.0) THEN ! still in development mode, keep for the instant
-      print *, "HDF5 writting iteration: ", HDF5write_count
-    ENDIF
+  !   IF (my_rank.EQ.0) THEN ! still in development mode, keep for the instant
+  !     print *, "HDF5 writting iteration: ", HDF5write_count
+  !   ENDIF
 
-    !!! ALLOCATING SPACE FOR GRIDS AND FIELDS
-    field_dimensions = 3; ! total # of dims
-    allocate(fields_array(1,dim_r_local,dim_t)) ! space for fields in every itaration
-    IF ( ( my_rank .EQ. 0 ) .AND. ( HDF5write_count .EQ. 1) ) THEN
-      allocate(tgrid(dim_t),rgrid(dim_r)) ! space for grids: first itration, proc # 0
-    ENDIF
-
-
-    ! AFTER discussion with Jiri Vyskocil, he pointed out the column-majorness or row-majorness could a serious performance issue (note that c and FORTAN differ, h5 is a c-lib)
-    r_offset = dim_r_start(num_proc)-1
-    DO k1=1, dim_r_local
-      DO k2=1, dim_t
-        fields_array(1,k1,k2) = REAL( REAL( (efield_factor*efield_osc(k2)*e(k2,r_offset+k1)) ) , 4 ) ! SINGLE PRECISION, corresponding H5T_NATIVE_REAL (REAL(.,8) corresponds to H5T_NATIVE_DOUBLE)
-        ! e(t,r)
-      ENDDO
-    ENDDO
-
-    IF ( ( my_rank .EQ. 0 ) .AND. ( HDF5write_count .EQ. 1) ) THEN ! fill tables during the first call, proc # 0
-      DO k1=1, dim_t
-        tgrid(k1) = REAL( tps*(tlo+REAL(k1,8)*delta_t) , 4)
-      ENDDO
-      DO k1=1, dim_r
-        rgrid(k1) = REAL( w0m*(REAL(k1-1,8)*delta_r) , 4)
-      ENDDO
-    ENDIF
+  !   !!! ALLOCATING SPACE FOR GRIDS AND FIELDS
+  !   field_dimensions = 3; ! total # of dims
+  !   allocate(fields_array(1,dim_r_local,dim_t)) ! space for fields in every itaration
+  !   IF ( ( my_rank .EQ. 0 ) .AND. ( HDF5write_count .EQ. 1) ) THEN
+  !     allocate(tgrid(dim_t),rgrid(dim_r)) ! space for grids: first itration, proc # 0
+  !   ENDIF
 
 
+  !   ! AFTER discussion with Jiri Vyskocil, he pointed out the column-majorness or row-majorness could a serious performance issue (note that c and FORTAN differ, h5 is a c-lib)
+  !   r_offset = dim_r_start(num_proc)-1
+  !   DO k1=1, dim_r_local
+  !     DO k2=1, dim_t
+  !       fields_array(1,k1,k2) = REAL( REAL( (efield_factor*efield_osc(k2)*e(k2,r_offset+k1)) ) , 4 ) ! SINGLE PRECISION, corresponding H5T_NATIVE_REAL (REAL(.,8) corresponds to H5T_NATIVE_DOUBLE)
+  !       ! e(t,r)
+  !     ENDDO
+  !   ENDDO
 
-    !!!!!!!!!!
-    ! The idea to extend this to writing it in multiple files is not to use ctrl-c--ctrl-v for new quantities. Almost all operations may be done in loops on various files, except hereogeneous writing. 
-    ! When changing the code, please encapsulate the following in functions
-    !!!!!!!!!!
+  !   IF ( ( my_rank .EQ. 0 ) .AND. ( HDF5write_count .EQ. 1) ) THEN ! fill tables during the first call, proc # 0
+  !     DO k1=1, dim_t
+  !       tgrid(k1) = REAL( tps*(tlo+REAL(k1,8)*delta_t) , 4)
+  !     ENDDO
+  !     DO k1=1, dim_r
+  !       rgrid(k1) = REAL( w0m*(REAL(k1-1,8)*delta_r) , 4)
+  !     ENDDO
+  !   ENDIF
+
+
+
+  !   !!!!!!!!!!
+  !   ! The idea to extend this to writing it in multiple files is not to use ctrl-c--ctrl-v for new quantities. Almost all operations may be done in loops on various files, except hereogeneous writing. 
+  !   ! When changing the code, please encapsulate the following in functions
+  !   !!!!!!!!!!
  
-   ! Initialize dims arrays
-    dims = (/int(Nz_points_Efield,HSIZE_T),int(dim_r,HSIZE_T), int(dim_t,HSIZE_T)/)
-    offset = (/int(HDF5write_count-1,HSIZE_T),int(dim_r_start(num_proc)-1,HSIZE_T),int(0,HSIZE_T)/)
-    ccount = (/int(1,HSIZE_T), int(dim_r_local,HSIZE_T) , int(dim_t,HSIZE_T)/)
+  !  ! Initialize dims arrays
+  !   dims = (/int(Nz_points_Efield,HSIZE_T),int(dim_r,HSIZE_T), int(dim_t,HSIZE_T)/)
+  !   offset = (/int(HDF5write_count-1,HSIZE_T),int(dim_r_start(num_proc)-1,HSIZE_T),int(0,HSIZE_T)/)
+  !   ccount = (/int(1,HSIZE_T), int(dim_r_local,HSIZE_T) , int(dim_t,HSIZE_T)/)
       
-    CALL h5open_f(error) 
-    CALL h5pcreate_f(H5P_FILE_ACCESS_F, h5parameters, error) ! create HDF5 access parameters
-    CALL h5pset_fapl_mpio_f(h5parameters, MPI_COMM_WORLD, MPI_INFO_NULL, error) ! set parameters for MPI access
-    CALL h5fopen_f(main_h5_fname, H5F_ACC_RDWR_F, file_id, error, access_prp = h5parameters ) ! Open collectivelly the file
-    CALL h5pclose_f(h5parameters,error) ! close the parameters
+  !   CALL h5open_f(error) 
+  !   CALL h5pcreate_f(H5P_FILE_ACCESS_F, h5parameters, error) ! create HDF5 access parameters
+  !   CALL h5pset_fapl_mpio_f(h5parameters, MPI_COMM_WORLD, MPI_INFO_NULL, error) ! set parameters for MPI access
+  !   CALL h5fopen_f(main_h5_fname, H5F_ACC_RDWR_F, file_id, error, access_prp = h5parameters ) ! Open collectivelly the file
+  !   CALL h5pclose_f(h5parameters,error) ! close the parameters
 
-    IF ( HDF5write_count == 1) THEN 
-      !Create group for the output
-      CALL h5gcreate_f(file_id, outEfield_grpname, group_id, error) 
-      CALL h5gclose_f(group_id, error)
+  !   IF ( HDF5write_count == 1) THEN 
+  !     !Create group for the output
+  !     CALL h5gcreate_f(file_id, outEfield_grpname, group_id, error) 
+  !     CALL h5gclose_f(group_id, error)
           
-      ! Call writing routine
-      CALL create_3D_array_real_dset_p(file_id, Fields_dset_name, fields_array, dims, offset, ccount)
+  !     ! Call writing routine
+  !     CALL create_3D_array_real_dset_p(file_id, Fields_dset_name, fields_array, dims, offset, ccount)
 
-      ! Terminate
-      CALL h5fclose_f(file_id,error)
+  !     ! Terminate
+  !     CALL h5fclose_f(file_id,error)
 
-      !!! attributes are probably not well handled by MPI... ( https://forum.hdfgroup.org/t/write-attributes-collectively-in-mpi-run/4902/2 ), just add them once by one worker
-      IF (my_rank.EQ.0) THEN
-        CALL h5fopen_f (main_h5_fname, H5F_ACC_RDWR_F, file_id, error) ! Open an existing file.
-        CALL h5_add_units_1D(file_id, Fields_dset_name, '[V/m]') ! add units
+  !     !!! attributes are probably not well handled by MPI... ( https://forum.hdfgroup.org/t/write-attributes-collectively-in-mpi-run/4902/2 ), just add them once by one worker
+  !     IF (my_rank.EQ.0) THEN
+  !       CALL h5fopen_f (main_h5_fname, H5F_ACC_RDWR_F, file_id, error) ! Open an existing file.
+  !       CALL h5_add_units_1D(file_id, Fields_dset_name, '[V/m]') ! add units
 
-        !!!! HERE WE WRITE z-grid, appended in each iteration
-        ! we will still be working with the file
-        dumr4(1) = REAL(four_z_Rayleigh*z,4) ! the actual z-coordinate in SI units 
-        CALL create_1D_dset_unlimited(file_id, zgrid_dset_name, dumr4, 1)
-        CALL h5_add_units_1D(file_id, zgrid_dset_name, '[SI]')
+  !       !!!! HERE WE WRITE z-grid, appended in each iteration
+  !       ! we will still be working with the file
+  !       dumr4(1) = REAL(four_z_Rayleigh*z,4) ! the actual z-coordinate in SI units 
+  !       CALL create_1D_dset_unlimited(file_id, zgrid_dset_name, dumr4, 1)
+  !       CALL h5_add_units_1D(file_id, zgrid_dset_name, '[SI]')
 
-        CALL create_dset(file_id, rgrid_dset_name, rgrid, dim_r)
-        CALL h5_add_units_1D(file_id, rgrid_dset_name, '[SI]')
-        CALL create_dset(file_id, tgrid_dset_name, tgrid, dim_t)
-        CALL h5_add_units_1D(file_id, tgrid_dset_name, '[SI]')
+  !       CALL create_dset(file_id, rgrid_dset_name, rgrid, dim_r)
+  !       CALL h5_add_units_1D(file_id, rgrid_dset_name, '[SI]')
+  !       CALL create_dset(file_id, tgrid_dset_name, tgrid, dim_t)
+  !       CALL h5_add_units_1D(file_id, tgrid_dset_name, '[SI]')
 
-        CALL h5fclose_f(file_id, error)
-        deallocate(rgrid,tgrid)
+  !       CALL h5fclose_f(file_id, error)
+  !       deallocate(rgrid,tgrid)
 
-      ENDIF ! single-write end
-    ELSE !!!! APPENDING THE DATA IN NEXT ITERATIONS
-      CALL write_hyperslab_to_dset_p(file_id, Fields_dset_name, fields_array, offset, ccount)
-      CALL h5fclose_f(file_id,error)
-      IF (my_rank.EQ.0) THEN ! only one worker is extending the zgrid
-        CALL h5open_f(error)  !Initialize HDF5
-        CALL h5fopen_f(main_h5_fname, H5F_ACC_RDWR_F, file_id, error)
-        ! only z-grid in 1D
-        dumh51D = (/int(HDF5write_count-1,HSIZE_T)/) ! offset
-        dumh51D2 = (/int(1,HSIZE_T)/) ! count
-        dumr4(1) = REAL(four_z_Rayleigh*z,4) ! the actual z-coordinate in SI units 
-        CALL extend_1D_dset_unlimited(file_id, zgrid_dset_name, dumr4, new_dims=(/int(HDF5write_count,HSIZE_T)/), & 
-          memspace_dims=(/int(1,HSIZE_T)/), offset=dumh51D, hyperslab_size=dumh51D2)
-        CALL h5fclose_f(file_id,error)
-      ENDIF ! single-write end
-    ENDIF
-    CALL h5close_f(error) ! close the HDF5 workspace
+  !     ENDIF ! single-write end
+  !   ELSE !!!! APPENDING THE DATA IN NEXT ITERATIONS
+  !     CALL write_hyperslab_to_dset_p(file_id, Fields_dset_name, fields_array, offset, ccount)
+  !     CALL h5fclose_f(file_id,error)
+  !     IF (my_rank.EQ.0) THEN ! only one worker is extending the zgrid
+  !       CALL h5open_f(error)  !Initialize HDF5
+  !       CALL h5fopen_f(main_h5_fname, H5F_ACC_RDWR_F, file_id, error)
+  !       ! only z-grid in 1D
+  !       dumh51D = (/int(HDF5write_count-1,HSIZE_T)/) ! offset
+  !       dumh51D2 = (/int(1,HSIZE_T)/) ! count
+  !       dumr4(1) = REAL(four_z_Rayleigh*z,4) ! the actual z-coordinate in SI units 
+  !       CALL extend_1D_dset_unlimited(file_id, zgrid_dset_name, dumr4, new_dims=(/int(HDF5write_count,HSIZE_T)/), & 
+  !         memspace_dims=(/int(1,HSIZE_T)/), offset=dumh51D, hyperslab_size=dumh51D2)
+  !       CALL h5fclose_f(file_id,error)
+  !     ENDIF ! single-write end
+  !   ENDIF
+  !   CALL h5close_f(error) ! close the HDF5 workspace
 
 
-    HDF5write_count = HDF5write_count + 1 !increase counter in all cases
-    deallocate(fields_array)
+  !   HDF5write_count = HDF5write_count + 1 !increase counter in all cases
+  !   deallocate(fields_array)
 
-    IF (my_rank.EQ.0) THEN
-       print *, "finished", my_rank, "iteration+1", HDF5write_count
-    ENDIF
+  !   IF (my_rank.EQ.0) THEN
+  !      print *, "finished", my_rank, "iteration+1", HDF5write_count
+  !   ENDIF
 
-    RETURN
-  END SUBROUTINE  Efield_out
+  !   RETURN
+  ! END SUBROUTINE  Efield_out
 
 END MODULE output

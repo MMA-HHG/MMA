@@ -97,7 +97,7 @@ CONTAINS
       CALL create_dset(group_id,'outlength', outlength)
       CALL create_dset(group_id,'delta_z', delta_z)
       CALL create_dset(group_id,'z', z)
-      CALL create_dset(group_id,'z_out', z_out)
+      ! CALL create_dset(group_id,'z_out', z_out)
       CALL create_dset(group_id,'rfil', rfil)
       CALL create_dset(group_id,'switch_rho', switch_rho)
       CALL create_dset(group_id,'switchKerr', switch_dKerr)

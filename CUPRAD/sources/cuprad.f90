@@ -53,18 +53,18 @@ PROGRAM cuprad
      ! it loops until the end of the medium is reached or timelimit is reached (exit statement in the body)
      DO WHILE (z.LT.proplength) 
 
-         ! there are two independent writes (see manual) 
-         IF( out_Efield .AND. (z_out_Efield .LE. z)) THEN ! only-field print ! ADD an extra logic to disable this option at all
-           CALL Efield_out
-           z_out_Efield = z_out_Efield + outlength_Efield
-         ENDIF
+         ! ! there are two independent writes (see manual) 
+         ! IF( out_Efield .AND. (z_out_Efield .LE. z)) THEN ! only-field print ! ADD an extra logic to disable this option at all
+         !   CALL Efield_out
+         !   z_out_Efield = z_out_Efield + outlength_Efield
+         ! ENDIF
 
          IF(z_out.LE.z) THEN
            local_time_MPI  = MPI_Wtime()
            IF (my_rank.EQ.0) THEN
             print *, '-------------------------------------------------------------------------------'
             print *, "printing number:", output_write_count, ":"
-            print *, "z[m]=", z*four_z_Rayleigh
+            print *, "z[m]=", z*four_z_Rayleigh, "(", z/proplength, " %)"
             print *, "before printing:", local_time_MPI - start_time_MPI
            ENDIF
            CALL write_output
@@ -121,7 +121,7 @@ PROGRAM cuprad
     !====================
 
      IF (z.GE.proplength) THEN ! The end of the medium is reached
-        IF (out_Efield) CALL Efield_out         
+      !   IF (out_Efield) CALL Efield_out         
         finished = .TRUE. ! prevents possible consequitive slurm job to be executed
         IF (my_rank.EQ.0) THEN
            OPEN(unit_rho,FILE='STOP',STATUS='OLD')
@@ -134,13 +134,8 @@ PROGRAM cuprad
      !CALL matlab_out 
      rhodist=count
      CALL propagation ! ??? WHY DO WE PROPAGATE EVEN ONCE MORE?
-     CALL field_out
-     CALL linked_list_out
-     IF (my_rank.EQ.0) THEN ! write output to check if the code is not completely wrong
-         print *, 'test:'
-         print *, '(4.05444499579252,2.107331137558244E-002)'
-         print *, e(dim_t/2,2)
-     ENDIF
+     CALL code_continuation_output
+
      CALL finalize
      PRINT*, "program finished"
   ENDIF

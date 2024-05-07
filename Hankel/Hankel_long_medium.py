@@ -76,10 +76,15 @@ else:
     
     results_path = os.path.join("D:\sharepoint", "OneDrive - ELI Beamlines",
                     "data", "Sunrise","tmp","h5debug","TDSEs","t2")  
+    
+    results_path = os.path.join("D:\sharepoint", "OneDrive - ELI Beamlines",
+                    "data", "Sunrise","tmp","h5debug","TDSEs","densmod","t1")  
 
 
 
 file = "results_TDSEM.h5"
+file = "results.h5"
+
 file = os.path.join(results_path,file)
 
 
