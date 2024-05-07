@@ -100,7 +100,7 @@ character(len=255), parameter :: available_tests(N_tests) = [character(len=255) 
                                                         "test1_TDSE", "test2_TDSE", "test3_TDSE", &
                                                         "test4_TDSE", &
                                                         ("undefined", k1 = 285, 290), &
-                                                        "test1_TDSE_mod", "test1_TDSE_mod_inc", "test1_TDSE_mod_dec",
+                                                        "test1_TDSE_mod", "test1_TDSE_mod_inc", "test1_TDSE_mod_dec", &
                                                         ("undefined", k1 = 294, 300), &
                                                         "test_SciRep12-7715-1"] ! "GfH5w_pre_ionised_PPT"
 
