@@ -141,7 +141,7 @@ CONTAINS
     ! The datasets are initiated in the first call of this subroutine, filled in next calls
     IF ( first ) THEN
 
-      first = .FALSE.
+      ! first = .FALSE.
 
       !Create group for the output if it does not already exist
       CALL h5lexists_f(file_id, out_grpname, group_status, error)
@@ -322,6 +322,9 @@ CONTAINS
 
     ENDIF
     output_write_count = output_write_count + 1 !increase counter in all cases
+
+    IF (first) first = .FALSE.
+ 
     RETURN
   END SUBROUTINE  write_output
 
