@@ -13,4 +13,4 @@ module purge
 load_python_modules
 
 
-python3 $TDSE_1D_POST_PROCESSING/merge.py
+python3 $TDSE_1D_POST_PROCESSING/merge.py -keep-files
