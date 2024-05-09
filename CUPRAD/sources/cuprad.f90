@@ -64,7 +64,7 @@ PROGRAM cuprad
            IF (my_rank.EQ.0) THEN
             print *, '-------------------------------------------------------------------------------'
             print *, "printing number:", output_write_count, ":"
-            print *, "z[m]=", z*four_z_Rayleigh, "(", z/proplength, " %)"
+            print *, "z[m]=", z*four_z_Rayleigh, "(", 1e2*z/proplength, " %)"
             print *, "before printing:", local_time_MPI - start_time_MPI
            ENDIF
            CALL write_output
