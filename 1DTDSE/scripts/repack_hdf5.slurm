@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#SBATCH --job-name="HDF5_MRG"
+#SBATCH --job-name="REPACK_HDF5"
 #SBATCH --ntasks=1
 #SBATCH -t 0-02:00 # time (D-HH:MM)
 #SBATCH -o HDF5_MERGE.%j.%N.out # STDOUT
@@ -8,9 +8,4 @@
 #SBATCH --profile=All
 
 
-
-module purge
-load_python_modules
-
-
-python3 $TDSE_1D_POST_PROCESSING/merge.py
+h5repack -i results.h5 -o results_repacked.h5
