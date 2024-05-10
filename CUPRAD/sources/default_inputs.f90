@@ -98,8 +98,8 @@ character(len=255), parameter :: available_tests(N_tests) = [character(len=255) 
                                                         "test18_modT1", "test18_modT2", "test18_modT3", &
                                                         ("undefined", k1 = 277, 280), &
                                                         "test1_TDSE", "test2_TDSE", "test3_TDSE", &
-                                                        "test4_TDSE", &
-                                                        ("undefined", k1 = 285, 290), &
+                                                        "test4_TDSE", "test5_TDSE", &
+                                                        ("undefined", k1 = 286, 290), &
                                                         "test1_TDSE_mod", "test1_TDSE_mod_inc", "test1_TDSE_mod_dec", &
                                                         ("undefined", k1 = 294, 300), &
                                                         "test_SciRep12-7715-1", "test_SciRep12-7715-2"] ! "GfH5w_pre_ionised_PPT"
@@ -130,6 +130,7 @@ character(len=255), parameter :: available_tests(N_tests) = [character(len=255) 
 ! 2 - 0.1 mm, 0.01 mm spacing ~ 10 planes + 5.87 % pre-ionised (Henke optimal)
 ! 3 - 0.2 mm, 0.01 mm spacing ~ 20 planes (to be combined with a Gaussian jet)
 ! 4 - 0.02 mm, 0.01 mm spacing ~ 5 planes 
+! 5 - 2 mm, 0.01 mm spacing ~ 200 planes (to be combined with a Gaussian jet)
 
 ! TDSE's + densmod:
 ! 1 - 1 mm, 0.01 mm spacing ~ 100 planes
@@ -500,7 +501,7 @@ subroutine preset_numerics_tests(test_number)
          231:241, 251:259, 261:263, 271:276)
         ! num_proc = 32
         time_limit = 19.9d0 
-    case(281:284, 291:293)
+    case(281:285, 291:293)
         time_limit = 1.59d0 
 
     case(301,302)
@@ -539,7 +540,7 @@ subroutine preset_numerics_tests(test_number)
         lt = 16.d0
         dim_t = 8192 ! asymmetric
         absorb = 64
-    case(281:283, 291:293)
+    case(281:283, 285, 291:293)
         lt = 8.d0
         dim_t = 2048 ! asymmetric
         absorb = 16      
@@ -580,7 +581,7 @@ subroutine preset_numerics_tests(test_number)
         switch_T = 1
     case(104:106, 114:116, 124:126, 134:136, 144:146, 154:156, 164:166, 174:176, 184:186, 194:196, 204:206, 214:216, 224:226, &
          231:241, 254:256, 261:263, 272, 275, &
-         281:284, 291:293, &
+         281:285, 291:293, &
          301,302)
         switch_T = 2
     case(107:109, 117:119, 127:129, 137:139, 147:149, 157:159, 167:169, 177:179, 187:189, 197:199, 207:209, 217:219, 227:229, &
@@ -597,7 +598,7 @@ subroutine preset_numerics_tests(test_number)
 
     case(101:109,111:119,121:129,131:139, 141:149, 151:159, 161:169, 171:179, 181:189, 191:199, 201:209, 211:219, 221:229,231:241, &
          251:259,261:263,271:276, &
-         281:284,291:293, &
+         281:285,291:293, &
          301,302)
         delta_z_mm_phys = 1.d-3   
     end select
@@ -648,7 +649,7 @@ subroutine preset_numerics_tests(test_number)
     case(111:119)
         outlength_m_phys = 0.5d-4  
         outlength_Efield_m_phys = 0.075d0
-    case(281:284, 291:293)
+    case(281:285, 291:293)
        outlength_m_phys = 1.d-5  
        outlength_Efield_m_phys = 0.075d0
 
@@ -677,7 +678,7 @@ subroutine preset_physics(test_number)
 
     case(101:109,111:119,121:129,131:139, 141:149, 151:159, 161:169, 171:179, 181:189, 191:199, 201:209, 211:219, 221:229, 231:241, &
         251:259, 261:263, 271:276, &
-        281:284, 291:293)
+        281:285, 291:293)
         lambda0_cm_phys = 8.d-5
     end select
 
@@ -698,7 +699,7 @@ subroutine preset_physics(test_number)
 
     case(101:109,111:119,121:129,131:139, 141:149, 151:159, 161:169, 171:179, 181:189, 191:199, 201:209, 211:219, 221:229, 231:241, 251:259, &
          261:263,271:276, &
-         281:284, 291:293)
+         281:285, 291:293)
         gas_preset = 'Ar'
         ionization_model = 'PPT'
 
@@ -748,6 +749,8 @@ subroutine preset_physics(test_number)
         proplength_m_phys = 0.2d-3
     case(284)
         proplength_m_phys = 0.2d0*0.1d-3
+    case(285)
+        proplength_m_phys = 2.0d-3
     case(291:293)
         proplength_m_phys = 1.0d-3
 
@@ -773,7 +776,7 @@ subroutine preset_physics(test_number)
 
     case(101:109,111:119,121:129,131:139, 141:149, 151:159, 161:169, 171:179, 181:189, 191:199, 201:209, 211:219, 221:229, 231:241, 251:259, &
          261:263, 271:276, &
-         281:284,291:293)
+         281:285,291:293)
         waist_focus = 110.d-6   ! m
 
     case(301, 302)
@@ -791,7 +794,7 @@ subroutine preset_physics(test_number)
 
     case(101:109,111:119,121:129,131:139, 141:149, 151:159, 161:169, 171:179, 181:189, 191:199, 201:209, 211:219, 221:229, 231:241, &
          251:259,261:263, &
-         281:284,291:293,301,302)
+         281:285,291:293,301,302)
         call save_or_replace(file_id, in_grpname//'/laser_focus_beamwaist_Gaussian', waist_focus, error, units_in = '[m]')
     end select
 
@@ -827,7 +830,7 @@ subroutine preset_physics(test_number)
 
     case(101:109,121:129,131:139, 151:159, 161:169, 171:179, 181:189, 191:199, 201:209, 211:219, 221:229, 231:241, 251:259, &
          261:263,271:273, &
-         281:284, 291:293)
+         281:285, 291:293)
         Intensity_focus = 2.d0*1.8d18
         call save_or_replace(file_id, in_grpname//'/laser_focus_intensity_Gaussian', Intensity_focus, error, units_in = '[SI]')
     case(111:119)
@@ -871,7 +874,7 @@ subroutine preset_physics(test_number)
          231:241, 251:259, 261:263, 271:276)
         tp_fs_phys = 50.d0
         call save_or_replace(file_id, in_grpname//'/laser_pulse_duration_in_1_e_Efield', tp_fs_phys, error, units_in = '[fs]')
-    case(281:284, 291:293)
+    case(281:285, 291:293)
        tp_fs_phys = 30.d0
        call save_or_replace(file_id, in_grpname//'/laser_pulse_duration_in_1_e_Efield', tp_fs_phys, error, units_in = '[fs]')
 
@@ -902,7 +905,7 @@ subroutine preset_physics(test_number)
 
     case(101:109,111:119,121:129,131:139, 141:149, 151:159, 161:169, 171:179, 181:189, 191:199, 201:209, 211:219, 221:229, &
          231:241, 251:259, 261:263, 271:273, &
-         281:284, 291:293)
+         281:285, 291:293)
         focus_position = 0.0d0
     case(274:276)
         focus_position = 0.5*proplength_m_phys
@@ -1015,7 +1018,7 @@ subroutine preset_physics(test_number)
     case(263)
         pressure = 1.0d2  * 0.05d0    
 
-    case(281:284)
+    case(281:285)
        pressure = 0.05d0
 
     case(291)

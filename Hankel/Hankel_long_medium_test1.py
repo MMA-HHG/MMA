@@ -87,6 +87,16 @@ else:
     results_path2 = os.path.join("D:\sharepoint", "OneDrive - ELI Beamlines",
                     "data", "Sunrise","tmp","h5debug","TDSEs","SciRep","t2")  
     
+    
+    
+    
+    results_path = os.path.join("D:\sharepoint", "OneDrive - ELI Beamlines",
+                    "data", "Sunrise","tmp","h5debug","TDSEs","t3")  
+
+
+    results_path2 = os.path.join("D:\sharepoint", "OneDrive - ELI Beamlines",
+                    "data", "Sunrise","tmp","h5debug","TDSEs","t3mod")  
+    
 
 file = "results_TDSEM.h5"
 filename = "results.h5"
@@ -328,12 +338,14 @@ with h5py.File(file, 'r') as InpArch, h5py.File(file2, 'r') as InpArch2:
     image.sf = [pp.plotter() for k1 in range(32)]
     image.sf[0].args = [target_dynamic.ogrid/omega0SI, rgrid_FF, np.abs(HL_cum[0].T)]
     image.sf[0].method = plt.pcolormesh
+    image.sf[0].colorbar.show = True
     pp.plot_preset(image)
     
     image = pp.figure_driver()
     image.sf = [pp.plotter() for k1 in range(32)]
     image.sf[0].args = [target_dynamic2.ogrid/omega0SI, rgrid_FF, np.abs(HL_cum2[0].T)]
     image.sf[0].method = plt.pcolormesh
+    image.sf[0].colorbar.show = True
     pp.plot_preset(image)
     
     # signal build-up for H19
