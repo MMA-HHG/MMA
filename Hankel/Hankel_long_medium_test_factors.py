@@ -65,59 +65,18 @@ if ('-here' in arguments):
     results_TDSE = os.getcwd()
 else:
 
-    results_path = os.path.join("D:\sharepoint", "OneDrive - ELI Beamlines",
-                    "data", "Sunrise","tmp","h5debug","TDSEs","t4_tmp")
     
     results_path = os.path.join("D:\sharepoint", "OneDrive - ELI Beamlines",
-                    "data", "Sunrise","tmp","h5debug","TDSEs","t1")
-
-    results_path = os.path.join("D:\sharepoint", "OneDrive - ELI Beamlines",
-                    "data", "Sunrise","tmp","h5debug","TDSEs","t3mod")  
-    
-    results_path = os.path.join("D:\sharepoint", "OneDrive - ELI Beamlines",
-                    "data", "Sunrise","tmp","h5debug","TDSEs","t2")  
-    
-    results_path = os.path.join("D:\sharepoint", "OneDrive - ELI Beamlines",
-                    "data", "Sunrise","tmp","h5debug","TDSEs","densmod","t1")  
-    
-    results_path = os.path.join("D:\sharepoint", "OneDrive - ELI Beamlines",
-                    "data", "Sunrise","tmp","h5debug","TDSEs","SciRep","t1")  
+                    "data", "Sunrise","tmp","h5debug","TDSEs","t1")  
 
 
-    results_path2 = os.path.join("D:\sharepoint", "OneDrive - ELI Beamlines",
-                    "data", "Sunrise","tmp","h5debug","TDSEs","SciRep","t2")  
-    
-    
-    
-    
-    results_path = os.path.join("D:\sharepoint", "OneDrive - ELI Beamlines",
-                    "data", "Sunrise","tmp","h5debug","TDSEs","t3")  
 
-
-    results_path2 = os.path.join("D:\sharepoint", "OneDrive - ELI Beamlines",
-                    "data", "Sunrise","tmp","h5debug","TDSEs","t3mod")  
-    
-    
-    results_path = os.path.join("D:\sharepoint", "OneDrive - ELI Beamlines",
-                    "data", "Sunrise","tmp","h5debug","TDSEs","densmod","t1")  
-
-
-    results_path2 = os.path.join("D:\sharepoint", "OneDrive - ELI Beamlines",
-                    "data", "Sunrise","tmp","h5debug","TDSEs","densmod","t2")  
-    
-    results_path = os.path.join("D:\sharepoint", "OneDrive - ELI Beamlines",
-                    "data", "Sunrise","tmp","h5debug","TDSEs","t5")  
-
-
-    results_path2 = os.path.join("D:\sharepoint", "OneDrive - ELI Beamlines",
-                    "data", "Sunrise","tmp","h5debug","TDSEs","t5mod") 
-    
 
 file = "results_TDSEM.h5"
 filename = "results.h5"
 
 file = os.path.join(results_path,filename)
-file2 = os.path.join(results_path2,filename)
+
 
 
 
@@ -126,7 +85,7 @@ rgrid_FF = np.linspace(0.0, rmax_FF, Nr_FF)
 
 # load data
 print('processing:', file)             
-with h5py.File(file, 'r') as InpArch, h5py.File(file2, 'r') as InpArch2:
+with h5py.File(file, 'r') as InpArch:
     # print(InpArch.keys())
     # print('h5path',MMA.paths['CUPRAD_inputs']+'/laser_wavelength')
     omega0 = mn.ConvertPhoton(1e-2*mn.readscalardataset(InpArch,
@@ -137,15 +96,10 @@ with h5py.File(file, 'r') as InpArch, h5py.File(file2, 'r') as InpArch2:
     rho0_init = 1e6 * mn.readscalardataset(InpArch, MMA.paths['CUPRAD_inputs']+
                                            '/calculated/medium_effective_density_of_neutral_molecules','N') # SI
     
-    inverse_GV_IR2 = InpArch2[MMA.paths['CUPRAD_logs']+'/inverse_group_velocity_SI'][()]; group_velocity_IR2 = 1./inverse_GV_IR2
-    # pressure_mbar = 1e3*InputArchiveCUPRAD['/inputs/medium_pressure_in_bar'][()]
-    rho0_init2 = 1e6 * mn.readscalardataset(InpArch2, MMA.paths['CUPRAD_inputs']+
-                                           '/calculated/medium_effective_density_of_neutral_molecules','N') # SI
     
     
     pressure = Hankel_tools.pressure_constructor(InpArch)
-    pressure2 = Hankel_tools.pressure_constructor(InpArch2)
-    preset_gas = 'vacuum'
+
     
     
     print(MMA.paths['global_inputs']+'/gas_preset')
@@ -172,32 +126,13 @@ with h5py.File(file, 'r') as InpArch, h5py.File(file2, 'r') as InpArch2:
     rgrid_macro = InpArch[MMA.paths['CTDSE_outputs']+'/rgrid_coarse'][:]
     zgrid_macro = InpArch[MMA.paths['CTDSE_outputs']+'/zgrid_coarse'][:]
     
-    ogrid2 = InpArch2[MMA.paths['CTDSE_outputs']+'/omegagrid'][:]
-    rgrid_macro2 = InpArch2[MMA.paths['CTDSE_outputs']+'/rgrid_coarse'][:]
-    zgrid_macro2 = InpArch2[MMA.paths['CTDSE_outputs']+'/zgrid_coarse'][:]
-    
-    # FSourceTerm_sparse = InpArch[MMA.paths['CTDSE_outputs']+'/FSourceTerm'][:,:,0:-1:2,0] + \
-    #                     1j*InpArch[MMA.paths['CTDSE_outputs']+'/FSourceTerm'][:,:,0:-1:2,1]
-  
-                        
-    # image = pp.figure_driver()
-    # image.sf = [pp.plotter() for k1 in range(32)]
-    # image.sf[0].args = [ogrid, np.abs(FSourceTerm[0,0,:])]
-    # image.sf[0].method = plt.semilogy
-    # pp.plot_preset(image)
-    
-    # image = pp.figure_driver()
-    # image.sf = [pp.plotter() for k1 in range(32)]
-    # image.sf[0].args = [ogrid/omega0, np.abs(FSourceTerm[0,0,:])]
-    # image.sf[0].method = plt.semilogy
-    # pp.plot_preset(image)
+
+
     
     ko_min = mn.FindInterval(ogrid/omega0, 16.9)
     ko_max = mn.FindInterval(ogrid/omega0, 17.1)
     
-    # print(type(InputArchiveTDSE))
-    # grp =  InputArchiveCUPRAD['/logs']
-    # print(type(grp))
+
     
     omega_au2SI = mn.ConvertPhoton(1.0, 'omegaau', 'omegaSI')
     ogridSI = omega_au2SI * ogrid
@@ -220,77 +155,25 @@ with h5py.File(file, 'r') as InpArch, h5py.File(file2, 'r') as InpArch2:
                                                     ko_min = ko_min,
                                                     ko_max = ko_max)
     
-    
-    target_dynamic2 = Hankel_tools.FSources_provider(InpArch2[MMA.paths['CTDSE_outputs']+'/zgrid_coarse'][:],
-                                                    InpArch2[MMA.paths['CTDSE_outputs']+'/rgrid_coarse'][:],
-                                                    omega_au2SI*InpArch2[MMA.paths['CTDSE_outputs']+'/omegagrid'][:],
-                                                    h5_handle = InpArch2,
-                                                    h5_path = MMA.paths['CTDSE_outputs']+'/FSourceTerm',
-                                                    data_source = 'dynamic',
-                                                    ko_min = ko_min,
-                                                    ko_max = ko_max)
-    
-    # target_static_Ar = Hankel_tools.FSources_provider(InputArchiveTDSE['zgrid_coarse'][:],
-    #                                                InputArchiveTDSE['rgrid_coarse'][:],
-    #                                                omega_au2SI*InputArchiveTDSE['omegagrid'][:],
-    #                                                FSource = np.transpose(FSourceTerm,axes=(1,2,0)),
-    #                                                data_source = 'static',
-    #                                                ko_min = ko_min,
-    #                                                ko_max = ko_max)
-    
-    
-    # plane1_dyn = next(target_dynamic.Fsource_plane)
-    # plane2_dyn = next(target_dynamic.Fsource_plane)
-        
- 
-    
- 
-    pf1 = Hankel_tools.get_propagation_pre_factor_function( target_dynamic.zgrid,
-                                                            target_dynamic.rgrid,
-                                                            target_dynamic.ogrid,
-                                                            preset_gas = 'Kr',
-                                                            pressure = pressure,
-                                                            absorption_tables = 'Henke',
-                                                            include_absorption = True,
-                                                            dispersion_tables = 'Henke',
-                                                            include_dispersion = True,
-                                                            effective_IR_refrective_index = effective_IR_refrective_index)
-    
 
-    # pf2 = Hankel_tools.get_propagation_pre_factor_function( target_static.zgrid,
-    #                                                         target_static.rgrid,
-    #                                                         target_static.ogrid,
-    #                                                         preset_gas = 'Ar',
+
+ 
+    
+ 
+    # pf1 = Hankel_tools.get_propagation_pre_factor_function( target_dynamic.zgrid,
+    #                                                         target_dynamic.rgrid,
+    #                                                         target_dynamic.ogrid,
+    #                                                         preset_gas = 'Kr',
     #                                                         pressure = pressure,
     #                                                         absorption_tables = 'Henke',
     #                                                         include_absorption = True,
     #                                                         dispersion_tables = 'Henke',
     #                                                         include_dispersion = True,
-    #                                                         effective_IR_refrective_index = 1.0)
+    #                                                         effective_IR_refrective_index = effective_IR_refrective_index)
     
+
     
-    # sys.exit(0)
-    
-    # HL_end_full, HL_cum_full, pf = Hfn2.HankelTransform_long(target_dynamic, 
-    #                           distance_FF, rgrid_FF,
-    #                           preset_gas = preset_gas,
-    #                           pressure = pressure,
-    #                           absorption_tables = 'Henke',
-    #                           include_absorption = True,
-    #                           dispersion_tables = 'Henke',
-    #                           include_dispersion = True,
-    #                           effective_IR_refrective_index = effective_IR_refrective_index,
-    #                           integrator_Hankel = integrate.trapz,
-    #                           integrator_longitudinal = 'trapezoidal',
-    #                           near_field_factor = True,
-    #                           store_cummulative_result = False,
-    #                           frequencies_to_trace_maxima = None,
-    #                           )
-    
-    # absorption = True
-    # dispersion = False
-    
-    HL_end_full, HL_cum_full, pf =  Hfn2.HankelTransform_long(target_dynamic, # FSourceTerm(r,z,omega)
+    HL_end, HL_cum, pf, HL_cum_ref, factor_e =  Hfn2.HankelTransform_long(target_dynamic, # FSourceTerm(r,z,omega)
                               distance_FF, rgrid_FF,
                               preset_gas = preset_gas,
                               pressure = pressure,
@@ -306,65 +189,30 @@ with h5py.File(file, 'r') as InpArch, h5py.File(file2, 'r') as InpArch2:
                               frequencies_to_trace_maxima = None,
                               )
     
+
     
-    HL_end2, HL_cum2, pf2 =  Hfn2.HankelTransform_long(target_dynamic2, # FSourceTerm(r,z,omega)
-                              distance_FF, rgrid_FF,
-                              preset_gas = preset_gas,
-                              pressure = pressure2,
-                              absorption_tables = 'Henke',
-                              include_absorption = True,
-                              dispersion_tables = 'Henke',
-                              include_dispersion = False,
-                              effective_IR_refrective_index = effective_IR_refrective_index,
-                              integrator_Hankel = integrate.trapz,
-                              integrator_longitudinal = 'trapezoidal',
-                              near_field_factor = True,
-                              store_cummulative_result = True,
-                              frequencies_to_trace_maxima = None,
-                              )
-    
-    
-    # target_static = Hankel_tools.FSources_provider(InpArch[MMA.paths['CTDSE_outputs']+'/zgrid_coarse'][:],
-    #                                                InpArch[MMA.paths['CTDSE_outputs']+'/rgrid_coarse'][:],
-    #                                                omega_au2SI*InpArch[MMA.paths['CTDSE_outputs']+'/omegagrid'][:],
-    #                                                FSource = np.transpose(FSourceTerm,axes=(0,2,1)),
-    #                                                data_source = 'static',
-    #                                                ko_min = ko_min,
-    #                                                ko_max = ko_max)
-    
-    # HL_end_vac, HL_cum_vac, pf_vac = Hfn2.HankelTransform_long(target_static, # FSourceTerm(r,z,omega)
-    #                           distance_FF, rgrid_FF,
-    #                           preset_gas = preset_gas,
-    #                           pressure = pressure,
-    #                           absorption_tables = 'Henke',
-    #                           include_absorption = True,
-    #                           dispersion_tables = 'Henke',
-    #                           include_dispersion = True,
-    #                           effective_IR_refrective_index = 1.,
-    #                           integrator_Hankel = integrate.trapz,
-    #                           integrator_longitudinal = 'trapezoidal',
-    #                           near_field_factor = True,
-    #                           store_cummulative_result = True,
-    #                           frequencies_to_trace_maxima = None,
-    #                           )
     
 
+    factor_e_Htools = np.asarray([ pf(k1)[0,:] for k1 in range(len(target_dynamic.zgrid))])
 
-    HL_end, HL_cum = HL_end_full, HL_cum_full
+
+
     
     image = pp.figure_driver()
     image.sf = [pp.plotter() for k1 in range(32)]
-    image.sf[0].args = [target_dynamic.ogrid/omega0SI, rgrid_FF, np.abs(HL_cum[0].T)]
+    image.sf[0].args = [target_dynamic.ogrid/omega0SI, rgrid_FF, np.abs(HL_cum[-1].T)]
     image.sf[0].method = plt.pcolormesh
     image.sf[0].colorbar.show = True
     pp.plot_preset(image)
     
+    
     image = pp.figure_driver()
     image.sf = [pp.plotter() for k1 in range(32)]
-    image.sf[0].args = [target_dynamic2.ogrid/omega0SI, rgrid_FF, np.abs(HL_cum2[0].T)]
+    image.sf[0].args = [target_dynamic.ogrid/omega0SI, rgrid_FF, np.abs(HL_cum_ref[-1].T)]
     image.sf[0].method = plt.pcolormesh
     image.sf[0].colorbar.show = True
     pp.plot_preset(image)
+    
     
     # signal build-up for H19
     ko_17 = mn.FindInterval(target_dynamic.ogrid/omega0SI, 17)
@@ -373,7 +221,15 @@ with h5py.File(file, 'r') as InpArch, h5py.File(file2, 'r') as InpArch2:
     image.sf = [pp.plotter() for k1 in range(32)]
     image.title = "H17"
     image.sf[0].args = [target_dynamic.zgrid[1:], np.max(np.abs(HL_cum[:,ko_17,:]),axis=1)]
-    image.sf[1].args = [target_dynamic2.zgrid[1:], np.max(np.abs(HL_cum2[:,ko_17,:]),axis=1)]
+    image.sf[1].args = [target_dynamic.zgrid[1:], np.max(np.abs(HL_cum_ref[:,ko_17,:]),axis=1)]
+    pp.plot_preset(image)
+    
+    
+    image = pp.figure_driver()
+    image.sf = [pp.plotter() for k1 in range(32)]
+    image.title = "H17"
+    image.sf[0].args = [target_dynamic.zgrid[1:], np.max(np.abs(HL_cum[:,ko_17,:]),axis=1)/np.max(np.abs(HL_cum_ref[:,ko_17,:]),axis=1)]
+    # image.sf[1].args = [target_dynamic.zgrid[1:], np.max(np.abs(HL_cum_ref[:,ko_17,:]),axis=1)]
     pp.plot_preset(image)
     
     

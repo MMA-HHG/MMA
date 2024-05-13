@@ -323,23 +323,27 @@ def get_propagation_pre_factor_function(zgrid,
     
         print('no modulation')
         if not(preset_gas == 'vacuum'):
-            if include_dispersion:                
-                    dispersion_factor = 1j * XUV_index.dispersion_function(
+            if include_dispersion:   
+                print('dispersion applied')
+                dispersion_factor = 1j * XUV_index.dispersion_function(
                                                 ogrid, 
                                                 pressure,                                   # scalar               
                                                 preset_gas+'_'+dispersion_tables,
                                                 n_IR = effective_IR_refrective_index)
             else:
+                print('no dispersion')
                 dispersion_factor = 0.    
      
         
         
-            if include_absorption:                
+            if include_absorption: 
+                print('absorption applied')
                 absorption_factor = (pressure/units.c_light) *\
                                     XUV_index.beta_factor_ref(
                                         ogrid,
                                         preset_gas+'_'+dispersion_tables)
             else:
+                print('no absorption')
                 absorption_factor = 0.
                 
             
@@ -352,9 +356,15 @@ def get_propagation_pre_factor_function(zgrid,
                 
                 # np.outer(np.ones(len(rgrid)),np.squeeze(pre_factor_value[kz,:]))
                 
+                # return pressure * np.outer(np.ones(len(rgrid)),
+                #                            np.exp(
+                #                                   zgrid[kz]*lin_prop_factor
+                #                                   )
+                #                            )
+            
                 return pressure * np.outer(np.ones(len(rgrid)),
                                            np.exp(
-                                                  zgrid[kz]*lin_prop_factor
+                                                  (zgrid[kz]-zgrid[-1])*lin_prop_factor
                                                   )
                                            )
             return pre_factor
