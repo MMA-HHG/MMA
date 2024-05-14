@@ -8,8 +8,8 @@ import sys
 import copy
 import units
 import mynumerics as mn
-import Hfn
 import Hfn2
+import Hfn2_v1
 
 from scipy import integrate
 
@@ -77,6 +77,9 @@ else:
 
     results_path = os.path.join("D:\sharepoint", "OneDrive - ELI Beamlines",
                     "data", "Sunrise","tmp","h5debug","TDSEs","SciRep","t2")
+    
+    results_path = os.path.join("D:\sharepoint", "OneDrive - ELI Beamlines",
+                    "data", "Sunrise","tmp","h5debug","TDSEs","t3")
 
 file = "results_TDSEM.h5"
 filename = "results.h5"
@@ -115,7 +118,7 @@ with h5py.File(file, 'r') as InpArch:
     
     print(MMA.paths['global_inputs']+'/gas_preset')
     print(InpArch[MMA.paths['global_inputs']].keys())
-    xxx = InpArch[MMA.paths['global_inputs']+'/gas_preset'][()]
+    # xxx = InpArch[MMA.paths['global_inputs']+'/gas_preset'][()]
     # yyy = InpArch[MMA.paths['global_inputs']+'/gas_preset'].decode()
     preset_gas = mn.readscalardataset(InpArch,MMA.paths['global_inputs']+'/gas_preset','S')
     
@@ -143,6 +146,10 @@ with h5py.File(file, 'r') as InpArch:
     ko_min = mn.FindInterval(ogrid/omega0, 16.8)
     ko_max = mn.FindInterval(ogrid/omega0, 17.3)
     
+    
+    FSourceTerm =    InpArch[MMA.paths['CTDSE_outputs']+'/FSourceTerm'][:,:,ko_min:ko_max,0] + \
+                  1j*InpArch[MMA.paths['CTDSE_outputs']+'/FSourceTerm'][:,:,ko_min:ko_max,1]
+    
 
     
     omega_au2SI = mn.ConvertPhoton(1.0, 'omegaau', 'omegaSI')
@@ -166,30 +173,15 @@ with h5py.File(file, 'r') as InpArch:
                                                     ko_min = ko_min,
                                                     ko_max = ko_max)
     
-
-
- 
-    
- 
-    # pf1 = Hankel_tools.get_propagation_pre_factor_function( target_dynamic.zgrid,
-    #                                                         target_dynamic.rgrid,
-    #                                                         target_dynamic.ogrid,
-    #                                                         preset_gas = 'Kr',
-    #                                                         pressure = pressure,
-    #                                                         absorption_tables = 'Henke',
-    #                                                         include_absorption = True,
-    #                                                         dispersion_tables = 'Henke',
-    #                                                         include_dispersion = True,
-    #                                                         effective_IR_refrective_index = effective_IR_refrective_index)
     
 
     
-    HL_end, HL_cum, pf, HL_cum_ref, factor_e =  Hfn2.HankelTransform_long(target_dynamic, # FSourceTerm(r,z,omega)
+    HL_end, HL_cum, pf =  Hfn2.HankelTransform_long(target_dynamic, # FSourceTerm(r,z,omega)
                               distance_FF, rgrid_FF,
                               preset_gas = preset_gas,
                               pressure = pressure,
                               absorption_tables = 'Henke',
-                              include_absorption = False,
+                              include_absorption = True,
                               dispersion_tables = 'Henke',
                               include_dispersion = True,
                               effective_IR_refrective_index = effective_IR_refrective_index,
@@ -200,12 +192,86 @@ with h5py.File(file, 'r') as InpArch:
                               frequencies_to_trace_maxima = None,
                               )
     
+    
+    
+    # original implementation
+    
+    # Here are the fuction to obtain the phase factors in SI units: exp(i*omega*function(omega))
+    def f1_funct(E):
+        return XUV_index.getf1(gas_type+'_' + XUV_table_type_diffraction, E)
+    def f2_funct(E):
+        return XUV_index.getf2(gas_type + '_' + XUV_table_type_absorption, E)
+
+
+    def dispersion_function_def(omega):
+        f1_value = f1_funct(mn.ConvertPhoton(omega, 'omegaSI', 'eV'))    
+        lambdaSI = mn.ConvertPhoton(omega, 'omegaSI', 'lambdaSI')
+        nXUV     = 1.0 - rho0_init*units.r_electron_classical * \
+                   ((lambdaSI**2)*f1_value/(2.0*np.pi))           
+        phase_velocity_XUV  = units.c_light / nXUV
+        return ((1./group_velocity_IR) - (1./phase_velocity_XUV))
+
+    def absorption_function_def(omega):
+        f2_value    = f2_funct(mn.ConvertPhoton(omega, 'omegaSI', 'eV'))
+        lambdaSI    = mn.ConvertPhoton(omega, 'omegaSI', 'lambdaSI')
+        beta_factor = rho0_init*units.r_electron_classical * \
+                      ((lambdaSI**2)*f2_value/(2.0*np.pi))
+        return beta_factor / units.c_light
+    
+    HL_end_ref, HL_cum_ref = Hfn2_v1.HankelTransform_long(
+                                                   target_dynamic.ogrid,
+                                                   target_dynamic.rgrid,
+                                                   target_dynamic.zgrid,
+                                                   np.transpose(FSourceTerm,axes=(1,0,2)),
+                                                   distance_FF,
+                                                   rgrid_FF,
+                                                   dispersion_function = dispersion_function_def, # None, #dispersion_function,
+                                                   absorption_function = absorption_function_def,
+                                                   store_cummulative_result = True)
+    
 
     
     
 
+    No = len(target_dynamic.ogrid)
+    dispersion_factor = np.empty(No)
+    dispersion_factor_new = np.empty(No)
+    for k1 in range(No):
+        dispersion_factor[k1] = target_dynamic.ogrid[k1]*dispersion_function_def(target_dynamic.ogrid[k1]) 
+        dispersion_factor_new[k1] = target_dynamic.ogrid[k1]*XUV_index.dispersion_function(
+                                    target_dynamic.ogrid[k1], 
+                                    pressure,                
+                                    preset_gas+'_Henke',
+                                    n_IR = effective_IR_refrective_index)
+    
+    
+    absorption_factor = np.empty(No)
+    absorption_factor_new = np.empty(No)
+    for k1 in range(No):
+        absorption_factor[k1] = target_dynamic.ogrid[k1]*absorption_function_def(target_dynamic.ogrid[k1])
+        absorption_factor_new[k1] = target_dynamic.ogrid[k1]*(pressure/units.c_light) *\
+                                    XUV_index.beta_factor_ref(
+                                        target_dynamic.ogrid[k1],
+                                        preset_gas+'_Henke')
+                                
+      
+    # compute z-evolution of the factors        
+    factor_e_ref = pressure*np.exp(
+                          1j*np.outer(target_dynamic.zgrid,dispersion_factor) +
+                          np.outer(target_dynamic.zgrid-target_dynamic.zgrid[-1] ,absorption_factor)
+                          )
+    
     factor_e_Htools = np.asarray([ pf(k1)[0,:] for k1 in range(len(target_dynamic.zgrid))])
+    
+    factor_e_new = pressure*np.exp(
+                          1j*np.outer(target_dynamic.zgrid,dispersion_factor_new) +
+                          np.outer(target_dynamic.zgrid-target_dynamic.zgrid[-1] ,absorption_factor_new)
+                          )
 
+
+    test1 = np.abs(factor_e_ref/factor_e_Htools)
+    test2 = np.abs(factor_e_new/factor_e_Htools)
+    test3 = np.abs(factor_e_new/factor_e_ref)
 
 
     

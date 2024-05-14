@@ -363,10 +363,19 @@ def get_propagation_pre_factor_function(zgrid,
                 #                            )
             
                 return pressure * np.outer(np.ones(len(rgrid)),
-                                           np.exp(
-                                                  (zgrid[kz]-zgrid[-1])*lin_prop_factor
+                                            np.exp(
+                                                  ogrid * (zgrid[kz]*dispersion_factor
+                                                            +
+                                                            (zgrid[kz]-zgrid[-1])*absorption_factor)
                                                   )
-                                           )
+                                            )
+            
+                # return pressure * np.outer(np.ones(len(rgrid)),
+                #                            np.exp(
+                #                                   (zgrid[kz]-zgrid[-1])*lin_prop_factor
+                #                                   )
+                #                            )
+                
             return pre_factor
         
         else:
