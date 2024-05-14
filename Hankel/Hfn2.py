@@ -69,6 +69,7 @@ def HankelTransform(ogrid, rgrid, FField, distance, rgrid_FF,
     
     apply_radial_factor = (len(np.shape(pre_factor))==2)
     
+    
     No = len(ogrid); Nr = len(rgrid); Nr_FF = len(rgrid_FF)
     FField_FF = np.empty((No,Nr_FF), dtype=np.cdouble)
     integrand = np.empty((Nr), dtype=np.cdouble)
@@ -228,15 +229,15 @@ def HankelTransform_long(target, # FSourceTerm(r,z,omega)
       
     # compute z-evolution of the factors        
     if (include_dispersion and include_absorption):
-        factor_e = np.exp(
+        factor_e = pressure* np.exp(
                           1j*np.outer(target.zgrid,dispersion_factor) +
                           np.outer(target.zgrid-target.zgrid[-1] ,absorption_factor)
                           )
     elif include_dispersion:
-        factor_e = np.exp(1j*np.outer(target.zgrid,dispersion_factor))
+        factor_e = pressure* np.exp(1j*np.outer(target.zgrid,dispersion_factor))
 
     elif include_absorption:
-        factor_e = np.exp(np.outer(target.zgrid-target.zgrid[-1] ,absorption_factor))
+        factor_e = pressure* np.exp(np.outer(target.zgrid-target.zgrid[-1] ,absorption_factor))
                           
                           
 
@@ -273,7 +274,8 @@ def HankelTransform_long(target, # FSourceTerm(r,z,omega)
     
 
 
-    
+    np.testing.assert_allclose(Fsource_plane1,Fsource_plane1_ref)
+    print('first plane ok')
     
     
     if store_cummulative_result:
@@ -307,13 +309,15 @@ def HankelTransform_long(target, # FSourceTerm(r,z,omega)
                                          distance-target.zgrid[k1+1],
                                          rgrid_FF,
                                          integrator = integrator_Hankel,
-                                         near_field_factor = near_field_factor,
-                                         pre_factor = pre_factor(k1+1))   
+                                         near_field_factor = near_field_factor)   
         
         
         if (include_dispersion or include_absorption):  
              Fsource_plane2_ref *= np.outer(factor_e[k1+1,:],np.ones(Fsource_plane2_ref.shape[1]))
              
+        
+        np.testing.assert_allclose(Fsource_plane2,Fsource_plane2_ref)  
+        print('plane ', k1, ' ok')
         
                          
         FF_integrated += 0.5*(target.zgrid[k1+1]-target.zgrid[k1])*(Fsource_plane1 + Fsource_plane2)
@@ -322,7 +326,7 @@ def HankelTransform_long(target, # FSourceTerm(r,z,omega)
         
         if store_cummulative_result:
             cummulative_field[k1,:,:] = 1.*FF_integrated
-            cummulative_field_ref[k1,:,:] = pressure*1.*FF_integrated_ref
+            cummulative_field_ref[k1,:,:] = 1.*FF_integrated_ref
         
         
         Fsource_plane1 = Fsource_plane2

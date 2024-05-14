@@ -68,6 +68,9 @@ else:
     
     results_path = os.path.join("D:\sharepoint", "OneDrive - ELI Beamlines",
                     "data", "Sunrise","tmp","h5debug","TDSEs","t1")  
+    
+    results_path = os.path.join("D:\sharepoint", "OneDrive - ELI Beamlines",
+                    "data", "Sunrise","tmp","h5debug","TDSEs","SciRep","t1")  
 
 
 
