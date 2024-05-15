@@ -80,6 +80,11 @@ else:
     
     results_path = os.path.join("D:\sharepoint", "OneDrive - ELI Beamlines",
                     "data", "Sunrise","tmp","h5debug","TDSEs","t3")
+    
+    # results_path = os.path.join("D:\sharepoint", "OneDrive - ELI Beamlines",
+    #                 "data", "Sunrise","tmp","h5debug","TDSEs","SciRep","t1")
+    
+
 
 file = "results_TDSEM.h5"
 filename = "results.h5"
@@ -176,7 +181,7 @@ with h5py.File(file, 'r') as InpArch:
     
 
     
-    HL_end, HL_cum, pf =  Hfn2.HankelTransform_long(target_dynamic, # FSourceTerm(r,z,omega)
+    HL_end, HL_cum, pf, HL_cum_test =  Hfn2.HankelTransform_long(target_dynamic, # FSourceTerm(r,z,omega)
                               distance_FF, rgrid_FF,
                               preset_gas = preset_gas,
                               pressure = pressure,
@@ -218,7 +223,14 @@ with h5py.File(file, 'r') as InpArch:
                       ((lambdaSI**2)*f2_value/(2.0*np.pi))
         return beta_factor / units.c_light
     
-    HL_end_ref, HL_cum_ref = Hfn2_v1.HankelTransform_long(
+    
+    # test dispersion functions
+    df_t1 = dispersion_function_def(target_dynamic.ogrid[0])
+    df_t2 = XUV_index.dispersion_function(target_dynamic.ogrid[0], pressure, 'Ar_Henke', n_IR=effective_IR_refrective_index) 
+    
+    print('disp functions_test:' , df_t1,  df_t2)
+    
+    HL_end_ref, HL_cum_ref, factor_e_v2 = Hfn2_v1.HankelTransform_long(
                                                    target_dynamic.ogrid,
                                                    target_dynamic.rgrid,
                                                    target_dynamic.zgrid,
@@ -272,6 +284,7 @@ with h5py.File(file, 'r') as InpArch:
     test1 = np.abs(factor_e_ref/factor_e_Htools)
     test2 = np.abs(factor_e_new/factor_e_Htools)
     test3 = np.abs(factor_e_new/factor_e_ref)
+    test4 = np.abs(factor_e_new/factor_e_v2)
 
 
     
@@ -291,6 +304,14 @@ with h5py.File(file, 'r') as InpArch:
     pp.plot_preset(image)
     
     
+    image = pp.figure_driver()
+    image.sf = [pp.plotter() for k1 in range(32)]
+    image.sf[0].args = [target_dynamic.ogrid/omega0SI, rgrid_FF, np.abs(HL_cum_test[-1].T)]
+    image.sf[0].method = plt.pcolormesh
+    image.sf[0].colorbar.show = True
+    pp.plot_preset(image)
+    
+    
     # signal build-up for H19
     ko_17 = mn.FindInterval(target_dynamic.ogrid/omega0SI, 17)
     
@@ -299,13 +320,15 @@ with h5py.File(file, 'r') as InpArch:
     image.title = "H17"
     image.sf[0].args = [1e3*target_dynamic.zgrid[1:], np.max(np.abs(HL_cum[:,ko_17,:]),axis=1)]
     image.sf[1].args = [1e3*target_dynamic.zgrid[1:], np.max(np.abs(HL_cum_ref[:,ko_17,:]),axis=1)]
+    image.sf[2].args = [1e3*target_dynamic.zgrid[1:], np.max(np.abs(HL_cum_test[:,ko_17,:]),axis=1)]
     pp.plot_preset(image)
     
     
     image = pp.figure_driver()
     image.sf = [pp.plotter() for k1 in range(32)]
-    image.title = "H17"
+    image.title = "ratio H17 [-]"
     image.sf[0].args = [1e3*target_dynamic.zgrid[1:], np.max(np.abs(HL_cum[:,ko_17,:]),axis=1)/np.max(np.abs(HL_cum_ref[:,ko_17,:]),axis=1)]
+    image.sf[1].args = [1e3*target_dynamic.zgrid[1:], np.max(np.abs(HL_cum[:,ko_17,:]),axis=1)/np.max(np.abs(HL_cum_test[:,ko_17,:]),axis=1)]
     # image.sf[1].args = [target_dynamic.zgrid[1:], np.max(np.abs(HL_cum_ref[:,ko_17,:]),axis=1)]
     pp.plot_preset(image)
     

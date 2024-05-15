@@ -119,7 +119,8 @@ def getf2(g,E):
 
 ## VARIOUS FUNCTIONS TO PROVIDE DIRECTLY POLARISABILITIES, SUSCEPTIBILITIES, ...
 
-N_ref_default = 1e5/(units.Boltzmann_constant*(273.15+20.)) # reference gas number density (p = 1 bar & T = 20 °C)
+# N_ref_default = 1e5/(units.Boltzmann_constant*(273.15+20.)) # reference gas number density (p = 1 bar & T = 20 °C)
+N_ref_default = 2.7e25
 
 def dispersion_function(omega, pressure, gas, n_IR=1., N_ref=N_ref_default):
     """

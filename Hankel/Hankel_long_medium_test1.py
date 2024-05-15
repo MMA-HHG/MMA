@@ -43,8 +43,8 @@ Hrange = [16, 18] # [17, 18] # [14, 36] [17, 18] [16, 20] [14, 22]
 kr_step = 2 # descending order, the last is "the most accurate"
 ko_step = 1
 
-rmax_FF = 8*1e-4
-Nr_FF = 50 # 10 # 200
+rmax_FF = 6*1e-4
+Nr_FF = 22 # 10 # 200
 distance_FF = 1.
 
 # FF_orders_plot = 4    
@@ -90,27 +90,27 @@ else:
     
     
     
-    results_path = os.path.join("D:\sharepoint", "OneDrive - ELI Beamlines",
-                    "data", "Sunrise","tmp","h5debug","TDSEs","t3")  
+    # results_path = os.path.join("D:\sharepoint", "OneDrive - ELI Beamlines",
+    #                 "data", "Sunrise","tmp","h5debug","TDSEs","t3")  
 
 
-    results_path2 = os.path.join("D:\sharepoint", "OneDrive - ELI Beamlines",
-                    "data", "Sunrise","tmp","h5debug","TDSEs","t3mod")  
+    # results_path2 = os.path.join("D:\sharepoint", "OneDrive - ELI Beamlines",
+    #                 "data", "Sunrise","tmp","h5debug","TDSEs","t3mod")  
     
     
-    results_path = os.path.join("D:\sharepoint", "OneDrive - ELI Beamlines",
-                    "data", "Sunrise","tmp","h5debug","TDSEs","densmod","t1")  
+    # results_path = os.path.join("D:\sharepoint", "OneDrive - ELI Beamlines",
+    #                 "data", "Sunrise","tmp","h5debug","TDSEs","densmod","t1")  
 
 
-    results_path2 = os.path.join("D:\sharepoint", "OneDrive - ELI Beamlines",
-                    "data", "Sunrise","tmp","h5debug","TDSEs","densmod","t2")  
+    # results_path2 = os.path.join("D:\sharepoint", "OneDrive - ELI Beamlines",
+    #                 "data", "Sunrise","tmp","h5debug","TDSEs","densmod","t2")  
     
-    results_path = os.path.join("D:\sharepoint", "OneDrive - ELI Beamlines",
-                    "data", "Sunrise","tmp","h5debug","TDSEs","t5")  
+    # results_path = os.path.join("D:\sharepoint", "OneDrive - ELI Beamlines",
+    #                 "data", "Sunrise","tmp","h5debug","TDSEs","t5")  
 
 
-    results_path2 = os.path.join("D:\sharepoint", "OneDrive - ELI Beamlines",
-                    "data", "Sunrise","tmp","h5debug","TDSEs","t5mod") 
+    # results_path2 = os.path.join("D:\sharepoint", "OneDrive - ELI Beamlines",
+    #                 "data", "Sunrise","tmp","h5debug","TDSEs","t5mod") 
     
 
 file = "results_TDSEM.h5"
@@ -155,6 +155,7 @@ with h5py.File(file, 'r') as InpArch, h5py.File(file2, 'r') as InpArch2:
     preset_gas = mn.readscalardataset(InpArch,MMA.paths['global_inputs']+'/gas_preset','S')
     
     effective_IR_refrective_index = inverse_GV_IR*units.c_light
+    effective_IR_refrective_index2 = inverse_GV_IR2*units.c_light
     
     # try:
     #     preset_gas = mn.readscalardataset(InpArch,MMA.paths['global_inputs']+'/gas_preset','S')
@@ -193,7 +194,7 @@ with h5py.File(file, 'r') as InpArch, h5py.File(file2, 'r') as InpArch2:
     # pp.plot_preset(image)
     
     ko_min = mn.FindInterval(ogrid/omega0, 16.9)
-    ko_max = mn.FindInterval(ogrid/omega0, 17.1)
+    ko_max = mn.FindInterval(ogrid/omega0, 17.3)
     
     # print(type(InputArchiveTDSE))
     # grp =  InputArchiveCUPRAD['/logs']
@@ -287,17 +288,17 @@ with h5py.File(file, 'r') as InpArch, h5py.File(file2, 'r') as InpArch2:
     #                           frequencies_to_trace_maxima = None,
     #                           )
     
-    # absorption = True
-    # dispersion = False
+    absorption = False
+    dispersion = False
     
     HL_end_full, HL_cum_full, pf =  Hfn2.HankelTransform_long(target_dynamic, # FSourceTerm(r,z,omega)
                               distance_FF, rgrid_FF,
                               preset_gas = preset_gas,
                               pressure = pressure,
                               absorption_tables = 'Henke',
-                              include_absorption = True,
+                              include_absorption = absorption,
                               dispersion_tables = 'Henke',
-                              include_dispersion = False,
+                              include_dispersion = dispersion,
                               effective_IR_refrective_index = effective_IR_refrective_index,
                               integrator_Hankel = integrate.trapz,
                               integrator_longitudinal = 'trapezoidal',
@@ -312,10 +313,10 @@ with h5py.File(file, 'r') as InpArch, h5py.File(file2, 'r') as InpArch2:
                               preset_gas = preset_gas,
                               pressure = pressure2,
                               absorption_tables = 'Henke',
-                              include_absorption = True,
+                              include_absorption = absorption,
                               dispersion_tables = 'Henke',
-                              include_dispersion = False,
-                              effective_IR_refrective_index = effective_IR_refrective_index,
+                              include_dispersion = dispersion,
+                              effective_IR_refrective_index = effective_IR_refrective_index2,
                               integrator_Hankel = integrate.trapz,
                               integrator_longitudinal = 'trapezoidal',
                               near_field_factor = True,

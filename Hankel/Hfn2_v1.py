@@ -228,7 +228,7 @@ def HankelTransform_long(ogrid, rgrid, zgrid, FSourceTerm, # FSourceTerm(r,z,ome
             
     else: 
         if store_cummulative_result:
-            return dum, cummulative_field
+            return dum, cummulative_field, factor_e
         else:
             return dum
                 
