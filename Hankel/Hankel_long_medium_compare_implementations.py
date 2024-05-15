@@ -34,8 +34,8 @@ import plot_presets as pp
 
 # gas_type = 'Ar'
 XUV_table_type_diffraction = 'NIST' # {Henke, NIST}
-XUV_table_type_absorption = 'Henke' # {Henke, NIST} 
-apply_diffraction = ['dispersion', 'absorption']
+XUV_table_type_absorption = 'NIST' # {Henke, NIST} 
+# apply_diffraction = ['dispersion', 'absorption']
 
 Nr_max = 235 #470; 235; 155-still fine    
 Hrange = [16, 18] # [17, 18] # [14, 36] [17, 18] [16, 20] [14, 22]
@@ -179,27 +179,6 @@ with h5py.File(file, 'r') as InpArch:
                                                     ko_max = ko_max)
     
     
-
-    
-    HL_end, HL_cum, pf, HL_cum_test =  Hfn2.HankelTransform_long(target_dynamic, # FSourceTerm(r,z,omega)
-                              distance_FF, rgrid_FF,
-                              preset_gas = preset_gas,
-                              pressure = pressure,
-                              absorption_tables = 'Henke',
-                              include_absorption = True,
-                              dispersion_tables = 'Henke',
-                              include_dispersion = True,
-                              effective_IR_refrective_index = effective_IR_refrective_index,
-                              integrator_Hankel = integrate.trapz,
-                              integrator_longitudinal = 'trapezoidal',
-                              near_field_factor = True,
-                              store_cummulative_result = True,
-                              frequencies_to_trace_maxima = None,
-                              )
-    
-    
-    
-    # original implementation
     
     # Here are the fuction to obtain the phase factors in SI units: exp(i*omega*function(omega))
     def f1_funct(E):
@@ -226,9 +205,33 @@ with h5py.File(file, 'r') as InpArch:
     
     # test dispersion functions
     df_t1 = dispersion_function_def(target_dynamic.ogrid[0])
-    df_t2 = XUV_index.dispersion_function(target_dynamic.ogrid[0], pressure, 'Ar_Henke', n_IR=effective_IR_refrective_index) 
+    df_t2 = XUV_index.dispersion_function(target_dynamic.ogrid[0], pressure, 'Ar_NIST', n_IR=effective_IR_refrective_index) 
     
     print('disp functions_test:' , df_t1,  df_t2)
+    
+    # sys.exit(0)
+    
+    HL_end, HL_cum, pf, HL_cum_test =  Hfn2.HankelTransform_long(target_dynamic, # FSourceTerm(r,z,omega)
+                              distance_FF, rgrid_FF,
+                              preset_gas = preset_gas,
+                              pressure = pressure,
+                              absorption_tables = XUV_table_type_absorption,
+                              include_absorption = True,
+                              dispersion_tables = XUV_table_type_diffraction,
+                              include_dispersion = True,
+                              effective_IR_refrective_index = effective_IR_refrective_index,
+                              integrator_Hankel = integrate.trapz,
+                              integrator_longitudinal = 'trapezoidal',
+                              near_field_factor = True,
+                              store_cummulative_result = True,
+                              frequencies_to_trace_maxima = None,
+                              )
+    
+    
+    
+    # original implementation
+    
+
     
     HL_end_ref, HL_cum_ref, factor_e_v2 = Hfn2_v1.HankelTransform_long(
                                                    target_dynamic.ogrid,
@@ -253,7 +256,7 @@ with h5py.File(file, 'r') as InpArch:
         dispersion_factor_new[k1] = target_dynamic.ogrid[k1]*XUV_index.dispersion_function(
                                     target_dynamic.ogrid[k1], 
                                     pressure,                
-                                    preset_gas+'_Henke',
+                                    preset_gas+'_NIST',
                                     n_IR = effective_IR_refrective_index)
     
     
@@ -264,7 +267,7 @@ with h5py.File(file, 'r') as InpArch:
         absorption_factor_new[k1] = target_dynamic.ogrid[k1]*(pressure/units.c_light) *\
                                     XUV_index.beta_factor_ref(
                                         target_dynamic.ogrid[k1],
-                                        preset_gas+'_Henke')
+                                        preset_gas+'_NIST')
                                 
       
     # compute z-evolution of the factors        
