@@ -216,7 +216,7 @@ with h5py.File(file, 'r') as InpArch:
     
 
     
-    HL_end, HL_cum, pf, HL_cum_test, abs_factor_Htools, firstplane =  Hfn2.HankelTransform_long(target_dynamic, # FSourceTerm(r,z,omega)
+    HL_end, HL_cum, diagnostics =  Hfn2.HankelTransform_long(target_dynamic, # FSourceTerm(r,z,omega)
                               distance_FF, rgrid_FF,
                               preset_gas = preset_gas,
                               pressure = pressure,
@@ -244,94 +244,95 @@ with h5py.File(file, 'r') as InpArch:
     else:           absorption_function = None  
 
     
-    HL_end_ref, HL_cum_ref, factor_e_ref, abs_factor_Hfn_ref, factor_arg_e_Hfn_ref, firstplane_ref = Hfn2_v1.HankelTransform_long(
+    HL_end_ref, HL_cum_ref, diagnostics_ref = Hfn2_v1.HankelTransform_long(
                                                    target_dynamic.ogrid,
                                                    target_dynamic.rgrid,
                                                    target_dynamic.zgrid,
                                                    np.transpose(FSourceTerm,axes=(1,0,2)),
                                                    distance_FF,
                                                    rgrid_FF,
+                                                   pressure,
                                                    dispersion_function = dispersion_function, # None, #dispersion_function,
                                                    absorption_function = absorption_function,
                                                    store_cummulative_result = True)
     
-    HL_cum_ref *= pressure
-    
-
     
     
 
-    No = len(target_dynamic.ogrid)
-    dispersion_factor = np.empty(No)
-    dispersion_factor_new = np.empty(No)
-    for k1 in range(No):
-        dispersion_factor[k1] = target_dynamic.ogrid[k1]*dispersion_function_def(target_dynamic.ogrid[k1]) 
-        dispersion_factor_new[k1] = target_dynamic.ogrid[k1]*XUV_index.dispersion_function(
-                                    target_dynamic.ogrid[k1], 
-                                    pressure,                
-                                    preset_gas+'_'+XUV_table_type_diffraction,
-                                    n_IR = effective_IR_refrective_index)
     
     
-    absorption_factor = np.empty(No)
-    absorption_factor_new = np.empty(No)
-    for k1 in range(No):
-        absorption_factor[k1] = target_dynamic.ogrid[k1]*absorption_function_def(target_dynamic.ogrid[k1])
-        absorption_factor_new[k1] = target_dynamic.ogrid[k1]*(pressure/units.c_light) *\
-                                    XUV_index.beta_factor_ref(
-                                        target_dynamic.ogrid[k1],
-                                        preset_gas+'_'+XUV_table_type_absorption)
+
+    # No = len(target_dynamic.ogrid)
+    # dispersion_factor = np.empty(No)
+    # dispersion_factor_new = np.empty(No)
+    # for k1 in range(No):
+    #     dispersion_factor[k1] = target_dynamic.ogrid[k1]*dispersion_function_def(target_dynamic.ogrid[k1]) 
+    #     dispersion_factor_new[k1] = target_dynamic.ogrid[k1]*XUV_index.dispersion_function(
+    #                                 target_dynamic.ogrid[k1], 
+    #                                 pressure,                
+    #                                 preset_gas+'_'+XUV_table_type_diffraction,
+    #                                 n_IR = effective_IR_refrective_index)
+    
+    
+    # absorption_factor = np.empty(No)
+    # absorption_factor_new = np.empty(No)
+    # for k1 in range(No):
+    #     absorption_factor[k1] = target_dynamic.ogrid[k1]*absorption_function_def(target_dynamic.ogrid[k1])
+    #     absorption_factor_new[k1] = target_dynamic.ogrid[k1]*(pressure/units.c_light) *\
+    #                                 XUV_index.beta_factor_ref(
+    #                                     target_dynamic.ogrid[k1],
+    #                                     preset_gas+'_'+XUV_table_type_absorption)
                                 
       
-    # compute z-evolution of the factors        
-    factor_e_ref_reconstructed = pressure*np.exp(
-                          1j*np.outer(target_dynamic.zgrid,dispersion_factor) +
-                          np.outer(target_dynamic.zgrid-target_dynamic.zgrid[-1] ,absorption_factor)
-                          )
+    # # compute z-evolution of the factors        
+    # factor_e_ref_reconstructed = pressure*np.exp(
+    #                       1j*np.outer(target_dynamic.zgrid,dispersion_factor) +
+    #                       np.outer(target_dynamic.zgrid-target_dynamic.zgrid[-1] ,absorption_factor)
+    #                       )
     
-    factor_arg_e = np.outer(target_dynamic.zgrid-target_dynamic.zgrid[-1] ,absorption_factor)
+    # factor_arg_e = np.outer(target_dynamic.zgrid-target_dynamic.zgrid[-1] ,absorption_factor)
     
-    factor_e_Htools = np.asarray([ pf(k1)[0,:] for k1 in range(len(target_dynamic.zgrid))])
+    # factor_e_Htools = np.asarray([ pf(k1)[0,:] for k1 in range(len(target_dynamic.zgrid))])
 
 
-    test1 = np.abs(factor_e_ref/factor_e_Htools)   
+    # test1 = np.abs(factor_e_ref/factor_e_Htools)   
     
 
 
     
-    image = pp.figure_driver()
-    image.sf = [pp.plotter() for k1 in range(32)]
-    image.sf[0].args = [target_dynamic.ogrid/omega0SI, rgrid_FF, np.abs(HL_cum[-1].T)]
-    image.sf[0].method = plt.pcolormesh
-    image.sf[0].colorbar.show = True
-    pp.plot_preset(image)
+    # image = pp.figure_driver()
+    # image.sf = [pp.plotter() for k1 in range(32)]
+    # image.sf[0].args = [target_dynamic.ogrid/omega0SI, rgrid_FF, np.abs(HL_cum[-1].T)]
+    # image.sf[0].method = plt.pcolormesh
+    # image.sf[0].colorbar.show = True
+    # pp.plot_preset(image)
     
     
-    image = pp.figure_driver()
-    image.sf = [pp.plotter() for k1 in range(32)]
-    image.sf[0].args = [target_dynamic.ogrid/omega0SI, rgrid_FF, np.abs(HL_cum_ref[-1].T)]
-    image.sf[0].method = plt.pcolormesh
-    image.sf[0].colorbar.show = True
-    pp.plot_preset(image)
+    # image = pp.figure_driver()
+    # image.sf = [pp.plotter() for k1 in range(32)]
+    # image.sf[0].args = [target_dynamic.ogrid/omega0SI, rgrid_FF, np.abs(HL_cum_ref[-1].T)]
+    # image.sf[0].method = plt.pcolormesh
+    # image.sf[0].colorbar.show = True
+    # pp.plot_preset(image)
     
     
-    # signal build-up for H19
-    ko_17 = mn.FindInterval(target_dynamic.ogrid/omega0SI, 17)
+    # # signal build-up for H19
+    # ko_17 = mn.FindInterval(target_dynamic.ogrid/omega0SI, 17)
     
-    image = pp.figure_driver()
-    image.sf = [pp.plotter() for k1 in range(32)]
-    image.title = "H17"
-    image.sf[0].args = [1e3*target_dynamic.zgrid[1:], np.max(np.abs(HL_cum[:,ko_17,:]),axis=1)]
-    image.sf[1].args = [1e3*target_dynamic.zgrid[1:], np.max(np.abs(HL_cum_ref[:,ko_17,:]),axis=1)]
-    pp.plot_preset(image)
+    # image = pp.figure_driver()
+    # image.sf = [pp.plotter() for k1 in range(32)]
+    # image.title = "H17"
+    # image.sf[0].args = [1e3*target_dynamic.zgrid[1:], np.max(np.abs(HL_cum[:,ko_17,:]),axis=1)]
+    # image.sf[1].args = [1e3*target_dynamic.zgrid[1:], np.max(np.abs(HL_cum_ref[:,ko_17,:]),axis=1)]
+    # pp.plot_preset(image)
     
     
-    image = pp.figure_driver()
-    image.sf = [pp.plotter() for k1 in range(32)]
-    image.title = "ratio H17 [-]"
-    image.sf[0].args = [1e3*target_dynamic.zgrid[1:], np.max(np.abs(HL_cum[:,ko_17,:]),axis=1)/np.max(np.abs(HL_cum_ref[:,ko_17,:]),axis=1)]
+    # image = pp.figure_driver()
+    # image.sf = [pp.plotter() for k1 in range(32)]
+    # image.title = "ratio H17 [-]"
+    # image.sf[0].args = [1e3*target_dynamic.zgrid[1:], np.max(np.abs(HL_cum[:,ko_17,:]),axis=1)/np.max(np.abs(HL_cum_ref[:,ko_17,:]),axis=1)]
 
 
-    pp.plot_preset(image)
+    # pp.plot_preset(image)
     
     

@@ -70,7 +70,7 @@ def HankelTransform(ogrid, rgrid, FField, distance, rgrid_FF, integrator = integ
 
 
 def HankelTransform_long(ogrid, rgrid, zgrid, FSourceTerm, # FSourceTerm(r,z,omega)
-                         distance, rgrid_FF,
+                         distance, rgrid_FF, pressure,
                          dispersion_function = None, absorption_function = None,
                          integrator_Hankel = integrate.trapz, integrator_longitudinal = 'trapezoidal',
                          near_field_factor = True,
@@ -122,6 +122,14 @@ def HankelTransform_long(ogrid, rgrid, zgrid, FSourceTerm, # FSourceTerm(r,z,ome
 
     """
 
+    all_integrals = []
+    all_integrands = []
+    all_cumintegrals = []
+    
+    diagnostics = [[],[],[],[],[]] #integrands, intagrals, prefactor, cummulative
+    
+
+    
     
     No = len(ogrid); Nz = len(zgrid); Nr_FF = len(rgrid_FF)
     include_dispersion = not(dispersion_function is None)
@@ -156,7 +164,7 @@ def HankelTransform_long(ogrid, rgrid, zgrid, FSourceTerm, # FSourceTerm(r,z,ome
         factor_e = np.ones((len(zgrid),No))
         
         
-
+    factor_e *= pressure
             
     # we keep the data for now, consider on-the-fly change
     print('Computing Hankel from planes')
@@ -164,6 +172,9 @@ def HankelTransform_long(ogrid, rgrid, zgrid, FSourceTerm, # FSourceTerm(r,z,ome
     for k1 in range(Nz):
         print('plane', k1, 'time:', time.perf_counter()-t_start)
         FSourceTerm_select = np.squeeze(FSourceTerm[:,k1,:]).T
+        
+        diagnostics[0].append(FSourceTerm_select)
+        
         FField_FF = HankelTransform(ogrid,
                                   rgrid,
                                   FSourceTerm_select,
@@ -172,18 +183,17 @@ def HankelTransform_long(ogrid, rgrid, zgrid, FSourceTerm, # FSourceTerm(r,z,ome
                                   integrator = integrator_Hankel,
                                   near_field_factor = near_field_factor)
         
+        diagnostics[1].append(FField_FF)
+        
+
         
         if (k1 == 0): # allocate space
             FField_FF_z = np.zeros( (Nz,) + FField_FF.shape,dtype=np.cdouble) 
-            
-            firstplane_in = 1.*FSourceTerm_select
-            firstplane_int = 1.*FField_FF
-            firstplane_pref = 1.*np.outer(factor_e[0,:],np.ones(FField_FF.shape[1]))
+
         
         if (include_dispersion or include_absorption):  
-             FField_FF_z[k1,:,:] = np.outer(factor_e[k1,:],np.ones(FField_FF.shape[1]))*FField_FF
-             
-             
+             FField_FF_z[k1,:,:] = np.outer(factor_e[k1,:],np.ones(FField_FF.shape[1]))*FField_FF 
+             diagnostics[2].append(np.outer(factor_e[k1,:],np.ones(FField_FF.shape[1])))
              
         else:
             FField_FF_z[k1,:,:] = FField_FF # (z,omega,r)
@@ -201,7 +211,9 @@ def HankelTransform_long(ogrid, rgrid, zgrid, FSourceTerm, # FSourceTerm(r,z,ome
                 dum = dum + \
                       0.5*(zgrid[(k1+1)*k_step]-zgrid[k1*k_step]) * \
                       (FField_FF_z[k1*k_step,:,:] + FField_FF_z[(k1+1)*k_step,:,:])
-                      
+             
+            diagnostics[3].append(dum)
+            all_cumintegrals.append(dum)
             if store_cummulative_result:
                 if include_absorption:
                     # we need renormalise the end of the medium
@@ -243,7 +255,7 @@ def HankelTransform_long(ogrid, rgrid, zgrid, FSourceTerm, # FSourceTerm(r,z,ome
             
     else: 
         if store_cummulative_result:
-            return dum, cummulative_field, factor_e, abs_factor_Hfn_ref, factor_arg_e, [firstplane_int, firstplane_pref, firstplane_in]
+            return dum, cummulative_field, diagnostics
         else:
             return dum
                 

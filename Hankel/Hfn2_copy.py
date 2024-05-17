@@ -21,6 +21,8 @@ import sys
 import units
 import mynumerics as mn
 
+import copy
+
 import XUV_refractive_index as XUV_index
 
 from Hankel_tools import get_propagation_pre_factor_function
@@ -185,10 +187,12 @@ def HankelTransform_long(target, # FSourceTerm(r,z,omega)
     # trace_maxima_log = not(frequencies_to_trace_maxima is None)
     
     
-    diagnostics = [[],[],[],[],[]] #integrands, intagrals, prefactor, cummulative
+    all_integrals = []
+    all_integrands = []
+    all_cumintegrals = []
     
     
-    # init pre_factor
+    # integral & init pre_factor
     FF_integrated = 0.
     pre_factor, abs_factor = get_propagation_pre_factor_function(
                                     target.zgrid,
@@ -201,6 +205,46 @@ def HankelTransform_long(target, # FSourceTerm(r,z,omega)
                                     dispersion_tables = dispersion_tables,
                                     include_dispersion = include_dispersion,
                                     effective_IR_refrective_index = effective_IR_refrective_index)
+    
+    
+    
+    
+
+        
+    # old version for testing
+    FF_integrated_ref = 0.
+    
+    FF_integrated_test = 0.
+    
+
+    def dispersion_function(omega_):
+        return XUV_index.dispersion_function(omega_, pressure, preset_gas+'_'+dispersion_tables, n_IR=effective_IR_refrective_index)
+    
+    def absorption_function(omega_):
+        return (pressure/units.c_light)*XUV_index.beta_factor_ref(omega_, preset_gas+'_'+dispersion_tables)
+
+    
+    if include_dispersion:
+        dispersion_factor = np.empty(No)
+        for k1 in range(No):
+            dispersion_factor[k1] = target.ogrid[k1]*dispersion_function(target.ogrid[k1])        
+        
+    if include_absorption:
+        absorption_factor = np.empty(No)
+        for k1 in range(No):
+            absorption_factor[k1] = target.ogrid[k1]*absorption_function(target.ogrid[k1])
+      
+    # compute z-evolution of the factors        
+    if (include_dispersion and include_absorption):
+        factor_e = pressure* np.exp(
+                          1j*np.outer(target.zgrid,dispersion_factor) +
+                          np.outer(target.zgrid-target.zgrid[-1] ,absorption_factor)
+                          )
+    elif include_dispersion:
+        factor_e = pressure* np.exp(1j*np.outer(target.zgrid,dispersion_factor))
+
+    elif include_absorption:
+        factor_e = pressure* np.exp(np.outer(target.zgrid-target.zgrid[-1] ,absorption_factor))
 
                           
                           
@@ -213,9 +257,17 @@ def HankelTransform_long(target, # FSourceTerm(r,z,omega)
     
     integrands_plane = next(target.Fsource_plane)
     
-    diagnostics[0].append(integrands_plane)
-    
     Fsource_plane1 = HankelTransform(target.ogrid,
+                                     target.rgrid,
+                                     integrands_plane,
+                                     distance-target.zgrid[0],
+                                     rgrid_FF,
+                                     integrator = integrator_Hankel,
+                                     near_field_factor = near_field_factor,
+                                     pre_factor = pre_factor(0))
+    
+    
+    Fsource_plane1_test = HankelTransform(target.ogrid,
                                      target.rgrid,
                                      integrands_plane,
                                      distance-target.zgrid[0],
@@ -224,16 +276,52 @@ def HankelTransform_long(target, # FSourceTerm(r,z,omega)
                                      near_field_factor = near_field_factor,
                                      pre_factor = 1.)
     
-    diagnostics[1].append(Fsource_plane1)
     
-    diagnostics[2].append(np.outer(pre_factor(0)[0,:],np.ones(Fsource_plane1.shape[1])))
+    all_integrals.append(Fsource_plane1_test)
+    all_integrands.append(integrands_plane)
     
-    Fsource_plane1 *= np.outer(pre_factor(0)[0,:],np.ones(Fsource_plane1.shape[1]))
     
+    
+    firstplane_int = 1.*Fsource_plane1_test
+    
+    
+    Fsource_plane1_test *= np.outer(pre_factor(0)[0,:],np.ones(Fsource_plane1_test.shape[1]))
+    
+    
+    # old version
+    Fsource_plane1_ref = HankelTransform(target.ogrid,
+                                     target.rgrid,
+                                     integrands_plane,
+                                     distance-target.zgrid[0],
+                                     rgrid_FF,
+                                     integrator = integrator_Hankel,
+                                     near_field_factor = near_field_factor)
+    
+    
+    if (include_dispersion or include_absorption):  
+         Fsource_plane1_ref *= np.outer(factor_e[0,:],np.ones(Fsource_plane1_ref.shape[1]))
+    else:
+         Fsource_plane1_ref *= np.outer(pre_factor(0)[0,:],np.ones(Fsource_plane1_test.shape[1]))
+    
+    firstplane_in = 1.*integrands_plane
+    
+    firstplane_int_prf = 1.*Fsource_plane1
+    firstplane_pref = np.outer(pre_factor(0)[0,:],np.ones(Fsource_plane1_test.shape[1]))
+    
+
+
+    np.testing.assert_allclose(Fsource_plane1,Fsource_plane1_ref)
+    print('first plane ok')
     
     
     if store_cummulative_result:
          cummulative_field = np.empty((Nz-1,) + Fsource_plane1.shape, dtype=np.cdouble)
+         cummulative_field_ref = np.empty((Nz-1,) + Fsource_plane1.shape, dtype=np.cdouble)
+         cummulative_field_test = np.empty((Nz-1,) + Fsource_plane1.shape, dtype=np.cdouble)
+         
+
+    if store_entry_plane_transform:
+        entry_plane_transform = 1.*Fsource_plane1
     
     
     for k1 in range(Nz-1):
@@ -242,7 +330,6 @@ def HankelTransform_long(target, # FSourceTerm(r,z,omega)
         t_check1 = t_check2
         
         integrands_plane = next(target.Fsource_plane)
-        diagnostics[0].append(integrands_plane)
         
         Fsource_plane2 = HankelTransform(target.ogrid,
                                          target.rgrid,
@@ -251,40 +338,56 @@ def HankelTransform_long(target, # FSourceTerm(r,z,omega)
                                          rgrid_FF,
                                          integrator = integrator_Hankel,
                                          near_field_factor = near_field_factor,
-                                         pre_factor = 1.)  
-        
-        diagnostics[1].append(Fsource_plane2)        
+                                         pre_factor = pre_factor(k1+1))  
         
         
-        diagnostics[2].append(np.outer(pre_factor(k1+1)[0,:],np.ones(Fsource_plane1.shape[1])))
-        Fsource_plane2 *= np.outer(pre_factor(k1+1)[0,:],np.ones(Fsource_plane1.shape[1]))
+        Fsource_plane2_test = HankelTransform(target.ogrid,
+                                         target.rgrid,
+                                         integrands_plane,
+                                         distance-target.zgrid[k1+1],
+                                         rgrid_FF,
+                                         integrator = integrator_Hankel,
+                                         near_field_factor = near_field_factor,
+                                         pre_factor = 1.)
         
-         
         
+        all_integrals.append(Fsource_plane2_test)
+        all_integrands.append(integrands_plane)
+        
+        Fsource_plane2_test *= np.outer(pre_factor(k1+1)[0,:],np.ones(Fsource_plane1_test.shape[1]))
+        
+        
+        np.testing.assert_allclose(Fsource_plane2,Fsource_plane2_test)  
+        print('plane ', k1, ' ok')
+        
+        
+        
+        
+                         
         FF_integrated += 0.5*(target.zgrid[k1+1]-target.zgrid[k1])*(Fsource_plane1 + Fsource_plane2)
         
-        diagnostics[3].append(FF_integrated)
+        FF_integrated_test += 0.5*(target.zgrid[k1+1]-target.zgrid[k1])*(Fsource_plane1_test + Fsource_plane2_test)
         
-
-    
+        
+        all_cumintegrals.append(FF_integrated)
         
         
         if store_cummulative_result:
             cummulative_field[k1,:,:] = 1.*FF_integrated
 
-
+            cummulative_field_test[k1,:,:] = 1.*FF_integrated_test
         
         
-        Fsource_plane1 = 1.*Fsource_plane2
+        Fsource_plane1 = copy.copy(Fsource_plane2)
         
-
+        Fsource_plane1_test = copy.copy(Fsource_plane2_test)
         
 
     
     
     
     if store_cummulative_result:
-        return FF_integrated, cummulative_field, diagnostics
+        return FF_integrated, cummulative_field, pre_factor,  cummulative_field_test, abs_factor, [firstplane_int, firstplane_pref, firstplane_in, firstplane_int_prf], [all_integrals, all_integrands, all_cumintegrals] #, cummulative_field_ref, factor_e
     else:
         return FF_integrated
         
