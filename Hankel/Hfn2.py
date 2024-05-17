@@ -271,6 +271,9 @@ def HankelTransform_long(target, # FSourceTerm(r,z,omega)
                                      near_field_factor = near_field_factor,
                                      pre_factor = 1.)
     
+    firstplane_int = 1.*Fsource_plane1_test
+    
+    
     Fsource_plane1_test *= np.outer(pre_factor(0)[0,:],np.ones(Fsource_plane1_test.shape[1]))
     
     
@@ -287,7 +290,12 @@ def HankelTransform_long(target, # FSourceTerm(r,z,omega)
     if (include_dispersion or include_absorption):  
          Fsource_plane1_ref *= np.outer(factor_e[0,:],np.ones(Fsource_plane1_ref.shape[1]))
     else:
-         Fsource_plane1_ref *= pressure
+         Fsource_plane1_ref *= np.outer(pre_factor(0)[0,:],np.ones(Fsource_plane1_test.shape[1]))
+    
+    firstplane_in = 1.*integrands_plane
+    
+    firstplane_int_prf = 1.*Fsource_plane1
+    firstplane_pref = np.outer(pre_factor(0)[0,:],np.ones(Fsource_plane1_test.shape[1]))
     
 
 
@@ -378,7 +386,7 @@ def HankelTransform_long(target, # FSourceTerm(r,z,omega)
     
     
     if store_cummulative_result:
-        return FF_integrated, cummulative_field, pre_factor,  cummulative_field_test, abs_factor #, cummulative_field_ref, factor_e
+        return FF_integrated, cummulative_field, pre_factor,  cummulative_field_test, abs_factor, [firstplane_int, firstplane_pref, firstplane_in, firstplane_int_prf] #, cummulative_field_ref, factor_e
     else:
         return FF_integrated
         

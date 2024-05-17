@@ -151,8 +151,11 @@ def HankelTransform_long(ogrid, rgrid, zgrid, FSourceTerm, # FSourceTerm(r,z,ome
 
     elif include_absorption:
         factor_e = np.exp(np.outer(zgrid-zgrid[-1] ,absorption_factor))  
+        factor_arg_e = np.outer(zgrid-zgrid[-1] ,absorption_factor)
     else:
         factor_e = np.ones((len(zgrid),No))
+        
+        
 
             
     # we keep the data for now, consider on-the-fly change
@@ -169,11 +172,19 @@ def HankelTransform_long(ogrid, rgrid, zgrid, FSourceTerm, # FSourceTerm(r,z,ome
                                   integrator = integrator_Hankel,
                                   near_field_factor = near_field_factor)
         
+        
         if (k1 == 0): # allocate space
             FField_FF_z = np.zeros( (Nz,) + FField_FF.shape,dtype=np.cdouble) 
+            
+            firstplane_in = 1.*FSourceTerm_select
+            firstplane_int = 1.*FField_FF
+            firstplane_pref = 1.*np.outer(factor_e[0,:],np.ones(FField_FF.shape[1]))
         
         if (include_dispersion or include_absorption):  
              FField_FF_z[k1,:,:] = np.outer(factor_e[k1,:],np.ones(FField_FF.shape[1]))*FField_FF
+             
+             
+             
         else:
             FField_FF_z[k1,:,:] = FField_FF # (z,omega,r)
     
@@ -232,7 +243,7 @@ def HankelTransform_long(ogrid, rgrid, zgrid, FSourceTerm, # FSourceTerm(r,z,ome
             
     else: 
         if store_cummulative_result:
-            return dum, cummulative_field, factor_e, abs_factor_Hfn_ref
+            return dum, cummulative_field, factor_e, abs_factor_Hfn_ref, factor_arg_e, [firstplane_int, firstplane_pref, firstplane_in]
         else:
             return dum
                 

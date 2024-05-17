@@ -216,7 +216,7 @@ with h5py.File(file, 'r') as InpArch:
     
 
     
-    HL_end, HL_cum, pf, HL_cum_test, abs_factor_Htools =  Hfn2.HankelTransform_long(target_dynamic, # FSourceTerm(r,z,omega)
+    HL_end, HL_cum, pf, HL_cum_test, abs_factor_Htools, firstplane =  Hfn2.HankelTransform_long(target_dynamic, # FSourceTerm(r,z,omega)
                               distance_FF, rgrid_FF,
                               preset_gas = preset_gas,
                               pressure = pressure,
@@ -244,7 +244,7 @@ with h5py.File(file, 'r') as InpArch:
     else:           absorption_function = None  
 
     
-    HL_end_ref, HL_cum_ref, factor_e_ref, abs_factor_Hfn_ref = Hfn2_v1.HankelTransform_long(
+    HL_end_ref, HL_cum_ref, factor_e_ref, abs_factor_Hfn_ref, factor_arg_e_Hfn_ref, firstplane_ref = Hfn2_v1.HankelTransform_long(
                                                    target_dynamic.ogrid,
                                                    target_dynamic.rgrid,
                                                    target_dynamic.zgrid,
@@ -288,6 +288,8 @@ with h5py.File(file, 'r') as InpArch:
                           1j*np.outer(target_dynamic.zgrid,dispersion_factor) +
                           np.outer(target_dynamic.zgrid-target_dynamic.zgrid[-1] ,absorption_factor)
                           )
+    
+    factor_arg_e = np.outer(target_dynamic.zgrid-target_dynamic.zgrid[-1] ,absorption_factor)
     
     factor_e_Htools = np.asarray([ pf(k1)[0,:] for k1 in range(len(target_dynamic.zgrid))])
 
