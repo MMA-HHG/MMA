@@ -152,6 +152,7 @@ def dispersion_function(omega, pressure, gas, n_IR=1., N_ref=N_ref_default):
     (1/phase_velocity_IR) - (1/phase_velocity_XUV)
     """
     f1_value = getf1(gas,mn.ConvertPhoton(omega, 'omegaSI', 'eV'))
+    if (-9998. < np.asarray(f1_value)).any(): raise ValueError('f1-scattering coefficient not listed for this frequency.')
     lambdaSI = mn.ConvertPhoton(omega, 'omegaSI', 'lambdaSI')
     nXUV     = 1.0 - pressure*N_ref*units.r_electron_classical * ((lambdaSI**2)*f1_value/(2.0*np.pi))           
     phase_velocity_XUV  = units.c_light / nXUV    

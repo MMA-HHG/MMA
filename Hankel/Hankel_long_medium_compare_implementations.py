@@ -33,7 +33,7 @@ import plot_presets as pp
 
 
 # gas_type = 'Ar'
-XUV_table_type_diffraction = 'NIST' # {Henke, NIST}
+XUV_table_type_diffraction = 'Henke' # {Henke, NIST}
 XUV_table_type_absorption = 'NIST' # {Henke, NIST} 
 # apply_diffraction = ['dispersion', 'absorption']
 
@@ -205,20 +205,25 @@ with h5py.File(file, 'r') as InpArch:
     
     # test dispersion functions
     df_t1 = dispersion_function_def(target_dynamic.ogrid[0])
-    df_t2 = XUV_index.dispersion_function(target_dynamic.ogrid[0], pressure, 'Ar_NIST', n_IR=effective_IR_refrective_index) 
+    df_t2 = XUV_index.dispersion_function(target_dynamic.ogrid[0], pressure, gas_type+'_'+XUV_table_type_diffraction, n_IR=effective_IR_refrective_index) 
     
     print('disp functions_test:' , df_t1,  df_t2)
     
     # sys.exit(0)
+    
+    absorption = False
+    dispersion = False
+    
+
     
     HL_end, HL_cum, pf, HL_cum_test =  Hfn2.HankelTransform_long(target_dynamic, # FSourceTerm(r,z,omega)
                               distance_FF, rgrid_FF,
                               preset_gas = preset_gas,
                               pressure = pressure,
                               absorption_tables = XUV_table_type_absorption,
-                              include_absorption = True,
+                              include_absorption = absorption,
                               dispersion_tables = XUV_table_type_diffraction,
-                              include_dispersion = True,
+                              include_dispersion = dispersion,
                               effective_IR_refrective_index = effective_IR_refrective_index,
                               integrator_Hankel = integrate.trapz,
                               integrator_longitudinal = 'trapezoidal',
@@ -230,19 +235,27 @@ with h5py.File(file, 'r') as InpArch:
     
     
     # original implementation
+
+
+    if dispersion:  dispersion_function = dispersion_function_def
+    else:           dispersion_function = None   
     
+    if absorption:  absorption_function = absorption_function_def
+    else:           absorption_function = None  
 
     
-    HL_end_ref, HL_cum_ref, factor_e_v2 = Hfn2_v1.HankelTransform_long(
+    HL_end_ref, HL_cum_ref, factor_e_ref = Hfn2_v1.HankelTransform_long(
                                                    target_dynamic.ogrid,
                                                    target_dynamic.rgrid,
                                                    target_dynamic.zgrid,
                                                    np.transpose(FSourceTerm,axes=(1,0,2)),
                                                    distance_FF,
                                                    rgrid_FF,
-                                                   dispersion_function = dispersion_function_def, # None, #dispersion_function,
-                                                   absorption_function = absorption_function_def,
+                                                   dispersion_function = dispersion_function, # None, #dispersion_function,
+                                                   absorption_function = absorption_function,
                                                    store_cummulative_result = True)
+    
+    HL_cum_ref *= pressure
     
 
     
@@ -256,7 +269,7 @@ with h5py.File(file, 'r') as InpArch:
         dispersion_factor_new[k1] = target_dynamic.ogrid[k1]*XUV_index.dispersion_function(
                                     target_dynamic.ogrid[k1], 
                                     pressure,                
-                                    preset_gas+'_NIST',
+                                    preset_gas+'_'+XUV_table_type_diffraction,
                                     n_IR = effective_IR_refrective_index)
     
     
@@ -267,27 +280,20 @@ with h5py.File(file, 'r') as InpArch:
         absorption_factor_new[k1] = target_dynamic.ogrid[k1]*(pressure/units.c_light) *\
                                     XUV_index.beta_factor_ref(
                                         target_dynamic.ogrid[k1],
-                                        preset_gas+'_NIST')
+                                        preset_gas+'_'+XUV_table_type_absorption)
                                 
       
     # compute z-evolution of the factors        
-    factor_e_ref = pressure*np.exp(
+    factor_e_ref_reconstructed = pressure*np.exp(
                           1j*np.outer(target_dynamic.zgrid,dispersion_factor) +
                           np.outer(target_dynamic.zgrid-target_dynamic.zgrid[-1] ,absorption_factor)
                           )
     
     factor_e_Htools = np.asarray([ pf(k1)[0,:] for k1 in range(len(target_dynamic.zgrid))])
+
+
+    test1 = np.abs(factor_e_ref/factor_e_Htools)   
     
-    factor_e_new = pressure*np.exp(
-                          1j*np.outer(target_dynamic.zgrid,dispersion_factor_new) +
-                          np.outer(target_dynamic.zgrid-target_dynamic.zgrid[-1] ,absorption_factor_new)
-                          )
-
-
-    test1 = np.abs(factor_e_ref/factor_e_Htools)
-    test2 = np.abs(factor_e_new/factor_e_Htools)
-    test3 = np.abs(factor_e_new/factor_e_ref)
-    test4 = np.abs(factor_e_new/factor_e_v2)
 
 
     
@@ -307,14 +313,6 @@ with h5py.File(file, 'r') as InpArch:
     pp.plot_preset(image)
     
     
-    image = pp.figure_driver()
-    image.sf = [pp.plotter() for k1 in range(32)]
-    image.sf[0].args = [target_dynamic.ogrid/omega0SI, rgrid_FF, np.abs(HL_cum_test[-1].T)]
-    image.sf[0].method = plt.pcolormesh
-    image.sf[0].colorbar.show = True
-    pp.plot_preset(image)
-    
-    
     # signal build-up for H19
     ko_17 = mn.FindInterval(target_dynamic.ogrid/omega0SI, 17)
     
@@ -323,7 +321,6 @@ with h5py.File(file, 'r') as InpArch:
     image.title = "H17"
     image.sf[0].args = [1e3*target_dynamic.zgrid[1:], np.max(np.abs(HL_cum[:,ko_17,:]),axis=1)]
     image.sf[1].args = [1e3*target_dynamic.zgrid[1:], np.max(np.abs(HL_cum_ref[:,ko_17,:]),axis=1)]
-    image.sf[2].args = [1e3*target_dynamic.zgrid[1:], np.max(np.abs(HL_cum_test[:,ko_17,:]),axis=1)]
     pp.plot_preset(image)
     
     
@@ -331,150 +328,8 @@ with h5py.File(file, 'r') as InpArch:
     image.sf = [pp.plotter() for k1 in range(32)]
     image.title = "ratio H17 [-]"
     image.sf[0].args = [1e3*target_dynamic.zgrid[1:], np.max(np.abs(HL_cum[:,ko_17,:]),axis=1)/np.max(np.abs(HL_cum_ref[:,ko_17,:]),axis=1)]
-    image.sf[1].args = [1e3*target_dynamic.zgrid[1:], np.max(np.abs(HL_cum[:,ko_17,:]),axis=1)/np.max(np.abs(HL_cum_test[:,ko_17,:]),axis=1)]
-    # image.sf[1].args = [target_dynamic.zgrid[1:], np.max(np.abs(HL_cum_ref[:,ko_17,:]),axis=1)]
+
+
     pp.plot_preset(image)
     
     
-    # image.sf[0].args[-1] = np.abs(HL_cum[1].T)
-    # pp.plot_preset(image)
-
-
-    # image.sf[0].args[-1] = np.abs(HL_cum[3].T)
-    # pp.plot_preset(image)
-    
-
-    # image.sf[0].args[-1] = np.abs(HL_cum[6].T)
-    # pp.plot_preset(image)
-    
-
-    # image.sf[0].args[-1] = np.abs(HL_cum[9].T)
-    # pp.plot_preset(image)    
-    
-    # image = pp.figure_driver()
-    # image.sf = [pp.plotter() for k1 in range(32)]
-    # image.title = 'disp'
-    # image.sf[0].args = [target_static.ogrid/omega0SI, rgrid_FF, np.abs(HL_end.T)]
-    # image.sf[0].method = plt.pcolormesh
-    # image.sf[0].colorbar.show = True
-    # pp.plot_preset(image)
-    
-    # image = pp.figure_driver()
-    # image.sf = [pp.plotter() for k1 in range(32)]
-    # image.title = 'vac'
-    # image.sf[0].args = [target_static.ogrid/omega0SI, rgrid_FF, np.abs(HL_end_vac.T)]
-    # image.sf[0].method = plt.pcolormesh
-    # image.sf[0].colorbar.show = True
-    # pp.plot_preset(image)
-    
-    # image = pp.figure_driver()
-    # image.sf = [pp.plotter() for k1 in range(32)]
-    # image.title = 'dif'
-    # image.sf[0].args = [target_static.ogrid/omega0SI, rgrid_FF, np.abs(HL_end_vac.T-HL_end.T)]
-    # image.sf[0].method = plt.pcolormesh
-    # image.sf[0].colorbar.show = True
-    # pp.plot_preset(image)
-    
-    # image = pp.figure_driver()
-    # image.sf = [pp.plotter() for k1 in range(32)]
-    # image.title = 'dif_rel'
-    # image.sf[0].args = [target_static.ogrid/omega0SI, rgrid_FF, np.abs(HL_end_vac.T)/np.max(np.abs(HL_end.T))]
-    # image.sf[0].method = plt.pcolormesh
-    # image.sf[0].colorbar.show = True
-    # pp.plot_preset(image)
-    
-    # # image = pp.figure_driver()
-    # # image.sf = [pp.plotter() for k1 in range(32)]
-    # # image.sf[0].args = [target_static.ogrid/omega0SI, rgrid_FF, np.abs(Hankel_long_static_Ar.T)]
-    # # image.sf[0].method = plt.pcolormesh
-    # # pp.plot_preset(image)
-    
-    
-    # ko_19 = mn.FindInterval(target_static.ogrid/omega0SI, 19)
-    # pref_val = np.squeeze(np.asarray([pf(k1)[:,ko_19] for k1 in range(len(target_static.zgrid))]))
-    # pref_val_vac = np.squeeze(np.asarray([pf_vac(k1)[:,ko_19] for k1 in range(len(target_static.zgrid))]))
-    
-    # image = pp.figure_driver()
-    # image.sf = [pp.plotter() for k1 in range(32)]
-    # image.title = 'pref mod'
-    # image.sf[0].args = [target_static.zgrid, target_static.rgrid, np.abs(pref_val.T)]
-    # image.sf[0].method = plt.pcolormesh
-    # image.sf[0].colorbar.show = True
-    # pp.plot_preset(image)
-
-
-    # image = pp.figure_driver()
-    # image.sf = [pp.plotter() for k1 in range(32)]
-    # image.title = 'pref phase'
-    # image.sf[0].args = [target_static.zgrid, target_static.rgrid, np.angle(pref_val.T)]
-    # image.sf[0].method = plt.pcolormesh
-    # image.sf[0].colorbar.show = True
-    # pp.plot_preset(image)
-
-
-    # image = pp.figure_driver()
-    # image.sf = [pp.plotter() for k1 in range(32)]
-    # image.title = 'pref phase vac'
-    # image.sf[0].args = [target_static.zgrid, target_static.rgrid, np.angle(pref_val_vac.T)]
-    # image.sf[0].method = plt.pcolormesh
-    # image.sf[0].colorbar.show = True
-    # pp.plot_preset(image)
-    
-
-    # image = pp.figure_driver()
-    # image.sf = [pp.plotter() for k1 in range(32)]
-    # image.title = "arg(z/z')"
-    # image.sf[0].args = [target_static.zgrid, target_static.rgrid, np.angle((pref_val/pref_val_vac).T)]
-    # image.sf[0].method = plt.pcolormesh
-    # image.sf[0].colorbar.show = True
-    # pp.plot_preset(image)
-    
-    
-    
-    # signal build-up for H19
-    # ko_19 = mn.FindInterval(target_static.ogrid/omega0SI, 19)
-    
-    # image = pp.figure_driver()
-    # image.sf = [pp.plotter() for k1 in range(32)]
-    # image.title = "H19"
-    # image.sf[0].args = [target_static.zgrid[1:], np.max(np.abs(HL_cum[:,ko_19,:]),axis=1)]
-    # image.sf[1].args = [target_static.zgrid[1:], np.max(np.abs(HL_cum_vac[:,ko_19,:]),axis=1)]
-    # pp.plot_preset(image)
-    
-
-
-
-
-
-    # Hankel_long_static_Ar = Hfn2.HankelTransform_long(target_static_Ar, # FSourceTerm(r,z,omega)
-    #                           distance_FF, rgrid_FF,
-    #                           preset_gas = 'Ar',
-    #                           pressure = 1.,
-    #                           absorption_tables = 'Henke',
-    #                           include_absorption = True,
-    #                           dispersion_tables = 'Henke',
-    #                           include_dispersion = True,
-    #                           effective_IR_refrective_index = 1.,
-    #                           integrator_Hankel = integrate.trapz,
-    #                           integrator_longitudinal = 'trapezoidal',
-    #                           near_field_factor = True,
-    #                           store_cummulative_result = False,
-    #                           frequencies_to_trace_maxima = None
-    #                           )
-
-    # Hankel_long_dynamic = Hfn2.HankelTransform_long(target_dynamic, # FSourceTerm(r,z,omega)
-    #                           distance_FF, rgrid_FF,
-    #                           preset_gas = preset_gas,
-    #                           pressure = pressure,
-    #                           absorption_tables = 'Henke',
-    #                           include_absorption = True,
-    #                           dispersion_tables = 'Henke',
-    #                           include_dispersion = True,
-    #                           effective_IR_refrective_index = effective_IR_refrective_index,
-    #                           integrator_Hankel = integrate.trapz,
-    #                           integrator_longitudinal = 'trapezoidal',
-    #                           near_field_factor = True,
-    #                           store_cummulative_result = False,
-    #                           frequencies_to_trace_maxima = None,
-    #                           )
-    # print(np.array_equal(Hankel_long_dynamic,HL_end))

@@ -148,7 +148,9 @@ def HankelTransform_long(ogrid, rgrid, zgrid, FSourceTerm, # FSourceTerm(r,z,ome
         factor_e = np.exp(1j*np.outer(zgrid,dispersion_factor))
 
     elif include_absorption:
-        factor_e = np.exp(np.outer(zgrid-zgrid[-1] ,absorption_factor))     
+        factor_e = np.exp(np.outer(zgrid-zgrid[-1] ,absorption_factor))  
+    else:
+        factor_e = np.ones((len(zgrid),No))
 
             
     # we keep the data for now, consider on-the-fly change

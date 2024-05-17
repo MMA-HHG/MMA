@@ -334,6 +334,10 @@ def HankelTransform_long(target, # FSourceTerm(r,z,omega)
         Fsource_plane2_test *= np.outer(pre_factor(k1+1)[0,:],np.ones(Fsource_plane1_test.shape[1]))
         
         
+        np.testing.assert_allclose(Fsource_plane2,Fsource_plane2_test)  
+        print('plane ', k1, ' ok')
+        
+        
         # Fsource_plane2_ref = HankelTransform(target.ogrid,
         #                                  target.rgrid,
         #                                  integrands_plane,
