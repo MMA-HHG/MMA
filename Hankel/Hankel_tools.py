@@ -349,6 +349,8 @@ def get_propagation_pre_factor_function(zgrid,
             
             lin_prop_factor = ogrid * (dispersion_factor + absorption_factor)
             
+            abs_factor_omega = ogrid * absorption_factor
+            
              
                 
             def pre_factor(kz):
@@ -376,7 +378,7 @@ def get_propagation_pre_factor_function(zgrid,
                 #                                   )
                 #                            )
                 
-            return pre_factor
+            return pre_factor, abs_factor_omega
         
         else:
             def pre_factor(kz):

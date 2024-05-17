@@ -189,7 +189,7 @@ def HankelTransform_long(target, # FSourceTerm(r,z,omega)
     
     # integral & init pre_factor
     FF_integrated = 0.
-    pre_factor = get_propagation_pre_factor_function(
+    pre_factor, abs_factor = get_propagation_pre_factor_function(
                                     target.zgrid,
                                     target.rgrid,
                                     target.ogrid,
@@ -378,7 +378,7 @@ def HankelTransform_long(target, # FSourceTerm(r,z,omega)
     
     
     if store_cummulative_result:
-        return FF_integrated, cummulative_field, pre_factor,  cummulative_field_test #, cummulative_field_ref, factor_e
+        return FF_integrated, cummulative_field, pre_factor,  cummulative_field_test, abs_factor #, cummulative_field_ref, factor_e
     else:
         return FF_integrated
         

@@ -34,7 +34,7 @@ import plot_presets as pp
 
 # gas_type = 'Ar'
 XUV_table_type_diffraction = 'Henke' # {Henke, NIST}
-XUV_table_type_absorption = 'NIST' # {Henke, NIST} 
+XUV_table_type_absorption = 'Henke' # {Henke, NIST} 
 # apply_diffraction = ['dispersion', 'absorption']
 
 Nr_max = 235 #470; 235; 155-still fine    
@@ -211,12 +211,12 @@ with h5py.File(file, 'r') as InpArch:
     
     # sys.exit(0)
     
-    absorption = False
+    absorption = True
     dispersion = False
     
 
     
-    HL_end, HL_cum, pf, HL_cum_test =  Hfn2.HankelTransform_long(target_dynamic, # FSourceTerm(r,z,omega)
+    HL_end, HL_cum, pf, HL_cum_test, abs_factor_Htools =  Hfn2.HankelTransform_long(target_dynamic, # FSourceTerm(r,z,omega)
                               distance_FF, rgrid_FF,
                               preset_gas = preset_gas,
                               pressure = pressure,
@@ -244,7 +244,7 @@ with h5py.File(file, 'r') as InpArch:
     else:           absorption_function = None  
 
     
-    HL_end_ref, HL_cum_ref, factor_e_ref = Hfn2_v1.HankelTransform_long(
+    HL_end_ref, HL_cum_ref, factor_e_ref, abs_factor_Hfn_ref = Hfn2_v1.HankelTransform_long(
                                                    target_dynamic.ogrid,
                                                    target_dynamic.rgrid,
                                                    target_dynamic.zgrid,

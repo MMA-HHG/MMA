@@ -201,7 +201,7 @@ with h5py.File(file, 'r') as InpArch:
                                                             include_absorption = True,
                                                             dispersion_tables = 'Henke',
                                                             include_dispersion = True,
-                                                            effective_IR_refrective_index = effective_IR_refrective_index)
+                                                            effective_IR_refrective_index = effective_IR_refrective_index)[0]
     
 
     pf2 = Hankel_tools.get_propagation_pre_factor_function( target_static.zgrid,
@@ -213,7 +213,7 @@ with h5py.File(file, 'r') as InpArch:
                                                             include_absorption = True,
                                                             dispersion_tables = 'Henke',
                                                             include_dispersion = True,
-                                                            effective_IR_refrective_index = 1.0)
+                                                            effective_IR_refrective_index = 1.0)[0]
     
     
     # sys.exit(0)

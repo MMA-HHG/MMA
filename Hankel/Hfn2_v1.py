@@ -137,7 +137,9 @@ def HankelTransform_long(ogrid, rgrid, zgrid, FSourceTerm, # FSourceTerm(r,z,ome
         absorption_factor = np.empty(No)
         for k1 in range(No):
             absorption_factor[k1] = ogrid[k1]*absorption_function(ogrid[k1])
-      
+     
+        
+    abs_factor_Hfn_ref = absorption_factor
     # compute z-evolution of the factors        
     if (include_dispersion and include_absorption):
         factor_e = np.exp(
@@ -230,7 +232,7 @@ def HankelTransform_long(ogrid, rgrid, zgrid, FSourceTerm, # FSourceTerm(r,z,ome
             
     else: 
         if store_cummulative_result:
-            return dum, cummulative_field, factor_e
+            return dum, cummulative_field, factor_e, abs_factor_Hfn_ref
         else:
             return dum
                 
