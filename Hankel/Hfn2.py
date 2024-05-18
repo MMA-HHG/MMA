@@ -25,6 +25,8 @@ import XUV_refractive_index as XUV_index
 
 from Hankel_tools import get_propagation_pre_factor_function
 
+import copy
+
 def HankelTransform(ogrid, rgrid, FField, distance, rgrid_FF,
                     integrator = integrate.trapz,
                     near_field_factor = True,
@@ -72,6 +74,10 @@ def HankelTransform(ogrid, rgrid, FField, distance, rgrid_FF,
     
     No = len(ogrid); Nr = len(rgrid); Nr_FF = len(rgrid_FF)
     FField_FF = np.empty((No,Nr_FF), dtype=np.cdouble)
+    
+    integrands = np.empty((No,Nr_FF,Nr), dtype=np.cdouble)
+    rgrids = np.empty((No,Nr_FF,Nr), dtype=np.cdouble)
+    
     integrand = np.empty((Nr), dtype=np.cdouble)
     for k1 in range(No):
         k_omega = ogrid[k1] / units.c_light # ogrid[k3] / units.c_light; ogrid[k1] * units.alpha_fine  # ??? units
@@ -88,7 +94,11 @@ def HankelTransform(ogrid, rgrid, FField, distance, rgrid_FF,
                     else:                    radial_factor_local = 1.
                     integrand[k3] = radial_factor_local *\
                                     rgrid[k3] * FField[k1,k3] * special.jn(0, k_omega * rgrid[k3] * rgrid_FF[k2] / distance)
+                                    
             FField_FF[k1,k2] = integrator(integrand,rgrid)
+            integrands[k1,k2,:] = integrand
+            rgrids[k1,k2,:] = rgrid
+            
 
     # if   (len(np.shape(pre_factor))==1):
     #     FField_FF *= np.outer(pre_factor,np.ones(FField_FF.shape[1]))
@@ -101,7 +111,7 @@ def HankelTransform(ogrid, rgrid, FField, distance, rgrid_FF,
 
     print('time spent only in the integrator ', time.perf_counter()-t_start)
     
-    return FField_FF
+    return FField_FF , [integrands, rgrids, FField_FF, copy.copy(FField_FF)]
 
 
 def HankelTransform_long(target, # FSourceTerm(r,z,omega)
@@ -185,7 +195,7 @@ def HankelTransform_long(target, # FSourceTerm(r,z,omega)
     # trace_maxima_log = not(frequencies_to_trace_maxima is None)
     
     
-    diagnostics = [[],[],[],[],[]] #integrands, intagrals, prefactor, cummulative
+    diagnostics = [[],[],[],[],[],[]] #integrands, intagrals, prefactor, cummulative, H-args, #integrands
     
     
     # init pre_factor
@@ -215,7 +225,7 @@ def HankelTransform_long(target, # FSourceTerm(r,z,omega)
     
     diagnostics[0].append(integrands_plane)
     
-    Fsource_plane1 = HankelTransform(target.ogrid,
+    Fsource_plane1, integrands = HankelTransform(target.ogrid,
                                      target.rgrid,
                                      integrands_plane,
                                      distance-target.zgrid[0],
@@ -224,7 +234,13 @@ def HankelTransform_long(target, # FSourceTerm(r,z,omega)
                                      near_field_factor = near_field_factor,
                                      pre_factor = 1.)
     
-    diagnostics[1].append(Fsource_plane1)
+    diagnostics[4].append([target.ogrid,target.rgrid,integrands_plane,
+                           distance-target.zgrid[0],rgrid_FF,integrator_Hankel,
+                           near_field_factor])
+    diagnostics[5].append(integrands)
+    
+    
+    diagnostics[1].append(copy.copy(Fsource_plane1))
     
     diagnostics[2].append(np.outer(pre_factor(0)[0,:],np.ones(Fsource_plane1.shape[1])))
     
@@ -244,7 +260,7 @@ def HankelTransform_long(target, # FSourceTerm(r,z,omega)
         integrands_plane = next(target.Fsource_plane)
         diagnostics[0].append(integrands_plane)
         
-        Fsource_plane2 = HankelTransform(target.ogrid,
+        Fsource_plane2, integrands = HankelTransform(target.ogrid,
                                          target.rgrid,
                                          integrands_plane,
                                          distance-target.zgrid[k1+1],
@@ -253,11 +269,17 @@ def HankelTransform_long(target, # FSourceTerm(r,z,omega)
                                          near_field_factor = near_field_factor,
                                          pre_factor = 1.)  
         
-        diagnostics[1].append(Fsource_plane2)        
+        diagnostics[4].append([target.ogrid,target.rgrid,integrands_plane,
+                               distance-target.zgrid[k1+1],rgrid_FF,integrator_Hankel,
+                               near_field_factor])
+        diagnostics[5].append(integrands)
         
         
-        diagnostics[2].append(np.outer(pre_factor(k1+1)[0,:],np.ones(Fsource_plane1.shape[1])))
-        Fsource_plane2 *= np.outer(pre_factor(k1+1)[0,:],np.ones(Fsource_plane1.shape[1]))
+        diagnostics[1].append(copy.copy(Fsource_plane2))        
+        
+        
+        diagnostics[2].append(np.outer(pre_factor(k1+1)[0,:],np.ones(Fsource_plane2.shape[1])))
+        Fsource_plane2 *= np.outer(pre_factor(k1+1)[0,:],np.ones(Fsource_plane2.shape[1]))
         
          
         

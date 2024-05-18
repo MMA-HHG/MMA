@@ -156,6 +156,7 @@ with h5py.File(file, 'r') as InpArch:
                   1j*InpArch[MMA.paths['CTDSE_outputs']+'/FSourceTerm'][:,:,ko_min:ko_max,1]
     
 
+
     
     omega_au2SI = mn.ConvertPhoton(1.0, 'omegaau', 'omegaSI')
     ogridSI = omega_au2SI * ogrid
@@ -177,6 +178,29 @@ with h5py.File(file, 'r') as InpArch:
                                                     data_source = 'dynamic',
                                                     ko_min = ko_min,
                                                     ko_max = ko_max)
+    
+    
+    
+    # test one plane
+    # Hplane1 = Hfn2.HankelTransform(target_dynamic.ogrid,
+    #                              target_dynamic.rgrid,
+    #                              FSourceTerm[0,:,:].T,
+    #                              distance_FF-target_dynamic.zgrid[0],
+    #                              rgrid_FF,
+    #                              near_field_factor = True,
+    #                              pre_factor = 1.)
+    
+    args_plane1_test = [target_dynamic.ogrid,target_dynamic.rgrid,FSourceTerm[0,:,:].T,
+                        distance_FF-target_dynamic.zgrid[0],rgrid_FF, True]
+    
+    
+    
+    # Hplane1_ref = Hfn2_v1.HankelTransform(target_dynamic.ogrid,
+    #                              target_dynamic.rgrid,
+    #                              FSourceTerm[0,:,:].T,
+    #                              distance_FF-target_dynamic.zgrid[0],
+    #                              rgrid_FF,
+    #                              near_field_factor = True)
     
     
     

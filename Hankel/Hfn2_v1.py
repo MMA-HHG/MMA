@@ -21,6 +21,8 @@ import sys
 import units
 import mynumerics as mn
 
+import copy
+
 def HankelTransform(ogrid, rgrid, FField, distance, rgrid_FF, integrator = integrate.trapz, near_field_factor = True):
     """
     It computes Hanikel transform with an optional near-field factor.
@@ -54,6 +56,10 @@ def HankelTransform(ogrid, rgrid, FField, distance, rgrid_FF, integrator = integ
     """
     No = len(ogrid); Nr = len(rgrid); Nr_FF = len(rgrid_FF)
     FField_FF = np.empty((No,Nr_FF), dtype=np.cdouble)
+    
+    integrands = np.empty((No,Nr_FF,Nr), dtype=np.cdouble)
+    rgrids = np.empty((No,Nr_FF,Nr), dtype=np.cdouble)
+    
     integrand = np.empty((Nr), dtype=np.cdouble)
     for k1 in range(No):
         k_omega = ogrid[k1] / units.c_light # ogrid[k3] / units.c_light; ogrid[k1] * units.alpha_fine  # ??? units
@@ -65,8 +71,10 @@ def HankelTransform(ogrid, rgrid, FField, distance, rgrid_FF, integrator = integ
                 else:
                     integrand[k3] = rgrid[k3] * FField[k1,k3] * special.jn(0, k_omega * rgrid[k3] * rgrid_FF[k2] / distance)
             FField_FF[k1,k2] = integrator(integrand,rgrid)
+            integrands[k1,k2,:] = integrand
+            rgrids[k1,k2,:] = rgrid
 
-    return FField_FF
+    return FField_FF, [integrands, rgrids, copy.copy(FField_FF)]
 
 
 def HankelTransform_long(ogrid, rgrid, zgrid, FSourceTerm, # FSourceTerm(r,z,omega)
@@ -126,7 +134,7 @@ def HankelTransform_long(ogrid, rgrid, zgrid, FSourceTerm, # FSourceTerm(r,z,ome
     all_integrands = []
     all_cumintegrals = []
     
-    diagnostics = [[],[],[],[],[]] #integrands, intagrals, prefactor, cummulative
+    diagnostics = [[],[],[],[],[],[]] #integrands, intagrals, prefactor, cummulative
     
 
     
@@ -147,7 +155,9 @@ def HankelTransform_long(ogrid, rgrid, zgrid, FSourceTerm, # FSourceTerm(r,z,ome
             absorption_factor[k1] = ogrid[k1]*absorption_function(ogrid[k1])
      
         
-    abs_factor_Hfn_ref = absorption_factor
+    # abs_factor_Hfn_ref = absorption_factor
+     
+     
     # compute z-evolution of the factors        
     if (include_dispersion and include_absorption):
         factor_e = np.exp(
@@ -175,13 +185,19 @@ def HankelTransform_long(ogrid, rgrid, zgrid, FSourceTerm, # FSourceTerm(r,z,ome
         
         diagnostics[0].append(FSourceTerm_select)
         
-        FField_FF = HankelTransform(ogrid,
+        FField_FF, integrands = HankelTransform(ogrid,
                                   rgrid,
                                   FSourceTerm_select,
                                   distance-zgrid[k1],
                                   rgrid_FF,
                                   integrator = integrator_Hankel,
                                   near_field_factor = near_field_factor)
+        
+        diagnostics[4].append([ogrid,rgrid,FSourceTerm_select,
+                               distance-zgrid[k1],rgrid_FF,integrator_Hankel,
+                               near_field_factor])
+        
+        diagnostics[5].append(integrands)
         
         diagnostics[1].append(FField_FF)
         
