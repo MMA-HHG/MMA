@@ -195,11 +195,14 @@ def HankelTransform_long(target, # FSourceTerm(r,z,omega)
     # trace_maxima_log = not(frequencies_to_trace_maxima is None)
     
     
-    diagnostics = [[],[],[],[],[],[]] #integrands, intagrals, prefactor, cummulative, H-args, #integrands
+    diagnostics = [[],[],[],[],[],[],[]] #integrands, intagrals, prefactor, cummulative, H-args, integrands inside, ad hoc integration #integrands
     
     
     # init pre_factor
     FF_integrated = 0.
+    FF_integrated2 = 0.
+    
+    
     pre_factor, abs_factor = get_propagation_pre_factor_function(
                                     target.zgrid,
                                     target.rgrid,
@@ -257,7 +260,29 @@ def HankelTransform_long(target, # FSourceTerm(r,z,omega)
         print('plane', k1, 'time:', t_check2-t_start, 'this iteration: ', t_check2-t_check1)
         t_check1 = t_check2
         
+        
+        # ad-hoc integration
+        pl1 = HankelTransform(target.ogrid,
+                                                 target.rgrid,
+                                                 integrands_plane,
+                                                 distance-target.zgrid[k1],
+                                                 rgrid_FF,
+                                                 integrator = integrator_Hankel,
+                                                 near_field_factor = near_field_factor,
+                                                 pre_factor = 1.)[0]
+        
         integrands_plane = next(target.Fsource_plane)
+        
+        pl2 = HankelTransform(target.ogrid,
+                                                 target.rgrid,
+                                                 integrands_plane,
+                                                 distance-target.zgrid[k1+1],
+                                                 rgrid_FF,
+                                                 integrator = integrator_Hankel,
+                                                 near_field_factor = near_field_factor,
+                                                 pre_factor = 1.)[0]
+        
+        
         diagnostics[0].append(integrands_plane)
         
         Fsource_plane2, integrands = HankelTransform(target.ogrid,
@@ -279,11 +304,29 @@ def HankelTransform_long(target, # FSourceTerm(r,z,omega)
         
         
         diagnostics[2].append(np.outer(pre_factor(k1+1)[0,:],np.ones(Fsource_plane2.shape[1])))
-        Fsource_plane2 *= np.outer(pre_factor(k1+1)[0,:],np.ones(Fsource_plane2.shape[1]))
-        
+        Fsource_plane2 *= np.outer(pre_factor(k1+1)[0,:],np.ones(Fsource_plane2.shape[1]))        
          
         
         FF_integrated += 0.5*(target.zgrid[k1+1]-target.zgrid[k1])*(Fsource_plane1 + Fsource_plane2)
+        
+        
+        pl1 = np.outer(pre_factor(k1)[0,:],np.ones(pl1.shape[1]))*pl1
+        
+        # pl1 = np.outer(pre_factor(k1)[0,:],np.ones(pl1.shape[1]))*pl1/pressure
+        
+        pl2 = np.outer(pre_factor(k1+1)[0,:],np.ones(pl2.shape[1]))*pl2
+        
+        # pl2 = np.outer(pre_factor(k1+1)[0,:],np.ones(pl2.shape[1]))*pl2/pressure
+        
+        FF_integrated2 += 0.5*(target.zgrid[k1+1]-target.zgrid[k1])*(
+                          pl1
+                          +
+                          pl2)
+        
+        
+        diagnostics[6].append(copy.copy(FF_integrated2))
+        
+        
         
         diagnostics[3].append(FF_integrated)
         
@@ -292,12 +335,12 @@ def HankelTransform_long(target, # FSourceTerm(r,z,omega)
         
         
         if store_cummulative_result:
-            cummulative_field[k1,:,:] = 1.*FF_integrated
+            cummulative_field[k1,:,:] = copy.copy(FF_integrated)
 
 
         
         
-        Fsource_plane1 = 1.*Fsource_plane2
+        Fsource_plane1 = copy.copy(Fsource_plane2)
         
 
         

@@ -231,14 +231,16 @@ def HankelTransform_long(ogrid, rgrid, zgrid, FSourceTerm, # FSourceTerm(r,z,ome
             diagnostics[3].append(dum)
             all_cumintegrals.append(dum)
             if store_cummulative_result:
-                if include_absorption:
-                    # we need renormalise the end of the medium
-                    exp_renorm = np.exp( (zgrid[-1]-zgrid[k1]) * absorption_factor)
-                    for k2 in range(No):
-                        for k3 in range(Nr_FF):
-                            cummulative_field[k1,k2,k3] = exp_renorm[k2]*dum[k2,k3]
-                else:
-                    cummulative_field[k1,:,:] = dum
+                # if include_absorption:
+                #     # we need renormalise the end of the medium
+                #     exp_renorm = np.exp( (zgrid[-1]-zgrid[k1]) * absorption_factor)
+                #     for k2 in range(No):
+                #         for k3 in range(Nr_FF):
+                #             cummulative_field[k1,k2,k3] = exp_renorm[k2]*dum[k2,k3]
+                # else:
+                #     cummulative_field[k1,:,:] = dum
+                    
+                cummulative_field[k1,:,:] = dum
                 
     else:
         raise NotImplementedError('Only trapezoidal rule implemented now')
