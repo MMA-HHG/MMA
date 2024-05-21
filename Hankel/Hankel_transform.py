@@ -126,7 +126,7 @@ class Hankel_long:
                  ):
         
         
-        # keep some inputs for diagnostics
+        # keep some inputs to keep data packed together
         self.include_dispersion = include_dispersion
         if include_dispersion: self.dispersion_tables = dispersion_tables
         self.include_absorption = include_absorption
@@ -135,6 +135,12 @@ class Hankel_long:
         self.integrator_Hankel = integrator_Hankel
         self.integrator_longitudinal = integrator_longitudinal
         self.near_field_factor = near_field_factor
+        
+        self.rgrid = rgrid_FF
+        self.ogrid = np.copy(target.ogrid)
+        
+        if (store_cummulative_result or store_non_normalised_cummulative_result):
+            self.zgrid = np.copy(target.zgrid)
         
         if not(
                 ((preset_gas+'_'+absorption_tables in XUV_index.gases)
@@ -146,21 +152,11 @@ class Hankel_long:
     
         No = len(target.ogrid);
         Nz = len(target.zgrid);
-        Nr_FF = len(rgrid_FF)
-        # include_dispersion = not(dispersion_function is None)
-        # include_absorption = not(absorption_function is None)
-        # trace_maxima_log = not(frequencies_to_trace_maxima is None)
-        
-        
-        diagnostics = [[],[],[],[],[],[],[]] #integrands, intagrals, prefactor, cummulative, H-args, integrands inside, ad hoc integration #integrands
-        
+        Nr_FF = len(rgrid_FF)    
+
         
         # init pre_factor
-        FF_integrated = 0.
-        FF_integrated2 = 0.
-        
-        
-        pre_factor, abs_factor_omega = get_propagation_pre_factor_function(
+        pre_factor, renorm_factor = get_propagation_pre_factor_function(
                                         target.zgrid,
                                         target.rgrid,
                                         target.ogrid,
@@ -182,9 +178,6 @@ class Hankel_long:
         t_check1 = t_start
         
         integrands_plane = next(target.Fsource_plane)
-        
-        diagnostics[0].append(integrands_plane)
-        
         Fsource_plane1, integrands = HankelTransform(target.ogrid,
                                          target.rgrid,
                                          integrands_plane,
@@ -193,60 +186,24 @@ class Hankel_long:
                                          integrator = integrator_Hankel,
                                          near_field_factor = near_field_factor,
                                          pre_factor = 1.)
-        
-        if store_entry_and_exit_plane_transform:
-            self.entry_plane_transform = np.copy(Fsource_plane1)
-        
-        diagnostics[4].append([target.ogrid,target.rgrid,integrands_plane,
-                               distance-target.zgrid[0],rgrid_FF,integrator_Hankel,
-                               near_field_factor])
-        diagnostics[5].append(integrands)
-        
-        
-        diagnostics[1].append(copy.copy(Fsource_plane1))
-        
-        diagnostics[2].append(np.outer(pre_factor(0)[0,:],np.ones(Fsource_plane1.shape[1])))
-        
-        Fsource_plane1 *= np.outer(pre_factor(0)[0,:],np.ones(Fsource_plane1.shape[1]))
-        
-        
-        
+
         if store_cummulative_result:
              cummulative_field = np.empty((Nz-1,) + Fsource_plane1.shape, dtype=np.cdouble)
         if store_non_normalised_cummulative_result:
-            cummulative_field_no_norm = np.empty((Nz-1,) + Fsource_plane1.shape, dtype=np.cdouble)
+            cummulative_field_no_norm = np.empty((Nz-1,) + Fsource_plane1.shape, dtype=np.cdouble)        
+        if store_entry_and_exit_plane_transform:
+            self.entry_plane_transform = np.copy(Fsource_plane1)        
         
+        Fsource_plane1 *= np.outer(pre_factor(0)[0,:],np.ones(Fsource_plane1.shape[1]))
         
+        FF_integrated = 0.
         for k1 in range(Nz-1):
             t_check2 = time.perf_counter()
             print('plane', k1, 'time:', t_check2-t_start, 'this iteration: ', t_check2-t_check1)
             t_check1 = t_check2
             
-            
-            # ad-hoc integration
-            pl1 = HankelTransform(target.ogrid,
-                                                     target.rgrid,
-                                                     integrands_plane,
-                                                     distance-target.zgrid[k1],
-                                                     rgrid_FF,
-                                                     integrator = integrator_Hankel,
-                                                     near_field_factor = near_field_factor,
-                                                     pre_factor = 1.)[0]
-            
-            integrands_plane = next(target.Fsource_plane)
-            
-            pl2 = HankelTransform(target.ogrid,
-                                                     target.rgrid,
-                                                     integrands_plane,
-                                                     distance-target.zgrid[k1+1],
-                                                     rgrid_FF,
-                                                     integrator = integrator_Hankel,
-                                                     near_field_factor = near_field_factor,
-                                                     pre_factor = 1.)[0]
-            
-            
-            diagnostics[0].append(integrands_plane)
-            
+          
+            integrands_plane = next(target.Fsource_plane) 
             Fsource_plane2, integrands = HankelTransform(target.ogrid,
                                              target.rgrid,
                                              integrands_plane,
@@ -254,71 +211,29 @@ class Hankel_long:
                                              rgrid_FF,
                                              integrator = integrator_Hankel,
                                              near_field_factor = near_field_factor,
-                                             pre_factor = 1.)  
-            
-            diagnostics[4].append([target.ogrid,target.rgrid,integrands_plane,
-                                   distance-target.zgrid[k1+1],rgrid_FF,integrator_Hankel,
-                                   near_field_factor])
-            diagnostics[5].append(integrands)
-            
-            
-            diagnostics[1].append(copy.copy(Fsource_plane2))        
-            
-            
-            diagnostics[2].append(np.outer(pre_factor(k1+1)[0,:],np.ones(Fsource_plane2.shape[1])))
-            Fsource_plane2 *= np.outer(pre_factor(k1+1)[0,:],np.ones(Fsource_plane2.shape[1]))        
-             
-            
+                                             pre_factor = 1.)
+            Fsource_plane2 *= np.outer(pre_factor(k1+1)[0,:],np.ones(Fsource_plane2.shape[1]))
             FF_integrated += 0.5*(target.zgrid[k1+1]-target.zgrid[k1])*(Fsource_plane1 + Fsource_plane2)
             
-            
-            pl1 = np.outer(pre_factor(k1)[0,:],np.ones(pl1.shape[1]))*pl1
-            
-            # pl1 = np.outer(pre_factor(k1)[0,:],np.ones(pl1.shape[1]))*pl1/pressure
-            
-            pl2 = np.outer(pre_factor(k1+1)[0,:],np.ones(pl2.shape[1]))*pl2
-            
-            # pl2 = np.outer(pre_factor(k1+1)[0,:],np.ones(pl2.shape[1]))*pl2/pressure
-            
-            FF_integrated2 += 0.5*(target.zgrid[k1+1]-target.zgrid[k1])*(
-                              pl1
-                              +
-                              pl2)
-            
-            
-            diagnostics[6].append(copy.copy(FF_integrated2))
-            
-            
-            
-            diagnostics[3].append(copy.copy(FF_integrated))
-            
-    
-        
-            
-            
             if store_cummulative_result:
+                
                 if isinstance(pressure,dict): 
                   if ('rgrid' in pressure.keys()):
                     raise NotImplementedError('Renormalisation of the signal is not implemented for radially modulated density.')
                 
-                exp_renorm = np.exp( (target.zgrid[-1]-target.zgrid[k1]) * abs_factor_omega)
-                for k2 in range(No):
-                    for k3 in range(Nr_FF):
-                        cummulative_field[k1,k2,k3] = exp_renorm[k2]*FF_integrated[k2,k3]
+                # exp_renorm = np.exp( (target.zgrid[-1]-target.zgrid[k1]) * abs_factor_omega)
+                # for k2 in range(No):
+                #     for k3 in range(Nr_FF):
+                #         cummulative_field[k1,k2,k3] = exp_renorm[k2]*FF_integrated[k2,k3]
+                cummulative_field[k1,:,:] = np.outer(renorm_factor(k1), np.ones(Nr_FF))*FF_integrated #exp_renorm[k2]*FF_integrated[k2,k3]
                 
-                # cummulative_field[k1,:,:] = np.copy(FF_integrated)
+                
             if store_non_normalised_cummulative_result:
                 cummulative_field_no_norm[k1,:,:]  =  np.copy(FF_integrated)
     
-    
-            
-            
             Fsource_plane1 = copy.copy(Fsource_plane2)
             
-    
-            
-    
-        
+
         self.FF_integrated = FF_integrated
         
         if store_entry_and_exit_plane_transform:
@@ -330,9 +245,3 @@ class Hankel_long:
         if store_non_normalised_cummulative_result:
             self.cummulative_field_no_norm = cummulative_field_no_norm
             
-        self.diagnostics = diagnostics
-         
-        # if store_cummulative_result:
-        #     return FF_integrated, cummulative_field, diagnostics
-        # else:
-        #     return FF_integrated

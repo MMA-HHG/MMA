@@ -353,7 +353,8 @@ def get_propagation_pre_factor_function(zgrid,
             
             abs_factor_omega = ogrid * absorption_factor
             
-             
+            def exp_renorm(kz):
+                return np.exp((zgrid[-1]-zgrid[kz]) * abs_factor_omega)
                 
             def pre_factor(kz):
                 # print('no-mod pre-factor')
@@ -383,7 +384,7 @@ def get_propagation_pre_factor_function(zgrid,
                 #                                   )
                 #                            )
                 
-            return pre_factor, abs_factor_omega
+            return pre_factor, exp_renorm #abs_factor_omega
         
         else:
             def pre_factor(kz):

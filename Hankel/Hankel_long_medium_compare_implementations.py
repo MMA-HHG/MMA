@@ -258,28 +258,7 @@ with h5py.File(file, 'r') as InpArch:
                             store_non_normalised_cummulative_result = True)
     
 
-    
-    # HL_end, HL_cum, diagnostics =  Hfn2.HankelTransform_long(target_dynamic, # FSourceTerm(r,z,omega)
-    #                           distance_FF, rgrid_FF,
-    #                           preset_gas = preset_gas,
-    #                           pressure = pressure,
-    #                           absorption_tables = XUV_table_type_absorption,
-    #                           include_absorption = absorption,
-    #                           dispersion_tables = XUV_table_type_diffraction,
-    #                           include_dispersion = dispersion,
-    #                           effective_IR_refrective_index = effective_IR_refrective_index,
-    #                           integrator_Hankel = integrate.trapz,
-    #                           integrator_longitudinal = 'trapezoidal',
-    #                           near_field_factor = True,
-    #                           store_cummulative_result = True,
-    #                           frequencies_to_trace_maxima = None,
-    #                           )
-    
-    
-    
-    
-    
-    # original implementation
+
 
 
     if dispersion:  dispersion_function = dispersion_function_def
