@@ -70,6 +70,8 @@ class FSources_provider:
 # it loads preset gases - easy use for physical situations
 #  
 
+    
+    
 def get_propagation_pre_factor_function(zgrid,
                                 rgrid,
                                 ogrid,
@@ -363,9 +365,9 @@ def get_propagation_pre_factor_function(zgrid,
                 #                                   zgrid[kz]*lin_prop_factor
                 #                                   )
                 #                            )
-                xxx = (zgrid[kz]-zgrid[-1])*absorption_factor
-                yyy = ogrid * xxx
-                zzz = ogrid*absorption_factor
+                # xxx = (zgrid[kz]-zgrid[-1])*absorption_factor
+                # yyy = ogrid * xxx
+                # zzz = ogrid*absorption_factor
                 
                 return pressure * np.outer(np.ones(len(rgrid)),
                                             np.exp(

@@ -328,7 +328,7 @@ def HankelTransform_long(target, # FSourceTerm(r,z,omega)
         
         
         
-        diagnostics[3].append(FF_integrated)
+        diagnostics[3].append(copy.copy(FF_integrated))
         
 
     
