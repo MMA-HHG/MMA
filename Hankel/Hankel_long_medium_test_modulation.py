@@ -80,8 +80,19 @@ else:
     results_path = os.path.join("D:\sharepoint", "OneDrive - ELI Beamlines",
                     "data", "Sunrise","tmp","h5debug","TDSEs","SciRep","t2")
     
+    
+    # results_path = os.path.join("D:\sharepoint", "OneDrive - ELI Beamlines",
+    #                 "data", "Sunrise","tmp","h5debug","TDSEs","t3")
+    
+    # results_path2 = os.path.join("D:\sharepoint", "OneDrive - ELI Beamlines",
+    #                 "data", "Sunrise","tmp","h5debug","TDSEs","t3mod")
+    
+
     results_path = os.path.join("D:\sharepoint", "OneDrive - ELI Beamlines",
-                    "data", "Sunrise","tmp","h5debug","TDSEs","t3")
+                    "data", "Sunrise","tmp","h5debug","TDSEs","densmod","t1")
+    
+    results_path2 = os.path.join("D:\sharepoint", "OneDrive - ELI Beamlines",
+                    "data", "Sunrise","tmp","h5debug","TDSEs","densmod","t2")
     
     # results_path = os.path.join("D:\sharepoint", "OneDrive - ELI Beamlines",
     #                 "data", "Sunrise","tmp","h5debug","TDSEs","SciRep","t1")
@@ -92,6 +103,7 @@ file = "results_TDSEM.h5"
 filename = "results.h5"
 
 file = os.path.join(results_path,filename)
+file2 = os.path.join(results_path2,filename)
 
 
 
@@ -101,7 +113,7 @@ rgrid_FF = np.linspace(0.0, rmax_FF, Nr_FF)
 
 # load data
 print('processing:', file)             
-with h5py.File(file, 'r') as InpArch:
+with h5py.File(file, 'r') as InpArch, h5py.File(file2, 'r') as InpArch2:
     
     gas_type = mn.readscalardataset(InpArch, MMA.paths['global_inputs']+
                                            '/gas_preset','S')
@@ -113,6 +125,9 @@ with h5py.File(file, 'r') as InpArch:
                                                         MMA.paths['CUPRAD_inputs']+
                                                         '/laser_wavelength','N'),'lambdaSI','omegaau')
     inverse_GV_IR = InpArch[MMA.paths['CUPRAD_logs']+'/inverse_group_velocity_SI'][()]; group_velocity_IR = 1./inverse_GV_IR
+    
+    inverse_GV_IR2 = InpArch2[MMA.paths['CUPRAD_logs']+'/inverse_group_velocity_SI'][()]; group_velocity_IR2 = 1./inverse_GV_IR2
+    
     # pressure_mbar = 1e3*InputArchiveCUPRAD['/inputs/medium_pressure_in_bar'][()]
     rho0_init = 1e6 * mn.readscalardataset(InpArch, MMA.paths['CUPRAD_inputs']+
                                            '/calculated/medium_effective_density_of_neutral_molecules','N') # SI
@@ -120,6 +135,7 @@ with h5py.File(file, 'r') as InpArch:
     
     
     pressure = Hankel_tools.pressure_constructor(InpArch)
+    pressure2 = Hankel_tools.pressure_constructor(InpArch2)
 
     
     
@@ -130,6 +146,7 @@ with h5py.File(file, 'r') as InpArch:
     preset_gas = mn.readscalardataset(InpArch,MMA.paths['global_inputs']+'/gas_preset','S')
     
     effective_IR_refrective_index = inverse_GV_IR*units.c_light
+    effective_IR_refrective_index2 = inverse_GV_IR2*units.c_light
     
     # try:
     #     preset_gas = mn.readscalardataset(InpArch,MMA.paths['global_inputs']+'/gas_preset','S')
@@ -147,15 +164,16 @@ with h5py.File(file, 'r') as InpArch:
     rgrid_macro = InpArch[MMA.paths['CTDSE_outputs']+'/rgrid_coarse'][:]
     zgrid_macro = InpArch[MMA.paths['CTDSE_outputs']+'/zgrid_coarse'][:]
     
+    rgrid_macro2 = InpArch2[MMA.paths['CTDSE_outputs']+'/rgrid_coarse'][:]
+    zgrid_macro2 = InpArch2[MMA.paths['CTDSE_outputs']+'/zgrid_coarse'][:]
+    
 
 
     
     ko_min = mn.FindInterval(ogrid/omega0, 16.8)
     ko_max = mn.FindInterval(ogrid/omega0, 17.3)
     
-    
-    FSourceTerm =    InpArch[MMA.paths['CTDSE_outputs']+'/FSourceTerm'][:,:,ko_min:ko_max,0] + \
-                  1j*InpArch[MMA.paths['CTDSE_outputs']+'/FSourceTerm'][:,:,ko_min:ko_max,1]
+
     
 
 
@@ -181,6 +199,23 @@ with h5py.File(file, 'r') as InpArch:
                                                     ko_min = ko_min,
                                                     ko_max = ko_max)
     
+    target_dynamic_copy = Hankel_tools.FSources_provider(InpArch[MMA.paths['CTDSE_outputs']+'/zgrid_coarse'][:],
+                                                    InpArch[MMA.paths['CTDSE_outputs']+'/rgrid_coarse'][:],
+                                                    omega_au2SI*InpArch[MMA.paths['CTDSE_outputs']+'/omegagrid'][:],
+                                                    h5_handle = InpArch,
+                                                    h5_path = MMA.paths['CTDSE_outputs']+'/FSourceTerm',
+                                                    data_source = 'dynamic',
+                                                    ko_min = ko_min,
+                                                    ko_max = ko_max)
+
+    target_dynamic2 = Hankel_tools.FSources_provider(InpArch2[MMA.paths['CTDSE_outputs']+'/zgrid_coarse'][:],
+                                                    InpArch2[MMA.paths['CTDSE_outputs']+'/rgrid_coarse'][:],
+                                                    omega_au2SI*InpArch2[MMA.paths['CTDSE_outputs']+'/omegagrid'][:],
+                                                    h5_handle = InpArch2,
+                                                    h5_path = MMA.paths['CTDSE_outputs']+'/FSourceTerm',
+                                                    data_source = 'dynamic',
+                                                    ko_min = ko_min,
+                                                    ko_max = ko_max)    
     
     
     # test one plane
@@ -192,8 +227,6 @@ with h5py.File(file, 'r') as InpArch:
     #                              near_field_factor = True,
     #                              pre_factor = 1.)
     
-    args_plane1_test = [target_dynamic.ogrid,target_dynamic.rgrid,FSourceTerm[0,:,:].T,
-                        distance_FF-target_dynamic.zgrid[0],rgrid_FF, True]
     
     
     
@@ -206,34 +239,9 @@ with h5py.File(file, 'r') as InpArch:
     
     
     
-    # Here are the fuction to obtain the phase factors in SI units: exp(i*omega*function(omega))
-    def f1_funct(E):
-        return XUV_index.getf1(gas_type+'_' + XUV_table_type_diffraction, E)
-    def f2_funct(E):
-        return XUV_index.getf2(gas_type + '_' + XUV_table_type_absorption, E)
-
-
-    def dispersion_function_def(omega):
-        f1_value = f1_funct(mn.ConvertPhoton(omega, 'omegaSI', 'eV'))    
-        lambdaSI = mn.ConvertPhoton(omega, 'omegaSI', 'lambdaSI')
-        nXUV     = 1.0 - rho0_init*units.r_electron_classical * \
-                   ((lambdaSI**2)*f1_value/(2.0*np.pi))           
-        phase_velocity_XUV  = units.c_light / nXUV
-        return ((1./group_velocity_IR) - (1./phase_velocity_XUV))
-
-    def absorption_function_def(omega):
-        f2_value    = f2_funct(mn.ConvertPhoton(omega, 'omegaSI', 'eV'))
-        lambdaSI    = mn.ConvertPhoton(omega, 'omegaSI', 'lambdaSI')
-        beta_factor = rho0_init*units.r_electron_classical * \
-                      ((lambdaSI**2)*f2_value/(2.0*np.pi))
-        return beta_factor / units.c_light
+    # Here are the fuction to obtain the phase factors in SI units: exp(i*omega*function(omega)) 
     
-    
-    # test dispersion functions
-    df_t1 = dispersion_function_def(target_dynamic.ogrid[0])
-    df_t2 = XUV_index.dispersion_function(target_dynamic.ogrid[0], pressure, gas_type+'_'+XUV_table_type_diffraction, n_IR=effective_IR_refrective_index) 
-    
-    print('disp functions_test:' , df_t1,  df_t2)
+
     
     # sys.exit(0)
     
@@ -257,34 +265,50 @@ with h5py.File(file, 'r') as InpArch:
                             store_cummulative_result = True,
                             store_non_normalised_cummulative_result = True)
     
-
-
-
-
-    if dispersion:  dispersion_function = dispersion_function_def
-    else:           dispersion_function = None   
-    
-    if absorption:  absorption_function = absorption_function_def
-    else:           absorption_function = None  
-
-    
-    HL_end_ref, HL_cum_ref, diagnostics_ref = Hfn2_v1.HankelTransform_long(
-                                                   target_dynamic.ogrid,
-                                                   target_dynamic.rgrid,
-                                                   target_dynamic.zgrid,
-                                                   np.transpose(FSourceTerm,axes=(1,0,2)),
-                                                   distance_FF,
-                                                   rgrid_FF,
-                                                   pressure,
-                                                   dispersion_function = dispersion_function, # None, #dispersion_function,
-                                                   absorption_function = absorption_function,
-                                                   store_cummulative_result = True)
-    
-    
+    HL_res2 = HT.Hankel_long(target_dynamic2,
+                            distance_FF,
+                            rgrid_FF,
+                            preset_gas = preset_gas,
+                            pressure = pressure,
+                            absorption_tables = XUV_table_type_absorption,
+                            include_absorption = absorption,
+                            dispersion_tables = XUV_table_type_diffraction,
+                            include_dispersion = dispersion,
+                            effective_IR_refrective_index = effective_IR_refrective_index2,
+                            integrator_Hankel = integrate.trapz,
+                            integrator_longitudinal = 'trapezoidal',
+                            near_field_factor = True,
+                            store_cummulative_result = True,
+                            store_non_normalised_cummulative_result = True)
     
 
+
+    # signal build-up for H17
+    ko_17 = mn.FindInterval(target_dynamic.ogrid/omega0SI, 17)
+
+    image = pp.figure_driver()
+    image.sf = [pp.plotter() for k1 in range(32)]
+    image.title = "H17, normalisation test"
+    image.sf[0].args = [1e3*target_dynamic.zgrid[1:], np.max(np.abs(HL_res.cummulative_field_no_norm[:,ko_17,:]),axis=1)]
+    image.sf[1].args = [1e3*target_dynamic.zgrid[1:], np.max(np.abs(HL_res.cummulative_field[:,ko_17,:]),axis=1)]
+    pp.plot_preset(image)
+
     
+    image = pp.figure_driver()
+    image.sf = [pp.plotter() for k1 in range(32)]
+    image.title = "H17"
+    image.sf[0].args = [1e3*target_dynamic.zgrid[1:], np.max(np.abs(HL_res.cummulative_field[:,ko_17,:]),axis=1)]
+    image.sf[1].args = [1e3*target_dynamic2.zgrid[1:], np.max(np.abs(HL_res2.cummulative_field[:,ko_17,:]),axis=1)]
+    pp.plot_preset(image)
+        
     
+    image = pp.figure_driver()
+    image.sf = [pp.plotter() for k1 in range(32)]
+    image.title = "H17 nonorm"
+    image.sf[0].args = [1e3*target_dynamic.zgrid[1:], np.max(np.abs(HL_res.cummulative_field_no_norm[:,ko_17,:]),axis=1)]
+    image.sf[1].args = [1e3*target_dynamic2.zgrid[1:], np.max(np.abs(HL_res2.cummulative_field_no_norm[:,ko_17,:]),axis=1)]
+    pp.plot_preset(image)        
+        
 
     # No = len(target_dynamic.ogrid)
     # dispersion_factor = np.empty(No)

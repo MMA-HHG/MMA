@@ -101,6 +101,7 @@ def get_propagation_pre_factor_function(zgrid,
             # usual case: omega-and-z-integrals, r on-the-fly
             
             pre_factor_value = np.empty((Nz,No),dtype=np.cdouble)
+            absorption_factor_omega = np.empty((Nz,No),dtype=np.double)
             
             Nz_table = len(pressure['zgrid'])
             
@@ -159,9 +160,16 @@ def get_propagation_pre_factor_function(zgrid,
                                           fill_value = (integral_beta_factor[0],
                                                         integral_beta_factor[-1]),
                                           copy = False
-                                        )(zgrid)                   
+                                        )(zgrid)
+                     
+                    absorption_factor_omega[:,k1] = ogrid[k1]*absorption_factor
+                    absorption_factor = absorption_factor - absorption_factor[-1]
+                                        
                 else:   
                     absorption_factor = 0.
+                    absorption_factor_omega[:,k1] = 0.
+                    
+                
                                        
                 pre_factor_value[:,k1] = pressure_modulation_local *\
                                             np.exp(
@@ -171,11 +179,15 @@ def get_propagation_pre_factor_function(zgrid,
                                                     absorption_factor
                                                     )
                                             )
-                
+            
+            def exp_renorm(kz):
+                # return np.exp((zgrid[-1]-zgrid[kz]) * abs_factor_omega)
+                return np.exp(absorption_factor_omega[-1,:] - absorption_factor_omega[kz,:])
+            
             def pre_factor(kz):
                 return np.outer(np.ones(len(rgrid)),np.squeeze(pre_factor_value[kz,:]))
             
-            return pre_factor
+            return pre_factor, exp_renorm
                 
             
             
@@ -357,19 +369,6 @@ def get_propagation_pre_factor_function(zgrid,
                 return np.exp((zgrid[-1]-zgrid[kz]) * abs_factor_omega)
                 
             def pre_factor(kz):
-                # print('no-mod pre-factor')
-                
-                # np.outer(np.ones(len(rgrid)),np.squeeze(pre_factor_value[kz,:]))
-                
-                # return pressure * np.outer(np.ones(len(rgrid)),
-                #                            np.exp(
-                #                                   zgrid[kz]*lin_prop_factor
-                #                                   )
-                #                            )
-                # xxx = (zgrid[kz]-zgrid[-1])*absorption_factor
-                # yyy = ogrid * xxx
-                # zzz = ogrid*absorption_factor
-                
                 return pressure * np.outer(np.ones(len(rgrid)),
                                             np.exp(
                                                   ogrid * (zgrid[kz]*dispersion_factor
@@ -378,13 +377,7 @@ def get_propagation_pre_factor_function(zgrid,
                                                   )
                                             )
             
-                # return pressure * np.outer(np.ones(len(rgrid)),
-                #                            np.exp(
-                #                                   (zgrid[kz]-zgrid[-1])*lin_prop_factor
-                #                                   )
-                #                            )
-                
-            return pre_factor, exp_renorm #abs_factor_omega
+            return pre_factor, exp_renorm 
         
         else:
             def pre_factor(kz):

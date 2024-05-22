@@ -185,7 +185,7 @@ class Hankel_long:
                                          rgrid_FF,
                                          integrator = integrator_Hankel,
                                          near_field_factor = near_field_factor,
-                                         pre_factor = 1.)
+                                         pre_factor = pre_factor(0))
 
         if store_cummulative_result:
              cummulative_field = np.empty((Nz-1,) + Fsource_plane1.shape, dtype=np.cdouble)
@@ -193,8 +193,6 @@ class Hankel_long:
             cummulative_field_no_norm = np.empty((Nz-1,) + Fsource_plane1.shape, dtype=np.cdouble)        
         if store_entry_and_exit_plane_transform:
             self.entry_plane_transform = np.copy(Fsource_plane1)        
-        
-        Fsource_plane1 *= np.outer(pre_factor(0)[0,:],np.ones(Fsource_plane1.shape[1]))
         
         FF_integrated = 0.
         for k1 in range(Nz-1):
@@ -211,8 +209,8 @@ class Hankel_long:
                                              rgrid_FF,
                                              integrator = integrator_Hankel,
                                              near_field_factor = near_field_factor,
-                                             pre_factor = 1.)
-            Fsource_plane2 *= np.outer(pre_factor(k1+1)[0,:],np.ones(Fsource_plane2.shape[1]))
+                                             pre_factor = pre_factor(k1+1))
+
             FF_integrated += 0.5*(target.zgrid[k1+1]-target.zgrid[k1])*(Fsource_plane1 + Fsource_plane2)
             
             if store_cummulative_result:
@@ -220,12 +218,7 @@ class Hankel_long:
                 if isinstance(pressure,dict): 
                   if ('rgrid' in pressure.keys()):
                     raise NotImplementedError('Renormalisation of the signal is not implemented for radially modulated density.')
-                
-                # exp_renorm = np.exp( (target.zgrid[-1]-target.zgrid[k1]) * abs_factor_omega)
-                # for k2 in range(No):
-                #     for k3 in range(Nr_FF):
-                #         cummulative_field[k1,k2,k3] = exp_renorm[k2]*FF_integrated[k2,k3]
-                cummulative_field[k1,:,:] = np.outer(renorm_factor(k1), np.ones(Nr_FF))*FF_integrated #exp_renorm[k2]*FF_integrated[k2,k3]
+                cummulative_field[k1,:,:] = np.outer(renorm_factor(k1), np.ones(Nr_FF))*FF_integrated
                 
                 
             if store_non_normalised_cummulative_result:
