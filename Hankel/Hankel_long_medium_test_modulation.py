@@ -28,6 +28,8 @@ import XUV_refractive_index as XUV_index
 
 import plot_presets as pp
 
+import dataformat_CUPRAD as dfC
+
 
 
 
@@ -89,10 +91,10 @@ else:
     
 
     results_path = os.path.join("D:\sharepoint", "OneDrive - ELI Beamlines",
-                    "data", "Sunrise","tmp","h5debug","TDSEs","densmod","t1")
+                    "data", "Sunrise","tmp","h5debug","TDSEs","densmod2","t1")
     
     results_path2 = os.path.join("D:\sharepoint", "OneDrive - ELI Beamlines",
-                    "data", "Sunrise","tmp","h5debug","TDSEs","densmod","t2")
+                    "data", "Sunrise","tmp","h5debug","TDSEs","densmod2","t2")
     
     # results_path = os.path.join("D:\sharepoint", "OneDrive - ELI Beamlines",
     #                 "data", "Sunrise","tmp","h5debug","TDSEs","SciRep","t1")
@@ -133,6 +135,15 @@ with h5py.File(file, 'r') as InpArch, h5py.File(file2, 'r') as InpArch2:
                                            '/calculated/medium_effective_density_of_neutral_molecules','N') # SI
     
     
+    
+    
+    
+    print('Moving to Hankel')
+    
+    CUPRAD_res = dfC.get_data(InpArch)
+    CUPRAD_res2 = dfC.get_data(InpArch2)
+    
+    # sys.exit(0)
     
     pressure = Hankel_tools.pressure_constructor(InpArch)
     pressure2 = Hankel_tools.pressure_constructor(InpArch2)

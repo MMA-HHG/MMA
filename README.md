@@ -13,6 +13,7 @@
     * ***Hankel*** (Jan) **Python docstrings** (process by [sphynx](https://www.sphinx-doc.org/en/master/tutorial/index.html))
         * *refactoring*
             * Implement density modulation
+                * *Pythonic ecosystem around the whole code*
             * hard-code preset gases with their scattering factors
             * data processing (either load all $\mathscr{F}$-sources or chunk reading from the drive) ✔️
     * ***Assembling the code***

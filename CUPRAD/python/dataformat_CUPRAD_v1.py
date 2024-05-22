@@ -1,4 +1,6 @@
 import numpy as np
+import math
+import sys
 import units
 import mynumerics as mn
 import MMA_administration as MMA
@@ -27,21 +29,16 @@ class get_data:
             
         # self.E_trz = InputArchive['/outputs/output_field'][:,0:Nr_max:kr_step,:Nz] # Arrays may be over-allocated by CUPRAD
         
-        # self.E_trz = InputArchive[MMA.paths['CUPRAD_outputs'] +'/output_field'][:Nz,:,0:Nr_max:kr_step] # Arrays may be over-allocated by CUPRAD
-        
-        # CUPRAD ouputs (z,t,r) (c-like, original Fortran is reversed)
-        
-        self.E_zrt = np.transpose(InputArchive[MMA.paths['CUPRAD_outputs'] +'/output_field'][:Nz,:,0:Nr_max:kr_step],
-                                  axes=(0,2,1))# Arrays may be over-allocated by CUPRAD
+        self.E_trz = InputArchive[MMA.paths['CUPRAD_outputs'] +'/output_field'][:Nz,:,0:Nr_max:kr_step] # Arrays may be over-allocated by CUPRAD
         
         # hot-fix case of underallocated array, happens rarely
-        if (self.E_zrt.shape[0] < Nz):
-            Nz = self.E_zrt.shape[0]
+        if (self.E_trz.shape[0] < Nz):
+            Nz = self.E_trz.shape[0]
             self.zgrid = self.zgrid[:Nz]
         
-        # print('oldshape', self.E_zrt.shape)
-        # self.E_trz = self.E_trz.transpose(1,2,0) # hot-fix rearangement due to CUPRAD output
-        print('newshape', self.E_zrt.shape)
+        print('oldshape', self.E_trz.shape)
+        self.E_trz = self.E_trz.transpose(1,2,0) # hot-fix rearangement due to CUPRAD output
+        print('newshape', self.E_trz.shape)
 
         self.inverse_GV = InputArchive[MMA.paths['CUPRAD_logs'] +'/inverse_group_velocity_SI'][()]
         self.VG_IR = 1.0/self.inverse_GV               
@@ -101,33 +98,33 @@ class get_data:
             self.Intensity_Gaussian_focus_string = "xxx"
         
     def vacuum_shift(self,output='replace'):
-        E_vac = np.zeros(self.E_zrt.shape)   
+        E_vac = np.zeros(self.E_trz.shape)   
         for k1 in range(self.Nz):
             delta_z = self.zgrid[k1] # local shift
             delta_t_lab = self.inverse_GV*delta_z # shift to the laboratory frame
             delta_t_vac = delta_t_lab - delta_z/units.c_light # shift to the coordinates moving by c.
             for k2 in range(self.Nr):
-                ogrid_nn, FE_s, NF = mn.fft_t_nonorm(self.tgrid, self.E_zrt[k1,k2,:]) # transform to omega space        
+                ogrid_nn, FE_s, NF = mn.fft_t_nonorm(self.tgrid, self.E_trz[:,k2,k1]) # transform to omega space        
                 FE_s = np.exp(1j*ogrid_nn*delta_t_vac) * FE_s # phase factor        
                 tnew, E_s = mn.ifft_t_nonorm(ogrid_nn,FE_s,NF)
-                E_vac[k1,k2,:] = E_s.real
+                E_vac[:,k2,k1] = E_s.real
         
-        if (output == 'replace'):      self.E_zrt = E_vac 
+        if (output == 'replace'):      self.E_trz = E_vac 
         elif (output == 'return'):     return E_vac 
-        elif (output == 'add'):        self.E_zrt_vac = E_vac 
+        elif (output == 'add'):        self.E_trz_vac = E_vac 
         else: raise ValueError('wrongly specified output for the vacuum shift.')
         
 
     def complexify_envel(self,output='return'):
-        E_zrt_cmplx_envel = np.zeros(self.E_zrt.shape,dtype=complex)
+        E_trz_cmplx_envel = np.zeros(self.E_trz.shape,dtype=complex)
         rem_fast_oscillations = np.exp(-1j*self.omega0*self.tgrid)
             
         for k1 in range(self.Nz):
             for k2 in range(self.Nr):
-                E_zrt_cmplx_envel[k1,k2,:] = rem_fast_oscillations*mn.complexify_fft(self.E_zrt[k1,k2,:])
+                E_trz_cmplx_envel[:,k2,k1] = rem_fast_oscillations*mn.complexify_fft(self.E_trz[:,k2,k1])
         
-        if (output == 'return'):     return E_zrt_cmplx_envel
-        elif (output == 'add'):      self.E_zrt_cmplx_envel = E_zrt_cmplx_envel
+        if (output == 'return'):     return E_trz_cmplx_envel
+        elif (output == 'add'):      self.E_trz_cmplx_envel = E_trz_cmplx_envel
         else: raise ValueError('wrongly specified output for the vacuum shift.') 
         
     def get_Fluence(self, InputArchive, fluence_source='file'):
@@ -145,7 +142,7 @@ class get_data:
             for k1 in range(self.Nz):
                 for k2 in range(self.Nr):
                     # self.Fluence.value[k2, k1] = sum(abs(self.E_trz[:, k2, k1])**2)
-                    self.Fluence.value[k2, k1] = units.c_light*units.eps0 * np.trapz(abs(self.E_zrt[k1, k2, :])**2,self.tgrid)
+                    self.Fluence.value[k2, k1] = units.c_light*units.eps0 * np.trapz(abs(self.E_trz[:, k2, k1])**2,self.tgrid)
             self.Fluence.units = 'J/m2'
 
     def get_plasma(self, InputArchive, r_resolution=[True]): # analogy to the fields
@@ -162,40 +159,37 @@ class get_data:
             dr_file = rgrid[1]-rgrid[0]; kr_step = max(1,int(np.floor(dr/dr_file))); Nr_max = mn.FindInterval(rgrid, rmax)
             rgrid = rgrid[0:Nr_max:kr_step]; Nr = len(rgrid) 
             
-        self.plasma.value_zrt = np.transpose(InputArchive[MMA.paths['CUPRAD_outputs'] +'/output_plasma'][:Nz,:,0:Nr_max:kr_step],
-                                             axes=(0,2,1)) # [:,0:Nr_max:kr_step,:Nz] # Arrays may be over-allocated by CUPRAD
-        
-        
-        # self.plasma.value_trz = self.plasma.value_trz.transpose(1,2,0) # (1,2,0) # hot-fix to reshape
+        self.plasma.value_trz = InputArchive[MMA.paths['CUPRAD_outputs'] +'/output_plasma'][:Nz,:,0:Nr_max:kr_step] # [:,0:Nr_max:kr_step,:Nz] # Arrays may be over-allocated by CUPRAD
+        self.plasma.value_trz = self.plasma.value_trz.transpose(1,2,0) # (1,2,0) # hot-fix to reshape
         
         self.plasma.rgrid = rgrid
         self.plasma.Nr = Nr; self.plasma.Nt = Nt; self.plasma.Nz = Nz
 
     def compute_spectrum(self,output='add',compute_dE_domega = False):
-        self.ogrid = mn.fft_t(self.tgrid, self.E_zrt[0,0,:])[0]
+        self.ogrid = mn.fft_t(self.tgrid, self.E_trz[:,0,0])[0]
         
         No = len(self.ogrid); Nr = len(self.rgrid); Nz = len(self.zgrid)
                 
-        FE_zrt = np.zeros((Nz,Nr,No),dtype=complex)
+        FE_trz = np.zeros((No,Nr,Nz),dtype=complex)
         
         for k1 in range(Nz):
             for k2 in range(Nr):
-                FE_zrt[k1,k2,:] = mn.fft_t(self.tgrid, self.E_zrt[k1,k2,:])[1]
+                FE_trz[:,k2,k1] = mn.fft_t(self.tgrid, self.E_trz[:,k2,k1])[1]
   
         
         if compute_dE_domega:
-            dE_domega = np.empty((Nz,No))
+            dE_domega = np.empty((No,Nz))
             
             for k1 in range(Nz):
                 for k2 in range(No):
-                    dE_domega[k1,k2] = np.trapz(np.abs(FE_zrt[k1,:,k2])**2,self.rgrid)
+                    dE_domega[k2,k1] = np.trapz(np.abs(FE_trz[k2,:,k1])**2,self.rgrid)
             
-            if (output == 'return'):     return FE_zrt, dE_domega
-            elif (output == 'add'):      self.FE_zrt = FE_zrt; self.dE_domega = dE_domega
+            if (output == 'return'):     return FE_trz, dE_domega
+            elif (output == 'add'):      self.FE_trz = FE_trz; self.dE_domega = dE_domega
             else: raise ValueError('wrongly specified output for the vacuum shift.') 
         else:
-            if (output == 'return'):     return FE_zrt
-            elif (output == 'add'):      self.FE_zrt = FE_zrt
+            if (output == 'return'):     return FE_trz
+            elif (output == 'add'):      self.FE_trz = FE_trz
             else: raise ValueError('wrongly specified output for the vacuum shift.') 
 
         
