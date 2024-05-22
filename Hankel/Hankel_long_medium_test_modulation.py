@@ -37,8 +37,8 @@ import dataformat_CUPRAD as dfC
 
 
 # gas_type = 'Ar'
-XUV_table_type_diffraction = 'Henke' # {Henke, NIST}
-XUV_table_type_absorption = 'Henke' # {Henke, NIST} 
+XUV_table_type_diffraction = 'Henke' # {Henke, NIST} # NIST for SciRep #Henke for Ar
+XUV_table_type_absorption = 'Henke' # {Henke, NIST}  # Henke for SciRep
 # apply_diffraction = ['dispersion', 'absorption']
 
 Nr_max = 235 #470; 235; 155-still fine    
@@ -194,12 +194,22 @@ with h5py.File(file, 'r') as InpArch, h5py.File(file2, 'r') as InpArch2:
     image = pp.figure_driver()
     image.sf = [pp.plotter() for k1 in range(32)]
     image.title = "Spectra"
-    image.sf[0].args = [CUPRAD_res.ogrid, np.abs(CUPRAD_res.FE_zrt[-1,0,:])]
+    image.sf[0].args = [CUPRAD_res.ogrid/CUPRAD_res.omega0, np.abs(CUPRAD_res.FE_zrt[-1,0,:])]
     image.sf[0].method = plt.semilogy
-    image.sf[1].args = [CUPRAD_res2.ogrid, np.abs(CUPRAD_res2.FE_zrt[-1,0,:]),'--']
+    image.sf[1].args = [CUPRAD_res2.ogrid/CUPRAD_res2.omega0, np.abs(CUPRAD_res2.FE_zrt[-1,0,:]),'--']
     image.sf[1].method = plt.semilogy
     pp.plot_preset(image)
     
+
+    image = pp.figure_driver()
+    image.sf = [pp.plotter() for k1 in range(32)]
+    image.title = "Spectra entry"
+    image.sf[0].args = [CUPRAD_res.ogrid/CUPRAD_res.omega0, np.abs(CUPRAD_res.FE_zrt[0,0,:])]
+    image.sf[0].method = plt.semilogy
+    image.sf[1].args = [CUPRAD_res2.ogrid/CUPRAD_res2.omega0, np.abs(CUPRAD_res2.FE_zrt[0,0,:]),'--']
+    image.sf[1].method = plt.semilogy
+    pp.plot_preset(image)
+       
     
     image = pp.figure_driver()
     image.sf = [pp.plotter() for k1 in range(32)]
@@ -354,11 +364,11 @@ with h5py.File(file, 'r') as InpArch, h5py.File(file2, 'r') as InpArch2:
                             store_cummulative_result = True,
                             store_non_normalised_cummulative_result = True)
     
-    HL_res2 = HT.Hankel_long(target_dynamic2,
+    HL_res2 = HT.Hankel_long(target_dynamic_copy,
                             distance_FF,
                             rgrid_FF,
                             preset_gas = preset_gas,
-                            pressure = pressure,
+                            pressure = pressure2,
                             absorption_tables = XUV_table_type_absorption,
                             include_absorption = absorption,
                             dispersion_tables = XUV_table_type_diffraction,
@@ -387,7 +397,7 @@ with h5py.File(file, 'r') as InpArch, h5py.File(file2, 'r') as InpArch2:
     image.sf = [pp.plotter() for k1 in range(32)]
     image.title = "H17"
     image.sf[0].args = [1e3*target_dynamic.zgrid[1:], np.max(np.abs(HL_res.cummulative_field[:,ko_17,:]),axis=1)]
-    image.sf[1].args = [1e3*target_dynamic2.zgrid[1:], np.max(np.abs(HL_res2.cummulative_field[:,ko_17,:]),axis=1)]
+    image.sf[1].args = [1e3*target_dynamic_copy.zgrid[1:], np.max(np.abs(HL_res2.cummulative_field[:,ko_17,:]),axis=1)]
     pp.plot_preset(image)
         
     
@@ -395,7 +405,7 @@ with h5py.File(file, 'r') as InpArch, h5py.File(file2, 'r') as InpArch2:
     image.sf = [pp.plotter() for k1 in range(32)]
     image.title = "H17 nonorm"
     image.sf[0].args = [1e3*target_dynamic.zgrid[1:], np.max(np.abs(HL_res.cummulative_field_no_norm[:,ko_17,:]),axis=1)]
-    image.sf[1].args = [1e3*target_dynamic2.zgrid[1:], np.max(np.abs(HL_res2.cummulative_field_no_norm[:,ko_17,:]),axis=1)]
+    image.sf[1].args = [1e3*target_dynamic_copy.zgrid[1:], np.max(np.abs(HL_res2.cummulative_field_no_norm[:,ko_17,:]),axis=1)]
     pp.plot_preset(image)        
         
 
