@@ -136,14 +136,92 @@ with h5py.File(file, 'r') as InpArch, h5py.File(file2, 'r') as InpArch2:
     
     
     
-    
-    
-    print('Moving to Hankel')
+
     
     CUPRAD_res = dfC.get_data(InpArch)
     CUPRAD_res2 = dfC.get_data(InpArch2)
     
+
+    image = pp.figure_driver()
+    image.sf = [pp.plotter() for k1 in range(32)]
+    image.title = "End fields orig"
+    image.sf[0].args = [CUPRAD_res.tgrid, CUPRAD_res.E_zrt[-1,0,:]]
+    image.sf[1].args = [CUPRAD_res2.tgrid, CUPRAD_res2.E_zrt[-1,0,:]]
+    pp.plot_preset(image)
+    
+    delta_t_lab1 = CUPRAD_res.zgrid[-1]/CUPRAD_res.VG_IR
+    delta_t_lab2 = CUPRAD_res2.zgrid[-1]/CUPRAD_res2.VG_IR
+    delta_t_vac1  = CUPRAD_res.zgrid[-1]/units.c_light
+    delta_t_vac2  = CUPRAD_res2.zgrid[-1]/units.c_light
+    
+    delta_t_tot1 = delta_t_lab1-delta_t_vac1
+    delta_t_tot2 = delta_t_lab2-delta_t_vac2
+    
+    # tgrid1_end_shift = CUPRAD_res.tgrid 
+    # tgrid2_end_shift = CUPRAD_res2.tgrid 
+    
+    
+    image = pp.figure_driver()
+    image.sf = [pp.plotter() for k1 in range(32)]
+    image.title = "End fields grid shift"
+    # image.sf[0].args = [CUPRAD_res.tgrid+delta_t_tot1, CUPRAD_res.E_zrt[-1,0,:]]
+    # image.sf[1].args = [CUPRAD_res2.tgrid+delta_t_tot2, CUPRAD_res2.E_zrt[-1,0,:]]
+    image.sf[0].args = [CUPRAD_res.co_moving_t_grid(CUPRAD_res.zgrid[-1]) , CUPRAD_res.E_zrt[-1,0,:]]
+    image.sf[1].args = [CUPRAD_res2.co_moving_t_grid(CUPRAD_res2.zgrid[-1]) , CUPRAD_res2.E_zrt[-1,0,:]]
+    pp.plot_preset(image)
+    
     # sys.exit(0)
+    
+    CUPRAD_res.vacuum_shift(output='add')
+    CUPRAD_res2.vacuum_shift(output='add')
+    
+    image = pp.figure_driver()
+    image.sf = [pp.plotter() for k1 in range(32)]
+    image.title = "End fields vac"
+    image.sf[0].args = [CUPRAD_res.tgrid, CUPRAD_res.E_zrt_vac[-1,0,:]]
+    image.sf[1].args = [CUPRAD_res2.tgrid, CUPRAD_res2.E_zrt_vac[-1,0,:],'--']
+    pp.plot_preset(image)
+    
+    # sys.exit(0)
+    
+    CUPRAD_res.get_plasma(InpArch)
+    CUPRAD_res2.get_plasma(InpArch2)
+    
+    CUPRAD_res.compute_spectrum()
+    CUPRAD_res2.compute_spectrum()
+
+    
+    image = pp.figure_driver()
+    image.sf = [pp.plotter() for k1 in range(32)]
+    image.title = "Spectra"
+    image.sf[0].args = [CUPRAD_res.ogrid, np.abs(CUPRAD_res.FE_zrt[-1,0,:])]
+    image.sf[0].method = plt.semilogy
+    image.sf[1].args = [CUPRAD_res2.ogrid, np.abs(CUPRAD_res2.FE_zrt[-1,0,:]),'--']
+    image.sf[1].method = plt.semilogy
+    pp.plot_preset(image)
+    
+    
+    image = pp.figure_driver()
+    image.sf = [pp.plotter() for k1 in range(32)]
+    image.title = "Plasma"
+    image.sf[0].args = [CUPRAD_res.plasma.tgrid, CUPRAD_res.plasma.value_zrt[-1,0,:]]
+    image.sf[1].args = [CUPRAD_res2.plasma.tgrid, CUPRAD_res2.plasma.value_zrt[-1,0,:],'--']
+    pp.plot_preset(image)
+    
+    
+    image = pp.figure_driver()
+    image.sf = [pp.plotter() for k1 in range(32)]
+    image.title = "Plasma shifted"
+    image.sf[0].args = [CUPRAD_res.co_moving_t_grid(CUPRAD_res.zgrid[-1]), CUPRAD_res.plasma.value_zrt[-1,0,:]]
+    image.sf[1].args = [CUPRAD_res2.co_moving_t_grid(CUPRAD_res2.zgrid[-1]), CUPRAD_res2.plasma.value_zrt[-1,0,:],'--']
+    pp.plot_preset(image)
+    
+    # sys.exit(0)
+    
+    
+    print('Moving to Hankel')
+    
+
     
     pressure = Hankel_tools.pressure_constructor(InpArch)
     pressure2 = Hankel_tools.pressure_constructor(InpArch2)

@@ -99,6 +99,14 @@ class get_data:
         except:
             self.Intensity_Gaussian_focus = np.NaN   
             self.Intensity_Gaussian_focus_string = "xxx"
+            
+            
+        def co_moving_t_grid(z_):
+            delta_t_lab = z_/self.VG_IR
+            delta_t_vac  = z_/units.c_light
+            return self.tgrid + delta_t_lab - delta_t_vac
+        
+        self.co_moving_t_grid = co_moving_t_grid
         
     def vacuum_shift(self,output='replace'):
         E_vac = np.zeros(self.E_zrt.shape)   
