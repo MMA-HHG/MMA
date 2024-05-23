@@ -260,9 +260,13 @@ with h5py.File(file, 'r') as InpArch, h5py.File(file2, 'r') as InpArch2:
                                     effective_IR_refrective_index = effective_IR_refrective_index)
     
     
+    # comparer
+    for k1 in range(len(target_dynamic.zgrid)):
+        np.testing.assert_allclose(pf1(k1), pf1_p2(k1))
+        np.testing.assert_allclose(rf1(k1), rf1_p2(k1))
+        print('plane', k1, 'ok')
     
-    
-    sys.exit(0)
+    # sys.exit(0)
     
     
     HL_res = HT.Hankel_long(target_dynamic,
@@ -290,7 +294,7 @@ with h5py.File(file, 'r') as InpArch, h5py.File(file2, 'r') as InpArch2:
                             include_absorption = absorption,
                             dispersion_tables = XUV_table_type_diffraction,
                             include_dispersion = dispersion,
-                            effective_IR_refrective_index = effective_IR_refrective_index2,
+                            effective_IR_refrective_index = effective_IR_refrective_index,
                             integrator_Hankel = integrate.trapz,
                             integrator_longitudinal = 'trapezoidal',
                             near_field_factor = True,

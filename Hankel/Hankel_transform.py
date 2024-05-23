@@ -86,22 +86,11 @@ def HankelTransform(ogrid, rgrid, FField, distance, rgrid_FF,
                                     rgrid[k3] * FField[k1,k3] * special.jn(0, k_omega * rgrid[k3] * rgrid_FF[k2] / distance)
                                     
             FField_FF[k1,k2] = integrator(integrand,rgrid)
-            integrands[k1,k2,:] = integrand
-            rgrids[k1,k2,:] = rgrid
-            
-
-    # if   (len(np.shape(pre_factor))==1):
-    #     FField_FF *= np.outer(pre_factor,np.ones(FField_FF.shape[1]))
-    # elif (len(np.shape(pre_factor))==0):
-    #     FField_FF *= pre_factor
-    
-    # if (len(np.shape(pre_factor))==0):
-    #     FField_FF *= pre_factor
 
 
     print('time spent only in the integrator ', time.perf_counter()-t_start)
     
-    return FField_FF , [integrands, rgrids, FField_FF, copy.copy(FField_FF)]
+    return FField_FF
 
         
         
@@ -178,7 +167,7 @@ class Hankel_long:
         t_check1 = t_start
         
         integrands_plane = next(target.Fsource_plane)
-        Fsource_plane1, integrands = HankelTransform(target.ogrid,
+        Fsource_plane1 = HankelTransform(target.ogrid,
                                          target.rgrid,
                                          integrands_plane,
                                          distance-target.zgrid[0],
@@ -202,7 +191,7 @@ class Hankel_long:
             
           
             integrands_plane = next(target.Fsource_plane) 
-            Fsource_plane2, integrands = HankelTransform(target.ogrid,
+            Fsource_plane2 = HankelTransform(target.ogrid,
                                              target.rgrid,
                                              integrands_plane,
                                              distance-target.zgrid[k1+1],
