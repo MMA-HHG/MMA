@@ -145,7 +145,7 @@ def get_propagation_pre_factor_function(zgrid,
                 if include_absorption:
                     integral_beta_factor = XUV_index.beta_factor_ref(
                                             ogrid[k1],
-                                            preset_gas+'_'+dispersion_tables) * \
+                                            preset_gas+'_'+absorption_tables) * \
                                        integrate.cumtrapz(
                                             pressure['value'],
                                             pressure['zgrid'],
@@ -355,7 +355,7 @@ def get_propagation_pre_factor_function(zgrid,
                 absorption_factor = (pressure/units.c_light) *\
                                     XUV_index.beta_factor_ref(
                                         ogrid,
-                                        preset_gas+'_'+dispersion_tables)
+                                        preset_gas+'_'+absorption_tables)
             else:
                 print('no absorption')
                 absorption_factor = 0.

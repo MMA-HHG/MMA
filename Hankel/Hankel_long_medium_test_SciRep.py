@@ -69,35 +69,13 @@ if ('-here' in arguments):
     results_TDSE = os.getcwd()
 else:
 
-    
-    # results_path = os.path.join("D:\sharepoint", "OneDrive - ELI Beamlines",
-    #                 "data", "Sunrise","tmp","h5debug","TDSEs","t1")    
-
-    # results_path = os.path.join("D:\sharepoint", "OneDrive - ELI Beamlines",
-    #                 "data", "Sunrise","tmp","h5debug","TDSEs","t2") 
-
-    # results_path = os.path.join("D:\sharepoint", "OneDrive - ELI Beamlines",
-    #                 "data", "Sunrise","tmp","h5debug","TDSEs","SciRep","t1")
-
-    # results_path2 = os.path.join("D:\sharepoint", "OneDrive - ELI Beamlines",
-    #                 "data", "Sunrise","tmp","h5debug","TDSEs","SciRep","t2")
-    
-    
-    # results_path = os.path.join("D:\sharepoint", "OneDrive - ELI Beamlines",
-    #                 "data", "Sunrise","tmp","h5debug","TDSEs","t3")
-    
-    # results_path2 = os.path.join("D:\sharepoint", "OneDrive - ELI Beamlines",
-    #                 "data", "Sunrise","tmp","h5debug","TDSEs","t3mod")
-    
-
     results_path = os.path.join("D:\sharepoint", "OneDrive - ELI Beamlines",
-                    "data", "Sunrise","tmp","h5debug","TDSEs","densmod","t1")
-    
+                    "data", "Sunrise","tmp","h5debug","TDSEs","SciRep","t1")
+
     results_path2 = os.path.join("D:\sharepoint", "OneDrive - ELI Beamlines",
-                    "data", "Sunrise","tmp","h5debug","TDSEs","densmod","t2")
+                    "data", "Sunrise","tmp","h5debug","TDSEs","SciRep","t2")
     
-    # results_path = os.path.join("D:\sharepoint", "OneDrive - ELI Beamlines",
-    #                 "data", "Sunrise","tmp","h5debug","TDSEs","SciRep","t1")
+
     
 
 
@@ -189,6 +167,15 @@ with h5py.File(file, 'r') as InpArch, h5py.File(file2, 'r') as InpArch2:
     omega_au2SI = mn.ConvertPhoton(1.0, 'omegaau', 'omegaSI')
     ogridSI = omega_au2SI * ogrid
     omega0SI = omega_au2SI * omega0
+    
+    
+    # minimal listed scattering factors
+    print('Kr')
+    print('NIST f1:', mn.ConvertPhoton(1e3*1.069000e-2, 'eV', 'omegaau')/omega0, 'f2:',  mn.ConvertPhoton(1e3*8.934450e-2, 'eV', 'omegaau')/omega0)
+    print('Henke f1:', mn.ConvertPhoton(29.3000, 'eV', 'omegaau')/omega0, 'f2:',  mn.ConvertPhoton(10.0000, 'eV', 'omegaau')/omega0)
+    
+    
+    # sys.exit(0)
     
     # target_static = Hankel_tools.FSources_provider(InpArch[MMA.paths['CTDSE_outputs']+'/zgrid_coarse'][:],
     #                                                InpArch[MMA.paths['CTDSE_outputs']+'/rgrid_coarse'][:],
@@ -285,16 +272,16 @@ with h5py.File(file, 'r') as InpArch, h5py.File(file2, 'r') as InpArch2:
                             store_cummulative_result = True,
                             store_non_normalised_cummulative_result = True)
     
-    HL_res2 = HT.Hankel_long(target_dynamic_copy,
+    HL_res2 = HT.Hankel_long(target_dynamic2,
                             distance_FF,
                             rgrid_FF,
                             preset_gas = preset_gas,
-                            pressure = pressure,
+                            pressure = pressure2,
                             absorption_tables = XUV_table_type_absorption,
                             include_absorption = absorption,
                             dispersion_tables = XUV_table_type_diffraction,
                             include_dispersion = dispersion,
-                            effective_IR_refrective_index = effective_IR_refrective_index,
+                            effective_IR_refrective_index = effective_IR_refrective_index2,
                             integrator_Hankel = integrate.trapz,
                             integrator_longitudinal = 'trapezoidal',
                             near_field_factor = True,
@@ -318,7 +305,7 @@ with h5py.File(file, 'r') as InpArch, h5py.File(file2, 'r') as InpArch2:
     image.sf = [pp.plotter() for k1 in range(32)]
     image.title = "H17"
     image.sf[0].args = [1e3*target_dynamic.zgrid[1:], np.max(np.abs(HL_res.cummulative_field[:,ko_17,:]),axis=1)]
-    image.sf[1].args = [1e3*target_dynamic_copy.zgrid[1:], np.max(np.abs(HL_res2.cummulative_field[:,ko_17,:]),axis=1)]
+    image.sf[1].args = [1e3*target_dynamic2.zgrid[1:], np.max(np.abs(HL_res2.cummulative_field[:,ko_17,:]),axis=1)]
     pp.plot_preset(image)
         
     
@@ -326,7 +313,7 @@ with h5py.File(file, 'r') as InpArch, h5py.File(file2, 'r') as InpArch2:
     image.sf = [pp.plotter() for k1 in range(32)]
     image.title = "H17 nonorm"
     image.sf[0].args = [1e3*target_dynamic.zgrid[1:], np.max(np.abs(HL_res.cummulative_field_no_norm[:,ko_17,:]),axis=1)]
-    image.sf[1].args = [1e3*target_dynamic_copy.zgrid[1:], np.max(np.abs(HL_res2.cummulative_field_no_norm[:,ko_17,:]),axis=1)]
+    image.sf[1].args = [1e3*target_dynamic2.zgrid[1:], np.max(np.abs(HL_res2.cummulative_field_no_norm[:,ko_17,:]),axis=1)]
     pp.plot_preset(image)        
         
 

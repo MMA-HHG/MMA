@@ -101,9 +101,12 @@ class get_data:
             self.Intensity_Gaussian_focus_string = "xxx"
             
             
-        def co_moving_t_grid(z_):
-            delta_t_lab = z_/self.VG_IR
-            delta_t_vac  = z_/units.c_light
+        def co_moving_t_grid(z_def):
+            if isinstance(z_def, int): z = self.zgrid[z_def]
+            else: z = z_def
+                
+            delta_t_lab = z/self.VG_IR
+            delta_t_vac  = z/units.c_light
             return self.tgrid + delta_t_lab - delta_t_vac
         
         self.co_moving_t_grid = co_moving_t_grid
