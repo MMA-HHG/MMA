@@ -16,7 +16,7 @@ import Hankel_transform as HT
 from scipy import integrate
 
 
-import Hankel_tools
+# import Hankel_tools
 import MMA_administration as MMA
 
 
@@ -142,8 +142,8 @@ with h5py.File(file, 'r') as InpArch, h5py.File(file2, 'r') as InpArch2:
     
 
     
-    pressure = Hankel_tools.pressure_constructor(InpArch)
-    pressure2 = Hankel_tools.pressure_constructor(InpArch2)
+    pressure = MMA.pressure_constructor(InpArch)
+    pressure2 = MMA.pressure_constructor(InpArch2)
 
     
     
@@ -198,7 +198,7 @@ with h5py.File(file, 'r') as InpArch, h5py.File(file2, 'r') as InpArch2:
     #                                                ko_min = ko_min,
     #                                                ko_max = ko_max)
     
-    target_dynamic = Hankel_tools.FSources_provider(InpArch[MMA.paths['CTDSE_outputs']+'/zgrid_coarse'][:],
+    target_dynamic = HT.FSources_provider(InpArch[MMA.paths['CTDSE_outputs']+'/zgrid_coarse'][:],
                                                     InpArch[MMA.paths['CTDSE_outputs']+'/rgrid_coarse'][:],
                                                     omega_au2SI*InpArch[MMA.paths['CTDSE_outputs']+'/omegagrid'][:],
                                                     h5_handle = InpArch,
@@ -207,7 +207,7 @@ with h5py.File(file, 'r') as InpArch, h5py.File(file2, 'r') as InpArch2:
                                                     ko_min = ko_min,
                                                     ko_max = ko_max)
     
-    target_dynamic_copy = Hankel_tools.FSources_provider(InpArch[MMA.paths['CTDSE_outputs']+'/zgrid_coarse'][:],
+    target_dynamic_copy = HT.FSources_provider(InpArch[MMA.paths['CTDSE_outputs']+'/zgrid_coarse'][:],
                                                     InpArch[MMA.paths['CTDSE_outputs']+'/rgrid_coarse'][:],
                                                     omega_au2SI*InpArch[MMA.paths['CTDSE_outputs']+'/omegagrid'][:],
                                                     h5_handle = InpArch,
@@ -216,7 +216,7 @@ with h5py.File(file, 'r') as InpArch, h5py.File(file2, 'r') as InpArch2:
                                                     ko_min = ko_min,
                                                     ko_max = ko_max)
 
-    target_dynamic2 = Hankel_tools.FSources_provider(InpArch2[MMA.paths['CTDSE_outputs']+'/zgrid_coarse'][:],
+    target_dynamic2 = HT.FSources_provider(InpArch2[MMA.paths['CTDSE_outputs']+'/zgrid_coarse'][:],
                                                     InpArch2[MMA.paths['CTDSE_outputs']+'/rgrid_coarse'][:],
                                                     omega_au2SI*InpArch2[MMA.paths['CTDSE_outputs']+'/omegagrid'][:],
                                                     h5_handle = InpArch2,
