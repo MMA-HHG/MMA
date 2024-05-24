@@ -11,13 +11,6 @@ from scipy import interpolate
 from scipy import integrate
 from scipy import special
 
-# from Hankel_tools import get_propagation_pre_factor_function
-
-
-
-# for testing now
-import copy
-
 
 
 
@@ -70,9 +63,6 @@ class FSources_provider:
                             h5_handle[h5_path][k1*kz_step,0:kr_max:kr_step,ko_min:ko_max:ko_step,0]
                             +
                             1j*h5_handle[h5_path][k1*kz_step,0:kr_max:kr_step,ko_min:ko_max:ko_step,1]).T
-                    # !!!! THIS IS SUPER SLOW, try:
-                    # https://docs.h5py.org/en/stable/high/dataset.html#:~:text=)%0Adataset%20inaccessible-,read_direct,-(array%2C
-                    # https://stackoverflow.com/a/72397433
             self.Fsource_plane = FSource_plane_()
         else:
             raise ValueError('Wrongly specified input of the class.')
@@ -248,10 +238,7 @@ def get_propagation_pre_factor_function(zgrid,
             else:
                 print('no absorption')
                 pass # done in the allocation
-                # absorption_factor_omega = 0.
-            
-            # abs_factor_omega = ogrid * absorption_factor
-            
+
                 
             def pre_factor(kz):
                 return pressure * np.exp(
@@ -445,11 +432,7 @@ def HankelTransform(ogrid, rgrid, FField, distance, rgrid_FF,
          The far-field spectra on ogrid and rgrid_FF
 
     """
-    
-    # print('pre-factor shape ', np.shape(pre_factor))
-    # print('rgrid_int len ', len(rgrid))
-    # print('ogrid     len ', len(ogrid))
-    
+       
     
     t_start = time.perf_counter()
     
@@ -459,8 +442,6 @@ def HankelTransform(ogrid, rgrid, FField, distance, rgrid_FF,
     No = len(ogrid); Nr = len(rgrid); Nr_FF = len(rgrid_FF)
     FField_FF = np.empty((No,Nr_FF), dtype=np.cdouble)
     
-    integrands = np.empty((No,Nr_FF,Nr), dtype=np.cdouble)
-    rgrids = np.empty((No,Nr_FF,Nr), dtype=np.cdouble)
     
     integrand = np.empty((Nr), dtype=np.cdouble)
     for k1 in range(No):
@@ -490,7 +471,7 @@ def HankelTransform(ogrid, rgrid, FField, distance, rgrid_FF,
         
 class Hankel_long:
     def __init__(self,
-                 target, # FSourceTerm(r,z,omega)
+                 target, 
                  distance,
                  rgrid_FF,
                  preset_gas = 'vacuum',
@@ -533,8 +514,7 @@ class Hankel_long:
                  or (preset_gas == 'vacuum')
             ): raise ValueError('Wrongly specified preset gas (or tables).')
     
-        No = len(target.ogrid);
-        Nz = len(target.zgrid);
+        Nz = len(target.zgrid)
         Nr_FF = len(rgrid_FF)    
 
         
@@ -607,7 +587,7 @@ class Hankel_long:
             if store_non_normalised_cummulative_result:
                 cummulative_field_no_norm[k1,:,:]  =  np.copy(FF_integrated)
     
-            Fsource_plane1 = copy.copy(Fsource_plane2)
+            Fsource_plane1 = np.copy(Fsource_plane2)
             
 
         self.FF_integrated = FF_integrated
@@ -623,14 +603,6 @@ class Hankel_long:
            
             
            
-            
-           
-            
-           
-        
-        
-        
-        
         
 def Signal_cum_integrator(ogrid, zgrid, FSourceTerm,
                          integrator = integrate.cumulative_trapezoid):
