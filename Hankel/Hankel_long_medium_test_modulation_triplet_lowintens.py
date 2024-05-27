@@ -90,20 +90,14 @@ else:
     
 
     results_path = os.path.join("D:\sharepoint", "OneDrive - ELI Beamlines",
-                    "data", "Sunrise","tmp","h5debug","TDSEs","densmod","t1")
+                    "data", "Sunrise","tmp","h5debug","TDSEs","densmod2","t1")
     
     results_path2 = os.path.join("D:\sharepoint", "OneDrive - ELI Beamlines",
-                    "data", "Sunrise","tmp","h5debug","TDSEs","densmod","t3")
+                    "data", "Sunrise","tmp","h5debug","TDSEs","densmod2","t2")
     
-    # results_path = os.path.join("D:\sharepoint", "OneDrive - ELI Beamlines",
-    #                 "data", "Sunrise","tmp","h5debug","TDSEs","SciRep","t1")
-    
-    
-    # results_path = os.path.join("D:\sharepoint", "OneDrive - ELI Beamlines",
-    #                 "data", "Sunrise","tmp","h5debug","TDSEs","t5")
-    
-    # results_path2 = os.path.join("D:\sharepoint", "OneDrive - ELI Beamlines",
-    #                 "data", "Sunrise","tmp","h5debug","TDSEs","t5mod")
+    results_path3 = os.path.join("D:\sharepoint", "OneDrive - ELI Beamlines",
+                    "data", "Sunrise","tmp","h5debug","TDSEs","densmod2","t3")
+
     
 
 
@@ -112,6 +106,7 @@ filename = "results.h5"
 
 file = os.path.join(results_path,filename)
 file2 = os.path.join(results_path2,filename)
+file3 = os.path.join(results_path3,filename)
 
 
 
@@ -121,7 +116,7 @@ rgrid_FF = np.linspace(0.0, rmax_FF, Nr_FF)
 
 # load data
 print('processing:', file)             
-with h5py.File(file, 'r') as InpArch, h5py.File(file2, 'r') as InpArch2:
+with h5py.File(file, 'r') as InpArch, h5py.File(file2, 'r') as InpArch2, h5py.File(file3, 'r') as InpArch3:
     
     gas_type = mn.readscalardataset(InpArch, MMA.paths['global_inputs']+
                                            '/gas_preset','S')
@@ -132,58 +127,32 @@ with h5py.File(file, 'r') as InpArch, h5py.File(file2, 'r') as InpArch2:
     omega0 = mn.ConvertPhoton(1e-2*mn.readscalardataset(InpArch,
                                                         MMA.paths['CUPRAD_inputs']+
                                                         '/laser_wavelength','N'),'lambdaSI','omegaau')
-    inverse_GV_IR = InpArch[MMA.paths['CUPRAD_logs']+'/inverse_group_velocity_SI'][()]; group_velocity_IR = 1./inverse_GV_IR
     
+    inverse_GV_IR = InpArch[MMA.paths['CUPRAD_logs']+'/inverse_group_velocity_SI'][()]; group_velocity_IR = 1./inverse_GV_IR
     inverse_GV_IR2 = InpArch2[MMA.paths['CUPRAD_logs']+'/inverse_group_velocity_SI'][()]; group_velocity_IR2 = 1./inverse_GV_IR2
+    inverse_GV_IR3 = InpArch3[MMA.paths['CUPRAD_logs']+'/inverse_group_velocity_SI'][()]; group_velocity_IR2 = 1./inverse_GV_IR3
     
     # pressure_mbar = 1e3*InputArchiveCUPRAD['/inputs/medium_pressure_in_bar'][()]
     rho0_init = 1e6 * mn.readscalardataset(InpArch, MMA.paths['CUPRAD_inputs']+
                                            '/calculated/medium_effective_density_of_neutral_molecules','N') # SI
-    
-    
-    
-
-    
-    
-    
 
     
     pressure = MMA.pressure_constructor(InpArch)
     pressure2 = MMA.pressure_constructor(InpArch2)
+    pressure3 = MMA.pressure_constructor(InpArch3)
 
     
     
-    print(MMA.paths['global_inputs']+'/gas_preset')
-    print(InpArch[MMA.paths['global_inputs']].keys())
-    # xxx = InpArch[MMA.paths['global_inputs']+'/gas_preset'][()]
-    # yyy = InpArch[MMA.paths['global_inputs']+'/gas_preset'].decode()
+    print('used gas:', MMA.paths['global_inputs']+'/gas_preset')
+
     preset_gas = mn.readscalardataset(InpArch,MMA.paths['global_inputs']+'/gas_preset','S')
     
     effective_IR_refrective_index = inverse_GV_IR*units.c_light
     effective_IR_refrective_index2 = inverse_GV_IR2*units.c_light
+    effective_IR_refrective_index3 = inverse_GV_IR3*units.c_light
     
     
-    
-    # try:
-    #     preset_gas = mn.readscalardataset(InpArch,MMA.paths['global_inputs']+'/gas_preset','S')
-    # except:
-    #     preset_gas = 'vacuum' 
-    
-    # pressure = 1.
-    # preset_gas = 'vacuum'
-    
-
-    
-    # FSourceTerm =    InpArch[MMA.paths['CTDSE_outputs']+'/FSourceTerm'][:,:,:,0] + \
-    #               1j*InpArch[MMA.paths['CTDSE_outputs']+'/FSourceTerm'][:,:,:,1]
-    ogrid = InpArch[MMA.paths['CTDSE_outputs']+'/omegagrid'][:]
-    rgrid_macro = InpArch[MMA.paths['CTDSE_outputs']+'/rgrid_coarse'][:]
-    zgrid_macro = InpArch[MMA.paths['CTDSE_outputs']+'/zgrid_coarse'][:]
-    
-    rgrid_macro2 = InpArch2[MMA.paths['CTDSE_outputs']+'/rgrid_coarse'][:]
-    zgrid_macro2 = InpArch2[MMA.paths['CTDSE_outputs']+'/zgrid_coarse'][:]
-    
-
+    ogrid = InpArch[MMA.paths['CTDSE_outputs']+'/omegagrid'][:]  
 
     
     ko_min = mn.FindInterval(ogrid/omega0, 16.8)
@@ -198,6 +167,7 @@ with h5py.File(file, 'r') as InpArch, h5py.File(file2, 'r') as InpArch2:
     
     CUPRAD_res = dfC.get_data(InpArch)
     CUPRAD_res2 = dfC.get_data(InpArch2)
+    CUPRAD_res3 = dfC.get_data(InpArch3)
     
 
     image = pp.figure_driver()
@@ -205,6 +175,7 @@ with h5py.File(file, 'r') as InpArch, h5py.File(file2, 'r') as InpArch2:
     image.title = "End fields orig"
     image.sf[0].args = [CUPRAD_res.tgrid, CUPRAD_res.E_zrt[-1,0,:]]
     image.sf[1].args = [CUPRAD_res2.tgrid, CUPRAD_res2.E_zrt[-1,0,:]]
+    image.sf[2].args = [CUPRAD_res3.tgrid, CUPRAD_res3.E_zrt[-1,0,:]]
     pp.plot_preset(image)
        
 
@@ -217,27 +188,32 @@ with h5py.File(file, 'r') as InpArch, h5py.File(file2, 'r') as InpArch2:
     # image.sf[1].args = [CUPRAD_res2.tgrid+delta_t_tot2, CUPRAD_res2.E_zrt[-1,0,:]]
     image.sf[0].args = [CUPRAD_res.co_moving_t_grid(-1) , CUPRAD_res.E_zrt[-1,0,:]]
     image.sf[1].args = [CUPRAD_res2.co_moving_t_grid(-1) , CUPRAD_res2.E_zrt[-1,0,:]]
+    image.sf[2].args = [CUPRAD_res3.co_moving_t_grid(-1) , CUPRAD_res3.E_zrt[-1,0,:]]
     pp.plot_preset(image)
     
     # sys.exit(0)
     
     CUPRAD_res.vacuum_shift(output='add')
     CUPRAD_res2.vacuum_shift(output='add')
+    CUPRAD_res3.vacuum_shift(output='add')
     
     image = pp.figure_driver()
     image.sf = [pp.plotter() for k1 in range(32)]
     image.title = "End fields vac"
     image.sf[0].args = [CUPRAD_res.tgrid, CUPRAD_res.E_zrt_vac[-1,0,:]]
-    image.sf[1].args = [CUPRAD_res2.tgrid, CUPRAD_res2.E_zrt_vac[-1,0,:],'--']
+    image.sf[1].args = [CUPRAD_res2.tgrid, CUPRAD_res2.E_zrt_vac[-1,0,:]]
+    image.sf[2].args = [CUPRAD_res3.tgrid, CUPRAD_res2.E_zrt_vac[-1,0,:]]
     pp.plot_preset(image)
     
     # sys.exit(0)
     
     CUPRAD_res.get_plasma(InpArch)
     CUPRAD_res2.get_plasma(InpArch2)
+    CUPRAD_res3.get_plasma(InpArch3)
     
     CUPRAD_res.compute_spectrum()
     CUPRAD_res2.compute_spectrum()
+    CUPRAD_res3.compute_spectrum()
 
     
     image = pp.figure_driver()
@@ -245,8 +221,10 @@ with h5py.File(file, 'r') as InpArch, h5py.File(file2, 'r') as InpArch2:
     image.title = "Spectra"
     image.sf[0].args = [CUPRAD_res.ogrid/CUPRAD_res.omega0, np.abs(CUPRAD_res.FE_zrt[-1,0,:])]
     image.sf[0].method = plt.semilogy
-    image.sf[1].args = [CUPRAD_res2.ogrid/CUPRAD_res2.omega0, np.abs(CUPRAD_res2.FE_zrt[-1,0,:]),'--']
+    image.sf[1].args = [CUPRAD_res2.ogrid/CUPRAD_res2.omega0, np.abs(CUPRAD_res2.FE_zrt[-1,0,:])]
     image.sf[1].method = plt.semilogy
+    image.sf[2].args = [CUPRAD_res3.ogrid/CUPRAD_res3.omega0, np.abs(CUPRAD_res3.FE_zrt[-1,0,:])]
+    image.sf[2].method = plt.semilogy
     pp.plot_preset(image)
     
 
@@ -257,6 +235,8 @@ with h5py.File(file, 'r') as InpArch, h5py.File(file2, 'r') as InpArch2:
     image.sf[0].method = plt.semilogy
     image.sf[1].args = [CUPRAD_res2.ogrid/CUPRAD_res2.omega0, np.abs(CUPRAD_res2.FE_zrt[0,0,:]),'--']
     image.sf[1].method = plt.semilogy
+    image.sf[2].args = [CUPRAD_res3.ogrid/CUPRAD_res2.omega0, np.abs(CUPRAD_res3.FE_zrt[0,0,:]),'--']
+    image.sf[2].method = plt.semilogy
     pp.plot_preset(image)
        
     
@@ -264,7 +244,8 @@ with h5py.File(file, 'r') as InpArch, h5py.File(file2, 'r') as InpArch2:
     image.sf = [pp.plotter() for k1 in range(32)]
     image.title = "Plasma"
     image.sf[0].args = [CUPRAD_res.plasma.tgrid, CUPRAD_res.plasma.value_zrt[-1,0,:]]
-    image.sf[1].args = [CUPRAD_res2.plasma.tgrid, CUPRAD_res2.plasma.value_zrt[-1,0,:],'--']
+    image.sf[1].args = [CUPRAD_res2.plasma.tgrid, CUPRAD_res2.plasma.value_zrt[-1,0,:]]
+    image.sf[2].args = [CUPRAD_res3.plasma.tgrid, CUPRAD_res3.plasma.value_zrt[-1,0,:]]
     pp.plot_preset(image)
     
     
@@ -272,18 +253,13 @@ with h5py.File(file, 'r') as InpArch, h5py.File(file2, 'r') as InpArch2:
     image.sf = [pp.plotter() for k1 in range(32)]
     image.title = "Plasma shifted"
     image.sf[0].args = [CUPRAD_res.co_moving_t_grid(CUPRAD_res.zgrid[-1]), CUPRAD_res.plasma.value_zrt[-1,0,:]]
-    image.sf[1].args = [CUPRAD_res2.co_moving_t_grid(CUPRAD_res2.zgrid[-1]), CUPRAD_res2.plasma.value_zrt[-1,0,:],'--']
+    image.sf[1].args = [CUPRAD_res2.co_moving_t_grid(CUPRAD_res2.zgrid[-1]), CUPRAD_res2.plasma.value_zrt[-1,0,:]]
+    image.sf[2].args = [CUPRAD_res3.co_moving_t_grid(CUPRAD_res3.zgrid[-1]), CUPRAD_res3.plasma.value_zrt[-1,0,:]]
     pp.plot_preset(image)
     
     
     
-    # target_static = Hankel_tools.FSources_provider(InpArch[MMA.paths['CTDSE_outputs']+'/zgrid_coarse'][:],
-    #                                                InpArch[MMA.paths['CTDSE_outputs']+'/rgrid_coarse'][:],
-    #                                                omega_au2SI*InpArch[MMA.paths['CTDSE_outputs']+'/omegagrid'][:],
-    #                                                FSource = np.transpose(FSourceTerm,axes=(0,2,1)),
-    #                                                data_source = 'static',
-    #                                                ko_min = ko_min,
-    #                                                ko_max = ko_max)
+
     
     target_dynamic = HT.FSources_provider(InpArch[MMA.paths['CTDSE_outputs']+'/zgrid_coarse'][:],
                                                     InpArch[MMA.paths['CTDSE_outputs']+'/rgrid_coarse'][:],
@@ -294,14 +270,6 @@ with h5py.File(file, 'r') as InpArch, h5py.File(file2, 'r') as InpArch2:
                                                     ko_min = ko_min,
                                                     ko_max = ko_max)
     
-    target_dynamic_copy = HT.FSources_provider(InpArch[MMA.paths['CTDSE_outputs']+'/zgrid_coarse'][:],
-                                                    InpArch[MMA.paths['CTDSE_outputs']+'/rgrid_coarse'][:],
-                                                    omega_au2SI*InpArch[MMA.paths['CTDSE_outputs']+'/omegagrid'][:],
-                                                    h5_handle = InpArch,
-                                                    h5_path = MMA.paths['CTDSE_outputs']+'/FSourceTerm',
-                                                    data_source = 'dynamic',
-                                                    ko_min = ko_min,
-                                                    ko_max = ko_max)
 
     target_dynamic2 = HT.FSources_provider(InpArch2[MMA.paths['CTDSE_outputs']+'/zgrid_coarse'][:],
                                                     InpArch2[MMA.paths['CTDSE_outputs']+'/rgrid_coarse'][:],
@@ -311,6 +279,15 @@ with h5py.File(file, 'r') as InpArch, h5py.File(file2, 'r') as InpArch2:
                                                     data_source = 'dynamic',
                                                     ko_min = ko_min,
                                                     ko_max = ko_max)      
+    
+    target_dynamic3 = HT.FSources_provider(InpArch2[MMA.paths['CTDSE_outputs']+'/zgrid_coarse'][:],
+                                                    InpArch2[MMA.paths['CTDSE_outputs']+'/rgrid_coarse'][:],
+                                                    omega_au2SI*InpArch3[MMA.paths['CTDSE_outputs']+'/omegagrid'][:],
+                                                    h5_handle = InpArch3,
+                                                    h5_path = MMA.paths['CTDSE_outputs']+'/FSourceTerm',
+                                                    data_source = 'dynamic',
+                                                    ko_min = ko_min,
+                                                    ko_max = ko_max)    
 
     
     # sys.exit(0)
@@ -318,42 +295,6 @@ with h5py.File(file, 'r') as InpArch, h5py.File(file2, 'r') as InpArch2:
     absorption = True
     dispersion = True
     
-    
-    # # test pre-factors
-    
-    
-    # pf1, rf1 = Hankel_tools.get_propagation_pre_factor_function(
-    #                                 target_dynamic.zgrid,
-    #                                 target_dynamic.rgrid,
-    #                                 target_dynamic.ogrid,
-    #                                 preset_gas = preset_gas,
-    #                                 pressure = pressure,
-    #                                 absorption_tables = XUV_table_type_absorption,
-    #                                 include_absorption = absorption,
-    #                                 dispersion_tables = XUV_table_type_diffraction,
-    #                                 include_dispersion = dispersion,
-    #                                 effective_IR_refrective_index = effective_IR_refrective_index)
-    
-    # pf1_p2, rf1_p2 = Hankel_tools.get_propagation_pre_factor_function(
-    #                                 target_dynamic.zgrid,
-    #                                 target_dynamic.rgrid,
-    #                                 target_dynamic.ogrid,
-    #                                 preset_gas = preset_gas,
-    #                                 pressure = pressure2,
-    #                                 absorption_tables = XUV_table_type_absorption,
-    #                                 include_absorption = absorption,
-    #                                 dispersion_tables = XUV_table_type_diffraction,
-    #                                 include_dispersion = dispersion,
-    #                                 effective_IR_refrective_index = effective_IR_refrective_index)
-    
-    
-    # # comparer
-    # for k1 in range(len(target_dynamic.zgrid)):
-    #     np.testing.assert_allclose(pf1(k1), pf1_p2(k1))
-    #     np.testing.assert_allclose(rf1(k1), rf1_p2(k1))
-    #     print('plane', k1, 'ok')
-    
-    # sys.exit(0)
     
     
     HL_res = HT.Hankel_long(target_dynamic,
@@ -388,6 +329,23 @@ with h5py.File(file, 'r') as InpArch, h5py.File(file2, 'r') as InpArch2:
                             store_cummulative_result = True,
                             store_non_normalised_cummulative_result = True)
     
+    
+    HL_res3 = HT.Hankel_long(target_dynamic3,
+                            distance_FF,
+                            rgrid_FF,
+                            preset_gas = preset_gas,
+                            pressure = pressure3,
+                            absorption_tables = XUV_table_type_absorption,
+                            include_absorption = absorption,
+                            dispersion_tables = XUV_table_type_diffraction,
+                            include_dispersion = dispersion,
+                            effective_IR_refrective_index = effective_IR_refrective_index3,
+                            integrator_Hankel = integrate.trapz,
+                            integrator_longitudinal = 'trapezoidal',
+                            near_field_factor = True,
+                            store_cummulative_result = True,
+                            store_non_normalised_cummulative_result = True)
+    
 
 
     # signal build-up for H17
@@ -406,6 +364,7 @@ with h5py.File(file, 'r') as InpArch, h5py.File(file2, 'r') as InpArch2:
     image.title = "H17"
     image.sf[0].args = [1e3*target_dynamic.zgrid[1:], np.max(np.abs(HL_res.cummulative_field[:,ko_17,:]),axis=1)]
     image.sf[1].args = [1e3*target_dynamic2.zgrid[1:], np.max(np.abs(HL_res2.cummulative_field[:,ko_17,:]),axis=1)]
+    image.sf[2].args = [1e3*target_dynamic3.zgrid[1:], np.max(np.abs(HL_res3.cummulative_field[:,ko_17,:]),axis=1)]
     pp.plot_preset(image)
         
     
@@ -414,6 +373,7 @@ with h5py.File(file, 'r') as InpArch, h5py.File(file2, 'r') as InpArch2:
     image.title = "H17 nonorm"
     image.sf[0].args = [1e3*target_dynamic.zgrid[1:], np.max(np.abs(HL_res.cummulative_field_no_norm[:,ko_17,:]),axis=1)]
     image.sf[1].args = [1e3*target_dynamic2.zgrid[1:], np.max(np.abs(HL_res2.cummulative_field_no_norm[:,ko_17,:]),axis=1)]
+    image.sf[2].args = [1e3*target_dynamic3.zgrid[1:], np.max(np.abs(HL_res3.cummulative_field_no_norm[:,ko_17,:]),axis=1)]
     pp.plot_preset(image)        
         
 
