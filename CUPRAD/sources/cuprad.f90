@@ -53,11 +53,6 @@ PROGRAM cuprad
      ! it loops until the end of the medium is reached or timelimit is reached (exit statement in the body)
      DO WHILE (z.LT.proplength) 
 
-         ! ! there are two independent writes (see manual) 
-         ! IF( out_Efield .AND. (z_out_Efield .LE. z)) THEN ! only-field print ! ADD an extra logic to disable this option at all
-         !   CALL Efield_out
-         !   z_out_Efield = z_out_Efield + outlength_Efield
-         ! ENDIF
 
          IF(z_out.LE.z) THEN
            local_time_MPI  = MPI_Wtime()

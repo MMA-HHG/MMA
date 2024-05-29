@@ -191,16 +191,10 @@ CONTAINS
 
     INTEGER(4)  j,k,help,k1, pos
     REAL(8) absorb_factor
-    CHARACTER*10 filename
-    ! CHARACTER(LEN=10), PARAMETER :: hdf5_input = "results.h5"  ! File name for the HDF5 input file
-    ! CHARACTER(LEN = *), PARAMETER :: output_groupname = "pre-processed" 
-    ! CHARACTER(LEN = *), PARAMETER :: input_groupname = "inputs" 
+    CHARACTER*255 filename
     INTEGER(HID_T) :: file_id, group_id ! File identifier 
     INTEGER        :: error
     REAL(8), ALLOCATABLE :: real_e(:,:),imag_e(:,:)
-    ! REAL(8) :: PI
-
-    ! PI = 4.d0 * Atan(1.d0) ! still local
 
     HDF5write_count = 1
     output_write_count = 1
@@ -229,10 +223,8 @@ CONTAINS
     ENDDO
 
     ! get the filename from the message
-    OPEN(UNIT=11,FILE="msg.tmp",FORM="FORMATTED", ACCESS="SEQUENTIAL", status='old', action='read') ! (11,FILE='msg.tmp')
-    !read(UNIT=1,fmt=*, IOSTAT=st)
+    OPEN(UNIT=11,FILE="msg.tmp",FORM="FORMATTED", ACCESS="SEQUENTIAL", status='old', action='read')
     READ(UNIT=11,fmt=*, IOSTAT=pos) main_h5_fname
-    print *, main_h5_fname
     CLOSE(11)
     ! stop
 
@@ -244,7 +236,7 @@ CONTAINS
     CALL h5gopen_f(file_id, in_grpname, group_id, error) 
     CALL read_dset(group_id, 'Kerr_ionised_atoms_relative_Kerr_response', ions_Kerr_ratio) 
     CALL h5gclose_f(group_id, error) ! all pre-processed inputs read
-   !  ions_Kerr_ratio = 1.D0/3.D0
+
 
     ! inputs from the pre-processor
     CALL h5gopen_f(file_id, pre_proc_grpname, group_id, error) 
@@ -254,11 +246,10 @@ CONTAINS
 
     print *, '(density mod) normalisation in z:', four_z_Rayleigh
 
-   !  CALL read_dset(group_id, 'num_proc', num_proc)
     CALL read_dset(group_id, 'dim_t', dim_t)
     CALL read_dset(group_id, 'dim_r', dim_r)
 
-    ! Perform dimension & num_proc compatibility
+    ! Check dimension & num_proc compatibility
    
     IF (.NOT.((MOD(dim_t,num_proc)==0) .AND. (MOD(dim_t,num_proc)==0))) ERROR STOP 'INCOMPATIBLE GRID DIMENSION WITH THE NUMBER OF PROCESSORS (num_proc must be a divisor of both dim_r and dim_t)'
 
@@ -291,7 +282,6 @@ CONTAINS
     CALL read_dset(group_id, 'outlength',outlength)
     CALL read_dset(group_id, 'delta_z',delta_z)
     CALL read_dset(group_id, 'z',z)
-   !  CALL read_dset(group_id, 'z_out',z_out)
     z_out = 0.0d0
     CALL read_dset(group_id, 'rfil',rfil)
     CALL read_dset(group_id,'switch_rho', switch_rho)
@@ -323,21 +313,16 @@ CONTAINS
       CALL read_dset(group_id, 'outlength_Efield', outlength_Efield)
     ENDIF  
     
-   !  ERROR STOP 'stopping bdens'
+
 
     ! density_mod
-    print *, "bread density modulation:"
     CALL h5lexists_f(file_id,density_mod_grpname,apply_density_mod,error) ! it finds only if it's applied, the rest is fully encapsulated in the module
-   !  ERROR STOP 'stopping a h5lexist'
-    print *, "density modulation h5path:" , density_mod_grpname       
-    print *, "density modulation applied" , apply_density_mod  
+
+
     IF (apply_density_mod) CALL init_density_mod(file_id)
 
     ! pre-ionisation
-    print *, "bread pre-ionisation:"
     CALL h5lexists_f(file_id,pre_ionised_grpname,apply_pre_ionisation,error) ! it finds only if it's applied, the rest is fully encapsulated in the module    
-    print *, "pre-ion h5path:" , pre_ionised_grpname       
-    print *, "pre-ion" , apply_pre_ionisation
     IF (apply_pre_ionisation) CALL init_pre_ionisation(file_id)
 
       ALLOCATE(density_mod(dim_r))
@@ -347,7 +332,6 @@ CONTAINS
          density_mod = 1.D0
       ENDIF
 
-      ! ERROR STOP 'stopping after pre-ion'
 
 
     ! Prepare the fourier transforms
@@ -446,7 +430,6 @@ CONTAINS
     CALL calc_time_propagator
     CALL calc_cn_propagator
     ALLOCATE(real_e(dim_t,dim_r/num_proc),imag_e(dim_t,dim_r/num_proc))
-    print *, "bread efields:"
     CALL read_dset(group_id,'startfield_r',real_e,dim_t,dim_r,dim_t,dim_r/num_proc,0,(dim_r/num_proc)*my_rank)
     CALL read_dset(group_id,'startfield_i',imag_e,dim_t,dim_r,dim_t,dim_r/num_proc,0,(dim_r/num_proc)*my_rank)
     efield_factor = SQRT(critical_power*1.D9*c_light*4.D0*PI*1.D-7/(4.D0*PI*beam_waist**2*1.D-4*2.D0*n0_indice))*2.D0 ! normalization factor electric field V/m
@@ -456,18 +439,10 @@ CONTAINS
     ENDDO
     e = CMPLX(real_e,imag_e)
     DO k1=1, dim_t
-      !DO k2=1, dim_r/num_proc
-      !  real_part = 1/efield_factor*(cos(efield_osc(k1))*real_e(k1,k2) + sin(efield_osc(k1))*imag_e(k1,k2))
-      !  imag_part = 1/efield_factor*(cos(efield_osc(k1))*imag_e(k1,k2) - sin(efield_osc(k1))*real_e(k1,k2))
-      !  real_e(k1,k2) = real_part
-      !  imag_e(k1,k2) = imag_part
-      !ENDDO
       e(k1,:) = (1/efield_factor)*CONJG(efield_osc(k1))*e(k1,:)
     ENDDO
-    !e = CMPLX(real_e,imag_e)
 
-    !CALL read_dset(group_id,'startfield',e,dim_r,dim_t,dim_r/num_proc,dim_t,(dim_r/num_proc)*my_rank,0)
-    print *, "bread indexes:"
+
     CALL ask_for_size_1D(file_id, refrindex_grpname//"/r_vector", i_x_max)
     CALL ask_for_size_1D(file_id, refrindex_grpname//"/z_vector", i_z_max)
     ALLOCATE(xx(i_x_max),zz(i_z_max),Indice_norm(i_x_max,i_z_max))
@@ -475,10 +450,6 @@ CONTAINS
     CALL read_dset(file_id, refrindex_grpname//"/r_vector", xx, i_x_max)
     CALL read_dset(file_id, refrindex_grpname//"/z_vector", zz, i_z_max)
     
-   !  CALL read_dset(group_id,'four_z_rayleigh_cm_phys', four_z_Rayleigh)
-   !  four_z_Rayleigh = 1.d-2 * four_z_Rayleigh ! convert to meters
-
-    print *, "aread indexes:"
     CALL h5gclose_f(group_id, error) ! all pre-processed inputs read
    
    
@@ -492,12 +463,8 @@ CONTAINS
     ! PREPARATION OF INPUTS
     ! compute normalization factors
  
-    lambdanm = 1.d9*ConvertPhoton(photon_energy,'omegaau','lambdaSI') !6.634D-34*3.D17/photon_energy/4.359d-18 ! center wavelength in nm
+    lambdanm = 1.d9*ConvertPhoton(photon_energy,'omegaau','lambdaSI') ! center wavelength in nm
 
-    IF (my_rank.EQ.0) THEN
-      print *, "lambdanm old:", 6.634D-34*3.D17/photon_energy/4.359d-18 ! center wavelength in nm
-      print *, "lambdanm new:", lambdanm
-    ENDIF
 
     plasma_normalisation_factor_m3 = rhoc_cm3_phys/(4.0d0*PI**2 * (beam_waist**2) / ((lambdanm*1.0D-7)**2 )) ! in cm^(-3)
     plasma_normalisation_factor_m3 = 1.0D6 * plasma_normalisation_factor_m3 ! in m^(-3)
@@ -506,12 +473,6 @@ CONTAINS
     ! n0_indice : refractive index at center frequency (n0 in octave files)
     ! electric field: REAL(efield_factor*e(:,k)*efield_osc,4) : one temporal profile in GV/m
 
-    ! four_z_Rayleigh = 4.D0*PI*n0_indice/(lambdanm*1.D-9)*(beam_waist/100.D0)**2 ! 4 times the rayleigh length in m (normalization factor for z)
-
-    IF (my_rank.EQ.0) THEN
-      print *, "old four_z_Rayleigh", 4.D0*PI*n0_indice/(lambdanm*1.D-9)*(beam_waist/100.D0)**2
-      print *, "new four_z_Rayleigh", four_z_Rayleigh
-    ENDIF
 
     Nz_points = CEILING(proplength/outlength)+1 ! expected number of hdf5 output along z (with safety)
     Nz_points_Efield = CEILING(proplength/outlength_Efield)+1 ! expected number of hdf5 output along z (with safety) ! need to add if to compute only once this print is needed
