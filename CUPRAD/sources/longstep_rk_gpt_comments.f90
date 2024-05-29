@@ -489,7 +489,17 @@ MODULE long_step
          ENDDO
       ENDDO
   
+
       ! Save outputs
+      ! The following procedures treats only the storing of some characteristics of the pulse.
+      ! There are no computationally relevant procedures till the end of the 'mult_phase' procedure.
+
+
+
+      ! The aggregated data are distributed to the writer (proc 0).
+      ! Some data are dtored directly in HDF5-archive and some are 
+      ! buffered in the linked list.
+      
       CALL MPI_REDUCE(maxphase_part, maxphase, 1, MPI_DOUBLE_PRECISION, MPI_MAX, 0, MPI_COMM_WORLD, ierr)
       CALL MPI_BCAST(maxphase, 1, MPI_DOUBLE_PRECISION, 0, MPI_COMM_WORLD, ierr)
       count = count + 1
