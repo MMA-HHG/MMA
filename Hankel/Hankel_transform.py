@@ -42,9 +42,10 @@ class FSources_provider:
                  ko_max  = 'end',
                  kr_step =  1,
                  kr_max  = 'end',
-                 kz_step =  1):
+                 kz_step =  1,
+                 Nproc = 1):
 
-        
+        # if (Nproc == 1)
         if (ko_max  == 'end'): ko_max = len(ogrid)
         if (kr_max  == 'end'): kr_max = len(rgrid)
         self.zgrid = zgrid[0:-1:kz_step]
