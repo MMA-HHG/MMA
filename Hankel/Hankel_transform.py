@@ -4,6 +4,7 @@ Created on Sun May 19 00:38:22 2024
 @author: vabek
 """
 import numpy as np
+import mynumerics as mn
 import time
 import units
 import XUV_refractive_index as XUV_index
@@ -42,8 +43,7 @@ class FSources_provider:
                  ko_max  = 'end',
                  kr_step =  1,
                  kr_max  = 'end',
-                 kz_step =  1,
-                 Nproc = 1):
+                 kz_step =  1):
 
         # if (Nproc == 1)
         if (ko_max  == 'end'): ko_max = len(ogrid)
@@ -69,7 +69,11 @@ class FSources_provider:
             raise ValueError('Wrongly specified input of the class.')
             
             
+            
 
+    
+    
+    
 
 def get_propagation_pre_factor_function(zgrid,
                                 rgrid,
@@ -549,7 +553,7 @@ class Hankel_long:
                                          rgrid_FF,
                                          integrator = integrator_Hankel,
                                          near_field_factor = near_field_factor,
-                                         pre_factor = pre_factor(0))
+                                         pre_factor = pre_factor(0)).T
 
         if store_cummulative_result:
              cummulative_field = np.empty((Nz-1,) + Fsource_plane1.shape, dtype=np.cdouble)
@@ -573,7 +577,7 @@ class Hankel_long:
                                              rgrid_FF,
                                              integrator = integrator_Hankel,
                                              near_field_factor = near_field_factor,
-                                             pre_factor = pre_factor(k1+1))
+                                             pre_factor = pre_factor(k1+1)).T
 
             FF_integrated += 0.5*(target.zgrid[k1+1]-target.zgrid[k1])*(Fsource_plane1 + Fsource_plane2)
             
@@ -582,7 +586,7 @@ class Hankel_long:
                 if isinstance(pressure,dict): 
                   if ('rgrid' in pressure.keys()):
                     raise NotImplementedError('Renormalisation of the signal is not implemented for radially modulated density.')
-                cummulative_field[k1,:,:] = np.outer(renorm_factor(k1), np.ones(Nr_FF))*FF_integrated
+                cummulative_field[k1,:,:] = np.outer(np.ones(Nr_FF),renorm_factor(k1))*FF_integrated
                 
                 
             if store_non_normalised_cummulative_result:
