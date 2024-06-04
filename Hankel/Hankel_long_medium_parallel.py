@@ -51,7 +51,7 @@ kr_step = 2 # descending order, the last is "the most accurate"
 ko_step = 1
 
 rmax_FF = 6*1e-4
-Nr_FF = 25 # 10 # 200
+Nr_FF = 50 # 25 # 50 # 10 # 200
 distance_FF = 1.
 
 # FF_orders_plot = 4    
@@ -150,114 +150,126 @@ with h5py.File(file, 'r') as InpArch:
     print('No', No_sel, 'Nr_FF', Nr_FF)
     
     if (Nr_FF >= No_sel):
-        rgrid_parts = np.array_split(rgrid_FF, Nthreads)
-        ogrid_parts = [ogrid_sel for _ in range(len(rgrid_parts))] 
+        rgrid_FF_parts = np.array_split(rgrid_FF, Nthreads)
+        ogrid_parts = [ogrid_sel for _ in range(Nthreads)]
         
+        rgrid_FF_indices = [mn.FindInterval(rgrid_FF, rgrid_FF_part[0]) for rgrid_FF_part in rgrid_FF_parts]
+        
+        ogrid_indices_start = Nthreads*[ko_min]
+        ogrid_indices_end = Nthreads*[ko_max]
         
         
     else:
         ogrid_parts = np.array_split(ogrid_sel, Nthreads)
-        rgrid_FF_parts = [rgrid_FF for _ in range(len(ogrid_parts))] 
+        rgrid_FF_parts = [rgrid_FF for _ in range(Nthreads)]
+        rgrid_FF_indices = Nthreads*[0]
         
         ogrid_indices = [mn.FindInterval(ogrid, ogrid_part[0]) for ogrid_part in ogrid_parts] # From the original file used to load the data !!!
         ogrid_indices.append(ko_max)
+        ogrid_indices_start = ogrid_indices[:-1]
+        ogrid_indices_end = ogrid_indices[1:]
         
-        targets = []
-        for k1 in range(Nthreads):
-            targets.append(HT.FSources_provider(InpArch[MMA.paths['CTDSE_outputs']+'/zgrid_coarse'][:],
-                                                        InpArch[MMA.paths['CTDSE_outputs']+'/rgrid_coarse'][:],
-                                                        omega_au2SI*InpArch[MMA.paths['CTDSE_outputs']+'/omegagrid'][:],
-                                                        h5_handle = InpArch,
-                                                        h5_path = MMA.paths['CTDSE_outputs']+'/FSourceTerm',
-                                                        data_source = 'dynamic',
-                                                        ko_min = ogrid_indices[k1],
-                                                        ko_max = ogrid_indices[k1+1])
-                           )
-            
-        # Parallel calculations of Hankel
-        task_queue = mp.Queue()    
-        def mp_handle(position, *args, **kwargs):
-            task_queue.put(
-                           [position, HT.Hankel_long(*args,**kwargs)] # the outputs are not ordered, keep the order in the result
-                          )
+    targets = []
+    for k1 in range(Nthreads):
+        targets.append(HT.FSources_provider(InpArch[MMA.paths['CTDSE_outputs']+'/zgrid_coarse'][:],
+                                                    InpArch[MMA.paths['CTDSE_outputs']+'/rgrid_coarse'][:],
+                                                    omega_au2SI*InpArch[MMA.paths['CTDSE_outputs']+'/omegagrid'][:],
+                                                    h5_handle = InpArch,
+                                                    h5_path = MMA.paths['CTDSE_outputs']+'/FSourceTerm',
+                                                    data_source = 'dynamic',
+                                                    ko_min = ogrid_indices_start[k1],
+                                                    ko_max = ogrid_indices_end[k1])
+                       )
         
-        # Fsources
-        processes = [mp.Process(target=mp_handle, # define processes
-                                args=(k1,
-                                      targets[k1],
-                                      distance_FF,
-                                      rgrid_FF_parts[k1]),
-                                kwargs={
-                                        'preset_gas': preset_gas,
-                                        'pressure' : pressure,
-                                        'absorption_tables' : XUV_table_type_absorption,
-                                        'include_absorption' : absorption,
-                                        'dispersion_tables' : XUV_table_type_diffraction,
-                                        'include_dispersion' : dispersion,
-                                        'effective_IR_refrective_index' : effective_IR_refrective_index,
-                                        'integrator_Hankel' : integrate.trapz,
-                                        'integrator_longitudinal' : 'trapezoidal',
-                                        'near_field_factor' : True,
-                                        'store_cummulative_result' : True,
-                                        'store_non_normalised_cummulative_result' : True
-                                       }
-                                
-                                ) for k1 in range(Nthreads)]
+    # Parallel calculations of Hankel
+    task_queue = mp.Queue()    
+    def mp_handle(position, *args, **kwargs):
+        task_queue.put(
+                       [position, HT.Hankel_long(*args,**kwargs)] # the outputs are not ordered, keep the order in the result
+                      )
+    
+    # Fsources
+    processes = [mp.Process(target=mp_handle, # define processes
+                            args=(k1,
+                                  targets[k1],
+                                  distance_FF,
+                                  rgrid_FF_parts[k1]),
+                            kwargs={
+                                    'preset_gas': preset_gas,
+                                    'pressure' : pressure,
+                                    'absorption_tables' : XUV_table_type_absorption,
+                                    'include_absorption' : absorption,
+                                    'dispersion_tables' : XUV_table_type_diffraction,
+                                    'include_dispersion' : dispersion,
+                                    'effective_IR_refrective_index' : effective_IR_refrective_index,
+                                    'integrator_Hankel' : integrate.trapz,
+                                    'integrator_longitudinal' : 'trapezoidal',
+                                    'near_field_factor' : True,
+                                    'store_cummulative_result' : True,
+                                    'store_non_normalised_cummulative_result' : True
+                                   }
+                            
+                            ) for k1 in range(Nthreads)]
 
-        for p in processes: p.start(); # run processes
+    for p in processes: p.start(); # run processes
 
-        results = [task_queue.get() for p in processes] # there is no ordering!
-        
-        HL_res_p = copy.deepcopy(results[0][1])
-        
-        HL_res_p.ogrid = omega_au2SI*ogrid_sel
-        ogrid_indices_new = [mn.FindInterval(ogrid_sel, ogrid_part[0]) for ogrid_part in ogrid_parts]
-        
-        oldshape = np.shape(HL_res_p.FF_integrated)
-        newshape = oldshape[:-1] + (No_sel,)
-        HL_res_p.FF_integrated = np.empty(newshape,dtype=HL_res_p.FF_integrated.dtype)
+    results = [task_queue.get() for p in processes] # there is no ordering!
+    
+    HL_res_p = copy.deepcopy(results[0][1])
+    
+    HL_res_p.ogrid = omega_au2SI*ogrid_sel
+    ogrid_indices_new = [mn.FindInterval(ogrid_sel, ogrid_part[0]) for ogrid_part in ogrid_parts]
+    
+    oldshape = np.shape(HL_res_p.FF_integrated)
+    newshape = (Nr_FF, No_sel)
+    HL_res_p.FF_integrated = np.empty(newshape,dtype=HL_res_p.FF_integrated.dtype)
 
+    
+    
+    oldshape = np.shape(HL_res_p.entry_plane_transform)
+    newshape = (Nr_FF, No_sel)
+    HL_res_p.entry_plane_transform = np.empty(newshape,dtype=HL_res_p.cummulative_field.dtype)
+    HL_res_p.exit_plane_transform = np.empty(newshape,dtype=HL_res_p.cummulative_field.dtype)
+    
+    if 'cummulative_field' in dir(HL_res_p):
+        oldshape = np.shape(HL_res_p.cummulative_field)
+        newshape = (oldshape[0],) + (Nr_FF, No_sel)
+        HL_res_p.cummulative_field = np.empty(newshape,dtype=HL_res_p.cummulative_field.dtype)
         
+    if 'cummulative_field_no_norm' in dir(HL_res_p):
+        oldshape = np.shape(HL_res_p.cummulative_field_no_norm)
+        newshape = (oldshape[0],) + (Nr_FF, No_sel)
+        HL_res_p.cummulative_field_no_norm = np.empty(newshape,dtype=HL_res_p.cummulative_field_no_norm.dtype)
+    
+    for k1, k_worker in enumerate([result[0] for result in results]):
         
-        oldshape = np.shape(HL_res_p.entry_plane_transform)
-        newshape = oldshape[:-1] + (No_sel,)
-        HL_res_p.entry_plane_transform = np.empty(newshape,dtype=HL_res_p.cummulative_field.dtype)
-        HL_res_p.exit_plane_transform = np.empty(newshape,dtype=HL_res_p.cummulative_field.dtype)
+        HL_res_p.FF_integrated[
+        rgrid_FF_indices[k_worker]:(rgrid_FF_indices[k_worker]+len(rgrid_FF_parts[k_worker])),
+        ogrid_indices_new[k_worker]:(ogrid_indices_new[k_worker]+len(ogrid_parts[k_worker]))
+        ] = results[k1][1].FF_integrated
+        
+        HL_res_p.entry_plane_transform[
+        rgrid_FF_indices[k_worker]:(rgrid_FF_indices[k_worker]+len(rgrid_FF_parts[k_worker])),
+        ogrid_indices_new[k_worker]:(ogrid_indices_new[k_worker]+len(ogrid_parts[k_worker]))
+        ] = results[k1][1].entry_plane_transform
+
+        HL_res_p.exit_plane_transform[
+        rgrid_FF_indices[k_worker]:(rgrid_FF_indices[k_worker]+len(rgrid_FF_parts[k_worker])),
+        ogrid_indices_new[k_worker]:(ogrid_indices_new[k_worker]+len(ogrid_parts[k_worker]))
+        ] = results[k1][1].exit_plane_transform            
         
         if 'cummulative_field' in dir(HL_res_p):
-            oldshape = np.shape(HL_res_p.cummulative_field)
-            newshape = oldshape[:-1] + (No_sel,)
-            HL_res_p.cummulative_field = np.empty(newshape,dtype=HL_res_p.cummulative_field.dtype)
+            HL_res_p.cummulative_field[:,
+            rgrid_FF_indices[k_worker]:(rgrid_FF_indices[k_worker]+len(rgrid_FF_parts[k_worker])),
+            ogrid_indices_new[k_worker]:(ogrid_indices_new[k_worker]+len(ogrid_parts[k_worker]))
+            ] = results[k1][1].cummulative_field
             
         if 'cummulative_field_no_norm' in dir(HL_res_p):
-            oldshape = np.shape(HL_res_p.cummulative_field_no_norm)
-            newshape = oldshape[:-1] + (No_sel,)
-            HL_res_p.cummulative_field_no_norm = np.empty(newshape,dtype=HL_res_p.cummulative_field_no_norm.dtype)
-        
-        for k1, k_worker in enumerate([result[0] for result in results]):
-            
-            HL_res_p.FF_integrated[:,
+            HL_res_p.cummulative_field_no_norm[:,
+            rgrid_FF_indices[k_worker]:(rgrid_FF_indices[k_worker]+len(rgrid_FF_parts[k_worker])),
             ogrid_indices_new[k_worker]:(ogrid_indices_new[k_worker]+len(ogrid_parts[k_worker]))
-            ] = results[k1][1].FF_integrated
-            
-            HL_res_p.entry_plane_transform[:,
-            ogrid_indices_new[k_worker]:(ogrid_indices_new[k_worker]+len(ogrid_parts[k_worker]))
-            ] = results[k1][1].entry_plane_transform
-
-            HL_res_p.exit_plane_transform[:,
-            ogrid_indices_new[k_worker]:(ogrid_indices_new[k_worker]+len(ogrid_parts[k_worker]))
-            ] = results[k1][1].exit_plane_transform            
-            
-            if 'cummulative_field' in dir(HL_res_p):
-                HL_res_p.cummulative_field[:,:,
-                ogrid_indices_new[k_worker]:(ogrid_indices_new[k_worker]+len(ogrid_parts[k_worker]))
-                ] = results[k1][1].cummulative_field
-                
-            if 'cummulative_field_no_norm' in dir(HL_res_p):
-                HL_res_p.cummulative_field_no_norm[:,:,
-                ogrid_indices_new[k_worker]:(ogrid_indices_new[k_worker]+len(ogrid_parts[k_worker]))
-                ] = results[k1][1].cummulative_field_no_norm
-        
+            ] = results[k1][1].cummulative_field_no_norm
+    
     
     
     target_dynamic = HT.FSources_provider(InpArch[MMA.paths['CTDSE_outputs']+'/zgrid_coarse'][:],
