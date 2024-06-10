@@ -17,7 +17,8 @@ if(${CMAKE_C_COMPILER_ID} MATCHES Intel)
 elseif(${CMAKE_C_COMPILER_ID} MATCHES GNU)
     find_library(fftw3 fftw3)
     #set(CMAKE_Fortran_FLAGS "-O0")
-    set(FFTW_LIBS fftw3 fftw3_mpi)
+    #set(FFTW_LIBS fftw3 fftw3_mpi)
+    set(FFTW_LIBS fftw3)
 elseif(${CMAKE_C_COMPILER_ID} MATCHES AppleClang)
     find_library(fftw3 fftw3)
     #set(CMAKE_Fortran_FLAGS "-O0")
@@ -58,13 +59,15 @@ set(TDSE_LIB singleTDSE)
 
 ### Single TDSE
 add_executable(${TDSE_STRIDE} ${SOURCE_STRIDE})
-target_link_libraries(${TDSE_STRIDE} mpi ${FFTW_LIBS} ${HDF5_LIBRARIES})
+target_link_libraries(${TDSE_STRIDE} -lm -ldl ${FFTW_LIBS} ${HDF5_LIBRARIES})
 target_include_directories(${TDSE_STRIDE} PRIVATE ${HDF5_INCLUDE_DIRS})
 
 ### Dynamic library
 add_library(${TDSE_LIB} SHARED ${SOURCE_DLL})
 
-target_link_libraries(${TDSE_LIB} PRIVATE ${FFTW_LIBS} ${HDF5_LIBRARIES})
+# target_link_libraries(${TDSE_LIB} PRIVATE -l -ldl ${FFTW_LIBS} ${HDF5_LIBRARIES})
+
+target_link_libraries(${TDSE_LIB} PRIVATE ${FFTW_LIBS})
 
 target_include_directories(${TDSE_LIB} PRIVATE ${HDF5_INCLUDE_DIRS})
 target_link_options(${TDSE_LIB} PRIVATE -fPIC)

@@ -179,12 +179,20 @@ For some use cases, it might be sufficient to only compile the CTDSE library for
 
 
 <!-- omit in toc -->
-### Local installation (Ubuntu 18.04 subsystem) 
+### Local installation (Ubuntu 20.04 subsystem (WSL)) 
 ``apt-get install build-essential``
 ``apt-get install libhdf5-dev``
 `` sudo apt-get install hdf5-helpers ``
 cmake may have problems with h5cc (worked with v3.15.7)
-check the fftw3 installation (`-fPIC`)
+check the fftw3 installation (`-fPIC`);
+`fftw3` enable shared
+
+SEVERAL NOTES!!!
+The Python environment can be specific to your local installation and used system (Ubuntu, iOS). We tested our approach on Unix-like systems (iOS, Ubuntu, several HPC's). The model can be used on Windows via [WSL](https://learn.microsoft.com/en-us/windows/wsl/install). According to this, you may need to do several changes in headers:
+* If you use WSL & VScode, you may need to set manually the paths to your Python modules and the **DLL library**
+* The extension of the library may depend on your system & compiler `libsingleTDSE.so`, `libsingleTDSE.dynlib`, `libsingleTDSE.dll`, …
+* The fftw3 library needs to be installed as a shared library! See [link 1](https://www.fftw.org/fftw2_doc/fftw_6.html#:~:text=Note%20especially%20%2D%2Dhelp%20to%20list%20all%20flags%20and%20%2D%2Denable%2Dshared%20to%20create%20shared%2C%20rather%20than%20static%2C%20libraries.%20configure%20also%20accepts%20a%20few%20FFTW%2Dspecific%20flags%2C%20particularly), [link 2](https://stackoverflow.com/a/45327358).
+
 
 # Test installation
 The validity of the installation can be checked using the Python `unittest` module. The tests are implemented within the `tests.py` file. After successful compilation of the C-TDSE dynamic library `libsingleTDSE.dll` located in `build/`, run the script as follows with command line argument `-d` or `--dll`, which specifies the path to the DLL, to check the results:
