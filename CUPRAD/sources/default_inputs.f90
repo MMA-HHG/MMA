@@ -219,7 +219,11 @@ integer         :: switch_ionisation, switch_atom
     !----------------------------------------------------------------------------------------------------------------------
 
     
-
+    !----------------------------------------------------------------------------------------------------------------------
+    ! The dispesrison laws accessed via `switch_dispersion` are hard-coded in 'normalisation.f90'. The reference is:
+    ! A. Dalgarno and A. E. Kingston, https://doi.org/10.1098/rspa.1960.0237
+    !----------------------------------------------------------------------------------------------------------------------
+        
     case (1) ! Argon
         Ui_eV_phys =            15.75962D0 ! ionisation potential (eV)
         angular_momentum  =     1 ! (-)
