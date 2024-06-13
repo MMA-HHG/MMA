@@ -68,9 +68,6 @@ void ReadInputs(hid_t file_id, char *inpath, char *inpath_glob, herr_t *h5error,
 	char path[50];
 	char *dumstring;
 	int gas_preset_exists=1;
-	// Energy of the initial state
-	path[0] = '\0';	strcat(strcat(path,inpath),"Eguess");
-	readreal(file_id, path, h5error,&(*in).Eguess); 
 	// Number of points of the initial spatial grid
 	path[0] = '\0';	strcat(strcat(path,inpath),"Nx_max");
 	readint(file_id, path, h5error,&(*in).num_r); 
@@ -90,7 +87,7 @@ void ReadInputs(hid_t file_id, char *inpath, char *inpath_glob, herr_t *h5error,
 	path[0] = '\0';	strcat(strcat(path,inpath),"x_int");
 	readreal(file_id, path, h5error,&(*in).x_int);  
 
-	// Target parameter
+	// Target parameter & ground ground state guess
 	path[0] = '\0';	strcat(strcat(path,inpath_glob),"gas_preset");
 
 	printf("Path to preset %s.\n", path);
@@ -99,6 +96,8 @@ void ReadInputs(hid_t file_id, char *inpath, char *inpath_glob, herr_t *h5error,
 	if (H5Lexists(file_id, path, H5P_DEFAULT)>0){
 		readstring(file_id, path, h5error, &dumstring);
 		Soft_Coulomb_parameters(dumstring, &(*in).trg.a);
+		// Energy of the initial state
+		Soft_Coulomb_ground_states(dumstring, &(*in).Eguess);
 		free(dumstring);
 		gas_preset_exists=0;
 	}
@@ -116,6 +115,20 @@ void ReadInputs(hid_t file_id, char *inpath, char *inpath_glob, herr_t *h5error,
 
 	}else if (gas_preset_exists==1){
         printf("The soft-Coulomb parameter in 1D-TDSE not specified.");
+        exit(EXIT_FAILURE);
+	}
+
+	path[0] = '\0';	strcat(strcat(path,inpath),"Eguess");
+	printf("Path to Eguess exists %d.\n", H5Lexists(file_id, path, H5P_DEFAULT));
+
+	if (H5Lexists(file_id, path, H5P_DEFAULT)>0){
+		readreal(file_id, path, h5error,&(*in).Eguess); 
+		if (gas_preset_exists==0){
+			printf("WARNING: Using ground-state-energy  guess from CTDSE inputs.\n");
+		}
+
+	}else if (gas_preset_exists==1){
+        printf("The ground-state-energy guess in 1D-TDSE not specified.");
         exit(EXIT_FAILURE);
 	}
 	 

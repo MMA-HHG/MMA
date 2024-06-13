@@ -76,3 +76,41 @@ void Soft_Coulomb_parameters(char * gas_type, double * a_value){
     }
 
 }
+
+/**
+ * @brief Tabulated ground_states for 1D-soft-Coulomb
+ * 
+ * See table 7.1 of https://theses.hal.science/tel-04192431v1/document
+ *  (It still needs to be refined for TDSE calculations.)
+ * 
+ */
+void Soft_Coulomb_ground_states(char * gas_type, double * E_GS){
+
+    printf("Setting gas preset\n");
+    if (strcmp(gas_type, "He") == 0) 
+    {
+       *E_GS = 0.9036;
+    } 
+    else if (strcmp(gas_type, "Ne") == 0)
+    {
+        *E_GS = 0.7924;
+    }
+    else if (strcmp(gas_type, "Ar") == 0)
+    {
+        *E_GS = 0.5792;
+    }
+    else if (strcmp(gas_type, "Kr") == 0)
+    {
+        *E_GS = 0.5145;
+    }
+    else if (strcmp(gas_type, "Xe") == 0)
+    {
+        *E_GS = 0.4458;
+    }
+    else
+    {
+        printf("Soft-coulomb parameter for this input not supported\n");
+        exit(EXIT_FAILURE);
+    }
+
+}
