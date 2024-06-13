@@ -72,7 +72,7 @@ void ReadInputs(hid_t file_id, char *inpath, char *inpath_glob, herr_t *h5error,
 	path[0] = '\0';	strcat(strcat(path,inpath),"Eguess");
 	readreal(file_id, path, h5error,&(*in).Eguess); 
 	// Number of points of the initial spatial grid
-	path[0] = '\0';	strcat(strcat(path,inpath),"N_r_grid");
+	path[0] = '\0';	strcat(strcat(path,inpath),"Nx_max");
 	readint(file_id, path, h5error,&(*in).num_r); 
 	// resolution for the grid
 	path[0] = '\0';	strcat(strcat(path,inpath),"dx");
