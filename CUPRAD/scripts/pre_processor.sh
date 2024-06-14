@@ -1,11 +1,10 @@
 #!/bin/bash
-h5filename=results_*.h5
+h5filename=results.h5
 var=$(echo $h5filename)
 
-module purge
-module load intel intelmpi hdf5
+load_modules
 
-$CUPRAD_BINARY/make_start_occigen.e <<INPUTS
+$CUPRAD_BINARY/make_start.e <<INPUTS
 $var
 0
 0
