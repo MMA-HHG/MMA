@@ -4,7 +4,7 @@ var=$(echo $h5filename)
 
 load_modules
 
-$CUPRAD_BINARY/make_start.e <<INPUTS
+$CUPRAD_HOME/build/make_start.e <<INPUTS
 $var
 0
 0
