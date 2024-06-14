@@ -71,7 +71,7 @@ void ReadInputs(hid_t file_id, char *inpath, char *inpath_glob, herr_t *h5error,
 	// Number of points of the initial spatial grid
 	path[0] = '\0';	strcat(strcat(path,inpath),"Nx_max");
 	readint(file_id, path, h5error,&(*in).num_r); 
-	(*in).num_r *= 2 // num_r indicates the total number of points (+ exact 0 is set in the code)
+	(*in).num_r *= 2; // num_r indicates the total number of points (+ exact 0 is set in the code)
 	// resolution for the grid
 	path[0] = '\0';	strcat(strcat(path,inpath),"dx");
 	readreal(file_id, path, h5error,&(*in).dx); 
