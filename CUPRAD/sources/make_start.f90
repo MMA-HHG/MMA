@@ -58,6 +58,7 @@ PROGRAM make_start
     testingmode = .TRUE.
   ENDIF
 
+
   OPEN(11,FILE='msg.tmp')
   WRITE(11,'(a)') TRIM(filename)
   CLOSE(11)
@@ -85,7 +86,9 @@ PROGRAM make_start
   ! All the parameters of the medium (dispersion, ionization, Kerr, absrption, ...) are defined if this directive is present
   CALL h5lexists_f(file_id, global_inps_grp//'/gas_preset', dumlog, error)
   IF (dumlog) THEN
+    print *, 'bread gas_preset'
     CALL read_dset(file_id, global_inps_grp//'/gas_preset', gas_preset)
+    print *, 'gas is', gas_preset
     CALL h5lexists_f(file_id, in_grpname//'/ionization_model', dumlog, error)    
     IF (dumlog) THEN
       CALL read_dset(file_id, in_grpname//'/ionization_model', ionization_model)
