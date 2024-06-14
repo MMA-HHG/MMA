@@ -17,7 +17,7 @@ if(${CMAKE_Fortran_COMPILER_ID} MATCHES Intel)
     set(CMAKE_Fortran_FLAGS "-check all -warn all -traceback -fpe0 -fp-stack-check -diag-disable=8889 -check noarg_temp_created") # disabel warning caused by the direct uses of mkl- & mpi-lib procedures
 elseif(${CMAKE_Fortran_COMPILER_ID} MATCHES GNU)
     find_library(fftw3 fftw3)
-    set(CMAKE_Fortran_FLAGS "-O3 -Wall -std=gnu -fcheck=all -Wno-compare-reals -fbacktrace -ffixed-line-length-none -ffree-line-length-none -g")
+    set(CMAKE_Fortran_FLAGS "-O3 -Wall -std=gnu -fcheck=all -Wno-compare-reals -Wno-array-temporaries -fbacktrace -ffixed-line-length-none -ffree-line-length-none -g")
     set(FFTW_LIBS fftw3 fftw3_mpi)
 else()
     message(FATAL_ERROR "Unsupported Fortran compiler: ${CMAKE_Fortran_COMPILER}")

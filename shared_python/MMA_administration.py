@@ -12,6 +12,9 @@ paths={'CUPRAD'             : CUPRAD_group,
        'CTDSE '             : CTDSE_group,
        'CTDSE_inputs'       : CTDSE_group + '/inputs',
        'CTDSE_outputs'      : CTDSE_group + '/outputs',
+       
+       'Hankel'             : Hankel_group,
+       'Hankel_inputs'      : Hankel_group + '/inputs',
 
        'global_inputs'      : global_inputs_group}
 
