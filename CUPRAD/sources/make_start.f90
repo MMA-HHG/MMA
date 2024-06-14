@@ -164,7 +164,8 @@ PROGRAM make_start
   !--------!
 
   CALL save_or_replace(file_id, in_grpname//'/medium_physical_distance_of_propagation', proplength_m_phys, error)
-  CALL save_or_replace(file_id, in_grpname//'/medium_pressure_in_bar', pressure, error)
+  CALL save_or_replace(file_id, global_inps_grp//'/medium_pressure_in_bar', pressure, error)
+  CALL save_or_replace(file_id, in_grpname//'/medium_pressure_in_bar', pressure, error)      ! Thisd ensures priority of the local quantity
   CALL save_or_replace(file_id, in_grpname//'/medium_effective_atmospheric_density_of_neutral_molecules', rhont_cm3_phys, &
                        error, units_in = '[1/cm3]')
   !CALL read_dset(file_id, 'inputs/effective_density_of_neutral_molecules', rhont_cm3_phys)

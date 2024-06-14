@@ -22,7 +22,7 @@ paths={'CUPRAD'             : CUPRAD_group,
 def pressure_constructor(h5_handle):
     
     # obtain the base unmodulated pressure
-    pressure_base = h5_handle[paths['CUPRAD_inputs']+'/medium_pressure_in_bar'][()]
+    pressure_base = h5_handle[paths['global_inputs']+'/medium_pressure_in_bar'][()]
     # check whether the density modulation is applied
     if ('density_mod' in h5_handle[paths['global_inputs']].keys()):
         dens_mod_grp = h5_handle[paths['global_inputs']+'/'+'density_mod']
