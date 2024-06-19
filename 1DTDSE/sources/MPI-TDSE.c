@@ -268,7 +268,7 @@ int main(int argc, char *argv[])
 	Nsim_loc++;
 
 	if ((comment_operation == 1) && (myrank == 0)) { 
-		printf("Proc %i c %i; time %f sec \n", myrank, Nsim, t_mpi[2]-t_mpi[1]); 
+		printf("Proc %i c %i (%f %%); time %f sec \n", myrank, Nsim, 100.0*Nsim/Ntot, t_mpi[2]-t_mpi[1]); 
 		fflush(NULL);
 	}
 	
