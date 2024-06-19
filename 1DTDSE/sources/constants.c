@@ -89,23 +89,23 @@ void Soft_Coulomb_ground_states(char * gas_type, double * E_GS){
     printf("Setting gas preset\n");
     if (strcmp(gas_type, "He") == 0) 
     {
-       *E_GS = 0.9036;
+       *E_GS = -0.9036;
     } 
     else if (strcmp(gas_type, "Ne") == 0)
     {
-        *E_GS = 0.7924;
+        *E_GS = -0.7924;
     }
     else if (strcmp(gas_type, "Ar") == 0)
     {
-        *E_GS = 0.5792;
+        *E_GS = -0.5792;
     }
     else if (strcmp(gas_type, "Kr") == 0)
     {
-        *E_GS = 0.5145;
+        *E_GS = -0.5145;
     }
     else if (strcmp(gas_type, "Xe") == 0)
     {
-        *E_GS = 0.4458;
+        *E_GS = -0.4458;
     }
     else
     {
