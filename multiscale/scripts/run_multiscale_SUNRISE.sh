@@ -19,4 +19,4 @@ JOB5=$(sbatch --parsable --dependency=afterok:$JOB4 $MULTISCALE_SCRIPTS/slurm/CT
 
 
 
-JOBH1=$(sbatch --dependency=afterok:$JOB5 $MULTISCALE_SCRIPTS/slurm/process_files/Hankel_mp_all_cummulative.slurm)
+JOBH1=$(sbatch --dependency=afterok:$JOB5 $MULTISCALE_SCRIPTS/slurm/Hankel_multiprocessing.slurm)
