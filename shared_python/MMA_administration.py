@@ -15,6 +15,7 @@ paths={'CUPRAD'             : CUPRAD_group,
        
        'Hankel'             : Hankel_group,
        'Hankel_inputs'      : Hankel_group + '/inputs',
+       'Hankel_outputs'     : Hankel_group + '/outputs',
 
        'global_inputs'      : global_inputs_group}
 

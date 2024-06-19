@@ -3,7 +3,7 @@ import numpy as np
 import MMA_administration as MMA
 
 with open('msg.tmp','r') as msg_file:
-    results_file = msg_file.readline()
+    results_file = msg_file.readline()[:-1] # need to strip the last character due to Fortran msg.tmp
     
 with h5py.File(results_file, 'a') as h5f:
     Nz = len(h5f[MMA.paths['CUPRAD_outputs']+'/zgrid'][:])
