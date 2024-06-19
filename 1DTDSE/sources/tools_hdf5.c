@@ -138,9 +138,11 @@ void ReadInputs(hid_t file_id, char *inpath, char *inpath_glob, herr_t *h5error,
 	// Load CV criterion
 	path[0] = '\0';	strcat(strcat(path,inpath),"CV_criterion_of_GS");
 	readreal(file_id, path, h5error,&(*in).CV);
+	
 	// Gauge selection
-	path[0] = '\0';	strcat(strcat(path,inpath),"gauge_type");
-	readint(file_id, path, h5error,&(*in).gauge); // analyse 2nd part of the dipole
+	// path[0] = '\0';	strcat(strcat(path,inpath),"gauge_type");
+	// readint(file_id, path, h5error,&(*in).gauge); // analyse 2nd part of the dipole
+	(*in).gauge = 0;
 
 	strcpy((*in).precision,"d");
 }
@@ -685,13 +687,13 @@ void print_local_output_fixed_h5(hid_t file_id, char *inpath, herr_t *h5error,
 		rw_real_fullhyperslab_nd_h5(file_id, path, h5error, 2, output_dims, offsets, (*out).PopTot, "w");
 	}
 
-	if ( (*in).Print.PopTot == 1 ) 
+	if ( (*in).Print.PopInt == 1 ) 
 	{
 		path[0] = '\0';	strcat(strcat(path,inpath),"PopInt");
 		rw_real_fullhyperslab_nd_h5(file_id, path, h5error, 2, output_dims, offsets, (*out).PopInt, "w");
 	}
 
-	if ( (*in).Print.PopTot == 1 )
+	if ( (*in).Print.expval_x == 1 )
 	{
 		path[0] = '\0';	strcat(strcat(path,inpath),"expval_x");
 		rw_real_fullhyperslab_nd_h5(file_id, path, h5error, 2, output_dims, offsets, (*out).expval, "w");
