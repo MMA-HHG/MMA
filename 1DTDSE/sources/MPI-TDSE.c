@@ -320,8 +320,8 @@ int main(int argc, char *argv[])
 		
 		t_mpi[4] = MPI_Wtime();
 		if ((comment_operation == 1) && (myrank == 0)) { 
-			printf("Proc %i c %i; time %f sec, from start %f sec \n", myrank, 
-				   Nsim, t_mpi[4]-t_mpi[3], t_mpi[4]-t_mpi[1]); 
+			printf("Proc %i c %i (%f %%); time %f sec, from start %f sec \n", myrank, 
+				   Nsim, 100.0*Nsim/Ntot, t_mpi[4]-t_mpi[3], t_mpi[4]-t_mpi[1]); 
 			fflush(NULL);
 		}
 		
