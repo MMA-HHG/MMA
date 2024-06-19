@@ -317,7 +317,7 @@ with h5py.File(file, 'r') as InpArch:
     #                         store_cummulative_result = True,
     #                         store_non_normalised_cummulative_result = True)
     
-    with h5py.File('results_Hankel', 'a') as Hres_file:
+    with h5py.File('results_Hankel.h5', 'a') as Hres_file:
         out_group = Hres_file.create_group(MMA.paths['Hankel_outputs'])
         
         mn.adddataset(out_group,
