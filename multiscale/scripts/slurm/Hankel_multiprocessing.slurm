@@ -3,7 +3,8 @@
 #SBATCH --ntasks=1 
 #SBATCH --cpus-per-task=24
 #SBATCH --hint=multithread
-#SBATCH --time=1-12:00
+#SBATCH -t 1-12:00
+#SBATCH --partition=T48H
 #SBATCH --output Hankel_mp-%J.output
 
 module purge
