@@ -48,7 +48,8 @@ available_further_data = {'tgrid'                       : '[a.u.]',
                           'xgrid_micro'                 : '[a.u.]',
                           'ground_state'                : '[a.u.]',
                           'zgrid_coarse'                : '[a.u.]',
-                          'rgrid_coarse'                : '[a.u.]'}
+                          'rgrid_coarse'                : '[a.u.]',
+                          'trg_a'                       : '[a.u.]'} 
 
 # if args['printdata'] != None: 
 #     args = args['printdata']
