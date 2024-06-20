@@ -143,8 +143,8 @@ with h5py.File(file, 'r') as InpArch:
 
 
     
-    ko_min = mn.FindInterval(ogrid/omega0, 16.8)
-    ko_max = mn.FindInterval(ogrid/omega0, 17.3)
+    ko_min = mn.FindInterval(ogrid/omega0, Hrange[0])
+    ko_max = mn.FindInterval(ogrid/omega0, Hrange[-1])
     
 
     
