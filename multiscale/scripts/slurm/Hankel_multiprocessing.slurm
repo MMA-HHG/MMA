@@ -3,7 +3,7 @@
 #SBATCH --ntasks=1 
 #SBATCH --cpus-per-task=24
 #SBATCH --hint=multithread
-#SBATCH --time=10:00
+#SBATCH --time=1-12:00
 #SBATCH --output Hankel_mp-%J.output
 
 module purge
