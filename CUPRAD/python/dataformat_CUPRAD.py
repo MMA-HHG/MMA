@@ -55,9 +55,11 @@ class get_data:
             self.preionisation_ratio = 0
         self.preionisation_string = "{:.1f}".format(100*self.preionisation_ratio) + ' %'
         
+        self.effective_neutral_particle_density = 1e6*mn.readscalardataset(InputArchive, MMA.paths['CUPRAD_inputs'] +'/calculated/medium_effective_density_of_neutral_molecules','N')
+        
         if 'density_mod' in InputArchive[MMA.paths['global_inputs']].keys():
-            self.density_mod_profile_mbar = self.pressure_mbar*\
-                                            InputArchive[MMA.paths['global_inputs']+'/density_mod/table'][:]
+            self.density_mod_profile_relative = InputArchive[MMA.paths['global_inputs']+'/density_mod/table'][:]
+            self.density_mod_profile_mbar = self.pressure_mbar*self.density_mod_profile_relative
             try: self.density_mod_zgrid = InputArchive[MMA.paths['global_inputs']+'/density_mod/zgrid'][:]
             except: pass
         

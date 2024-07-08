@@ -10,6 +10,7 @@ from PythonCTDSE.ctypes_helper import *
 from typing import Any
 import h5py
 from PythonCTDSE.constants import *
+import MMA_administration as MMA
 
 ### Define structures
 
@@ -196,7 +197,7 @@ class inputs_def(Structure):
         Eguess: float, optional, default {-1.}
             Initial guess for the GS computation.
         num_r: int, optional, default {16000}
-            Spatial grid resolution.
+            Spatial grid resolution. ! Corresponds to Nx in the next version. !
         dx: float, optional, default {0.4}
             Spatial grid stepsize.
         InterpByDTorNT: int, optional, default {0}
@@ -265,7 +266,7 @@ class inputs_def(Structure):
         """
         if (filename != "") and (E is None or t is None):
             f = h5py.File(filename, "r")
-            field_shape = f["outputs/output_field"].shape
+            field_shape = f[MMA.paths["CUPRAD_outputs"]+"/output_field"].shape
             if (z_i < 0) or (z_i >= field_shape[0]):
                 print("Incorrect z-grid dimension selection. Select z in range (0, {})".format(field_shape[0]-1))
                 f.close()
@@ -275,9 +276,9 @@ class inputs_def(Structure):
                 f.close()
                 return        
             ### Load tgrid
-            tgrid = f["outputs/tgrid"][()]/TIMEau
+            tgrid = f[MMA.paths["CUPRAD_outputs"]+"/tgrid"][()]/TIMEau
             ### Load field and convert to a.u.
-            field = f["outputs/output_field"][z_i, :, r_i][()]/EFIELDau
+            field = f[MMA.paths["CUPRAD_outputs"]+"/output_field"][z_i, r_i, :][()]/EFIELDau
             
             Nt = len(tgrid)
             self.Efield.Nt = Nt
