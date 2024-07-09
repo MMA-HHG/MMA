@@ -14,6 +14,8 @@ Here is the list of requirements
 We have not found any particular requirements for the versions of the libraries, and the code was successfully build using intel, GNU and AppleClang compilers. Alas some specific flags and settings are required for different compilers as discussed below.
 
 
+
+
 ### Setting the paths and modules
 Here is the list of paths for running the model. The only customised path is the `$GIT_PATH`, which points to the parent directory of different git repositories used in the model. All the other paths are set relatively ot this path. Additioanlly to the paths, there are also bash functions for loading the necessary modules.
 
@@ -52,10 +54,9 @@ There are two `bash` functions `load_modules` and `load_python_modules`. The for
 
 ### CUPRAD
 All the source files are located in `CUPRAD/sources`. The CMake recipe is in `CUPRAD/CMakeLists.txt`. The code is supposedly built in `CUPRAD/build`. 
-
 There is the recipe for compilation
 
-* First, `load_modules`. This shall be 
+* First, `load_modules`. This can be verified by running `module list`.
 
 ### CTDSE
 
