@@ -8,15 +8,18 @@ Both `CUPRAD` and `CTDSE` are compiled from the source. Hankel is implemented in
 
 Here is the list of requirements
 * **CUPRAD**: MPI, FFTW3, parallel HDF5, CMake
-* **CTDSE**: FFTW3, MPI, serial HDF5, CMake (MPI & HDF5 are not needed for the dynamic library)
+* **CTDSE**: FFTW3, MPI, serial HDF5, CMake (MPI & HDF5 are not needed for the dynamic library), Python with h5py
+    * Python ctypes library for the interactive CTDSE
 * **Hankel**: numpy, scipy, h5py, multiprocessing + some usual Python libraries
 
 We have not found any particular requirements for the versions of the libraries, and the code was successfully build using intel, GNU and AppleClang compilers. Alas some specific flags and settings are required for different compilers as discussed below.
 
+Note that intel encapsulates FFTW3 into the [Math Kernel Library](https://en.wikipedia.org/wiki/Math_Kernel_Library).
 
 
 
-### Setting the paths and modules
+<a id="setting-the-paths"></a>
+### Setting the paths, installing libraries and modules
 Here is the list of paths for running the model. The only customised path is the `$GIT_PATH`, which points to the parent directory of different git repositories used in the model. All the other paths are set relatively ot this path. Additioanlly to the paths, there are also bash functions for loading the necessary modules.
 
 
@@ -46,19 +49,51 @@ export PYTHONPATH=$PYTHONPATH:$CUPRAD_PYTHON
 ```
 
 
-#### Modules
-When used locally on a personal computer, the libraries (FFTW3, Cmake, …) are typically installed by a user. [The modules](https://hpc-wiki.info/hpc/Modules) provide all the necessary libraries for the code when using a computational cluster. The script `Modules/load_modules.sh` is used to load all the modules. There is a list of modules for various computational clusters specified by the variable `$HPC`. Another supercomputer (or compilation option intel/GNU/...) should be added there.
+#### Modules and libraries
+When used locally on a personal computer, the libraries (FFTW3, CMake, …) are typically installed by a user. If using the code or a part of it, the corresponding libraries must be installed before. (Sharing needs to be enebled for FFTW3, see details below for the dyamic-library CTDSE.)
+
+[The modules](https://hpc-wiki.info/hpc/Modules) provide all the necessary libraries for the code when using a computational cluster. The script `Modules/load_modules.sh` is used to load all the modules. There is a list of modules for various computational clusters specified by the variable `$HPC`. Another supercomputer (or compilation option intel/GNU/...) should be added there.
 
 There are two `bash` functions `load_modules` and `load_python_modules`. The former is activated when running *CUPRAD* and *CTDSE*, while the latter is used for all Pythonic operations around the code. (The reason for this duality is that Python might need to load a compiler itself for some libraries, typically on intel.) 
 
 
+
 ### CUPRAD
-All the source files are located in `CUPRAD/sources`. The CMake recipe is in `CUPRAD/CMakeLists.txt`. The code is supposedly built in `CUPRAD/build`. 
-There is the recipe for compilation
+All the source files are located in `CUPRAD/sources`. The CMake recipe is in `CUPRAD/CMakeLists.txt`. The code is supposedly built in `CUPRAD/build`.
+There is the recipe for compilation (each point contains several notes about possible difficulties):
 
-* First, `load_modules`. This can be verified by running `module list`.
+1) Run `load_modules`. [This can be verified by](https://hpc-wiki.info/hpc/Modules#:~:text=%24-,module%20list,-Currently%20Loaded%20Modulefiles) `module list`.
+    * If the machine does not using modules, this step is replaced by installing the necessary libraries and setting up the environment.
+2) Prepare Makefile using `cmake` by running `cmake ..` in the `build` directory.
+    * We encountered CMake struggling to identify the proper MPI-Fortran compiler on several machines. CMake can be hinted to use the desired compiler by `cmake -D CMAKE_Fortran_COMPILER=mpifort ..` (GNU) or `cmake -D CMAKE_Fortran_COMPILER=mpiifort ..` (intel). This resolved the issue when we encountered it.
+    * The CMake configuration can be manually adjusted using `ccmake`, see [link 1](https://cmake.org/cmake/help/latest/manual/ccmake.1.html) and [link 2](https://stackoverflow.com/a/1224652).
+3) Compile the code from the CMake-generated `Makefile` by running `make code` in the `build` directory.
 
-### CTDSE
+
+### CTDSE (+ the dynamic library)
+All the source files are located in `1DTDSE/sources`. The CMake recipe is in `1DTDSE/CMakeLists.txt`. This recipe installs both the code and the interactive CTDSE library; if MPI is not present, only the dynamic library is installed. The code is supposedly built in `1DTDSE/build`.
+There is the recipe for compilation:
+
+1) Run `load_modules` or install the libraries if used on a personal computer.
+    * The extension of the library may depend on your platform: `libsingleTDSE.so`, `libsingleTDSE.dynlib`, `libsingleTDSE.dll`, …
+    * The fftw3 library needs to be installed as a shared library! See [link 1](https://www.fftw.org/fftw2_doc/fftw_6.html#:~:text=Note%20especially%20%2D%2Dhelp%20to%20list%20all%20flags%20and%20%2D%2Denable%2Dshared%20to%20create%20shared%2C%20rather%20than%20static%2C%20libraries.%20configure%20also%20accepts%20a%20few%20FFTW%2Dspecific%20flags%2C%20particularly), [link 2](https://stackoverflow.com/a/45327358).
+2) Prepare Makefile using `cmake` by running `cmake ..` in the `build` directory.
+    * The specification of the compiler might be neded similarly to CUPRAD: `cmake -D CMAKE_C_COMPILER=mpicc ..` or `cmake -D CMAKE_C_COMPILER=mpiicc ..`
+    * (Intel:) The FFTW3 library might not be found within the MKL and might be needed to link manually by adding it into the environment: ```export CPATH=${CPATH}:${MKLROOT}/include/fftw``` (the location of fftw is not consistent across MKL versions and `fftw` needs to located within `$MKLROOT$`).
+3) Compile the code by running `make` in the `build` directory.
+
+#### Local installation of the dynamic library on Ubuntu 22.04 (using WSL)
+Here is an example of installing the interactive CTDSE library on Ubuntu 22.04 as a part of [The Windows Subsystem for Linux (WSL)](https://learn.microsoft.com/en-us/windows/wsl/install). This option is convenient also for Windows users because WSL is also accessible directly from the Windows environment (for example by using VSCode).
+
+* The following prerequisities are needed: ``sudo apt-get install build-essential``, ``sudo apt-get install libhdf5-dev``, `` sudo apt-get install hdf5-helpers``.
+* The fftw3 library needs to be installed as a shared library! See [link 1](https://www.fftw.org/fftw2_doc/fftw_6.html#:~:text=Note%20especially%20%2D%2Dhelp%20to%20list%20all%20flags%20and%20%2D%2Denable%2Dshared%20to%20create%20shared%2C%20rather%20than%20static%2C%20libraries.%20configure%20also%20accepts%20a%20few%20FFTW%2Dspecific%20flags%2C%20particularly), [link 2](https://stackoverflow.com/a/45327358).
+* `cmake` may have problems with `h5cc` wrapper (it worked with v3.15.7).
+* Install using the previous recipe.
+
+The dynamic library is then available, see [this example of a jupyter notebook integrating CTDSE](xxx).
+
+### Hankel
+This module becomes available by [including it into the `$PYTHONPATH`](#setting-the-paths).
 
 
 ## Inputs
