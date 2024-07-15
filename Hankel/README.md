@@ -31,9 +31,9 @@ $$
         \underbrace{
             \tilde{\rho} \, \mathrm{d}\tilde{\rho}\mathrm{d}\tilde{z}
         }_{\substack{\text{volumetric} \\
-                     \text{integration}}}
+                     \text{integration}}} \,,
 $$
-
+the phase, $\Phi$, in the pre-factor includes local density $\varrho$, linear complex dispersion (which includes absorption), and the adjustement to the proper reference frame.
 
 
 
