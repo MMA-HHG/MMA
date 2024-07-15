@@ -3,7 +3,7 @@
 Table of content
 
 ## Installations
-Both `CUPRAD` and `CTDSE` are compiled from the source. Hankel is implemented in Python and together with the other Pythonic procedures and scripting around the model rely on setting up the environment variables (one might consider setting up [a virtual environment](https://stackoverflow.com/questions/9554087/setting-an-environment-variable-in-virtualenv)).
+Both `CUPRAD` and `CTDSE` are compiled from the source. Hankel is implemented in Python and together with the other Pythonic procedures and scripting around the model rely on setting up the environment variables (one might consider setting up [a virtual environment](https://stackoverflow.com/questions/9554087/setting-an-environment-variable-in-virtualenv) dedicated to this code).
 <!--- We head for RC1, use virtual environment, pip, etc. in future releases by default --->  
 
 Here is the list of requirements
@@ -81,6 +81,7 @@ There is the recipe for compilation:
     * The specification of the compiler might be neded similarly to CUPRAD: `cmake -D CMAKE_C_COMPILER=mpicc ..` or `cmake -D CMAKE_C_COMPILER=mpiicc ..`
     * (Intel:) The FFTW3 library might not be found within the MKL and might be needed to link manually by adding it into the environment: ```export CPATH=${CPATH}:${MKLROOT}/include/fftw``` (the location of fftw is not consistent across MKL versions and `fftw` needs to located within `$MKLROOT$`).
 3) Compile the code by running `make` in the `build` directory.
+4) Check that the `$PYTHONPATH` includes `1DTDSE/post_processing`, so the Pythonic scripting around the module works.
 
 #### Local installation of the dynamic library on Ubuntu 22.04 (using WSL)
 Here is an example of installing the interactive CTDSE library on Ubuntu 22.04 as a part of [The Windows Subsystem for Linux (WSL)](https://learn.microsoft.com/en-us/windows/wsl/install). This option is convenient also for Windows users because WSL is also accessible directly from the Windows environment (for example by using VSCode).
@@ -97,6 +98,7 @@ This module becomes available by [including it into the `$PYTHONPATH`](#setting-
 
 
 ## Inputs
+
 
 ### Global
 
