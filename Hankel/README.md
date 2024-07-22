@@ -14,7 +14,7 @@ $$
 
          \underbrace{
             \varrho(\tilde{z},\tilde{\rho})
-            \mathrm{e}^{\mathbf{i} \Phi}
+            \mathrm{e}^{\mathbf{i} \Phi(\tilde{z},\tilde{\rho},\omega)}
         }_{\text{pre-factor}}
 
         \underbrace{
@@ -34,7 +34,26 @@ $$
                      \text{integration}}} \,,
 $$
 the phase, $\Phi$, in the pre-factor includes local density $\varrho$, linear complex dispersion (which includes absorption), and the adjustement to the proper reference frame.
+$$
+        \Phi(\tilde{z},\tilde{\rho},\omega)
+    =
+        \int_0^{\tilde{z}}
+            \frac{\omega}{c}
+            (n(\tilde{\tilde{z}},\tilde{\rho},\omega)
+            -
+            n_{\mathrm{eff}}
+            +
+            \mathbf{i}n_{\text{renorm}}(\tilde{\tilde{z}}))
+        \,\mathrm{d}\tilde{\tilde{z}}
+    \,.
+$$
 
+There are details about various parts of the integral and the phase:
+* **pre-factor**: It handles 1) the longitudinal aspects of the model that are the phase-matching and absorption, 2) the macroscopic density profile as $\widehat{\partial_t j}(\tilde{z},\tilde{\rho},\omega)$ is the single-atom response ignoring the local macroscopic density.
+* **near-field factor**: This is an optional pre-factor switching between the Fresnel (factor included) and Fraunhoffer (without the factor) diffraction. Fresnel diffraction is more accurate and allows the first-order description of converging beams. The default set-up includes this pre-factor.
+* **the dipole acceleration $[\widehat{\partial_t j}(\tilde{z},\tilde{\rho},\omega)]_{F_{v}}$**: This is the microscopic response
+
+$n_{\mathrm{eff}}=c/v$
 
 
 # Development
