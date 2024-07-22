@@ -51,9 +51,15 @@ $$
 There are details about various parts of the integral and the phase:
 * **pre-factor**: It handles 1) the longitudinal aspects of the model that are the phase-matching and absorption, 2) the macroscopic density profile as $\widehat{\partial_t j}(\tilde{z},\tilde{\rho},\omega)$ is the single-atom response ignoring the local macroscopic density.
 * **near-field factor**: This is an optional pre-factor switching between the Fresnel (factor included) and Fraunhoffer (without the factor) diffraction. Fresnel diffraction is more accurate and allows the first-order description of converging beams. The default set-up includes this pre-factor.
-* **the dipole acceleration $[\widehat{\partial_t j}(\tilde{z},\tilde{\rho},\omega)]_{F_{v}}$**: This is the microscopic response
+* **the dipole acceleration $[\widehat{\partial_t j}(\tilde{z},\tilde{\rho},\omega)]_{F_{v}}$**: This is the microscopic response from the microscopic model. $F_v$ denotes the co-moving reference frame, with the velocity $v$, of $\widehat{\partial_t j}$. See $n_{\mathrm{eff}}$ for the synchronisation of the frames. (The reason for this is that raw data from CTDSE can be fed directly. And it can be adapted easily for user's convenience of arbitrary generated dipole responses.)
+* **The refractive index $n$**: The complex refractive index as a function of $\omega$. It, therefore, includes the absorption. By default, it sources the tables either from `NIST` or `Henke`. So, it is not accessed directly except the table specification.
+* **The effective refractive index $n_{\mathrm{eff}}$**: It adjusts the reference frame of $[\widehat{\partial_t j}(\tilde{z},\tilde{\rho},\omega)]_{F_{v}}$ by setting $n_{\mathrm{eff}}=c/v$.
+* **The renormalisation index $n_{\text{renorm}}$**:
+* **The phase factor $\Phi$**: This quantity then describes the dephasing of the elementary emitters $\widehat{\partial_t j}$ along $z$. It is important to note that $\widehat{\partial_t j}$ *carries* its own phase (in our case the phase imprinted by the numerical field from CUPRAD + the linear phase given by the $v$-reference frame). So the total phase is the sum of the phase of $\widehat{\partial_t j}$ and $\Phi$.  
+Let us clarify the phase issues, which are complex due to the two origins of the phase and the reference frame. Assume there is a homogeneous medium and only linear dispersion given by $n_{\mathrm{IR}}=1+\chi_{\mathrm{IR}}$ (for the driver) and $n_{\mathrm{IR}}=1+\chi_{\mathrm{XUV}}$ (for the harmonics). Next, the phase given by the reference fram $[\cdot]_{F{v}}$ is $\omega z /v$. In total
+$$ s $$
 
-$n_{\mathrm{eff}}=c/v$
+
 
 
 # Development
