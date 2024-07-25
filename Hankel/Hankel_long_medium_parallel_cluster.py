@@ -1,35 +1,14 @@
 import numpy as np
-import os
-import time
-# import multiprocessing as mp
-import shutil
-import h5py
-import sys
-import copy
-import units
-import mynumerics as mn
-
-
-import Hankel_transform as HT
-
 from scipy import integrate
-
-
-# import Hankel_tools
-import MMA_administration as MMA
-
-
-# import mynumerics as mn
-
-
-import XUV_refractive_index as XUV_index
-
-
-
-
+import h5py
+import copy
 import multiprocessing as mp
 
-# Nthreads = 4
+
+import MMA_administration as MMA
+import units
+import mynumerics as mn
+import Hankel_transform as HT
 
 
 with open('msg.tmp','r') as msg_file:
@@ -63,45 +42,6 @@ with h5py.File(file, 'r') as InpArch:
 
 
 
-# rmax_FF = 6*1e-4
-# Nr_FF = 50 # 25 # 50 # 10 # 200
-# distance_FF = 1.
-
-# # FF_orders_plot = 4    
-# # Nz_max_sum = 5 # 41
-
-# file_CUPRAD = 'results.h5'
-# file_TDSE = 'results_merged.h5'
-# out_h5name = 'test_Hankel.h5'
-
-
-# arguments = sys.argv
-
-# showplots = not('-nodisplay' in arguments)
-
-# if ('-here' in arguments):
-#     results_path = os.getcwd()
-#     results_CUPRAD = os.getcwd()
-#     results_TDSE = os.getcwd()
-# else:   
-
-#     results_path = os.path.join("D:\sharepoint", "OneDrive - ELI Beamlines",
-#                     "data", "Sunrise","tmp","h5debug","TDSEs","densmod","t1")
-    
-#     results_path = os.path.join("/mnt", "d","sharepoint", "OneDrive - ELI Beamlines",
-#                     "data", "Sunrise","tmp","h5debug","TDSEs","densmod","t1")
-
-    
-
-
-# filename = "results.h5"
-
-# file = os.path.join(results_path,filename)
-
-
-
-
-
 rgrid_FF = np.linspace(0.0, rmax_FF, Nr_FF)
 
 
@@ -109,43 +49,24 @@ rgrid_FF = np.linspace(0.0, rmax_FF, Nr_FF)
 print('processing:', file)             
 with h5py.File(file, 'r') as InpArch:
     
-    gas_type = mn.readscalardataset(InpArch, MMA.paths['global_inputs']+
-                                           '/gas_preset','S')
-    
-    print('gas_preset from hdf5: ', gas_type)
-    # print(InpArch.keys())
-    # print('h5path',MMA.paths['CUPRAD_inputs']+'/laser_wavelength')
     omega0 = mn.ConvertPhoton(1e-2*mn.readscalardataset(InpArch,
                                                         MMA.paths['CUPRAD_inputs']+
                                                         '/laser_wavelength','N'),'lambdaSI','omegaau')
     inverse_GV_IR = InpArch[MMA.paths['CUPRAD_logs']+'/inverse_group_velocity_SI'][()]; group_velocity_IR = 1./inverse_GV_IR
-    
-    
-    # pressure_mbar = 1e3*InputArchiveCUPRAD['/inputs/medium_pressure_in_bar'][()]
     rho0_init = 1e6 * mn.readscalardataset(InpArch, MMA.paths['CUPRAD_inputs']+
                                            '/calculated/medium_effective_density_of_neutral_molecules','N') # SI
-    
     pressure = MMA.pressure_constructor(InpArch)
-
-
     preset_gas = mn.readscalardataset(InpArch,MMA.paths['global_inputs']+'/gas_preset','S')
-    
     effective_IR_refrective_index = inverse_GV_IR*units.c_light
-
     
 
     ogrid = InpArch[MMA.paths['CTDSE_outputs']+'/omegagrid'][:]
     rgrid_macro = InpArch[MMA.paths['CTDSE_outputs']+'/rgrid_coarse'][:]
     zgrid_macro = InpArch[MMA.paths['CTDSE_outputs']+'/zgrid_coarse'][:]
     
-
-    
-
-
-    
+    # the inidces of the selection in the frequency (harmonic) grid
     ko_min = mn.FindInterval(ogrid/omega0, Hrange[0])
     ko_max = mn.FindInterval(ogrid/omega0, Hrange[-1])
-    
 
     
     omega_au2SI = mn.ConvertPhoton(1.0, 'omegaau', 'omegaSI')
@@ -156,13 +77,16 @@ with h5py.File(file, 'r') as InpArch:
     dispersion = True
     
     
-    ogrid_sel = ogrid[ko_min:ko_max]
-    
+    ogrid_sel = ogrid[ko_min:ko_max]    
     No_sel = len(ogrid_sel)
     
-    print('No', No_sel, 'Nr_FF', Nr_FF)
+    # print('No', No_sel, 'Nr_FF', Nr_FF)
     
-    if (Nr_FF >= No_sel):
+    ## Parallel computing:
+    # Decide which of the dimension on the screen is bigger and then apply
+    # multiprocessing over this dimension. The process is then unified and
+    # the code executes 'Nthreads' simulations using mp.Queue(). The
+    if (Nr_FF >= No_sel): # If there are more radial points
         rgrid_FF_parts = np.array_split(rgrid_FF, Nthreads)
         ogrid_parts = [ogrid_sel for _ in range(Nthreads)]
         
@@ -181,7 +105,9 @@ with h5py.File(file, 'r') as InpArch:
         ogrid_indices.append(ko_max)
         ogrid_indices_start = ogrid_indices[:-1]
         ogrid_indices_end = ogrid_indices[1:]
-        
+    
+    # prepare instances of 'FSources_provider' class, each of the instances
+    # describes a subarray according to the splitting above
     targets = []
     for k1 in range(Nthreads):
         targets.append(HT.FSources_provider(InpArch[MMA.paths['CTDSE_outputs']+'/zgrid_coarse'][:],
@@ -193,16 +119,15 @@ with h5py.File(file, 'r') as InpArch:
                                                     ko_min = ogrid_indices_start[k1],
                                                     ko_max = ogrid_indices_end[k1])
                        )
-        
-    # Parallel calculations of Hankel
-    task_queue = mp.Queue()    
-    def mp_handle(position, *args, **kwargs):
+    
+    task_queue = mp.Queue() # que to store the results from multiprocessing 
+    def mp_handle(position, *args, **kwargs): # handle to trace the position of the subarrays
         task_queue.put(
                        [position, HT.Hankel_long(*args,**kwargs)] # the outputs are not ordered, keep the order in the result
                       )
     
-    # Fsources
-    processes = [mp.Process(target=mp_handle, # define processes
+    # define processes
+    processes = [mp.Process(target=mp_handle, 
                             args=(k1,
                                   targets[k1],
                                   distance_FF,
@@ -224,12 +149,12 @@ with h5py.File(file, 'r') as InpArch:
                             
                             ) for k1 in range(Nthreads)]
 
-    for p in processes: p.start(); # run processes
-
+    # run the processes in parallel
+    for p in processes: p.start()
     results = [task_queue.get() for p in processes] # there is no ordering!
     
     
-    # merge results
+    # merge results; result = [[position, Hankel_long-class-instance], ... ]
     HL_res_p = copy.deepcopy(results[0][1])
     
     HL_res_p.ogrid = omega_au2SI*ogrid_sel
@@ -287,36 +212,7 @@ with h5py.File(file, 'r') as InpArch:
     
     
     
-    # target_dynamic = HT.FSources_provider(InpArch[MMA.paths['CTDSE_outputs']+'/zgrid_coarse'][:],
-    #                                                 InpArch[MMA.paths['CTDSE_outputs']+'/rgrid_coarse'][:],
-    #                                                 omega_au2SI*InpArch[MMA.paths['CTDSE_outputs']+'/omegagrid'][:],
-    #                                                 h5_handle = InpArch,
-    #                                                 h5_path = MMA.paths['CTDSE_outputs']+'/FSourceTerm',
-    #                                                 data_source = 'dynamic',
-    #                                                 ko_min = ko_min,
-    #                                                 ko_max = ko_max)
-    
-    
 
-    
-    
-    
-    # HL_res = HT.Hankel_long(target_dynamic,
-    #                         distance_FF,
-    #                         rgrid_FF,
-    #                         preset_gas = preset_gas,
-    #                         pressure = pressure,
-    #                         absorption_tables = XUV_table_type_absorption,
-    #                         include_absorption = absorption,
-    #                         dispersion_tables = XUV_table_type_diffraction,
-    #                         include_dispersion = dispersion,
-    #                         effective_IR_refrective_index = effective_IR_refrective_index,
-    #                         integrator_Hankel = integrate.trapz,
-    #                         integrator_longitudinal = 'trapezoidal',
-    #                         near_field_factor = True,
-    #                         store_cummulative_result = True,
-    #                         store_non_normalised_cummulative_result = True)
-    
     with h5py.File('results_Hankel.h5', 'a') as Hres_file:
         out_group = Hres_file.create_group(MMA.paths['Hankel_outputs'])
         
