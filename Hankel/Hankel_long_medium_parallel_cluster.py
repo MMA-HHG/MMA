@@ -10,6 +10,7 @@ import units
 import mynumerics as mn
 import Hankel_transform as HT
 
+omega_au2SI = mn.ConvertPhoton(1.0, 'omegaau', 'omegaSI')
 
 with open('msg.tmp','r') as msg_file:
     file = msg_file.readline()[:-1] # need to strip the last character due to Fortran msg.tmp
@@ -60,16 +61,16 @@ with h5py.File(file, 'r') as InpArch:
     effective_IR_refrective_index = inverse_GV_IR*units.c_light
     
 
-    ogrid = InpArch[MMA.paths['CTDSE_outputs']+'/omegagrid'][:]
-    rgrid_macro = InpArch[MMA.paths['CTDSE_outputs']+'/rgrid_coarse'][:]
-    zgrid_macro = InpArch[MMA.paths['CTDSE_outputs']+'/zgrid_coarse'][:]
+    ogrid = InpArch[MMA.paths['CTDSE_outputs']+'/omegagrid'][:]          # a.u.
+    rgrid_macro = InpArch[MMA.paths['CTDSE_outputs']+'/rgrid_coarse'][:] # SI
+    zgrid_macro = InpArch[MMA.paths['CTDSE_outputs']+'/zgrid_coarse'][:] # SI
     
     # the inidces of the selection in the frequency (harmonic) grid
     ko_min = mn.FindInterval(ogrid/omega0, Hrange[0])
     ko_max = mn.FindInterval(ogrid/omega0, Hrange[-1])
 
     
-    omega_au2SI = mn.ConvertPhoton(1.0, 'omegaau', 'omegaSI')
+    
     omega0SI = omega_au2SI * omega0
     
     
@@ -151,119 +152,123 @@ with h5py.File(file, 'r') as InpArch:
 
     # run the processes in parallel
     for p in processes: p.start()
-    results = [task_queue.get() for p in processes] # there is no ordering!
+    results = [task_queue.get() for p in processes] # The results are not ordered
+    # result = [[position_index, Hankel_long-class-instance], ... ]
     
     
-    # merge results; result = [[position, Hankel_long-class-instance], ... ]
-    HL_res_p = copy.deepcopy(results[0][1])
+    ## Merge results ##
     
-    HL_res_p.ogrid = omega_au2SI*ogrid_sel
+    ## Prepare new shared output class
+    
+    HL_res = copy.deepcopy(results[0][1]) # ensure all shared data are in the output class
+    
+    HL_res.ogrid = omega_au2SI*ogrid_sel  # reassing by the whole ogrid
+    # find indices for merging subarrays
     ogrid_indices_new = [mn.FindInterval(ogrid_sel, ogrid_part[0]) for ogrid_part in ogrid_parts]
     
-    oldshape = np.shape(HL_res_p.FF_integrated)
+    # outputs that are always present
+    # total integrated signal
     newshape = (Nr_FF, No_sel)
-    HL_res_p.FF_integrated = np.empty(newshape,dtype=HL_res_p.FF_integrated.dtype)
-
-    
-    
-    oldshape = np.shape(HL_res_p.entry_plane_transform)
+    HL_res.FF_integrated = np.empty(newshape,dtype=HL_res.FF_integrated.dtype)
+    # Hankel transforms of the first and last planes
     newshape = (Nr_FF, No_sel)
-    HL_res_p.entry_plane_transform = np.empty(newshape,dtype=HL_res_p.cummulative_field.dtype)
-    HL_res_p.exit_plane_transform = np.empty(newshape,dtype=HL_res_p.cummulative_field.dtype)
+    HL_res.entry_plane_transform = np.empty(newshape,dtype=HL_res.cummulative_field.dtype)
+    HL_res.exit_plane_transform  = np.empty(newshape,dtype=HL_res.cummulative_field.dtype)
     
-    if 'cummulative_field' in dir(HL_res_p):
-        oldshape = np.shape(HL_res_p.cummulative_field)
+    # outputs that are present only of required
+    if 'cummulative_field' in dir(HL_res):
+        oldshape = np.shape(HL_res.cummulative_field)
         newshape = (oldshape[0],) + (Nr_FF, No_sel)
-        HL_res_p.cummulative_field = np.empty(newshape,dtype=HL_res_p.cummulative_field.dtype)
+        HL_res.cummulative_field = np.empty(newshape,dtype=HL_res.cummulative_field.dtype)
         
-    if 'cummulative_field_no_norm' in dir(HL_res_p):
-        oldshape = np.shape(HL_res_p.cummulative_field_no_norm)
+    if 'cummulative_field_no_norm' in dir(HL_res):
+        oldshape = np.shape(HL_res.cummulative_field_no_norm)
         newshape = (oldshape[0],) + (Nr_FF, No_sel)
-        HL_res_p.cummulative_field_no_norm = np.empty(newshape,dtype=HL_res_p.cummulative_field_no_norm.dtype)
+        HL_res.cummulative_field_no_norm = np.empty(newshape,dtype=HL_res.cummulative_field_no_norm.dtype)
     
+    ## copy data into the newly allocated class
     for k1, k_worker in enumerate([result[0] for result in results]):
         
-        HL_res_p.FF_integrated[
+        HL_res.FF_integrated[ # choosing proper indices to accomodate the subarrays
         rgrid_FF_indices[k_worker]:(rgrid_FF_indices[k_worker]+len(rgrid_FF_parts[k_worker])),
         ogrid_indices_new[k_worker]:(ogrid_indices_new[k_worker]+len(ogrid_parts[k_worker]))
         ] = results[k1][1].FF_integrated
         
-        HL_res_p.entry_plane_transform[
+        HL_res.entry_plane_transform[
         rgrid_FF_indices[k_worker]:(rgrid_FF_indices[k_worker]+len(rgrid_FF_parts[k_worker])),
         ogrid_indices_new[k_worker]:(ogrid_indices_new[k_worker]+len(ogrid_parts[k_worker]))
         ] = results[k1][1].entry_plane_transform
 
-        HL_res_p.exit_plane_transform[
+        HL_res.exit_plane_transform[
         rgrid_FF_indices[k_worker]:(rgrid_FF_indices[k_worker]+len(rgrid_FF_parts[k_worker])),
         ogrid_indices_new[k_worker]:(ogrid_indices_new[k_worker]+len(ogrid_parts[k_worker]))
         ] = results[k1][1].exit_plane_transform            
         
-        if 'cummulative_field' in dir(HL_res_p):
-            HL_res_p.cummulative_field[:,
+        if 'cummulative_field' in dir(HL_res):
+            HL_res.cummulative_field[:,
             rgrid_FF_indices[k_worker]:(rgrid_FF_indices[k_worker]+len(rgrid_FF_parts[k_worker])),
             ogrid_indices_new[k_worker]:(ogrid_indices_new[k_worker]+len(ogrid_parts[k_worker]))
             ] = results[k1][1].cummulative_field
             
-        if 'cummulative_field_no_norm' in dir(HL_res_p):
-            HL_res_p.cummulative_field_no_norm[:,
+        if 'cummulative_field_no_norm' in dir(HL_res):
+            HL_res.cummulative_field_no_norm[:,
             rgrid_FF_indices[k_worker]:(rgrid_FF_indices[k_worker]+len(rgrid_FF_parts[k_worker])),
             ogrid_indices_new[k_worker]:(ogrid_indices_new[k_worker]+len(ogrid_parts[k_worker]))
             ] = results[k1][1].cummulative_field_no_norm
     
     
-    
-
+    # Save the results
     with h5py.File('results_Hankel.h5', 'a') as Hres_file:
         out_group = Hres_file.create_group(MMA.paths['Hankel_outputs'])
         
         mn.adddataset(out_group,
                       'FF_integrated',
-                      np.stack((HL_res_p.FF_integrated.real, 
-                                HL_res_p.FF_integrated.imag),axis=-1),
+                      np.stack((HL_res.FF_integrated.real, 
+                                HL_res.FF_integrated.imag),axis=-1),
                       '[arb. u.]')
         
         mn.adddataset(out_group,
                       'entry_plane_transform',
-                      np.stack((HL_res_p.entry_plane_transform.real, 
-                                HL_res_p.entry_plane_transform.imag),axis=-1),
+                      np.stack((HL_res.entry_plane_transform.real, 
+                                HL_res.entry_plane_transform.imag),axis=-1),
                       '[arb. u.]')
 
         mn.adddataset(out_group,
                       'exit_plane_transform',
-                      np.stack((HL_res_p.exit_plane_transform.real, 
-                                HL_res_p.exit_plane_transform.imag),axis=-1),
+                      np.stack((HL_res.exit_plane_transform.real, 
+                                HL_res.exit_plane_transform.imag),axis=-1),
                       '[arb. u.]')
         
         mn.adddataset(out_group,
                       'ogrid',
-                      HL_res_p.ogrid,
+                      HL_res.ogrid,
                       '[SI]')
 
         mn.adddataset(out_group,
                       'rgrid',
-                      HL_res_p.rgrid,
+                      HL_res.rgrid,
                       '[SI]')
 
         
-        if 'cummulative_field' in dir(HL_res_p):
+        if 'cummulative_field' in dir(HL_res):
             mn.adddataset(out_group,
                           'cummulative_field',
-                          np.stack((HL_res_p.cummulative_field.real, 
-                                    HL_res_p.cummulative_field.imag),axis=-1),
+                          np.stack((HL_res.cummulative_field.real, 
+                                    HL_res.cummulative_field.imag),axis=-1),
                           '[arb. u.]')
             
-        if 'cummulative_field_no_norm' in dir(HL_res_p):
+        if 'cummulative_field_no_norm' in dir(HL_res):
             mn.adddataset(out_group,
                           'cummulative_field_no_norm',
-                          np.stack((HL_res_p.cummulative_field_no_norm.real, 
-                                    HL_res_p.cummulative_field_no_norm.imag),
+                          np.stack((HL_res.cummulative_field_no_norm.real, 
+                                    HL_res.cummulative_field_no_norm.imag),
                                     axis=-1),
                           '[arb. u.]')
         
-        if 'zgrid' in dir(HL_res_p):
+        if 'zgrid' in dir(HL_res):
             mn.adddataset(out_group,
                           'zgrid',
-                          HL_res_p.zgrid,
+                          HL_res.zgrid,
                           '[SI]')
             
     
