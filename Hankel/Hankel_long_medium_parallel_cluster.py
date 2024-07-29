@@ -219,58 +219,49 @@ with h5py.File(file, 'r') as InpArch:
     
     # Save the results
     with h5py.File('results_Hankel.h5', 'a') as Hres_file:
-        out_group = Hres_file.create_group(MMA.paths['Hankel_outputs'])
-        
+        out_group = Hres_file.create_group(MMA.paths['Hankel_outputs'])        
         mn.adddataset(out_group,
                       'FF_integrated',
-                      np.stack((HL_res.FF_integrated.real, 
+                      np.stack((HL_res.FF_integrated.real, # real and imaginary parts are in separate dimensions
                                 HL_res.FF_integrated.imag),axis=-1),
-                      '[arb. u.]')
-        
+                      '[arb. u.]')        
         mn.adddataset(out_group,
                       'entry_plane_transform',
                       np.stack((HL_res.entry_plane_transform.real, 
                                 HL_res.entry_plane_transform.imag),axis=-1),
                       '[arb. u.]')
-
         mn.adddataset(out_group,
                       'exit_plane_transform',
                       np.stack((HL_res.exit_plane_transform.real, 
                                 HL_res.exit_plane_transform.imag),axis=-1),
-                      '[arb. u.]')
-        
+                      '[arb. u.]')        
         mn.adddataset(out_group,
                       'ogrid',
                       HL_res.ogrid,
                       '[SI]')
-
         mn.adddataset(out_group,
                       'rgrid',
                       HL_res.rgrid,
                       '[SI]')
 
-        
+        # optional outputs
         if 'cummulative_field' in dir(HL_res):
             mn.adddataset(out_group,
                           'cummulative_field',
                           np.stack((HL_res.cummulative_field.real, 
                                     HL_res.cummulative_field.imag),axis=-1),
-                          '[arb. u.]')
-            
+                          '[arb. u.]')            
         if 'cummulative_field_no_norm' in dir(HL_res):
             mn.adddataset(out_group,
                           'cummulative_field_no_norm',
                           np.stack((HL_res.cummulative_field_no_norm.real, 
                                     HL_res.cummulative_field_no_norm.imag),
                                     axis=-1),
-                          '[arb. u.]')
-        
+                          '[arb. u.]')        
         if 'zgrid' in dir(HL_res):
             mn.adddataset(out_group,
                           'zgrid',
                           HL_res.zgrid,
                           '[SI]')
-            
-    
 
-        
+print('The parallel Hankel transform finishes.')

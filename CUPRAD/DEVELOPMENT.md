@@ -1,5 +1,56 @@
 # CUPRAD
 
+## TODO
+* To be removed
+    * $\chi_5$-processes
+    * $T$-operator case 4
+    * (?) Raman remove option 2
+* doxygen4Fortran (useful links https://fortran-lang.discourse.group/t/fortran-2018-keywords/2555, https://github.com/cdslaborg/paramonte, https://cdslaborg.github.io/paramonte-kernel-doc/html)
+* Refactor ouptut routines (unife writting into the file + clean up in `longstep_rk.f90`)
+
+### Documentation
+Doxygen done for
+ * `array_helper.f90` `density_mod.f90` `pre_ionised.f90` `linked_list_module.f90` `constants.f90` `hdf5_*.f90`
+
+
+ Missing: `calc_start.f90` `code_ionisation.f90` `cuprad.f90` `default_inputs.f90` `fft_rk.f90` `finalize.f90` `firststep.f90` `longstep_rf.f90` `make_start.f90` `global_variables.f90` `normalisation.f90` `output.f90` `write_*.f90`
+
+ ? Contain pre-processor in the documentation, or make an independent documetnaiton for it ?
+
+## Development notes
+
+* The code is not written in a single style according to various contributors.
+    * I propose to keep a single style within each module, but to not unify it globally.
+    * The in-line commenting of the code shall be extended.
+* The use of the code requires a pre-processor.
+    * The pre-processor does a lot of tedious work: mainly the conversion from SI inputs to *computational units **[C.U.]***. It will require a lot of thesting and work to Pythonise the pre-processor/include conversion in the main code/... I propse to clean up the pre-processor for now.
+* Data treatment:
+    * The storing procedures need a better organisation. For example, the field is printed twice.
+    * There is a lot of redundant files produced form CUPRAD. We need to ensure that everything is in the HDF5-ouput. Other files will be removed.
+* Overall functionality
+    * There are still some extensions of the code that shall be either commented or deprecated[^1] to provide a clear code.
+* Code continuation: it is now disallowed. THe purpose of it is to separate a long simulation into more jobs. It shall be easy to reintroduce: we just need to properly use the endplane as the input for the next run.
+
+[^1]: It might be reintroduced later.
+
+
+<!-- `module pre_ionised`: it allows to compute the pre-ionisation. It also encapsulates most of the work in the module and minimal changes are in the main code. Only firs-step changed slightly and on-the-fly calculations.
+
+switch dispersion is applied only in the pre-processor to create the table -->
+
+
+
+<!-- ## Development
+Transformation of $1/e$ to FWHM has to be checked. 
+
+Should we keep all inputs in one hdf5-group, or use further hierarchisation?
+
+I commented most of the code. I found that the less readable are firstep and longstep_rk. It would be nice to rewiritte using helping modules or at least organise.
+
+`SUBROUTINE mult_phase`: it's not so clear to me what effects are included in the propagator and which are applied in time domain afterwards.
+
+### printing procedure
+There are two procedures now,it should be rewritten and driven by an if-construct to select prints on demand. Solve naming problem by passing struct containing strings. -->
 
 # Stub of documentation
 This is a nutshell guide of the propagation code, it explains the basics of its operation and main ideas implemented in the code.
