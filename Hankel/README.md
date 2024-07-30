@@ -26,7 +26,7 @@ $$
         }_{\substack{\text{dipole acceleration}\\
                      \text{in } v\text{-reference frame}}}
 
-        J_0 \left( \frac{\omega \rho \tilde{\rho}}{c(z-\tilde{z})} \right)
+        \frac{J_0 \left( \frac{\omega \rho \tilde{\rho}}{c(z-\tilde{z})} \right)}{z-\tilde{z}}
 
         \underbrace{
             \tilde{\rho} \, \mathrm{d}\tilde{\rho}\mathrm{d}\tilde{z}
