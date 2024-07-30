@@ -125,8 +125,8 @@ Here is the exhaustive list of all the parameters. The bold **`parameters`** are
   * `laser_initial_chirp_phase`: Initial phase modulation of the laser pulse, known as chirp.
 * **medium group**
   * `medium_effective_atmospheric_density_of_neutral_molecules`: Effective density of neutral molecules in the medium under atmospheric conditions.
-  * `medium_physical_distance_of_propagation`: Physical distance over which the laser propagates in the medium.
-  * `medium_pressure_in_bar`: Pressure of the medium in bars.
+  * **`medium_physical_distance_of_propagation`**: Physical distance over which the laser propagates in the medium.
+  * **`medium_pressure_in_bar`**: Pressure of the medium in bars.
   * `Kerr_chi5_coefficient`: The fifth-order nonlinearity coefficient for Kerr effect, indicating the strength of the nonlinear response in a medium.
   * `Kerr_ionised_atoms_relative_Kerr_response`: The change in the Kerr effect response due to the presence of ionized atoms.
   * `Kerr_nonlinear_refractive_index_kerr_coefficient`: Coefficient that quantifies the nonlinear change in the refractive index due to the Kerr effect.
