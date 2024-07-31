@@ -262,6 +262,7 @@ integer         :: switch_ionisation, switch_atom
 
 
     ! shared default values
+    ! rhont_cm3_phys = 1.d-6 * 1.d5/(Boltzmann_constant*(273.15d0+20.d0)) ! reference gas number density (p = 1 bar & T = 20 °C)
     rhont_cm3_phys = 2.7d19! effective density of neutral molecules, it is the density of an ideal gas for 1 bar 0 °C in cm-3 (https://en.wikipedia.org/wiki/Number_density#Units)
 
 

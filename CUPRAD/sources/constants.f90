@@ -17,6 +17,7 @@ module constants
     real(8), parameter  :: alpha_fine = 1.d0/alpha_fine_inv                 !< fine-structure constant
     real(8), parameter  :: r_Bohr = hbar*alpha_fine_inv/(c_light*emass)     !< Bohr's radius [SI]
     real(8), parameter  :: Ip_HeV = 27.21138602d0                           !< The Hydrogen's ionisation potential [eV]
+    real(8), parameter  :: Boltzmann_constant = 1.380649d-23                !< The Boltzmann constant [J/K]
 
     real(8), parameter  :: TIMEau = (emass*r_Bohr**2) / hbar                !< one atomic unit of time (time[SI]=time[a.u.]*TIMEau)
 
