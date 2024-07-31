@@ -183,7 +183,7 @@ The input parameters of CUPRAD are stored in `CUPRAD/inputs` group. The default 
 
 ### CTDSE
 Flags `print_xxx` define whether a given output is stored.
-* `CV_criterion_of_GS`: Stopping criterion for convergence of the ground state computation using the resolvent-operation. (The iterations are stopped if $|E_{i+1}-E_i|<CV$.)
+* `CV_criterion_of_GS`: Stopping criterion for convergence of the ground state computation using the resolvent-operation. (The iterations are stopped if $|E_{i+1}-E_i| < CV$.)
 * **`dt`**: Time step size for the propagation in time.
 * **`dx`**: Spatial resolution of the microcopic grid.
 * **`Nx_max`**: Maximum number of grid points in the positive $x$ direction. (The total number of points is 2`Nx_max`+1)
