@@ -18,6 +18,8 @@ do
     # Get the base name of the file (e.g., results_pressure_1.h5)
     BASE_NAME=$(basename "$FILE")
     
+    export H5FILE=$BASE_NAME
+
     # Extract the simulation number from the filename using sed
     SIMULATION_NUMBER=$(echo "$BASE_NAME" | sed -n 's/^results_pressure_\([0-9]*\)\.h5$/\1/p')
     
