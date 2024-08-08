@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Submit the pre-processor
-JOB1=$(sbatch --parsable $MULTISCALE_SCRIPTS/slurm/CUPRAD_pre_processor.slurm)
+JOB1=$(sbatch --parsable $MULTISCALE_SCRIPTS/slurm/CUPRAD_pre_processor_env.slurm)
 # touch 1.test
 
 # Submit the main job when the pre-processor is finished
