@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --job-name="MPI_TDSE"
-#SBATCH -t 0-23:59 # time (D-HH:MM)
-#SBATCH --partition=T24H
+#SBATCH -t 1-23:59 # time (D-HH:MM)
+#SBATCH --partition=T48H
 #SBATCH -o MPI_TDSE.%j.%N.out # STDOUT
 #SBATCH -e MPI_TDSE.%j.%N.err # STDERR
 #SBATCH --profile=All
