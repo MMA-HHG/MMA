@@ -2,6 +2,7 @@
 
 #SBATCH --job-name="HDF5_MRG"
 #SBATCH --ntasks=1
+#SBATCH --partition=T24H
 #SBATCH -t 0-23:59 # time (D-HH:MM)
 #SBATCH -o HDF5_MERGE.%j.%N.out # STDOUT
 #SBATCH -e HDF5_MERGE.%j.%N.err # STDERR
