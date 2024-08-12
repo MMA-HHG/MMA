@@ -31,6 +31,8 @@ arguments = sys.argv
 if not(os.path.isfile('msg.tmp')): raise FileNotFoundError("'msg.tmp' required to pass the name off the archive.")
 with open('msg.tmp') as f: outfname = f.readline().rstrip()  # "results_merged.h5"
 
+outfname = 'merge_test.h5'
+
 h5path = MMA.paths['CTDSE_outputs']
 
 available_outputs = {'Efield'          : '[a.u.]',
