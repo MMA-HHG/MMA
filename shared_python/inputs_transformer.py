@@ -10,40 +10,42 @@ def add_variables2hdf5(f,
                     list_of_CTDSE_outputs,
                     Hankel_names_to_jupyter_variables):
 
-    
     # global inputs
-    global_inputs = f.create_group(MMA.paths['global_inputs'])
-    for dset_name, (value, unit) in global_input_names_to_jupyter_variables.items():
-        mn.adddataset(global_inputs,dset_name,value,unit)
-    
+    if not(global_input_names_to_jupyter_variables == None):
+        global_inputs = f.create_group(MMA.paths['global_inputs'])
+        for dset_name, (value, unit) in global_input_names_to_jupyter_variables.items():
+            mn.adddataset(global_inputs,dset_name,value,unit)
     
     # CUPRAD
-    CUPRAD_inps = f.create_group(MMA.paths['CUPRAD_inputs'])
-    for dset_name, (value, unit) in CUPRAD_names_to_jupyter_variables.items():
-        mn.adddataset(CUPRAD_inps,dset_name,value,unit)
+    if not(CUPRAD_names_to_jupyter_variables == None):
+        CUPRAD_inps = f.create_group(MMA.paths['CUPRAD_inputs'])
+        for dset_name, (value, unit) in CUPRAD_names_to_jupyter_variables.items():
+            mn.adddataset(CUPRAD_inps,dset_name,value,unit)
 
 
     # CTDSE
-    # regular inputs
-    CTDSE_inps = f.create_group(MMA.paths['CTDSE_inputs'])
-    for dset_name, (value, unit) in CTDSE_names_to_jupyter_variables.items():
-        mn.adddataset(CTDSE_inps,dset_name,value,unit)
+    if not(CTDSE_names_to_jupyter_variables == None):
+        # regular inputs
+        CTDSE_inps = f.create_group(MMA.paths['CTDSE_inputs'])
+        for dset_name, (value, unit) in CTDSE_names_to_jupyter_variables.items():
+            mn.adddataset(CTDSE_inps,dset_name,value,unit)
+    
+        # CTDSE prints
+        mn.adddataset(CTDSE_inps,'print_GS',1.,'[-]')                        
+        for CTDSE_name, jupyter_name in CTDSE_outputs_to_jupyter_names.items():
+            mn.adddataset(CTDSE_inps,CTDSE_name,int(jupyter_name in list_of_CTDSE_outputs),'[-]')
 
-    # CTDSE prints
-    mn.adddataset(CTDSE_inps,'print_GS',1.,'[-]')                        
-    for CTDSE_name, jupyter_name in CTDSE_outputs_to_jupyter_names.items():
-        mn.adddataset(CTDSE_inps,CTDSE_name,int(jupyter_name in list_of_CTDSE_outputs),'[-]')
-
-    # obsolete inputs: to be removed before the release
-    for dset_name in ('print_F_Efield_M2','print_F_Source_Term_M2','InterpByDTorNT'):
-        mn.adddataset(CTDSE_inps,dset_name,0,'[-]')
-    mn.adddataset(CTDSE_inps,'Ntinterp',1,'[-]')
+        # obsolete inputs: to be removed in a future release
+        for dset_name in ('print_F_Efield_M2','print_F_Source_Term_M2','InterpByDTorNT'):
+            mn.adddataset(CTDSE_inps,dset_name,0,'[-]')
+        mn.adddataset(CTDSE_inps,'Ntinterp',1,'[-]')
 
 
     # Hankel
-    Hankel_inps = f.create_group(MMA.paths['Hankel_inputs'])
-    for dset_name, (value, unit) in Hankel_names_to_jupyter_variables.items():
-        mn.adddataset(Hankel_inps,dset_name,value,unit)
+    if not(Hankel_names_to_jupyter_variables == None):
+        Hankel_inps = f.create_group(MMA.paths['Hankel_inputs'])
+        for dset_name, (value, unit) in Hankel_names_to_jupyter_variables.items():
+            mn.adddataset(Hankel_inps,dset_name,value,unit)
 
 
 def line_creator(name_dict, type_dict):
@@ -72,28 +74,32 @@ def variables2text(global_input_names_to_jupyter_variables,
                    Hankel_names_to_jupyter_variables):
 
     # global inputs
-    content = '$change_group'+'\t'+ MMA.paths['global_inputs'] +'\n\n'
-    content += line_creator(global_input_names_to_jupyter_variables, MMA.global_variable_type_lists)
+    if not(global_input_names_to_jupyter_variables == None):
+        content = '$change_group'+'\t'+ MMA.paths['global_inputs'] +'\n\n'
+        content += line_creator(global_input_names_to_jupyter_variables, MMA.global_variable_type_lists)
 
     # CUPRAD inputs
-    content += '\n\n' + '$change_group'+'\t'+ MMA.paths['CUPRAD_inputs'] +'\n\n'
-    content += line_creator(CUPRAD_names_to_jupyter_variables, MMA.CUPRAD_variable_type_lists)
+    if not(CUPRAD_names_to_jupyter_variables == None):
+        content += '\n\n' + '$change_group'+'\t'+ MMA.paths['CUPRAD_inputs'] +'\n\n'
+        content += line_creator(CUPRAD_names_to_jupyter_variables, MMA.CUPRAD_variable_type_lists)
 
     # CTDSE inputs
-    content += '\n\n' + '$change_group'+'\t'+ MMA.paths['CTDSE_inputs'] +'\n\n'
-    content += line_creator(CTDSE_names_to_jupyter_variables, MMA.CTDSE_variable_type_lists)
-
-    # CTDSE prints
-    content += 'print_GS' + '\t' + '1' + '\t' + 'I' + '\t' + '[-]' + '\n'
-    for CTDSE_name, jupyter_name in CTDSE_outputs_to_jupyter_names.items():
-        content += CTDSE_name + '\t' + str(int(jupyter_name in list_of_CTDSE_outputs)) + '\t' +\
-                   'I' + '\t' + '[-]' + '\n'
-        # mn.adddataset(CTDSE_inps,CTDSE_name,int(jupyter_name in list_of_CTDSE_outputs),'[-]')
+    if not(CTDSE_names_to_jupyter_variables == None):
+        content += '\n\n' + '$change_group'+'\t'+ MMA.paths['CTDSE_inputs'] +'\n\n'
+        content += line_creator(CTDSE_names_to_jupyter_variables, MMA.CTDSE_variable_type_lists)
+    
+        # CTDSE prints
+        content += 'print_GS' + '\t' + '1' + '\t' + 'I' + '\t' + '[-]' + '\n'
+        for CTDSE_name, jupyter_name in CTDSE_outputs_to_jupyter_names.items():
+            content += CTDSE_name + '\t' + str(int(jupyter_name in list_of_CTDSE_outputs)) + '\t' +\
+                       'I' + '\t' + '[-]' + '\n'
+            # mn.adddataset(CTDSE_inps,CTDSE_name,int(jupyter_name in list_of_CTDSE_outputs),'[-]')
 
 
     # Hankel inputs
-    content += '\n\n' + '$change_group'+'\t'+ MMA.paths['Hankel_inputs'] +'\n\n'
-    content += line_creator(Hankel_names_to_jupyter_variables, MMA.Hankel_variable_type_lists)
+    if not(Hankel_names_to_jupyter_variables == None):
+        content += '\n\n' + '$change_group'+'\t'+ MMA.paths['Hankel_inputs'] +'\n\n'
+        content += line_creator(Hankel_names_to_jupyter_variables, MMA.Hankel_variable_type_lists)
 
     # for dset_name, (value, unit) in global_input_names_to_jupyter_variables.items():
     #     content += dset_name + '\t' + str(value) + '\t' + unit + '\n'

@@ -4,20 +4,21 @@ CUPRAD_group = 'CUPRAD'
 CTDSE_group = 'CTDSE'
 Hankel_group = 'Hankel'
 global_inputs_group = 'global_inputs'
-paths={'CUPRAD'             : CUPRAD_group,
-       'CUPRAD_inputs'      : CUPRAD_group + '/inputs',
-       'CUPRAD_outputs'     : CUPRAD_group + '/outputs',
-       'CUPRAD_logs'        : CUPRAD_group + '/logs',
+paths={'CUPRAD'               : CUPRAD_group,
+       'CUPRAD_inputs'        : CUPRAD_group + '/inputs',
+       'CUPRAD_outputs'       : CUPRAD_group + '/outputs',
+       'CUPRAD_logs'          : CUPRAD_group + '/logs',
+       'CUPRAD_pre-processed' : CUPRAD_group + '/pre-processed',
        
-       'CTDSE '             : CTDSE_group,
-       'CTDSE_inputs'       : CTDSE_group + '/inputs',
-       'CTDSE_outputs'      : CTDSE_group + '/outputs',
+       'CTDSE '               : CTDSE_group,
+       'CTDSE_inputs'         : CTDSE_group + '/inputs',
+       'CTDSE_outputs'        : CTDSE_group + '/outputs',
        
-       'Hankel'             : Hankel_group,
-       'Hankel_inputs'      : Hankel_group + '/inputs',
-       'Hankel_outputs'     : Hankel_group + '/outputs',
+       'Hankel'               : Hankel_group,
+       'Hankel_inputs'        : Hankel_group + '/inputs',
+       'Hankel_outputs'       : Hankel_group + '/outputs',
 
-       'global_inputs'      : global_inputs_group}
+       'global_inputs'        : global_inputs_group}
 
 
 
