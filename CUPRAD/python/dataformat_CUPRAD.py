@@ -69,6 +69,10 @@ class get_data:
         self.w0_entry = mn.h5_seek_for_scalar(InputArchive,'N',
                               MMA.paths['CUPRAD_inputs'] +'/laser_beamwaist_entry',
                               MMA.paths['CUPRAD_inputs'] +'/calculated/laser_beamwaist_entry')
+        
+        self.pulse_duration_entry = mn.h5_seek_for_scalar(InputArchive,'N',
+                                        MMA.paths['CUPRAD_inputs'] +'/laser_pulse_duration_in_1_e_Efield',
+                                        MMA.paths['CUPRAD_inputs'] +'/calculated/laser_pulse_duration_in_1_e_Efield')
             
         self.rgrid = rgrid
         self.Nr = Nr; self.Nt = Nt; self.Nz = Nz

@@ -2,7 +2,7 @@
 !
 ! - "write_output": it saves fields and plasma-density during the propagation 
 !
-! - "field_out": it stores the end-plane solution in the form of the code input for possible continuation
+! - "code_continuation_output": it stores the end-plane solution in the form of the code input for possible continuation
 !
 ! - "linked_list_out": it saves the data buffered in the linked list at the end of the code
 !

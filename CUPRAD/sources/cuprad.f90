@@ -129,6 +129,7 @@ PROGRAM cuprad
      !CALL matlab_out 
      rhodist=count
      CALL propagation ! ??? WHY DO WE PROPAGATE EVEN ONCE MORE?
+     CALL linked_list_out
      CALL code_continuation_output
 
      CALL finalize
