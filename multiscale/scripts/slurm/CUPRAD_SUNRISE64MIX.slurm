@@ -1,7 +1,6 @@
 #!/bin/bash
 # Your job name
 #SBATCH --job-name=CUPRAD-TDSE-base
-#SBATCH --nodes=1
 #SBATCH --ntasks=64
 #SBATCH -t 0-03:00
 #SBATCH --partition=MIX
