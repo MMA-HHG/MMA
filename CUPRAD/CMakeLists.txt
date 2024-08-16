@@ -54,6 +54,8 @@ if(MPI_FOUND)
     add_executable(${PROPAGATION} ${S_PROPAGATION})
     target_link_libraries(${PROPAGATION} ${HDF5_LIBRARIES} ${FFTW_LIBS})
     target_include_directories(${PROPAGATION} PRIVATE ${HDF5_INCLUDE_DIRS} ${MKL_INCLUDE_DIRS})
+else()
+    message(WARNING "MPI not found. Attempting to build only the pre-processor.")
 endif()
 
 ### make_start.e

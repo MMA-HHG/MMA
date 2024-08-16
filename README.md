@@ -69,6 +69,8 @@ There is the recipe for compilation (each point contains several notes about pos
     * The CMake configuration can be manually adjusted using `ccmake`, see [link 1](https://cmake.org/cmake/help/latest/manual/ccmake.1.html) and [link 2](https://stackoverflow.com/a/1224652).
 3) Compile the code from the CMake-generated `Makefile` by running `make code` in the `build` directory.
 
+#### Note: building only the pre-processor
+The pre-processor can built without MPI and parallel HDF5 (serial HDF5 is needed). The compilation is similar except using **`make preprocessor`** instead of `make code`.
 
 ### CTDSE (+ the dynamic library)
 All the source files are located in `1DTDSE/sources`. The CMake recipe is in `1DTDSE/CMakeLists.txt`. This recipe installs both the code and the interactive CTDSE library; if MPI is not present, only the dynamic library is installed. The code is supposedly built in `1DTDSE/build`.
