@@ -1,0 +1,15 @@
+# 1. Go to the root and build a docker image
+cd environment && docker build . --tag cuprad_tdse_hankel; cd ..
+
+# 2. Run interactively the image
+docker run \
+  -v $(pwd):/CUPRAD_TDSE_hankel -w /CUPRAD_TDSE_hankel \
+  -it cuprad_tdse_hankel bash
+
+# 3. Compile the code
+cmake .
+make
+
+# Note: if problems, set for GNU
+export CC=mpicc
+export FC=mpifort
