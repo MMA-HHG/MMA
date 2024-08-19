@@ -3,7 +3,7 @@ cd environment && docker build . --tag cuprad_tdse_hankel; cd ..
 
 # 2. Run interactively the image
 docker run \
-  -v $(pwd):/CUPRAD_TDSE_hankel -w /CUPRAD_TDSE_hankel \
+  -v $(pwd):/CUPRAD_TDSE_Hankel -w /CUPRAD_TDSE_Hankel \
   -it cuprad_tdse_hankel bash
 
 # 3. Compile the code

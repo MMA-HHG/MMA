@@ -1,8 +1,8 @@
 #!/bin/bash
 # Your job name
 #SBATCH --job-name=CUPRAD-Bessel
-#SBATCH --ntasks=64
-#SBATCH -t 0-12:00
+#SBATCH --ntasks=128
+#SBATCH -t 0-23:59
 #SBATCH --partition=T24H
 #SBATCH --profile=All
 #SBATCH --output MMA-CUPRAD-base-%J.output
