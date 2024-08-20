@@ -1,7 +1,7 @@
 #!/bin/bash
 # Your job name
 #SBATCH --job-name=CUPRAD-Bessel
-#SBATCH --ntasks=64
+#SBATCH --ntasks=128
 #SBATCH -t 0-23:59
 #SBATCH --partition=T24H
 #SBATCH --profile=All
