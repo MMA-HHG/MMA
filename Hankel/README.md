@@ -1,5 +1,5 @@
 # Hankel transform module
-The modul `Hankel_transform` provides the toolbox for computing Hankel transform in both short and long media. The main two computational routines, which may stand independently, are `HankelTransform` and `Hankel_long`, repsectively.  Addressing the long media, the module sources material constants for rare gases. It means that they are ready for a direct use.
+The module `Hankel_transform` provides the toolbox for computing Hankel transform in both short and long media. The main two computational routines, which may stand independently, are `HankelTransform` and `Hankel_long`, repsectively.  Addressing the long media, the module sources material constants for rare gases. It means that they are ready for a direct use.
 
 This documentation provides a transition between the mathematical formulation in the main manuscript and the Pythonic implementation. The manuscript provides details about theoretical background, while technical details about the implementation are directly in the documentation within the module.
 

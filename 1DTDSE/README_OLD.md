@@ -1,15 +1,5 @@
 <!-- omit in toc -->
 # CTDSE
-
-
-$$
-\begin{align}
-\vec{\psi}^{(i,1)} &= \left(M_2 + \frac{\mathbf{i} \Delta t}{2} -\mathbf{i} \Delta t M_2 V_C \right) \vec{\psi}^{(i)}\,, \\
-\vec{\psi}^{(i,2)} &= \left(M_2 + \frac{\mathbf{i} \Delta t}{2} -\mathbf{i} \Delta t M_2 V_C \right)^{-1} \vec{\psi}^{(i,1)} \,, \\
-\psi_j^{(i+1)} = \psi_j^{(i,3)} &= \mathrm{e}^{-\mathbf{i} \Delta t \mathcal{E}(t_i) x_j} \psi_j^{(i,2)} \,, & \forall j.
-\end{align}
-$$
-
 CTDSE is a 1-dimensional time-dependent Schrödinger equation solver (1D-TDSE) written in C language. The purpose of the code is to evaluate the microscopic response, i.e. the observables, during the propagation of the electric field. The solver is based on the grid method and the propagation scheme employs operator splitting and the Crank-Nicolson method. 
 
 The code offers multiple binaries and interactive interfaces for various tasks:
