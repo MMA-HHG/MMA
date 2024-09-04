@@ -56,6 +56,20 @@ When used locally on a personal computer, the libraries (FFTW3, CMake, …) are 
 
 There are two `bash` functions `load_modules` and `load_python_modules`. The former is activated when running *CUPRAD* and *CTDSE*, while the latter is used for all Pythonic operations around the code. (The reason for this duality is that Python might need to load a compiler itself for some libraries, typically on intel.) 
 
+### Installing both CUPRAD and CTDSE
+If everything is set well, the following CMakes are wrapped in the master `CMakeList.txt`. Here is the recipe to install the code from its root directory.
+
+1) Run `load_modules`. [This can be verified by](https://hpc-wiki.info/hpc/Modules#:~:text=%24-,module%20list,-Currently%20Loaded%20Modulefiles) `module list`.
+    * If the machine does not using modules, this step is replaced by installing the necessary libraries and setting up the environment.
+2) Prepare Makefile using `cmake` by running `cmake ..` in the `build` directory. We encountered CMake sometimes struggling to identify the proper MPI-Fortran compiler on several machines (the error is raised in the next step). There are more ways to hint CMake to find the compilers:
+    * By providing environment variables with the compilers: `export CC=mpicc` and `export FC=mpifort` (GNU); `export CC=mpiicc` and `export FC=mpiifort` (Intel).
+    * Controlling CMake directly during its execution `cmake -D CMAKE_Fortran_COMPILER=mpifort ..` (GNU) or `cmake -D CMAKE_Fortran_COMPILER=mpiifort ..` (intel). This resolved the issue when we encountered it.
+    * The CMake configuration can be manually adjusted using `ccmake`, see [link 1](https://cmake.org/cmake/help/latest/manual/ccmake.1.html) and [link 2](https://stackoverflow.com/a/1224652).
+    * Consider to run the compilation of the respective codes separately in the case problems occur.
+3) Compile the code from the CMake-generated `Makefile` by running `make code` in the root directory.
+
+
+Below are recipes for compilling just one of the codes.
 
 
 ### CUPRAD
@@ -68,6 +82,7 @@ There is the recipe for compilation (each point contains several notes about pos
     * We encountered CMake struggling to identify the proper MPI-Fortran compiler on several machines. CMake can be hinted to use the desired compiler by `cmake -D CMAKE_Fortran_COMPILER=mpifort ..` (GNU) or `cmake -D CMAKE_Fortran_COMPILER=mpiifort ..` (intel). This resolved the issue when we encountered it.
     * The CMake configuration can be manually adjusted using `ccmake`, see [link 1](https://cmake.org/cmake/help/latest/manual/ccmake.1.html) and [link 2](https://stackoverflow.com/a/1224652).
 3) Compile the code from the CMake-generated `Makefile` by running `make code` in the `build` directory.
+
 
 #### Note: building only the pre-processor
 The pre-processor can built without MPI and parallel HDF5 (serial HDF5 is needed). The compilation is similar except using **`make preprocessor`** instead of `make code`.

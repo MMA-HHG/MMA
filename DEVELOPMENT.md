@@ -11,6 +11,7 @@
     * ***interactive TDSE*** (Tadeáš)
         * Ensure compatibility of the dll library
     * ***Hankel*** (Jan) **Python docstrings** (process by [sphynx](https://www.sphinx-doc.org/en/master/tutorial/index.html))
+        * **discuss the choices of discretisation**: https://www.intechopen.com/chapters/65719
         * *refactoring*
             * Implement density modulation
                 * *Pythonic ecosystem around the whole code*
