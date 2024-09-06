@@ -243,7 +243,7 @@ def susc_ref(omega, gas, N_ref=N_ref_default):
     return nXUV_ref**2 - 1
 
 
-def nXUV(omega,gas,pressure,complex=True):
+def nXUV(omega,gas,pressure,complex=True, N_ref=N_ref_default):
     f1 = getf1(gas,mn.ConvertPhoton(omega, 'omegaSI', 'eV'))
     if complex: f2 = getf2(gas,mn.ConvertPhoton(omega, 'omegaSI', 'eV'))
     else:       f2 = 0.
