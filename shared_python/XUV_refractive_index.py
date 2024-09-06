@@ -243,6 +243,14 @@ def susc_ref(omega, gas, N_ref=N_ref_default):
     return nXUV_ref**2 - 1
 
 
+def nXUV(omega,gas,pressure,complex=True):
+    f1 = getf1(gas,mn.ConvertPhoton(omega, 'omegaSI', 'eV'))
+    if complex: f2 = getf2(gas,mn.ConvertPhoton(omega, 'omegaSI', 'eV'))
+    else:       f2 = 0.
+
+    return 1.0 - pressure*N_ref*units.r_electron_classical*(mn.ConvertPhoton(omega,'omegaSI','lambdaSI')**2)*(f1+1j*f2)/(2.0*np.pi)
+
+
 def polarisability(omega, gas, N_ref=N_ref_default):
     """
     Returns polarisability.
