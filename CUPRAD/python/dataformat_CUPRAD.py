@@ -24,10 +24,6 @@ class get_data:
             dr = r_resolution[1]; rmax = r_resolution[2]
             dr_file = rgrid[1]-rgrid[0]; kr_step = max(1,int(np.floor(dr/dr_file))); Nr_max = mn.FindInterval(rgrid, rmax)
             rgrid = rgrid[0:Nr_max:kr_step]; Nr = len(rgrid) 
-            
-        # self.E_trz = InputArchive['/outputs/output_field'][:,0:Nr_max:kr_step,:Nz] # Arrays may be over-allocated by CUPRAD
-        
-        # self.E_trz = InputArchive[MMA.paths['CUPRAD_outputs'] +'/output_field'][:Nz,:,0:Nr_max:kr_step] # Arrays may be over-allocated by CUPRAD
         
         # CUPRAD ouputs (z,t,r) (c-like, original Fortran is reversed)
         
@@ -50,7 +46,7 @@ class get_data:
         self.Ip_eV = InputArchive[MMA.paths['CUPRAD_inputs'] +'/ionization_ionization_potential_of_neutral_molecules'][()]
         self.pressure_mbar = 1e3*InputArchive[MMA.paths['CUPRAD_inputs'] +'/medium_pressure_in_bar'][()]; self.pressure_string = "{:.1f}".format(self.pressure_mbar)+' mbar'
         try:
-            self.preionisation_ratio = InputArchive['/pre_ionised/initial_electrons_ratio'][()]
+            self.preionisation_ratio = InputArchive[MMA.paths['global_inputs'] +'/pre_ionised/initial_electrons_ratio'][()]
         except:
             self.preionisation_ratio = 0
         self.preionisation_string = "{:.1f}".format(100*self.preionisation_ratio) + ' %'
@@ -73,7 +69,14 @@ class get_data:
         self.pulse_duration_entry = mn.h5_seek_for_scalar(InputArchive,'N',
                                         MMA.paths['CUPRAD_inputs'] +'/laser_pulse_duration_in_1_e_Efield',
                                         MMA.paths['CUPRAD_inputs'] +'/calculated/laser_pulse_duration_in_1_e_Efield')
-            
+
+        try:
+            self.gas_type = mn.h5_seek_for_scalar(InputArchive,'S',
+                                        MMA.paths['global_inputs'] + '/gas_preset',
+                                        MMA.paths['CUPRAD_inputs'] + '/gas_preset')
+        except:
+            self.gas_type = 'not specified'
+
         self.rgrid = rgrid
         self.Nr = Nr; self.Nt = Nt; self.Nz = Nz
         
