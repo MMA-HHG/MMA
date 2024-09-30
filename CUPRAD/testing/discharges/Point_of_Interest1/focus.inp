@@ -1,7 +1,0 @@
-laser_focus_intensity_Gaussian   inputs	R	W/m^2	0.6e18	0.9e18	-1
-laser_focus_beamwaist_Gaussian   inputs	R	m	110e-6	110e-6	-1
-laser_focus_position_Gaussian   inputs	R	m	0	0.03	11
-
-
-initial_electrons_ratio pre_ionised	R	-	0.04	0.08	-1
-medium_pressure_in_bar	inputs	R	bar	0.01	0.035	-1

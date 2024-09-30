@@ -1,3 +1,0 @@
-laser_intensity_entry   inputs	R	W/m^2	0.85e18	1.2e18	-1
-initial_electrons_ratio pre_ionised	R	-	0.0	0.08	1
-medium_pressure_in_bar	inputs	R	bar	0.01	0.05	7
