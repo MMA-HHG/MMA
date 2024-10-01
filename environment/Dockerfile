@@ -45,4 +45,6 @@ RUN pip3 install -U --no-cache-dir \
     jupyter==1.0.0 \
     jupyterlab==4.1.4 \
     matplotlib==3.8.3 \
-    numpy==1.26.4
+    numpy==1.26.4 \
+    scipy==1.14.1 \
+    ipykernel==6.29.5

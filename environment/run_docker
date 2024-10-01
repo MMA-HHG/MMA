@@ -6,6 +6,11 @@ docker run \
   -v $(pwd):/CUPRAD_TDSE_Hankel -w /CUPRAD_TDSE_Hankel \
   -it cuprad_tdse_hankel bash
 
+# to enable port to local machine for jupyter 
+  docker run \
+  -v $(pwd):/CUPRAD_TDSE_Hankel -w /CUPRAD_TDSE_Hankel \
+  -it -p 8888:8888 cuprad_tdse_hankel bash
+
 # 3. Compile the code
 cmake .
 make

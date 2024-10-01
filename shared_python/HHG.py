@@ -1,6 +1,5 @@
 # import numpy as np
 import units
-import FSPA
 
 # Some HHG characteristics
 
