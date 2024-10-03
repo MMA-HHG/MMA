@@ -15,6 +15,9 @@ docker run \
 cmake .
 make
 
+# 4. For jupyer server to start:
+ jupyter notebook --ip 0.0.0.0 --port 8888 --no-browser --allow-root
+
 # Note: if problems, set for GNU
 export CC=mpicc
 export FC=mpifort

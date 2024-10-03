@@ -51,7 +51,7 @@ export MULTISCALE_SCRIPTS=$MSM_PATH/multiscale/scripts
 
 export FSPA_PATH=$MSM_PATH/FSPA
 
-export MSM_WORK_DIR=/mnt/d/data/work_dir
+export MULTISCALE_WORK_DIR=/mnt/d/data/work_dir
 ```
 
 
