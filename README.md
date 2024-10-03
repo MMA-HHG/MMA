@@ -28,24 +28,30 @@ Here is the list of paths for running the model. The only customised path is the
 export GIT_PATH=/users/k2255939/git # This is the only path that needs to be customised
 
 # These paths are relative to the GIT_PATH
-export UNIV_INPUT_PATH=$GIT_PATH/universal_input
 export MSM_PATH=$GIT_PATH/CUPRAD_TDSE_Hankel
-export PYTHONPATH=$PYTHONPATH:$GIT_PATH/python_modules:$MSM_PATH/shared_python
+export PYTHONPATH=$PYTHONPATH:$MSM_PATH/shared_python
+
 export CUPRAD_HOME=$MSM_PATH/CUPRAD
-export CUPRAD_BINARY=$MSM_PATH/CUPRAD/binary
+export CUPRAD_BUILD=$MSM_PATH/CUPRAD/binary
 export CUPRAD_SCRIPTS=$MSM_PATH/CUPRAD/scripts
-export CUPRAD_INPUTS=$MSM_PATH/CUPRAD/testing
 export CUPRAD_PYTHON=$MSM_PATH/CUPRAD/python
-export TDSE_1D_SOURCE=$MSM_PATH/1DTDSE/
+export PYTHONPATH=$PYTHONPATH:$CUPRAD_PYTHON
+
+export TDSE_1D_HOME=$MSM_PATH/1DTDSE
 export TDSE_1D_POST_PROCESSING=$MSM_PATH/1DTDSE/post_processing
 export TDSE_1D_SCRIPTS=$MSM_PATH/1DTDSE/scripts
 export TDSE_1D_SLURM=$MSM_PATH/1DTDSE/slurm
-export TDSE_1D_BINARY=$MSM_PATH/1DTDSE/binary
+export TDSE_1D_BUILD=$MSM_PATH/1DTDSE/build
+export PYTHONPATH=$PYTHONPATH:$TDSE_1D_HOME
+
 export HANKEL_HOME=$MSM_PATH/Hankel
-export TDSE_1D_HOME=$MSM_PATH/1DTDSE
+
 export MULTISCALE_HOME=$MSM_PATH
 export MULTISCALE_SCRIPTS=$MSM_PATH/multiscale/scripts
-export PYTHONPATH=$PYTHONPATH:$CUPRAD_PYTHON
+
+export FSPA_PATH=$MSM_PATH/FSPA
+
+export MSM_WORK_DIR=/mnt/d/data/work_dir
 ```
 
 
