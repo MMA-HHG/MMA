@@ -20,9 +20,9 @@ The inputs are in the in the form of a text file `param.inp` consting of (all in
 * *the ionization potential of the target* $I_p$,
 * *the fundamental frequency of the driving field* $\omega_0$,
 * *the harmonic order of the interest* $H$,
-* *the minimal value of the vector potential $A_{0,\mathrm{min}}$*
-* *the discretisation in the vector potential $\Delta A$*
-* *the number of steps in the vector potential*
+* *the minimal value of the vector potential $A_{0,\mathrm{min}}$*,
+* *the discretisation in the vector potential $\Delta A$*,
+* *the number of steps in the vector potential*.
 
 The outputs are `times_long.dat`, `times_short.dat`, `phase_long.dat`, `phase_short.dat`.
 
@@ -31,4 +31,4 @@ $I[\mathrm{a.u.}]$ | $\Re(t_i)$ | $\Im(t_i)$  | $\Re(t_r)$ | $\Im(t_r)$  | $\Re(
 where $I[\mathrm{a.u.}] = (\omega_0 A_0)^2$
 
 The file `phase_xxx.dat` contains:\
-$I[\mathrm{a.u.}]$ | $\Re(\Phi)$ | $\Im(\Phi)$ | $\Re((d_{\text{S-P}}))$ | $\Im((d_{\text{S-P}}))$ | $\mathrm{e}^{-\Im(\mathrm{Arg}(d_{\text{S-P}}))}$ | $|d_{\text{S-P}}|$ | $\mathrm{Arg}(d_{\text{S-P}})$ |
+$I[\mathrm{a.u.}]$ | $\Re(\Phi_{\omega})$ | $\Im(\Phi_{\omega})$ | $\Re((d_{\text{S-P}}))$ | $\Im((d_{\text{S-P}}))$ | $\mathrm{e}^{-\Im(\mathrm{Arg}(d_{\text{S-P}}))}$ | $|d_{\text{S-P}}|$ | $\mathrm{Arg}(d_{\text{S-P}})$ |
