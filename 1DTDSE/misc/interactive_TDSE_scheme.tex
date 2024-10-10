@@ -1,0 +1,40 @@
+\documentclass{article}
+\usepackage[paperwidth=5.4in, paperheight=4.1in, margin=0.1in]{geometry}  % Adjust the margin to make the page size smaller
+\usepackage{dirtree}
+\usepackage{caption}
+\pagestyle{empty}
+
+\begin{document}
+\begin{figure}[!hbt]
+    \dirtree{%
+    .1 / \ldots{} 
+        \begin{minipage}[t]{6.5cm} {\fontfamily{cmr}\selectfont
+        Root 1DTDSE folder }\end{minipage} .
+    .2 build/ .
+    .3 libsingleTDSE.so  \ldots{} 
+        \begin{minipage}[t]{7cm} {\fontfamily{cmr}\selectfont
+        Dynamic library (DLL) containing the C functions and routines }\end{minipage} .
+    .3  \vdots{} .
+    .2 PythonTDSE.py  \ldots{} 
+        \begin{minipage}[t]{7cm} {\fontfamily{cmr}\selectfont
+        Master PythonCTDSE script with interfaces to load and execute C routines from the DLL \\}\end{minipage} .
+    .2 PythonCTDSE/ .
+    .3 constants.py \ldots{} 
+        \begin{minipage}[t]{6.5cm} {\fontfamily{cmr}\selectfont
+        Contains physical constants \\} \end{minipage}.
+    .3 ctypes\_helper.py \ldots{} 
+        \begin{minipage}[t]{6.5cm} {\fontfamily{cmr}\selectfont
+        Contains helper functions for arrays and matrices manipulation using
+Python and C \\ } \end{minipage}.
+    .3 plotting.py \ldots{} 
+        \begin{minipage}[t]{6.5cm} {\fontfamily{cmr}\selectfont
+        Contains methods for plotting the PythonCTDSE results conveniently \\ } \end{minipage}.
+    .3 structures.py \ldots{} 
+        \begin{minipage}[t]{6.5cm} {\fontfamily{cmr}\selectfont
+        Contains the C-compatible structures definitions for the Python-C binding \\ } \end{minipage}.
+    .2  \vdots{} .
+    }
+    \caption{PythonCTDSE directory tree with script files. The C dynamic library \texttt{libsingleTDSE.so} is compiled in the \texttt{build/} directory.}
+    \label{fig:PythonCTDSEdir}
+\end{figure}
+\end{document}

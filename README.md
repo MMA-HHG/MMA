@@ -1,12 +1,22 @@
 # MMA for HHG modelling
 
+[link](1DTDSE/README.md)
+
+[link2](jupyter_examples/density_profile/prepare_inputs.ipynb)
+
 Table of content
 
 ## Installations
 Both `CUPRAD` and `CTDSE` are compiled from the source. Hankel is implemented in Python and together with the other Pythonic procedures and scripting around the model rely on setting up the environment variables (one might consider setting up [a virtual environment](https://stackoverflow.com/questions/9554087/setting-an-environment-variable-in-virtualenv) dedicated to this whole project).
-<!--- We head for RC1, use virtual environment, pip, etc. in future releases by default --->  
+<!--- We head for RC1, use virtual environment, pip, etc. in future releases by default --->
 
-Here is the list of requirements
+We provide two ways to obtain the code. The first option uses the Docker image. It is a direct multiplatform user-oriented way to obtain the executable model. This can be used for running the model locally. Moreover, this can be used as a direct reference for compiling the code the second way: directly from the source. This option might be neccessary for deploying the code on HPC clusters, develpoment, …  
+
+## Reference Docker installation
+The code can be accessed through Docker. We provide the direct Docker image, CodeOcean capsule and here we show how to build the code using Docker.
+
+## Custom installations
+Here we provide a more detailed guide for the installation, this is the list of requirements:
 * **CUPRAD**: MPI, FFTW3, parallel HDF5, CMake
 * **CTDSE**: FFTW3, MPI, serial HDF5, CMake (MPI & HDF5 are not needed for the dynamic library), Python with h5py
     * Python ctypes library for the interactive CTDSE
