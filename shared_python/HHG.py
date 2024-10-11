@@ -26,6 +26,7 @@ def ComputeInvCutoff(order,omega,Ip):
   
   return (4.0*omega**2) * (omega*order - Ip)/3.17
 
+# Ionisation potentials in atomic units
 Ip_list={'H' : 0.5,
          'He': 0.9036,
          'Ne': 0.7924,
