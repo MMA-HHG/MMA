@@ -13,7 +13,7 @@ if [ ! -f "$PROCESS_SCRIPT" ]; then
 fi
 
 # Loop through each .h5 file in the source directory
-for FILE in ${SOURCE_DIR}/results_pressure_*.h5; 
+for FILE in ${SOURCE_DIR}/results_cell_*.h5; 
 do
     # Get the base name of the file (e.g., results_pressure_1.h5)
     BASE_NAME=$(basename "$FILE")
@@ -21,7 +21,7 @@ do
     export H5FILE=$BASE_NAME
 
     # Extract the simulation number from the filename using sed
-    SIMULATION_NUMBER=$(echo "$BASE_NAME" | sed -n 's/^results_pressure_\([0-9]*\)\.h5$/\1/p')
+    SIMULATION_NUMBER=$(echo "$BASE_NAME" | sed -n 's/^results_cell_\([0-9]*\)\.h5$/\1/p')
     
     # Create a directory with the extracted simulation number
     DIR_NAME="t${SIMULATION_NUMBER}"
