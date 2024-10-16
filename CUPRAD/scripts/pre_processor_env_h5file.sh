@@ -1,6 +1,7 @@
 #!/bin/bash
 
-var=$(echo $H5FILE)
+# var=$(echo $H5FILE)
+var=$(echo *.h5)
 
 
 echo $h5filename
