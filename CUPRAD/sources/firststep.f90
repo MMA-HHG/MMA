@@ -475,7 +475,6 @@ CONTAINS
 
 
     Nz_points = CEILING(proplength/outlength)+1 ! expected number of hdf5 output along z (with safety)
-    Nz_points_Efield = CEILING(proplength/outlength_Efield)+1 ! expected number of hdf5 output along z (with safety) ! need to add if to compute only once this print is needed
     
     ! CLOSE HDF5 interface (ionisation models will re-open again, but use also write, there are many readers above)
     CALL h5fclose_f(file_id, error)
