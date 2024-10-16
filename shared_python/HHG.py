@@ -1,4 +1,5 @@
 # import numpy as np
+import warnings
 import units
 
 # Some HHG characteristics
@@ -23,7 +24,8 @@ def ComputeInvCutoff(order,omega,Ip):
   
   The related formula is 'E_cutoff = (3.17Up+Ip)'
   '''
-  
+
+  if ((omega*order - Ip)<0): raise ValueError('Selected order is below Ip.')
   return (4.0*omega**2) * (omega*order - Ip)/3.17
 
 # Ionisation potentials in atomic units
@@ -56,6 +58,7 @@ def ComputeInvCutoff_gas(order,omega,gas = 'H'):
   The related formula is 'E_cutoff = (3.17Up+Ip)'
   '''
   
+  if ((omega*order - Ip_list[gas])<0): raise ValueError('Selected order is below Ip.')
   return (4.0*omega**2) * (omega*order - Ip_list[gas])/3.17
 
 
