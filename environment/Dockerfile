@@ -45,6 +45,7 @@ RUN apt-get update \
         python3-pip \
         python3-setuptools \
         python3-wheel \
+        git \
     && rm -rf /var/lib/apt/lists/*
 
 RUN pip3 install -U --no-cache-dir \
@@ -55,4 +56,5 @@ RUN pip3 install -U --no-cache-dir \
     numpy==1.26.4 \
     scipy==1.11.3 \ 
     ipykernel==6.29.5 \
-    multiprocess==0.70.17
+    multiprocess==0.70.17 \
+    git+https://github.com/vabekjan/universal_input.git@pipable#egg=create_universal_HDF5 
