@@ -577,17 +577,17 @@ class pulse_types:
 ## handling HDF5 files
 def adddataset(h_path,dset_name,dset_data,unit):
   dset_id = h_path.create_dataset(dset_name,data=dset_data)
-  dset_id.attrs['units']=np.string_(unit)
+  dset_id.attrs['units']=np.bytes_(unit)
   return dset_id
 
 
 def addrealdataset_setprec(h_path, dset_name, dset_data, unit, precision):
   if ( precision == 'f'):
     dset_id = h_path.create_dataset(dset_name, data=dset_data, dtype='f')
-    dset_id.attrs['units'] = np.string_(unit)
+    dset_id.attrs['units'] = np.bytes_(unit)
   elif (precision == 'd'):
     dset_id = h_path.create_dataset(dset_name, data=dset_data, dtype='d')
-    dset_id.attrs['units'] = np.string_(unit)
+    dset_id.attrs['units'] = np.bytes_(unit)
 
 
 def readscalardataset(file,path,type): # type is (S)tring or (N)umber
@@ -937,14 +937,14 @@ class parameters_selector:
                 adddataset(h_path, 'param_'+str(k1) , self.param_grids[self.varying_params[k1]] , '['+self.units[self.varying_params[k1]] +']' )
             except:
                 adddataset(h_path, 'param_'+str(k1) , self.param_grids[self.varying_params[k1]] , '[?]' )
-        h_path.create_dataset('varying_params',data=np.string_(self.varying_params))
+        h_path.create_dataset('varying_params',data=np.bytes_(self.varying_params))
         
         for k1 in range(self.N_fixed):
             try:
                 adddataset(h_path, self.fixed_params[k1] , self.param_grids[self.fixed_params[k1]] , '['+self.units[self.fixed_params[k1]] +']' )
             except:
                 adddataset(h_path, self.fixed_params[k1] , self.param_grids[self.fixed_params[k1]] , '[?]' )
-        h_path.create_dataset('fixed_params',data=np.string_(self.fixed_params))
+        h_path.create_dataset('fixed_params',data=np.bytes_(self.fixed_params))
 
 
 # array processing

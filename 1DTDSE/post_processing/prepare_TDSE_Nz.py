@@ -9,6 +9,6 @@ with h5py.File(results_file, 'a') as h5f:
     Nz = len(h5f[MMA.paths['CUPRAD_outputs']+'/zgrid'][:])
     
     dset_id = h5f.create_dataset(MMA.paths['CTDSE_inputs']+'/Nz_max', data=Nz)
-    dset_id.attrs['units'] = np.string_('[-]')
+    dset_id.attrs['units'] = np.bytes_('[-]')
 
 print("Added the maximal Nz length ("+str(Nz)+") for CTDSE.")

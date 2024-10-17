@@ -76,11 +76,11 @@ def prepare_ouput_file(f,outf,dset_list):
             dset = f[dsetname]
             newshape =  joint_zr_shape + dset.shape[0:-1]
             newdset = outf.create_dataset(h5path+'/'+dsetname, newshape,precision)
-            newdset.attrs['units'] = np.string_(available_outputs[dsetname]) # add units
+            newdset.attrs['units'] = np.bytes_(available_outputs[dsetname]) # add units
 
         if (dsetname in available_further_data.keys()):
             f.copy(dsetname,outf[h5path])
-            outf[h5path+'/'+dsetname].attrs['units'] = np.string_(available_further_data[dsetname]) # add units
+            outf[h5path+'/'+dsetname].attrs['units'] = np.bytes_(available_further_data[dsetname]) # add units
             
 
 

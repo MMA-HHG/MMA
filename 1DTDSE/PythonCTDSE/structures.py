@@ -186,7 +186,7 @@ class inputs_def(Structure):
                             writewft = 0,
                             tprint = 10.,
                             x_int = 2.,
-                            precision = np.string_('d')
+                            precision = np.bytes_('d')
                             ):
         """
         Initializes default inputs for running 1D-TDSE with custom parameters 
