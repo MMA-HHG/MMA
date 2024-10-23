@@ -125,9 +125,9 @@ def get_propagation_pre_factor_function(zgrid,
                         preset_gas+'_'+dispersion_tables,
                         n_IR = effective_IR_refrective_index)
                     
-                    integral_for_phase_factor = integrate.cumtrapz(
+                    integral_for_phase_factor = integrate.cumulative_trapezoid(
                                                         integrand,
-                                                        pressure['zgrid'],
+                                                        x=pressure['zgrid'],
                                                         initial=0.
                                                         )
                     
@@ -151,9 +151,9 @@ def get_propagation_pre_factor_function(zgrid,
                     integral_beta_factor = XUV_index.beta_factor_ref(
                                             ogrid[k1],
                                             preset_gas+'_'+absorption_tables) * \
-                                       integrate.cumtrapz(
+                                       integrate.cumulative_trapezoid(
                                             pressure['value'],
-                                            pressure['zgrid'],
+                                            x=pressure['zgrid'],
                                             initial=0.
                                             )
                                        
@@ -295,13 +295,13 @@ def get_propagation_pre_factor_function(zgrid,
                 
                 for k2 in range(No):                    
                     if include_dispersion: 
-                        integral_for_phase_factor = integrate.cumtrapz(
+                        integral_for_phase_factor = integrate.cumulative_trapezoid(
                                                             XUV_index.dispersion_function(
                                                                 ogrid[k2], 
                                                                 pressure_my_rgrid[:,k1],
                                                                 preset_gas+'_'+dispersion_tables,
                                                                 n_IR = effective_IR_refrective_index),
-                                                            pressure['zgrid'],
+                                                            x = pressure['zgrid'],
                                                             initial=0.
                                                             )
                         
@@ -325,9 +325,9 @@ def get_propagation_pre_factor_function(zgrid,
                         integral_beta_factor = XUV_index.beta_factor_ref(
                                                 ogrid[k2],
                                                 preset_gas+'_'+dispersion_tables) * \
-                                           integrate.cumtrapz(
+                                           integrate.cumulative_trapezoid(
                                                 pressure_my_rgrid[:,k1],
-                                                pressure['zgrid'],
+                                                x = pressure['zgrid'],
                                                 initial=0.
                                                 )
                                            
@@ -404,7 +404,7 @@ def get_propagation_pre_factor_function(zgrid,
         
         
 def HankelTransform(ogrid, rgrid, FField, distance, rgrid_FF,
-                    integrator = integrate.trapz,
+                    integrator = lambda y, x: integrate.trapezoid(y,x=x),
                     near_field_factor = True,
                     pre_factor = 1.):
     """
@@ -486,7 +486,7 @@ class Hankel_long:
                  dispersion_tables = 'Henke',
                  include_dispersion = True,
                  effective_IR_refrective_index = 1.,
-                 integrator_Hankel = integrate.trapz,
+                 integrator_Hankel = lambda y, x: integrate.trapezoid(y,x=x), # integrate.trapz,
                  integrator_longitudinal = 'trapezoidal',
                  near_field_factor = True,
                  store_cummulative_result = False,
