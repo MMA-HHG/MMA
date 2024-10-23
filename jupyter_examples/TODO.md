@@ -5,6 +5,7 @@ tasks:
  * visualise gas cell ouput
  * density profile input ✓
  * density profile output
- * Bessel beams example
+ * Bessel beams input ✓
+ * Bessel beams output
  * coherence maps example
  * interactive TDSE example
