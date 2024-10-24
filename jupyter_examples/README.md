@@ -1,0 +1,9 @@
+## Jupyter examples to operate the multiscale model
+
+This directory contains various jupyter tutorials to operate the multiscale model:
+
+* **Standard operation in a gas cell:** This example shows how to set up a simulation for the simplest configuration available in the code: a Gaussian entry profile propagating through a homegeneous gas progile (gass cell). Furthemore, [the preparatory jupyter notebook](./gas_cell/prepare_cell.ipynb) shows how to create a list of simulations (a scan in a given parameter), and two possibilites of the inputs: directly creating hdf5 archive or text-based inputs compatible with [a universal parser](https://github.com/vabekjan/universal_input).
+* **User-specified density profile:** This example introduces a possibility how to model an arbitrary density profile, it both [creates the input file](./density_profile/prepare_density_profile.ipynb) and [visualises the results](./density_profile/analyse_density_profile.ipynb).
+* **User-specified input pulse:** This example introduces a possibility how to use an arbitrary input field, it both [creates the input file](./Bessel-Gauss_beams/prepare_Bessel.ipynb) and [visualises the results](./Bessel-Gauss_beams/analyse_Bessel.ipynb). Bessel-Gauss beams are used in this example.
+* **Simplified HHG modeling by masking the laser profiles:** This example shows how to 
+* **Interactive TDSE:** [This example](./interactive_TDSE/analytic_chirped_pulse.ipynb) shows how to use the 1D-TDSE interface to the C-code directly from Python. It shows how to retrieve the wavefunction, Gabor transform, photoelectron spectrum, ...
