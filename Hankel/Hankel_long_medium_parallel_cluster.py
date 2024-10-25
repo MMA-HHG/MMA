@@ -175,7 +175,7 @@ with h5py.File(file, 'r') as InpArch:
     HL_res.entry_plane_transform = np.empty(newshape,dtype=HL_res.cummulative_field.dtype)
     HL_res.exit_plane_transform  = np.empty(newshape,dtype=HL_res.cummulative_field.dtype)
     
-    # outputs that are present only of required
+    # outputs that are present only if required
     if 'cummulative_field' in dir(HL_res):
         oldshape = np.shape(HL_res.cummulative_field)
         newshape = (oldshape[0],) + (Nr_FF, No_sel)

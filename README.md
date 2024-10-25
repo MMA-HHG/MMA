@@ -1,10 +1,24 @@
-# MMA for HHG modelling
+# Multiscale modular approach (MMA) for HHG modelling
+This repository contains the sources for the Multiscale Modular Approach (MMA) for High-Harmonic Generation (HHG) modelling and tutorials showing examples of usage. It is still under active development and there will be frequent updates.
 
-[link](1DTDSE/README.md)
+The model provides a full solution to treat HHG in gaseous media: the laser pulse propagation, the single-atom response, and the XUV propagation. The design of the code is modular and each of the respective modules can be used independently for its own purposes without requiring the other modules. The assumtions in thew model are the linear polarisation and cyllindrical symmetry in the macroscopic propagation.
 
-[link2](jupyter_examples/density_profile/prepare_inputs.ipynb)
+[An installation guide is below](#installations), a general overview is available in a pre-print. The compiled version of the code is accessible through [***CodeOcean capsule***](https://codeocean.com/capsule/6775529/tree). Different modes of the operation of the code are provided in [***the jupyter tutorials***](./jupyter_examples/README.md). The respective directories provide more technical details about the codes: [CUPRAD](./CUPRAD/README.md), [1D-TDSE](./1DTDSE/README.md) and [the Hankel transform](./Hankel/README.md).
 
-Table of content
+**Contacts to the authors**: \
+Jan Vábek: [Jan.Vabek@eli-beams.eu](Jan.Vabek@eli-beams.eu) \
+Fabrice Catoire: [fabrice.catoire@u-bordeaux.fr](fabrice.catoire@u-bordeaux.fr) \
+Stefan Skupin: [stefan.skupin@univ-lyon1.fr](stefan.skupin@univ-lyon1.fr)
+
+**Notes and disclaimers:**
+* [***Subscribe for news!***](https://bit.ly/HHG-code-updates
+)
+* The code is still in the final development and testing. There will be no new major features in the first release. The interfaces may still evolve, and some bugs may be present.
+* The code is provided as it is with open source. We cannot provide guarantee for its usage.
+* We are a small developer's group and our primary occupation is science. We would be grateful to discuss the usage of the code. However, we cannot provide a commerce-level full-scale support. 
+* We would be grateful for your feedback!
+* We are working on more advanced siblings of the codes (3D-vectorial pulse propagation, 3D-TDSE) that will not be a part of the first release. Please contact authors for possible collaborations if you need the more advanced features.
+
 
 ## Installations
 Both `CUPRAD` and `CTDSE` are compiled from the source. Hankel is implemented in Python and together with the other Pythonic procedures and scripting around the model rely on setting up the environment variables (one might consider setting up [a virtual environment](https://stackoverflow.com/questions/9554087/setting-an-environment-variable-in-virtualenv) dedicated to this whole project).
@@ -14,6 +28,31 @@ We provide two ways to obtain the code. The first option uses the Docker image. 
 
 ## Reference Docker installation
 The code can be accessed through Docker. We provide the direct Docker image, CodeOcean capsule and here we show how to build the code using Docker.
+
+The environment for Docker is set in [the Dockerfile](./environment/Dockerfile). The installation is done by the following recipe:
+
+1) [Docker](https://www.docker.com/) needs to be installed.
+2) Go to the root directory of the project and build the docker image
+
+        cd environment && docker build . --tag cuprad_tdse_hankel; cd ..
+   The `tag  cuprad_tdse_hankel` specifies the name of the image and can be changed. After running the command, the docker image is build.
+
+3) Execute the cpasule by
+
+        docker run -v $(pwd):/CUPRAD_TDSE_Hankel -w /CUPRAD_TDSE_Hankel -it [-p 8888:8888] cuprad_tdse_hankel bash
+
+    The options `-v` and `-w` are used to bind the local filesystem with the Docker image. The binaries then will be compiled into the parent filesystem. The option `-p 8888:8888` is optional and enables the port for a jupyter server.
+
+4) Compile the code within the docker image by running
+
+        cmake .
+        make
+
+5) The code is now ready within the Docker image. The exacutables can be executed from the command line. [The jupyter examples](./jupyter_examples/README.md) can be accessed from the parent machine through the jupyter server executed by:
+
+        jupyter notebook --ip 0.0.0.0 --port 8888 --no-browser --allow-root
+
+    This provides a link to the server that can be opened in a browser on the parent system.
 
 ## Custom installations
 Here we provide a more detailed guide for the installation, this is the list of requirements:
@@ -147,7 +186,7 @@ The global inputs are stored in the `global_inputs` groups, they might be used b
   * `initial_electrons_ratio`: The pre-ionisation relative to the *local gas density*.
 
 ### CUPRAD
-The input parameters of CUPRAD are stored in `CUPRAD/inputs` group. The default input beam and pulse are Gaussian profiles (see the example in <span style="color:red">JUPYTER NOTEBOOK</span> for a customised field profile). Some inputs might be alternated (there are more ways to specify the geometry of the beam or the duration of the pulse, ...). The alternative inputs are stored in the `calculated` subgroup created by the pre-processor.
+The input parameters of CUPRAD are stored in `CUPRAD/inputs` group. The default input beam and pulse are Gaussian profiles (see the example in [this jupyter notebook](./jupyter_examples/Bessel-Gauss_beams/prepare_Bessel.ipynb) for a customised field profile). Some inputs might be alternated (there are more ways to specify the geometry of the beam or the duration of the pulse, ...). The alternative inputs are stored in the `calculated` subgroup created by the pre-processor.
 * **laser**
   * **`laser_wavelength`**: The central wavelength, $\lambda$, of the driving field.
   * **beam geometries and the entry intensity**: (It is obligatory to use one of the sets.)
@@ -244,7 +283,7 @@ Flags `print_xxx` define whether a given output is stored.
 ## Execution pipeline
 
 
-# Standalone operations
+## Standalone operations
 
 
 
