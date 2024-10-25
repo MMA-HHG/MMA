@@ -5,6 +5,8 @@ The model provides a full solution to treat HHG in gaseous media: the laser puls
 
 [An installation guide is below](#installations), a general overview is available in a pre-print. The compiled version of the code is accessible through [***CodeOcean capsule***](https://codeocean.com/capsule/6775529/tree). Different modes of the operation of the code are provided in [***the jupyter tutorials***](./jupyter_examples/README.md). The respective directories provide more technical details about the codes: [CUPRAD](./CUPRAD/README.md), [1D-TDSE](./1DTDSE/README.md) and [the Hankel transform](./Hankel/README.md).
 
+The last point to address is the execution of the code. If used locally, CUPRAD and TDSE are standard MPI applications and Hankel a Pythonic module. Once running on HPC clusters, a scheduler is involved. The code is then executed as [a pipeline of the different modules](#execution-pipeline).
+
 **Contacts to the authors**: \
 Jan Vábek: [Jan.Vabek@eli-beams.eu](Jan.Vabek@eli-beams.eu) \
 Fabrice Catoire: [fabrice.catoire@u-bordeaux.fr](fabrice.catoire@u-bordeaux.fr) \
@@ -14,6 +16,7 @@ Stefan Skupin: [stefan.skupin@univ-lyon1.fr](stefan.skupin@univ-lyon1.fr)
 * [***Subscribe for news!***](https://bit.ly/HHG-code-updates
 )
 * The code is still in the final development and testing. There will be no new major features in the first release. The interfaces may still evolve, and some bugs may be present.
+* *The compatibility of hdf5-files during the development is not guaranteed!*
 * The code is provided as it is with open source. We cannot provide guarantee for its usage.
 * We are a small developer's group and our primary occupation is science. We would be grateful to discuss the usage of the code. However, we cannot provide a commerce-level full-scale support. 
 * We would be grateful for your feedback!
@@ -107,7 +110,7 @@ export MULTISCALE_WORK_DIR=/mnt/d/data/work_dir
 #### Modules and libraries
 When used locally on a personal computer, the libraries (FFTW3, CMake, …) are typically installed by a user. If using the code or a part of it, the corresponding libraries must be installed before. (Sharing needs to be enebled for FFTW3, see details below for the dyamic-library CTDSE.)
 
-[The modules](https://hpc-wiki.info/hpc/Modules) provide all the necessary libraries for the code when using a computational cluster. The script `Modules/load_modules.sh` is used to load all the modules. There is a list of modules for various computational clusters specified by the variable `$HPC`. Another supercomputer (or compilation option intel/GNU/...) should be added there.
+[The modules](https://hpc-wiki.info/hpc/Modules) provide all the necessary libraries for the code when using a computational cluster. The script [`Modules/load_modules.sh`](./Modules/load_modules.sh) is used to load all the modules. This function are supposed to be added into the environemnt (e.g. by sourcing the script in `.bash_aliases`). There is a list of modules for various computational clusters specified by the variable `$HPC`. Another supercomputer (or compilation option intel/GNU/...) should be added there.
 
 There are two `bash` functions `load_modules` and `load_python_modules`. The former is activated when running *CUPRAD* and *CTDSE*, while the latter is used for all Pythonic operations around the code. (The reason for this duality is that Python might need to load a compiler itself for some libraries, typically on intel.) 
 
@@ -279,12 +282,28 @@ Flags `print_xxx` define whether a given output is stored.
 
 
 ### Hankel
+* **`Harmonic_range`** (2-component array): The spectral range in the spectral domain, relative to the fundamental frequency defined by the `laser_wavelength`.
+* **`ko_step`**: The stride in the provided omega grid (this grid is inherited from TDSE).
+* **`Nr_max`**: The maximal index of the provided radial grid in the interaction volume used for the integration.
+* **`kr_step`**: The stride along the radial grid for the radial intagration.
+* **`Nr_FF`**: "The number of pixels on the far-field detector."
+* **`rmax_FF`**: The maximal far-field radial coordinate.
+* **`distance_FF`**: The distance of the XUV detector (measured from the entry of the interaction volume).
+* **`XUV_table_type_dispersion`**: The tables in the XUV range used for the dispersion ([`NIST`](https://physics.nist.gov/PhysRefData/FFast/html/form.html) and [`Henke`](https://henke.lbl.gov/optical_constants/asf.html) are available in the code.)
+* **`XUV_table_type_dispersion`**: The tables in the XUV range used for the absorption ([`NIST`](https://physics.nist.gov/PhysRefData/FFast/html/form.html) and [`Henke`](https://henke.lbl.gov/optical_constants/asf.html) are available in the code.)
+* **`store_cumulative_result`**: Option to keep the cumulative integral along $z$.
+* **`Nthreads`**: The number of threads used by the multiprocessing.
 
 ## Execution pipeline
+The model consists of three main jobs: 1) CUPRAD for the laser pulse propagation; 2) TDSE for the microscopic response, and 3) the Hankel transform for the far-field XUV distribution. There are some further auxiliary tasks in the pipeline:
+1) CUPRAD pre-processor.
+2) the main MPI CUPRAD job,
+3) adjusting the TDSE parameters to the real number of steps in $z$,
+4) the main MPI TDSE job,
+5) the merge & clean of the temporary TDSE files,
+6) the Hankel transform.
 
-
-## Standalone operations
-
+These jobs can be scheduled at once usind dependencies. [Here](./multiscale/scripts/README.md) we discuss an example of this pipeline.
 
 
 
