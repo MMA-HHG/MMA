@@ -1,30 +1,31 @@
 <!-- omit in toc -->
 # CTDSE
+This direcotry contains the CTDSE module. We first discuss the core ideas of the implementation (see the pre-print for more details). It is followed by the description of the two main applications: [the MPI-TDSE scheduler used to process the outputs of the CUPRAD code](#mpi-tdse-scheduler) and [the Pythonic interface to directly access the solver](#interactive-ctdse-pythonic-interface-to-the-dynamic-library).
 
-## Details of the implementaiton
-
+## The main idea of the solver
+CTDSE is a 1-dimensional time-dependent Schrödinger equation solver (1D-TDSE) written in C language. The purpose of the code is to evaluate the microscopic response, i.e. the observables, during the propagation of the electric field. The solver is based on the grid method and the propagation scheme employs operator splitting and the Crank-Nicolson (CN) method. Each advancement of the wavefunction $\vec{\psi}$ dicretised on a spatial grid: $\vec{\psi}^{(i)}=\vec{\psi}(t_i) \to \vec{\psi}(t_i + \Delta t) = \vec{\psi}^{(i+1)}$, is done in 3 substeps:
 $$
 \begin{align}
-\vec{\psi}^{(i,1)} &= \left(M_2 + \frac{\mathbf{i} \Delta t}{2} -\mathbf{i} \Delta t M_2 V_C \right) \vec{\psi}^{(i)}\,, \\
-\vec{\psi}^{(i,2)} &= \left(M_2 + \frac{\mathbf{i} \Delta t}{2} -\mathbf{i} \Delta t M_2 V_C \right)^{-1} \vec{\psi}^{(i,1)} \,, \\
+\vec{\psi}^{(i,1)} &= \left(M_2 + \frac{\mathbf{i} \Delta t}{2}\Delta_2 -\mathbf{i} \Delta t M_2 V_C \right) \vec{\psi}^{(i)}\,, \\
+\vec{\psi}^{(i,2)} &= \left(M_2 + \frac{\mathbf{i} \Delta t}{2}\Delta_2 -\mathbf{i} \Delta t M_2 V_C \right)^{-1} \vec{\psi}^{(i,1)} \,, \\
 \psi_j^{(i+1)} = \psi_j^{(i,3)} &= \mathrm{e}^{-\mathbf{i} \Delta t \mathcal{E}(t_i) x_j} \psi_j^{(i,2)} \,, & \forall j.
 \end{align}
 $$
-
-CTDSE is a 1-dimensional time-dependent Schrödinger equation solver (1D-TDSE) written in C language. The purpose of the code is to evaluate the microscopic response, i.e. the observables, during the propagation of the electric field. The solver is based on the grid method and the propagation scheme employs operator splitting and the Crank-Nicolson method. 
+The first two substeps realise the CN step including the Coulomb interaction $V_C$ and the 2nd order Laplacian $\Delta_2$ improved by the Numerov's matrix $M_2$; the third substep provides the action of the laser field $\mathcal{E}$. A more detailed overview is provided in the main paper, while particularities of the implementation are commented in the source.
 
 The code offers multiple binaries and interactive interfaces for various tasks:
 * **MPI-CTDSE**: computation of microscopic responses in the whole medium for cylindrically symmetrical macroscopic fields from CUPRAD,
-* **single-CTDSE**: evaluation of a single microscopic response for only one field from the macroscopic CUPRAD field
 * **CTDSE as a dynamic library**: interactive Python interface wrapping C routines for the propagation enabling advanced analysis of the microscopic response as well as the ability to impose arbitrary electric field. 
 
 The default recipe allows the installation of all the binaries. We provide also a simpler installation for the *CTDSE as a dynamic library*.
 
 
-<!-- omit in toc -->
+## MPI TDSE scheduler
+This executable is meant to take the electric fields produced by [CUPRAD](../CUPRAD/README.md). The electric fields are partitioned and each processor computes its part of TDSE's. The results from different processors are stored in temporary files. THese files are then merged into the main archive by Pythonic script `post_processing/merge.py`.
+
 
 ## Interactive CTDSE (Pythonic interface to the dynamic library)
-We provide the technical overview of the interactive Python interface for operating the CTDSE computational routines. First, we need to establish the technical details and caveats behind Python-C binding using [Ctypes Python library](https://docs.python.org/3/library/ctypes.html) and explain the overall code structure. Next, the key elements of the interface are introduced. Finally, brief examples of how to set up the CTDSE computation from Python accompanied by example code will be shown. 
+The Python-TDSE wrapper is an API that binds compiled C dynamic library using [Ctypes Python library](https://docs.python.org/3/library/ctypes.html), containing CTDSE functions, with the convenient Python interface.  Because the C language utilizes allocatable arrays and pointers, the approach inevitably comes with many caveats such as memory freeing, etc. The methods for loading the C arrays and freeing memory are implemented, however the user has to manually delete memory once access to the data is no longer required.
 
 ### General overview of c-wrapping into Python
 The aim of the Python-C interface is to simplify significantly the usage of C functions and routines with the flexibility and accessibility of Python language while exploiting the efficiency of the compiled C code. Ctypes library is specifically designed for this task and provides the neccessary data types and tools for executing the C code from Python.
@@ -34,7 +35,7 @@ Python is, by construction, a dynamically-typed language, meaning every variable
 The memory allocation of pointers defined with Ctypes comes with the corresponding deallocation. Thus the interface consists of memory-freeing routines in the C dynamic library. However, once the reference for the Ctypes datatype object is lost, e.g. by instantiating a new object, the memory remains reserved in the OS. It is therefore the responsibility of the user to free the objects and arrays where necessary to avoid the memory leakage. 
 
 ### Wrapper's structure
-The PythonCTDSE library consists of a master script `pythonTDSE.py` containing the main execution routines for operating the C dynamic library (DLL) `libsingleTDSE.so`, and it loads other helper modules within the `PythonCTDSE/` directory, as sketched in the following graphics. Thus it is neccessary to import only the `PythonTDSE` module in Python to use the PythonCTDSE wrapper. The code in every module is supplemented by docstrings describing each method and its arguments. 
+The PythonCTDSE library consists of a master script `pythonTDSE.py` containing methods, classes, and main execution routines for operating the C dynamic library (DLL) `libsingleTDSE.so`, and it loads other helper modules within the `PythonCTDSE/` directory, as sketched in the following graphics. Thus it is neccessary to import only the `PythonTDSE` module in Python to use the PythonCTDSE wrapper. The code in every module is supplemented by docstrings describing each method and its arguments. 
 
 ![fig2](misc/interactive_TDSE_scheme.png)
 
@@ -135,270 +136,7 @@ Last, the computed data and input data can be stored into an HDF5 archive file a
 In addition to the methods for 1D-TDSE computation and memory handling, the DLL contains also two postprocessing methods. Gabor transform is a class of short-time Fourier transforms used for a spectro-temporal analysis of the electron current. The interface provides fast and efficient implementation of the transform as `gabor_transform` method. The photoelectron spectrum is acquired from the wavefunction in particular time using the `compute_PES` method. The latter method is very computationally demanding, taking tens of seconds to compute depending on the energy grid resolution.
 
 
-# Table of contents
-- [Install CTDSE as a part of the multiscale model](#install-ctdse-as-a-part-of-the-multiscale-model)
-	- [Dependencies](#dependencies)
-	- [Setup environment variables](#setup-environment-variables)
-		- [Known issues with environment variables](#known-issues-with-environment-variables)
-	- [CMake installation](#cmake-installation)
-		- [Built targets](#built-targets)
-- [Install only the dynamic CTDSE library](#install-only-the-dynamic-ctdse-library)
-	- [Dependencies](#dependencies-1)
-	- [CMake installation](#cmake-installation-1)
-- [Test installation](#test-installation)
-- [User guide](#user-guide)
-	- [MPI-TDSE for the CUPRAD output](#mpi-tdse-for-the-cuprad-output)
-		- [Preprocessing the HDF5 input](#preprocessing-the-hdf5-input)
-		- [MPI-TDSE code execution](#mpi-tdse-code-execution)
-		- [HDF5 temporary files merge](#hdf5-temporary-files-merge)
-		- [Batch job pipeline for MPI-TDSE](#batch-job-pipeline-for-mpi-tdse)
-	- [Single field caller](#single-field-caller)
-	- [Python-TDSE wrapper](#python-tdse-wrapper)
 
-
-
-
-
-
-
-# User guide
-
-## MPI-TDSE for the CUPRAD output
-MPI-TDSE scheduler takes the output field obtained from the previous computation of the CUPRAD code. The scheduler reads the fields from an HDF5 archive and for each field in $(r, z)$ coordinate executes a single 1DTDSE propagation routine. Each process stores the result data in its dedicated temporary HDF5 archive, e.g. for process 1 it will be ```hdf5_temp_0000001.h5```. 
-
-Before the execution of the MPI-TDSE, we must preprocess the output ```results.h5``` file from CUPRAD.
-
-### Preprocessing the HDF5 input
-The file ```results.h5``` is, by default, stored within the ```CUPRAD/build/``` directory after the execution of CUPRAD. It will be copied and preprocessed from this directory by default (can be overridden). 
-
-<!-- omit in toc -->
-#### Parameter file
-The input file `TDSE_input_params.inp` is an example input file containing numerical parameters for the execution of the MPI-TDSE code. **Be advised to keep a backup of this file before overwriting it with custom parameters**. 
-The file has a predefined structure along with explanatory comments for each parameter and looks as follows:
-```
-## Example TDSE input file used for preprocessing of HDF5 file
-## ------------------
-## This file is read by the python preprocessor ```post_processing/prepare_TDSE.py```
-## and saves the values stored here into the HDF5 archive into the group 
-## "TDSE_inputs/". 
-##
-## Brief explanation:
-## HDF5_variable_name  |  <value>  |  <type: real (R), integer (I)>  |  <units>  |  # comment
-
-## Coarser grid parameters
-kz_step 1  I   -
-# Nz_max  1250 I   -
-kr_step 4  I   -
-Nr_max  400 I   -
-
-## Control outputs: here we set the outputs we would like to save into 
-## the temporary HDF5 file (1 == keep, 0 == not keep)
-print_GS_population             1   I   -   
-print_integrated_population     1   I   -
-print_Efield                    1   I   -
-print_F_Efield                  0   I   -
-print_Source_Term               0   I   -
-print_F_Source_Term             1   I   -
-print_x_expectation_value       1   I   -
-print_GS                        1   I   -
-print_F_Efield_M2               0   I   -
-print_F_Source_Term_M2          0   I   -
-
-## Numerical and starting parameters
-Eguess	-1	R	a.u.	# Energy of the initial state (guess)
-N_r_grid	16000	I	-	# Number of points of the initial TDSE spatial grid 
-dx	0.4	    R	a.u.	# Resolution for the grid
-x_int	2.0	R	a.u.    # Probability for finding electron in range (x-x_int, x + x_int)
-CV_criterion_of_GS  1e-25   R   -   # Convergence parameter for ground state search
-gauge_type  0   I   -   # Choice of gauge (0 == length) <-- other gauges NOT IMPLEMENTED
-InterpByDTorNT	0	I	-	# Refine resolution only for numerical fields (0 - by dt, 1 - by number of points)
-dt	0.25	R	a.u.	# Resolution in time
-Ntinterp	1	I	-	# Number of intermediate points for the interpolation
-
-## Target definition
-trg_a	1.3677	R	a.u. # |Krypton Ip = 0.5145 a.u. a = 1.3677, Argon Ip = 0.5792 a = 1.1893
-```
-
-<!-- omit in toc -->
-##### Coarser grid parameters
-The parameters `Nz_max` and `Nr_max` for grid coarsening are optional. Enables to coarsen the CUPRAD electric grid for the computation, decreasing the resolution for the MPI-TDSE.
-
-<!-- omit in toc -->
-##### Control outputs
-Enables the selection of which parameters should be stored in the temporary HDF5 files generated per process containing the results of MPI-TDSE. 
-
-<!-- omit in toc -->
-##### Numerical and starting parameters
-The notes are self-explanatory. **Be advised to always check the TDSE parameters such as `dx`, `dt`, and `N_r_grid` for a proper wavefunction convergence, the code does not check if the resolution is sufficient!** Note that the `gauge` switch has not been implemented in the current version of the code. 
-
-
-<!-- omit in toc -->
-#### Saving the parameters into an HDF5 file
-After choosing the desired parameters in the input file, simply run the Python script ```prepare_TDSE.py``` in the ```post_processing``` directory from the root TDSE directory using command line keywords `-i (--paramfile)` (.inp parameter file)  and `-o (--outhdf5)` (.h5 output file) as follows:
-```bash
-# PWD = ../CUPRAD_TDSE_Hankel/1DTDSE
-python3 post_processing/prepare_TDSE.py -i input_parameters.inp -o output_archive.h5
-```
-
-For help with the script execution, the user can receive a help message simply by
-```bash
-# PWD = ../CUPRAD_TDSE_Hankel/1DTDSE
-python3 post_processing/prepare_TDSE.py -h
-```
-
-The script will create a copy of the HDF5 file in the directory from which the script was called. If the output hdf5 file is in the same directory as the .h5 results file from CUPRAD, the TDSE inputs are appended to the archive.
-
-We can also preprocess the HDF5 file using a batch job Slurm script as follows:
-```bash
-# PWD = ../CUPRAD_TDSE_Hankel/1DTDSE
-sbatch --export=ALL scripts/prepare_TDSE.sh -i input_parameters.inp -o output_archive.h5 -s
-```
-The option ```--export=ALL``` is necessary for passing the exported variables from the current terminal instance to the batch job. The `-s (--slurm)` option tells the script it is running within the Slurm environment and needs to load the corresponding Python modules. You can again invoke `-h` command for help.
-
-<!-- omit in toc -->
-#### Check the HDF5 file before the execution of the MPI-TDSE – non-obligatory
-To check if all the important parameters have been printed successfully by the Python preprocessor, the script ```hdf5_check.py``` skims through the HDF5 file to find the corresponding parameters necessary for running the MPI-TDSE. It tells the user which parameters are missing. The script can be executed in two ways. Either through command line arguments:
-```bash
-# PWD = ../CUPRAD_TDSE_Hankel/1DTDSE
-python3 hdf5_check.py -i result_file_to_check.h5
-```
-or by simply running the script without the CL argument as
-```bash
-# PWD = ../CUPRAD_TDSE_Hankel/1DTDSE
-python3 hdf5_check.py
-```
-where the script will interactively ask explicitly for the file to be checked:
-```bash
-Type the HDF5 file to check with relative path: 
-result_file_to_check.h5
-*******************************
-
-All OK.
-Check finished.
-```
-
-### MPI-TDSE code execution
-Now with the HDF5 file already preprocessed, we can execute the MPI-TDSE code as
-```bash
-# PWD = ../CUPRAD_TDSE_Hankel/1DTDSE
-mpirun -np N_proc ./build/TDSE.e
-```
-or using a batch job Slurm script ```MPI_TDSE.slurm``` as follows:
-```bash
-# PWD = ../CUPRAD_TDSE_Hankel/1DTDSE
-sbatch --ntasks=N_proc --export=ALL scripts/MPI_TDSE.slurm
-```
-The option ```--export=ALL``` is necessary for passing the exported variables from the current terminal instance to the batch job. The number of tasks ```--ntasks=N_proc``` must be specified.
-
-**Note: the file `msg.tmp` containing the name of the preprocessed CUPRAD file with the TDSE input parameters must be located in the code execution directory!** If no `msg.tmp` file is available, the code exits with an error! The "msg.tmp" contains the HDF5 archive name on the first line:
-```
-CUPRAD_results_file.h5
-
-
-```
-
-
-The MPI-TDSE schedules each process with a section of data from the output electric field computed from CUPRAD and executes independently a 1D-TDSE per field. It is an *embarrassingly parallel* algorithm in principle. 
-
-In the beginning, each process allocates its own temporary output HDF5 file in the format ```hdf5_temp_*.h5``` ending with an ID of the corresponding process. Hence for ```N_proc``` processes, we get the ```N_proc``` number of temporary HDF5 files. The output arrays are preallocated in advance within the MPI-TDSE code and then the code prints the preselected values, see section [Parameter file](#parameter-file), into these arrays. 
-
-### HDF5 temporary files merge
-We need to merge the temporary ```N_proc``` results ```hdf5_temp_*.h5``` into a single HDF5 file for further analysis. This is done using the last script ```merge.py``` within the ```post_processing``` folder. We invoke the script from the directory with the temporary HDF5 files as follows:
-```bash
-# PWD = ../CUPRAD_TDSE_Hankel/1DTDSE
-python3 post_processing/merge.py
-```
-This will automatically align all the output fields into a single large array of a new HDF5 file ```results_merged.h5```.
-
-If we want to save some space, we can extract only selected arrays of data. The merging script accepts specific CL arguments that enable the choice of relevant arrays. We can see help information (using CL argument ```-h```) from the script:
-```bash
-# PWD = ../CUPRAD_TDSE_Hankel/1DTDSE
-python3 post_processing/merge.py -h
-usage: merge.py [-h] [-p PRINTDATA [PRINTDATA ...]]
-
-optional arguments:
-  -h, --help            show this help message and exit
-  -p PRINTDATA [PRINTDATA ...], --printdata PRINTDATA [PRINTDATA ...]
-                        Select data to print. Available options are 'Efield',
-                        'FEfield', 'SourceTerm', 'FSourceTerm', 'FEfieldM2',
-                        'FSourceTermM2', 'PopTot', 'PopInt', 'expval_x'
-```
-See we can select only a few specific arrays to store: 'Efield', 'FEfield', 'SourceTerm', 'FSourceTerm', 'FEfieldM2', 'FSourceTermM2', 'PopTot', 'PopInt', 'expval_x'. 
-
-To select only 'Efield' and 'SourceTerm', we can type:
-```bash
-python3 post_processing/merge.py -p Efield SourceTerm
-```
-which will merge the corresponding outputs into the merged results HDF5 file. By default, it merges all the available outputs.
-
-We can also merge the data using a batch job Slurm script ```merge_hdf5.sh``` as follows
-```bash
-# PWD = ../CUPRAD_TDSE_Hankel/1DTDSE
-sbatch --export=ALL scripts/merge_hdf5.sh -p "Efield SourceTerm" -s
-```
-The user can specify which variables are stored with the merge operation by the ```-p (--printdata)``` option, the available options as mentioned above. The `-s (--slurm)` option tells the script it is running within the Slurm environment and needs to load the corresponding Python modules. You can again invoke the `-h` command for help.
-
-### Batch job pipeline for MPI-TDSE
-To summarize, we provide the following Slurm batch job pipeline for the MPI-TDSE. For start, we assume having the data from CUPRAD saved as `results.h5`, without the TDSE inputs group embedded in. 
-
-1. We create a copy of the parameter file `TDSE_input_params.inp` with the desired input parameters for the MPI-TDSE as `inp_file.inp`.
-2. The following bash commands are executed:
-	```bash
-	### Input file
-	inp_tdse_filename=/path/to/inp_file/inp_file.inp 
-	### HDF5 archive
-	h5_filename=/path/to/res_file/results.h5
-	### Number of tasks for the MPI-TDSE, say 32
-	ntasks_tdse=32
-	### Print data
-	printdata="Efield SourceTerm"
-
-	### Preprocess input for MPI-TDSE
-	JOB1=$(sbatch --parsable --export=ALL \
-        $TDSE_1D_SCRIPTS/prepare_TDSE.sh --inp $inp_tdse_filename --ohdf5 $h5_filename -s)
-
-	### Submit MPI-TDSE
-	JOB2=$(sbatch --ntasks=$ntasks_tdse --parsable --export=ALL --dependency=afterok:$JOB1 \
-        $TDSE_1D_SCRIPTS/MPI_TDSE.sh)
-
-	### Merge TDSEs
-	JOB3=$(sbatch --parsable --export=ALL --dependency=afterok:$JOB2 \
-        $TDSE_1D_SCRIPTS/merge_hdf5.sh -p $printdata -s)
-	```
-	Note the variable `TDSE_1D_SCRIPTS` is set in advance for the whole multiscale model. 
-3. The dependency jobs are then submitted to the Slurm queue. 
-
-## Single field caller
-The single field caller is the option to run the C-TDSE on a single input from the CUPRAD field output without the Pythonic environment and MPI. 
-
-**Note: the file `msg.tmp` containing the name of the preprocessed CUPRAD file with the TDSE input parameters must be located in the code execution directory!** If no `msg.tmp` file is available, the code exits with an error! The "msg.tmp" contains the HDF5 archive name on the first line:
-```
-CUPRAD_results_file.h5
-
-
-```
-
-First, the caller prints out the dimensions of the CUPRAD field array, e.g.:
-```
-Radial (r) dimension: 1024 
-Propagation (z) dimension: 151
-```
-The caller then asks the user for the indices in the CUPRAD field array. For indices (512, 75) we type:
-```
-Set the index in the radial dimension: 512
-Set the index in the propagation dimension: 75
-```
-The binary then computes the CTDSE given the input parameters in the preprocessed `CUPRAD_results_file.h5` and indices of the field. The output is stored in the new HDF5 file `results_(512,75).h5`.
-
-## Python-TDSE wrapper
-The Python-TDSE wrapper is an API that binds compiled C dynamic library, containing CTDSE functions, with the convenient Python interface. The methods and classes are located in the `PythonTDSE.py` file. 
-
-Because the C language utilizes allocatable arrays and pointers, the approach inevitably comes with many caveats such as memory freeing, etc. The methods for loading the C arrays and freeing memory are implemented, however the user has to manually delete memory once access to the data is no longer required. 
-
-A detailed explanation of the Python-TDSE wrapper is provided in the Jupyter Notebook file `PythonTDSE.ipynb`.
-
-
-<!-- # Development
 
 ## Goals
 TDSE is used as a part of the multi-scale model. It is also usefull itself for various solely microscopic studies. Furthemore, it might have more usages for the macroscopic studies: 1) to process numerical fields from CUPRADS, 2) to create a list of microscopic currents that are used to intepolate the HHG sources in a macroscopic medium.
