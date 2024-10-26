@@ -1,16 +1,26 @@
+
+<img src="misc/logos/eli.png" alt="ELI logo" style="height:60px;"/>
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
+<img src="misc/logos/Logo-celia-bleu-sans-slogan-300x184.png" alt="CELIA logo" style="height:60px;"/>
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
+<img src="misc/logos/ilm.jpg" alt="iLM logo" style="height:60px;"/>
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
+<img src="misc/logos/CTU_lion-1_tr.png" alt="CTU logo" style="height:60px;"/>
+
 # Multiscale modular approach (MMA) for HHG modelling
 This repository contains the sources for the Multiscale Modular Approach (MMA) for High-Harmonic Generation (HHG) modelling and tutorials showing examples of usage. It is still under active development and there will be frequent updates.
 
 The model provides a full solution to treat HHG in gaseous media: the laser pulse propagation, the single-atom response, and the XUV propagation. The design of the code is modular and each of the respective modules can be used independently for its own purposes without requiring the other modules. The assumtions in thew model are the linear polarisation and cyllindrical symmetry in the macroscopic propagation.
 
-[An installation guide is below](#installations), a general overview is available in a pre-print. The compiled version of the code is accessible through [***CodeOcean capsule***](https://codeocean.com/capsule/6775529/tree). Different modes of the operation of the code are provided in [***the jupyter tutorials***](./jupyter_examples/README.md). The respective directories provide more technical details about the codes: [CUPRAD](./CUPRAD/README.md), [1D-TDSE](./1DTDSE/README.md) and [the Hankel transform](./Hankel/README.md).
+[An installation guide is below](#installations), a general overview is available in a pre-print. The compiled version of the code is accessible through [***CodeOcean capsule***](https://codeocean.com/capsule/6775529/tree). Different modes of the operation of the code are provided in [***the jupyter tutorials***](./jupyter_examples/README.md). The reference datasets for these deomos are available [here](https://elibeamlines-my.sharepoint.com/:f:/g/personal/jan_vabek_eli-beams_eu/EpgdhQS_bQROnTYpj6y0zgYBTvz_sSh3WMQDiWgy9YgXfw?e=WnnpgR). The respective directories provide more technical details about the codes: [CUPRAD](./CUPRAD/README.md), [1D-TDSE](./1DTDSE/README.md) and [the Hankel transform](./Hankel/README.md).
 
 The last point to address is the execution of the code. If used locally, CUPRAD and TDSE are standard MPI applications and Hankel a Pythonic module. Once running on HPC clusters, a scheduler is involved. The code is then executed as [a pipeline of the different modules](#execution-pipeline).
 
-**Contacts to the authors**: \
+**Authors and contacts**: \
 Jan Vábek: [Jan.Vabek@eli-beams.eu](Jan.Vabek@eli-beams.eu) \
 Fabrice Catoire: [fabrice.catoire@u-bordeaux.fr](fabrice.catoire@u-bordeaux.fr) \
-Stefan Skupin: [stefan.skupin@univ-lyon1.fr](stefan.skupin@univ-lyon1.fr)
+Stefan Skupin: [stefan.skupin@univ-lyon1.fr](stefan.skupin@univ-lyon1.fr) \
+Tadeáš Němec
 
 **Notes and disclaimers:**
 * [***Subscribe for news!***](https://bit.ly/HHG-code-updates
@@ -18,7 +28,7 @@ Stefan Skupin: [stefan.skupin@univ-lyon1.fr](stefan.skupin@univ-lyon1.fr)
 * The code is still in the final development and testing. There will be no new major features in the first release. The interfaces may still evolve, and some bugs may be present.
 * *The compatibility of hdf5-files during the development is not guaranteed!*
 * The code is provided as it is with open source. We cannot provide guarantee for its usage.
-* We are a small developer's group and our primary occupation is science. We would be grateful to discuss the usage of the code. However, we cannot provide a commerce-level full-scale support. 
+* We are a small developer's group and our primary occupation is science. We would be grateful to discuss the usage of the code. However, we cannot provide a commerce-level full-scale support at the instant. 
 * We would be grateful for your feedback!
 * We are working on more advanced siblings of the codes (3D-vectorial pulse propagation, 3D-TDSE) that will not be a part of the first release. Please contact authors for possible collaborations if you need the more advanced features.
 
@@ -127,7 +137,7 @@ If everything is set well, the following CMakes are wrapped in the master `CMake
 3) Compile the code from the CMake-generated `Makefile` by running `make code` in the root directory.
 
 
-Below are recipes for compilling just one of the codes.
+Below are recipes for compilling the codes separately.
 
 
 ### CUPRAD
