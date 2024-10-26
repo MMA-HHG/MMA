@@ -1,10 +1,7 @@
 
-<img src="misc/logos/eli.png" alt="ELI logo" style="height:60px;"/>
-&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
-<img src="misc/logos/Logo-celia-bleu-sans-slogan-300x184.png" alt="CELIA logo" style="height:60px;"/>
-&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
-<img src="misc/logos/ilm.jpg" alt="iLM logo" style="height:60px;"/>
-&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
+<img src="misc/logos/eli.png" alt="ELI logo" style="height:60px;"/> &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
+<img src="misc/logos/Logo-celia-bleu-sans-slogan-300x184.png" alt="CELIA logo" style="height:60px;"/> &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
+<img src="misc/logos/ilm.jpg" alt="iLM logo" style="height:60px;"/> &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
 <img src="misc/logos/CTU_lion-1_tr.png" alt="CTU logo" style="height:60px;"/>
 
 # Multiscale modular approach (MMA) for HHG modelling
