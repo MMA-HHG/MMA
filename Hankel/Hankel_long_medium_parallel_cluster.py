@@ -35,7 +35,9 @@ with h5py.File(file, 'r') as InpArch:
     
     rmax_FF = mn.readscalardataset(inp_group, 'rmax_FF','N') 
     Nr_FF = mn.readscalardataset(inp_group, 'Nr_FF','N') 
-    distance_FF = mn.readscalardataset(inp_group, 'distance_FF','N') 
+    distance_FF = mn.readscalardataset(inp_group, 'distance_FF','N')
+
+    store_cumulative_result = mn.readscalardataset(inp_group, 'store_cummulative_result','N')
 
 
 
@@ -144,8 +146,8 @@ with h5py.File(file, 'r') as InpArch:
                                     'integrator_Hankel' : lambda y, x: integrate.trapezoid(y,x=x),
                                     'integrator_longitudinal' : 'trapezoidal',
                                     'near_field_factor' : True,
-                                    'store_cummulative_result' : True,
-                                    'store_non_normalised_cummulative_result' : True
+                                    'store_cummulative_result' : store_cumulative_result,
+                                    'store_non_normalised_cummulative_result' : False
                                    }
                             
                             ) for k1 in range(Nthreads)]
