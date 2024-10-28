@@ -37,7 +37,7 @@ with h5py.File(file, 'r') as InpArch:
     Nr_FF = mn.readscalardataset(inp_group, 'Nr_FF','N') 
     distance_FF = mn.readscalardataset(inp_group, 'distance_FF','N')
 
-    store_cumulative_result = mn.readscalardataset(inp_group, 'store_cummulative_result','N')
+    store_cumulative_result = (mn.readscalardataset(inp_group, 'store_cummulative_result','N') == 1)
 
 
 
