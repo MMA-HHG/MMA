@@ -303,9 +303,9 @@ Flags `print_xxx` define whether a given output is stored.
 
 ## Execution pipeline
 The model consists of three main jobs: 1) CUPRAD for the laser pulse propagation; 2) TDSE for the microscopic response, and 3) the Hankel transform for the far-field XUV distribution. There are some further auxiliary tasks in the pipeline:
-1) CUPRAD pre-processor.
-2) the main MPI CUPRAD job,
-3) adjusting the TDSE parameters to the real number of steps in $z$,
+1) CUPRAD pre-processor (`CUPRAD/build/make_start.e`),
+2) the main MPI CUPRAD job (`CUPRAD/build/cuprad.e`),
+3) adjusting the TDSE parameters to the real number of steps in $z$ (``),
 4) the main MPI TDSE job,
 5) the merge & clean of the temporary TDSE files,
 6) the Hankel transform.
