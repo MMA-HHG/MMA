@@ -13,4 +13,4 @@ module purge
 load_python_modules
 
 
-python3 $TDSE_1D_POST_PROCESSING/prepare_TDSE_Nz.py
+python3 $TDSE_1D_PYTHON/prepare_TDSE_Nz.py
