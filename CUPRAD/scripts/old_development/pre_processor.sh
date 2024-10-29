@@ -1,6 +1,8 @@
 #!/bin/bash
+h5filename=results.h5
+var=$(echo $h5filename)
 
-var=$(echo *.h5)
+
 echo $h5filename
 
 load_modules

@@ -303,14 +303,14 @@ Flags `print_xxx` define whether a given output is stored.
 
 ## Execution pipeline
 The model consists of three main jobs: 1) CUPRAD for the laser pulse propagation; 2) TDSE for the microscopic response, and 3) the Hankel transform for the far-field XUV distribution. There are some further auxiliary tasks in the pipeline:
-1) CUPRAD pre-processor (`CUPRAD/build/make_start.e`),
-2) the main MPI CUPRAD job (`CUPRAD/build/cuprad.e`),
-3) adjusting the TDSE parameters to the real number of steps in $z$ (``),
-4) the main MPI TDSE job,
-5) the merge & clean of the temporary TDSE files,
-6) the Hankel transform.
+1) CUPRAD pre-processor (`$CUPRAD_BUILD/make_start.e`),
+2) the main MPI CUPRAD job (`$CUPRAD_BUILD/cuprad.e`),
+    * The design of the code requires the number of MPI processes to be a power of 2,
+3) adjusting the TDSE parameters to the real number of steps in $z$ (`$TDSE_1D_PYTHON/prepare_TDSE_Nz.py`),
+4) the main MPI TDSE job (`$TDSE_1D_BUILD/TDSE.e`),
+5) the merge & clean of the temporary TDSE files (`$TDSE_1D_PYTHON/merge.py`),
+6) the Hankel transform (`$HANKEL_HOME/Hankel_long_medium_parallel_cluster.py`).
+    * It uses multithreading parallelisation using [the multiprocessing library](https://docs.python.org/3/library/multiprocessing.html). *The number of threads has to be defined in the input hdf5-archive. Be careful, especially on HPC's, that these numbers match with hardware.*
 
-These jobs can be scheduled at once usind dependencies. [Here](./multiscale/scripts/README.md) we discuss an example of this pipeline.
-
-
+It is possible to run the process manually. However, computational clusters use jobs and queues for scheduling them. [Here](./multiscale/scripts/README.md) we discuss an example of this pipeline.
 
