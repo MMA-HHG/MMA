@@ -44,12 +44,14 @@ The environment for Docker is set in [the Dockerfile](./environment/Dockerfile).
 1) [Docker](https://www.docker.com/) needs to be installed.
 2) Go to the root directory of the project and build the docker image
 
-        cd environment && docker build . --tag cuprad_tdse_hankel; cd ..
+        cd environment
+        docker build . --tag cuprad_tdse_hankel
+        cd ..
    The `tag  cuprad_tdse_hankel` specifies the name of the image and can be changed. After running the command, the docker image is build.
 
-3) Execute the cpasule by
+3) Execute the docker image by
 
-        docker run -v $(pwd):/CUPRAD_TDSE_Hankel -w /CUPRAD_TDSE_Hankel -it [-p 8888:8888] cuprad_tdse_hankel bash
+        docker run -v .:/CUPRAD_TDSE_Hankel -w /CUPRAD_TDSE_Hankel -it [-p 8888:8888] cuprad_tdse_hankel bash
 
     The options `-v` and `-w` are used to bind the local filesystem with the Docker image. The binaries then will be compiled into the parent filesystem. The option `-p 8888:8888` is optional and enables the port for a jupyter server.
 
