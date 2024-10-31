@@ -83,7 +83,8 @@ with h5py.File(file, 'r') as InpArch:
     ogrid_sel = ogrid[ko_min:ko_max]    
     No_sel = len(ogrid_sel)
     
-    # print('No', No_sel, 'Nr_FF', Nr_FF)
+    print('No', No_sel, 'Nr_FF', Nr_FF)
+    print('------------------------------------------------')
     
     ## Parallel computing:
     # Decide which of the dimension on the screen is bigger and then apply
