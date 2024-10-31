@@ -10,6 +10,6 @@ arguments = sys.argv
 with h5py.File(results_file, 'a') as h5f:
     h5f[MMA.paths['Hankel_inputs']+'/Nr_FF'][()] = arguments[1]    # 20
     h5f[MMA.paths['Hankel_inputs']+'/rmax_FF'][()] = arguments[2]  # 0.005
-    h5f[MMA.paths['Hankel_inputs']+'/Harmonic_range'][:] = np.array([arguments[3],arguments[4]])  # 3
+    h5f[MMA.paths['Hankel_inputs']+'/Harmonic_range'][:] = np.array([arguments[3],arguments[4]],dtype=float)  # 3
 
 print("Done")
