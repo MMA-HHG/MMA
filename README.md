@@ -51,9 +51,14 @@ The environment for Docker is set in [the Dockerfile](./environment/Dockerfile).
 
 3) Execute the docker image by
 
-        docker run -v .:/CUPRAD_TDSE_Hankel -w /CUPRAD_TDSE_Hankel -it [-p 8888:8888] cuprad_tdse_hankel bash
+        # without the port jupyter server
+        docker run -v .:/CUPRAD_TDSE_Hankel -w /CUPRAD_TDSE_Hankel -it cuprad_tdse_hankel bash 
+        
+        # with the port jupyter server
+        docker run -v .:/CUPRAD_TDSE_Hankel -w /CUPRAD_TDSE_Hankel -it -p 8888:8888 cuprad_tdse_hankel bash
 
-    The options `-v` and `-w` are used to bind the local filesystem with the Docker image. The binaries then will be compiled into the parent filesystem. The option `-p 8888:8888` is optional and enables the port for a jupyter server.
+
+    The options `-v` and `-w` are used to bind the local filesystem with the Docker image. The binaries then will be compiled into the parent filesystem. The option `-p 8888:8888` is optional and enables the port for a jupyter server. (*Make sure that the image is executed from the correct location. The envirnoment path would't match otherwise.*)
 
 4) Compile the code within the docker image by running
 

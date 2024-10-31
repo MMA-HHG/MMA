@@ -8,3 +8,4 @@ tasks:
  * Bessel beams example ✓
  * coherence maps example ✓
  * interactive TDSE example ✓
+ * CUPRAD data loader
