@@ -39,7 +39,7 @@ export -f Curta_python_modules
 
 Sunrise_python_modules() {
     module purge
-    module load GCC Python/3.9.0
+    module load GCC Python
 }
 export -f Sunrise_python_modules
 
