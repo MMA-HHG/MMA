@@ -35,9 +35,6 @@ class get_data:
             Nz = self.E_zrt.shape[0]
             self.zgrid = self.zgrid[:Nz]
         
-        # print('oldshape', self.E_zrt.shape)
-        # self.E_trz = self.E_trz.transpose(1,2,0) # hot-fix rearangement due to CUPRAD output
-        print('newshape', self.E_zrt.shape)
 
         self.inverse_GV = InputArchive[MMA.paths['CUPRAD_logs'] +'/inverse_group_velocity_SI'][()]
         self.VG_IR = 1.0/self.inverse_GV               
