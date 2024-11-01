@@ -13,7 +13,12 @@ from scipy import integrate
 from scipy import special
 
 
-
+def trapezoidal_integrator(y,x):
+    """Wrapper of the trapezoidal integrator from scipy using only *args, no 
+       other arguments allowed:
+       return integrate.trapezoid(y,x=x)
+    """
+    return integrate.trapezoid(y,x=x)
 
 class FSources_provider:
     """
@@ -404,7 +409,7 @@ def get_propagation_pre_factor_function(zgrid,
         
         
 def HankelTransform(ogrid, rgrid, FField, distance, rgrid_FF,
-                    integrator = lambda y, x: integrate.trapezoid(y,x=x),
+                    integrator = trapezoidal_integrator,
                     near_field_factor = True,
                     pre_factor = 1.):
     """
@@ -486,7 +491,7 @@ class Hankel_long:
                  dispersion_tables = 'Henke',
                  include_dispersion = True,
                  effective_IR_refrective_index = 1.,
-                 integrator_Hankel = lambda y, x: integrate.trapezoid(y,x=x), # integrate.trapz,
+                 integrator_Hankel = trapezoidal_integrator, # integrate.trapz,
                  integrator_longitudinal = 'trapezoidal',
                  near_field_factor = True,
                  store_cummulative_result = False,

@@ -129,6 +129,7 @@ with h5py.File(file, 'r') as InpArch:
         task_queue.put(
                        [position, HT.Hankel_long(*args,**kwargs)] # the outputs are not ordered, keep the order in the result
                       )
+
     
     # define processes
     processes = [mp.Process(target=mp_handle, 
@@ -144,7 +145,7 @@ with h5py.File(file, 'r') as InpArch:
                                     'dispersion_tables' : XUV_table_type_diffraction,
                                     'include_dispersion' : dispersion,
                                     'effective_IR_refrective_index' : effective_IR_refrective_index,
-                                    'integrator_Hankel' : lambda y, x: integrate.trapezoid(y,x=x),
+                                    'integrator_Hankel' : HT.trapezoidal_integrator,
                                     'integrator_longitudinal' : 'trapezoidal',
                                     'near_field_factor' : True,
                                     'store_cummulative_result' : store_cumulative_result,
