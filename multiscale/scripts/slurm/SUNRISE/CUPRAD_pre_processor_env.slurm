@@ -9,4 +9,4 @@
 #SBATCH --profile=All
 
 
-$CUPRAD_SCRIPTS/pre_processor_env_h5file.sh
+$CUPRAD_SCRIPTS/pre_processor.sh
