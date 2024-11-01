@@ -29,7 +29,8 @@ with h5py.File(file, 'r') as InpArch:
     
     Nr_max = mn.readscalardataset(inp_group, 'Nr_max','N') 
     
-    Hrange = inp_group['Harmonic_range'][:] 
+    Hrange = inp_group['Harmonic_range'][:]
+    kr_max = mn.readscalardataset(inp_group, 'Nr_max','N')  
     kr_step = mn.readscalardataset(inp_group, 'kr_step','N') 
     ko_step = mn.readscalardataset(inp_group, 'ko_step','N') 
     
@@ -80,7 +81,7 @@ with h5py.File(file, 'r') as InpArch:
     dispersion = True
     
     
-    ogrid_sel = ogrid[ko_min:ko_max]    
+    ogrid_sel = ogrid[ko_min:ko_max:ko_step]    
     No_sel = len(ogrid_sel)
     
     print('No', No_sel, 'Nr_FF', Nr_FF)
@@ -89,7 +90,7 @@ with h5py.File(file, 'r') as InpArch:
     ## Parallel computing:
     # Decide which of the dimension on the screen is bigger and then apply
     # multiprocessing over this dimension. The process is then unified and
-    # the code executes 'Nthreads' simulations using mp.Queue(). The
+    # the code executes 'Nthreads' simulations using mp.Queue().
     if (Nr_FF >= No_sel): # If there are more radial points
         rgrid_FF_parts = np.array_split(rgrid_FF, Nthreads)
         ogrid_parts = [ogrid_sel for _ in range(Nthreads)]
@@ -121,7 +122,11 @@ with h5py.File(file, 'r') as InpArch:
                                                     h5_path = MMA.paths['CTDSE_outputs']+'/FSourceTerm',
                                                     data_source = 'dynamic',
                                                     ko_min = ogrid_indices_start[k1],
-                                                    ko_max = ogrid_indices_end[k1])
+                                                    ko_max = ogrid_indices_end[k1],
+                                                    ko_step=ko_step,
+                                                    kr_max=kr_max,
+                                                    kr_step=kr_step)
+
                        )
     
     task_queue = mp.Queue() # que to store the results from multiprocessing 
