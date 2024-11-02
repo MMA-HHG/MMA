@@ -65,10 +65,14 @@ The environment for Docker is set in [the Dockerfile](./environment/Dockerfile).
         cmake .
         make
 
-5) The code is now ready within the Docker image. The exacutables can be executed from the command line. [The jupyter examples](./jupyter_examples/README.md) can be accessed from the parent machine through the jupyter server executed by:
+5) The code is now ready within the Docker image. The exacutables can be executed from the command line. [The jupyter examples](./jupyter_examples/README.md) can be accessed from the parent machine through a jupyter notebook server executed by:
 
         jupyter notebook --ip 0.0.0.0 --port 8888 --no-browser --allow-root
 
+    or a jupyter lab
+
+        jupyter lab --ip 0.0.0.0 --port 8888 --no-browser --allow-root
+        
     This provides a link to the server that can be opened in a browser on the parent system.
 
 ## Custom installations
