@@ -6,7 +6,7 @@
 # #SBATCH --cpus-per-task=4 # to allocate memory
 #SBATCH --hint=nomultithread       # 1 MPI process per physical core (no hyperthreading)
 #SBATCH --time=02:00:00
-#SBATCH --output CUPRAD_density_mod-%J.output
+#SBATCH --output MMA-CUPRAD-base-%J.output
 
 # module purge
 # module load python
