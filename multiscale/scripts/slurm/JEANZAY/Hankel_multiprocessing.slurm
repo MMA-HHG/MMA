@@ -4,6 +4,7 @@
 #SBATCH --cpus-per-task=24
 #SBATCH --hint=multithread
 #SBATCH --time=48:00:00
+#SBATCH --qos=qos_cpu-t4 # name Subscribe to a Quality of service
 #SBATCH --output Hankel_mp-%J.output
 
 module purge
