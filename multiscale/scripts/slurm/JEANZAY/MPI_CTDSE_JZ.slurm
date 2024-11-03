@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH --job-name="MPI_TDSE"
-#SBATCH -t 47:59 # time (D-HH:MM)
+#SBATCH --time=48:00:00
 # #SBATCH --partition=T48H
 #SBATCH -o MPI_TDSE.%j.%N.out # STDOUT
 #SBATCH -e MPI_TDSE.%j.%N.err # STDERR

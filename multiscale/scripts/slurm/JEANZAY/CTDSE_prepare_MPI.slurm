@@ -2,7 +2,7 @@
 
 #SBATCH --job-name="MPI-TDSE-prepare"
 #SBATCH --ntasks=1
-#SBATCH -t 00:02 # time (D-HH:MM)
+#SBATCH --time=00:02:00
 #SBATCH -o MPI-TDSE-prepare.%j.%N.out # STDOUT
 #SBATCH -e MPI-TDSE-prepare.%j.%N.err # STDERR
 #SBATCH --profile=All
