@@ -1,6 +1,7 @@
 #!/bin/bash
 #SBATCH --job-name="MPI_TDSE"
 #SBATCH --time=48:00:00
+#SBATCH --qos=qos_cpu-t4 # name Subscribe to a Quality of service
 # #SBATCH --partition=T48H
 #SBATCH -o MPI_TDSE.%j.%N.out # STDOUT
 #SBATCH -e MPI_TDSE.%j.%N.err # STDERR
