@@ -1,11 +1,11 @@
 #!/bin/bash
 
 # Submit the pre-processor
-JOB1=$(sbatch --parsable $MULTISCALE_SCRIPTS/slurm/JEANZAY/CUPRAD_pre_processor_env.slurm)
+JOB1=$(sbatch --parsable $MULTISCALE_SCRIPTS/slurm/JEANZAY/CUPRAD_pre_processor.slurm)
 # touch 1.test
 
 # Submit the main job when the pre-processor is finished
-JOB2=$(sbatch --parsable --dependency=afterok:$JOB1 $MULTISCALE_SCRIPTS/slurm/JEANZAY/CUPRAD_SUNRISE16MIX.slurm)
+JOB2=$(sbatch --parsable --dependency=afterok:$JOB1 $MULTISCALE_SCRIPTS/slurm/JEANZAY/CUPRAD_JZ32.slurm)
 
 JOB3=$(sbatch --parsable --dependency=afterok:$JOB2 $MULTISCALE_SCRIPTS/slurm/JEANZAY/CTDSE_prepare_MPI.slurm)
 
