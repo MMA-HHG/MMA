@@ -1,11 +1,11 @@
 #!/bin/bash
-#SBATCH -J CUPRAD-density-mod
+#SBATCH -J MMA-CUPRAD-base
 #SBATCH --nodes=1
 #SBATCH --ntasks=32
 # #SBATCH --mem=16G
 # #SBATCH --cpus-per-task=4 # to allocate memory
 #SBATCH --hint=nomultithread       # 1 MPI process per physical core (no hyperthreading)
-#SBATCH --time=19:59:59
+#SBATCH --time=02:00:00
 #SBATCH --output CUPRAD_density_mod-%J.output
 
 # module purge
