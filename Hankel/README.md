@@ -5,7 +5,7 @@ Although the main usage for us is in the context of the multiscale model, this m
 
 This documentation provides a transition between the mathematical formulation in the main manuscript and the Pythonic implementation. The manuscript provides details about theoretical background, while technical details about the implementation are directly in the documentation within the module.
 
-This does not use any specific requirements for the versions of libraries. We noted only possible problems with the [SciPy integration module](https://docs.scipy.org/doc/scipy/tutorial/integrate.html), where the names and API's of procedures have been slightly changing accross versions. (We tested the module with v1.11.3 and v1.14).
+This does not use any specific requirements for the versions of libraries. We noted only possible problems with the [SciPy integration module](https://docs.scipy.org/doc/scipy/tutorial/integrate.html), where the names and API's of procedures have been slightly changing accross versions. (We tested the module with SciPy v1.11.3 and v1.14).
 
 ## Main ideas
 

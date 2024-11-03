@@ -102,7 +102,7 @@ export MSM_PATH=$GIT_PATH/CUPRAD_TDSE_Hankel
 export PYTHONPATH=$PYTHONPATH:$MSM_PATH/shared_python
 
 export CUPRAD_HOME=$MSM_PATH/CUPRAD
-export CUPRAD_BUILD=$MSM_PATH/CUPRAD/binary
+export CUPRAD_BUILD=$MSM_PATH/CUPRAD/build
 export CUPRAD_SCRIPTS=$MSM_PATH/CUPRAD/scripts
 export CUPRAD_PYTHON=$MSM_PATH/CUPRAD/python
 export PYTHONPATH=$PYTHONPATH:$CUPRAD_PYTHON
@@ -122,13 +122,15 @@ export MULTISCALE_SCRIPTS=$MSM_PATH/multiscale/scripts
 export FSPA_PATH=$MSM_PATH/FSPA
 
 export MULTISCALE_WORK_DIR=/mnt/d/data/work_dir
+
+source $MSM_PATH/Modules/load_modules.sh
 ```
 
 
 #### Modules and libraries
 When used locally on a personal computer, the libraries (FFTW3, CMake, …) are typically installed by a user. If using the code or a part of it, the corresponding libraries must be installed before. (Sharing needs to be enebled for FFTW3, see details below for the dyamic-library CTDSE.)
 
-[The modules](https://hpc-wiki.info/hpc/Modules) provide all the necessary libraries for the code when using a computational cluster. The script [`Modules/load_modules.sh`](./Modules/load_modules.sh) is used to load all the modules. This function are supposed to be added into the environemnt (e.g. by sourcing the script in `.bash_aliases`). There is a list of modules for various computational clusters specified by the variable `$HPC`. Another supercomputer (or compilation option intel/GNU/...) should be added there.
+[The modules](https://hpc-wiki.info/hpc/Modules) provide all the necessary libraries for the code when using a computational cluster. The script [`Modules/load_modules.sh`](./Modules/load_modules.sh) is used to load all the modules. This function are supposed to be added into the environemnt (e.g. by sourcing the script in `.bash_aliases` as done above). There is a list of modules for various computational clusters specified by the variable `$HPC`. Another supercomputer (or compilation option intel/GNU/...) should be added there.
 
 There are two `bash` functions `load_modules` and `load_python_modules`. The former is activated when running *CUPRAD* and *CTDSE*, while the latter is used for all Pythonic operations around the code. (The reason for this duality is that Python might need to load a compiler itself for some libraries, typically on intel.) 
 
