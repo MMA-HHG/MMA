@@ -10,7 +10,7 @@ JOB2=$(sbatch --parsable --dependency=afterok:$JOB1 $MULTISCALE_SCRIPTS/slurm/JE
 JOB3=$(sbatch --parsable --dependency=afterok:$JOB2 $MULTISCALE_SCRIPTS/slurm/JEANZAY/CTDSE_prepare_MPI.slurm)
 
 # Run TDSE
-JOB4=$(sbatch --parsable --dependency=afterok:$JOB3 --ntasks=1800 $MULTISCALE_SCRIPTS/slurm/JEANZAY/MPI_CTDSE_JZ.slurm)
+JOB4=$(sbatch --parsable --dependency=afterok:$JOB3 --ntasks=4000 $MULTISCALE_SCRIPTS/slurm/JEANZAY/MPI_CTDSE_JZ.slurm)
 
 # Collect & merge data
 JOB5=$(sbatch --parsable --dependency=afterok:$JOB4 $MULTISCALE_SCRIPTS/slurm/JEANZAY/CTDSE_merge_hdf5.slurm)

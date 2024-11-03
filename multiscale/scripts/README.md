@@ -17,4 +17,6 @@ This is a higher order script to do a simple parametric scan by running the mult
 ## `gas_cell_scan_txt.sh`
 This is the same as the previous script. The difference is that the inputs are parsed from a text-based inputs in the form described in https://github.com/vabekjan/universal_input.
 
+## `slurm` scripts
+
 
