@@ -323,6 +323,7 @@ The model consists of three main jobs: 1) CUPRAD for the laser pulse propagation
 4) the main MPI TDSE job (`$TDSE_1D_BUILD/TDSE.e`),
 5) the merge & clean of the temporary TDSE files (`$TDSE_1D_PYTHON/merge.py`),
 6) the Hankel transform (`$HANKEL_HOME/Hankel_long_medium_parallel_cluster.py`).
+    * ***It has to be executed as a single multithreaded program.***
     * It uses multithreading parallelisation using [the multiprocessing library](https://docs.python.org/3/library/multiprocessing.html). *The number of threads has to be defined in the input hdf5-archive. Be careful, especially on HPC's, that these numbers match with hardware.*
 
 It is possible to run the process manually. However, computational clusters use jobs and queues for scheduling them. [Here](./multiscale/scripts/README.md) we discuss an example of this pipeline.
