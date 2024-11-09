@@ -494,8 +494,8 @@ class Hankel_long:
                  integrator_Hankel = trapezoidal_integrator, # integrate.trapz,
                  integrator_longitudinal = 'trapezoidal',
                  near_field_factor = True,
-                 store_cummulative_result = False,
-                 store_non_normalised_cummulative_result = False,
+                 store_cumulative_result = False,
+                 store_non_normalised_cumulative_result = False,
                  store_entry_and_exit_plane_transform = True
                  ):
         
@@ -513,7 +513,7 @@ class Hankel_long:
         self.rgrid = rgrid_FF
         self.ogrid = np.copy(target.ogrid)
         
-        if (store_cummulative_result or store_non_normalised_cummulative_result):
+        if (store_cumulative_result or store_non_normalised_cumulative_result):
             self.zgrid = np.copy(target.zgrid)
         
         if not(
@@ -560,10 +560,10 @@ class Hankel_long:
                                          near_field_factor = near_field_factor,
                                          pre_factor = pre_factor(0)).T
 
-        if store_cummulative_result:
-             cummulative_field = np.empty((Nz-1,) + Fsource_plane1.shape, dtype=np.cdouble)
-        if store_non_normalised_cummulative_result:
-            cummulative_field_no_norm = np.empty((Nz-1,) + Fsource_plane1.shape, dtype=np.cdouble)        
+        if store_cumulative_result:
+             cumulative_field = np.empty((Nz-1,) + Fsource_plane1.shape, dtype=np.cdouble)
+        if store_non_normalised_cumulative_result:
+            cumulative_field_no_norm = np.empty((Nz-1,) + Fsource_plane1.shape, dtype=np.cdouble)        
         if store_entry_and_exit_plane_transform:
             self.entry_plane_transform = np.copy(Fsource_plane1)        
         
@@ -586,16 +586,16 @@ class Hankel_long:
 
             FF_integrated += 0.5*(target.zgrid[k1+1]-target.zgrid[k1])*(Fsource_plane1 + Fsource_plane2)
             
-            if store_cummulative_result:
+            if store_cumulative_result:
                 
                 if isinstance(pressure,dict): 
                   if ('rgrid' in pressure.keys()):
                     raise NotImplementedError('Renormalisation of the signal is not implemented for radially modulated density.')
-                cummulative_field[k1,:,:] = np.outer(np.ones(Nr_FF),renorm_factor(k1))*FF_integrated
+                cumulative_field[k1,:,:] = np.outer(np.ones(Nr_FF),renorm_factor(k1))*FF_integrated
                 
                 
-            if store_non_normalised_cummulative_result:
-                cummulative_field_no_norm[k1,:,:]  =  np.copy(FF_integrated)
+            if store_non_normalised_cumulative_result:
+                cumulative_field_no_norm[k1,:,:]  =  np.copy(FF_integrated)
     
             Fsource_plane1 = np.copy(Fsource_plane2)
             
@@ -605,11 +605,11 @@ class Hankel_long:
         if store_entry_and_exit_plane_transform:
             self.exit_plane_transform = np.copy(Fsource_plane2)
         
-        if store_cummulative_result:
-            self.cummulative_field = cummulative_field
+        if store_cumulative_result:
+            self.cumulative_field = cumulative_field
             
-        if store_non_normalised_cummulative_result:
-            self.cummulative_field_no_norm = cummulative_field_no_norm
+        if store_non_normalised_cumulative_result:
+            self.cumulative_field_no_norm = cumulative_field_no_norm
            
             
            

@@ -73,7 +73,7 @@ CTDSE_variable_type_lists ={
     'S' : [], 'R-array' : []}
 
 Hankel_variable_type_lists ={
-    'I' : ['Nr_FF', 'kr_step', 'ko_step', 'Nr_max', 'Nthreads', 'store_cummulative_result'],
+    'I' : ['Nr_FF', 'kr_step', 'ko_step', 'Nr_max', 'Nthreads', 'store_cumulative_result'],
     'R' : ['distance_FF', 'rmax_FF'],
     'S' : ['XUV_table_type_dispersion', 'XUV_table_type_absorption'],
     'R-array': ['Harmonic_range']}

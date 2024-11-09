@@ -230,7 +230,7 @@ with h5py.File(file, 'r') as InpArch:
                               integrator_Hankel = HT.trapezoidal_integrator, # integrate.trapz,
                               integrator_longitudinal = 'trapezoidal',
                               near_field_factor = True,
-                              store_cummulative_result = True,
+                              store_cumulative_result = True,
                               frequencies_to_trace_maxima = None,
                               )
     
@@ -255,7 +255,7 @@ with h5py.File(file, 'r') as InpArch:
                               integrator_Hankel = HT.trapezoidal_integrator, # integrate.trapz,
                               integrator_longitudinal = 'trapezoidal',
                               near_field_factor = True,
-                              store_cummulative_result = True,
+                              store_cumulative_result = True,
                               frequencies_to_trace_maxima = None,
                               )
     
@@ -392,7 +392,7 @@ with h5py.File(file, 'r') as InpArch:
     #                           integrator_Hankel = integrate.trapz,
     #                           integrator_longitudinal = 'trapezoidal',
     #                           near_field_factor = True,
-    #                           store_cummulative_result = False,
+    #                           store_cumulative_result = False,
     #                           frequencies_to_trace_maxima = None
     #                           )
 
@@ -408,7 +408,7 @@ with h5py.File(file, 'r') as InpArch:
     #                           integrator_Hankel = integrate.trapz,
     #                           integrator_longitudinal = 'trapezoidal',
     #                           near_field_factor = True,
-    #                           store_cummulative_result = False,
+    #                           store_cumulative_result = False,
     #                           frequencies_to_trace_maxima = None,
     #                           )
     # print(np.array_equal(Hankel_long_dynamic,HL_end))

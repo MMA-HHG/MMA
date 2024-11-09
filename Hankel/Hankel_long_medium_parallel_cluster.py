@@ -38,7 +38,7 @@ with h5py.File(file, 'r') as InpArch:
     Nr_FF = mn.readscalardataset(inp_group, 'Nr_FF','N') 
     distance_FF = mn.readscalardataset(inp_group, 'distance_FF','N')
 
-    store_cumulative_result = (mn.readscalardataset(inp_group, 'store_cummulative_result','N') == 1)
+    store_cumulative_result = (mn.readscalardataset(inp_group, 'store_cumulative_result','N') == 1)
 
 
 
@@ -153,8 +153,8 @@ with h5py.File(file, 'r') as InpArch:
                                     'integrator_Hankel' : HT.trapezoidal_integrator,
                                     'integrator_longitudinal' : 'trapezoidal',
                                     'near_field_factor' : True,
-                                    'store_cummulative_result' : store_cumulative_result,
-                                    'store_non_normalised_cummulative_result' : False
+                                    'store_cumulative_result' : store_cumulative_result,
+                                    'store_non_normalised_cumulative_result' : False
                                    }
                             
                             ) for k1 in range(Nthreads)]
@@ -181,19 +181,19 @@ with h5py.File(file, 'r') as InpArch:
     HL_res.FF_integrated = np.empty(newshape,dtype=HL_res.FF_integrated.dtype)
     # Hankel transforms of the first and last planes
     newshape = (Nr_FF, No_sel)
-    HL_res.entry_plane_transform = np.empty(newshape,dtype=HL_res.cummulative_field.dtype)
-    HL_res.exit_plane_transform  = np.empty(newshape,dtype=HL_res.cummulative_field.dtype)
+    HL_res.entry_plane_transform = np.empty(newshape,dtype=HL_res.cumulative_field.dtype)
+    HL_res.exit_plane_transform  = np.empty(newshape,dtype=HL_res.cumulative_field.dtype)
     
     # outputs that are present only if required
-    if 'cummulative_field' in dir(HL_res):
-        oldshape = np.shape(HL_res.cummulative_field)
+    if 'cumulative_field' in dir(HL_res):
+        oldshape = np.shape(HL_res.cumulative_field)
         newshape = (oldshape[0],) + (Nr_FF, No_sel)
-        HL_res.cummulative_field = np.empty(newshape,dtype=HL_res.cummulative_field.dtype)
+        HL_res.cumulative_field = np.empty(newshape,dtype=HL_res.cumulative_field.dtype)
         
-    if 'cummulative_field_no_norm' in dir(HL_res):
-        oldshape = np.shape(HL_res.cummulative_field_no_norm)
+    if 'cumulative_field_no_norm' in dir(HL_res):
+        oldshape = np.shape(HL_res.cumulative_field_no_norm)
         newshape = (oldshape[0],) + (Nr_FF, No_sel)
-        HL_res.cummulative_field_no_norm = np.empty(newshape,dtype=HL_res.cummulative_field_no_norm.dtype)
+        HL_res.cumulative_field_no_norm = np.empty(newshape,dtype=HL_res.cumulative_field_no_norm.dtype)
     
     ## copy data into the newly allocated class
     for k1, k_worker in enumerate([result[0] for result in results]):
@@ -213,17 +213,17 @@ with h5py.File(file, 'r') as InpArch:
         ogrid_indices_new[k_worker]:(ogrid_indices_new[k_worker]+len(ogrid_parts[k_worker]))
         ] = results[k1][1].exit_plane_transform            
         
-        if 'cummulative_field' in dir(HL_res):
-            HL_res.cummulative_field[:,
+        if 'cumulative_field' in dir(HL_res):
+            HL_res.cumulative_field[:,
             rgrid_FF_indices[k_worker]:(rgrid_FF_indices[k_worker]+len(rgrid_FF_parts[k_worker])),
             ogrid_indices_new[k_worker]:(ogrid_indices_new[k_worker]+len(ogrid_parts[k_worker]))
-            ] = results[k1][1].cummulative_field
+            ] = results[k1][1].cumulative_field
             
-        if 'cummulative_field_no_norm' in dir(HL_res):
-            HL_res.cummulative_field_no_norm[:,
+        if 'cumulative_field_no_norm' in dir(HL_res):
+            HL_res.cumulative_field_no_norm[:,
             rgrid_FF_indices[k_worker]:(rgrid_FF_indices[k_worker]+len(rgrid_FF_parts[k_worker])),
             ogrid_indices_new[k_worker]:(ogrid_indices_new[k_worker]+len(ogrid_parts[k_worker]))
-            ] = results[k1][1].cummulative_field_no_norm
+            ] = results[k1][1].cumulative_field_no_norm
     
     
     # Save the results
@@ -254,17 +254,17 @@ with h5py.File(file, 'r') as InpArch:
                       '[SI]')
 
         # optional outputs
-        if 'cummulative_field' in dir(HL_res):
+        if 'cumulative_field' in dir(HL_res):
             mn.adddataset(out_group,
-                          'cummulative_field',
-                          np.stack((HL_res.cummulative_field.real, 
-                                    HL_res.cummulative_field.imag),axis=-1),
+                          'cumulative_field',
+                          np.stack((HL_res.cumulative_field.real, 
+                                    HL_res.cumulative_field.imag),axis=-1),
                           '[arb. u.]')            
-        if 'cummulative_field_no_norm' in dir(HL_res):
+        if 'cumulative_field_no_norm' in dir(HL_res):
             mn.adddataset(out_group,
-                          'cummulative_field_no_norm',
-                          np.stack((HL_res.cummulative_field_no_norm.real, 
-                                    HL_res.cummulative_field_no_norm.imag),
+                          'cumulative_field_no_norm',
+                          np.stack((HL_res.cumulative_field_no_norm.real, 
+                                    HL_res.cumulative_field_no_norm.imag),
                                     axis=-1),
                           '[arb. u.]')        
         if 'zgrid' in dir(HL_res):
