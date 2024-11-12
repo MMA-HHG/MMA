@@ -1,11 +1,11 @@
 #!/bin/bash
 
-#SBATCH --job-name="HDF5_MRG"
+#SBATCH --job-name="h5_repack_gzip"
 #SBATCH --ntasks=1
 #SBATCH --partition=T24H
 #SBATCH -t 0-04:00 # time (D-HH:MM)
-#SBATCH -o HDF5_MERGE.%j.%N.out # STDOUT
-#SBATCH -e HDF5_MERGE.%j.%N.err # STDERR
+#SBATCH -o h5_repack+gzip.%j.%N.out # STDOUT
+#SBATCH -e h5_repack+gzip.%j.%N.err # STDERR
 #SBATCH --profile=All
 
 
