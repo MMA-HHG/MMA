@@ -11,4 +11,7 @@ module purge
 
 load_modules
 
-mpirun $TDSE_1D_HOME/build/TDSE.e
+mpirun socket $TDSE_1D_HOME/build/TDSE.e # numa
+
+# possibilities to test different options for making MPI run more efficient https://www.open-mpi.org/doc/v3.0/man1/mpirun.1.php
+# mpirun --bind-to socket $TDSE_1D_HOME/build/TDSE.e # numa
