@@ -24,7 +24,7 @@ Tadeáš Němec
 )
 * The code is still in the final development and testing. There will be no new major features in the first release. The interfaces may still evolve, and some bugs may be present.
 * *The compatibility of hdf5-files during the development is not guaranteed!*
-* The code is provided as it is with open source. We cannot provide guarantee for its usage.
+* The code is provided as it is with open source. We cannot provide guarantee or take responsibility for its usage.
 * We are a small developer's group and our primary occupation is science. We would be grateful to discuss the usage of the code. However, we cannot provide a commerce-level full-scale support at the instant. 
 * We would be grateful for your feedback!
 * We are working on more advanced siblings of the codes (3D-vectorial pulse propagation, 3D-TDSE) that will not be a part of the first release. Please contact authors for possible collaborations if you need the more advanced features.
@@ -317,6 +317,7 @@ Flags `print_xxx` define whether a given output is stored.
 ## Execution pipeline
 The model consists of three main jobs: 1) CUPRAD for the laser pulse propagation; 2) TDSE for the microscopic response, and 3) the Hankel transform for the far-field XUV distribution. There are some further auxiliary tasks in the pipeline:
 1) CUPRAD pre-processor (`$CUPRAD_BUILD/make_start.e`),
+    * The pre-processor requires 4 entries from the standard input, the first is the name of the hdf5-input file, resting three for testing purposes and should be set to 0 (will be changed/removed in a further release). The name of the file then stored in `msg.tmp`, which tranfers it through the execution pipeline.
 2) the main MPI CUPRAD job (`$CUPRAD_BUILD/cuprad.e`),
     * The design of the code requires the number of MPI processes to be a power of 2,
 3) adjusting the TDSE parameters to the real number of steps in $z$ (`$TDSE_1D_PYTHON/prepare_TDSE_Nz.py`),
