@@ -3,7 +3,7 @@ SFA_FF/
 __pycache__/
 binary/
 run_test
-build/
+build/*
 *.e
 *.o
 results.h5
