@@ -46,6 +46,7 @@ RUN apt-get update \
         python3-setuptools \
         python3-wheel \
         git \
+        ffmpeg \
     && rm -rf /var/lib/apt/lists/*
 
 RUN pip3 install -U --no-cache-dir \
