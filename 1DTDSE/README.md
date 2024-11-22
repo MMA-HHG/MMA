@@ -3,7 +3,11 @@
 This direcotry contains the CTDSE module. We first discuss the core ideas of the implementation (see the pre-print for more details). It is followed by the description of the two main applications: [the MPI-TDSE scheduler used to process the outputs of the CUPRAD code](#mpi-tdse-scheduler) and [the Pythonic interface to directly access the solver](#interactive-ctdse-pythonic-interface-to-the-dynamic-library).
 
 ## The main idea of the solver
-CTDSE is a 1-dimensional time-dependent Schrödinger equation solver (1D-TDSE) written in C language. The purpose of the code is to evaluate the microscopic response, i.e. the observables, during the propagation of the electric field. The solver is based on the grid method and the propagation scheme employs operator splitting and the Crank-Nicolson (CN) method. Each advancement of the wavefunction $`\vec{\psi}`$ dicretised on a spatial grid: $`{\vec{\psi}}^{(i)}={\vec{\psi}}(t_{i}) \to {\vec{\psi}}(t_{i}+\Delta t)={\vec{\psi}}^{(i+1)}`$, is done in 3 substeps:
+CTDSE is a 1-dimensional time-dependent Schrödinger equation solver (1D-TDSE) written in C language. The purpose of the code is to evaluate the microscopic response, i.e. the observables, during the propagation of the electric field. The solver is based on the grid method and the propagation scheme employs operator splitting and the Crank-Nicolson (CN) method. Each advancement of the wavefunction $`\vec{\psi}`$ dicretised on a spatial grid: 
+```math
+{\vec{\psi}}^{(i)}={\vec{\psi}}(t_{i}) \to {\vec{\psi}}(t_{i}+\Delta t)={\vec{\psi}}^{(i+1)},
+````
+is done in 3 substeps:
 ```math
 \begin{align}
 \vec{\psi}^{(i,1)} &= \left(M_2 + \frac{\mathbf{i} \Delta t}{2}\Delta_2 -\mathbf{i} \Delta t M_2 V_C \right) \vec{\psi}^{(i)}\,, \\
