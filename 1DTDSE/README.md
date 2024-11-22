@@ -4,13 +4,13 @@ This direcotry contains the CTDSE module. We first discuss the core ideas of the
 
 ## The main idea of the solver
 CTDSE is a 1-dimensional time-dependent Schrödinger equation solver (1D-TDSE) written in C language. The purpose of the code is to evaluate the microscopic response, i.e. the observables, during the propagation of the electric field. The solver is based on the grid method and the propagation scheme employs operator splitting and the Crank-Nicolson (CN) method. Each advancement of the wavefunction $`\vec{\psi}`$ dicretised on a spatial grid: $`\vec{\psi}^{(i)}=\vec{\psi}(t_i) \to \vec{\psi}(t_i + \Delta t) = \vec{\psi}^{(i+1)}`$, is done in 3 substeps:
-$$
+```math
 \begin{align}
 \vec{\psi}^{(i,1)} &= \left(M_2 + \frac{\mathbf{i} \Delta t}{2}\Delta_2 -\mathbf{i} \Delta t M_2 V_C \right) \vec{\psi}^{(i)}\,, \\
 \vec{\psi}^{(i,2)} &= \left(M_2 + \frac{\mathbf{i} \Delta t}{2}\Delta_2 -\mathbf{i} \Delta t M_2 V_C \right)^{-1} \vec{\psi}^{(i,1)} \,, \\
 \psi_j^{(i+1)} = \psi_j^{(i,3)} &= \mathrm{e}^{-\mathbf{i} \Delta t \mathcal{E}(t_i) x_j} \psi_j^{(i,2)} \,, & \forall j.
 \end{align}
-$$
+```
 The first two substeps realise the CN step including the Coulomb interaction $V_C$ and the 2nd order Laplacian $\Delta_2$ improved by the Numerov's matrix $M_2$; the third substep provides the action of the laser field $\mathcal{E}$. A more detailed overview is provided in the main paper, while particularities of the implementation are commented in the source.
 
 The code offers multiple binaries and interactive interfaces for various tasks:
