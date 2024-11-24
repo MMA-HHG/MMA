@@ -4,6 +4,8 @@ FROM registry.codeocean.com/codeocean/ubuntu-desktop:ubuntu-22.04-guacamole-1.5.
 ARG DEBIAN_FRONTEND=noninteractive
 
 ENV MSM_PATH=/root/capsule/code
+ENV MULTISCALE_WORK_DIR=/root/capsule/results
+ENV MULTISCALE_DEMOS=$MULTISCALE_WORK_DIR
 
 ENV PYTHONPATH=$PYTHONPATH:$MSM_PATH/shared_python
 
@@ -26,9 +28,6 @@ ENV MULTISCALE_HOME=$MSM_PATH
 ENV MULTISCALE_SCRIPTS=$MSM_PATH/multiscale/scripts
 
 ENV FSPA_PATH=$MSM_PATH/FSPA
-
-ENV MULTISCALE_WORK_DIR=/root/capsule/results
-
 
 ENV CC=mpicc
 ENV FC=mpifort
