@@ -11,7 +11,7 @@ paths={'CUPRAD'                     : CUPRAD_group,
        'CUPRAD_logs'                : CUPRAD_group + '/logs',
        'CUPRAD_pre-processed'       : CUPRAD_group + '/pre-processed',
        
-       'CTDSE '                     : CTDSE_group,
+       'CTDSE'                      : CTDSE_group,
        'CTDSE_inputs'               : CTDSE_group + '/inputs',
        'CTDSE_outputs'              : CTDSE_group + '/outputs',
        
