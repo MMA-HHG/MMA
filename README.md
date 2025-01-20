@@ -158,12 +158,13 @@ There is the recipe for compilation (each point contains several notes about pos
     * If the machine does not using modules, this step is replaced by installing the necessary libraries and setting up the environment.
 2) Prepare Makefile using `cmake` by running `cmake ..` in the `build` directory.
     * We encountered CMake struggling to identify the proper MPI-Fortran compiler on several machines. CMake can be hinted to use the desired compiler by `cmake -D CMAKE_Fortran_COMPILER=mpifort ..` (GNU) or `cmake -D CMAKE_Fortran_COMPILER=mpiifort ..` (intel). This resolved the issue when we encountered it.
+    * (Intel:) The FFTW3 library might not be found within the MKL and might be needed to link manually by adding it into the environment: ```export CPATH=${CPATH}:${MKLROOT}/include/fftw``` (the location of fftw is not consistent across MKL versions and `fftw` needs to be located within `$MKLROOT$`).
     * The CMake configuration can be manually adjusted using `ccmake`, see [link 1](https://cmake.org/cmake/help/latest/manual/ccmake.1.html) and [link 2](https://stackoverflow.com/a/1224652).
-3) Compile the code from the CMake-generated `Makefile` by running `make code` in the `build` directory.
+3) Compile the code from the CMake-generated `Makefile` by running `make` in the `build` directory.
 
 
 #### Note: building only the pre-processor
-The pre-processor can built without MPI and parallel HDF5 (serial HDF5 is needed). The compilation is similar except using **`make preprocessor`** instead of `make code`.
+The pre-processor can built without MPI and parallel HDF5 (serial HDF5 is needed). The cmake should enter this option if no MPI is found.
 
 ### CTDSE (+ the dynamic library)
 All the source files are located in `1DTDSE/sources`. The CMake recipe is in `1DTDSE/CMakeLists.txt`. This recipe installs both the code and the interactive CTDSE library; if MPI is not present, only the dynamic library is installed. The code is supposedly built in `1DTDSE/build`.
