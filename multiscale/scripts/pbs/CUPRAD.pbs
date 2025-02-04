@@ -1,0 +1,19 @@
+#!/bin/bash
+#PBS -N CUPRAD-TDSE-base            # Job name
+#PBS -l nodes=1:ppn=16             # Number of nodes and CPU cores (processes) per node
+#PBS -l walltime=03:00:00          # Walltime (HH:MM:SS)
+#PBS -q MIX                         # Queue/partition equivalent
+#PBS -o MMA-CUPRAD-base-$PBS_JOBID.output
+#PBS -j oe                          # Combine stdout and stderr into one file (optional)
+
+# If needed, preserve environment variables:
+#PBS -V
+
+# Load the required modules (adjust as necessary for your environment)
+load_modules
+
+# Echo commands to stdout
+set -x
+
+# Use mpirun or mpiexec depending on your MPI configuration
+mpirun -np 16 "$CUPRAD_HOME/build/cuprad.e"
