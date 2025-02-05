@@ -1,10 +1,9 @@
 #!/bin/bash
-#PBS -N CUPRAD-TDSE-base            # Job name
-#PBS -l nodes=1:ppn=16             # Number of nodes and CPU cores (processes) per node
-#PBS -l walltime=03:00:00          # Walltime (HH:MM:SS)
-#PBS -q MIX                         # Queue/partition equivalent
+#PBS -N CUPRAD-TDSE-base           
+#PBS -l nodes=1:ppn=16             
+#PBS -l walltime=03:00:00          
 #PBS -o MMA-CUPRAD-base-$PBS_JOBID.output
-#PBS -j oe                          # Combine stdout and stderr into one file (optional)
+#PBS -j oe                          
 
 # If needed, preserve environment variables:
 #PBS -V
