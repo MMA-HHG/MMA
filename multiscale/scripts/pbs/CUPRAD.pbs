@@ -2,7 +2,7 @@
 #PBS -N CUPRAD_TDSE_base
 #PBS -l select=1:ncpus=16
 #PBS -l walltime=03:00:00
-#PBS -o MMA-CUPRAD-base-$PBS_JOBID.output
+#PBS -o MMA-CUPRAD-base.output
 #PBS -j oe
 #PBS -V
 
@@ -14,3 +14,6 @@ set -x
 
 # Launch your application with MPI
 mpirun -np 16 "$CUPRAD_HOME/build/cuprad.e"
+
+#Diagnose the job
+qstat -f -1 $PBS_JOBID
