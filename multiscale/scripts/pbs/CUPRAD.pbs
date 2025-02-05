@@ -1,18 +1,16 @@
 #!/bin/bash
-#PBS -N CUPRAD-TDSE-base           
-#PBS -l nodes=1:ppn=16             
-#PBS -l walltime=03:00:00          
+#PBS -N CUPRAD_TDSE_base
+#PBS -l select=1:ncpus=16
+#PBS -l walltime=03:00:00
 #PBS -o MMA-CUPRAD-base-$PBS_JOBID.output
-#PBS -j oe                          
-
-# If needed, preserve environment variables:
+#PBS -j oe
 #PBS -V
 
-# Load the required modules (adjust as necessary for your environment)
+# Load your modules (adapt as needed for your system)
 load_modules
 
 # Echo commands to stdout
 set -x
 
-# Use mpirun or mpiexec depending on your MPI configuration
+# Launch your application with MPI
 mpirun -np 16 "$CUPRAD_HOME/build/cuprad.e"
