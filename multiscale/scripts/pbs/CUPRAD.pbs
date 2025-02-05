@@ -1,6 +1,6 @@
 #!/bin/bash
 #PBS -N CUPRAD_TDSE_base
-#PBS -d
+#PBS -d .
 #PBS -l select=1:ncpus=16
 #PBS -l walltime=03:00:00
 #PBS -o MMA-CUPRAD-base.output
