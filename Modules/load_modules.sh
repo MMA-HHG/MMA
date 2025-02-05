@@ -29,6 +29,14 @@ JeanZay_intel_modules() {
 }
 export -f JeanZay_intel_modules
 
+Metacentrum_modules() {
+    module purge
+    module add fftw/3.3.10-gcc-10.2.1-yxsjm6z hdf5/1.12.2-gcc-10.2.1-gfdwqr3 
+    module add openblas/0.3.20-gcc-10.2.1-p4skjks
+    module load cmake
+}
+export -f Metacentrum_modules
+
 
 ### Python modules
 Curta_python_modules() {
@@ -61,6 +69,9 @@ load_modules() {
     elif [ "$HPC" == "JeanZay-intel" ]
     then
         JeanZay_intel_modules
+    elif [ "$HPC" == "Metacentrum" ]
+    then
+        Metacentrum_modules
     fi
 
 }
