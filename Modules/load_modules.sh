@@ -34,6 +34,8 @@ Metacentrum_modules() {
     module add fftw/3.3.10-gcc-10.2.1-yxsjm6z hdf5/1.12.2-gcc-10.2.1-gfdwqr3 
     module add openblas/0.3.20-gcc-10.2.1-p4skjks
     module load cmake
+    export FC=mpifort
+    export CC=mpicc
 }
 export -f Metacentrum_modules
 
