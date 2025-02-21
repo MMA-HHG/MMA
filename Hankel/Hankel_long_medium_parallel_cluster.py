@@ -92,6 +92,7 @@ with h5py.File(file, 'r') as InpArch:
     # multiprocessing over this dimension. The process is then unified and
     # the code executes 'Nthreads' simulations using mp.Queue().
     if (Nr_FF >= No_sel): # If there are more radial points
+        paralellised_in_r = True
         rgrid_FF_parts = np.array_split(rgrid_FF, Nthreads)
         ogrid_parts = [ogrid_sel for _ in range(Nthreads)]
         
@@ -102,6 +103,7 @@ with h5py.File(file, 'r') as InpArch:
         
         
     else:
+        paralellised_in_r = False
         ogrid_parts = np.array_split(ogrid_sel, Nthreads)
         rgrid_FF_parts = [rgrid_FF for _ in range(Nthreads)]
         rgrid_FF_indices = Nthreads*[0]
@@ -195,6 +197,10 @@ with h5py.File(file, 'r') as InpArch:
         newshape = (oldshape[0],) + (Nr_FF, No_sel)
         HL_res.cumulative_field_no_norm = np.empty(newshape,dtype=HL_res.cumulative_field_no_norm.dtype)
     
+    ## copy the original radial grid in the case it was split for parallelisation
+    if paralellised_in_r:
+        HL_res.rgrid = rgrid_FF
+
     ## copy data into the newly allocated class
     for k1, k_worker in enumerate([result[0] for result in results]):
         
