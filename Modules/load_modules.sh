@@ -63,7 +63,7 @@ export -f JeanZay_python_modules
 
 Metacentrum_python_modules() {
     module purge
-    module add python/3.11.11-gcc-10.2.1-555dlyc 
+    module add python36-modules
 }
 export -f Metacentrum_python_modules
 
