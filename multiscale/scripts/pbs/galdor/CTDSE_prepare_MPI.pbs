@@ -17,7 +17,7 @@ cd /scratch.shared/jvabek/BG_mono
 echo "Working directory: $(pwd)"
 
 # Launch your application with MPI
-python3 $TDSE_1D_PYTHON/prepare_TDSE_Nz.py
+python $TDSE_1D_PYTHON/prepare_TDSE_Nz.py
 
 #Diagnose the job
 qstat -f -1 $PBS_JOBID
