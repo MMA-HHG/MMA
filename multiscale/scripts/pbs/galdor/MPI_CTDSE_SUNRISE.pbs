@@ -1,10 +1,11 @@
 #!/bin/bash
-#SBATCH --job-name="MPI_TDSE"
-#SBATCH -t 1-23:59 # time (D-HH:MM)
-#SBATCH --partition=T48H
-#SBATCH -o MPI_TDSE.%j.%N.out # STDOUT
-#SBATCH -e MPI_TDSE.%j.%N.err # STDERR
-#SBATCH --profile=All
+#PBS -N MPI-TDSE
+#PBS -l walltime=48:00:00
+#PBS -o MPI-TDSE.output
+#PBS -j oe
+#PBS -V
+
+
 
 ### Purge modules
 module purge
