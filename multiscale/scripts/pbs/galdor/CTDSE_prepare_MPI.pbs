@@ -1,0 +1,40 @@
+#!/bin/bash
+#PBS -N CUPRAD_TDSE_base
+#PBS -l select=1:ncpus=1:mem=4gb:scratch_local=100gb:cl_galdor=True
+#PBS -l walltime=00:01:00
+#PBS -o MMA-CUPRAD-base.output
+#PBS -j oe
+#PBS -V
+
+module purge
+load_python_modules
+
+# Echo commands to stdout
+set -x
+
+# ensure correct work dir
+cd /scratch.shared/jvabek/BG_mono
+echo "Working directory: $(pwd)"
+
+# Launch your application with MPI
+python3 $TDSE_1D_PYTHON/prepare_TDSE_Nz.py
+
+#Diagnose the job
+qstat -f -1 $PBS_JOBID
+
+#!/bin/bash
+
+# #SBATCH --job-name="MPI-TDSE-prepare"
+# #SBATCH --ntasks=1
+# #SBATCH -t 0-00:02 # time (D-HH:MM)
+# #SBATCH -o MPI-TDSE-prepare.%j.%N.out # STDOUT
+# #SBATCH -e MPI-TDSE-prepare.%j.%N.err # STDERR
+# #SBATCH --profile=All
+
+
+
+# module purge
+# load_python_modules
+
+
+# python3 $TDSE_1D_PYTHON/prepare_TDSE_Nz.py

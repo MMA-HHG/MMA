@@ -1,0 +1,23 @@
+#!/bin/bash
+#PBS -N CUPRAD_TDSE_base
+#PBS -l select=1:ncpus=16:mem=4gb:scratch_local=100gb:cl_galdor=True
+#PBS -l walltime=03:00:00
+#PBS -o MMA-CUPRAD-base.output
+#PBS -j oe
+#PBS -V
+
+# Load your modules (adapt as needed for your system)
+load_modules
+
+# Echo commands to stdout
+set -x
+
+# ensure correct work dir
+cd /scratch.shared/jvabek/BG_mono
+echo "Working directory: $(pwd)"
+
+# Launch your application with MPI
+mpirun -np 16 "$CUPRAD_HOME/build/cuprad.e"
+
+#Diagnose the job
+qstat -f -1 $PBS_JOBID

@@ -60,6 +60,13 @@ JeanZay_python_modules() {
 }
 export -f JeanZay_python_modules
 
+
+Metacentrum_python_modules() {
+    module purge
+    module add python/3.11.11-gcc-10.2.1-555dlyc 
+}
+export -f Metacentrum_python_modules
+
 ### Load cmake, MPI, HDF5, FFTW/MKL
 load_modules() {
     if [ "$HPC" == "Curta" ] 
@@ -89,7 +96,11 @@ load_python_modules() {
     elif [ "$HPC" == "JeanZay-intel" ]
     then
         JeanZay_python_modules
+    elif [ "$HPC" == "Metacentrum" ]
+    then
+        Metacentrum_python_modules
     fi
+
 
 }
 export -f load_python_modules
