@@ -12,7 +12,7 @@ load_modules
 # Echo commands to stdout
 set -x
 
-SUBMITTING_DIRECTORY=$(pwd)
+# SUBMITTING_DIRECTORY=$(pwd)
 
 # define a DATADIR variable: directory where the input files are taken from and where the output will be copied to
 DATADIR=$SUBMITTING_DIRECTORY
