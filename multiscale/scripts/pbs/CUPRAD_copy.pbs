@@ -1,0 +1,49 @@
+#!/bin/bash
+#PBS -N CUPRAD_TDSE_base
+#PBS -l select=1:ncpus=16:mem=4gb:scratch_local=100gb
+#PBS -l walltime=03:00:00
+#PBS -o MMA-CUPRAD-base.output
+#PBS -j oe
+#PBS -V
+
+# Load your modules (adapt as needed for your system)
+load_modules
+
+# Echo commands to stdout
+set -x
+
+SUBMITTING_DIRECTORY=$(pwd)
+
+# define a DATADIR variable: directory where the input files are taken from and where the output will be copied to
+DATADIR=$SUBMITTING_DIRECTORY
+
+
+# append a line to a file "jobs_info.txt" containing the ID of the job, the hostname of the node it is run on, and the path to a scratch directory
+# this information helps to find a scratch directory in case the job fails, and you need to remove the scratch directory manually 
+echo "$PBS_JOBID is running on node `hostname -f` in a scratch directory $SCRATCHDIR" >> $DATADIR/jobs_info.txt
+
+
+# test if the scratch directory is set
+# if scratch directory is not set, issue error message and exit
+test -n "$SCRATCHDIR" || { echo >&2 "Variable SCRATCHDIR is not set!"; exit 1; }
+
+# copy input file "h2o.com" to scratch directory
+# if the copy operation fails, issue an error message and exit
+cp $DATADIR/*.h5  $SCRATCHDIR || { echo >&2 "Error while copying input file(s)!"; exit 2; }
+
+
+# move into scratch directory
+cd $SCRATCHDIR
+
+# Launch your application with MPI
+mpirun -np 16 "$CUPRAD_HOME/build/cuprad.e"
+
+# move the output to user's DATADIR or exit in case of failure
+cp * $DATADIR/ || { echo >&2 "Result file(s) copying failed (with a code $?) !!"; exit 4; }
+
+# clean the SCRATCH directory
+clean_scratch
+
+
+#Diagnose the job
+qstat -f -1 $PBS_JOBID
