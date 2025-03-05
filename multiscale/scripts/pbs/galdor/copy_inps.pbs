@@ -8,9 +8,5 @@
 #PBS -V
 
 
-module purge
-load_python_modules
-
-
-# python3 $TDSE_1D_PYTHON/merge.py -keep-files
-python3 $TDSE_1D_PYTHON/merge.py
+cd /scratch.shared/jvabek/BG_mono
+scp -r /storage/brno2/home/jvabek/HHG-mono/galdor_test/input/results.h5 .
