@@ -16,7 +16,7 @@ JOB3=$(qsub -W depend=afterok:$JOB2 $MULTISCALE_SCRIPTS/pbs/galdor/CTDSE_prepare
 
 # Include whatever resources you need either in the PBS script itself or via command-line options
 JOB4=$(qsub -W depend=afterok:$JOB3 \
-            -l select=10:ncpus=32:mem=32gb:scratch_local=100gb:cl_galdor=True \
+            -l select=10:ncpus=32:mem=16gb:scratch_local=100gb:cl_galdor=True \
             -l walltime=48:00:00 \
             $MULTISCALE_SCRIPTS/pbs/galdor/MPI_CTDSE.pbs)
 
