@@ -1,5 +1,5 @@
 #!/bin/bash
-#PBS -N 1DTDSE_prepare
+#PBS -N 3_1DTDSE_prepare
 #PBS -l select=1:ncpus=1:mem=4gb:scratch_local=100gb:cl_galdor=True
 #PBS -l walltime=00:01:00
 #PBS -o TDSE_prepare.output

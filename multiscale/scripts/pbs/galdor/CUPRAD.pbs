@@ -1,5 +1,5 @@
 #!/bin/bash
-#PBS -N CUPRAD_TDSE_base
+#PBS -N 2_CUPRAD_TDSE_base
 #PBS -l select=1:ncpus=16:mem=4gb:scratch_local=100gb:cl_galdor=True
 #PBS -l walltime=03:00:00
 #PBS -o MMA-CUPRAD-base.output

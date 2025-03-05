@@ -1,5 +1,5 @@
 #!/bin/bash
-#PBS -N MPI-TDSE
+#PBS -N 4_MPI-TDSE
 ## #PBS -l walltime=48:00:00
 #PBS -o MPI-TDSE.output
 #PBS -j oe
