@@ -10,4 +10,4 @@
 
 cd /scratch.shared/jvabek/BG_mono
 rm -r *
-scp -r /storage/brno2/home/jvabek/HHG-mono/galdor_test/input/results.h5 .
+scp -r /storage/brno2/home/jvabek/HHG-mono/galdor_test/input/* .
