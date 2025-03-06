@@ -12,6 +12,8 @@ load_python_modules
 # Echo commands to stdout
 set -x
 
+echo "$PBS_JOBID is running on node `hostname -f` in a scratch directory $SCRATCHDIR" >> $DATADIR/jobs_info.txt
+
 # ensure correct work dir
 cd /scratch.shared/jvabek/BG_mono
 echo "Working directory: $(pwd)"

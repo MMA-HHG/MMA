@@ -12,6 +12,10 @@ module purge
 
 load_modules
 
+set -x
+
+echo "$PBS_JOBID is running on node `hostname -f` in a scratch directory $SCRATCHDIR" >> $DATADIR/jobs_info.txt
+
 cd /scratch.shared/jvabek/BG_mono
 
 mpirun $TDSE_1D_HOME/build/TDSE.e # numa
