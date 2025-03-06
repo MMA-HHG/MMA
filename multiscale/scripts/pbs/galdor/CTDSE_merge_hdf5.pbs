@@ -13,7 +13,7 @@ load_python_modules
 
 set -x
 
-echo "$PBS_JOBID is running on node `hostname -f` in a scratch directory $SCRATCHDIR" >> $DATADIR/jobs_info.txt
+echo "$PBS_JOBID is running on node `hostname -f` in a scratch directory $SCRATCHDIR" >> $SUBMITTING_DIRECTORY/jobs_info.txt
 
 
 # python3 $TDSE_1D_PYTHON/merge.py -keep-files
