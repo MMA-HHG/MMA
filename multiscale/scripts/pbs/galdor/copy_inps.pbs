@@ -8,6 +8,8 @@
 #PBS -V
 
 
+echo "$PBS_JOBID is running on node `hostname -f` in a scratch directory $SCRATCHDIR" >> $DATADIR/jobs_info.txt
+
 cd /scratch.shared/jvabek/BG_mono
 rm -r *
 scp -r /storage/brno2/home/jvabek/HHG-mono/galdor_test/input/* .
