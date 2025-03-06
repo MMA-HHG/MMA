@@ -1,5 +1,7 @@
 #!/bin/bash
 
+
+export SUBMITTING_DIRECTORY=($pwd)
 # Submit the first job
 # JOB1=$(qsub $MULTISCALE_SCRIPTS/pbs/galdor/CUPRAD_pre_processor.pbs)
 
