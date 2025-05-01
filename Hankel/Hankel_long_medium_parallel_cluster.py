@@ -183,8 +183,8 @@ with h5py.File(file, 'r') as InpArch:
     HL_res.FF_integrated = np.empty(newshape,dtype=HL_res.FF_integrated.dtype)
     # Hankel transforms of the first and last planes
     newshape = (Nr_FF, No_sel)
-    HL_res.entry_plane_transform = np.empty(newshape,dtype=HL_res.cumulative_field.dtype)
-    HL_res.exit_plane_transform  = np.empty(newshape,dtype=HL_res.cumulative_field.dtype)
+    HL_res.entry_plane_transform = np.empty(newshape,dtype=HL_res.entry_plane_transform.dtype)
+    HL_res.exit_plane_transform  = np.empty(newshape,dtype=HL_res.exit_plane_transform.dtype)
     
     # outputs that are present only if required
     if 'cumulative_field' in dir(HL_res):
