@@ -22,4 +22,4 @@ echo "Working directory: $(pwd)"
 mpirun -np 16 "$CUPRAD_HOME/build/cuprad.e"
 
 #Diagnose the job
-qstat -f -1 $PBS_JOBID
+# qstat -f -1 $PBS_JOBID

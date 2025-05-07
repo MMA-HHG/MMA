@@ -13,3 +13,11 @@
 cd /scratch.shared/jvabek/BG_mono
 rm -r *
 scp -r /storage/brno2/home/jvabek/HHG-mono/galdor_test/input/* .
+
+#qstat -f -1 $PBS_JOBID
+
+echo "===== PBS job diagnostics for $PBS_JOBID ====="
+qstat -f   "$PBS_JOBID"
+
+echo "===== tracejob ====="
+tracejob -n 1 "$PBS_JOBID"

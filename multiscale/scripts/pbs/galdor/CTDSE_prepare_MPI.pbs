@@ -1,6 +1,6 @@
 #!/bin/bash
 #PBS -N 3_1DTDSE_prepare
-#PBS -l select=1:ncpus=1:mem=4gb:scratch_local=100gb:cl_galdor=True
+#PBS -l select=1:ncpus=1:mem=4gb:scratch_local=2gb:cl_galdor=True
 #PBS -l walltime=00:01:00
 #PBS -o TDSE_prepare.output
 #PBS -j oe
@@ -21,5 +21,8 @@ echo "Working directory: $(pwd)"
 # Launch your application with MPI
 python $TDSE_1D_PYTHON/prepare_TDSE_Nz.py
 
-#Diagnose the job
-qstat -f -1 $PBS_JOBID
+echo "===== PBS job diagnostics for $PBS_JOBID ====="
+qstat -f   "$PBS_JOBID"
+
+echo "===== tracejob ====="
+tracejob -n 1 "$PBS_JOBID"
