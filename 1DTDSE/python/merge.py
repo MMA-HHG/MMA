@@ -28,7 +28,7 @@ import MMA_administration as MMA
 
 arguments = sys.argv
 
-if not(os.path.isfile('msg.tmp')): raise FileNotFoundError("'msg.tmp' required to pass the name off the archive.")
+# if not(os.path.isfile('msg.tmp')): raise FileNotFoundError("'msg.tmp' required to pass the name off the archive.")
 with open('msg.tmp') as f: outfname = f.readline().rstrip()  # "results_merged.h5"
 
 # outfname = 'merge_test.h5'
