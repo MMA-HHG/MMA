@@ -19,7 +19,7 @@ cd /scratch.shared/jvabek/BG_mono
 echo "Working directory: $(pwd)"
 
 # Launch your application with MPI
-mpirun -np 16 "$CUPRAD_HOME/build/cuprad.e"
+mpirun -np 16 "$CUPRAD_HOME/build/cuprad.e"  # users need to ensure the number of processes match pbs directives
 
 #Diagnose the job
 # qstat -f -1 $PBS_JOBID
