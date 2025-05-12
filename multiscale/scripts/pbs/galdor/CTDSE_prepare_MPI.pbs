@@ -18,7 +18,7 @@ set -x
 cd /scratch.shared/jvabek/BG_mono
 echo "Working directory: $(pwd)"
 
-# Launch your application with MPI
+# Launch your application
 python $TDSE_1D_PYTHON/prepare_TDSE_Nz.py
 
 echo "===== PBS job diagnostics for $PBS_JOBID ====="

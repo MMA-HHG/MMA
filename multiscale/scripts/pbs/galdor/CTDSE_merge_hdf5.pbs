@@ -3,7 +3,7 @@
 #PBS -N 5_1DTDSE_merge
 #PBS -l select=1:ncpus=1:mem=4gb:scratch_local=2gb:cl_galdor=True
 #PBS -l walltime=24:00:00
-#PBS -o TDSE_prepare.output
+#PBS -o TDSE_merge.output
 #PBS -j oe
 #PBS -V
 
@@ -11,10 +11,21 @@
 module purge
 load_python_modules
 
+# Echo commands to stdout
 set -x
 
 # echo "$PBS_JOBID is running on node `hostname -f` in a scratch directory $SCRATCHDIR" >> $SUBMITTING_DIRECTORY/jobs_info.txt
 
+# ensure correct work dir
+cd /scratch.shared/jvabek/BG_mono
+echo "Working directory: $(pwd)"
+
 
 # python3 $TDSE_1D_PYTHON/merge.py -keep-files
 python3 $TDSE_1D_PYTHON/merge.py
+
+echo "===== PBS job diagnostics for $PBS_JOBID ====="
+qstat -f   "$PBS_JOBID"
+
+echo "===== tracejob ====="
+tracejob -n 1 "$PBS_JOBID"
