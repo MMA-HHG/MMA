@@ -1,18 +1,21 @@
 #!/bin/bash
 
 #PBS -N 1_copy_inputs
-#PBS -l select=1:ncpus=1:mem=4gb:scratch_local=2gb:cl_galdor=True
+#PBS -l select=1:ncpus=1:mem=4gb:scratch_local=2gb:cl_galdor=True 
 #PBS -l walltime=00:01:00
 #PBS -o prepare_simulation.output
 #PBS -j oe
 #PBS -V
 
+# note: the flag "cl_galdor=True" specifies we place the computaiton on galdor
+
 
 # echo "$PBS_JOBID is running on node `hostname -f` in a scratch directory $SCRATCHDIR" >> $SUBMITTING_DIRECTORY/jobs_info.txt
 
-cd /scratch.shared/jvabek/BG_mono
-rm -r *
-scp -r /storage/brno2/home/jvabek/HHG-mono/galdor_test/input/* .
+# copy input data into the scratch storage where the whole pipeline is executed
+cd /scratch.shared/jvabek/BG_mono   # scratch storage on galdor cluster (for user jvabek)
+rm -r *                             # clean working directory
+scp -r /storage/brno2/home/jvabek/HHG-mono/galdor_test/input/* . # copy inputs from jvabek's home stroage to the galdor scratch
 
 #qstat -f -1 $PBS_JOBID
 

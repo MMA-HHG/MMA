@@ -12,7 +12,10 @@ export SUBMITTING_DIRECTORY=($pwd)
 # Copy already pre-processed input
 JOB1=$(qsub $MULTISCALE_SCRIPTS/pbs/galdor/copy_inps.pbs)
 
+# run main CUPRAD code
 JOB2=$(qsub -W depend=afterok:$JOB1 $MULTISCALE_SCRIPTS/pbs/galdor/CUPRAD.pbs)
+
+## TDSE part
 
 JOB3=$(qsub -W depend=afterok:$JOB2 $MULTISCALE_SCRIPTS/pbs/galdor/CTDSE_prepare_MPI.pbs)
 
