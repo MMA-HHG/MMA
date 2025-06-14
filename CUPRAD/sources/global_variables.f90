@@ -14,20 +14,22 @@ END MODULE fields
 !> @brief stores the paths within the main hdf5 file. 
 MODULE h5namelist
   ! USE HDF5
-  CHARACTER(255), SAVE      ::  main_h5_fname =         "results.h5"                                !< 'results.h5' is the default name, a custom name is specified in 'msg.tmp'.
-  CHARACTER(*), PARAMETER   ::  CUPRAD_grp =            "CUPRAD"                                    !< The group where CUPRAD operates
-  CHARACTER(*), PARAMETER   ::  global_inps_grp =       "global_inputs"                             !< The group for inputs shared accros modules (e.g. density modulation). 
-  CHARACTER(*), PARAMETER   ::  in_grpname =            CUPRAD_grp//"/inputs"
-  CHARACTER(*), PARAMETER   ::  pre_proc_grpname =      CUPRAD_grp//"/pre-processed"
-  CHARACTER(*), PARAMETER   ::  out_grpname =           CUPRAD_grp//"/outputs"
-  CHARACTER(*), PARAMETER   ::  outEfield_grpname =     CUPRAD_grp//"/IRprop"
-  CHARACTER(*), PARAMETER   ::  log_grpname =           CUPRAD_grp//"/logs"
-  CHARACTER(*), PARAMETER   ::  ionref_grpname =        CUPRAD_grp//"/ionisation_model"
-  CHARACTER(*), PARAMETER   ::  longstep_grpname =      CUPRAD_grp//"/longstep"
-  CHARACTER(*), PARAMETER   ::  outcont_grpname =       out_grpname//"/code_continuation"
-  CHARACTER(*), PARAMETER   ::  refrindex_grpname =     pre_proc_grpname//"/indexes_group"
-  CHARACTER(*), PARAMETER   ::  density_mod_grpname =   global_inps_grp//"/density_mod"              !< If this group is present, \ref density_module::init_density_mod "init_density_mod" is invoked.
-  CHARACTER(*), PARAMETER   ::  pre_ionised_grpname =   global_inps_grp//"/pre_ionised"              !< If this group is present, \ref pre_ionised::init_pre_ionisation "init_pre_ionisation" is invoked.
+  CHARACTER(255), SAVE      ::  main_h5_fname =           "results.h5"                                !< 'results.h5' is the default name, a custom name is specified in 'msg.tmp'.
+  CHARACTER(*), PARAMETER   ::  CUPRAD_grp =              "CUPRAD"                                    !< The group where CUPRAD operates
+  CHARACTER(*), PARAMETER   ::  global_inps_grp =         "global_inputs"                             !< The group for inputs shared accros modules (e.g. density modulation). 
+  CHARACTER(*), PARAMETER   ::  in_grpname =              CUPRAD_grp//"/inputs"
+  CHARACTER(*), PARAMETER   ::  pre_proc_grpname =        CUPRAD_grp//"/pre-processed"
+  CHARACTER(*), PARAMETER   ::  out_grpname =             CUPRAD_grp//"/outputs"
+  CHARACTER(*), PARAMETER   ::  outEfield_grpname =       CUPRAD_grp//"/IRprop"
+  CHARACTER(*), PARAMETER   ::  log_grpname =             CUPRAD_grp//"/logs"
+  CHARACTER(*), PARAMETER   ::  ionref_grpname =          CUPRAD_grp//"/ionisation_model"
+  CHARACTER(*), PARAMETER   ::  longstep_grpname =        CUPRAD_grp//"/longstep"
+  CHARACTER(*), PARAMETER   ::  outcont_grpname =         out_grpname//"/code_continuation"
+  CHARACTER(*), PARAMETER   ::  refrindex_grpname =       pre_proc_grpname//"/indexes_group"
+  CHARACTER(*), PARAMETER   ::  density_mod_grpname =     global_inps_grp//"/density_mod"              !< If this group is present, \ref density_module::init_density_mod "init_density_mod" is invoked.
+  CHARACTER(*), PARAMETER   ::  pre_ionised_grpname =     global_inps_grp//"/pre_ionised"              !< If this group is present, \ref pre_ionised::init_pre_ionisation "init_pre_ionisation" is invoked.
+
+  CHARACTER(*), PARAMETER   ::  ionisation_tables_fname = "ionisation_tables.h5"                       !< This specifies the filename for the external ionisation model
 END MODULE h5namelist
 
 MODULE longstep_vars

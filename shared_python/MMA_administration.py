@@ -10,6 +10,7 @@ paths={'CUPRAD'                     : CUPRAD_group,
        'CUPRAD_outputs'             : CUPRAD_group + '/outputs',
        'CUPRAD_logs'                : CUPRAD_group + '/logs',
        'CUPRAD_pre-processed'       : CUPRAD_group + '/pre-processed',
+       'CUPRAD_ionisation_model'    : CUPRAD_group + '/ionisation_model',
        
        'CTDSE'                      : CTDSE_group,
        'CTDSE_inputs'               : CTDSE_group + '/inputs',
@@ -23,6 +24,7 @@ paths={'CUPRAD'                     : CUPRAD_group,
        'global_inputs_pre_ionised'  : global_inputs_group +'/'+ global_inputs_pre_ionised_subgroup}
 
 
+filenames={'ionisation_tables'      : 'ionisation_tables.h5'}
 
 
 

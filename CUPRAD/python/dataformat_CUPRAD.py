@@ -215,6 +215,10 @@ class get_data:
             elif (output == 'add'):      self.FE_zrt = FE_zrt
             else: raise ValueError('wrongly specified output for the vacuum shift.') 
 
+    def get_ionisation_model(self, InputArchive):
+        self.ionisation_model = empty_class()
+        self.ionisation_model.Egrid =            InputArchive[MMA.paths['CUPRAD_ionisation_model'] +'/Egrid'][:]
+        self.ionisation_model.ionisation_rates = InputArchive[MMA.paths['CUPRAD_ionisation_model'] +'/ionisation_rates'][:]
         
         
 def add_print_parameter(parameter,data):
