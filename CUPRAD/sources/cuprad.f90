@@ -60,12 +60,12 @@ PROGRAM cuprad
             print *, '-------------------------------------------------------------------------------'
             print *, "printing number:", output_write_count, ":"
             print *, "z[m]=", z*four_z_Rayleigh, "(", 1e2*z/proplength, " %)"
-            print *, "before printing:", local_time_MPI - start_time_MPI
+            ! print *, "before printing:", local_time_MPI - start_time_MPI
            ENDIF
            CALL write_output
            local_time_MPI  = MPI_Wtime()
            IF (my_rank.EQ.0) THEN
-            print *, "after printing:", local_time_MPI - start_time_MPI
+            print *, "time:", local_time_MPI - start_time_MPI
            ENDIF           
            z_out = z_out + outlength
          ENDIF
@@ -133,7 +133,7 @@ PROGRAM cuprad
      CALL code_continuation_output
 
      CALL finalize
-     PRINT*, "program finished"
+     PRINT*, "Process", my_rank, "finished"
   ENDIF
 
 END PROGRAM cuprad

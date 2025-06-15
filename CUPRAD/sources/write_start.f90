@@ -30,6 +30,8 @@ MODULE write_start
   CHARACTER(100) :: filename  ! File name variable, which is assigned a value by user eg.: results.h5
   INTEGER(HSIZE_T), DIMENSION(1:1) :: data_dims       
   
+  LOGICAL :: debug_print = .false.
+  
 CONTAINS
 
   SUBROUTINE write_startingfile(p)
@@ -65,7 +67,7 @@ CONTAINS
        IF (ip(l:l).EQ.' ') ip(l:l)='0'
     ENDDO
     IF(p.EQ.(num_proc-1))THEN
-      PRINT*, 'final writing'
+      IF (debug_print) PRINT*, 'final writing'
       CALL create_dset(group_id, 'num_proc', num_proc)
       CALL create_dset(group_id, 'dim_t', dim_t)
       CALL create_dset(group_id, 'dim_r', dim_r) 
@@ -137,21 +139,23 @@ CONTAINS
 
       !r_offset = dim_r_start(num_proc)-1
       efield_factor = SQRT(Pcr_phys*1.D-9*1.D9*c_light*4.D0*PI*1.D-7/(4.D0*PI*w0_cm_phys**2*1.D-4*2.D0*n0))*2.D0 ! normalization factor electric field V/m
-      print *, 'efield_factor', efield_factor, 'w0', w0_cm_phys, 'Pcr', Pcr_phys
+      
+      IF (debug_print) THEN
+        print *, 'efield_factor', efield_factor, 'w0', w0_cm_phys, 'Pcr', Pcr_phys
 
-      print *, 'old efield fact', SQRT(Pcr_phys*1.D-9*1.D9*3.D8*4.D0*PI*1.D-7/(4.D0*PI*w0_cm_phys**2*1.D-4*2.D0*n0))*2.D0
-      print *, 'new efield fact', SQRT(Pcr_phys*1.D-9*1.D9*c_light*4.D0*PI*1.D-7/(4.D0*PI*w0_cm_phys**2*1.D-4*2.D0*n0))*2.D0
-
+        print *, 'old efield fact', SQRT(Pcr_phys*1.D-9*1.D9*3.D8*4.D0*PI*1.D-7/(4.D0*PI*w0_cm_phys**2*1.D-4*2.D0*n0))*2.D0
+        print *, 'new efield fact', SQRT(Pcr_phys*1.D-9*1.D9*c_light*4.D0*PI*1.D-7/(4.D0*PI*w0_cm_phys**2*1.D-4*2.D0*n0))*2.D0
+      ENDIF
 
       ALLOCATE(efield_osc(dim_t))
-      PRINT*, 'beosc'
+      IF (debug_print) PRINT*, 'beosc'
       DO j=1,dim_t
         efield_osc(j) = exp(CMPLX(0.D0,-omega_uppe*(tlo+REAL(j,8)*delta_t),8)) ! fast oscillating term exp(-i*omegauppe*t)
       ENDDO
-      PRINT*, 'aeosc'
+      IF (debug_print) PRINT*, 'aeosc'
       
       ALLOCATE(real_e(dim_t,dim_r),imag_e(dim_t,dim_r))
-      PRINT*, 'brealimag'
+      IF (debug_print) PRINT*, 'brealimag'
       DO k1=1, dim_t
         DO k2=1, dim_r
            real_e(k1,k2) = REAL( REAL( (efield_factor*efield_osc(k1)*e_full(k1,k2)) ) , 8 )
@@ -161,10 +165,10 @@ CONTAINS
         ENDDO
       ENDDO
       CALL create_dset(group_id, "startfield_r", real_e, dim_t, dim_r)
-      PRINT*, 'efieldwritten'
+      IF (debug_print) PRINT*, 'efieldwritten'
       CALL create_dset(group_id, "startfield_i", imag_e, dim_t, dim_r)
       ! CALL create_dset(group_id,"startfield",e_full,dim_t,dim_r)
-      PRINT*, 'bindicesgroup'
+      IF (debug_print) PRINT*, 'bindicesgroup'
       CALL h5gcreate_f(file_id, indexes_groupname, indexes_group_id, error)
       CALL create_dset(indexes_group_id, "r_vector", REAL(xx(1:i_x_max),4), i_x_max)
       CALL create_dset(indexes_group_id, "z_vector", REAL(zz(1:i_z_max),4), i_z_max)

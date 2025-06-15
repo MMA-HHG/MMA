@@ -599,7 +599,7 @@ CONTAINS
        help1=MAX(help1,ABS(REAL(komega(j)-rek0-rekp*(k_t+omega_uppe-omega))))
     ENDDO
     PRINT*, 'Warning: maximal absolute reduced real part of k is ',help1
-    PRINT*, 'Check komega_original.dat and komega_original_reduced.dat'
+   !  PRINT*, 'Check komega_original.dat and komega_original_reduced.dat'
     IF (mess1) THEN
        OPEN(10,FILE='komega_original.dat',STATUS='UNKNOWN')
        DO i=1,dim_t
@@ -614,8 +614,9 @@ CONTAINS
        ENDDO
        CLOSE(10)
     ENDIF
-    PRINT*, 'For artifical absorption type level of k, or 0 to ignore'
-    READ(5,*) help1
+   !  PRINT*, 'For artifical absorption type level of k, or 0 to ignore'
+   !  READ(5,*) help1
+    help1 = 0.D0
     IF (help1.GT.0.D0) THEN
        PRINT*, 'absorption at ',help1,', see komega.dat and komega_reduced.dat'
        cut=.FALSE.
@@ -636,8 +637,9 @@ CONTAINS
           endif
        ENDDO
     ENDIF
-    PRINT*, 'For cutting the reduced real part of k type level, or 0 to ignore'
-    READ(5,*) help1
+   !  PRINT*, 'For cutting the reduced real part of k type level, or 0 to ignore'
+   !  READ(5,*) help1
+    help1=0.D0
     IF (help1.GT.0.D0) THEN
        PRINT*, 'cutting at ',help1,', see komega.dat and komega_reduced.dat'
        cut=.FALSE.
@@ -843,21 +845,27 @@ CONTAINS
     tauc_fs_phys = tauc_fs_phys/pressure
 
     rhoc_cm3_phys = (emass*PI*c_light*alpha_fine_inv/hbar) * 1.d-2/lambda0_cm_phys**2 ! critical plasma censity  cm-3
-    print *, 'old rhoc_cm3_phys', 1.11d13/lambda0_cm_phys**2 ! critical plasma censity  cm-3
-    print *, 'new rhoc_cm3_phys', rhoc_cm3_phys
+    IF (debug_print) THEN
+      print *, 'old rhoc_cm3_phys', 1.11d13/lambda0_cm_phys**2 ! critical plasma censity  cm-3
+      print *, 'new rhoc_cm3_phys', rhoc_cm3_phys
+    ENDIF
 
     !sigma_cm2_phys =  3.535d-12*(omega*tauc_fs_phys/tp_fs_phys)/(k0_phys*n0*(1.D0+(omega*tauc_fs_phys/tp_fs_phys)**2)) !cross section for inverse bremsstrahlung  cm2
     
     sigma_cm2_phys = 1.d-11 * 4.d0*PI*hbar*alpha_fine*tauc_fs_phys / (emass*n0*(1.D0+(omega*tauc_fs_phys/tp_fs_phys)**2)) !cross section for inverse bremsstrahlung  cm2
-    print *, 'old sigma_cm2_phys', 3.535d-12*(omega*tauc_fs_phys/tp_fs_phys)/(k0_phys*n0*(1.D0+(omega*tauc_fs_phys/tp_fs_phys)**2)) !cross section for inverse bremsstrahlung  cm2
-    print *, 'new sigma_cm2_phys', sigma_cm2_phys ! seek for proper normalisation
+    IF (debug_print) THEN
+      print *, 'old sigma_cm2_phys', 3.535d-12*(omega*tauc_fs_phys/tp_fs_phys)/(k0_phys*n0*(1.D0+(omega*tauc_fs_phys/tp_fs_phys)**2)) !cross section for inverse bremsstrahlung  cm2
+      print *, 'new sigma_cm2_phys', sigma_cm2_phys ! seek for proper normalisation
 
-    print *, 'old sigma_prefactor', 3.535d-12*(omega*tauc_fs_phys/tp_fs_phys)/(k0_phys*n0) !cross section for inverse bremsstrahlung  cm2
-    print *, 'new sigma_prefactor', 1.d-11 * 4.d0*PI*hbar*alpha_fine*tauc_fs_phys / (emass*n0)
+      print *, 'old sigma_prefactor', 3.535d-12*(omega*tauc_fs_phys/tp_fs_phys)/(k0_phys*n0) !cross section for inverse bremsstrahlung  cm2
+      print *, 'new sigma_prefactor', 1.d-11 * 4.d0*PI*hbar*alpha_fine*tauc_fs_phys / (emass*n0)
+    ENDIF
 
     photon_energy_au_phys = ConvertPhoton(1.d-2*lambda0_cm_phys,'lambdaSI','omegaau') ! h*c*2.d0*PI/lambda0_cm_phys/4.359d-18 ! photon energy  au ! still not precise
-    print *, 'old energy', h*c*2.d0*PI/lambda0_cm_phys/4.359d-18
-    print *, 'new energy', photon_energy_au_phys
+    IF (debug_print) THEN
+      print *, 'old energy', h*c*2.d0*PI/lambda0_cm_phys/4.359d-18
+      print *, 'new energy', photon_energy_au_phys
+    ENDIF
 
     Ui_au_phys = Ui_eV_phys/Ip_HeV ! gap potential for ionization of oxygen molecules  au
 
@@ -875,7 +883,7 @@ CONTAINS
     ENDIF
     
     Pcr_phys = ((lambda0_cm_phys)**2)/(2.D0*PI*n0*n2_phys)  !critical power          W
-    print *, 'aPcr ', 'n0', n0, 'n2', n2_phys
+    IF (debug_print) print *, 'aPcr ', 'n0', n0, 'n2', n2_phys
     k0_phys = 2.D0*PI/lambda0_cm_phys  !central wave number in vacuum     cm-1
     proplength = proplength_m_phys*100.D0/(4.D0*z_rayleigh_cm_phys)  !adimensionned distance of propagation
     outlength = outlength_m_phys*100.D0/(4.D0*z_rayleigh_cm_phys)  !adimmensionned output distance for whole field

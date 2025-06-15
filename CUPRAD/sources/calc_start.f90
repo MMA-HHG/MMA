@@ -250,7 +250,7 @@ end subroutine calck0
     CHARACTER(LEN = 3) :: ip
     CHARACTER(LEN = 10):: id
 
-    PRINT*, 'in calc_starting'
+    IF (debug_print) PRINT*, 'in calc_starting'
     !CALL FLUSH()
 
     delta_t=lt/REAL(dim_t,8) !stepwidth for t
@@ -264,7 +264,7 @@ end subroutine calck0
        ALLOCATE(buffer(dim_t))
     ENDIF
 
-    PRINT*, 'p1'
+    IF (debug_print) PRINT*, 'p1'
 
     IF (switch_start.LE.2) THEN
 
@@ -351,7 +351,7 @@ end subroutine calck0
 
     ENDIF
 
-    PRINT*, 'p2'
+    IF (debug_print) PRINT*, 'p2'
 
     IF (switch_T.eq.1) THEN
        PRINT*, 'p3 c1'
@@ -364,11 +364,11 @@ end subroutine calck0
           ENDDO
        ENDDO
     ELSE
-       PRINT*, 'p3 c2'
+       IF (debug_print) PRINT*, 'p3 c2'
        CALL dfftw_execute(plan_forward)
-       PRINT*, 'afft_sub'
+       IF (debug_print) PRINT*, 'afft_sub'
        e=CSHIFT(e,dim_t/2,1) ! problem
-PRINT*, 'p4'
+       IF (debug_print) PRINT*, 'p4'
        DO l=p*(dim_r/num_proc)+1,(p+1)*(dim_r/num_proc)
           r=REAL(l-1,8)*delta_r
           DO j=1,dim_t
@@ -376,13 +376,13 @@ PRINT*, 'p4'
              e(j,l)=e(j,l)*exp(CMPLX(0.D0,-r**2*k_t/omega*lense_factor,8))
           ENDDO
        ENDDO
-PRINT*, 'p5'
+       IF (debug_print) PRINT*, 'p5'
        e=CSHIFT(e,dim_t/2,1) ! problem
        CALL dfftw_execute(plan_backward)
        e=e/REAL(dim_t,8)
     ENDIF
 
-    PRINT*, 'bfft_destroy'
+    IF (debug_print) PRINT*, 'bfft_destroy'
 
     CALL dfftw_destroy_plan(plan_forward)
     CALL dfftw_destroy_plan(plan_backward)
@@ -390,7 +390,7 @@ PRINT*, 'p5'
        DEALLOCATE(buffer)
     ENDIF
 
-    PRINT*, 'afft_destroy'
+    IF (debug_print) PRINT*, 'afft_destroy'
 
 930 FORMAT (I3)
     DO j=p*(dim_r/num_proc)+1,(p+1)*(dim_r/num_proc)

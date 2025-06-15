@@ -86,9 +86,7 @@ PROGRAM make_start
   ! All the parameters of the medium (dispersion, ionization, Kerr, absrption, ...) are defined if this directive is present
   CALL h5lexists_f(file_id, global_inps_grp//'/gas_preset', dumlog, error)
   IF (dumlog) THEN
-    print *, 'bread gas_preset'
     CALL read_dset(file_id, global_inps_grp//'/gas_preset', gas_preset)
-    print *, 'gas is', gas_preset
     CALL h5lexists_f(file_id, in_grpname//'/ionization_model', dumlog, error)    
     IF (dumlog) THEN
       CALL read_dset(file_id, in_grpname//'/ionization_model', ionization_model)
@@ -97,7 +95,7 @@ PROGRAM make_start
       ionization_model = 'PPT'
     ENDIF
     gas_preset = TRIM(gas_preset)//'_'//TRIM(ionization_model)  
-    print *, 'USED GAS IS ',  gas_preset
+    print *, 'using preset gas model: ',  gas_preset
     CALL preset_parameters_gas
   ENDIF
 
@@ -329,22 +327,24 @@ PROGRAM make_start
     STOP "wrong pulse duration specification"
   END SELECT
 
-  print *, 'Efield'
-  dumreal = Convert_pulse_duration(tp_fs_phys, '1/e', '1/e', type2_in = 'Efield', type2_out = 'Efield')
-  print *, dumreal
-  dumreal = Convert_pulse_duration(tp_fs_phys, '1/e', 'FWHM', type2_in = 'Efield', type2_out = 'Efield')
-  print *, dumreal
-  dumreal = Convert_pulse_duration(tp_fs_phys, '1/e', 'rms', type2_in = 'Efield', type2_out = 'Efield')
-  print *, dumreal
+  IF (debug_print) THEN
+    print *, 'Efield'
+    dumreal = Convert_pulse_duration(tp_fs_phys, '1/e', '1/e', type2_in = 'Efield', type2_out = 'Efield')
+    print *, dumreal
+    dumreal = Convert_pulse_duration(tp_fs_phys, '1/e', 'FWHM', type2_in = 'Efield', type2_out = 'Efield')
+    print *, dumreal
+    dumreal = Convert_pulse_duration(tp_fs_phys, '1/e', 'rms', type2_in = 'Efield', type2_out = 'Efield')
+    print *, dumreal
 
-  print *, 'Intensity'
-  dumreal = Convert_pulse_duration(tp_fs_phys, '1/e', '1/e', type2_in = 'Efield', type2_out = 'Intensity')
-  print *, dumreal
-  dumreal = Convert_pulse_duration(tp_fs_phys, '1/e', 'FWHM', type2_in = 'Efield', type2_out = 'Intensity')
-  print *, dumreal
-  dumreal = Convert_pulse_duration(tp_fs_phys, '1/e', 'rms', type2_in = 'Efield', type2_out = 'Intensity')
-  print *, dumreal
-  !stop
+    print *, 'Intensity'
+    dumreal = Convert_pulse_duration(tp_fs_phys, '1/e', '1/e', type2_in = 'Efield', type2_out = 'Intensity')
+    print *, dumreal
+    dumreal = Convert_pulse_duration(tp_fs_phys, '1/e', 'FWHM', type2_in = 'Efield', type2_out = 'Intensity')
+    print *, dumreal
+    dumreal = Convert_pulse_duration(tp_fs_phys, '1/e', 'rms', type2_in = 'Efield', type2_out = 'Intensity')
+    print *, dumreal
+    !stop
+  ENDIF
 
 
   CALL save_or_replace(group_id, 'laser_pulse_duration_in_1_e_Efield', Convert_pulse_duration(tp_fs_phys, '1/e', '1/e', &
@@ -439,16 +439,16 @@ PROGRAM make_start
 
   ! test Energy
   Energy = ratio_Pin_Pcr_entry2Energy(numcrit,pressure*n2_phys*1.D-4,lambda0_cm_phys*1.D-2,tp_fs_phys*1.D-15)
-  ! Energy = ratio_Pin_Pcr_entry2Energy(Pin_Pcr,n2p,lambda,t0)
-  print *, 'Energy=', Energy
+  IF (debug_print) print *, 'Energy=', Energy
   CALL save_or_replace(group_id, 'laser_Energy', Energy, error, units_in = '[J]')
 
-
-  print *, '========= Testing waists ========='
-  print *, 'waist_entry =', w0_m_phys, 'm'
-  print *, 'waist_Gauss =', waist_focus, 'm'
-  print *, 'Pin/Pcr =', numcrit
-  print *, '=================================='
+  IF (debug_print) THEN
+    print *, '========= Testing waists ========='
+    print *, 'waist_entry =', w0_m_phys, 'm'
+    print *, 'waist_Gauss =', waist_focus, 'm'
+    print *, 'Pin/Pcr =', numcrit
+    print *, '=================================='
+  ENDIF
 
 
   CALL h5gclose_f(group_id, error)  
@@ -479,8 +479,9 @@ PROGRAM make_start
     !CALL h5close_f(error)
     PRINT*, 'refractive index loaded from the input hdf5 archive'
   ELSE
-    PRINT*, 'Specify name of indexfile, or 0 to ignore'
-    READ(5,*) indexfile
+    ! PRINT*, 'Specify name of indexfile, or 0 to ignore'
+    ! READ(5,*) indexfile
+    indexfile=0
     IF (indexfile.EQ.'0') THEN
       i_x_max=1
       i_z_max=1
@@ -503,16 +504,18 @@ PROGRAM make_start
     ENDIF
   ENDIF
 	 
-  PRINT*, 'index_rgrid'
-  PRINT*, xx_mum
-  PRINT*, 'index_zgrid'
-  PRINT*, zz_mum
+  IF (debug_print) THEN
+    PRINT*, 'index_rgrid'
+    PRINT*, xx_mum
+    PRINT*, 'index_zgrid'
+    PRINT*, zz_mum
 
-  PRINT*, 'indexes:'
-  PRINT*, Indice(:,1)
-  !PRINT*, Indice(:,2)
+    PRINT*, 'indexes:'
+    PRINT*, Indice(:,1)
+    !PRINT*, Indice(:,2)
 
-  PRINT*, 'acdispersion'
+    PRINT*, 'acdispersion'
+  ENDIF
 
   CALL compute_dispersion(switch_dispersion)
   CALL compute_parameters
@@ -526,11 +529,11 @@ PROGRAM make_start
 
   CALL h5gcreate_f(file_id, output_groupname, group_id, error)  
   ALLOCATE(e_full(dim_t,dim_r))
-  PRINT*, 'numproc', num_proc
+  IF (debug_print) PRINT*, 'numproc', num_proc
   DO p=0,num_proc-1
-    PRINT*, 'calc1', p
+    IF (debug_print) PRINT*, 'calc1', p
     CALL calc_startingfield(switch_start,p) 
-    PRINT*, 'write1'
+    IF (debug_print) PRINT*, 'write1'
     CALL write_startingfile(p)
   ENDDO
   CALL h5gclose_f(group_id, error)

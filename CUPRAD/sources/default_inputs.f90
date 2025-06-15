@@ -395,11 +395,13 @@ end function ratio_Pin_Pcr_entry2I_entry
 real(8) function I_entry2ratio_Pin_Pcr_entry(I_entry,wz,n2p,lambda)
     real(8) :: I_entry,wz,n2p,lambda
 
-    print *, 'conversion to pin/pcr'
-    print *, 'n2p', n2p
-    print *, 'I_entry', I_entry
-    print *, 'wz', wz
-    print *, 'lambda', lambda
+    if (debug_print) then
+        print *, 'conversion to pin/pcr'
+        print *, 'n2p', n2p
+        print *, 'I_entry', I_entry
+        print *, 'wz', wz
+        print *, 'lambda', lambda
+    endif
 
     I_entry2ratio_Pin_Pcr_entry = n2p*I_entry*(PI*wz/lambda)**2
 end function I_entry2ratio_Pin_Pcr_entry
