@@ -76,6 +76,12 @@ Metacentrum_python_modules() {
 }
 export -f Metacentrum_python_modules
 
+Karolina_python_modules() {
+    module purge
+    module load h5py
+}
+export -f Karolina_python_modules
+
 ### Load cmake, MPI, HDF5, FFTW/MKL
 load_modules() {
     if [ "$HPC" == "Curta" ] 
@@ -111,6 +117,9 @@ load_python_modules() {
     elif [ "$HPC" == "Metacentrum" ]
     then
         Metacentrum_python_modules
+    elif [ "$HPC" == "Karolina" ]
+    then
+        Karolina_python_modules
     fi
 
 
