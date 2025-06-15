@@ -42,8 +42,8 @@ export -f Metacentrum_modules
 Karolina_modules() {
     module purge
     module load HDF5/1.12.1-intel-2021b-parallel
-    export FC=mpifort
-    export CC=mpicc
+    export FC=mpiifort
+    export CC=mpiicc
     export CPATH=${CPATH}:${MKLROOT}/include/fftw
 }
 export -f Karolina_modules
