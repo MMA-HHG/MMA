@@ -74,8 +74,8 @@ subroutine init_density_mod(file_id)
         allocate(zgrid(Nz))
         call read_dset(file_id, density_mod_grpname//'/zgrid', zgrid, Nz)
 
-        print *, 'zgrid created, myrank', my_rank
-        print *, '(density mod) normalisation in z:', four_z_Rayleigh
+        ! print *, 'zgrid created, myrank', my_rank
+        ! print *, '(density mod) normalisation in z:', four_z_Rayleigh
 
         zgrid = zgrid/four_z_Rayleigh ! convert units [m -> C.U.]
 

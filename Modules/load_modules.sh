@@ -39,6 +39,15 @@ Metacentrum_modules() {
 }
 export -f Metacentrum_modules
 
+Karolina_modules() {
+    module purge
+    module load HDF5/1.12.1-intel-2021b-parallel
+    export FC=mpifort
+    export CC=mpicc
+    export CPATH=${CPATH}:${MKLROOT}/include/fftw
+}
+export -f Karolina_modules
+
 
 ### Python modules
 Curta_python_modules() {
@@ -81,6 +90,9 @@ load_modules() {
     elif [ "$HPC" == "Metacentrum" ]
     then
         Metacentrum_modules
+    elif [ "$HPC" == "Karolina" ]
+    then
+        Karolina_modules
     fi
 
 }
