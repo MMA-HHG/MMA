@@ -442,8 +442,8 @@ CONTAINS
     INTEGER                     :: i
     DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: dumvect, Egrid, ionisation_rates
     LOGICAL                     :: file_exists
-    CHARACTER(LEN=25)           :: filename = "calculated_tables.h5", groupname = "ionisation_model"
-    CHARACTER(*), PARAMETER     :: outgroupname="ionisation_model"
+    CHARACTER(*), PARAMETER     :: filename = ionisation_tables_fname
+    CHARACTER(*), PARAMETER     :: outgroupname = ionref_grpname
     INTEGER                     :: error
     INTEGER(HID_T)              :: file_id, group_id
 
@@ -458,20 +458,18 @@ CONTAINS
          (photon_energy * pulse_duration * 2.d0 * PI)
 
     ! default option if HDF5-archive exists
-    INQUIRE(FILE=ionisation_tables_fname, EXIST=file_exists) ! there are only these tables within now, if extended, use h5lexists
+    INQUIRE(FILE=filename, EXIST=file_exists) ! there are only these tables within now, if extended, use h5lexists
     IF (file_exists) THEN
         CALL h5open_f(error)
         CALL h5fopen_f(filename, H5F_ACC_RDONLY_F, file_id, error) ! all workers do
-        CALL h5gopen_f(file_id, groupname, group_id, error)
-        CALL ask_for_size_1D(group_id, 'Egrid', DIMENSION_EXT)
+        CALL ask_for_size_1D(file_id, 'Egrid', DIMENSION_EXT)
 
         ALLOCATE(EXT_TABLE(DIMENSION_EXT, 3))
         ALLOCATE(Egrid(DIMENSION_EXT),ionisation_rates(DIMENSION_EXT))
         
-        CALL read_dset(group_id, 'Egrid', Egrid, DIMENSION_EXT)
-        CALL read_dset(group_id, 'ionisation_rates', ionisation_rates, DIMENSION_EXT)
+        CALL read_dset(file_id, 'Egrid', Egrid, DIMENSION_EXT)
+        CALL read_dset(file_id, 'ionisation_rates', ionisation_rates, DIMENSION_EXT)
 
-        CALL h5gclose_f(group_id, error)
         CALL h5fclose_f(file_id, error)
         CALL h5close_f(error)
 
