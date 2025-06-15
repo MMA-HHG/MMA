@@ -481,7 +481,7 @@ PROGRAM make_start
   ELSE
     ! PRINT*, 'Specify name of indexfile, or 0 to ignore'
     ! READ(5,*) indexfile
-    indexfile=0
+    indexfile='0'
     IF (indexfile.EQ.'0') THEN
       i_x_max=1
       i_z_max=1
