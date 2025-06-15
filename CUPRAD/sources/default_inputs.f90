@@ -345,7 +345,7 @@ real(8) function Convert_pulse_duration(t_in, type_in, type_out, type2_in, type2
     end select
 
     if (present(type2_in)) then
-        print *, type2_in
+        IF (debug_print)  print *, type2_in
         select case(type2_in)
         case('Efield')
             dum = dum/sqrt(2.d0)
@@ -371,7 +371,7 @@ real(8) function Convert_pulse_duration(t_in, type_in, type_out, type2_in, type2
     end select
 
     if (present(type2_out)) then
-        print *, type2_out, Convert_pulse_duration 
+        IF (debug_print) print *, type2_out, Convert_pulse_duration 
         select case(type2_out)
         case('Efield')
             Convert_pulse_duration = sqrt(2.d0)*Convert_pulse_duration
@@ -382,7 +382,7 @@ real(8) function Convert_pulse_duration(t_in, type_in, type_out, type2_in, type2
             Convert_pulse_duration = t_in
             return
         end select
-        print *, type2_out, Convert_pulse_duration 
+        IF (debug_print) print *, type2_out, Convert_pulse_duration 
     endif
 
 end function Convert_pulse_duration
