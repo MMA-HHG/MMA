@@ -458,7 +458,7 @@ CONTAINS
          (photon_energy * pulse_duration * 2.d0 * PI)
 
     ! default option if HDF5-archive exists
-    INQUIRE(FILE="calculated_tables.h5", EXIST=file_exists) ! there are only these tables within now, if extended, use h5lexists
+    INQUIRE(FILE=ionisation_tables_fname, EXIST=file_exists) ! there are only these tables within now, if extended, use h5lexists
     IF (file_exists) THEN
         CALL h5open_f(error)
         CALL h5fopen_f(filename, H5F_ACC_RDONLY_F, file_id, error) ! all workers do
