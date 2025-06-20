@@ -1,7 +1,13 @@
 """
-Created on Sun May 19 00:38:22 2024
+This module contains collection of classes and functions for computing Hankel transform
+(the diffraction integral to obtain far-field signal) incorporating also the longitudinal
+integration accounting for phase-matching. THe content is the following:
+- FSource_provider: a class transforming heterogenous input-streams into the form suitable for Hankel_long
+- get_propagation_pre_factor_function: this function obtains the prefactor for the longitudinal integration
+- HankelTransform: The core routine performing the Hankel transform from a single plane
+- Hankel_long: The main class of this module providing Hankel transform if the longitudinaly integrated signal
 
-@author: vabek
+@author: Jan Vábek
 """
 import numpy as np
 import mynumerics as mn
@@ -74,11 +80,7 @@ class FSources_provider:
             raise ValueError('Wrongly specified input of the class.')
             
             
-            
-
-    
-    
-    
+                
 
 def get_propagation_pre_factor_function(zgrid,
                                 rgrid,
@@ -91,11 +93,42 @@ def get_propagation_pre_factor_function(zgrid,
                                 include_dispersion = True,
                                 effective_IR_refrective_index = 1.):
     """
+    This function provides the *pre-factor*
+    $\varrho(\tilde{z},\tilde{\rho})\exp(\Phi(\tilde{z},\tilde{\rho},\omega))$.
+    It uses then all the coordinates inside the target. It contains phase-matching 
+    conditions (based on tabulated complex refractive indices 'Henke' or 'NIST',
+    see 'XUV_refractive_index' module). Optionally, it adjusts the scaling
+    accordingly to specified density profile.
+
+    Parameters
+    ----------
+    zgrid : array_like
+        the grid along the propgation axis z [SI]
+    rgrid : array_like
+        the radial grid [SI]
+    ogrid : array_like
+        frequency omega grid [SI]
+    preset_gas : string
+        specifier of the gas ∈ {He, Ne, Ar, Kr, Xe}   
+    preset_gas : scalar or dict
+        variable specifying the gas profile
+        * scalar for constant
+        * dict for density modulation
+    absorption_tables : string
+        specifier of the dispersion tables for the given gas ∈ {NIST, Henke}     
+    include_absorption : boolean
+        default: True; easy switch to turn off absorption
+    dispersion_tables : string
+       specifier of the absorption tables for the given gas ∈ {NIST, Henke}     
+    include_dispersion : boolean
+       default: True; easy switch to turn off dispersion
+    effective_IR_refrective_index : function handle, optional
+        This sets the refractive according to the formula for $\Phi$ (1 for reference vacuum frame)
 
     Returns
     -------
-    int
-        DESCRIPTION.
+    FField_FF : 2D array
+         The far-field spectra on ogrid and rgrid_FF
 
     """
     
@@ -500,7 +533,7 @@ class Hankel_long:
                  ):
         
         
-        # keep some inputs to keep data packed together
+        # keep some inputs to pack I/O together
         self.include_dispersion = include_dispersion
         if include_dispersion: self.dispersion_tables = dispersion_tables
         self.include_absorption = include_absorption
