@@ -1,3 +1,8 @@
+!> @brief This module contains the main routine for one propagation step \ref propagation. Spectral operator splitting is used. The linear step in subroutine \ref mult_propagator is executed as two half-steps, in order to to second order accuracy of the splitting scheme. The nonlinear step in subroutine \ref mult_phase is executed as multiplication by exponential or second order Runge Kutta, depending whether higher-order SVEA corrections (T operators, switch_T=2) are taken into account or not (no T operator, switch_T=1)
+!!
+!! @author Jan Vábek
+!! @author Stefan Skupin
+
 ! This is the main computational module stating explicite operations within every step
 ! 
 ! TABLE OF CONTENTS:
@@ -145,8 +150,10 @@ CONTAINS
 
     RETURN
   END SUBROUTINE cn
+  
+  !> @brief Linear propagation step using Cranck-Nicholson for diffraction (\ref cn) and mutltiplication by exponential for linear dispersion.
 
-  SUBROUTINE mult_propagator ! it does the porpagation in z (linear dispersion - linar part of the porpagator)
+  SUBROUTINE mult_propagator ! it does the propagation in z (linear dispersion - linear part of the propagator)
     USE fields
     USE mpi_stuff
     IMPLICIT NONE
@@ -255,6 +262,8 @@ CONTAINS
   ! The main computational subroutine
   !==================================
 
+ !> @brief Nonlinear propagation step. For standard SVEA (no T operators, switch_T=1) all nonlinear terms can be treated by exponential factor. The exponential factor is evaluated for an intermediate electric field at half-step. For higher-order SVEA (with T operators, switch_T=2), a second order Runge Kutta scheme is used, taking into account intermediate field at half-step. Note that for switch_T=2 the final propagation nonlinear propagation step is performed in \ref fft::fft_forward_inplace.
+  
   SUBROUTINE mult_phase
     USE fields
     USE fft
@@ -381,22 +390,22 @@ CONTAINS
              ptemp(j,l)=e(j,l)*CMPLX(0.D0,phase_p)
              jtemp(j,l)=e(j,l)*CMPLX(0.D0,phase_j)
              etemp(j,l)=e(j,l)*exp(CMPLX(losses_j-delta_zh*(mpa+mediumabs),phase_index,8)) ! applying the losses, T-operator does not affect
-          CASE(3)
-             ptemp(j,l)=e(j,l)*CMPLX(0.D0,phase_p) + (hfac(j,4)*CONJG(hfac(j,0)*e(j,l))*CMPLX(0.D0,phase_p) &
-                  + (hfac(j,1)*(hfac(j,0)*e(j,l))**3 + hfac(j,2)*(hfac(j,0)*e(j,l))**3*e_2(j)) &
-                  + (hfac(j,3)*(hfac(j,0)*e(j,l))**5))*((density_mod(l)-rhotemp*rhoat_inv)+ions_Kerr_ratio*rhotemp*rhoat_inv)
-            ! terms comes from the expansion (E+E*)^3
-            ! e(j,l)*CMPLX(0.D0,phase_p) - the same as above (usual Kerr)
-            ! hfac(j,4)*CONJG(hfac(j,0)*e(j,l))*CMPLX(0.D0,phase_p) 3E*^2E (-omega process)
-            ! (hfac(j,1)*(hfac(j,0)*e(j,l))**3 - E^3 (3omega)
-            ! hfac(j,2)*(hfac(j,0)*e(j,l))**3*e_2(j)) - 5th-order process
-            ! (hfac(j,3)*(hfac(j,0)*e(j,l))**5) - 5th-order process
-             jtemp(j,l)=e(j,l)*CMPLX(0.D0,phase_j)                                                  ! same treatment of the losses
-             etemp(j,l)=e(j,l)*exp(CMPLX(losses_j-delta_zh*(mpa+mediumabs),phase_index,8)) 
-          CASE(4)                                                                                   ! to be removed
-             ptemp(j,l)=e(j,l)*CMPLX(0.D0,phase_p)
-             jtemp(j,l)=e(j,l)*CMPLX(0.D0,phase_j)
-             etemp(j,l)=e(j,l)*exp(CMPLX(losses_j-delta_zh*(mpa+mediumabs),phase_index,8))
+!           CASE(3)
+!              ptemp(j,l)=e(j,l)*CMPLX(0.D0,phase_p) + (hfac(j,4)*CONJG(hfac(j,0)*e(j,l))*CMPLX(0.D0,phase_p) &
+!                   + (hfac(j,1)*(hfac(j,0)*e(j,l))**3 + hfac(j,2)*(hfac(j,0)*e(j,l))**3*e_2(j)) &
+!                   + (hfac(j,3)*(hfac(j,0)*e(j,l))**5))*((density_mod(l)-rhotemp*rhoat_inv)+ions_Kerr_ratio*rhotemp*rhoat_inv)
+!             ! terms comes from the expansion (E+E*)^3
+!             ! e(j,l)*CMPLX(0.D0,phase_p) - the same as above (usual Kerr)
+!             ! hfac(j,4)*CONJG(hfac(j,0)*e(j,l))*CMPLX(0.D0,phase_p) 3E*^2E (-omega process)
+!             ! (hfac(j,1)*(hfac(j,0)*e(j,l))**3 - E^3 (3omega)
+!             ! hfac(j,2)*(hfac(j,0)*e(j,l))**3*e_2(j)) - 5th-order process
+!             ! (hfac(j,3)*(hfac(j,0)*e(j,l))**5) - 5th-order process
+!              jtemp(j,l)=e(j,l)*CMPLX(0.D0,phase_j)                                                  ! same treatment of the losses
+!              etemp(j,l)=e(j,l)*exp(CMPLX(losses_j-delta_zh*(mpa+mediumabs),phase_index,8)) 
+!           CASE(4)                                                                                   ! to be removed
+!              ptemp(j,l)=e(j,l)*CMPLX(0.D0,phase_p)
+!              jtemp(j,l)=e(j,l)*CMPLX(0.D0,phase_j)
+!              etemp(j,l)=e(j,l)*exp(CMPLX(losses_j-delta_zh*(mpa+mediumabs),phase_index,8))
           END SELECT
           IF (j.NE.dim_t) THEN
              CALL calc_rho(rhotemp,mpa,e_2(j),e_2(j+1),l) ! update ionization
@@ -430,28 +439,28 @@ CONTAINS
        ENDDO
        CALL dfftw_execute(plan_backward_erk) ! field to time domain
        etemp=diminv*etemp ! fft - normalization
-    CASE(3) ! possibly merge with the previous case (CASE(2,3))
-       CALL dfftw_execute(plan_forward_erk) 
-       CALL dfftw_execute(plan_p)
-       CALL dfftw_execute(plan_j)
-       DO k=dim_r_start(num_proc),dim_r_end(num_proc)
-          DO l=dim_th+1,dim_t ! different range - this is the cutting of high freq. (low-pass filter)
-             etemp(l,k)=etemp(l,k)+op_t(l,k)*ptemp(l,k)+op_t_inv(l,k)*jtemp(l,k)
-          ENDDO
-       ENDDO
-       CALL dfftw_execute(plan_backward_erk)
-       etemp=diminv*etemp
-    CASE(4)
-       CALL dfftw_execute(plan_forward_erk)
-       CALL dfftw_execute(plan_p)
-       CALL dfftw_execute(plan_j)
-       DO k=dim_r_start(num_proc),dim_r_end(num_proc)
-          DO l=1,dim_t
-             etemp(l,k)=etemp(l,k)+op_t(l,k)*ptemp(l,k)+op_t_inv(l,k)*jtemp(l,k)
-          ENDDO
-       ENDDO
-       CALL dfftw_execute(plan_backward_erk)
-       etemp=diminv*etemp
+!     CASE(3) ! possibly merge with the previous case (CASE(2,3))
+!        CALL dfftw_execute(plan_forward_erk) 
+!        CALL dfftw_execute(plan_p)
+!        CALL dfftw_execute(plan_j)
+!        DO k=dim_r_start(num_proc),dim_r_end(num_proc)
+!           DO l=dim_th+1,dim_t ! different range - this is the cutting of high freq. (low-pass filter)
+!              etemp(l,k)=etemp(l,k)+op_t(l,k)*ptemp(l,k)+op_t_inv(l,k)*jtemp(l,k)
+!           ENDDO
+!        ENDDO
+!        CALL dfftw_execute(plan_backward_erk)
+!        etemp=diminv*etemp
+!     CASE(4)
+!        CALL dfftw_execute(plan_forward_erk)
+!        CALL dfftw_execute(plan_p)
+!        CALL dfftw_execute(plan_j)
+!        DO k=dim_r_start(num_proc),dim_r_end(num_proc)
+!           DO l=1,dim_t
+!              etemp(l,k)=etemp(l,k)+op_t(l,k)*ptemp(l,k)+op_t_inv(l,k)*jtemp(l,k)
+!           ENDDO
+!        ENDDO
+!        CALL dfftw_execute(plan_backward_erk)
+!        etemp=diminv*etemp
     END SELECT
 
 
@@ -502,16 +511,16 @@ CONTAINS
              ptemp(j,l)=etemp(j,l)*CMPLX(0.D0,phase_p)
              jtemp(j,l)=etemp(j,l)*CMPLX(0.D0,phase_j)
              e(j,l)=e(j,l)*exp(CMPLX(losses_j-delta_z*(mpa+mediumabs),phase_index,8))
-          CASE(3)
-             ptemp(j,l)=etemp(j,l)*CMPLX(0.D0,phase_p) + (hfac(j,4)*CONJG(hfac(j,0)*etemp(j,l))*CMPLX(0.D0,phase_p) &
-                  + 2.D0*(hfac(j,1)*(hfac(j,0)*etemp(j,l))**3 + hfac(j,2)*(hfac(j,0)*etemp(j,l))**3*e_2(j)) &
-                  + 2.D0*(hfac(j,3)*(hfac(j,0)*etemp(j,l))**5))*((density_mod(l)-rhotemp*rhoat_inv)+ions_Kerr_ratio*rhotemp*rhoat_inv)
-             jtemp(j,l)=etemp(j,l)*CMPLX(0.D0,phase_j)
-             e(j,l)=e(j,l)*exp(CMPLX(losses_j-delta_z*(mpa+mediumabs),phase_index,8))
-          CASE(4)
-             ptemp(j,l)=etemp(j,l)*CMPLX(0.D0,phase_p)
-             jtemp(j,l)=etemp(j,l)*CMPLX(0.D0,phase_j)
-             e(j,l)=e(j,l)*exp(CMPLX(losses_j-delta_z*(mpa+mediumabs),phase_index,8))
+!           CASE(3)
+!              ptemp(j,l)=etemp(j,l)*CMPLX(0.D0,phase_p) + (hfac(j,4)*CONJG(hfac(j,0)*etemp(j,l))*CMPLX(0.D0,phase_p) &
+!                   + 2.D0*(hfac(j,1)*(hfac(j,0)*etemp(j,l))**3 + hfac(j,2)*(hfac(j,0)*etemp(j,l))**3*e_2(j)) &
+!                   + 2.D0*(hfac(j,3)*(hfac(j,0)*etemp(j,l))**5))*((density_mod(l)-rhotemp*rhoat_inv)+ions_Kerr_ratio*rhotemp*rhoat_inv)
+!              jtemp(j,l)=etemp(j,l)*CMPLX(0.D0,phase_j)
+!              e(j,l)=e(j,l)*exp(CMPLX(losses_j-delta_z*(mpa+mediumabs),phase_index,8))
+!           CASE(4)
+!              ptemp(j,l)=etemp(j,l)*CMPLX(0.D0,phase_p)
+!              jtemp(j,l)=etemp(j,l)*CMPLX(0.D0,phase_j)
+!              e(j,l)=e(j,l)*exp(CMPLX(losses_j-delta_z*(mpa+mediumabs),phase_index,8))
           END SELECT
           IF (j.NE.dim_t) THEN
              CALL calc_rho(rhotemp,mpa,e_2(j),e_2(j+1),l)
@@ -876,6 +885,9 @@ CONTAINS
     ENDIF
     RETURN
   END SUBROUTINE mult_phase
+  
+  
+!> @brief One propagation step using second order spectral operator splitting. In between two linear half-steps (\ref mult_propagator), the nonlinear step is executed (\ref mult_phase). The FFTs can be found in the module \ref fft. The subroutine \ref absorption implements absorbing boundary conditions in time.
 
   SUBROUTINE propagation
     USE fields

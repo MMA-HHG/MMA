@@ -123,9 +123,9 @@ PROGRAM make_start
   CALL save_or_replace(file_id, in_grpname//'/numerics_physical_first_stepwidth', delta_z_mm_phys, error)
   CALL save_or_replace(file_id, in_grpname//'/numerics_operators_t_t-1', switch_T, error)
   
-  IF (switch_T.GT.4) THEN
+  IF (switch_T.GT.2) THEN
       write(6,*) 'You have selected a bad value for the type of equation'
-      write(6,*) ' You have to choose between 1, 2 or 3'
+      write(6,*) ' You have to choose between 1 or 2'
       write(6,*) ' The code will be stopped'
       STOP
   ENDIF

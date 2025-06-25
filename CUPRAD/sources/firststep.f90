@@ -92,44 +92,44 @@ CONTAINS
             ENDIF
          ENDDO
        ENDDO
-    CASE(3)
-        DO k=1,dim_r
-            DO j=1,dim_th
-               komega_local = komega(dim_th+j)
-               CALL calc_komega_local(omega_uppe+k_t*REAL(j-1,8),density_mod(k),komega_local,komega_red_local)
-               IF ((j.GE.dim_t_start(num_proc)) .AND. (j.LE.dim_t_end(num_proc))) op_t_inv_cn(k,j)=rek0/komega_local
-               IF ((k.GE.dim_r_start(num_proc)) .AND. (k.LE.dim_r_end(num_proc))) THEN
-                  op_t(j,k)=rek0/omega**2*(omega_uppe+k_t*REAL(j-1,8))**2/komega_local
-                  op_t_inv(j,k)=rek0/komega_local
-               ENDIF
-               komega_local = komega(j)
-               CALL calc_komega_local(omega_uppe+k_t*REAL(j-dim_th-1,8),density_mod(k),komega_local,komega_red_local)
-               IF ((dim_th+j.GE.dim_t_start(num_proc)) .AND. (dim_th+j.LE.dim_t_end(num_proc))) op_t_inv_cn(k,dim_th+j)= rek0/komega_local
-               IF ((k.GE.dim_r_start(num_proc)) .AND. (k.LE.dim_r_end(num_proc))) THEN 
-                  op_t(dim_th+j,k)=rek0/omega**2*(omega_uppe+k_t*REAL(j-dim_th-1,8))**2/komega_local
-                  op_t_inv(dim_th+j,k)=rek0/komega_local
-               ENDIF
-            ENDDO
-       ENDDO
-    CASE(4)
-        DO k=1,dim_r
-            DO j=1,dim_th
-               komega_local = komega(dim_th+j)
-               CALL calc_komega_local(omega_uppe+k_t*REAL(j-1,8),density_mod(k),komega_local,komega_red_local)
-               IF ((j.GE.dim_t_start(num_proc)) .AND. (j.LE.dim_t_end(num_proc))) op_t_inv_cn(k,j)=rek0/komega_local
-               IF ((k.GE.dim_r_start(num_proc)) .AND. (k.LE.dim_r_end(num_proc))) THEN
-                  op_t(j,k)=rek0/omega**2*(omega_uppe+k_t*REAL(j-1,8))**2/komega_local
-                  op_t_inv(j,k)=rek0/komega_local
-               ENDIF
-               komega_local = komega(j)
-               CALL calc_komega_local(omega_uppe+k_t*REAL(j-dim_th-1,8),density_mod(k),komega_local,komega_red_local)
-               IF ((dim_th+j.GE.dim_t_start(num_proc)) .AND. (dim_th+j.LE.dim_t_end(num_proc))) op_t_inv_cn(k,dim_th+j)=rek0/komega_local
-               IF ((k.GE.dim_r_start(num_proc)) .AND. (k.LE.dim_r_end(num_proc))) THEN
-                  op_t(dim_th+j,k)=rek0/omega**2*(omega_uppe+k_t*REAL(j-dim_th-1,8))**2/komega_local
-                  op_t_inv(dim_th+j,k)=rek0/komega_local
-               ENDIF
-            ENDDO
-       ENDDO 
+!     CASE(3)
+!         DO k=1,dim_r
+!             DO j=1,dim_th
+!                komega_local = komega(dim_th+j)
+!                CALL calc_komega_local(omega_uppe+k_t*REAL(j-1,8),density_mod(k),komega_local,komega_red_local)
+!                IF ((j.GE.dim_t_start(num_proc)) .AND. (j.LE.dim_t_end(num_proc))) op_t_inv_cn(k,j)=rek0/komega_local
+!                IF ((k.GE.dim_r_start(num_proc)) .AND. (k.LE.dim_r_end(num_proc))) THEN
+!                   op_t(j,k)=rek0/omega**2*(omega_uppe+k_t*REAL(j-1,8))**2/komega_local
+!                   op_t_inv(j,k)=rek0/komega_local
+!                ENDIF
+!                komega_local = komega(j)
+!                CALL calc_komega_local(omega_uppe+k_t*REAL(j-dim_th-1,8),density_mod(k),komega_local,komega_red_local)
+!                IF ((dim_th+j.GE.dim_t_start(num_proc)) .AND. (dim_th+j.LE.dim_t_end(num_proc))) op_t_inv_cn(k,dim_th+j)= rek0/komega_local
+!                IF ((k.GE.dim_r_start(num_proc)) .AND. (k.LE.dim_r_end(num_proc))) THEN 
+!                   op_t(dim_th+j,k)=rek0/omega**2*(omega_uppe+k_t*REAL(j-dim_th-1,8))**2/komega_local
+!                   op_t_inv(dim_th+j,k)=rek0/komega_local
+!                ENDIF
+!             ENDDO
+!        ENDDO
+!     CASE(4)
+!         DO k=1,dim_r
+!             DO j=1,dim_th
+!                komega_local = komega(dim_th+j)
+!                CALL calc_komega_local(omega_uppe+k_t*REAL(j-1,8),density_mod(k),komega_local,komega_red_local)
+!                IF ((j.GE.dim_t_start(num_proc)) .AND. (j.LE.dim_t_end(num_proc))) op_t_inv_cn(k,j)=rek0/komega_local
+!                IF ((k.GE.dim_r_start(num_proc)) .AND. (k.LE.dim_r_end(num_proc))) THEN
+!                   op_t(j,k)=rek0/omega**2*(omega_uppe+k_t*REAL(j-1,8))**2/komega_local
+!                   op_t_inv(j,k)=rek0/komega_local
+!                ENDIF
+!                komega_local = komega(j)
+!                CALL calc_komega_local(omega_uppe+k_t*REAL(j-dim_th-1,8),density_mod(k),komega_local,komega_red_local)
+!                IF ((dim_th+j.GE.dim_t_start(num_proc)) .AND. (dim_th+j.LE.dim_t_end(num_proc))) op_t_inv_cn(k,dim_th+j)=rek0/komega_local
+!                IF ((k.GE.dim_r_start(num_proc)) .AND. (k.LE.dim_r_end(num_proc))) THEN
+!                   op_t(dim_th+j,k)=rek0/omega**2*(omega_uppe+k_t*REAL(j-dim_th-1,8))**2/komega_local
+!                   op_t_inv(dim_th+j,k)=rek0/komega_local
+!                ENDIF
+!             ENDDO
+!        ENDDO 
     END SELECT
     
     RETURN
@@ -144,16 +144,16 @@ CONTAINS
     delta_zh=0.5D0*delta_z
     
     hfac=1.D0
-    IF (switch_T.EQ.3) THEN
-       DO j=1,dim_t
-          t=tlo+REAL(j,8)*delta_t
-          hfac(j,0)=exp(CMPLX(0.D0,(omega-omega_uppe)*t,8))
-          hfac(j,1)=CMPLX(0.D0,c3i*delta_zh/3.D0)*exp(CMPLX(0.D0,(omega_uppe-3.D0*omega)*t,8))
-          hfac(j,2)=CMPLX(0.D0,-c5*delta_zh/2.D0)*exp(CMPLX(0.D0,(omega_uppe-3.D0*omega)*t,8))
-          hfac(j,3)=CMPLX(0.D0,-c5*delta_zh/10.D0)*exp(CMPLX(0.D0,(omega_uppe-5.D0*omega)*t,8))
-          hfac(j,4)=exp(CMPLX(0.D0,(omega_uppe+omega)*t,8))
-       ENDDO
-    ENDIF
+!     IF (switch_T.EQ.3) THEN
+!        DO j=1,dim_t
+!           t=tlo+REAL(j,8)*delta_t
+!           hfac(j,0)=exp(CMPLX(0.D0,(omega-omega_uppe)*t,8))
+!           hfac(j,1)=CMPLX(0.D0,c3i*delta_zh/3.D0)*exp(CMPLX(0.D0,(omega_uppe-3.D0*omega)*t,8))
+!           hfac(j,2)=CMPLX(0.D0,-c5*delta_zh/2.D0)*exp(CMPLX(0.D0,(omega_uppe-3.D0*omega)*t,8))
+!           hfac(j,3)=CMPLX(0.D0,-c5*delta_zh/10.D0)*exp(CMPLX(0.D0,(omega_uppe-5.D0*omega)*t,8))
+!           hfac(j,4)=exp(CMPLX(0.D0,(omega_uppe+omega)*t,8))
+!        ENDDO
+!     ENDIF
 
    ! D - diagonal, DU - upper diagonal, DL - lower diagonal
     delta_rel=op_t_inv_cn*delta_zh/delta_r**2
@@ -352,30 +352,30 @@ CONTAINS
        help=2*NINT(omega/k_t)
     CASE(2)
        help=2*NINT(omega/k_t)
-    CASE(3)
-       omega_offset(1)=NINT(omega_uppe/k_t)-dim_th
-       omega_offset(2)=NINT(omega/k_t)-(NINT(omega_uppe/k_t)-dim_th)
-       IF(c5.EQ.0.D0) THEN 
-          help=3*NINT(omega/k_t)-(NINT(omega_uppe/k_t)-dim_th)+1
-       ELSE
-          help=5*NINT(omega/k_t)-(NINT(omega_uppe/k_t)-dim_th)+1
-       ENDIF
-    CASE(4)
-       help=2*NINT(omega/k_t)
+!     CASE(3)
+!        omega_offset(1)=NINT(omega_uppe/k_t)-dim_th
+!        omega_offset(2)=NINT(omega/k_t)-(NINT(omega_uppe/k_t)-dim_th)
+!        IF(c5.EQ.0.D0) THEN 
+!           help=3*NINT(omega/k_t)-(NINT(omega_uppe/k_t)-dim_th)+1
+!        ELSE
+!           help=5*NINT(omega/k_t)-(NINT(omega_uppe/k_t)-dim_th)+1
+!        ENDIF
+!     CASE(4)
+!        help=2*NINT(omega/k_t)
     END SELECT
     help=MIN(help,dim_t)
     delta_z_max=4.D0*delta_r**2
     IF (MAXVAL(ABS(REAL(komega_red(1:help)))).GT.0.D0) THEN
        delta_z_max=MIN(delta_z_max,4.D0/MAXVAL(ABS(REAL(komega_red(1:help)))))
     ENDIF
-    IF (switch_T.EQ.3) THEN
-       IF (ABS(REAL(komega_red(help))).GT.0.D0) THEN
-          delta_z_max=MIN(delta_z_max,8.D-2*DATAN(1.D0)/ABS(REAL(komega_red(help))))
-       ENDIF
-       IF (ABS(rek0-rekp*omega).GT.0.D0) THEN
-          delta_z_max=MIN(delta_z_max,2.D-2*DATAN(1.D0)/ABS(rek0-rekp*omega))
-       ENDIF
-    ENDIF
+!     IF (switch_T.EQ.3) THEN
+!        IF (ABS(REAL(komega_red(help))).GT.0.D0) THEN
+!           delta_z_max=MIN(delta_z_max,8.D-2*DATAN(1.D0)/ABS(REAL(komega_red(help))))
+!        ENDIF
+!        IF (ABS(rek0-rekp*omega).GT.0.D0) THEN
+!           delta_z_max=MIN(delta_z_max,2.D-2*DATAN(1.D0)/ABS(rek0-rekp*omega))
+!        ENDIF
+!     ENDIF
     delta_z=MIN(delta_z,2.D0*delta_z_max)
 
     ALLOCATE(bound_t(dim_t))

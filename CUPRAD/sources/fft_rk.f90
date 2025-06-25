@@ -163,22 +163,22 @@ CONTAINS
                 e(l,k)=e(l,k)+op_t(l,k)*ptemp(l,k)+op_t_inv(l,k)*jtemp(l,k)
              ENDDO
           ENDDO
-       CASE(3)
-          CALL dfftw_execute(plan_p)
-          CALL dfftw_execute(plan_j)
-          DO k=dim_r_start(num_proc),dim_r_end(num_proc)
-             DO l=dim_th+1,dim_t
-                e(l,k)=e(l,k)+(op_t(l,k)*ptemp(l,k)+op_t_inv(l,k)*jtemp(l,k))
-             ENDDO
-          ENDDO
-       CASE(4)
-          CALL dfftw_execute(plan_p)
-          CALL dfftw_execute(plan_j)
-          DO k=dim_r_start(num_proc),dim_r_end(num_proc)
-             DO l=1,dim_t
-                e(l,k)=e(l,k)+op_t(l,k)*ptemp(l,k)+op_t_inv(l,k)*jtemp(l,k)
-             ENDDO
-          ENDDO
+!        CASE(3)
+!           CALL dfftw_execute(plan_p)
+!           CALL dfftw_execute(plan_j)
+!           DO k=dim_r_start(num_proc),dim_r_end(num_proc)
+!              DO l=dim_th+1,dim_t
+!                 e(l,k)=e(l,k)+(op_t(l,k)*ptemp(l,k)+op_t_inv(l,k)*jtemp(l,k))
+!              ENDDO
+!           ENDDO
+!        CASE(4)
+!           CALL dfftw_execute(plan_p)
+!           CALL dfftw_execute(plan_j)
+!           DO k=dim_r_start(num_proc),dim_r_end(num_proc)
+!              DO l=1,dim_t
+!                 e(l,k)=e(l,k)+op_t(l,k)*ptemp(l,k)+op_t_inv(l,k)*jtemp(l,k)
+!              ENDDO
+!           ENDDO
        END SELECT
     ENDIF
     DO l=dim_r_start(num_proc),dim_r_end(num_proc)

@@ -263,7 +263,7 @@ The input parameters of CUPRAD are stored in `CUPRAD/inputs` group. The default 
   * **`numerics_number_of_absorber_points_in_time`**: Number of absorber points at the edges of the time grid.
   * **`numerics_number_of_points_in_r`**: Number of grid points in the radial grid. Required to be a power of 2.
   * **`numerics_number_of_points_in_t`**: Number of grid points in the time grid. Required to be a power of 2.
-  * **`numerics_operators_t_t-1`**: <span style="color:red">Operators used for advancing the solution from one time step to the next. Stefan: Refer to the description in the paper.</span>
+  * **`numerics_operators_t_t-1`**: 1 -- Standard SVEA; 2 -- Higher order SVEA corrections (operators $T$, $T^{-1}$) used.
   * **`numerics_output_distance_in_z-steps_for_fluence_and_power`**: The number of steps in $z$ for storring the fluence and the power of the beam.
   * **`numerics_phase_threshold_for_decreasing_delta_z`**: The maximal phase variations between two consecutive $z$-planes to decrease the stepsize in $z$.
   * **`numerics_physical_first_stepwidth`**: Initial step width in $z$.
