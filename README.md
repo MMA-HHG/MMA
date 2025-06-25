@@ -245,7 +245,7 @@ The input parameters of CUPRAD are stored in `CUPRAD/inputs` group. The default 
   * `Kerr_type_of_delayed_kerr_response`: The option to include delayed Kerr effect according to [Section 2.2 here](https://iopscience.iop.org/article/10.1088/0034-4885/70/10/R03). 1 -- instantaneous Kerr only (default); 2 -- instantaneous Kerr + simplified Raman response; 3 -- instantaneous Kerr + full intrapulse Raman response.
   * `Kerr_ratio_of_delayed_kerr_xdk`: Ratio $0\le x_{dK}\le 1$ of delayed Kerr (Raman) contribution; only active for `Kerr_type_of_delayed_kerr_response` = 2 or 3.  
   * `Kerr_time_of_delayed_kerr_tdk`: Dipole dephasing time of Raman response in fs; only active for `Kerr_type_of_delayed_kerr_response` = 2 or 3.  
-  
+  * `Kerr_frequency_in_delayed_kerr_wr`: Raman frequency in 1/fs; only active for `Kerr_type_of_delayed_kerr_response` = 3.
   * `dispersion_type_of_dispersion_law`: (DEPRECATED): Switch to select the dispersion law for neutrals. It is recomended to use the `gas_preset` to select it.
   * `ionization_ionization_potential_of_neutral_molecules`: The ionization potential of neutral molecules, indicating the energy required to ionize a molecule.
   * `ionization_model`: Model used to describe the ionization process. There are two options *PPT* and *ext*. The former computes the ionisation table using the PPT model. The latter reads user-inputted ionisation table from the group `CUPRAD/ionisation_model`.
