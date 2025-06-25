@@ -199,7 +199,7 @@ Here is the exhaustive list of all the parameters. The bold **`parameters`** are
 ### Global
 The global inputs are stored in the `global_inputs` groups, they might be used by more than one module.
 * `gas_preset`: The main specifier to define the gas. It defines all the material constants then. Implemented gases: `He`, `Ne`, `Ar`, `Kr`, `Xe`.
-* **`medium_pressure_in_bar`**: (DEPRECATED) Pressure of the medium in bars. (Preferrably defined it in the **global inputs** for the multiscale usage.)
+* **`medium_pressure_in_bar`**: Pressure of the medium in bars. (Preferrably defined it here for the multiscale usage.)
 * **group `density_mod`**: This group defines the density modulation. The relative modulation to `medium_pressure_in_bar` is stored in `table` with the dimension corresponding to the grids (it can be 1- or 2-dimensional). Therefore, `zgrid` and/or `rgrid` needs to be present. The grids should be larger than the interaction volume. Note: the radial modulation is not fully available for Hankel (see detailed documentation of the module for details).
   * `zgrid`: The grid corresponding to the longitudinal coordinate.
   * `rgrid`: The grid corresponding to the radial coordinate.
@@ -237,7 +237,7 @@ The input parameters of CUPRAD are stored in `CUPRAD/inputs` group. The default 
   * `laser_initial_chirp_phase`: Initial phase modulation of the laser pulse, known as chirp.
 * **medium**
   * **`medium_physical_distance_of_propagation`**: Physical distance over which the laser propagates in the medium.
-  * `medium_pressure_in_bar`: (DEPRECATED) Pressure of the medium in bars. (Preferrably defined it in the **global inputs** for the multiscale usage.)
+  * `medium_pressure_in_bar`: Pressure of the medium in bars. (Preferrably defined it in the **global inputs** for the multiscale usage.)
   * `medium_effective_atmospheric_density_of_neutral_molecules`: Effective density of neutral molecules in the medium under atmospheric conditions. See [this reference](https://en.wikipedia.org/wiki/Number_density#Units).
   * `Kerr_nonlinear_refractive_index_kerr_coefficient`: [Coefficient $n_2$ that quantifies the nonlinear change in the refractive index due to the Kerr effect.](https://ieeexplore.ieee.org/document/5412129)
   * `Kerr_ionised_atoms_relative_Kerr_response`: The response of the ions relative to the neutrals, it equals $n_2^{\text{(ions)}}/n_2^{\text{(neutrals)}}$.
@@ -249,7 +249,7 @@ The input parameters of CUPRAD are stored in `CUPRAD/inputs` group. The default 
   * `ionization_effective_residue_charge_for_method_3_4_7`: (DEPRECATED) Effective residual charge left after ionization for methods 3, 4, and 7.
   * `ionization_angular_momentum_for_method_3_7`: (DEPRECATED) Angular momentum of ionization for ionization methods 3 and 7.
   * `ionization_type_of_ionization_method`: (DEPRECATED) Type of ionization method used in the model.
-  * `plasma_electron_colision_time`: Average time between collisions for electrons in the plasma to model collisional recmbination.
+  * `plasma_electron_colision_time`: Average time between collisions for electrons in the plasma to model collisional recombination.
   * `plasma_density_of_absorbing_molecules`: Density of molecules in the plasma that absorb radiation.
   * `plasma_initial_electron_density`: (DEPRECATED) Use the pre-ionisation module (`global_inputs/pre_ionised`) instead.
   * `plasma_linear_recombination_coefficient`: Coefficient for linear recombination processes in the plasma.
@@ -263,11 +263,11 @@ The input parameters of CUPRAD are stored in `CUPRAD/inputs` group. The default 
   * **`numerics_number_of_absorber_points_in_time`**: Number of absorber points at the edges of the time grid.
   * **`numerics_number_of_points_in_r`**: Number of grid points in the radial grid. Required to be a power of 2.
   * **`numerics_number_of_points_in_t`**: Number of grid points in the time grid. Required to be a power of 2.
-  * **`numerics_operators_t_t-1`**: 1 -- Standard SVEA; 2 -- Higher order SVEA corrections (operators $T$, $T^{-1}$) used.
+  * **`numerics_operators_t_t-1`**: 1 -- Standard SVEA; 2 -- Higher order SVEA corrections (operators $T$, $T^{-1}$) used (default).
   * **`numerics_output_distance_in_z-steps_for_fluence_and_power`**: The number of steps in $z$ for storring the fluence and the power of the beam.
   * **`numerics_phase_threshold_for_decreasing_delta_z`**: The maximal phase variations between two consecutive $z$-planes to decrease the stepsize in $z$.
   * **`numerics_physical_first_stepwidth`**: Initial step width in $z$.
-  * **`numerics_physical_output_distance_for_plasma_and_Efield`**: Output $z$ distance for storing the electric field and plasam density.
+  * **`numerics_physical_output_distance_for_plasma_and_Efield`**: Output $z$ distance for storing the electric field and plasma density.
   * **`numerics_radius_for_diagnostics`**: Radius used for diagnostic calculations.
   * `numerics_type_of_input_beam`: (DEPRECATED) Formerly used to manage the input fields.
   * `numerics_noise_on_the_input_shape`: Artificial noise level applied to the input field. (Might be use to test the robustness of the calculation. *It should not be used for fields used for HHG! TDSE input is sensitive.*)

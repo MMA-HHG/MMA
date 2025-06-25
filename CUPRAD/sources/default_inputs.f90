@@ -304,6 +304,8 @@ subroutine preset_numerics
     noise_s = 0.d0
     noise_t = 0.d0
     noise = 0.d0
+    
+    switch_T = 2
 
 end subroutine preset_numerics
 
