@@ -237,6 +237,8 @@ CONTAINS
 
     RETURN
   END SUBROUTINE calc_rho
+  
+!> @brief Calculates the Kerr resonse with (optionally) Raman delayed contribution.
 
   SUBROUTINE calc_delkerr(delkerr,delkerrp, eti,etip1)
     IMPLICIT NONE
@@ -887,7 +889,7 @@ CONTAINS
   END SUBROUTINE mult_phase
   
   
-!> @brief One propagation step using second order spectral operator splitting. In between two linear half-steps (\ref mult_propagator), the nonlinear step is executed (\ref mult_phase). The FFTs can be found in the module \ref fft. The subroutine \ref absorption implements absorbing boundary conditions in time.
+!> @brief One propagation step using second order spectral operator splitting. In between two linear half-steps (\ref mult_propagator), the nonlinear step is executed (\ref mult_phase). The FFTs can be found in the module \ref fft. The subroutine \ref absorbation implements absorbing boundary conditions in time.
 
   SUBROUTINE propagation
     USE fields

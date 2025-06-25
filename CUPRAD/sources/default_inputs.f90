@@ -272,6 +272,10 @@ integer         :: switch_ionisation, switch_atom
     n4_phys = 0.d0 ! Kerr
     switch_dKerr = 1
     
+    xdk = 0.5
+    tdk_fs_phys = 77.D0
+    raman_phys = 1.6D-2 
+    
     sigmak_phys = 1.9d-120  ! for only some ionisation models
 
     tauc_fs_phys = 190.d0 ! THIS IS APPLIED
