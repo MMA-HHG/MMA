@@ -187,11 +187,13 @@ Here is an example of installing the interactive CTDSE library on Ubuntu 22.04 a
 * `cmake` may have problems with `h5cc` wrapper (it worked with v3.15.7).
 * Install using the previous recipe.
 
-The dynamic library is then available, see [this example of a jupyter notebook integrating CTDSE](xxx).
+The dynamic library is then available, see [this example of a jupyter notebook integrating CTDSE](jupyter_examples/interactive_TDSE/analytic_chirped_pulse.ipynb).
 
 ### Hankel
 This module becomes available by [including it into the `$PYTHONPATH`](#setting-the-paths).
 
+## HDF5 data organisation
+All the inputs and outputs are stored in an HDF5 archive grouping together I/O for the different modules. The structure is flexible and defined in the *namelists*: [Python](shared_python/MMA_administration.py), [C](1DTDSE/sources/h5namelist.h), [Fortran](CUPRAD/sources/global_variables.f90).
 
 ## Inputs
 Here is the exhaustive list of all the parameters. The bold **`parameters`** are obligatory to run the whole model with sourcing the default material constants. The other `parameters` are optional. If an optional parameter is present, it has priority. 
