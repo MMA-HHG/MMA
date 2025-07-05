@@ -10,8 +10,8 @@ CTDSE is a 1-dimensional time-dependent Schrödinger equation solver (1D-TDSE) w
 is done in 3 substeps:
 ```math
 \begin{align}
-\vec{\psi}^{(i,1)} &= \left(M_2 + \frac{\mathbf{i} \Delta t}{2}\Delta_2 -\mathbf{i} \Delta t M_2 V_C \right) \vec{\psi}^{(i)}\,, \\
-\vec{\psi}^{(i,2)} &= \left(M_2 + \frac{\mathbf{i} \Delta t}{2}\Delta_2 -\mathbf{i} \Delta t M_2 V_C \right)^{-1} \vec{\psi}^{(i,1)} \,, \\
+\vec{\psi}^{(i,1)} &= \left(M_2 + \frac{\mathbf{i} \Delta t}{2}\left(-\frac{\Delta_2}{2} + M_2 V_C \right)\right) \vec{\psi}^{(i)}\,, \\
+\vec{\psi}^{(i,2)} &= \left(M_2 - \frac{\mathbf{i} \Delta t}{2}\left(-\frac{\Delta_2}{2} + M_2 V_C \right)\right)^{-1} \vec{\psi}^{(i,1)} \,, \\
 \psi_j^{(i+1)} = \psi_j^{(i,3)} &= \mathrm{e}^{-\mathbf{i} \Delta t \mathcal{E}(t_i) x_j} \psi_j^{(i,2)} \,, & \forall j.
 \end{align}
 ```
