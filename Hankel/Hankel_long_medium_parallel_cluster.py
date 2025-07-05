@@ -12,11 +12,12 @@ import Hankel_transform as HT
 
 omega_au2SI = mn.ConvertPhoton(1.0, 'omegaau', 'omegaSI')
 
+# specify the input archove tranferred in the temporary file 'msg.tmp'
 with open('msg.tmp','r') as msg_file:
     file = msg_file.readline()[:-1] # need to strip the last character due to Fortran msg.tmp
 
 
-# inputs from hdf5-input
+# read the simulation parameters from the hdf5 archive
 with h5py.File(file, 'r') as InpArch:
     
     inp_group = InpArch[MMA.paths['Hankel_inputs']]
@@ -40,16 +41,11 @@ with h5py.File(file, 'r') as InpArch:
 
     store_cumulative_result = (mn.readscalardataset(inp_group, 'store_cumulative_result','N') == 1)
 
-
-
-
-
-
-
 rgrid_FF = np.linspace(0.0, rmax_FF, Nr_FF)
 
-
-# load data
+# load the data from the hdf5 archive
+# ! We use the dynamic access to the data: it means the data are loaded during the calculation and that
+# the calculation must be done inside the with block.
 print('processing:', file)             
 with h5py.File(file, 'r') as InpArch:
     
@@ -71,15 +67,11 @@ with h5py.File(file, 'r') as InpArch:
     # the inidces of the selection in the frequency (harmonic) grid
     ko_min = mn.FindInterval(ogrid/omega0, Hrange[0])
     ko_max = mn.FindInterval(ogrid/omega0, Hrange[-1])
-
-    
-    
-    omega0SI = omega_au2SI * omega0
-    
+ 
+    omega0SI = omega_au2SI * omega0    
     
     absorption = True
-    dispersion = True
-    
+    dispersion = True    
     
     ogrid_sel = ogrid[ko_min:ko_max:ko_step]    
     No_sel = len(ogrid_sel)
@@ -114,7 +106,7 @@ with h5py.File(file, 'r') as InpArch:
         ogrid_indices_end = ogrid_indices[1:]
     
     # prepare instances of 'FSources_provider' class, each of the instances
-    # describes a subarray according to the splitting above
+    # describes a subarray according to the splitting above, note the 'dynamic' option
     targets = []
     for k1 in range(Nthreads):
         targets.append(HT.FSources_provider(InpArch[MMA.paths['CTDSE_outputs']+'/zgrid_coarse'][:],
@@ -170,6 +162,7 @@ with h5py.File(file, 'r') as InpArch:
     ## Merge results ##
     
     ## Prepare new shared output class
+    # This part of the code copy the output from the 0th process, extends the array, and fill the arrays by data from the other processes
     
     HL_res = copy.deepcopy(results[0][1]) # ensure all shared data are in the output class
     
@@ -232,7 +225,7 @@ with h5py.File(file, 'r') as InpArch:
             ] = results[k1][1].cumulative_field_no_norm
     
     
-    # Save the results
+    ## Save the results
     with h5py.File('results_Hankel.h5', 'a') as Hres_file:
         out_group = Hres_file.create_group(MMA.paths['Hankel_outputs'])        
         mn.adddataset(out_group,

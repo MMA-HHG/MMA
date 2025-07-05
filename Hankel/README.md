@@ -1,11 +1,20 @@
 # Hankel transform module
-The module `Hankel_transform` provides the toolbox for computing Hankel transform in both short and long media. The main two computational routines, which may stand independently, are `HankelTransform` and `Hankel_long`, repsectively.  Addressing the long media, the module sources material constants for rare gases. It means that they are ready for a direct use.
-
-Although the main usage for us is in the context of the multiscale model, this module is also ready to be stand-alone application.
+The module `Hankel_transform` provides the toolbox for computing Hankel transform in both short and long media. The main module two computational routines, which may stand independently, are `HankelTransform` and `Hankel_long`, respectively.  Addressing the long media, the module sources material constants for rare gases. It means that they are ready for a direct use. Both the routines are present in the file `Hankel_tranform.py` Although the main usage for us is in the context of the multiscale model, this module is also ready to be stand-alone application.
 
 This documentation provides a transition between the mathematical formulation in the main manuscript and the Pythonic implementation. The manuscript provides details about theoretical background, while technical details about the implementation are directly in the documentation within the module.
 
 This does not use any specific requirements for the versions of libraries. We noted only possible problems with the [SciPy integration module](https://docs.scipy.org/doc/scipy/tutorial/integrate.html), where the names and API's of procedures have been slightly changing accross versions. (We tested the module with SciPy v1.11.3 and v1.14).
+
+## Using the module: [`Hankel_long_medium_parallel_cluster.py`](Hankel_long_medium_parallel_cluster.py)
+This is the script that calls the `Hankel_long` routine in the context of the multiscale model. It
+1) prepares the data from the hdf5-output defined by the 1D-TDSE module;
+2) orchestrates the parallelisation with the help of the [`multiprocessing` module](https://docs.python.org/3/library/multiprocessing.html),
+3) stores the ouputs in the hdf5-archive.
+
+This script also provides an example how to use the `Hankel_long` routine in general. It additionally shows how to reconstruct a single class reconstructed from partial results computed in parallel.
+
+### Merging the data
+Because Hankel transform can be computed more times on the same data (different spectral and radial resolution), test it without accounting for absoprtion, ...; we make default output of the `Hankel_long_medium_parallel_cluster.py` script to be `results_Hankel.h5`. In thew case the data are packed together with all the results in the main archive specified in `msg.tmp`, please use the small script [`copy_results_to_main.py`](copy_results_to_main.py).
 
 ## Main ideas
 
@@ -64,7 +73,13 @@ There is the explanation of this factor: The absorption is modelled by the imagi
 Let us clarify the phase issues, which are complex due to the two origins of the phase and the reference frame. Assume there is a homogeneous medium and only linear dispersion given by $n_{\mathrm{IR}}=1+\chi_{\mathrm{IR}}$ (for the driver) and $n_{\mathrm{XUV}}=1+\chi_{\mathrm{XUV}}$ (for the harmonics). Next, the phase given by the reference frame $[\cdot]_{F{v}}$ is $\omega z /v$. Both, the IR-phase and the frame-related phase, are encoded in $[\widehat{\partial_t j}]_{F_{v}}$. In total $$ \Phi_{\text{total}} = \Phi - \mathrm{arg} \left( [\widehat{\partial_t j}]_{F_{v}}\right) = \Phi -\frac{\omega n_{\mathrm{IR}}}{c}z + \frac{\omega z}{v}  = \\ = \int_0^z \left( \frac{\omega n_{\mathrm{XUV}}}{c} -\frac{\omega}{v} \right) \, \mathrm{d}z -\frac{\omega n_{\mathrm{IR}}}{c}z + \frac{\omega z}{v} = \\ = \frac{\omega}{c}(n_{\mathrm{XUV}}-n_{\mathrm{IR}})z = \frac{\omega}{c} (\chi_{\mathrm{XUV}} - \chi_{\mathrm{IR}}) \,. $$ This is the expected outcome where the signal is perfectly phase-matched (all the emitters are in phase and sum constructively) for $\chi_{\mathrm{XUV}} = \chi_{\mathrm{IR}}$.
 
 ### Gas-pressure specifier
+The possibilities for the density profile are defined by the variable `pressure`. If the density profile is constant (for a gas cell), it is just a scalar value. Otherwise, it's a dictionary with the following entries:
+* `'zgrid'` and `'value'`: this option specifies the pressure modulation in $z$: along the propagation direction. The array `pressure['zgrid']` is then a grid with the values of the pressure stored in the array `pressure['value']`.
+* `'rgrid'` and `'value'`: this options is fully analogical to the previous point except the pressure modulation is in the radial coordinate.
+* `'zgrid'`, `'rgrid'` and `'value'`: this option provides modulation in both $z$- and $r$-coordinates. `pressure['value']` is then a 2D-array with the $(z,r)$-order.
 
+First, note that the `'zgrid'` to specify the pressure modulation is not related in any way to the main computational grid. The only goal is to provide a sufficiently smooth grid for the pressure modulation. For example, two points will be sufficient for a constant gradient of the pressure modulation.
+(Additionally, note that the option with $r$-modulation is rather academic as it would require precise alignment of the incident laser with radially modulated medium profile. This option is then included more as template for gas jets in future full-dimensional implementation.)
 
 ## Implementation comments
 The main integral is computed numerically. The implementation is straighforward, there is nested loop over the far-field (FF) screen coordinates $(\rho_{\mathrm{FF}},\omega)$. By default, the integration is done by the scipy trapecoidal rule, however, the integrator is modifiable by one of the inputs of the procedure. The integral is split into two parts: 1) The radial integral, which is indpendently usable for thin targets as well; 2) The longitudinal $z$-integration that accounts for the phase-matching, the density modulation and the absorption.
@@ -75,4 +90,4 @@ The input class contains all the neccessary grids and the source term, $[\wideha
 * `static`: the source term is fully available as a numpy array,
 * `dynamic`: only the hdf5 dataset within the input file is provided and the data are read on-the-fly during the integration. This approach saves a lot of RAM memory by avoiding to load the data in advance. We have not observed any notable performance issues in this case.
 
-The output class again contains sta sorted with their grids.
+The output class again contains outputs sorted with their grids. Please see the class `FSource_provider` to find how the generator is constructed. It is designed to easily allow users to implement new data-streams according to their needs.

@@ -110,10 +110,10 @@ def get_propagation_pre_factor_function(zgrid,
         frequency omega grid [SI]
     preset_gas : string
         specifier of the gas ∈ {He, Ne, Ar, Kr, Xe}   
-    preset_gas : scalar or dict
+    pressure : scalar or dict
         variable specifying the gas profile
         * scalar for constant
-        * dict for density modulation
+        * dict for density modulation (see the documentation of the module for details)
     absorption_tables : string
         specifier of the dispersion tables for the given gas ∈ {NIST, Henke}     
     include_absorption : boolean
@@ -127,18 +127,24 @@ def get_propagation_pre_factor_function(zgrid,
 
     Returns
     -------
-    FField_FF : 2D array
-         The far-field spectra on ogrid and rgrid_FF
+    pre_factor, exp_renorm: functions
+        functions of the index corresponding to 'zgrid',k they provide the pre-factor value and the
+        renormalisation factor if the cumulative signal is required.
 
     """
     
     Nz = len(zgrid); Nr = len(rgrid); No = len(ogrid)
     
     
-    # switch over geometries    
+    # switch over the options for density profiles:
+    # the if-tree treats various options for the pressure modulation and further
+    # branches to allow optionality for both dispersion and absorption.
     if isinstance(pressure,dict):
+
+        # usual case: modulation in the z-direction
+        # the omega-and-z-integrals are pre-computed, r is obtained on-the-fly
         if (('zgrid' in pressure.keys()) and not('rgrid' in pressure.keys())):
-            # usual case: omega-and-z-integrals, r on-the-fly
+            
             print('z modulation')            
             
             pre_factor_value = np.empty((Nz,No),dtype=np.cdouble)
@@ -233,7 +239,8 @@ def get_propagation_pre_factor_function(zgrid,
             return pre_factor, exp_renorm
                 
             
-            
+        # modulation in the r-direction
+        # there is no integration requred as the profile is constant along z  
         elif (not('zgrid' in pressure.keys()) and ('rgrid' in pressure.keys())):
             print('r modulation')
             
@@ -295,12 +302,11 @@ def get_propagation_pre_factor_function(zgrid,
             return pre_factor, None # renormalisation not implemented
 
             
-            
+        # modulation in the both z- and r-direction
+        # the full pre-factor as a function of (z,omega,r) is kept by the function (in this variable order)   
         elif (('zgrid' in pressure.keys()) and ('rgrid' in pressure.keys())):
             print('zr modulation')
-            # pass
-            # full case megamatrix: we store pre-factor in memory
-            pre_factor_value = np.empty((Nz,No,Nr),dtype=np.cdouble)
+            pre_factor_value = np.empty((Nz,No,Nr),dtype=np.cdouble)  # we store pre-factor in memory
             
             # First, we obtain the pressure modulation on the "(pressure z-grid, computational r-grid)"
             Nz_table = len(pressure['zgrid'])
@@ -314,8 +320,6 @@ def get_propagation_pre_factor_function(zgrid,
                                                             pressure['value'][k1,-1]),
                                               copy = False
                                               )(rgrid)
-            
-                
             
             
             # We compute partial integrals for each r
@@ -396,6 +400,10 @@ def get_propagation_pre_factor_function(zgrid,
             
         else:
             raise ValueError('Pressure modulation wrongly specified.')
+    
+    
+    ## Simpler case with no modulation
+    # there is no z-integration required, the output functions are computed on-the-fly
     else:
         
         print('no modulation')
@@ -513,6 +521,13 @@ def HankelTransform(ogrid, rgrid, FField, distance, rgrid_FF,
         
         
 class Hankel_long:
+    """
+    This is the main computational routine for computing the longitudinal diffraction integral. It
+    contains only the '__init__' method that performs the calculation sorts the ouputs into the
+    class structure. It relies on the target descibed by the class FSources_provider, which ensures
+    large versatility as the datastream of the input dipoles is externalised (can be provided as
+    consecutive reading from a drive, by an analytic function, from an array in the memory, ...).
+    """
     def __init__(self,
                  target, 
                  distance,
@@ -531,7 +546,33 @@ class Hankel_long:
                  store_non_normalised_cumulative_result = False,
                  store_entry_and_exit_plane_transform = True
                  ):
+        """This routine implements the integral specified in the documentation. So far, the radial integrator can be arbitrary while
+        only trapezoidal rule is implemented for the longitudinal part.
+
+        Args:
+            target (class FSources_provider): It uses the input class to make this procedure verstile for calculations
+            distance (float scalar): The distance of the observation screen from the first point of the medium
+            rgrid_FF (float array): The radial grid of the far-field (FF) camera
+            preset_gas (str, optional): Gas to load apropriate tables from the 'XUV_refractive_index' module. Defaults to 'vacuum'.
+            pressure (scalar or dictionary, optional): See the documentation for the gas-specifier. Defaults to 1..
+            absorption_tables (str, optional): Source of absorption tables (see the 'XUV_refractive_index' module). Defaults to 'Henke'.
+            include_absorption (bool, optional): Defaults to True.
+            dispersion_tables (str, optional): Source of dispersion tables (see the 'XUV_refractive_index' module). Defaults to 'Henke'.
+            include_dispersion (bool, optional): Defaults to True.
+            effective_IR_refrective_index (float scalar, optional): effective IR-refractive index to adjust for possible co-moving frames.
+              See the module documentation. Defaults to 1. (i.e. frame co-moving with c).
+            integrator_Hankel (function, optional): integrator_Hankel(y,x) is the integrator used to evaluate the Hankel transform. Defaults to trapezoidal_integrator.
+            integrator_longitudinal (str, optional): the integrator along $z$. Only 'trapezoidal' implemented so far. Defaults to 'trapezoidal'.
+            near_field_factor (bool, optional): This is the factor going beyond the far-field diffraction (see the documentation of the module). Defaults to True.
+            store_cumulative_result (bool, optional): If applied, the XUV signals are stored for all values along the 'target.zgrid'.
+              The results are renormalised according to the absorption. Can be memory-consuming. Defaults to False.
+            store_non_normalised_cumulative_result (bool, optional): If applied, the XUV signals are stored for all values along the 'target.zgrid'.
+              The results are NOT renormalised according to the absorption. Can be memory-consuming. Defaults to False.
+            store_entry_and_exit_plane_transform (bool, optional): Adds self.entry_plane_transform and self.exit_plane_transform for reference. Defaults to True.
+        """
         
+        if not(integrator_longitudinal == 'trapezoidal'):
+            raise NotImplementedError('only logitudinal trapezoidal integrator implemented so far')
         
         # keep some inputs to pack I/O together
         self.include_dispersion = include_dispersion
