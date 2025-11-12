@@ -65,7 +65,6 @@ RUN pip3 install -U --no-cache-dir \
     jupyterlab-h5web==12.5.0 \
     git+https://github.com/vabekjan/universal_input.git@pipable#egg=create_universal_HDF5 
 
-
 # 3. Make JupyterLab terminals start Bash (login shell) instead of sh
 RUN jupyter server --generate-config && \
     printf "\nc.ServerApp.terminado_settings = {'shell_command': ['/bin/bash','-l']}\n" \
