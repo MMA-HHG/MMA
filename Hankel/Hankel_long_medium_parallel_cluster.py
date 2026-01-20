@@ -20,35 +20,90 @@ with open('msg.tmp','r') as msg_file:
 # read the simulation parameters from the hdf5 archive
 with h5py.File(file, 'r') as InpArch:
     
+    # We load the inputs from the file and store them together with possible defaults for a reference
     inp_group = InpArch[MMA.paths['Hankel_inputs']]
-    
-    Nthreads = mn.readscalardataset(inp_group, 'Nthreads','N')  
-    XUV_table_type_diffraction = mn.readscalardataset(
-        inp_group, 'XUV_table_type_dispersion','S')    
-    XUV_table_type_absorption = mn.readscalardataset(
-        inp_group, 'XUV_table_type_absorption','S') 
-    
-    Nr_max = mn.readscalardataset(inp_group, 'Nr_max','N') 
-    
-    Hrange = inp_group['Harmonic_range'][:]
-    kr_max = mn.readscalardataset(inp_group, 'Nr_max','N')  
-    kr_step = mn.readscalardataset(inp_group, 'kr_step','N') 
-    ko_step = mn.readscalardataset(inp_group, 'ko_step','N') 
-    
-    rmax_FF = mn.readscalardataset(inp_group, 'rmax_FF','N') 
-    Nr_FF = mn.readscalardataset(inp_group, 'Nr_FF','N') 
-    distance_FF = mn.readscalardataset(inp_group, 'distance_FF','N')
+    with h5py.File('results_Hankel.h5', 'a') as Hres_file:
+        inps_full_group = Hres_file.create_group(MMA.paths['Hankel_inputs_full'])
 
-    store_cumulative_result = (mn.readscalardataset(inp_group, 'store_cumulative_result','N') == 1)
+        Nthreads = mn.readscalardataset(inp_group, 'Nthreads','N')  
+        # inp_group.copy('Nthreads',inps_full_group)
 
-rgrid_FF = np.linspace(0.0, rmax_FF, Nr_FF)
 
-# load the data from the hdf5 archive
-# ! We use the dynamic access to the data: it means the data are loaded during the calculation and that
-# the calculation must be done inside the with block.
-print('processing:', file)             
-with h5py.File(file, 'r') as InpArch:
+        XUV_table_type_diffraction = mn.readscalardataset(
+            inp_group, 'XUV_table_type_dispersion','S')    
+        XUV_table_type_absorption = mn.readscalardataset(
+            inp_group, 'XUV_table_type_absorption','S') 
+        
+        if ('include_dispersion' in inp_group):
+            dispersion = (mn.readscalardataset(inp_group, 'include_dispersion','N') == 1) # optional
+            inp_group.copy('include_dispersion',inps_full_group)
+        else:
+            dispersion = True   
+            mn.adddataset(inps_full_group,'include_dispersion',1,'[-]')
+
+
+        if ('include_absorption' in inp_group):
+            absorption = (mn.readscalardataset(inp_group, 'include_absorption','N') == 1) # optional
+            inp_group.copy('include_absorption',inps_full_group)
+        else:
+            absorption = True   
+            mn.adddataset(inps_full_group,'include_absorption',1,'[-]')
     
+        # Nr_max = mn.readscalardataset(inp_group, 'Nr_max','N') 
+        
+        Hrange = inp_group['Harmonic_range'][:] # obligatory
+        kr_max = mn.readscalardataset(inp_group, 'Nr_max','N')    # obligatory
+        
+        if ('kr_step' in inp_group):
+            kr_step = mn.readscalardataset(inp_group, 'kr_step','N')  # optional
+            inp_group.copy('kr_step',inps_full_group)
+        else:
+            kr_step = 1
+            mn.adddataset(inps_full_group,'kr_step',kr_step,'[-]')
+
+        if ('ko_step' in inp_group):
+            ko_step = mn.readscalardataset(inp_group, 'ko_step','N')  # optional
+            inp_group.copy('ko_step',inps_full_group)
+        else:
+            ko_step = 1
+            mn.adddataset(inps_full_group,'ko_step',ko_step,'[-]')
+
+        if ('kz_step' in inp_group):
+            kz_step = mn.readscalardataset(inp_group, 'kz_step','N')  # optional
+            inp_group.copy('kz_step',inps_full_group)
+        else:
+            kz_step = 1
+            mn.adddataset(inps_full_group,'kz_step',kz_step,'[-]')
+
+        # print('kz_step exists:', ('kz_step' in inp_group))
+        # print('kx_step exists:', ('kx_step' in inp_group))
+
+        # print('using kz_step ',kz_step)
+        
+        rmax_FF = mn.readscalardataset(inp_group, 'rmax_FF','N') # obligatory
+        Nr_FF = mn.readscalardataset(inp_group, 'Nr_FF','N')     # obligatory
+        distance_FF = mn.readscalardataset(inp_group, 'distance_FF','N') # obligatory
+
+        if ('store_cumulative_result' in inp_group):
+            store_cumulative_result = (mn.readscalardataset(inp_group, 'store_cumulative_result','N') == 1) # optional
+            inp_group.copy('store_cumulative_result',inps_full_group)
+        else:
+            store_cumulative_result = False
+            mn.adddataset(inps_full_group,'store_cumulative_result',0,'[-]')
+
+        # copy all the obligatory inputs:
+        for dset in ['Nthreads', 'XUV_table_type_dispersion', 'XUV_table_type_absorption',
+                     'Harmonic_range', 'Nr_max', 'rmax_FF', 'Nr_FF', 'distance_FF']:
+            inp_group.copy(dset,inps_full_group)
+
+    rgrid_FF = np.linspace(0.0, rmax_FF, Nr_FF)
+
+# # load the data from the hdf5 archive
+# # ! We use the dynamic access to the data: it means the data are loaded during the calculation and that
+# # the calculation must be done inside the with block.
+# print('processing:', file)             
+# with h5py.File(file, 'r') as InpArch:
+    print('processing:', file)  
     omega0 = mn.ConvertPhoton(1e-2*mn.readscalardataset(InpArch,
                                                         MMA.paths['CUPRAD_inputs']+
                                                         '/laser_wavelength','N'),'lambdaSI','omegaau')
@@ -69,9 +124,7 @@ with h5py.File(file, 'r') as InpArch:
     ko_max = mn.FindInterval(ogrid/omega0, Hrange[-1])
  
     omega0SI = omega_au2SI * omega0    
-    
-    absorption = True
-    dispersion = True    
+     
     
     ogrid_sel = ogrid[ko_min:ko_max:ko_step]    
     No_sel = len(ogrid_sel)
@@ -119,7 +172,8 @@ with h5py.File(file, 'r') as InpArch:
                                                     ko_max = ogrid_indices_end[k1],
                                                     ko_step=ko_step,
                                                     kr_max=kr_max,
-                                                    kr_step=kr_step)
+                                                    kr_step=kr_step,
+                                                    kz_step=kz_step)
 
                        )
     

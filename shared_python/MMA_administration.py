@@ -19,6 +19,7 @@ paths={'CUPRAD'                     : CUPRAD_group,
        'Hankel'                     : Hankel_group,
        'Hankel_inputs'              : Hankel_group + '/inputs',
        'Hankel_outputs'             : Hankel_group + '/outputs',
+       'Hankel_inputs_full'         : Hankel_group + '/inputs_full', # inputs for a reference including defaults from the code
 
        'global_inputs'              : global_inputs_group,
        'global_inputs_pre_ionised'  : global_inputs_group +'/'+ global_inputs_pre_ionised_subgroup}
@@ -75,7 +76,8 @@ CTDSE_variable_type_lists ={
     'S' : [], 'R-array' : []}
 
 Hankel_variable_type_lists ={
-    'I' : ['Nr_FF', 'kr_step', 'ko_step', 'Nr_max', 'Nthreads', 'store_cumulative_result'],
+    'I' : ['Nr_FF', 'kr_step', 'ko_step', 'kz_step', 'Nr_max', 'Nthreads', 'store_cumulative_result',
+           'include_dispersion', 'include_absorption'],
     'R' : ['distance_FF', 'rmax_FF'],
     'S' : ['XUV_table_type_dispersion', 'XUV_table_type_absorption'],
     'R-array': ['Harmonic_range']}
