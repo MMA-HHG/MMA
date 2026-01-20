@@ -1,33 +1,66 @@
+"""
+This script provides a multiprocessing wrapper of the Hankel transform module, namely the Hankel_long
+routine, it acts as a part of the main computational pipeline. It does the following steps:
+
+1. It reads the inputs from the main archive.
+2. It splits the workload (subarrays of the far-field camera screen) and define que of processes using
+   the multiprocessing module. 
+3. It merges the results.
+4. It stores the results in a separate file*. The results can be merged into the main file by the
+additional script copy_results_to_main.py.
+
+*The reason for using a separate file is that it might be desirable for users to rerun this part of the 
+pipeline repeatedly: with different resolutions and ranges of the camera, test the physics without 
+absorption, etc.
+
+@author: Jan Vábek
+"""
+
+# Import standard modules
 import numpy as np
-from scipy import integrate
 import h5py
 import copy
 import multiprocessing as mp
 
-
+# Import custom modules from this project
 import MMA_administration as MMA
 import units
 import mynumerics as mn
 import Hankel_transform as HT
 
+# prepare conversion factor for the frequencies from atomic units to SI
 omega_au2SI = mn.ConvertPhoton(1.0, 'omegaau', 'omegaSI')
 
-# specify the input archove tranferred in the temporary file 'msg.tmp'
+# specify the input archive transferred in the temporary file 'msg.tmp'
 with open('msg.tmp','r') as msg_file:
     file = msg_file.readline()[:-1] # need to strip the last character due to Fortran msg.tmp
 
 
 # read the simulation parameters from the hdf5 archive
+
+# # load the data from the hdf5 archive
+# # ! We use the dynamic access to the data: it means the data are loaded during the calculation and that
+# # the calculation must be done inside the with block.
+# print('processing:', file)             
+# with h5py.File(file, 'r') as InpArch:
+
+# Open the source hdf5 archive:
+# 1 - read input parameters
+# 2 - perform the calculation
+#     ! The whole calculation must be done inside the with block, data are accessed dynamically
 with h5py.File(file, 'r') as InpArch:
     
-    # We load the inputs from the file and store them together with possible defaults for a reference
+
+    # We load the inputs from the file and store them in the new file together with possible defaults for a reference.
     inp_group = InpArch[MMA.paths['Hankel_inputs']]
     with h5py.File('results_Hankel.h5', 'a') as Hres_file:
         inps_full_group = Hres_file.create_group(MMA.paths['Hankel_inputs_full'])
 
-        Nthreads = mn.readscalardataset(inp_group, 'Nthreads','N')  
-        # inp_group.copy('Nthreads',inps_full_group)
+        # number of threads for multiprocessing
 
+        Nthreads = mn.readscalardataset(inp_group, 'Nthreads','N')  
+
+        # disperison and absorption
 
         XUV_table_type_diffraction = mn.readscalardataset(
             inp_group, 'XUV_table_type_dispersion','S')    
@@ -41,7 +74,6 @@ with h5py.File(file, 'r') as InpArch:
             dispersion = True   
             mn.adddataset(inps_full_group,'include_dispersion',1,'[-]')
 
-
         if ('include_absorption' in inp_group):
             absorption = (mn.readscalardataset(inp_group, 'include_absorption','N') == 1) # optional
             inp_group.copy('include_absorption',inps_full_group)
@@ -49,40 +81,39 @@ with h5py.File(file, 'r') as InpArch:
             absorption = True   
             mn.adddataset(inps_full_group,'include_absorption',1,'[-]')
     
-        # Nr_max = mn.readscalardataset(inp_group, 'Nr_max','N') 
-        
-        Hrange = inp_group['Harmonic_range'][:] # obligatory
-        kr_max = mn.readscalardataset(inp_group, 'Nr_max','N')    # obligatory
-        
-        if ('kr_step' in inp_group):
-            kr_step = mn.readscalardataset(inp_group, 'kr_step','N')  # optional
-            inp_group.copy('kr_step',inps_full_group)
-        else:
-            kr_step = 1
-            mn.adddataset(inps_full_group,'kr_step',kr_step,'[-]')
+        # Definition of the far-field camera screen
 
+        distance_FF = mn.readscalardataset(inp_group, 'distance_FF','N') 
+
+        rmax_FF = mn.readscalardataset(inp_group, 'rmax_FF','N') 
+        Nr_FF = mn.readscalardataset(inp_group, 'Nr_FF','N')
+
+        Hrange = inp_group['Harmonic_range'][:] 
         if ('ko_step' in inp_group):
-            ko_step = mn.readscalardataset(inp_group, 'ko_step','N')  # optional
+            ko_step = mn.readscalardataset(inp_group, 'ko_step','N')  
             inp_group.copy('ko_step',inps_full_group)
         else:
             ko_step = 1
             mn.adddataset(inps_full_group,'ko_step',ko_step,'[-]')
 
+        # Defintion of the integration variables
+        kr_max = mn.readscalardataset(inp_group, 'Nr_max','N')
+
+        if ('kr_step' in inp_group):
+            kr_step = mn.readscalardataset(inp_group, 'kr_step','N')  
+            inp_group.copy('kr_step',inps_full_group)
+        else:
+            kr_step = 1
+            mn.adddataset(inps_full_group,'kr_step',kr_step,'[-]')
+
         if ('kz_step' in inp_group):
-            kz_step = mn.readscalardataset(inp_group, 'kz_step','N')  # optional
+            kz_step = mn.readscalardataset(inp_group, 'kz_step','N')  
             inp_group.copy('kz_step',inps_full_group)
         else:
             kz_step = 1
             mn.adddataset(inps_full_group,'kz_step',kz_step,'[-]')
 
-        # print('kz_step exists:', ('kz_step' in inp_group))
-        # print('kx_step exists:', ('kx_step' in inp_group))
-
-        # print('using kz_step ',kz_step)
-        
-        rmax_FF = mn.readscalardataset(inp_group, 'rmax_FF','N') # obligatory
-        Nr_FF = mn.readscalardataset(inp_group, 'Nr_FF','N')     # obligatory
-        distance_FF = mn.readscalardataset(inp_group, 'distance_FF','N') # obligatory
+        # possible additional characteristics and advanced options 
 
         if ('store_cumulative_result' in inp_group):
             store_cumulative_result = (mn.readscalardataset(inp_group, 'store_cumulative_result','N') == 1) # optional
@@ -91,29 +122,39 @@ with h5py.File(file, 'r') as InpArch:
             store_cumulative_result = False
             mn.adddataset(inps_full_group,'store_cumulative_result',0,'[-]')
 
-        # copy all the obligatory inputs:
+        if ('store_cumulative_result_nonorm' in inp_group):
+            store_cumulative_result_nonorm = (mn.readscalardataset(inp_group, 'store_cumulative_result_nonorm','N') == 1) # optional
+            inp_group.copy('store_cumulative_result_nonorm',inps_full_group)
+        else:
+            store_cumulative_result_nonorm = False
+            mn.adddataset(inps_full_group,'store_cumulative_result_nonorm',0,'[-]')
+
+        if ('near_field_factor' in inp_group):
+            near_field_factor = (mn.readscalardataset(inp_group, 'near_field_factor','N') == 1) # optional
+            inp_group.copy('near_field_factor',inps_full_group)
+        else:
+            near_field_factor = True
+            mn.adddataset(inps_full_group,'near_field_factor',1,'[-]')
+
+        # copy all the obligatory inputs for a reference:
         for dset in ['Nthreads', 'XUV_table_type_dispersion', 'XUV_table_type_absorption',
                      'Harmonic_range', 'Nr_max', 'rmax_FF', 'Nr_FF', 'distance_FF']:
             inp_group.copy(dset,inps_full_group)
 
-    rgrid_FF = np.linspace(0.0, rmax_FF, Nr_FF)
 
-# # load the data from the hdf5 archive
-# # ! We use the dynamic access to the data: it means the data are loaded during the calculation and that
-# # the calculation must be done inside the with block.
-# print('processing:', file)             
-# with h5py.File(file, 'r') as InpArch:
-    print('processing:', file)  
+    ## Prepare calculation
+
+    rgrid_FF = np.linspace(0.0, rmax_FF, Nr_FF)    
     omega0 = mn.ConvertPhoton(1e-2*mn.readscalardataset(InpArch,
                                                         MMA.paths['CUPRAD_inputs']+
                                                         '/laser_wavelength','N'),'lambdaSI','omegaau')
+    omega0SI = omega_au2SI * omega0 
     inverse_GV_IR = InpArch[MMA.paths['CUPRAD_logs']+'/inverse_group_velocity_SI'][()]; group_velocity_IR = 1./inverse_GV_IR
     rho0_init = 1e6 * mn.readscalardataset(InpArch, MMA.paths['CUPRAD_inputs']+
                                            '/calculated/medium_effective_density_of_neutral_molecules','N') # SI
     pressure = MMA.pressure_constructor(InpArch)
     preset_gas = mn.readscalardataset(InpArch,MMA.paths['global_inputs']+'/gas_preset','S')
-    effective_IR_refrective_index = inverse_GV_IR*units.c_light
-    
+    effective_IR_refrective_index = inverse_GV_IR*units.c_light    
 
     ogrid = InpArch[MMA.paths['CTDSE_outputs']+'/omegagrid'][:]          # a.u.
     rgrid_macro = InpArch[MMA.paths['CTDSE_outputs']+'/rgrid_coarse'][:] # SI
@@ -122,14 +163,13 @@ with h5py.File(file, 'r') as InpArch:
     # the inidces of the selection in the frequency (harmonic) grid
     ko_min = mn.FindInterval(ogrid/omega0, Hrange[0])
     ko_max = mn.FindInterval(ogrid/omega0, Hrange[-1])
- 
-    omega0SI = omega_au2SI * omega0    
-     
-    
+      
+    # prepare the grid
     ogrid_sel = ogrid[ko_min:ko_max:ko_step]    
     No_sel = len(ogrid_sel)
     
-    print('No', No_sel, 'Nr_FF', Nr_FF)
+    print('Calculation is running:', file)  
+    print('The resolution (N_omega x N_r): (', No_sel, ')(', Nr_FF,')')
     print('------------------------------------------------')
     
     ## Parallel computing:
@@ -159,7 +199,7 @@ with h5py.File(file, 'r') as InpArch:
         ogrid_indices_end = ogrid_indices[1:]
     
     # prepare instances of 'FSources_provider' class, each of the instances
-    # describes a subarray according to the splitting above, note the 'dynamic' option
+    # describes a subarray according to the splitting above, note the 'dynamic' option (reding from the file on-the-fly)
     targets = []
     for k1 in range(Nthreads):
         targets.append(HT.FSources_provider(InpArch[MMA.paths['CTDSE_outputs']+'/zgrid_coarse'][:],
@@ -200,9 +240,9 @@ with h5py.File(file, 'r') as InpArch:
                                     'effective_IR_refrective_index' : effective_IR_refrective_index,
                                     'integrator_Hankel' : HT.trapezoidal_integrator,
                                     'integrator_longitudinal' : 'trapezoidal',
-                                    'near_field_factor' : True,
+                                    'near_field_factor' : near_field_factor,
                                     'store_cumulative_result' : store_cumulative_result,
-                                    'store_non_normalised_cumulative_result' : False
+                                    'store_non_normalised_cumulative_result' : store_cumulative_result_nonorm
                                    }
                             
                             ) for k1 in range(Nthreads)]
@@ -220,7 +260,7 @@ with h5py.File(file, 'r') as InpArch:
     
     HL_res = copy.deepcopy(results[0][1]) # ensure all shared data are in the output class
     
-    HL_res.ogrid = omega_au2SI*ogrid_sel  # reassing by the whole ogrid
+    HL_res.ogrid = omega_au2SI*ogrid_sel  # reassign by the main non-split ogrid
     # find indices for merging subarrays
     ogrid_indices_new = [mn.FindInterval(ogrid_sel, ogrid_part[0]) for ogrid_part in ogrid_parts]
     
