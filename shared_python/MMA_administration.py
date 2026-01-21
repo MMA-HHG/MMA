@@ -77,7 +77,7 @@ CTDSE_variable_type_lists ={
 
 Hankel_variable_type_lists ={
     'I' : ['Nr_FF', 'kr_step', 'ko_step', 'kz_step', 'Nr_max', 'Nthreads', 'store_cumulative_result',
-           'include_dispersion', 'include_absorption'],
+           'store_cumulative_result_nonorm', 'include_dispersion', 'include_absorption'],
     'R' : ['distance_FF', 'rmax_FF'],
     'S' : ['XUV_table_type_dispersion', 'XUV_table_type_absorption'],
     'R-array': ['Harmonic_range']}
