@@ -6,31 +6,30 @@
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
-
-# If extensions (or modules to document with autodoc) are in another directory,
-# add these directories to sys.path here.
-import pathlib
+import os
 import sys
-sys.path.insert(0, pathlib.Path(__file__).parents[2].resolve().as_posix())
-
-# Mock imports
-autodoc_mock_imports = ["numpy", "units", "XUV_refractive_index", 'scipy']
 
 
-project = 'Hankel transform'
-copyright = '2024, Jan Vábek'
+sys.path.insert(0, os.path.abspath("../.."))  # from docs/source to project root
+
+project = 'Hankel_docs'
+copyright = '2026, Jan Vábek'
 author = 'Jan Vábek'
-release = '0.1'
+release = '0.9'
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
+# extensions = []
+
 extensions = [
-    'sphinx.ext.duration',
-    'sphinx.ext.doctest',
-    'sphinx.ext.autodoc',
-    'sphinx.ext.autosummary',
+    "sphinx.ext.autodoc",
+    "sphinx.ext.napoleon",   # supports Google/NumPy style docstrings
+    "sphinx.ext.viewcode",   # adds source links
+    "sphinx.ext.autosummary" # optional, but handy
 ]
+
+autosummary_generate = True
 
 templates_path = ['_templates']
 exclude_patterns = []
@@ -40,5 +39,6 @@ exclude_patterns = []
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
-html_theme = 'alabaster'
+# html_theme = 'alabaster'
+html_theme = "sphinx_rtd_theme"
 html_static_path = ['_static']
