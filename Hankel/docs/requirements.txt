@@ -1,0 +1,14 @@
+# --- Documentation toolchain (Sphinx) ---
+Sphinx==8.1.3
+
+# Parse Python files without importing them (works with "scripts that run on import")
+sphinx-autoapi
+
+# Nice HTML theme (optional but common)
+sphinx-rtd-theme
+
+# Local live-reload server for docs (optional)
+sphinx-autobuild
+
+# Optional: if you want to include Markdown files in your docs (README.md, etc.)
+myst-parser

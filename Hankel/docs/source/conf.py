@@ -42,3 +42,18 @@ exclude_patterns = []
 # html_theme = 'alabaster'
 html_theme = "sphinx_rtd_theme"
 html_static_path = ['_static']
+
+
+# document the scripts using autoapi and not autodocs
+extensions += [
+    "autoapi.extension",
+]
+
+autoapi_type = "python"
+autoapi_dirs = [os.path.abspath("../..")]  # Hankel/ from docs/source/
+autoapi_ignore = [
+    "*docs*",
+    "*__pycache__*",
+    "*testing*",
+    "*analyses*",
+]
