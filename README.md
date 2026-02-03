@@ -45,20 +45,20 @@ The environment for Docker is set in [the Dockerfile](./environment/Dockerfile).
 2) Go to the root directory of the project and build the docker image
 
         cd environment
-        docker build . --tag cuprad_tdse_hankel
+        docker build . --tag mma
         cd ..
-   The `tag  cuprad_tdse_hankel` specifies the name of the image and can be changed. After running the command, the docker image is build.
+   The `tag  mma` specifies the name of the image and can be changed. After running the command, the docker image is build.
 
 3) Execute the docker image by
 
         # without the port jupyter server
-        docker run -v .:/CUPRAD_TDSE_Hankel -w /CUPRAD_TDSE_Hankel -it cuprad_tdse_hankel bash 
+        docker run --name CONTAINER_NAME -v .:/MMA -w /MMA -it mma bash 
         
         # with the port jupyter server
-        docker run -v .:/CUPRAD_TDSE_Hankel -w /CUPRAD_TDSE_Hankel -it -p 8888:8888 cuprad_tdse_hankel bash
+        docker run --name CONTAINER_NAME -v .:/MMA -w /MMA -it -p 8888:8888 mma bash
 
 
-    The options `-v` and `-w` are used to bind the local filesystem with the Docker image. The binaries then will be compiled into the parent filesystem. The option `-p 8888:8888` is optional and enables the port for a jupyter server. (*Make sure that the image is executed from the correct location. The envirnoment path would't match otherwise.*)
+    The tag `CONTAINER_NAME` helps to return to the container later, one should set it to the desired name of the container (e.g. `mma_v1`, it cannot be the same as the tag of the image build). The options `-v` and `-w` are used to bind the local filesystem with the Docker image. The binaries then will be compiled into the parent filesystem. The option `-p 8888:8888` is optional and enables the port for a jupyter server. (*Make sure that the image is executed from the correct location. The envirnoment path would't match otherwise.*) The last tag `-it mma` corresponds to the docker image tag.
 
 4) Compile the code within the docker image by running
 
@@ -74,6 +74,12 @@ The environment for Docker is set in [the Dockerfile](./environment/Dockerfile).
         jupyter lab --ip 0.0.0.0 --port 8888 --no-browser --allow-root
         
     This provides a link to the server that can be opened in a browser on the parent system.
+
+6) To return to the container, execute
+
+        docker start -ai CONTAINER NAME
+
+The name `CONTAINER NAME` was set in 3). THe history is then kept within the container.
 
 ## Custom installations
 Here we provide a more detailed guide for the installation, this is the list of requirements:
@@ -95,10 +101,10 @@ Here is the list of paths for running the model. The only customised path is the
 
 #### Paths
 ``` bash
-export GIT_PATH=/users/k2255939/git # This is the only path that needs to be customised
+export GIT_PATH=/users/xxx # This is the only path that needs to be customised
 
 # These paths are relative to the GIT_PATH
-export MSM_PATH=$GIT_PATH/CUPRAD_TDSE_Hankel
+export MSM_PATH=$GIT_PATH/MMA
 export PYTHONPATH=$PYTHONPATH:$MSM_PATH/shared_python
 
 export CUPRAD_HOME=$MSM_PATH/CUPRAD
