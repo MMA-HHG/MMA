@@ -1,0 +1,41 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite our accompanying paper (preferred citation) as below."
+authors:
+  - family-names: "Vábek"
+    given-names: "Jan"
+    orcid: "https://orcid.org/0000-0001-7689-7174"
+  - family-names: "Němec"
+    given-names: "Tadeáš"
+    orcid: "https://orcid.org/0009-0003-9110-8913"
+  - family-names: "Skupin"
+    given-names: "Stefan"
+    orcid: "https://orcid.org/0000-0002-9215-1150"
+  - family-names: "Catoire"
+    given-names: "Fabrice"
+    orcid: "https://orcid.org/0000-0002-1767-1084"
+title: "Multiscale modular approach (MMA) for HHG modelling"
+version: 0.8
+date-released: 2025-07-05
+url: "https://github.com/HHG-modelling/MMA-HHG-pre-release-2"
+
+preferred-citation:
+  type: article
+  title: "Modular multiscale approach to modelling high-harmonic generation in gases"
+  authors:
+    - family-names: "Vábek"
+      given-names: "Jan"
+      orcid: "https://orcid.org/0000-0001-7689-7174"
+    - family-names: "Němec"
+      given-names: "Tadeáš"
+      orcid: "https://orcid.org/0009-0003-9110-8913"
+    - family-names: "Skupin"
+      given-names: "Stefan"
+      orcid: "https://orcid.org/0000-0002-9215-1150"
+    - family-names: "Catoire"
+      given-names: "Fabrice"
+      orcid: "https://orcid.org/0000-0002-1767-1084"
+  doi: "10.48550/arXiv.2507.04115"
+  url: "https://arxiv.org/abs/2507.04115"
+  journal: "arXiv"
+  year: 2025
+  month: 7
