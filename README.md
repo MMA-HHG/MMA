@@ -4,8 +4,8 @@
 <img src="misc/logos/ilm.jpg" alt="iLM logo" style="height:60px;"/> &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
 <img src="misc/logos/CTU_lion-1_tr.png" alt="CTU logo" style="height:60px;"/>
 
-# Multiscale modular approach (MMA) for HHG modelling
-This repository contains the sources for the [**Multiscale Modular Approach (MMA) for High-Harmonic Generation (HHG) modelling**](https://mma-hhg.github.io/) and tutorials showing examples of usage. It is still under active development and there will be frequent updates.
+# Modular multiscale approach (MMA) for HHG modelling
+This repository contains the sources for the [**Modular Multiscale Approach (MMA) for High-Harmonic Generation (HHG) modelling**](https://mma-hhg.github.io/) and tutorials showing examples of usage. It is still under active development and there will be frequent updates.
 
 The model provides a full solution to treat HHG in gaseous media: the laser pulse propagation, the single-atom response, and the XUV propagation. The design of the code is modular and each of the respective modules can be used independently for its own purposes without requiring the other modules. The assumtions in the model are the linear polarisation and cyllindrical symmetry in the macroscopic propagation. (We are working on extensions of the approach, see notes below.)
 
