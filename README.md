@@ -22,19 +22,17 @@ Tadeáš Němec
 **Notes and disclaimers:**
 * [***Subscribe for news!***](https://bit.ly/HHG-code-updates
 )
-* The code is still in the final development and testing. There will be no new major features in the first release. The interfaces may still evolve, and some bugs may be present.
-* *The compatibility of hdf5-files during the development is not guaranteed!*
 * The code is provided as it is with open source. We cannot provide guarantee or take responsibility for its usage.
 * We are a small developer's group and our primary occupation is science. We would be grateful to discuss the usage of the code. However, we cannot provide a commerce-level full-scale support at the instant. 
 * We would be grateful for your feedback!
-* We are working on more advanced siblings of the codes (3D-vectorial pulse propagation, 3D-TDSE) that will not be a part of the first release. Please contact authors for possible collaborations if you need the more advanced features.
+* We are working on more advanced siblings of the codes (3D-vectorial pulse propagation, 3D-TDSE) that are not a part of the first release. Please contact authors for possible collaborations if you need the more advanced features.
 
 
 ## Installations
 Both `CUPRAD` and `CTDSE` are compiled from the source. Hankel is implemented in Python and together with the other Pythonic procedures and scripting around the model rely on setting up the environment variables (one might consider setting up [a virtual environment](https://stackoverflow.com/questions/9554087/setting-an-environment-variable-in-virtualenv) dedicated to this whole project).
 <!--- We head for RC1, use virtual environment, pip, etc. in future releases by default --->
 
-We provide two ways to obtain the code. The first option uses the Docker image. It is a direct multiplatform user-oriented way to obtain the executable model. This can be used for running the model locally. Moreover, this can be used as a direct reference for compiling the code the second way: directly from the source. This option might be neccessary for deploying the code on HPC clusters, develpoment, …  
+We provide two ways to obtain the code. In both cases, this repository is cloned by `git clone git@github.com:MMA-HHG/MMA.git` or `git clone https://github.com/MMA-HHG/MMA.git`. The first option uses the Docker image. It is a direct multiplatform user-oriented way to obtain the executable model. This can be used for running the model locally. Moreover, this can be used as a direct reference for compiling the code the second way: directly from the source. This option might be neccessary for deploying the code on HPC clusters, develpoment, …  
 
 ## Reference Docker installation
 The code can be accessed through Docker. We provide the direct Docker image, CodeOcean capsule and here we show how to build the code using Docker.
@@ -73,13 +71,15 @@ The environment for Docker is set in [the Dockerfile](./environment/Dockerfile).
 
         jupyter lab --ip 0.0.0.0 --port 8888 --no-browser --allow-root
         
-    This provides a link to the server that can be opened in a browser on the parent system.
+    This provides a link to the server that can be opened in a web browser on the parent system. Note that if you are using a remote machine, you need to change the local to the address of the machine while connecting to it. The link to connect from terminal is something like `http://127.0.0.1:8888/lab?token=xxxyyyzzz`, so here `127.0.0.1` is replaced by the address of the remote machine and can be opened from the browser.
 
-6) To return to the container, execute
+6) Once the starting files are ready from jupyter, the code is run through [the execution pipeline descibed below](#execution-pipeline).
+
+7) To return to the container, execute
 
         docker start -ai CONTAINER NAME
 
-The name `CONTAINER NAME` was set in 3). THe history is then kept within the container.
+The name `CONTAINER NAME` was set in 3). The history is then kept within the container.
 
 ## Custom installations
 Here we provide a more detailed guide for the installation, this is the list of requirements:
@@ -329,9 +329,10 @@ Flags `print_xxx` define whether a given output is stored.
 ## Execution pipeline
 The model consists of three main jobs: 1) CUPRAD for the laser pulse propagation; 2) TDSE for the microscopic response, and 3) the Hankel transform for the far-field XUV distribution. There are some further auxiliary tasks in the pipeline:
 1) CUPRAD pre-processor (`$CUPRAD_BUILD/make_start.e`),
-    * The pre-processor requires 4 entries from the standard input, the first is the name of the hdf5-input file, resting three for testing purposes and should be set to 0 (will be changed/removed in a further release). The name of the file then stored in `msg.tmp`, which tranfers it through the execution pipeline.
+    * The pre-processor requires the name of the hdf5-input file. The name of the file then stored in `msg.tmp`, which tranfers it through the execution pipeline.
 2) the main MPI CUPRAD job (`$CUPRAD_BUILD/cuprad.e`),
     * The design of the code requires the number of MPI processes to be a power of 2,
+    * To run the code in parallel within te Docker image, you can use `mpirun -n NUM_PROC --allow-run-as-root $CUPRAD_BUILD/cuprad.e`, where `NUM_PROC` follows the previous rule and its maximal value is set in Docker.
 3) adjusting the TDSE parameters to the real number of steps in $z$ (`$TDSE_1D_PYTHON/prepare_TDSE_Nz.py`),
 4) the main MPI TDSE job (`$TDSE_1D_BUILD/TDSE.e`),
 5) the merge & clean of the temporary TDSE files (`$TDSE_1D_PYTHON/merge.py`),
