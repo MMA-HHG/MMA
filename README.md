@@ -334,11 +334,14 @@ The model consists of three main jobs: 1) CUPRAD for the laser pulse propagation
     * The design of the code requires the number of MPI processes to be a power of 2,
     * To run the code in parallel within te Docker image, you can use `mpirun -n NUM_PROC --allow-run-as-root $CUPRAD_BUILD/cuprad.e`, where `NUM_PROC` follows the previous rule and its maximal value is set in Docker.
 3) adjusting the TDSE parameters to the real number of steps in $z$ (`$TDSE_1D_PYTHON/prepare_TDSE_Nz.py`),
-4) the main MPI TDSE job (`$TDSE_1D_BUILD/TDSE.e`),
-5) the merge & clean of the temporary TDSE files (`$TDSE_1D_PYTHON/merge.py`),
-6) the Hankel transform (`$HANKEL_HOME/Hankel_long_medium_parallel_cluster.py`).
+    * To run it within the Docker container, use: `python3 $TDSE_1D_PYTHON/prepare_TDSE_Nz.py`
+5) the main MPI TDSE job (`$TDSE_1D_BUILD/TDSE.e`),
+    * To run it within the Docker container, use: `mpirun -n NUM_PROC --allow-run-as-root $TDSE_1D_BUILD/TDSE.e` (anallogically to CUPRAD, there is no contraint to `NUM_PROC`).
+7) the merge & clean of the temporary TDSE files (`$TDSE_1D_PYTHON/merge.py`),
+8) the Hankel transform (`$HANKEL_HOME/Hankel_long_medium_parallel_cluster.py`).
     * ***It has to be executed as a single multithreaded program.***
     * It uses multithreading parallelisation using [the multiprocessing library](https://docs.python.org/3/library/multiprocessing.html). *The number of threads has to be defined in the input hdf5-archive. Be careful, especially on HPC's, that these numbers match with hardware.*
+    * * To run it within the Docker container, use: `python3 $HANKEL_HOME/Hankel_long_medium_parallel_cluster.py`
 
 It is possible to run the process manually. However, computational clusters use jobs and queues for scheduling them. [Here](./multiscale/scripts/README.md) we discuss an example of this pipeline.
 
