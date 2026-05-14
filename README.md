@@ -332,11 +332,11 @@ The model consists of three main jobs: 1) CUPRAD for the laser pulse propagation
     * The pre-processor requires the name of the hdf5-input file. The name of the file then stored in `msg.tmp`, which tranfers it through the execution pipeline.
 2) the main MPI CUPRAD job (`$CUPRAD_BUILD/cuprad.e`),
     * The design of the code requires the number of MPI processes to be a power of 2,
-    * To run the code in parallel within te Docker image, you can use `mpirun -n NUM_PROC --allow-run-as-root $CUPRAD_BUILD/cuprad.e`, where `NUM_PROC` follows the previous rule and its maximal value is set in Docker.
+    * To run the code in parallel within te Docker image, you can use `mpirun -n NUM_PROC --allow-run-as-root $CUPRAD_BUILD/cuprad.e`, where `NUM_PROC` is a numerical value and follows the previous rule and its maximal value is set in Docker.
 3) adjusting the TDSE parameters to the real number of steps in $z$ (`$TDSE_1D_PYTHON/prepare_TDSE_Nz.py`),
     * To run it within the Docker container, use: `python3 $TDSE_1D_PYTHON/prepare_TDSE_Nz.py`
 5) the main MPI TDSE job (`$TDSE_1D_BUILD/TDSE.e`),
-    * To run it within the Docker container, use: `mpirun -n NUM_PROC --allow-run-as-root $TDSE_1D_BUILD/TDSE.e` (anallogically to CUPRAD, there is no contraint to `NUM_PROC`).
+    * To run it within the Docker container, use: `mpirun -n NUM_PROC --allow-run-as-root $TDSE_1D_BUILD/TDSE.e` (in contrast to CUPRAD, there is no constraint to `NUM_PROC`).
 7) the merge & clean of the temporary TDSE files (`$TDSE_1D_PYTHON/merge.py`),
 8) the Hankel transform (`$HANKEL_HOME/Hankel_long_medium_parallel_cluster.py`).
     * ***It has to be executed as a single multithreaded program.***
