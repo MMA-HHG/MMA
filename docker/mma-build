@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+project_root="${MSM_PATH:-/MMA}"
+parallel_level="${CMAKE_BUILD_PARALLEL_LEVEL:-$(nproc)}"
+
+if [[ ! -f "${project_root}/CMakeLists.txt" ]]; then
+    echo "[mma-build:error] ${project_root} does not look like the MMA project root." >&2
+    echo "[mma-build:error] Expected file not found: ${project_root}/CMakeLists.txt" >&2
+    exit 1
+fi
+
+echo "[mma-build] Configuring MMA in ${project_root}."
+cmake -S "${project_root}" -B "${project_root}"
+
+# Optional: use MMA_BUILD_TARGET=code to run a specific CMake target.
+if [[ -n "${MMA_BUILD_TARGET:-}" ]]; then
+    echo "[mma-build] Building target '${MMA_BUILD_TARGET}' with ${parallel_level} parallel jobs."
+    cmake --build "${project_root}" --target "${MMA_BUILD_TARGET}" --parallel "${parallel_level}"
+else
+    echo "[mma-build] Building default target with ${parallel_level} parallel jobs."
+    cmake --build "${project_root}" --parallel "${parallel_level}"
+fi
+
+echo "[mma-build] Build finished."
