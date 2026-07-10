@@ -2,15 +2,13 @@ FROM ubuntu:22.04
 
 ARG DEBIAN_FRONTEND=noninteractive
 
-# Default container user. Advanced Linux users can override UID/GID at build time.
-ARG USERNAME=mma
+# Default container user. Linux users can override UID/GID at build time.
+ARG USERNAME=active_electron
 ARG USER_UID=1000
 ARG USER_GID=1000
 
-# SHELL ["/bin/bash", "-o", "pipefail", "-c"]
-
-# Project paths used by the MMA scripts and examples.
-ENV MSM_PATH=/MMA
+# Project paths used by MMA scripts and examples.
+ENV MMA_PATH=/MMA
 ENV MULTISCALE_WORK_DIR=/MMA/work_dir
 ENV MULTISCALE_DEMOS=/MMA/work_dir
 
@@ -38,9 +36,10 @@ ENV CC=mpicc
 ENV FC=mpifort
 ENV SHELL=/bin/bash
 
-# System dependencies: compilers, CMake, OpenMPI, HDF5, FFTW, Python, Jupyter support.
+# System dependencies for native code, Python, Jupyter, and development.
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
+        ca-certificates \
         build-essential \
         gcc \
         gfortran \
@@ -58,29 +57,10 @@ RUN apt-get update \
         ffmpeg \
         bash-completion \
         sudo \
-        # bash-completion \
-        # build-essential \
-        # ca-certificates \
-        # cmake \
-        # ffmpeg \
-        # gfortran \
-        # git \
-        # libfftw3-dev \
-        # libfftw3-mpi-dev \
-        # libhdf5-openmpi-dev \
-        # libopenmpi-dev \
-        # make \
-        # openmpi-bin \
-        # pkg-config \
-        # python3 \
-        # python3-pip \
-        # python3-setuptools \
-        # python3-wheel \
-        # sudo \
     && rm -rf /var/lib/apt/lists/*
 
-# Python dependencies are kept separately for readability.
-COPY requirements.txt /tmp/requirements.txt
+# Python dependencies are kept in the standard pip requirements format.
+COPY docker/requirements.txt /tmp/requirements.txt
 RUN python3 -m pip install --upgrade --no-cache-dir pip \
     && python3 -m pip install --no-cache-dir -r /tmp/requirements.txt \
     && rm -f /tmp/requirements.txt
@@ -90,7 +70,7 @@ RUN mkdir -p /etc/jupyter \
     && printf "c.ServerApp.terminado_settings = {'shell_command': ['/bin/bash', '-l']}\n" \
         > /etc/jupyter/jupyter_server_config.py
 
-# Create a normal user for MPI runs; sudo keeps the container useful for development.
+# Create a normal user for MPI runs; sudo keeps the image useful for development.
 RUN groupadd --gid "${USER_GID}" "${USERNAME}" \
     && useradd \
         --uid "${USER_UID}" \
@@ -98,10 +78,11 @@ RUN groupadd --gid "${USER_GID}" "${USERNAME}" \
         --create-home \
         --shell /bin/bash \
         "${USERNAME}" \
+    && install -d -m 0755 /etc/sudoers.d \
     && echo "${USERNAME} ALL=(ALL) NOPASSWD:ALL" > "/etc/sudoers.d/${USERNAME}" \
     && chmod 0440 "/etc/sudoers.d/${USERNAME}" \
-    && mkdir -p "${MSM_PATH}" "${MULTISCALE_WORK_DIR}" \
-    && chown -R "${USERNAME}:${USERNAME}" "${MSM_PATH}" "${MULTISCALE_WORK_DIR}"
+    && mkdir -p "${MMA_PATH}" "${MULTISCALE_WORK_DIR}" \
+    && chown -R "${USERNAME}:${USERNAME}" "${MMA_PATH}" "${MULTISCALE_WORK_DIR}"
 
 # Install container helper commands.
 COPY docker/entrypoint.sh /usr/local/bin/mma-entrypoint
@@ -113,7 +94,7 @@ RUN chmod +x \
         /usr/local/bin/mma-jupyter
 
 USER ${USERNAME}
-WORKDIR ${MSM_PATH}
+WORKDIR ${MMA_PATH}
 
 ENTRYPOINT ["mma-entrypoint"]
 CMD ["bash"]

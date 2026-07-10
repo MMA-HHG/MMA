@@ -1,18 +1,39 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-project_root="${MSM_PATH:-/MMA}"
-
-is_disabled() {
-    case "${1:-}" in
-        0|false|False|FALSE|no|No|NO) return 0 ;;
-        *) return 1 ;;
-    esac
-}
+project_root="${MMA_PATH:-/MMA}"
 
 die() {
     echo "[entrypoint:error] $*" >&2
     exit 1
+}
+
+set_num_proc_default() {
+    local mpi_slots
+    local n
+
+    # Ask mpirun directly how many MPI slots it sees.
+    mpi_slots=$(mpirun hostname | wc -l)
+
+    if [[ -z "${NUM_PROC_DEFAULT_TDSE_1D:-}" ]]; then
+        export NUM_PROC_DEFAULT_TDSE_1D="${mpi_slots}"
+    fi
+
+    if [[ -z "${NUM_PROC_DEFAULT_CUPRAD:-}" ]]; then
+        n=1
+        while (( 2 * n <= mpi_slots )); do
+            n=$((2 * n))
+        done
+        export NUM_PROC_DEFAULT_CUPRAD="${n}"
+    fi
+
+    echo "[entrypoint] MPI slots detected by mpirun: ${mpi_slots}"
+    echo "[entrypoint] NUM_PROC_DEFAULT_CUPRAD=${NUM_PROC_DEFAULT_CUPRAD}"
+    echo "[entrypoint] NUM_PROC_DEFAULT_TDSE_1D=${NUM_PROC_DEFAULT_TDSE_1D}"
+
+    if (( NUM_PROC_DEFAULT_CUPRAD < 2 )); then
+        echo "[entrypoint:warning] CUPRAD requires at least 2 MPI processes." >&2
+    fi
 }
 
 check_project_root() {
@@ -61,8 +82,8 @@ expected_executables_present() {
 }
 
 run_auto_build_if_needed() {
-    if is_disabled "${MMA_AUTO_BUILD:-1}"; then
-        echo "[entrypoint] Automatic MMA build disabled by MMA_AUTO_BUILD=${MMA_AUTO_BUILD}."
+    if [[ "${MMA_AUTO_BUILD:-1}" == "0" ]]; then
+        echo "[entrypoint] Automatic MMA build disabled by MMA_AUTO_BUILD=0."
         return
     fi
 
@@ -86,6 +107,7 @@ run_auto_build_if_needed() {
         || die "Build finished, but one or more expected executables are missing."
 }
 
+set_num_proc_default
 run_auto_build_if_needed
 
 # Default command if the user did not provide one.

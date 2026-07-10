@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-project_root="${MSM_PATH:-/MMA}"
+project_root="${MMA_PATH:-/MMA}"
 internal_port=8888
 
 cd "${project_root}"

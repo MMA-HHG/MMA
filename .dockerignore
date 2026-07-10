@@ -5,8 +5,8 @@
 
 !Dockerfile
 !.dockerignore
-!requirements.txt
 !docker/
+!docker/requirements.txt
 !docker/entrypoint.sh
 !docker/mma-build
 !docker/mma-jupyter
