@@ -106,5 +106,16 @@ RUN chmod +x \
 USER ${USERNAME}
 WORKDIR ${MMA_PATH}
 
+# Prepare tutorial JupyterLab workspaces for the default container user.
+# JupyterLab stores workspaces in the user's profile, so this must run
+# after switching from root to ${USERNAME}. The notebook files themselves
+# may be supplied later by bind-mounting the repository to ${MMA_PATH}.
+RUN jupyter lab workspaces import \
+        --name teach-me-mma \
+        /opt/mma/tutorial_workspaces/teach-me-mma.json \
+    && jupyter lab workspaces import \
+        --name teach-me-tdse \
+        /opt/mma/tutorial_workspaces/teach-me-tdse.json
+
 ENTRYPOINT ["mma-entrypoint"]
 CMD ["bash"]

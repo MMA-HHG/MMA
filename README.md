@@ -39,51 +39,141 @@ In both cases, this repository is cloned by `git clone git@github.com:MMA-HHG/MM
 The first option uses the Docker image. It is a direct multiplatform user-oriented way to obtain the executable model. This can be used for running the model locally. Moreover, this can be used as a direct reference for compiling the code the second way: directly from the source. This option might be neccessary for deploying the code on HPC clusters, develpoment, …  
 
 ## Reference Docker installation and running the code
-The code can be accessed through Docker. We provide the direct Docker image, CodeOcean capsule and here we show how to build the code using Docker.
 
-The environment for Docker is set in [the Dockerfile](./environment/Dockerfile). The installation is done by the following recipe:
+The code can be accessed through Docker. Docker prepares the software
+environment, while the MMA repository is mounted into the container. The native
+executables are compiled automatically when the container is started for the
+first time.
 
 1) [Docker](https://www.docker.com/) needs to be installed.
-2) Go to the root directory of the project and build the docker image
 
-        cd environment
-        docker build . --tag mma
-        cd ..
-   The `tag  mma` specifies the name of the image and can be changed. After running the command, the docker image is build.
+2) Clone the repository and enter its root directory.
 
-3) Execute the docker image by
+        git clone git@github.com:MMA-HHG/MMA.git
+        cd MMA
 
-        # without the port jupyter server
-        docker run --name CONTAINER_NAME -v .:/MMA -w /MMA -it mma bash 
-        
-        # with the port jupyter server
-        docker run --name CONTAINER_NAME -v .:/MMA -w /MMA -it -p 8888:8888 mma bash
+    If you do not use SSH keys with GitHub, clone the repository using https by: `git clone https://github.com/MMA-HHG/MMA.git`
+
+3) Build the Docker image.
+
+        docker build -t mma .
+
+4) Start the container. Choose `CONTAINER_NAME`, for example `mma_v1`. The same
+   name is also used as the container hostname, so the terminal prompt is easier
+   to read.
+
+        docker run --name CONTAINER_NAME --hostname CONTAINER_NAME -v .:/MMA -w /MMA -p 8888:8888 -it mma
+
+   The repository is mounted into `/MMA`, so the compiled executables remain
+   available in the parent filesystem. If port `8888` is already used on the
+   parent machine, change only the first number, for example `-p 8889:8888`.
+
+5) JupyterLab can be started inside the container by:
+
+        mma-jupyter
+
+6) Two prepared tutorial workspaces are available through:
+
+        teach-me-mma
+        teach-me-tdse
+
+   These commands print the corresponding JupyterLab workspace links.
+
+7) To return to the same container later, use:
+
+        docker start -ai CONTAINER_NAME
+
+In short, the installation is:
+
+```bash
+git clone https://github.com/MMA-HHG/MMA.git
+cd MMA
+
+docker build -t mma .
+docker run --name CONTAINER_NAME --hostname CONTAINER_NAME -v .:/MMA -w /MMA -p 8888:8888 -it mma
+```
+
+Inside the container, start JupyterLab by:
+
+```bash
+mma-jupyter
+```
+
+To return to the container later:
+
+```bash
+docker start -ai CONTAINER_NAME
+```
 
 
-    The tag `CONTAINER_NAME` helps to return to the container later, one should set it to the desired name of the container (e.g. `mma_v1`, it cannot be the same as the tag of the image build). The options `-v` and `-w` are used to bind the local filesystem with the Docker image. The binaries then will be compiled into the parent filesystem. The option `-p 8888:8888` is optional and enables the port for a jupyter server. (*Make sure that the image is executed from the correct location. The envirnoment path would't match otherwise.*) The last tag `-it mma` corresponds to the docker image tag.
+## Execution pipeline
 
-4) Compile the code within the docker image by running
+The model consists of three main jobs: 1) CUPRAD for the laser pulse
+propagation; 2) TDSE for the microscopic response; and 3) the Hankel transform
+for the far-field XUV distribution. There are some further auxiliary tasks in
+the pipeline:
 
-        cmake .
-        make
+1) CUPRAD pre-processor (`$CUPRAD_BUILD/make_start.e`)
 
-5) The code is now ready within the Docker image. The exacutables can be executed from the command line. [The jupyter examples](./jupyter_examples/README.md) can be accessed from the parent machine through a jupyter notebook server executed by:
+        "$CUPRAD_BUILD/make_start.e" INPUT.h5
 
-        jupyter notebook --ip 0.0.0.0 --port 8888 --no-browser --allow-root
+    * The pre-processor requires the name of the HDF5 input file.
+    * The name of the file is then stored in `msg.tmp`, which transfers it
+      through the execution pipeline.
 
-    or a jupyter lab
+2) Main MPI CUPRAD job (`$CUPRAD_BUILD/cuprad.e`)
 
-        jupyter lab --ip 0.0.0.0 --port 8888 --no-browser --allow-root
-        
-    This provides a link to the server that can be opened in a web browser on the parent system. Note that if you are using a remote machine, you need to change the local to the address of the machine while connecting to it. The link to connect from terminal is something like `http://127.0.0.1:8888/lab?token=xxxyyyzzz`, so here `127.0.0.1` is replaced by the address of the remote machine and can be opened from the browser.
+        mpirun -n "$NUM_PROC_DEFAULT_CUPRAD" "$CUPRAD_BUILD/cuprad.e"
 
-6) Once the starting files are ready from jupyter, the code is run through [the execution pipeline descibed below](#execution-pipeline).
+    * The design of the code requires the number of MPI processes to be a power
+      of two.
+    * Inside the Docker container, the default value is provided by
+      `$NUM_PROC_DEFAULT_CUPRAD`.
 
-7) To return to the container, execute
+3) Adjusting the TDSE parameters to the real number of steps in `z`
+   (`$TDSE_1D_PYTHON/prepare_TDSE_Nz.py`)
 
-        docker start -ai CONTAINER NAME
+        python3 "$TDSE_1D_PYTHON/prepare_TDSE_Nz.py"
 
-The name `CONTAINER NAME` was set in 3). The history is then kept within the container.
+4) Main MPI TDSE job (`$TDSE_1D_BUILD/TDSE.e`)
+
+        mpirun -n "$NUM_PROC_DEFAULT_TDSE_1D" "$TDSE_1D_BUILD/TDSE.e"
+
+    * In contrast to CUPRAD, TDSE does not require the number of MPI processes
+      to be a power of two.
+    * Inside the Docker container, the default value is provided by
+      `$NUM_PROC_DEFAULT_TDSE_1D`.
+
+5) Merge and clean the temporary TDSE files (`$TDSE_1D_PYTHON/merge.py`)
+
+        python3 "$TDSE_1D_PYTHON/merge.py"
+
+6) Hankel transform (`$HANKEL_HOME/Hankel_long_medium_parallel_cluster.py`)
+
+        python3 "$HANKEL_HOME/Hankel_long_medium_parallel_cluster.py"
+
+    * ***It has to be executed as a single multithreaded program.***
+    * It uses multithreading parallelisation using [the multiprocessing library](https://docs.python.org/3/library/multiprocessing.html). *The number of threads has to be defined in the input hdf5-archive. Be careful, especially on HPC's, that these numbers match with hardware.*
+
+
+In short, the pipeline can be run inside the Docker container as:
+
+```bash
+$CUPRAD_BUILD/make_start.e INPUT.h5
+mpirun -n "$NUM_PROC_DEFAULT_CUPRAD" $CUPRAD_BUILD/cuprad.e
+
+python3 $TDSE_1D_PYTHON/prepare_TDSE_Nz.py
+mpirun -n "$NUM_PROC_DEFAULT_TDSE_1D" $TDSE_1D_BUILD/TDSE.e
+python3 $TDSE_1D_PYTHON/merge.py
+
+python3 $HANKEL_HOME/Hankel_long_medium_parallel_cluster.py
+```
+
+Here `INPUT.h5` should be replaced by the prepared input file.
+
+It is possible to run the process manually. However, computational clusters use
+jobs and queues for scheduling them. [Here](./multiscale/scripts/README.md) we
+discuss an example of this pipeline.
 
 ## Custom installations
 Here we provide a more detailed guide for the installation, this is the list of requirements:
@@ -330,22 +420,4 @@ Flags `print_xxx` define whether a given output is stored.
 * **`store_cumulative_result`**: Option to keep the cumulative integral along $z$.
 * **`Nthreads`**: The number of threads used by the multiprocessing.
 
-## Execution pipeline
-The model consists of three main jobs: 1) CUPRAD for the laser pulse propagation; 2) TDSE for the microscopic response, and 3) the Hankel transform for the far-field XUV distribution. There are some further auxiliary tasks in the pipeline:
-1) CUPRAD pre-processor (`$CUPRAD_BUILD/make_start.e`),
-    * The pre-processor requires the name of the hdf5-input file. The name of the file then stored in `msg.tmp`, which tranfers it through the execution pipeline.
-2) the main MPI CUPRAD job (`$CUPRAD_BUILD/cuprad.e`),
-    * The design of the code requires the number of MPI processes to be a power of 2,
-    * To run the code in parallel within te Docker image, you can use `mpirun -n NUM_PROC --allow-run-as-root $CUPRAD_BUILD/cuprad.e`, where `NUM_PROC` is a numerical value and follows the previous rule and its maximal value is set in Docker.
-3) adjusting the TDSE parameters to the real number of steps in $z$ (`$TDSE_1D_PYTHON/prepare_TDSE_Nz.py`),
-    * To run it within the Docker container, use: `python3 $TDSE_1D_PYTHON/prepare_TDSE_Nz.py`
-5) the main MPI TDSE job (`$TDSE_1D_BUILD/TDSE.e`),
-    * To run it within the Docker container, use: `mpirun -n NUM_PROC --allow-run-as-root $TDSE_1D_BUILD/TDSE.e` (in contrast to CUPRAD, there is no constraint to `NUM_PROC`).
-7) the merge & clean of the temporary TDSE files (`$TDSE_1D_PYTHON/merge.py`),
-8) the Hankel transform (`$HANKEL_HOME/Hankel_long_medium_parallel_cluster.py`).
-    * ***It has to be executed as a single multithreaded program.***
-    * It uses multithreading parallelisation using [the multiprocessing library](https://docs.python.org/3/library/multiprocessing.html). *The number of threads has to be defined in the input hdf5-archive. Be careful, especially on HPC's, that these numbers match with hardware.*
-    * * To run it within the Docker container, use: `python3 $HANKEL_HOME/Hankel_long_medium_parallel_cluster.py`
-
-It is possible to run the process manually. However, computational clusters use jobs and queues for scheduling them. [Here](./multiscale/scripts/README.md) we discuss an example of this pipeline.
 

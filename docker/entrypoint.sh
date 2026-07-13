@@ -116,3 +116,6 @@ if [[ "$#" -eq 0 ]]; then
 fi
 
 exec "$@"
+
+# Ensure the working directory used by the MMA basics tutorial exists.
+mkdir -p "${MULTISCALE_WORK_DIR:-/MMA/work_dir}/mma_basics"
