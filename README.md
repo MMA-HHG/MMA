@@ -29,12 +29,16 @@ Tadeáš Němec
 
 
 ## Installations
-Both `CUPRAD` and `CTDSE` are compiled from the source. Hankel is implemented in Python and together with the other Pythonic procedures and scripting around the model rely on setting up the environment variables (one might consider setting up [a virtual environment](https://stackoverflow.com/questions/9554087/setting-an-environment-variable-in-virtualenv) dedicated to this whole project).
+Both `CUPRAD` and `CTDSE` are compiled from the source. Hankel is implemented in Python and together with the other Pythonic procedures and scripting around the model rely on setting up the environment variables.
 <!--- We head for RC1, use virtual environment, pip, etc. in future releases by default --->
 
-We provide two ways to obtain the code. In both cases, this repository is cloned by `git clone git@github.com:MMA-HHG/MMA.git` or `git clone https://github.com/MMA-HHG/MMA.git`. The first option uses the Docker image. It is a direct multiplatform user-oriented way to obtain the executable model. This can be used for running the model locally. Moreover, this can be used as a direct reference for compiling the code the second way: directly from the source. This option might be neccessary for deploying the code on HPC clusters, develpoment, …  
+We consider two usages os the code. First, [we provide full local conteinerised insallation within a Docker image](#reference-docker-installation-and-running-the-code). This approach is recommended to get familiar with the code and some smaller tasks. To upsacale the work, it is necessary to use HPC, this installation is usually machine specific and [we provide some a general overview of the used libraries, which shall together with the reference local container facilitate the usage of the code](#custom-installations). 
 
-## Reference Docker installation
+In both cases, this repository is cloned by `git clone git@github.com:MMA-HHG/MMA.git` or `git clone https://github.com/MMA-HHG/MMA.git`.
+
+The first option uses the Docker image. It is a direct multiplatform user-oriented way to obtain the executable model. This can be used for running the model locally. Moreover, this can be used as a direct reference for compiling the code the second way: directly from the source. This option might be neccessary for deploying the code on HPC clusters, develpoment, …  
+
+## Reference Docker installation and running the code
 The code can be accessed through Docker. We provide the direct Docker image, CodeOcean capsule and here we show how to build the code using Docker.
 
 The environment for Docker is set in [the Dockerfile](./environment/Dockerfile). The installation is done by the following recipe:
@@ -104,32 +108,32 @@ Here is the list of paths for running the model. The only customised path is the
 export GIT_PATH=/users/xxx # This is the only path that needs to be customised
 
 # These paths are relative to the GIT_PATH
-export MSM_PATH=$GIT_PATH/MMA
-export PYTHONPATH=$PYTHONPATH:$MSM_PATH/shared_python
+export MMA_PATH=$GIT_PATH/MMA
+export PYTHONPATH=$PYTHONPATH:$MMA_PATH/shared_python
 
-export CUPRAD_HOME=$MSM_PATH/CUPRAD
-export CUPRAD_BUILD=$MSM_PATH/CUPRAD/build
-export CUPRAD_SCRIPTS=$MSM_PATH/CUPRAD/scripts
-export CUPRAD_PYTHON=$MSM_PATH/CUPRAD/python
+export CUPRAD_HOME=$MMA_PATH/CUPRAD
+export CUPRAD_BUILD=$MMA_PATH/CUPRAD/build
+export CUPRAD_SCRIPTS=$MMA_PATH/CUPRAD/scripts
+export CUPRAD_PYTHON=$MMA_PATH/CUPRAD/python
 export PYTHONPATH=$PYTHONPATH:$CUPRAD_PYTHON
 
-export TDSE_1D_HOME=$MSM_PATH/1DTDSE
-export TDSE_1D_PYTHON=$MSM_PATH/1DTDSE/python
-export TDSE_1D_SCRIPTS=$MSM_PATH/1DTDSE/scripts
-export TDSE_1D_SLURM=$MSM_PATH/1DTDSE/slurm
-export TDSE_1D_BUILD=$MSM_PATH/1DTDSE/build
+export TDSE_1D_HOME=$MMA_PATH/1DTDSE
+export TDSE_1D_PYTHON=$MMA_PATH/1DTDSE/python
+export TDSE_1D_SCRIPTS=$MMA_PATH/1DTDSE/scripts
+export TDSE_1D_SLURM=$MMA_PATH/1DTDSE/slurm
+export TDSE_1D_BUILD=$MMA_PATH/1DTDSE/build
 export PYTHONPATH=$PYTHONPATH:$TDSE_1D_HOME
 
-export HANKEL_HOME=$MSM_PATH/Hankel
+export HANKEL_HOME=$MMA_PATH/Hankel
 
-export MULTISCALE_HOME=$MSM_PATH
-export MULTISCALE_SCRIPTS=$MSM_PATH/multiscale/scripts
+export MULTISCALE_HOME=$MMA_PATH
+export MULTISCALE_SCRIPTS=$MMA_PATH/multiscale/scripts
 
-export FSPA_PATH=$MSM_PATH/FSPA
+export FSPA_PATH=$MMA_PATH/FSPA
 
 export MULTISCALE_WORK_DIR=/mnt/d/data/work_dir
 
-source $MSM_PATH/Modules/load_modules.sh
+source $MMA_PATH/Modules/load_modules.sh
 ```
 
 
