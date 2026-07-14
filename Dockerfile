@@ -57,6 +57,7 @@ RUN apt-get update \
         ffmpeg \
         bash-completion \
         sudo \
+        htop \
     && rm -rf /var/lib/apt/lists/*
 
 # Python dependencies are kept in the standard pip requirements format.

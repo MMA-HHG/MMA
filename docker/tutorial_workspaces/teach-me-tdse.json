@@ -1,0 +1,74 @@
+{
+  "data": {
+    "layout-restorer:data": {
+      "main": {
+        "dock": {
+          "type": "tab-area",
+          "currentIndex": 0,
+          "widgets": [
+            "notebook:jupyter_examples/interactive_TDSE/analytic_chirped_pulse.ipynb",
+            "notebook:jupyter_examples/interactive_TDSE/field_from_CUPRAD.ipynb",
+            "notebook:jupyter_examples/interactive_TDSE/boundaries_options.ipynb"
+          ]
+        },
+        "mode": "multiple-document",
+        "current": "notebook:jupyter_examples/interactive_TDSE/analytic_chirped_pulse.ipynb"
+      },
+      "down": {
+        "size": 0,
+        "widgets": []
+      },
+      "left": {
+        "collapsed": false,
+        "visible": true,
+        "current": "filebrowser",
+        "widgets": [
+          "filebrowser",
+          "running-sessions",
+          "@jupyterlab/toc:plugin",
+          "command-palette",
+          "tab-manager"
+        ]
+      },
+      "right": {
+        "collapsed": true,
+        "visible": true,
+        "widgets": [
+          "jp-property-inspector"
+        ]
+      },
+      "relativeSizes": [
+        0.2,
+        0.8,
+        0
+      ],
+      "top": {
+        "simpleVisibility": true
+      }
+    },
+    "file-browser-filebrowser:cwd": {
+      "path": "jupyter_examples/interactive_TDSE"
+    },
+    "notebook:jupyter_examples/interactive_TDSE/analytic_chirped_pulse.ipynb": {
+      "data": {
+        "path": "jupyter_examples/interactive_TDSE/analytic_chirped_pulse.ipynb",
+        "factory": "Notebook"
+      }
+    },
+    "notebook:jupyter_examples/interactive_TDSE/field_from_CUPRAD.ipynb": {
+      "data": {
+        "path": "jupyter_examples/interactive_TDSE/field_from_CUPRAD.ipynb",
+        "factory": "Notebook"
+      }
+    },
+    "notebook:jupyter_examples/interactive_TDSE/boundaries_options.ipynb": {
+      "data": {
+        "path": "jupyter_examples/interactive_TDSE/boundaries_options.ipynb",
+        "factory": "Notebook"
+      }
+    }
+  },
+  "metadata": {
+    "id": "teach-me-tdse"
+  }
+}

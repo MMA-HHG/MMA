@@ -52,13 +52,15 @@ first time.
         git clone git@github.com:MMA-HHG/MMA.git
         cd MMA
 
-    If you do not use SSH keys with GitHub, clone the repository using https by: `git clone https://github.com/MMA-HHG/MMA.git`
+    If you do not use SSH keys with GitHub, clone the repository using https by `git clone https://github.com/MMA-HHG/MMA.git` or using any convenient way as [GitHub Desktop](https://desktop.github.com/download/).
 
 3) Build the Docker image.
 
         docker build -t mma .
 
-4) Start the container. Choose `CONTAINER_NAME`, for example `mma_v1`. The same
+    The option `-t mma` specifies the name of the Docker image, i.e. in this case the name of the image is `mma`. 
+
+4) Start the container. Choose `CONTAINER_NAME`, for example `mma_c1`. The same
    name is also used as the container hostname, so the terminal prompt is easier
    to read.
 
@@ -86,7 +88,7 @@ first time.
 In short, the installation is:
 
 ```bash
-git clone https://github.com/MMA-HHG/MMA.git
+git clone git@github.com:MMA-HHG/MMA.git
 cd MMA
 
 docker build -t mma .
@@ -160,10 +162,10 @@ In short, the pipeline can be run inside the Docker container as:
 
 ```bash
 $CUPRAD_BUILD/make_start.e INPUT.h5
-mpirun -n "$NUM_PROC_DEFAULT_CUPRAD" $CUPRAD_BUILD/cuprad.e
+mpirun -n $NUM_PROC_DEFAULT_CUPRAD $CUPRAD_BUILD/cuprad.e
 
 python3 $TDSE_1D_PYTHON/prepare_TDSE_Nz.py
-mpirun -n "$NUM_PROC_DEFAULT_TDSE_1D" $TDSE_1D_BUILD/TDSE.e
+mpirun -n $NUM_PROC_DEFAULT_TDSE_1D $TDSE_1D_BUILD/TDSE.e
 python3 $TDSE_1D_PYTHON/merge.py
 
 python3 $HANKEL_HOME/Hankel_long_medium_parallel_cluster.py

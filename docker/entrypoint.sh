@@ -15,6 +15,8 @@ set_num_proc_default() {
     # Ask mpirun directly how many MPI slots it sees.
     mpi_slots=$(mpirun hostname | wc -l)
 
+    export NUM_PROC_DOCKER="${mpi_slots}"
+
     if [[ -z "${NUM_PROC_DEFAULT_TDSE_1D:-}" ]]; then
         export NUM_PROC_DEFAULT_TDSE_1D="${mpi_slots}"
     fi

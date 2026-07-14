@@ -1,0 +1,2 @@
+#!/usr/bin/env bash
+exec teach-me-common teach-me-tdse "$@"

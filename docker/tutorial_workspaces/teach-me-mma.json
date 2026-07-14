@@ -1,0 +1,66 @@
+{
+  "data": {
+    "layout-restorer:data": {
+      "main": {
+        "dock": {
+          "type": "tab-area",
+          "currentIndex": 0,
+          "widgets": [
+            "notebook:jupyter_examples/mma_basics/teach_me_mma.ipynb",
+            "terminal:1"
+          ]
+        },
+        "mode": "multiple-document",
+        "current": "notebook:jupyter_examples/mma_basics/teach_me_mma.ipynb"
+      },
+      "down": {
+        "size": 0,
+        "widgets": []
+      },
+      "left": {
+        "collapsed": false,
+        "visible": true,
+        "current": "filebrowser",
+        "widgets": [
+          "filebrowser",
+          "running-sessions",
+          "@jupyterlab/toc:plugin",
+          "command-palette",
+          "tab-manager"
+        ]
+      },
+      "right": {
+        "collapsed": true,
+        "visible": true,
+        "widgets": [
+          "jp-property-inspector"
+        ]
+      },
+      "relativeSizes": [
+        0.2,
+        0.8,
+        0
+      ],
+      "top": {
+        "simpleVisibility": true
+      }
+    },
+    "file-browser-filebrowser:cwd": {
+      "path": "jupyter_examples/mma_basics"
+    },
+    "notebook:jupyter_examples/mma_basics/teach_me_mma.ipynb": {
+      "data": {
+        "path": "jupyter_examples/mma_basics/teach_me_mma.ipynb",
+        "factory": "Notebook"
+      }
+    },
+    "terminal:1": {
+      "data": {
+        "name": "1"
+      }
+    }
+  },
+  "metadata": {
+    "id": "teach-me-mma"
+  }
+}

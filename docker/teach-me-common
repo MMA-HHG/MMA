@@ -1,0 +1,99 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+usage() {
+    cat <<'USAGE'
+Usage:
+  teach-me-common teach-me-mma
+  teach-me-common teach-me-tdse
+
+This helper is normally called by:
+  teach-me-mma
+  teach-me-tdse
+
+The tutorial JupyterLab workspaces are prepared during the Docker image build.
+This command only prints where to open the selected workspace.
+
+USAGE
+}
+
+if [ "$#" -ne 1 ]; then
+    usage
+    exit 2
+fi
+
+TUTORIAL_ID="$1"
+JUPYTER_PORT="${JUPYTER_PORT:-8888}"
+JUPYTER_EXTERNAL_URL="${JUPYTER_EXTERNAL_URL:-}"
+
+case "$TUTORIAL_ID" in
+    teach-me-mma)
+        TITLE="MMA basics tutorial"
+        WORKSPACE_NAME="teach-me-mma"
+        NOTEBOOKS=(
+            "jupyter_examples/mma_basics/teach_me_mma.ipynb"
+        )
+        EXTRA_NOTE="The tutorial uses the working directory: \$MULTISCALE_WORK_DIR/mma_basics"
+        ;;
+    teach-me-tdse)
+        TITLE="Interactive TDSE tutorial"
+        WORKSPACE_NAME="teach-me-tdse"
+        NOTEBOOKS=(
+            "jupyter_examples/interactive_TDSE/analytic_chirped_pulse.ipynb"
+            "jupyter_examples/interactive_TDSE/field_from_CUPRAD.ipynb"
+            "jupyter_examples/interactive_TDSE/boundaries_options.ipynb"
+        )
+        EXTRA_NOTE=""
+        ;;
+    -h|--help)
+        usage
+        exit 0
+        ;;
+    *)
+        echo "Unknown tutorial: ${TUTORIAL_ID}" >&2
+        usage >&2
+        exit 2
+        ;;
+esac
+
+WORKSPACE_PATH="/lab/workspaces/${WORKSPACE_NAME}"
+LOCAL_URL="http://127.0.0.1:${JUPYTER_PORT}${WORKSPACE_PATH}"
+
+
+echo
+echo "${TITLE}"
+echo
+
+echo "This workspace is prepared in the Docker image:"
+echo "  ${WORKSPACE_NAME}"
+echo
+
+echo "Open this path in your running JupyterLab session:"
+echo "  ${WORKSPACE_PATH}"
+echo
+
+echo "For a usual local Docker run with port ${JUPYTER_PORT} forwarded to your computer:"
+echo "  ${LOCAL_URL}"
+echo
+
+
+echo "For a remote server, SSH tunnel, JupyterHub, or a different forwarded port:"
+echo "  replace http://127.0.0.1:${JUPYTER_PORT} by the server's address and proceed"
+echo "  analogically to the local case."
+echo
+
+echo "If JupyterLab is not running yet, start it first, for example with:"
+echo "  mma-jupyter"
+echo
+
+echo "Expected notebooks:"
+for notebook in "${NOTEBOOKS[@]}"; do
+    echo "  ${notebook}"
+done
+
+if [ -n "$EXTRA_NOTE" ]; then
+    echo
+    echo "$EXTRA_NOTE"
+fi
+
+echo
