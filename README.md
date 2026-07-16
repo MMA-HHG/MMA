@@ -110,10 +110,9 @@ docker start -ai CONTAINER_NAME
 
 ## Execution pipeline
 
-The model consists of three main jobs: 1) CUPRAD for the laser pulse
-propagation; 2) TDSE for the microscopic response; and 3) the Hankel transform
-for the far-field XUV distribution. There are some further auxiliary tasks in
-the pipeline:
+The model consists of three main jobs: 1) CUPRAD for the laser pulse propagation; 2) TDSE for the microscopic response; and 3) the Hankel transform for the far-field XUV distribution. There are some further auxiliary steps in the pipeline. **[This jupyter tutorial is desinged to guide the first execution of the code.](./jupyter_examples/mma_basics/teach_me_mma.ipynb)** The guide to open this tutorial though a jupyter server is shown by the command `teach-me-mma` from the Docker terminal.
+
+The pipeline consists.
 
 1) CUPRAD pre-processor (`$CUPRAD_BUILD/make_start.e`)
 
