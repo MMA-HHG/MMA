@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+project_root="${MMA_PATH:-/MMA}"
+
+if [[ ! -f "${project_root}/CMakeLists.txt" ]]; then
+    echo "[mma-build:error] ${project_root} does not look like the MMA project root." >&2
+    echo "[mma-build:error] Expected file not found: ${project_root}/CMakeLists.txt" >&2
+    exit 1
+fi
+
+cd "${project_root}"
+
+echo "[mma-build] Configuring MMA."
+cmake .
+
+echo "[mma-build] Building MMA."
+make
+
+echo "[mma-build] Build finished."

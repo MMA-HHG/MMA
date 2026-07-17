@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+project_root="${MMA_PATH:-/MMA}"
+internal_port=8888
+
+cd "${project_root}"
+
+echo "[mma-jupyter] Starting JupyterLab inside the container on port ${internal_port}."
+echo "[mma-jupyter] If host port 8888 is busy, start the container with e.g. -p 8889:${internal_port}."
+
+exec jupyter lab \
+    --ip 0.0.0.0 \
+    --port "${internal_port}" \
+    --no-browser

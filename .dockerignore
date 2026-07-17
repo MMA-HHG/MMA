@@ -1,0 +1,12 @@
+# Keep the Docker build context minimal.
+# The MMA source tree is mounted later at runtime with -v .:/MMA.
+
+**
+
+!Dockerfile
+!.dockerignore
+!docker/
+!docker/requirements.txt
+!docker/entrypoint.sh
+!docker/mma-build
+!docker/mma-jupyter
