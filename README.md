@@ -40,10 +40,7 @@ The first option uses the Docker image. It is a direct multiplatform user-orient
 
 ## Reference Docker installation and running the code
 
-The code can be accessed through Docker. Docker prepares the software
-environment, while the MMA repository is mounted into the container. The native
-executables are compiled automatically when the container is started for the
-first time.
+The code can be accessed through Docker. Docker prepares the software environment, while the MMA repository is mounted into the container. The native executables are compiled automatically when the container is started for the first time.
 
 1) [Docker](https://www.docker.com/) needs to be installed.
 
@@ -100,6 +97,12 @@ Inside the container, start JupyterLab by:
 ```bash
 mma-jupyter
 ```
+
+and follow the instructions shown by
+```bash
+teach-me-mma
+```
+to learn basics of the code.
 
 To return to the container later:
 
@@ -172,12 +175,12 @@ python3 $HANKEL_HOME/Hankel_long_medium_parallel_cluster.py
 
 Here `INPUT.h5` should be replaced by the prepared input file.
 
-It is possible to run the process manually. However, computational clusters use
-jobs and queues for scheduling them. [Here](./multiscale/scripts/README.md) we
-discuss an example of this pipeline.
+It is possible to run the process manually. However, computational clusters use jobs and queues for scheduling them. [Here](./multiscale/scripts/README.md) we discuss an example of this pipeline.
 
 ## Custom installations
-Here we provide a more detailed guide for the installation, this is the list of requirements:
+Here we provide a more detailed guide for the installation, this is intended for running on HPC clusters and developers. From our experience, each HPC cluster can use a different approaches, here can be found [some examples for different machines](./Modules/load_modules.sh). However, some interaction with HPC admin team could be necessary for compiling the code properly. The following specifications toghether with the reference DOcker installation shall serve as a guide to facilitate these deployments.
+
+This is the list of requirements:
 * **CUPRAD**: MPI, FFTW3, parallel HDF5, CMake
 * **CTDSE**: FFTW3, MPI, serial HDF5, CMake (MPI & HDF5 are not needed for the dynamic library), Python with h5py
     * Python ctypes library for the interactive CTDSE
