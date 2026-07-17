@@ -1,3 +1,11 @@
+"""Utilities for loading and analysing CUPRAD output archives.
+
+The module provides a lightweight data container for CUPRAD simulation results,
+including propagated electric fields, plasma profiles, fluence, spectra,
+ionisation tables, and selected simulation parameters useful for plotting and
+post-processing. It also provides some methods that can be applied to perform
+usual analyses of the data.
+"""
 import numpy as np
 import units
 import mynumerics as mn
@@ -10,7 +18,77 @@ class empty_class:
 
 
 class get_data:
+    """Container and post-processing interface for CUPRAD simulation data.
+
+    The class loads CUPRAD field outputs, grids, medium parameters, laser
+    parameters, and selected diagnostics from an HDF5 archive. The main electric
+    field is stored as ``E_zrt``, using the ordering ``z, r, t``.
+
+    Parameters
+    ----------
+    InputArchive : h5py-like file object
+        Open archive containing CUPRAD inputs, outputs, logs, and diagnostics.
+    r_resolution : list, optional
+        Radial loading specification. ``[True]`` loads the full radial grid.
+        Otherwise, the expected form is ``[False, dr, rmax]``, where ``dr`` is
+        the requested radial spacing and ``rmax`` is the maximal radius to read.
+
+    Attributes
+    ----------
+    E_zrt : ndarray
+        Electric field array ordered as ``z, r, t``.
+    tgrid, rgrid, zgrid : ndarray
+        Temporal, radial, and propagation grids.
+    omega0 : float
+        Central angular frequency of the driving laser in SI units.
+    k0_wave : float
+        Central vacuum wave number of the driving laser.
+    VG_IR : float
+        Infrared group velocity inferred from the CUPRAD log.
+
+    Available methods
+    -----------------
+    vacuum_shift
+        Shift the electric field to coordinates moving at the vacuum speed of
+        light.
+    complexify_envel
+        Construct the complex envelope of the electric field by removing the
+        carrier oscillation.
+    get_Fluence
+        Load or compute the radial fluence diagnostic.
+    get_plasma
+        Load the plasma-density output.
+    compute_spectrum
+        Fourier-transform the temporal electric field and optionally compute a
+        radially integrated spectrum.
+    get_ionisation_model
+        Load the tabulated ionisation model.
+    co_moving_t_grid
+        Return a time grid shifted to the co-moving frame. This helper is
+        attached during initialisation.
+
+    Notes
+    -----
+    The class assumes the archive follows the MMA/CUPRAD HDF5 layout defined by
+    ``MMA.paths``.
+    """
     def __init__(self,InputArchive,r_resolution=[True]):
+        """Initialise the CUPRAD data object from an archive.
+
+        The constructor loads grids, electric fields, laser parameters, medium
+        parameters, optional density modulation data, and selected long-step CUPRAD
+        diagnostics. If requested, the radial grid and field data are down-sampled while
+        loading.
+
+        Parameters
+        ----------
+        InputArchive : h5py-like file object
+            Open archive containing the CUPRAD simulation data.
+        r_resolution : list, optional
+            Radial resolution selector. ``[True]`` keeps the full radial resolution;
+            otherwise use ``[False, dr, rmax]`` to load approximately every ``dr`` up to
+            radius ``rmax``.
+        """
         full_resolution = (r_resolution[0] is True)
         self.omega0 = mn.ConvertPhoton(1e-2*mn.readscalardataset(InputArchive,
                       MMA.paths['CUPRAD_inputs'] +'/laser_wavelength','N'),'lambdaSI','omegaSI')
@@ -108,6 +186,21 @@ class get_data:
             
             
         def co_moving_t_grid(z_def):
+            """Return the time grid shifted to a frame co-moving with the pulse.
+
+            Parameters
+            ----------
+            z_def : int or float
+                Propagation position. If an integer is given, it is interpreted as an index
+                into ``self.zgrid``. Otherwise, it is interpreted directly as a propagation
+                distance.
+
+            Returns
+            -------
+            ndarray
+                Time grid corrected by the difference between propagation at the infrared
+                group velocity and propagation at the vacuum speed of light.
+            """
             if isinstance(z_def, int): z = self.zgrid[z_def]
             else: z = z_def
                 
@@ -118,6 +211,29 @@ class get_data:
         self.co_moving_t_grid = co_moving_t_grid
         
     def vacuum_shift(self,output='replace'):
+        """Shift the electric field to coordinates moving at the vacuum speed of light.
+
+        For each ``z`` and ``r`` position, the temporal field is Fourier-transformed,
+        phase-shifted according to the difference between the group-velocity frame and
+        the vacuum-light frame, and transformed back to the time domain.
+
+        Parameters
+        ----------
+        output : {'replace', 'return', 'add'}, optional
+            Output mode. ``'replace'`` overwrites ``self.E_zrt`` with the shifted field,
+            ``'return'`` returns the shifted field, and ``'add'`` stores it as
+            ``self.E_zrt_vac``.
+
+        Returns
+        -------
+        ndarray or None
+            Shifted electric field if ``output='return'``; otherwise ``None``.
+
+        Raises
+        ------
+        ValueError
+            If ``output`` is not one of the supported modes.
+        """
         E_vac = np.zeros(self.E_zrt.shape)   
         for k1 in range(self.Nz):
             delta_z = self.zgrid[k1] # local shift
@@ -136,6 +252,28 @@ class get_data:
         
 
     def complexify_envel(self,output='return'):
+        """Compute the complex envelope of the propagated electric field.
+
+        The method constructs the analytic signal of each temporal field trace and
+        removes the fast carrier oscillation at ``self.omega0``.
+
+        Parameters
+        ----------
+        output : {'return', 'add'}, optional
+            Output mode. ``'return'`` returns the complex envelope, while ``'add'``
+            stores it as ``self.E_zrt_cmplx_envel``.
+
+        Returns
+        -------
+        ndarray or None
+            Complex envelope array with the same shape as ``self.E_zrt`` if
+            ``output='return'``; otherwise ``None``.
+
+        Raises
+        ------
+        ValueError
+            If ``output`` is not one of the supported modes.
+        """
         E_zrt_cmplx_envel = np.zeros(self.E_zrt.shape,dtype=complex)
         rem_fast_oscillations = np.exp(-1j*self.omega0*self.tgrid)
             
@@ -148,6 +286,25 @@ class get_data:
         else: raise ValueError('wrongly specified output for the vacuum shift.') 
         
     def get_Fluence(self, InputArchive, fluence_source='file'):
+        """Load or compute the radial fluence diagnostic.
+
+        The result is stored in ``self.Fluence`` as a lightweight container with fields
+        ``value``, ``zgrid``, ``rgrid``, and ``units``.
+
+        Parameters
+        ----------
+        InputArchive : h5py-like file object
+            Open archive containing CUPRAD data and optional stored fluence diagnostics.
+        fluence_source : {'file', 'computed'}, optional
+            Source of the fluence. ``'file'`` reads the CUPRAD long-step fluence output.
+            ``'computed'`` integrates ``|E(z, r, t)|**2`` over time using the loaded
+            electric field.
+
+        Notes
+        -----
+        The computed fluence is evaluated as ``c * eps0 * integral |E|**2 dt`` and is
+        stored in SI units of ``J/m2``.
+        """
         self.Fluence = empty_class()
         if (fluence_source == 'file'):
             self.Fluence.value = InputArchive[MMA.paths['CUPRAD'] +'/longstep/fluence'][:,:]
@@ -166,6 +323,27 @@ class get_data:
             self.Fluence.units = 'J/m2'
 
     def get_plasma(self, InputArchive, r_resolution=[True]): # analogy to the fields
+        """Load the plasma-density output from the CUPRAD archive.
+
+        The plasma data are stored in ``self.plasma`` as a lightweight container with
+        the array ``value_zrt`` and the corresponding grids and dimensions.
+
+        Parameters
+        ----------
+        InputArchive : h5py-like file object
+            Open archive containing CUPRAD plasma output.
+        r_resolution : list, optional
+            Radial loading specification. ``[True]`` loads the full radial grid.
+            Otherwise, use ``[False, dr, rmax]`` to down-sample the radial direction
+            while loading.
+
+        Attributes Created
+        ------------------
+        self.plasma.value_zrt : ndarray
+            Plasma output array ordered as ``z, r, t``.
+        self.plasma.tgrid, self.plasma.rgrid, self.plasma.zgrid : ndarray
+            Temporal, radial, and propagation grids for the plasma output.
+        """
         full_resolution = r_resolution[0]
         self.plasma = empty_class()
         
@@ -189,6 +367,34 @@ class get_data:
         self.plasma.Nr = Nr; self.plasma.Nt = Nt; self.plasma.Nz = Nz
 
     def compute_spectrum(self,output='add',compute_dE_domega = False):
+        """Compute temporal spectra of the propagated electric field.
+
+    The method Fourier-transforms each temporal trace of ``self.E_zrt`` and stores
+    or returns the resulting spectral field ordered as ``z, r, omega``. Optionally,
+    it also computes a radially integrated spectral quantity for each propagation
+    position.
+
+    Parameters
+    ----------
+    output : {'add', 'return'}, optional
+        Output mode. ``'add'`` stores the spectrum as ``self.FE_zrt`` and, if
+        requested, ``self.dE_domega``. ``'return'`` returns the computed arrays.
+    compute_dE_domega : bool, optional
+        If ``True``, also compute the radial integral of ``abs(FE_zrt)**2`` for each
+        ``z`` and frequency.
+
+    Returns
+    -------
+    ndarray or tuple of ndarray or None
+        If ``output='return'`` and ``compute_dE_domega`` is ``False``, returns
+        ``FE_zrt``. If ``compute_dE_domega`` is ``True``, returns
+        ``(FE_zrt, dE_domega)``. Otherwise returns ``None``.
+
+    Raises
+    ------
+    ValueError
+        If ``output`` is not one of the supported modes.
+    """
         self.ogrid = mn.fft_t(self.tgrid, self.E_zrt[0,0,:])[0]
         
         No = len(self.ogrid); Nr = len(self.rgrid); Nz = len(self.zgrid)
@@ -216,12 +422,38 @@ class get_data:
             else: raise ValueError('wrongly specified output for the vacuum shift.') 
 
     def get_ionisation_model(self, InputArchive):
+        """Load the tabulated ionisation model from the CUPRAD archive.
+
+        The ionisation data are stored in ``self.ionisation_model`` as a lightweight
+        container with the electric-field grid and the corresponding ionisation rates.
+
+        Parameters
+        ----------
+        InputArchive : h5py-like file object
+            Open archive containing the CUPRAD ionisation-model group.
+        """
         self.ionisation_model = empty_class()
         self.ionisation_model.Egrid =            InputArchive[MMA.paths['CUPRAD_ionisation_model'] +'/Egrid'][:]
         self.ionisation_model.ionisation_rates = InputArchive[MMA.paths['CUPRAD_ionisation_model'] +'/ionisation_rates'][:]
         
         
 def add_print_parameter(parameter,data):
+    """Return a formatted string for a selected simulation parameter.
+
+    Parameters
+    ----------
+    parameter : str
+        Parameter selector. Supported values are ``'pressure'``,
+        ``'preionisation'``, ``'focus_in_medium'``, ``'intensity_entry'``, and
+        ``'intensity_Gaussian_focus'``.
+    data : get_data-like object
+        Data object containing the formatted parameter strings.
+
+    Returns
+    -------
+    str
+        Formatted parameter string, or an empty string for an unsupported selector.
+    """
     if (parameter=='pressure'): return data.pressure_string
     elif (parameter=='preionisation'): return data.preionisation_string
     elif (parameter=='focus_in_medium'): return data.Gaussian_focus_string
