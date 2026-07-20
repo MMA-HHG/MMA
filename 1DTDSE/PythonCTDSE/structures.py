@@ -252,6 +252,9 @@ class inputs_def(Structure):
             self.absorber.type  = c_int(1)
             self.absorber.alpha = c_double(absorber['alpha'])
             self.absorber.x_cap  = c_double(absorber['x_cap'])
+        elif absorber['type']==2:
+            self.absorber.type  = c_int(2)
+            self.absorber.x_cap  = c_double(absorber['x_cap'])
         
     def init_prints(self, path_to_DLL):
         """

@@ -13,6 +13,9 @@
 #include "tools.h"
 #include "tools_algorithmic.h"
 
+/* Private functions for the absorber */
+static double smoothstep_absorber(double, double, double, int);
+
 /**
  * @brief Propagates the wavefunction using split operator technique
  * 
@@ -268,7 +271,21 @@ double * propagation(inputs_def *inputs, outputs_def *outputs, double * in_field
 
             }	
 
-        }
+        }else if(inputs->absorber.type == 2){
+			double x_cap = inputs->absorber.x_cap;
+			for (j = 0; j <= num_r; j++){
+                
+				if( x[j] < (x[0]+x_cap)){
+                    psi[2*j]   *= smoothstep_absorber(x[j],x[0],x[0]+x_cap,0); 
+				    psi[2*j+1] *= smoothstep_absorber(x[j],x[0],x[0]+x_cap,0);
+                }
+
+                if( x[j] > (x[num_r]-x_cap)){
+                    psi[2*j]   *= smoothstep_absorber(x[j],x[num_r]-x_cap,x[num_r],1); 
+				    psi[2*j+1] *= smoothstep_absorber(x[j],x[num_r]-x_cap,x[num_r],1); 
+                }          
+            }
+		}
 
 		// Compute expectation values: position, current, grad V, population
 		compute_expectation_values(inputs, k, psi, outputs);
@@ -373,5 +390,18 @@ void compute_expectation_values(inputs_def * inputs, int k, double *psi, outputs
 	(*outputs).PopTot[k+1]=pop_tot;
 	(*outputs).expval[k+1]=position;
 	(*outputs).PopInt[k+1]=ion_prob2;	
+}
+
+static double smoothstep_absorber(double x, double x_min, double x_max, int direction){
+	// rescale to unit interval considering also the direction
+	if (direction == 0){
+			x = (x-x_min)/(x_max-x_min);
+	} else if (direction == 1) {
+			x = (x_max-x)/(x_max-x_min);
+	} else {
+		printf("The smoothstep direction can be only 0 or 1.");
+        exit(EXIT_FAILURE);
+	}
+	return 3.*x*x-2.*x*x*x;	
 }
 

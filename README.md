@@ -57,15 +57,11 @@ The code can be accessed through Docker. Docker prepares the software environmen
 
     The option `-t mma` specifies the name of the Docker image, i.e. in this case the name of the image is `mma`. 
 
-4) Start the container. Choose `CONTAINER_NAME`, for example `mma_c1`. The same
-   name is also used as the container hostname, so the terminal prompt is easier
-   to read.
+4) Start the container. Choose `CONTAINER_NAME`, for example `mma-c1`. The same name is also used as the container hostname, so the terminal prompt is easier to read.
 
         docker run --name CONTAINER_NAME --hostname CONTAINER_NAME -v .:/MMA -w /MMA -p 8888:8888 -it mma
 
-   The repository is mounted into `/MMA`, so the compiled executables remain
-   available in the parent filesystem. If port `8888` is already used on the
-   parent machine, change only the first number, for example `-p 8889:8888`.
+   The repository is mounted into `/MMA`, so the compiled executables remain available in the parent filesystem. If port `8888` is already used on the  parent machine, change only the first number, for example `-p 8889:8888`.
 
 5) JupyterLab can be started inside the container by:
 
