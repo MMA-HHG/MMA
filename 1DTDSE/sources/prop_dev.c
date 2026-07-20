@@ -107,6 +107,9 @@ double * propagation(inputs_def *inputs, outputs_def *outputs, double * in_field
 		psi[2*j+1] = psi0[2*j+1];
 	}
 	
+	if(inputs->absorber.type == 1){
+		printf("will use absorber with alpha %f and x_cap %f.\n", inputs->absorber.alpha, inputs->absorber.x_cap);
+	}
 
 
 	/************
@@ -241,12 +244,15 @@ double * propagation(inputs_def *inputs, outputs_def *outputs, double * in_field
 		(*outputs).tgrid[k+1] = tt;
 		(*outputs).Efield[k+1] = Field;
 
-		int index_Vcap = 1;
-		double x_cap = 50.;
-		double alpha_vcap = 0.001;
+		// int index_Vcap = 1;
+		// double x_cap = 50.;
+		// double alpha_vcap = 0.001;
 
 
-		if(index_Vcap == 1){
+		// complex absorber
+		if(inputs->absorber.type == 1){
+			double x_cap = inputs->absorber.x_cap;
+			double alpha_vcap = inputs->absorber.alpha;
 
             for (j = 0; j <= num_r; j++){
                 

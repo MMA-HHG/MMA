@@ -71,8 +71,9 @@ CTDSE_variable_type_lists ={
     'I' : ['Nr_max', 'kr_step', 'kz_step', 'Nx_max']+
           ['print_'+foo for foo in ('GS', 'Efield', 'F_Efield', 'Source_Term', 
                                     'F_Source_Term', 'GS_population',
-                                    'integrated_population', 'x_expectation_value')],
-    'R' : ['x_int', 'dx', 'dt', 'CV_criterion_of_GS'],
+                                    'integrated_population', 'x_expectation_value')]+
+          ['absorber_type'],
+    'R' : ['x_int', 'dx', 'dt', 'CV_criterion_of_GS','absorber_alpha','absorber_x_cap'],
     'S' : [], 'R-array' : []}
 
 Hankel_variable_type_lists ={
