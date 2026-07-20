@@ -41,6 +41,16 @@ typedef struct trg_def{
 	double a;
 } trg_def;
 
+// /**
+//  * @brief Microscopic target specification
+//  * 
+//  */
+// typedef struct absorber_def{
+// 	// Parameter of the soft core potential
+// 	double alpha;
+// 	double x_cap;
+// } absorber_def;
+
 /**
  * @brief Auxiliary structures for drivers of I/O
  * 
@@ -115,6 +125,10 @@ typedef struct inputs_def {
 	// Precision of the ground state energy
 	double CV;
 	char precision[2];
+	// 0-none; 1-complex potential; 2-cosine
+	int absorber_type; 
+	// absorber info
+	struct absorber_def absorber;
 } inputs_def;
 
 typedef struct outputs_def{ 
