@@ -74,7 +74,7 @@ CONTAINS
     CHARACTER(*), PARAMETER :: tgrid_dset_name =      out_grpname//"/tgrid"
     CHARACTER(*), PARAMETER :: rgrid_dset_name =      out_grpname//"/rgrid"
 
-    REAL(8) :: local_time_MPI
+    ! REAL(8) :: local_time_MPI
 
 
     ! DENSITY MOD
@@ -167,10 +167,10 @@ CONTAINS
         CALL h5fopen_f (main_h5_fname, H5F_ACC_RDWR_F, file_id, error) ! Reopen file.
 
         CALL h5_add_units_1D(file_id, field_dset_name, '[V/m]') 
-	      CALL h5_add_units_1D(file_id, plasma_dset_name, '[m^(-3)]') 
+        CALL h5_add_units_1D(file_id, plasma_dset_name, '[m^(-3)]') 
 
         ! Prepare r- and t-grids in SI units
-	      allocate(tgrid(dim_t),rgrid(dim_r))
+        allocate(tgrid(dim_t),rgrid(dim_r))
         DO k1=1, dim_t
           tgrid(k1) = REAL( tps*(tlo+REAL(k1,8)*delta_t) , 4)
         ENDDO
@@ -291,9 +291,9 @@ CONTAINS
           spect_array_5(1,j) = REAL(ATAN2(AIMAG(etemp(j,1)),REAL(etemp(j,1))+1.D-20),4)
         ENDDO
         CALL create_1D_array_real_dset(file_id, spect_1d_dset_name_1, spect_array_1, dim_t)
-	      CALL h5_add_units_1D(file_id, spect_1d_dset_name_1, '[?]')
+        CALL h5_add_units_1D(file_id, spect_1d_dset_name_1, '[?]')
         CALL create_and_preallocate_2D_array_real_dset(file_id, spect_1d_dset_name_2, spect_array_2, dims_2d, offset_2d, ccount_2d)
-	      CALL h5_add_units_1D(file_id, spect_1d_dset_name_2, '[arb.u.]')
+        CALL h5_add_units_1D(file_id, spect_1d_dset_name_2, '[arb.u.]')
         CALL create_and_preallocate_2D_array_real_dset(file_id, spect_1d_dset_name_3, spect_array_3, dims_2d, offset_2d, ccount_2d)
         CALL h5_add_units_1D(file_id, spect_1d_dset_name_3, '[arb.u.]')
         CALL create_and_preallocate_2D_array_real_dset(file_id, spect_1d_dset_name_4, spect_array_4, dims_2d, offset_2d, ccount_2d)
@@ -493,9 +493,9 @@ CONTAINS
     INTEGER                        :: error
 
     CHARACTER(LEN=25) :: fluence_dset_name=longstep_grpname//"/fluence"
-    CHARACTER(LEN=23) :: plasma_channel_dset_name=longstep_grpname//"/plasma_channel"
-    CHARACTER(LEN=22) :: losses_plasma_dset_name=longstep_grpname//"/losses_plasma"
-    CHARACTER(LEN=26) :: losses_ionization_dset_name=longstep_grpname//"/losses_ionization"
+    CHARACTER(LEN=30) :: plasma_channel_dset_name=longstep_grpname//"/plasma_channel"
+    CHARACTER(LEN=29) :: losses_plasma_dset_name=longstep_grpname//"/losses_plasma"
+    CHARACTER(LEN=33) :: losses_ionization_dset_name=longstep_grpname//"/losses_ionization"
     REAL(4), ALLOCATABLE :: fluence_part(:,:)
     REAL(4), ALLOCATABLE :: plasma_channel_part(:,:)
     REAL(4), ALLOCATABLE :: losses_plasma_part(:,:)
@@ -573,9 +573,9 @@ CONTAINS
         CALL h5open_f(error)
         CALL h5fopen_f (main_h5_fname, H5F_ACC_RDWR_F, file_id, error) ! Open an existing file.
         CALL h5_add_units_1D(file_id, fluence_dset_name, '[C.U.]') 
-	      CALL h5_add_units_1D(file_id, plasma_channel_dset_name, '[m^(-3)]') 
+        CALL h5_add_units_1D(file_id, plasma_channel_dset_name, '[m^(-3)]') 
         CALL h5_add_units_1D(file_id, losses_plasma_dset_name, '[C.U.]') 
-	CALL h5_add_units_1D(file_id, losses_ionization_dset_name, '[C.U.]')
+        CALL h5_add_units_1D(file_id, losses_ionization_dset_name, '[C.U.]')
         CALL h5fclose_f(file_id, error) ! close the file
         CALL h5close_f(error)
       ENDIF 

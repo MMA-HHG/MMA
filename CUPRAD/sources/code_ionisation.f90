@@ -307,7 +307,7 @@ CONTAINS
           CALL h5fclose_f(file_id, error)
         ENDIF
 
-	DEALLOCATE(Egrid,ionisation_rates)
+  DEALLOCATE(Egrid,ionisation_rates)
  
     ENDIF
 

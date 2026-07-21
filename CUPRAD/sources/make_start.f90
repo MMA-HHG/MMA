@@ -384,10 +384,10 @@ PROGRAM make_start
       CALL save_or_replace(file_id, in_grpname//'/laser_intensity_entry', Intensity_entry, error)
       ! convert
 
-	    print *, 'in make_start'
-	    print *, 'n2_phys', n2_phys
-	    print *, 'pressure', pressure
-	    print *, 'all', pressure*n2_phys*1.D-4
+      print *, 'in make_start'
+      print *, 'n2_phys', n2_phys
+      print *, 'pressure', pressure
+      print *, 'all', pressure*n2_phys*1.D-4
 
       numcrit = I_entry2ratio_Pin_Pcr_entry(Intensity_entry,w0_m_phys,pressure*n2_phys*1.D-4,lambda0_cm_phys*1.D-2)
       CALL save_or_replace(group_id, 'laser_ratio_pin_pcr', numcrit, error, units_in = '[-]')

@@ -74,8 +74,8 @@ CONTAINS
 subroutine findinterval_1D(k1,x0,x,k_guess)
     integer, intent(out)                :: k1
     integer                             :: n
-	real(8), intent(in)                 :: x0, x(:)
- 	integer, optional       :: k_guess
+    real(8), intent(in)                 :: x0, x(:)
+    integer, optional       :: k_guess
 
     integer :: k2, length;
    
@@ -85,7 +85,7 @@ subroutine findinterval_1D(k1,x0,x,k_guess)
 
     ! check boundary cases
     if (x0 >= x(n)) then
-	    if (x0 == x(n)) then
+        if (x0 == x(n)) then
             k1 = n-1
         else
             k1 = n
@@ -155,12 +155,12 @@ subroutine findinterval_2D(kx,ky,x0,y0,x,y,kx_guess,ky_guess) ! returns interval
 !intervals are ordered: <..)<..)<..)...<..>
     integer, intent(out)                :: kx,ky
     integer                             :: Nx,Ny
-	real(8), intent(in)                 :: x0, y0, x(:), y(:)
- 	integer, intent(in), optional       :: kx_guess, ky_guess
+    real(8), intent(in)                 :: x0, y0, x(:), y(:)
+    integer, intent(in), optional       :: kx_guess, ky_guess
 	
     Nx = size(x); Ny = size(y)
 
-	if (present(kx_guess)) then
+    if (present(kx_guess)) then
         call findinterval_1D(kx,x0,x, k_guess=kx_guess)
     else
         call findinterval_1D(kx,x0,x)
@@ -178,9 +178,9 @@ end subroutine findinterval_2D
 !> @cond INCLUDE_ARRAY_HELPER_INTERNALS
 ! 1D interpolation, the table lookup performed before, see 'interpolate1D_lin'
 subroutine interpolate1D_decomposed_eq(k,x,fx,xgrid,fxgrid,n,tol)
-	real(8), intent(out)    :: fx
+    real(8), intent(out)    :: fx
     integer, intent(in)     :: k,n
-	real(8), intent(in)     :: x, xgrid(n), fxgrid(n)	
+    real(8), intent(in)     :: x, xgrid(n), fxgrid(n)	
     real(8), optional       :: tol
     real(8), parameter      :: eps_def = EPSILON(1.D0)
     real(8)                 :: eps
@@ -224,9 +224,9 @@ end subroutine interpolate1D_decomposed_eq
 
 ! 1D-linear interpolation
 subroutine interpolate1D_lin(x,fx,xgrid,fxgrid,n,k_known,tol)
-	real(8), intent(out)    :: fx
+    real(8), intent(out)    :: fx
     integer, intent(in)     :: n
-	real(8), intent(in)     :: x, xgrid(n), fxgrid(n)	
+    real(8), intent(in)     :: x, xgrid(n), fxgrid(n)	
     real(8), optional       :: tol
     integer, optional       :: k_known
 
@@ -248,9 +248,9 @@ end subroutine interpolate1D_lin
 
 ! 2D-bilinear interpolation, the table lookup performed before, see 'interpolate2D_lin'
 subroutine interpolate2D_decomposed_eq(kx,ky,x,y,fxy,xgrid,ygrid,fxygrid,Nx,Ny)
-	real(8), intent(out)    :: fxy
+    real(8), intent(out)    :: fxy
     integer, intent(in)     :: kx,ky,Nx,Ny
-	real(8), intent(in)     :: x,y,xgrid(Nx),ygrid(Ny),fxygrid(Nx,Ny)
+    real(8), intent(in)     :: x,y,xgrid(Nx),ygrid(Ny),fxygrid(Nx,Ny)
 
     real(8), parameter          :: eps = EPSILON(1.D0)
     real(8)                     :: fx1,fx2
@@ -292,9 +292,9 @@ end subroutine interpolate2D_decomposed_eq
 
 ! 2D-bilinear interpolation
 subroutine interpolate2D_lin(x,y,fxy,xgrid,ygrid,fxygrid,Nx,Ny,kx_known,ky_known)
-	real(8), intent(out)                :: fxy
+    real(8), intent(out)                :: fxy
     integer, intent(in)                 :: Nx,Ny
-	real(8), intent(in)                 :: x,y,xgrid(Nx),ygrid(Ny),fxygrid(Nx,Ny)
+    real(8), intent(in)                 :: x,y,xgrid(Nx),ygrid(Ny),fxygrid(Nx,Ny)
     integer, intent(in), optional       :: kx_known, ky_known
 
     integer                             :: kx, ky
