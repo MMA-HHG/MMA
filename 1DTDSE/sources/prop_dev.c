@@ -66,7 +66,11 @@ double * propagation(inputs_def *inputs, outputs_def *outputs, double * in_field
 	int size;
 	if (inputs->analy.writewft != 0) size = Nt/steps_per_dt;
 	int num_absorber;
+	// arrays for absorbers
 	double *absorber_realwf, *absorber_imaginarywf;
+	// helpers to speed up calculations
+	double *potx; // evaluated potential
+	
 
 	// Allocate arrays
 	psi = calloc(2*(num_r+1),sizeof(double));
@@ -80,6 +84,9 @@ double * propagation(inputs_def *inputs, outputs_def *outputs, double * in_field
 	dnew2 = calloc(2*(num_r+1),sizeof(double));
 	dinfnew2 = calloc(2*(num_r+1),sizeof(double));
 	dsupnew2 = calloc(2*(num_r+1),sizeof(double)); 
+
+	potx = calloc(num_r+2,sizeof(double)); // one more is needed in one matrix
+
 	// If write wavefunction, allocate the matrix of wavefunctions in t
 	if (inputs->analy.writewft) {
 		// Allocate for every timestep t after every 'tprint' time interval
@@ -112,9 +119,17 @@ double * propagation(inputs_def *inputs, outputs_def *outputs, double * in_field
 		psi[2*j] = psi0[2*j]; 
 		psi[2*j+1] = psi0[2*j+1];
 	}
-	
+
+	// prepare evaluated potential
+	// currently, the code uses the same grid and timesteps for all the calculation, so we can precompute it
+	for(j = 0; j <= num_r; j++) {
+		potx[j] = potential(x[j],trg); 
+	}
+	potx[num_r+1] = potential(x[num_r]+dx,trg);
+
+
 	// prepare absorbing boundaries
-	// currently, the code uses the same grid and timesteps for all the calculation, so we can precompute everything
+	// similarly to potx
 	if( (inputs->absorber.type == 1) || (inputs->absorber.type == 2)){
 
 		// find the index corresponding to the absorbing region, shared for absorbers 1 and 2
@@ -137,7 +152,7 @@ double * propagation(inputs_def *inputs, outputs_def *outputs, double * in_field
 				absorber_realwf[j] = smoothstep_absorber(x[j],x_min,x_max,0); // the absorber
 			}
 		}
-		
+
 		// in both cases, the absorption is the same for the real and the imaginary part of the wavefunction
 		absorber_imaginarywf = absorber_realwf;
 	}
@@ -173,55 +188,55 @@ double * propagation(inputs_def *inputs, outputs_def *outputs, double * in_field
 		{	
 			// Subdiagonal, real and imaginary
 			dinfnew1[2*j] = 1/12.; 
-			dinfnew1[2*j+1] = 0.5*dt*( -0.5/(dx*dx) )+0.5*dt*1/12.*(cpot*potential(x[j],trg));
+			dinfnew1[2*j+1] = 0.5*dt*( -0.5/(dx*dx) )+0.5*dt*1/12.*(cpot*potx[j]);
 			// Diagonal, real and imaginary
 			dnew1[2*j] = 10/12.; 
-			dnew1[2*j+1] = 0.5*dt*( 1./(dx*dx) )+0.5*dt*10/12.*(cpot*potential(x[j],trg));
+			dnew1[2*j+1] = 0.5*dt*( 1./(dx*dx) )+0.5*dt*10/12.*(cpot*potx[j]);
 			// Superdiagonal, real and imaginary
 			dsupnew1[2*j] = 1/12.; 
-			dsupnew1[2*j+1] = 0.5*dt*( -0.5/(dx*dx) )+0.5*dt*1/12.*(cpot*potential(x[j+1],trg));			
+			dsupnew1[2*j+1] = 0.5*dt*( -0.5/(dx*dx) )+0.5*dt*1/12.*(cpot*potx[j+1]);			
 		}
 		// Last elements of the tridiagonal matric, j = num_r
 		// Subdiagonal, real and imaginary
 		dinfnew1[2*num_r] = 1/12.; 
-		dinfnew1[2*num_r+1] = 0.5*dt*( -0.5/(dx*dx) )+0.5*dt*1/12.*(cpot*potential(x[num_r],trg));
+		dinfnew1[2*num_r+1] = 0.5*dt*( -0.5/(dx*dx) )+0.5*dt*1/12.*(cpot*potx[num_r]);
 		// Diagonal, real and imaginary
 		dnew1[2*num_r] = 10/12.; 
-		dnew1[2*num_r+1] = 0.5*dt*( 1./(dx*dx) )+0.5*dt*10/12.*(cpot*potential(x[num_r],trg));
+		dnew1[2*num_r+1] = 0.5*dt*( 1./(dx*dx) )+0.5*dt*10/12.*(cpot*potx[num_r]);
 		// Superdiagonal, real and imaginary, x[num_r] is the final element of the array
 		dsupnew1[2*num_r] = 1/12.; 
-		dsupnew1[2*num_r +1] = 0.5*dt*( -0.5/(dx*dx) )+0.5*dt*1/12.*(cpot*potential(x[num_r]+dx,trg));	
+		dsupnew1[2*num_r +1] = 0.5*dt*( -0.5/(dx*dx) )+0.5*dt*1/12.*(cpot*potx[num_r+1]);	
 
 		// first part of the evolution (H0+V)
 		psi_inter1[0] = (10/12.)*psi[0]+coef*psi[1]+1/12.*psi[2]-0.5*coef*psi[3];
-		psi_inter1[0] = psi_inter1[0]+0.5*dt*((10/12.)*psi[1]*(cpot*potential(x[0],trg))
-						+(1/12.)*psi[3]*(cpot*potential(x[1],trg)));
+		psi_inter1[0] = psi_inter1[0]+0.5*dt*((10/12.)*psi[1]*(cpot*potx[0])
+						+(1/12.)*psi[3]*(cpot*potx[1]));
 
 		psi_inter1[1] = (10/12.)*psi[1]-coef*psi[0]+1/12.*psi[3]+0.5*coef*psi[2];	
-		psi_inter1[1] = psi_inter1[1]-0.5*dt*((10/12.)*psi[0]*(cpot*potential(x[0],trg))
-						+(1/12.)*psi[2]*(cpot*potential(x[1],trg)));
+		psi_inter1[1] = psi_inter1[1]-0.5*dt*((10/12.)*psi[0]*(cpot*potx[0])
+						+(1/12.)*psi[2]*(cpot*potx[1]));
 
 		for(j = 1; j < num_r; j++) {
 			psi_inter1[2*j] = (10/12.)*psi[2*j]+coef*psi[2*j+1]+1/12.*psi[2*(j+1)]
 							  +1/12.*psi[2*(j-1)]-0.5*coef*(psi[2*(j-1)+1]+psi[2*(j+1)+1]);
-			psi_inter1[2*j] = psi_inter1[2*j]+0.5*dt*((10/12.)*psi[2*j+1]*(cpot*potential(x[j],trg))
-							  +(1/12.)*psi[2*(j-1)+1]*(cpot*potential(x[j-1],trg))
-							  +(1/12.)*psi[2*(j+1)+1]*(cpot*potential(x[j+1],trg)));
+			psi_inter1[2*j] = psi_inter1[2*j]+0.5*dt*((10/12.)*psi[2*j+1]*(cpot*potx[j])
+							  +(1/12.)*psi[2*(j-1)+1]*(cpot*potx[j-1])
+							  +(1/12.)*psi[2*(j+1)+1]*(cpot*potx[j+1]));
 
 			psi_inter1[2*j+1] = (10/12.)*psi[2*j+1]-coef*psi[2*j]+1/12.*psi[2*(j+1)+1]
 							  +1/12.*psi[2*(j-1)+1]+0.5*coef*(psi[2*(j-1)]+psi[2*(j+1)]);
-			psi_inter1[2*j+1] = psi_inter1[2*j+1]-0.5*dt*((10/12.)*psi[2*j]*(cpot*potential(x[j],trg))
-							  +(1/12.)*psi[2*(j-1)]*(cpot*potential(x[j-1],trg))
-							  +(1/12.)*psi[2*(j+1)]*(cpot*potential(x[j+1],trg)));
+			psi_inter1[2*j+1] = psi_inter1[2*j+1]-0.5*dt*((10/12.)*psi[2*j]*(cpot*potx[j])
+							  +(1/12.)*psi[2*(j-1)]*(cpot*potx[j-1])
+							  +(1/12.)*psi[2*(j+1)]*(cpot*potx[j+1]));
 		}
 
 		psi_inter1[2*num_r] = (10/12.)*psi[2*num_r]+coef*psi[2*num_r+1]+1/12.*psi[2*(num_r-1)]-0.5*coef*psi[2*(num_r-1)+1];
-		psi_inter1[2*num_r] = psi_inter1[2*num_r]+0.5*dt*((10/12.)*psi[2*num_r+1]*(cpot*potential(x[num_r],trg))
-							  +(1/12.)*psi[2*(num_r-1)+1]*(cpot*potential(x[num_r-1],trg)));
+		psi_inter1[2*num_r] = psi_inter1[2*num_r]+0.5*dt*((10/12.)*psi[2*num_r+1]*(cpot*potx[num_r])
+							  +(1/12.)*psi[2*(num_r-1)+1]*(cpot*potx[num_r-1]));
 
 		psi_inter1[2*num_r+1] = (10/12.)*psi[2*num_r+1]-coef*psi[2*num_r]+1/12.*psi[2*(num_r-1)+1]+0.5*coef*psi[2*(num_r-1)];
-		psi_inter1[2*num_r+1] = psi_inter1[2*num_r+1]-0.5*dt*((10/12.)*psi[2*num_r]*(cpot*potential(x[num_r],trg))
-							    +(1/12.)*psi[2*(num_r-1)]*(cpot*potential(x[num_r-1],trg)));
+		psi_inter1[2*num_r+1] = psi_inter1[2*num_r+1]-0.5*dt*((10/12.)*psi[2*num_r]*(cpot*potx[num_r])
+							    +(1/12.)*psi[2*(num_r-1)]*(cpot*potx[num_r-1]));
 		
 		// Solve for psi, tridiagonal matrix system
 		Inv_Tridiagonal_Matrix_complex(dinfnew1,dnew1,dsupnew1,psi_inter1,res1,num_r+1);
@@ -275,10 +290,6 @@ double * propagation(inputs_def *inputs, outputs_def *outputs, double * in_field
 		(*outputs).tgrid[k+1] = tt;
 		(*outputs).Efield[k+1] = Field;
 
-		// int index_Vcap = 1;
-		// double x_cap = 50.;
-		// double alpha_vcap = 0.001;
-
 		// apply absorption for 1 and 2 options, the factors are already computed, we only multiply here
 		if( (inputs->absorber.type == 1) || (inputs->absorber.type == 2)){
 			for(j = 0; j <= num_absorber; j++){
@@ -327,6 +338,7 @@ double * propagation(inputs_def *inputs, outputs_def *outputs, double * in_field
 	free(dnew2);
 	free(dinfnew2);
 	free(dsupnew2);
+	free(potx);
 	if( (inputs->absorber.type == 1) || (inputs->absorber.type == 2)){
 		free(absorber_realwf);
 		// absorber_imaginarywf: case is symmentric, the pointers point to the same array, free only once
