@@ -66,7 +66,7 @@ module constants
             case ('Joule')
                 omega = x / (emass*alpha_fine**2 * c_light**2)
             case default
-                print *, 'Wrong input in ConvertPhoton'
+                error stop 'Wrong input in ConvertPhoton'
         end select
 
         select case (outp)
@@ -87,7 +87,7 @@ module constants
             case ('Joule')
                 ConvertPhoton = omega*(emass*alpha_fine**2 * c_light**2)
             case default
-                print *, 'Wrong output in ConvertPhoton'
+                error stop 'Wrong output in ConvertPhoton'
         end select
 
     end function

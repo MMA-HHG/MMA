@@ -44,7 +44,6 @@ CONTAINS
 !! @param[in]       file_id          The id of the main HDF5 file. 
 subroutine init_density_mod(file_id)
     integer(hid_t)                          :: file_id
-    real(8)                                 :: dumr
     real(8), dimension(:), allocatable      :: dumr_arr_1D
     logical                                 :: rgrid_exists, zgrid_exists
 

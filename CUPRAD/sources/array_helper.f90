@@ -180,7 +180,7 @@ end subroutine findinterval_2D
 subroutine interpolate1D_decomposed_eq(k,x,fx,xgrid,fxgrid,n,tol)
     real(8), intent(out)    :: fx
     integer, intent(in)     :: k,n
-    real(8), intent(in)     :: x, xgrid(n), fxgrid(n)	
+    real(8), intent(in)     :: x, xgrid(n), fxgrid(n)
     real(8), optional       :: tol
     real(8), parameter      :: eps_def = EPSILON(1.D0)
     real(8)                 :: eps
@@ -226,7 +226,7 @@ end subroutine interpolate1D_decomposed_eq
 subroutine interpolate1D_lin(x,fx,xgrid,fxgrid,n,k_known,tol)
     real(8), intent(out)    :: fx
     integer, intent(in)     :: n
-    real(8), intent(in)     :: x, xgrid(n), fxgrid(n)	
+    real(8), intent(in)     :: x, xgrid(n), fxgrid(n)
     real(8), optional       :: tol
     integer, optional       :: k_known
 

@@ -212,7 +212,7 @@ CONTAINS
         print *, 'The code is stopped'
         STOP
      ENDIF
-       delta = ABS( (intensity - ionisation_rate * factor) / (ionisation_rate * factor)  )
+       delta = ABS( (intensity - ionisation_rate * factor) / (ionisation_rate * factor)  )    ! [initialised above]
     ENDDO
 
     INTENSITY_STEP = intensity / 5000.d0
@@ -289,8 +289,8 @@ CONTAINS
          Egrid(i) = sqrt(intensity/field_intensity_au)
          ionisation_rates(i) = ionisation_rate
          PPT_TABLE(i, 1) = intensity * intensity_factor                    ! normalised intensity (C.U.)
-         PPT_TABLE(i, 2) = ionisation_rate * rate_factor                   ! ionisation rate (C.U.)
-         PPT_TABLE(i, 3) = MPA_factor * ( ionisation_rate  * rate_factor/ intensity )    ! Normalised MPA
+         PPT_TABLE(i, 2) = ionisation_rate * rate_factor                   ! ionisation rate (C.U.)        [initialised above]
+         PPT_TABLE(i, 3) = MPA_factor * ( ionisation_rate  * rate_factor/ intensity )    ! Normalised MPA  [initialised above]
         ENDDO
 
         
