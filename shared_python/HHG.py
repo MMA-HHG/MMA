@@ -89,3 +89,10 @@ def eta_opt(omega_driver_SI, XUV_polarisability, IR_polarisability):
 
     return (omega_driver_SI**2) *units.eps0*units.elmass*delta_polarisability/(units.elcharge**2)
     
+
+# Soft-Coulomb (1/sqrt(a^2+x^2)) potential parameters
+soft_Coulomb_a = {'He': 0.6950,
+                  'Ne': 0.8161,
+                  'Ar': 1.1893,
+                  'Kr': 1.3676,
+                  'Xe': 1.6171 }
