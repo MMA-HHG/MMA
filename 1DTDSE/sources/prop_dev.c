@@ -113,17 +113,16 @@ double * propagation(inputs_def *inputs, outputs_def *outputs, double * in_field
 		psi[2*j+1] = psi0[2*j+1];
 	}
 	
-	// if(inputs->absorber.type == 1){
-	// 	printf("will use absorber with alpha %f and x_cap %f.\n", inputs->absorber.alpha, inputs->absorber.x_cap);
-	// }
 	// prepare absorbing boundaries
 	// currently, the code uses the same grid and timesteps for all the calculation, so we can precompute everything
 	if( (inputs->absorber.type == 1) || (inputs->absorber.type == 2)){
-		printf("will use absorber with alpha %f and x_cap %f.\n", inputs->absorber.alpha, inputs->absorber.x_cap);
+
 		// find the index corresponding to the absorbing region, shared for absorbers 1 and 2
 		findinterval(num_r, x[0]+inputs->absorber.x_cap, x, &num_absorber, &k1);
+
 		// allocate the array for the absorber
-		absorber_realwf = calloc(num_absorber,sizeof(double));
+		absorber_realwf = calloc(num_absorber+1,sizeof(double));
+
 		if(inputs->absorber.type == 1){ // complex absorber (derived from the complex potential, see the main paper)
 			double alpha_vcap = inputs->absorber.alpha;
 			double x_rel_distance;
@@ -138,6 +137,7 @@ double * propagation(inputs_def *inputs, outputs_def *outputs, double * in_field
 				absorber_realwf[j] = smoothstep_absorber(x[j],x_min,x_max,0); // the absorber
 			}
 		}
+		
 		// in both cases, the absorption is the same for the real and the imaginary part of the wavefunction
 		absorber_imaginarywf = absorber_realwf;
 	}
@@ -281,53 +281,17 @@ double * propagation(inputs_def *inputs, outputs_def *outputs, double * in_field
 
 		// apply absorption for 1 and 2 options, the factors are already computed, we only multiply here
 		if( (inputs->absorber.type == 1) || (inputs->absorber.type == 2)){
-			// the grid is symmetric, we can use the same factors
 			for(j = 0; j <= num_absorber; j++){
 				// left side of the interval
 				psi[2*j]   *= absorber_realwf[j];
 				psi[2*j+1] *= absorber_imaginarywf[j];
 
 				// right side of the interval processed from the right to the left
+				// the grid is symmetric, we can use the same factors
 				psi[2*(num_r-j)]   *= absorber_realwf[j];
 				psi[2*(num_r-j)+1] *= absorber_imaginarywf[j];
-				// absorber_realwf[k1] = smoothstep_absorber(x[k1],x_min,x_max,0); // the absorber
 			}
 		}
-
-		// // complex absorber
-		// if(inputs->absorber.type == 1){
-		// 	double x_cap = inputs->absorber.x_cap;
-		// 	double alpha_vcap = inputs->absorber.alpha;
-
-        //     for (j = 0; j <= num_r; j++){
-                
-        //         if( x[j] > (x[num_r]-x_cap)){
-        //             psi[2*j] = psi[2*j]*exp(-alpha_vcap*(x[num_r]-x_cap-x[j])*(x[num_r]-x_cap-x[j])*dt); 
-		// 		    psi[2*j+1] = psi[2*j+1]*exp(-alpha_vcap*(x[num_r]-x_cap-x[j])*(x[num_r]-x_cap-x[j])*dt);
-        //         }	
-
-        //         if( x[j] < (x[0]+x_cap)){
-        //             psi[2*j] = psi[2*j]*exp(-alpha_vcap*(x[j]-x_cap-x[0])*(x[j]-x_cap-x[0])*dt); 
-		// 		    psi[2*j+1] = psi[2*j+1]*exp(-alpha_vcap*(x[j]-x_cap-x[0])*(x[j]-x_cap-x[0])*dt);
-        //         }
-
-        //     }	
-
-        // }else if(inputs->absorber.type == 2){
-		// 	double x_cap = inputs->absorber.x_cap;
-		// 	for (j = 0; j <= num_r; j++){
-                
-		// 		if( x[j] < (x[0]+x_cap)){
-        //             psi[2*j]   *= smoothstep_absorber(x[j],x[0],x[0]+x_cap,0); 
-		// 		    psi[2*j+1] *= smoothstep_absorber(x[j],x[0],x[0]+x_cap,0);
-        //         }
-
-        //         if( x[j] > (x[num_r]-x_cap)){
-        //             psi[2*j]   *= smoothstep_absorber(x[j],x[num_r]-x_cap,x[num_r],1); 
-		// 		    psi[2*j+1] *= smoothstep_absorber(x[j],x[num_r]-x_cap,x[num_r],1); 
-        //         }          
-        //     }
-		// }
 
 		// Compute expectation values: position, current, grad V, population
 		compute_expectation_values(inputs, k, psi, outputs);
@@ -365,8 +329,7 @@ double * propagation(inputs_def *inputs, outputs_def *outputs, double * in_field
 	free(dsupnew2);
 	if( (inputs->absorber.type == 1) || (inputs->absorber.type == 2)){
 		free(absorber_realwf);
-		// case is symmentric, the pointers point to the same array, free only once
-		// free(absorber_imaginarywf);
+		// absorber_imaginarywf: case is symmentric, the pointers point to the same array, free only once
 	}
 
 	return psi;
