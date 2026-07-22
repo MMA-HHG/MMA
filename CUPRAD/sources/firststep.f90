@@ -139,7 +139,7 @@ CONTAINS
     IMPLICIT NONE
 
     INTEGER(4)  :: j,k
-    REAL(8) t
+!    REAL(8) t
 
     delta_zh=0.5D0*delta_z
     
@@ -347,6 +347,9 @@ CONTAINS
     DO j=1,dim_t
        komega_red(j)=komega(j)-CMPLX(rekp*(k_t*(REAL(j-dim_th-1,8))+omega_uppe),0.D0,8)
     ENDDO
+
+    help = 0 ! to avoid compiler warning
+
     SELECT CASE (switch_T)
     CASE(1)
        help=2*NINT(omega/k_t)
@@ -437,7 +440,7 @@ CONTAINS
     DO j=1,dim_t
        efield_osc(j) = exp(CMPLX(0.D0,-omega_uppe*(tlo+REAL(j,8)*delta_t),8)) ! fast oscillating term exp(-i*omegauppe*t)
     ENDDO
-    e = CMPLX(real_e,imag_e)
+    e = CMPLX(real_e,imag_e,KIND=4)
     DO k1=1, dim_t
       e(k1,:) = (1/efield_factor)*CONJG(efield_osc(k1))*e(k1,:)
     ENDDO

@@ -188,6 +188,7 @@ CONTAINS
      END FUNCTION IONISATION_RATE_PPT
     END INTERFACE
 
+    factor = 0.D0 ! to avoid compiler warning
 
     IF ( (THEORY == "PPT").OR.(THEORY == "ADK") ) factor = ( PI * 1.0d25 /( 45.5635d0**2 * 2.41889)) * critical_power * photon_energy**2 *&
          ( atomic_density / critical_density ) *  MIN(pulse_duration,1000.d0)
@@ -258,7 +259,9 @@ CONTAINS
     ALLOCATE(PPT_TABLE(DIMENSION_PPT, 3))
     ! Normalised factors
     intensity_factor = 4.d0 * PI * beam_waist**2 * 1.d-9 / critical_power
- 
+    rate_factor = 0.D0 ! to avoid compiler warning
+    MPA_factor = 0.D0 ! to avoid compiler warning
+
     IF ( (THEORY == "PPT") .OR. (THEORY == "ADK") ) THEN
     rate_factor      =(4.d0 * PI**2 * 1.d16 / (45.5635**2 * 2.41889)) * &
          (atomic_density / critical_density) *&
