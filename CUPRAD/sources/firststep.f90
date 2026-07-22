@@ -440,7 +440,7 @@ CONTAINS
     DO j=1,dim_t
        efield_osc(j) = exp(CMPLX(0.D0,-omega_uppe*(tlo+REAL(j,8)*delta_t),8)) ! fast oscillating term exp(-i*omegauppe*t)
     ENDDO
-    e = CMPLX(real_e,imag_e,KIND=4)
+    e = CMPLX(real_e,imag_e,8)
     DO k1=1, dim_t
       e(k1,:) = (1/efield_factor)*CONJG(efield_osc(k1))*e(k1,:)
     ENDDO
