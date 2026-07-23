@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.13)
 
 
 project(TDSE)
-enable_language(C)
+enable_language(C)      
 
 message("Compiler: ${CMAKE_C_COMPILER}")
 message("Compiler ID: ${CMAKE_C_COMPILER_ID}")
@@ -38,29 +38,19 @@ find_package(MPI)
 
 
 
-### Dynamic libraries & single TDSE
+### Dynamic library & single TDSE
 set(SOURCE_STRIDE sources/constants.c
     sources/tools_algorithmic.c sources/tools_hdf5.c sources/tridiag.c
     sources/tools_fftw3.c sources/structures.c sources/tools.c
     sources/prop.c sources/singleTDSE.c sources/single_stride.c)
 
-set(SOURCE_DLL sources/constants.c sources/tools_algorithmic.c
-    sources/tridiag.c sources/tools_fftw3.c sources/structures.c
-    sources/tools.c sources/prop.c sources/singleTDSE.c)
-
-set(SOURCE_DLL_DEV sources/constants.c sources/tools_algorithmic.c
-    sources/tridiag.c sources/tools_fftw3.c sources/structures.c
-    sources/tools.c sources/prop_dev.c sources/singleTDSE.c)
+set(SOURCE_DLL sources/constants.c sources/tools_algorithmic.c 
+	sources/tridiag.c sources/tools_fftw3.c sources/structures.c 
+	sources/tools.c sources/prop.c sources/singleTDSE.c)
 
 set(TDSE_STRIDE TDSE_stride.e)
 set(TDSE_LIB singleTDSE)
-set(TDSE_LIB_DEV singleTDSE_dev)
 
-
-# ### Parallel TDSE
-# add_executable(${TDSE} ${SOURCE})
-# target_link_libraries(${TDSE} mpi ${FFTW_LIBS} ${HDF5_LIBRARIES})
-# target_include_directories(${TDSE} PRIVATE ${HDF5_INCLUDE_DIRS})
 
 ### Single TDSE
 add_executable(${TDSE_STRIDE} ${SOURCE_STRIDE})
@@ -78,26 +68,12 @@ target_include_directories(${TDSE_LIB} PRIVATE ${HDF5_INCLUDE_DIRS})
 target_link_options(${TDSE_LIB} PRIVATE -fPIC)
 
 
-### Development dynamic library
-add_library(${TDSE_LIB_DEV} SHARED ${SOURCE_DLL_DEV})
-
-target_link_libraries(${TDSE_LIB_DEV} PRIVATE ${FFTW_LIBS})
-
-target_include_directories(${TDSE_LIB_DEV} PRIVATE ${HDF5_INCLUDE_DIRS})
-target_link_options(${TDSE_LIB_DEV} PRIVATE -fPIC)
-
-
 ### MPI-TDSE scheduler (only if MPI is available)
 if(MPI_FOUND)
 
-    # set(SOURCE sources/constants.c sources/tools_algorithmic.c
-    #     sources/tools_MPI-RMA.c sources/tools_hdf5.c sources/tridiag.c
-    #     sources/tools_fftw3.c sources/structures.c sources/tools.c sources/prop.c
-    #     sources/singleTDSE.c sources/MPI-TDSE.c)
-
     set(SOURCE sources/constants.c sources/tools_algorithmic.c
         sources/tools_MPI-RMA.c sources/tools_hdf5.c sources/tridiag.c
-        sources/tools_fftw3.c sources/structures.c sources/tools.c sources/prop_dev.c
+        sources/tools_fftw3.c sources/structures.c sources/tools.c sources/prop.c
         sources/singleTDSE.c sources/MPI-TDSE.c)
 
     set(TDSE TDSE.e)
@@ -108,6 +84,6 @@ if(MPI_FOUND)
     target_include_directories(${TDSE} PRIVATE ${HDF5_INCLUDE_DIRS})
 
 else()
-    message(WARNING "MPI not found. Skipping MPI-scheduler won't be built.")
+   message(WARNING "MPI not found. Skipping MPI-scheduler won't be built.")
 
 endif()

@@ -235,7 +235,7 @@ When used locally on a personal computer, the libraries (FFTW3, CMake, …) are 
 There are two `bash` functions `load_modules` and `load_python_modules`. The former is activated when running *CUPRAD* and *CTDSE*, while the latter is used for all Pythonic operations around the code. (The reason for this duality is that Python might need to load a compiler itself for some libraries, typically on intel.) 
 
 ### Installing both CUPRAD and CTDSE
-If everything is set well, the following CMakes are wrapped in the master `CMakeList.txt`. Here is the recipe to install the code from its root directory.
+If everything is set well, the following CMakes are wrapped in the master `CMakeList.txt` (the compilers tested on some machines and currently supported are GNU and Intel). Here is the recipe to install the code from its root directory.
 
 1) Run `load_modules`. [This can be verified by](https://hpc-wiki.info/hpc/Modules#:~:text=%24-,module%20list,-Currently%20Loaded%20Modulefiles) `module list`.
     * If the machine does not using modules, this step is replaced by installing the necessary libraries and setting up the environment.
