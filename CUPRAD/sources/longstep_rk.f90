@@ -771,7 +771,7 @@ CONTAINS
        losses_ionization_data(:) = REAL(losses_ionization*delta_t,4) 
 
        ! Create pointers to the arrays with target flag
-       ptr_f => fluence_data
+       ptr_f => fluence_data                            ! might cause compiler warnings, not much to do with it: https://stackoverflow.com/questions/74055347/get-rid-of-pointer-assignment-might-outlive-the-pointer-target-in-fortran#comment130755490_74055792
        ptr_p => plasma_channel_data
        ptr_lp => losses_plasma_data
        ptr_li => losses_ionization_data
