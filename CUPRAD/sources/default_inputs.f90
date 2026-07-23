@@ -152,7 +152,10 @@ integer         :: switch_ionisation, switch_atom
 
     ! switch_ionisation
     ! 1 - PPT, 2 - external
-
+       
+    switch_ionisation = 0 ! to avoid compiler warning
+    switch_atom = 0 ! to avoid compiler warning
+    
     select case (gas_preset)
     case ('Ar_PPT')
         switch_ionisation = 1
@@ -223,7 +226,7 @@ integer         :: switch_ionisation, switch_atom
     ! The dispesrison laws accessed via `switch_dispersion` are hard-coded in 'normalisation.f90'. The reference is:
     ! A. Dalgarno and A. E. Kingston, https://doi.org/10.1098/rspa.1960.0237
     !----------------------------------------------------------------------------------------------------------------------
-        
+
     case (1) ! Argon
         Ui_eV_phys =            15.75962D0 ! ionisation potential (eV)
         angular_momentum  =     1 ! (-)
@@ -477,6 +480,9 @@ subroutine preset_dispersion_tests(test_number)
     !k_pppp_fs4_per_cm_phys = -4930.d0
     !k_ppppp_fs5_per_cm_phys = 23245.d0
 
+    select case(test_number) ! to avoid compuler warning
+    end select
+
 end subroutine preset_dispersion_tests
 
 subroutine preset_delayed_Kerr_tests(test_number)
@@ -487,6 +493,9 @@ subroutine preset_delayed_Kerr_tests(test_number)
     !xdk = 0.5d0
     !tdk_fs_phys = 77.d0
     !raman_phys = 1.6d-2
+
+    select case(test_number) ! to avoid compuler warning
+    end select
 
 end subroutine preset_delayed_Kerr_tests
 

@@ -35,6 +35,8 @@ CONTAINS
     INTEGER(4) i_x,i_z,help
     REAL(8) phase_index,r
 
+    help=0 ! to avoid compilation warning
+
     IF ((z.GE.zz(1)).AND.(z.LE.zz(i_z_max)).AND.(r.LE.xx(i_x_max))) THEN
        IF (z.LT.zz(i_z_old)) THEN
           i_z_old=2
@@ -129,6 +131,8 @@ CONTAINS
     COMPLEX(8) B(dim_r)
     INTEGER(4) j
     COMPLEX(8) DLn,help_1,help_2
+    
+    help_2 = CMPLX(1.D0,0.D0,8) ! to avoid compilation warning
 
     help_1=B(1)
     B(1)=(CMPLX(1.D0,0.D0,8)+CMPLX(0.D0,-2.D0,8)*delta_rel(1,k))*B(1)+CMPLX(0.D0,2.D0,8)*delta_rel(1,k)*B(2)
@@ -389,8 +393,8 @@ CONTAINS
           CASE(1)
              etemp(j,l)=e(j,l)*exp(CMPLX(losses_j-delta_zh*(mpa+mediumabs),phase,8))
           CASE(2)
-             ptemp(j,l)=e(j,l)*CMPLX(0.D0,phase_p)
-             jtemp(j,l)=e(j,l)*CMPLX(0.D0,phase_j)
+             ptemp(j,l)=e(j,l)*CMPLX(0.D0,phase_p,8)
+             jtemp(j,l)=e(j,l)*CMPLX(0.D0,phase_j,8)
              etemp(j,l)=e(j,l)*exp(CMPLX(losses_j-delta_zh*(mpa+mediumabs),phase_index,8)) ! applying the losses, T-operator does not affect
 !           CASE(3)
 !              ptemp(j,l)=e(j,l)*CMPLX(0.D0,phase_p) + (hfac(j,4)*CONJG(hfac(j,0)*e(j,l))*CMPLX(0.D0,phase_p) &
@@ -510,8 +514,8 @@ CONTAINS
           CASE(1)
              e(j,l)=e(j,l)*exp(CMPLX(losses_j-delta_z*(mpa+mediumabs),phase,8))
           CASE(2)
-             ptemp(j,l)=etemp(j,l)*CMPLX(0.D0,phase_p)
-             jtemp(j,l)=etemp(j,l)*CMPLX(0.D0,phase_j)
+             ptemp(j,l)=etemp(j,l)*CMPLX(0.D0,phase_p,8)
+             jtemp(j,l)=etemp(j,l)*CMPLX(0.D0,phase_j,8)
              e(j,l)=e(j,l)*exp(CMPLX(losses_j-delta_z*(mpa+mediumabs),phase_index,8))
 !           CASE(3)
 !              ptemp(j,l)=etemp(j,l)*CMPLX(0.D0,phase_p) + (hfac(j,4)*CONJG(hfac(j,0)*etemp(j,l))*CMPLX(0.D0,phase_p) &

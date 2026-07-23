@@ -248,7 +248,7 @@ end subroutine calck0
     REAL(8) r,t,pert,pert_s,pert_t,delta_r,norm,k_t
 
     CHARACTER(LEN = 3) :: ip
-    CHARACTER(LEN = 10):: id
+   ! CHARACTER(LEN = 10):: id
 
     IF (debug_print) PRINT*, 'in calc_starting'
     !CALL FLUSH()
