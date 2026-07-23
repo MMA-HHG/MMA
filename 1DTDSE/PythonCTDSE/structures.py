@@ -34,6 +34,13 @@ class trg_def(Structure):
         ("a", c_double)
     ]
 
+class absorber_def(Structure):
+    _fields_ = [
+        ("type", c_int),
+        ("alpha", c_double),
+        ("x_cap", c_double)
+    ]
+
 class analy_def(Structure):
     _fields_ = [
         ("tprint", c_double),
@@ -127,7 +134,8 @@ class inputs_def(Structure):
         ("Ntinterp", c_int),
         ("Print", output_print_def),
         ("CV", c_double),
-        ("precision", c_char * 2)
+        ("precision", c_char * 2),
+        ("absorber", absorber_def)
     ]
 
     def load_from_hdf5(self, filename):
@@ -186,7 +194,10 @@ class inputs_def(Structure):
                             writewft = 0,
                             tprint = 10.,
                             x_int = 2.,
-                            precision = np.bytes_('d')
+                            precision = np.bytes_('d'),
+                            absorber ={'type'  : 1,
+                                       'x_cap' : 50., # a.u.
+                                       'alpha' : 0.001}
                             ):
         """
         Initializes default inputs for running 1D-TDSE with custom parameters 
@@ -235,6 +246,15 @@ class inputs_def(Structure):
         self.CV = c_double(CV)
         self.gauge = c_int(gauge)
         self.precision = precision
+        if absorber['type']==0:
+            self.absorber.type  = c_int(0)
+        elif absorber['type']==1:
+            self.absorber.type  = c_int(1)
+            self.absorber.alpha = c_double(absorber['alpha'])
+            self.absorber.x_cap  = c_double(absorber['x_cap'])
+        elif absorber['type']==2:
+            self.absorber.type  = c_int(2)
+            self.absorber.x_cap  = c_double(absorber['x_cap'])
         
     def init_prints(self, path_to_DLL):
         """

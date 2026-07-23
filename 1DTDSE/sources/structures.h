@@ -42,6 +42,17 @@ typedef struct trg_def{
 } trg_def;
 
 /**
+ * @brief the specification of the absorbing boundaries
+ * 
+ */
+typedef struct absorber_def{
+	// Structure defining the absorber of the wavefunction on the boundaries
+	int type;    // 0-none; 1-complex potential; 2-cosine
+	double alpha;
+	double x_cap;
+} absorber_def;
+
+/**
  * @brief Auxiliary structures for drivers of I/O
  * 
  */
@@ -115,6 +126,8 @@ typedef struct inputs_def {
 	// Precision of the ground state energy
 	double CV;
 	char precision[2];
+	// absorber info
+	struct absorber_def absorber;
 } inputs_def;
 
 typedef struct outputs_def{ 

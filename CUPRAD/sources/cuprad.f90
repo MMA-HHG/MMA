@@ -40,7 +40,7 @@ PROGRAM cuprad
   call system_clock(tcount, count_rate, count_max)
   write(*,*) tcount, count_rate, count_max
   CALL initialize
-  limit_s=timelimit*3600
+  limit_s=int(timelimit*3600)
 
   start_time_MPI = MPI_Wtime()
 

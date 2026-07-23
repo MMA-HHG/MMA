@@ -689,7 +689,7 @@ MODULE hdf5_helper_serial
       INTEGER(HID_T) :: attr_id       ! Attribute identifier
       INTEGER(HID_T) :: aspace_id     ! Attribute Dataspace identifier
       INTEGER(HID_T) :: atype_id      ! Attribute Dataspace identifier
-      CHARACTER(LEN=20), DIMENSION(1) ::  attr_data  ! Attribute data (solve the length by a correct allocation)
+      ! CHARACTER(LEN=20), DIMENSION(1) ::  attr_data  ! Attribute data (solve the length by a correct allocation)
       ! add attributes ( https://support.hdfgroup.org/ftp/HDF5/current/src/unpacked/fortran/examples/h5_crtatt.f90 )
 
       data_to_write(1) = TRIM(units_value)

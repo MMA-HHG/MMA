@@ -36,17 +36,17 @@ CONTAINS
 
   SUBROUTINE write_startingfile(p)
     IMPLICIT NONE
-    INTEGER(HSIZE_T) :: r_offset
+  !  INTEGER(HSIZE_T) :: r_offset
     INTEGER(4) p,j,l,k,k1,k2
-    CHARACTER(LEN = 3) :: ip
-    CHARACTER(LEN = 10):: iz,id
-    REAL(8), DIMENSION(1:2):: test
+    CHARACTER(LEN = 3) :: ip 
+    CHARACTER(LEN = 10):: iz !,id
+  !  REAL(8), DIMENSION(1:2):: test
     REAL(8) :: efield_factor ! normalization factor electric field V/m
     COMPLEX(8), ALLOCATABLE  :: efield_osc(:) ! fast oscillating term exp(-i*omegauppe*t)
     INTEGER(HID_T) :: indexes_group_id
     CHARACTER(*), PARAMETER :: indexes_groupname=refrindex_grpname    
-    INTEGER(HID_T) :: tables_file_id
-    CHARACTER(LEN=25) :: tables_filename="calculated_tables.h5"
+  !  INTEGER(HID_T) :: tables_file_id
+  !  CHARACTER(LEN=25) :: tables_filename="calculated_tables.h5"
     WRITE(iz,920) z
     DO k=1,10
        IF (iz(k:k).EQ.' ') iz(k:k)='0'

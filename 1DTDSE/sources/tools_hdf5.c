@@ -132,6 +132,28 @@ void ReadInputs(hid_t file_id, char *inpath, char *inpath_glob, herr_t *h5error,
         printf("The ground-state-energy guess in 1D-TDSE not specified.");
         exit(EXIT_FAILURE);
 	}
+
+
+	// Absorber definition
+	path[0] = '\0';	strcat(strcat(path,inpath),"absorber_type");
+
+	printf("Path to absorber %s.\n", path);
+	printf("Path to absorber exists %d.\n", H5Lexists(file_id, path, H5P_DEFAULT));
+
+	if (H5Lexists(file_id, path, H5P_DEFAULT)>0){
+		// path[0] = '\0';	strcat(strcat(strcat(path,inpath),"absorber"),"type");
+		path[0] = '\0';	strcat(strcat(path,inpath),"absorber_type");
+		readint(file_id, path, h5error,&(*in).absorber.type);
+		if ((*in).absorber.type==1){
+			// we set the default values and eventually replace
+			path[0] = '\0';	strcat(strcat(path,inpath),"absorber_alpha");
+			readreal(file_id, path, h5error,&(*in).absorber.alpha);
+			path[0] = '\0';	strcat(strcat(path,inpath),"absorber_x_cap");
+			readreal(file_id, path, h5error,&(*in).absorber.x_cap);
+		}
+	}else{
+		in->absorber.type = 0;
+	}
 	 
 
 	// *NOTE* CV criterion is added as an input 

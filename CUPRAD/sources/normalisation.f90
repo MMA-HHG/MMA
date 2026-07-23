@@ -713,6 +713,8 @@ CONTAINS
      REAL(8) omegab
      INTEGER(4) i
 
+     compute_n=CMPLX(0.D0,0.D0,8) ! to avoid compiler warning
+
      IF(omegab.LT.omegachi(1)) THEN
         compute_n=chi(1)
      ELSE IF(omegab.GT.omegachi(dim_chi)) THEN

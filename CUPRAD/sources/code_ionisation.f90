@@ -188,6 +188,7 @@ CONTAINS
      END FUNCTION IONISATION_RATE_PPT
     END INTERFACE
 
+    factor = 0.D0 ! to avoid compiler warning
 
     IF ( (THEORY == "PPT").OR.(THEORY == "ADK") ) factor = ( PI * 1.0d25 /( 45.5635d0**2 * 2.41889)) * critical_power * photon_energy**2 *&
          ( atomic_density / critical_density ) *  MIN(pulse_duration,1000.d0)
@@ -212,7 +213,7 @@ CONTAINS
         print *, 'The code is stopped'
         STOP
      ENDIF
-       delta = ABS( (intensity - ionisation_rate * factor) / (ionisation_rate * factor)  )
+       delta = ABS( (intensity - ionisation_rate * factor) / (ionisation_rate * factor)  )    ! [initialised above]
     ENDDO
 
     INTENSITY_STEP = intensity / 5000.d0
@@ -258,7 +259,9 @@ CONTAINS
     ALLOCATE(PPT_TABLE(DIMENSION_PPT, 3))
     ! Normalised factors
     intensity_factor = 4.d0 * PI * beam_waist**2 * 1.d-9 / critical_power
- 
+    rate_factor = 0.D0 ! to avoid compiler warning
+    MPA_factor = 0.D0 ! to avoid compiler warning
+
     IF ( (THEORY == "PPT") .OR. (THEORY == "ADK") ) THEN
     rate_factor      =(4.d0 * PI**2 * 1.d16 / (45.5635**2 * 2.41889)) * &
          (atomic_density / critical_density) *&
@@ -289,8 +292,8 @@ CONTAINS
          Egrid(i) = sqrt(intensity/field_intensity_au)
          ionisation_rates(i) = ionisation_rate
          PPT_TABLE(i, 1) = intensity * intensity_factor                    ! normalised intensity (C.U.)
-         PPT_TABLE(i, 2) = ionisation_rate * rate_factor                   ! ionisation rate (C.U.)
-         PPT_TABLE(i, 3) = MPA_factor * ( ionisation_rate  * rate_factor/ intensity )    ! Normalised MPA
+         PPT_TABLE(i, 2) = ionisation_rate * rate_factor                   ! ionisation rate (C.U.)        [initialised above]
+         PPT_TABLE(i, 3) = MPA_factor * ( ionisation_rate  * rate_factor/ intensity )    ! Normalised MPA  [initialised above]
         ENDDO
 
         
@@ -307,7 +310,7 @@ CONTAINS
           CALL h5fclose_f(file_id, error)
         ENDIF
 
-	DEALLOCATE(Egrid,ionisation_rates)
+  DEALLOCATE(Egrid,ionisation_rates)
  
     ENDIF
 

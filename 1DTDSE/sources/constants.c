@@ -114,3 +114,23 @@ void Soft_Coulomb_ground_states(char * gas_type, double * E_GS){
     }
 
 }
+
+
+/**
+ * @brief Default values for the complex absorber
+ * 
+ * It requires the absorber type to be defined and it fills the rest of the structure
+ * see the main paper https://arxiv.org/abs/2507.04115
+ * 
+ */
+void Set_default_absorber_parameters(absorber_def * absorber){
+
+    printf("Setting absorber presets\n");
+    if ((*absorber).type == 1) 
+    {
+       (*absorber).x_cap = 50.;
+       (*absorber).alpha = 0.001;
+    } 
+
+}
+

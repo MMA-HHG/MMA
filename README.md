@@ -40,7 +40,7 @@ The first option uses the Docker image. It is a direct multiplatform user-orient
 
 ## Reference Docker installation and running the code
 
-The code can be accessed through Docker. Docker prepares the software environment, while the MMA repository is mounted into the container. The native executables are compiled automatically when the container is started for the first time.
+The code can be accessed through Docker. Docker prepares the software environment, while the MMA repository is mounted into the container. The native executables are compiled automatically when the container is started for the first time. You can [**go directly to the first-installation commands.**](#install-direct)
 
 1) [Docker](https://www.docker.com/) needs to be installed.
 
@@ -57,15 +57,11 @@ The code can be accessed through Docker. Docker prepares the software environmen
 
     The option `-t mma` specifies the name of the Docker image, i.e. in this case the name of the image is `mma`. 
 
-4) Start the container. Choose `CONTAINER_NAME`, for example `mma_c1`. The same
-   name is also used as the container hostname, so the terminal prompt is easier
-   to read.
+4) Start the container. Choose `CONTAINER_NAME`, for example `mma-c1`. The same name is also used as the container hostname, so the terminal prompt is easier to read.
 
         docker run --name CONTAINER_NAME --hostname CONTAINER_NAME -v .:/MMA -w /MMA -p 8888:8888 -it mma
 
-   The repository is mounted into `/MMA`, so the compiled executables remain
-   available in the parent filesystem. If port `8888` is already used on the
-   parent machine, change only the first number, for example `-p 8889:8888`.
+   The repository is mounted into `/MMA`, so the compiled executables remain available in the parent filesystem. If port `8888` is already used on the  parent machine, change only the first number, for example `-p 8889:8888`.
 
 5) JupyterLab can be started inside the container by:
 
@@ -83,13 +79,13 @@ The code can be accessed through Docker. Docker prepares the software environmen
         docker start -ai CONTAINER_NAME
 
 In short, the installation is:
-
+<a id="install-direct"></a>
 ```bash
 git clone git@github.com:MMA-HHG/MMA.git
 cd MMA
 
 docker build -t mma .
-docker run --name CONTAINER_NAME --hostname CONTAINER_NAME -v .:/MMA -w /MMA -p 8888:8888 -it mma
+docker run --name mma-c1 --hostname mma-c1 -v .:/MMA -w /MMA -p 8888:8888 -it mma
 ```
 
 Inside the container, start JupyterLab by:
@@ -107,13 +103,13 @@ to learn basics of the code.
 To return to the container later:
 
 ```bash
-docker start -ai CONTAINER_NAME
+docker start -ai mma-c1
 ```
 
 
 ## Execution pipeline
 
-The model consists of three main jobs: 1) CUPRAD for the laser pulse propagation; 2) TDSE for the microscopic response; and 3) the Hankel transform for the far-field XUV distribution. There are some further auxiliary steps in the pipeline. **[This jupyter tutorial is desinged to guide the first execution of the code.](./jupyter_examples/mma_basics/teach_me_mma.ipynb)** The guide to open this tutorial though a jupyter server is shown by the command `teach-me-mma` from the Docker terminal.
+The model consists of three main jobs: 1) CUPRAD for the laser pulse propagation; 2) TDSE for the microscopic response; and 3) the Hankel transform for the far-field XUV distribution. There are some further auxiliary steps in the pipeline. **[This jupyter tutorial is desinged to guide the first execution of the code.](./jupyter_examples/mma_basics/teach_me_mma.ipynb)** The guide to open this tutorial though a jupyter server is shown by the command `teach-me-mma` from the Docker terminal. You can [**go directly to the pipeline.**](#run-direct)
 
 The pipeline consists.
 
@@ -161,7 +157,7 @@ The pipeline consists.
 
 
 In short, the pipeline can be run inside the Docker container as:
-
+<a id="run-direct"></a>
 ```bash
 $CUPRAD_BUILD/make_start.e INPUT.h5
 mpirun -n $NUM_PROC_DEFAULT_CUPRAD $CUPRAD_BUILD/cuprad.e
@@ -239,7 +235,7 @@ When used locally on a personal computer, the libraries (FFTW3, CMake, …) are 
 There are two `bash` functions `load_modules` and `load_python_modules`. The former is activated when running *CUPRAD* and *CTDSE*, while the latter is used for all Pythonic operations around the code. (The reason for this duality is that Python might need to load a compiler itself for some libraries, typically on intel.) 
 
 ### Installing both CUPRAD and CTDSE
-If everything is set well, the following CMakes are wrapped in the master `CMakeList.txt`. Here is the recipe to install the code from its root directory.
+If everything is set well, the following CMakes are wrapped in the master `CMakeList.txt` (the compilers tested on some machines and currently supported are GNU and Intel). Here is the recipe to install the code from its root directory.
 
 1) Run `load_modules`. [This can be verified by](https://hpc-wiki.info/hpc/Modules#:~:text=%24-,module%20list,-Currently%20Loaded%20Modulefiles) `module list`.
     * If the machine does not using modules, this step is replaced by installing the necessary libraries and setting up the environment.
@@ -408,6 +404,10 @@ Flags `print_xxx` define whether a given output is stored.
 * **`print_integrated_population`**: Flag to print the integrated volumetric population over time ($\int_{-x_{\text{int}}}^{x_{\text{int}}} |\psi(x,t)|^2 \, \mathrm{d}x$).
 * **`print_x_expectation_value`**: Flag to print the expectation value of position $\braket{x}$.
 * **`print_GS`**: Flag to print the ground state wavefunction.
+* `absorber_type`: different options for absorbing boundaries (0-none, 2-complex potential, 3-smoothstep)
+* `absorber_x_xap`: the spatial extent of the absorber from the boundaries
+* `absorber_alpha`: the parameter of the absorber for option 1 $\sim \mathrm{e}^{-\alpha (|x-x_{\text{boundary}}|-x_{\mathrm{CAP}})^2 \mathrm{d}t}$
+
 
 
 
