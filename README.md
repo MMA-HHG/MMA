@@ -40,7 +40,7 @@ The first option uses the Docker image. It is a direct multiplatform user-orient
 
 ## Reference Docker installation and running the code
 
-The code can be accessed through Docker. Docker prepares the software environment, while the MMA repository is mounted into the container. The native executables are compiled automatically when the container is started for the first time.
+The code can be accessed through Docker. Docker prepares the software environment, while the MMA repository is mounted into the container. The native executables are compiled automatically when the container is started for the first time. You can [**go directly to the first-installation commands.**](#install-direct)
 
 1) [Docker](https://www.docker.com/) needs to be installed.
 
@@ -79,13 +79,13 @@ The code can be accessed through Docker. Docker prepares the software environmen
         docker start -ai CONTAINER_NAME
 
 In short, the installation is:
-
+<a id="install-direct"></a>
 ```bash
 git clone git@github.com:MMA-HHG/MMA.git
 cd MMA
 
 docker build -t mma .
-docker run --name CONTAINER_NAME --hostname CONTAINER_NAME -v .:/MMA -w /MMA -p 8888:8888 -it mma
+docker run --name mma-c1 --hostname mma-c1 -v .:/MMA -w /MMA -p 8888:8888 -it mma
 ```
 
 Inside the container, start JupyterLab by:
@@ -103,13 +103,13 @@ to learn basics of the code.
 To return to the container later:
 
 ```bash
-docker start -ai CONTAINER_NAME
+docker start -ai mma-c1
 ```
 
 
 ## Execution pipeline
 
-The model consists of three main jobs: 1) CUPRAD for the laser pulse propagation; 2) TDSE for the microscopic response; and 3) the Hankel transform for the far-field XUV distribution. There are some further auxiliary steps in the pipeline. **[This jupyter tutorial is desinged to guide the first execution of the code.](./jupyter_examples/mma_basics/teach_me_mma.ipynb)** The guide to open this tutorial though a jupyter server is shown by the command `teach-me-mma` from the Docker terminal.
+The model consists of three main jobs: 1) CUPRAD for the laser pulse propagation; 2) TDSE for the microscopic response; and 3) the Hankel transform for the far-field XUV distribution. There are some further auxiliary steps in the pipeline. **[This jupyter tutorial is desinged to guide the first execution of the code.](./jupyter_examples/mma_basics/teach_me_mma.ipynb)** The guide to open this tutorial though a jupyter server is shown by the command `teach-me-mma` from the Docker terminal. You can [**go directly to the pipeline.**](#run-direct)
 
 The pipeline consists.
 
@@ -157,7 +157,7 @@ The pipeline consists.
 
 
 In short, the pipeline can be run inside the Docker container as:
-
+<a id="run-direct"></a>
 ```bash
 $CUPRAD_BUILD/make_start.e INPUT.h5
 mpirun -n $NUM_PROC_DEFAULT_CUPRAD $CUPRAD_BUILD/cuprad.e
@@ -404,6 +404,10 @@ Flags `print_xxx` define whether a given output is stored.
 * **`print_integrated_population`**: Flag to print the integrated volumetric population over time ($\int_{-x_{\text{int}}}^{x_{\text{int}}} |\psi(x,t)|^2 \, \mathrm{d}x$).
 * **`print_x_expectation_value`**: Flag to print the expectation value of position $\braket{x}$.
 * **`print_GS`**: Flag to print the ground state wavefunction.
+* `absorber_type`: different options for absorbing boundaries (0-none, 2-complex potential, 3-smoothstep)
+* `absorber_x_xap`: the spatial extent of the absorber from the boundaries
+* `absorber_alpha`: the parameter of the absorber for option 1 $\sim \mathrm{e}^{-\alpha (|x-x_{\text{boundary}}|-x_{\mathrm{CAP}})^2 \mathrm{d}t}$
+
 
 
 
