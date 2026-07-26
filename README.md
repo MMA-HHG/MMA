@@ -333,7 +333,7 @@ The input parameters of CUPRAD are stored in `CUPRAD/inputs` group. The default 
     * `laser_pulse_duration_in_1_e_Intensity`: The lenght of the pulse measured as the interval where the intensity exceeds $I_{\text{max}}/\mathrm{e}$.
     * `laser_pulse_duration_in_FWHM_Efield`: The lenght of the pulse measured as the interval where the electric field amplitude exceeds $\mathcal{E}_{\text{max}}/2$.
     * `laser_pulse_duration_in_FWHM_Intensity`: The lenght of the pulse measured as the interval where the intensity exceeds $I_{\text{max}}/2$.
-    * `laser_pulse_duration_in_rms_Efield`: The lenght of the pulse measured by $\tau = \sqrt{\int_{-\infty}^{+\infty}t^2\mathcal{E}_{\text{envelope}}(t)\,\mathrm{d}t/\int_{-\infty}^{+\infty}\mathcal{E}_{\text{envelope}}(t)\,\mathrm{d}t}$ ([Ref. this discussion about the analogical spatial beam measuremet](https://en.wikipedia.org/w/index.php?title=Beam_diameter&oldid=1226051288#ISO11146_beam_width_for_elliptic_beams).)
+    * `laser_pulse_duration_in_rms_Efield`: The lenght of the pulse measured by $`\tau = \sqrt{\int_{-\infty}^{+\infty}t^2\mathcal{E}_{\text{envelope}}(t)\,\mathrm{d}t/\int_{-\infty}^{+\infty}\mathcal{E}_{\text{envelope}}(t)\,\mathrm{d}t}`$ ([Ref. this discussion about the analogical spatial beam measuremet](https://en.wikipedia.org/w/index.php?title=Beam_diameter&oldid=1226051288#ISO11146_beam_width_for_elliptic_beams).)
     * `laser_pulse_duration_in_rms_Intensity`: Analogical to the previous one, but using hte intensity: $\tau = \sqrt{\int_{-\infty}^{+\infty}t^2 I(t)\,\mathrm{d}t/\int_{-\infty}^{+\infty}I(t)\,\mathrm{d}t}$.
   * `laser_degree_of_supergaussian`: The degree $d$ of the supergaussian anvelope in space $\mathcal{E}(\rho)\propto \mathrm{e}^{-(\rho/\rho_0)^{2d}}$.
   * `laser_degree_of_supergaussian_in_time`: The degree $d$ of the superaguassian anvelope in time $\mathcal{E}_{\text{envelope}}(\rho)\propto \mathrm{e}^{-(t/t_0)^{2d}}$.
@@ -397,10 +397,10 @@ Flags `print_xxx` define whether a given output is stored.
 * **`kz_step`**: Longitudinal stride of the macroscopic radial grid for computing TDSE.
 * **`print_Efield`**: Flag to print the electric field.
 * **`print_F_Efield`**: Flag to print the Fourier-transformed electric field.
-* **`print_F_Efield_M2`**: Flag to print the squared magnitude of the Fourier-transformed electric field, $|\mathscr{F}[\mathcal{E}](\omega)|^2$.
+* **`print_F_Efield_M2`**: Flag to print the squared magnitude of the Fourier-transformed electric field, $`|\mathscr{F}[\mathcal{E}](\omega)|^2`$.
 * **`print_Source_Term`**: Flag to print the source term $\partial_t j (t)$.
-* **`print_F_Source_Term`**: Flag to print the Fourier-transformed source term $\mathscr{F}[\partial_t j](\omega)$.
-* **`print_F_Source_Term_M2`**: Flag to print the squared magnitude of the Fourier-transformed source term $|\mathscr{F}[\partial_t j](\omega)|^2$.
+* **`print_F_Source_Term`**: Flag to print the Fourier-transformed source term $`\mathscr{F}[\partial_t j](\omega)`$.
+* **`print_F_Source_Term_M2`**: Flag to print the squared magnitude of the Fourier-transformed source term $`|\mathscr{F}[\partial_t j](\omega)|^2`$.
 * **`print_GS_population`**: Flag to print the population of the ground state.
 * **`print_integrated_population`**: Flag to print the integrated volumetric population over time ($\int_{-x_{\text{int}}}^{x_{\text{int}}} |\psi(x,t)|^2 \, \mathrm{d}x$).
 * **`print_x_expectation_value`**: Flag to print the expectation value of position $\braket{x}$.
