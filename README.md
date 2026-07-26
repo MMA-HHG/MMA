@@ -94,9 +94,10 @@ Inside the container, start JupyterLab by:
 mma-jupyter
 ```
 
-and follow the instructions shown by
+and follow the instructions shown by these tutorials
 ```bash
 teach-me-mma
+teach-me-tdse
 ```
 to learn basics of the code.
 
