@@ -55,7 +55,9 @@ The code can be accessed through Docker. Docker prepares the software environmen
 
         docker build -t mma .
 
-    The option `-t mma` specifies the name of the Docker image, i.e. in this case the name of the image is `mma`. 
+    The option `-t mma` specifies the name of the Docker image, i.e. in this case the name of the image is `mma`.
+    
+    *It is recommended to use [WSL in Windows](https://learn.microsoft.com/en-us/windows/wsl/install). Without WSL, it might be necessary to replace [Dockerfile](./Dockerfile) by the [Dockerfile for Windows](./docker/Dockerfile_Windows) due to a different character set.*
 
 4) Start the container. Choose `CONTAINER_NAME`, for example `mma-c1`. The same name is also used as the container hostname, so the terminal prompt is easier to read.
 
