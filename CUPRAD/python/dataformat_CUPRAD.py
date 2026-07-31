@@ -10,6 +10,8 @@ import numpy as np
 import units
 import mynumerics as mn
 import MMA_administration as MMA
+import HHG
+import warnings
 
 # def load_data
 
@@ -118,7 +120,7 @@ class get_data:
         self.VG_IR = 1.0/self.inverse_GV               
         self.rho0_init = 1e6 * mn.readscalardataset(InputArchive,
                          MMA.paths['CUPRAD_inputs'] +'/calculated/medium_effective_density_of_neutral_molecules','N')
-        self.Ip_eV = InputArchive[MMA.paths['CUPRAD_inputs'] +'/ionization_ionization_potential_of_neutral_molecules'][()]
+            
         self.pressure_mbar = 1e3*InputArchive[MMA.paths['CUPRAD_inputs'] +'/medium_pressure_in_bar'][()]; self.pressure_string = "{:.1f}".format(self.pressure_mbar)+' mbar'
         try:
             self.preionisation_ratio = InputArchive[MMA.paths['global_inputs'] +'/pre_ionised/initial_electrons_ratio'][()]
@@ -151,6 +153,17 @@ class get_data:
                                         MMA.paths['CUPRAD_inputs'] + '/gas_preset')
         except:
             self.gas_type = 'not specified'
+
+        try : # Ip is used only to construct the ionisation tables in CUPRAD, in the case of external tables, we warn and use default values
+            self.Ip_eV = InputArchive[MMA.paths['CUPRAD_inputs'] +'/ionization_ionization_potential_of_neutral_molecules'][()]
+        except:
+            if (self.gas_type in HHG.Ip_list.keys()):
+                warnings.warn('Ip is not defined for cuprad, but pre-set gas is found, using default value from the HHG module. This is typically due to the use of external ionisation rate. Just ensure that Ip value matches further use.')
+                self.Ip_eV = mn.ConvertPhoton(HHG.Ip_list[self.gas_type],'omegaau','eV')
+            else:
+                warnings.warn('Ip is neither defined for cuprad nor data for pre-set gas are available, using np.nan.')
+                self.Ip_eV = np.nan
+            
 
         self.rgrid = rgrid
         self.Nr = Nr; self.Nt = Nt; self.Nz = Nz

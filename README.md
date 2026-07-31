@@ -9,7 +9,7 @@ This repository contains the sources for the [**Modular Multiscale Approach (MMA
 
 The model provides a full solution to treat HHG in gaseous media: the laser pulse propagation, the single-atom response, and the XUV propagation. The design of the code is modular and each of the respective modules can be used independently for its own purposes without requiring the other modules. The assumtions in the model are the linear polarisation and cyllindrical symmetry in the macroscopic propagation. (We are working on extensions of the approach, see notes below.)
 
-[An installation guide is below](#installations), followed by [the description of input parameters](#inputs), a general overview is available in [**the pre-print**](https://arxiv.org/pdf/2507.04115). [***YouTube tutorials***](https://youtube.com/playlist?list=PLhgkvMYpHD8gA1C3FM_GB24HNYNsBGxQe&feature=shared) for the main operations are available. The compiled version of the code is accessible through [***CodeOcean capsule***](https://codeocean.com/capsule/6775529/tree). Different modes of the operation of the code are provided in [***the jupyter tutorials***](./jupyter_examples/). The reference datasets for these deomos are available [here](https://elibeamlines-my.sharepoint.com/:f:/g/personal/jan_vabek_eli-beams_eu/EpgdhQS_bQROnTYpj6y0zgYBTvz_sSh3WMQDiWgy9YgXfw?e=WnnpgR). The respective directories provide more technical details about the codes: [CUPRAD](./CUPRAD/), [1D-TDSE](./1DTDSE/README.md) and [the Hankel transform](./Hankel/).
+[**An installation guide is below**](#installations), followed by [the description of input parameters](#inputs), a general overview is available in [**the pre-print**](https://arxiv.org/pdf/2507.04115). [***YouTube tutorials***](https://youtube.com/playlist?list=PLhgkvMYpHD8gA1C3FM_GB24HNYNsBGxQe&feature=shared) for the main operations are available. If you have difficulties with code, please [***raise an Issue***](https://github.com/MMA-HHG/MMA/issues) or [***start a Disscusion***](https://github.com/MMA-HHG/MMA/discussions) or contact us. The compiled version of the code is accessible through [***CodeOcean capsule***](https://codeocean.com/capsule/6775529/tree). Different modes of the operation of the code are provided in [***the jupyter tutorials***](./jupyter_examples/). The reference datasets for these demos are available [here](https://elibeamlines-my.sharepoint.com/:f:/g/personal/jan_vabek_eli-beams_eu/EpgdhQS_bQROnTYpj6y0zgYBTvz_sSh3WMQDiWgy9YgXfw?e=WnnpgR). The respective directories provide more technical details about the codes: [CUPRAD](./CUPRAD/), [1D-TDSE](./1DTDSE/README.md) and [the Hankel transform](./Hankel/).
 
 The last point to address is the execution of the code. If used locally, CUPRAD and TDSE are standard MPI applications and Hankel a Pythonic module. Once running on HPC clusters, a scheduler is involved. The code is then executed as [a pipeline of the different modules](#execution-pipeline).
 
@@ -55,7 +55,9 @@ The code can be accessed through Docker. Docker prepares the software environmen
 
         docker build -t mma .
 
-    The option `-t mma` specifies the name of the Docker image, i.e. in this case the name of the image is `mma`. 
+    The option `-t mma` specifies the name of the Docker image, i.e. in this case the name of the image is `mma`.
+    
+    *It is recommended to use [WSL in Windows](https://learn.microsoft.com/en-us/windows/wsl/install). Without WSL, it might be necessary to replace [Dockerfile](./Dockerfile) by the [Dockerfile for Windows](./docker/Dockerfile_Windows) due to a different character set.*
 
 4) Start the container. Choose `CONTAINER_NAME`, for example `mma-c1`. The same name is also used as the container hostname, so the terminal prompt is easier to read.
 
@@ -94,9 +96,10 @@ Inside the container, start JupyterLab by:
 mma-jupyter
 ```
 
-and follow the instructions shown by
+and follow the instructions shown by these tutorials
 ```bash
 teach-me-mma
+teach-me-tdse
 ```
 to learn basics of the code.
 
@@ -332,7 +335,7 @@ The input parameters of CUPRAD are stored in `CUPRAD/inputs` group. The default 
     * `laser_pulse_duration_in_1_e_Intensity`: The lenght of the pulse measured as the interval where the intensity exceeds $I_{\text{max}}/\mathrm{e}$.
     * `laser_pulse_duration_in_FWHM_Efield`: The lenght of the pulse measured as the interval where the electric field amplitude exceeds $\mathcal{E}_{\text{max}}/2$.
     * `laser_pulse_duration_in_FWHM_Intensity`: The lenght of the pulse measured as the interval where the intensity exceeds $I_{\text{max}}/2$.
-    * `laser_pulse_duration_in_rms_Efield`: The lenght of the pulse measured by $\tau = \sqrt{\int_{-\infty}^{+\infty}t^2\mathcal{E}_{\text{envelope}}(t)\,\mathrm{d}t/\int_{-\infty}^{+\infty}\mathcal{E}_{\text{envelope}}(t)\,\mathrm{d}t}$ ([Ref. this discussion about the analogical spatial beam measuremet](https://en.wikipedia.org/w/index.php?title=Beam_diameter&oldid=1226051288#ISO11146_beam_width_for_elliptic_beams).)
+    * `laser_pulse_duration_in_rms_Efield`: The lenght of the pulse measured by $`\tau = \sqrt{\int_{-\infty}^{+\infty}t^2\mathcal{E}_{\text{envelope}}(t)\,\mathrm{d}t/\int_{-\infty}^{+\infty}\mathcal{E}_{\text{envelope}}(t)\,\mathrm{d}t}`$ ([Ref. this discussion about the analogical spatial beam measuremet](https://en.wikipedia.org/w/index.php?title=Beam_diameter&oldid=1226051288#ISO11146_beam_width_for_elliptic_beams).)
     * `laser_pulse_duration_in_rms_Intensity`: Analogical to the previous one, but using hte intensity: $\tau = \sqrt{\int_{-\infty}^{+\infty}t^2 I(t)\,\mathrm{d}t/\int_{-\infty}^{+\infty}I(t)\,\mathrm{d}t}$.
   * `laser_degree_of_supergaussian`: The degree $d$ of the supergaussian anvelope in space $\mathcal{E}(\rho)\propto \mathrm{e}^{-(\rho/\rho_0)^{2d}}$.
   * `laser_degree_of_supergaussian_in_time`: The degree $d$ of the superaguassian anvelope in time $\mathcal{E}_{\text{envelope}}(\rho)\propto \mathrm{e}^{-(t/t_0)^{2d}}$.
@@ -396,10 +399,10 @@ Flags `print_xxx` define whether a given output is stored.
 * **`kz_step`**: Longitudinal stride of the macroscopic radial grid for computing TDSE.
 * **`print_Efield`**: Flag to print the electric field.
 * **`print_F_Efield`**: Flag to print the Fourier-transformed electric field.
-* **`print_F_Efield_M2`**: Flag to print the squared magnitude of the Fourier-transformed electric field, $|\mathscr{F}[\mathcal{E}](\omega)|^2$.
+* **`print_F_Efield_M2`**: Flag to print the squared magnitude of the Fourier-transformed electric field, $`|\mathscr{F}[\mathcal{E}](\omega)|^2`$.
 * **`print_Source_Term`**: Flag to print the source term $\partial_t j (t)$.
-* **`print_F_Source_Term`**: Flag to print the Fourier-transformed source term $\mathscr{F}[\partial_t j](\omega)$.
-* **`print_F_Source_Term_M2`**: Flag to print the squared magnitude of the Fourier-transformed source term $|\mathscr{F}[\partial_t j](\omega)|^2$.
+* **`print_F_Source_Term`**: Flag to print the Fourier-transformed source term $`\mathscr{F}[\partial_t j](\omega)`$.
+* **`print_F_Source_Term_M2`**: Flag to print the squared magnitude of the Fourier-transformed source term $`|\mathscr{F}[\partial_t j](\omega)|^2`$.
 * **`print_GS_population`**: Flag to print the population of the ground state.
 * **`print_integrated_population`**: Flag to print the integrated volumetric population over time ($\int_{-x_{\text{int}}}^{x_{\text{int}}} |\psi(x,t)|^2 \, \mathrm{d}x$).
 * **`print_x_expectation_value`**: Flag to print the expectation value of position $\braket{x}$.
