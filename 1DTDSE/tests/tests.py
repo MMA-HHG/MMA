@@ -43,20 +43,20 @@ class TestTDSE(unittest.TestCase):
 
         ### Define outputs
         cls.output = outputs_def()
-        
+
         ### Compute TDSE
         cls.DLL.call1DTDSE(cls.inputs, cls.output)
 
         cls.wavefunction = cls.output.get_wavefunction(cls.inputs, grids=False)
 
         cls.DLL.free_mtrx(cls.output.psi, len(cls.wavefunction))
-        
+
 
     def test_inputs(self):
         ### Load data from the HDF5 archive
         inputs = inputs_def()
-        inputs.init_inputs("ionization.h5")
-        
+        inputs.load_from_hdf5("tests/ionization.h5")
+
         ### Check x_grid
         self.assertTrue(np.allclose(inputs.get_xgrid(), self.inputs.get_xgrid()))
         ### Check GS
@@ -68,8 +68,8 @@ class TestTDSE(unittest.TestCase):
         ### Load data from the HDF5 archive
         inputs = inputs_def()
         output = outputs_def()
-        inputs.init_inputs("ionization.h5")
-        output.load_from_hdf5("ionization.h5")
+        inputs.load_from_hdf5("tests/ionization.h5")
+        output.load_from_hdf5("tests/ionization.h5")
 
         ### Check output length
         self.assertEqual(len(output.get_sourceterm()), len(self.output.get_sourceterm()))
@@ -92,7 +92,7 @@ class TestTDSE(unittest.TestCase):
         cls.inputs.delete(cls.DLL)
         cls.output.delete(cls.DLL)
 
-        
+
 if __name__ == '__main__':
     ap = argparse.ArgumentParser()
     ap.add_argument("-d", "--dll", required=True, help="Path do the C-TDSE DLL.")
