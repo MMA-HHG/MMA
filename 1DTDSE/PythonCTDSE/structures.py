@@ -2,7 +2,7 @@
 Structures
 ==========
 
-This module contains the C-compatible structures definitions for the Python-C binding. 
+This module contains the C-compatible structures definitions for the Python-C binding.
 """
 
 
@@ -11,6 +11,33 @@ from typing import Any
 import h5py
 from PythonCTDSE.constants import *
 import MMA_administration as MMA
+import functools
+import warnings
+
+_DLL = None
+
+def set_dll(dll):
+    global _DLL
+    _DLL = dll
+
+class NotInitializedError(RuntimeError):
+    pass
+
+def delete_wrapper(func):
+    @functools.wraps(func)
+    def wrapper(self, *args):
+        if args:
+            warnings.warn(
+                "Delete no longer requires DLL as an argument. "
+                "This will be removed in future versions. ",
+                category=DeprecationWarning,
+                stacklevel=2
+            )
+
+        return func(self)
+
+    return wrapper
+
 
 ### Define structures
 
@@ -112,7 +139,15 @@ class inputs_def(Structure):
 
     def __init__(self, *args: Any, **kw: Any):
         super().__init__(*args, **kw)
-        self.ptr = byref(self)
+
+        if not _DLL:
+            raise NotInitializedError(
+                "Python TDSE DLL has not been initialized yet! "
+                "Create an instance of TDSE_DLL class first."
+            )
+
+        self._freed = False
+        self._python_owned = False
 
     _fields_ = [
         ("trg", trg_def),
@@ -137,6 +172,13 @@ class inputs_def(Structure):
         ("precision", c_char * 2),
         ("absorber", absorber_def)
     ]
+
+    @property
+    def ptr(self):
+        if not self._freed:
+            return byref(self)
+        else:
+            return None
 
     def load_from_hdf5(self, filename):
         """
@@ -163,21 +205,25 @@ class inputs_def(Structure):
             precision = 'd'
             self.precision = precision.encode('utf-8')
 
-            try: 
+            try:
                 x_grid = np.array(f["TDSE_inputs/x_grid"][()])
                 self.x = ctypes_arr_ptr(c_double, self.num_r+1, x_grid)
                 psi0 = np.array(f["TDSE_inputs/psi0"][()]).flatten()
                 self.psi0 = ctypes_arr_ptr(c_double, 2*(self.num_r+1), psi0)
                 self.Einit = c_double(f["TDSE_inputs/Einit"][()])
+
+                self._python_owned = True
             except KeyError:
                 pass
 
-            try: 
+            try:
                 self.Efield.Nt = c_int(f["TDSE_inputs/Nt"][()])
                 Efield = np.array(f["TDSE_inputs/Efield"][()])
                 self.Efield.Field = ctypes_arr_ptr(c_double, self.Efield.Nt, Efield)
                 tgrid = np.array(f["TDSE_inputs/tgrid"][()])
                 self.Efield.tgrid = ctypes_arr_ptr(c_double, self.Efield.Nt, tgrid)
+
+                self._python_owned = True
             except KeyError:
                 pass
 
@@ -200,7 +246,7 @@ class inputs_def(Structure):
                                        'alpha' : 0.001}
                             ):
         """
-        Initializes default inputs for running 1D-TDSE with custom parameters 
+        Initializes default inputs for running 1D-TDSE with custom parameters
         within Python API.
 
         Parameters:
@@ -216,7 +262,7 @@ class inputs_def(Structure):
         dt: float, optional, default {0.25}
             Temporal step size.
         trg_a: float, optional, default {1.3677}
-            Rare gas parameter: H {sqrt(2)}, He {0.6950}, Ne {0.8161}, Ar {1.1893}, Kr {1.3676}, Xe {1.6171} 
+            Rare gas parameter: H {sqrt(2)}, He {0.6950}, Ne {0.8161}, Ar {1.1893}, Kr {1.3676}, Xe {1.6171}
             [Dissertation thesis Jan Vabek, tab. 7.1]
         CV: float, optional, default {1e-25}
             Convergence value for the GS computation using resolvent
@@ -227,12 +273,12 @@ class inputs_def(Structure):
         writewft: int, optional, default {0}
             Store the wavefunction during the propagation (0 == No), (1 == Yes).
         tprint: float, optional, default {10.}
-            Store the wavefunction every 'tprint' units of time (a.u.). 
+            Store the wavefunction every 'tprint' units of time (a.u.).
             If 'tprint' is larger than half of the temporal grid, only the last wavefunction is returned.
         x_int: float, optional, default {2.}
-            Integration limit for the ionization computation. 
+            Integration limit for the ionization computation.
         """
-        
+
         self.Eguess = c_double(Eguess)
         self.num_r = c_int(num_r)
         self.dx = c_double(dx)
@@ -255,7 +301,7 @@ class inputs_def(Structure):
         elif absorber['type']==2:
             self.absorber.type  = c_int(2)
             self.absorber.x_cap  = c_double(absorber['x_cap'])
-        
+
     def init_prints(self, path_to_DLL):
         """
         Sets all prints to HDF5 to 1.
@@ -288,18 +334,24 @@ class inputs_def(Structure):
             f = h5py.File(filename, "r")
             field_shape = f[MMA.paths["CUPRAD_outputs"]+"/output_field"].shape
             if (z_i < 0) or (z_i >= field_shape[0]):
-                print("Incorrect z-grid dimension selection. Select z in range (0, {})".format(field_shape[0]-1))
                 f.close()
-                return
+                raise IndexError(
+                    "Incorrect z-grid dimension selection. Select z in "
+                    "range (0, {})".format(field_shape[0]-1)
+                )
+
             if (r_i < 0) or (r_i >= field_shape[2]):
-                print("Incorrect r-grid dimension selection. Select r in range (0, {})".format(field_shape[2]-1))
                 f.close()
-                return        
+                raise IndexError(
+                    "Incorrect r-grid dimension selection. Select r in "
+                    "range (0, {})".format(field_shape[2]-1)
+                )
+
             ### Load tgrid
             tgrid = f[MMA.paths["CUPRAD_outputs"]+"/tgrid"][()]/TIMEau
             ### Load field and convert to a.u.
             field = f[MMA.paths["CUPRAD_outputs"]+"/output_field"][z_i, r_i, :][()]/EFIELDau
-            
+
             Nt = len(tgrid)
             self.Efield.Nt = Nt
             ### Init temporal grid
@@ -320,20 +372,20 @@ class inputs_def(Structure):
 
     def save_to_hdf5(self, filename):
         """
-        Saves all available inputs from the `inputs_def` class into an HDF5 file. 
+        Saves all available inputs from the `inputs_def` class into an HDF5 file.
         Unavailable or unallocated inputs are neglected (e.g. `Field`, `tgrid`, `psi0`, ..).
 
         Parameters:
         -----------
         filename: str
-            Name of the HDF5 archive for writing. 
+            Name of the HDF5 archive for writing.
         """
         f = h5py.File(filename, "a")
         try:
             f.create_group('TDSE_inputs')
         except ValueError:
             pass
-        
+
         ### Write default inputs
         try:
             f.create_dataset("TDSE_inputs/trg_a", dtype="f", data=self.trg.a)
@@ -378,38 +430,45 @@ class inputs_def(Structure):
         Returns spatial grid.
         """
         return ctype_arr_to_numpy(self.x, self.num_r+1)
-    
+
     def get_GS(self):
         """
         Returns ground state.
         """
         return ctype_cmplx_arr_to_numpy(self.psi0, self.num_r+1)
-    
+
     def get_tgrid(self):
         """
         Returns temporal grid.
         """
         return ctype_arr_to_numpy(self.Efield.tgrid, self.Efield.Nt)
-    
+
     def get_Efield(self):
         """
         Returns electric field.
         """
         return ctype_arr_to_numpy(self.Efield.Field, self.Efield.Nt)
-        
-    def delete(self, DLL):
+
+    @delete_wrapper
+    def delete(self):
         """
         Frees structure memory.
 
-        Warning: if called twice on the same input, the kernel crashes.
+        Note: this method is invoked when Python's garbage collector cleans
+        the object.
 
-        Parameters:
-        -----------
-        DLL: TDSE_DLL
-            TDSE dynamic library.
         """
-        DLL.free_inputs(self.ptr)
-            
+        if not self._freed:
+            if self._python_owned:
+                return
+
+            _DLL.free_inputs(self.ptr)
+            self._freed = True
+
+    def __del__(self):
+        if not self._freed:
+            self.delete()
+
 class outputs_def(Structure):
     """
     Output structure
@@ -448,11 +507,21 @@ class outputs_def(Structure):
         Frequency grid resolution.
     psi:
         Wavefunction.
-    
+
     """
     def __init__(self, *args: Any, **kw: Any):
         super().__init__(*args, **kw)
-        self.ptr = byref(self)
+
+        if not _DLL:
+            raise NotInitializedError(
+                "Python TDSE DLL has not been initialized yet! "
+                "Create an instance of TDSE_DLL class first."
+            )
+
+        self._freed = False
+        self._python_owned = False
+        self._has_wavefunction = False
+        self._len_wavefunction = 0
 
     _fields_ = [
         ("tgrid", POINTER(c_double)),
@@ -471,30 +540,37 @@ class outputs_def(Structure):
         ("psi", POINTER(POINTER(c_double)))
     ]
 
+    @property
+    def ptr(self):
+        if not self._freed:
+            return byref(self)
+        else:
+            return None
+
     def save_to_hdf5(self, filename, inputs = None):
         """
-        Saves the outputs into an HDF5 file. 
+        Saves the outputs into an HDF5 file.
 
-        To enable saving the wavefunction, user must supply the `inputs_def` 
+        To enable saving the wavefunction, user must supply the `inputs_def`
         class as `inputs` argument, `inputs_def.analy.write_wft = c_int(1)` must be set.
 
-        Warning: the wavefunction (if available) is stored as real and imaginary 
+        Warning: the wavefunction (if available) is stored as real and imaginary
         part separately within the HDF5 file - psi_re, psi_im.
 
 
         Parameters:
         -----------
         filename: str
-            Name of the HDF5 archive for writing. 
+            Name of the HDF5 archive for writing.
         inputs: inputs_def, optional, default {None}
-            If included, the wavefunction can be stored into the HDF5 archive. 
+            If included, the wavefunction can be stored into the HDF5 archive.
         """
         f = h5py.File(filename, "a")
         try:
             f.create_group('TDSE_outputs')
         except ValueError:
             pass
-        
+
         ### Write outputs
         try:
             f.create_dataset("TDSE_outputs/Nomega", dtype="i", data=self.Nomega)
@@ -510,9 +586,9 @@ class outputs_def(Structure):
             f.create_dataset("TDSE_outputs/expval", dtype="f", data=self.get_expval())
         except ValueError:
             pass
-        
+
         ### Write wavefunction
-        if inputs != None:
+        if inputs is not None:
             try:
                 wf = self.get_wavefunction(inputs, grids=False)
                 wf_re = wf.real
@@ -531,8 +607,11 @@ class outputs_def(Structure):
         Parameters:
         -----------
         filename: str
-            Name of the HDF5 archive for loading.         
+            Name of the HDF5 archive for loading.
         """
+
+        self._python_owned = True
+
         with h5py.File(filename, "r") as f:
             try:
                 self.Nomega = c_int(f["TDSE_outputs/Nomega"][()])
@@ -547,26 +626,25 @@ class outputs_def(Structure):
                 self.PopTot = ctypes_arr_ptr(c_double, self.Nt, f["TDSE_outputs/PopTot"][()])
                 self.PopInt = ctypes_arr_ptr(c_double, self.Nt, f["TDSE_outputs/PopInt"][()])
             except KeyError:
-                print("No output data stored in the HDF5 file.")
-                return
-            
+                raise KeyError("No output data stored in the HDF5 file.")
+
             try:
                 psi_re = f["TDSE_outputs/psi_re"][()]
                 psi_im = f["TDSE_outputs/psi_im"][()]
 
-                psi = np.array([np.array([[psi_r, psi_i] for psi_r, psi_i in 
-                                          zip(psi_re[i], psi_im[i])]).flatten() 
+                psi = np.array([np.array([[psi_r, psi_i] for psi_r, psi_i in
+                                          zip(psi_re[i], psi_im[i])]).flatten()
                                           for i in range(len(psi_re))])
-                
+
                 self.psi = ctypes_mtrx_ptr(c_double, psi.shape, psi)
             except KeyError:
                 pass
-                
+
 
 
     def get_wavefunction(self, inputs, grids = True):
         """
-        Returns complex ND-array storing the wavefunction in time. 
+        Returns complex ND-array storing the wavefunction in time.
 
         Parameters:
         -----------
@@ -574,22 +652,21 @@ class outputs_def(Structure):
             Input structure with inputs corresponding to outputs.
         grids: bool, optional, default {True}
             If true, returns the time and space grids
-        
+
         Returns:
         --------
         tuple: tgrid, x, wavefunction (if grids == True)
         """
         if inputs.analy.writewft == 0:
-            print("No wavefunction is stored!")
-            return
-        
+            raise ValueError("No wavefunction is stored!")
+
         ### Number of steps per dt for printing in the temporal grid
         steps_per_dt = np.floor(inputs.analy.tprint/(self.tgrid[1]-self.tgrid[0]))
         ### Number of wavefunctions in the final grid
         size = int(self.Nt/steps_per_dt)
 
         wavefunction = get_wavefunction(self.psi, size, inputs.num_r+1)
-        
+
         if grids:
             if size == 1:
                 tgrid = np.array([self.tgrid[self.Nt-1]])
@@ -599,72 +676,85 @@ class outputs_def(Structure):
             #x = np.linspace(-inputs.dx*inputs.num_r/2, inputs.dx*inputs.num_r/2, inputs.num_r+1)
             x = inputs.get_xgrid()
             return tgrid, x, wavefunction
-        
+
         return wavefunction
-    
+
     def get_tgrid(self):
         """
         Returns temporal grid.
         """
         return ctype_arr_to_numpy(self.tgrid, self.Nt)
-    
+
     def get_Efield(self):
         """
         Returns electric field.
         """
         return ctype_arr_to_numpy(self.Efield, self.Nt)
-    
+
     def get_sourceterm(self):
         """
         Returns source term <grad V> + E.
         """
         return ctype_arr_to_numpy(self.sourceterm, self.Nt)
-    
+
     def get_PopTot(self):
         """
         Returns population of the ground state.
         """
         return ctype_arr_to_numpy(self.PopTot, self.Nt)
-    
+
     def get_PopInt(self):
         """
         Returns integrated population.
         """
         return ctype_arr_to_numpy(self.PopInt, self.Nt)
-    
+
     def get_Fsourceterm(self):
         """
         Returns source term <grad V> + E spectrum.
         """
         return ctype_cmplx_arr_to_numpy(self.Fsourceterm, self.Nomega)
-    
+
     def get_expval(self):
         """
         Returns expectation value of x
         """
         return ctype_arr_to_numpy(self.expval, self.Nt)
-    
+
     def get_omegagrid(self):
         """
         Returns omega grid.
         """
         return ctype_arr_to_numpy(self.omegagrid, self.Nomega)
-    
+
     def get_FEfield(self):
         """
         Returns electric field positive spectrum.
         """
         return ctype_cmplx_arr_to_numpy(self.FEfield, self.Nomega)
 
-    def delete(self, DLL):
+    @delete_wrapper
+    def delete(self):
         """
         Frees structure memory.
 
-        Warning: if called twice on the same input, the kernel crashes.
+        Note: this method is invoked when Python's garbage collector cleans
+        the object.
 
-        Parameters:
-        -----------
-        DLL: TDSE_DLL
-            TDSE dynamic library.
         """
-        DLL.free_outputs(self.ptr)
+        if not self._freed:
+            if self._python_owned:
+                return
+
+            if self._has_wavefunction:
+                if self.psi:
+                    _DLL.free_mtrx(self.psi, self._len_wavefunction)
+                else:
+                    print("already freed")
+
+            _DLL.DLL.outputs_destructor(self.ptr)
+            self._freed = True
+
+    def __del__(self):
+        if not self._freed:
+            self.delete()
