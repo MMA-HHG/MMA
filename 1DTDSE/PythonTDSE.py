@@ -43,6 +43,7 @@ class TDSE_DLL:
             Path to the dynamic library.
         """
         self.DLL = CDLL(path_to_DLL)
+        # Set DLL into global scope
         set_dll(self)
 
     def init_GS(self, inputs):

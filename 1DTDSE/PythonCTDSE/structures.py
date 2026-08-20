@@ -45,6 +45,21 @@ def delete_wrapper(func):
 
     return wrapper
 
+def dll_wrapper(func):
+    @functools.wraps(func)
+    def wrapper(self, *args, **kwargs):
+        if args:
+            warnings.warn(
+                f"Method {func} no longer requires DLL as an argument. "
+                "This will be removed in future versions. ",
+                category=DeprecationWarning,
+                stacklevel=2
+            )
+
+        return func(self, **kwargs)
+
+    return wrapper
+
 ### Define structures
 
 ### Field structure
@@ -307,23 +322,21 @@ class inputs_def(Structure):
             self.absorber.type  = c_int(2)
             self.absorber.x_cap  = c_double(absorber['x_cap'])
 
-    def init_prints(self, path_to_DLL):
+    def init_prints(self):
         """
         Sets all prints to HDF5 to 1.
         """
-        DLL = CDLL(path_to_DLL)
-        set_prints = DLL.Set_all_prints
+        set_prints = _DLL.DLL.Set_all_prints
         set_prints.restype = output_print_def
         self.Print = set_prints()
 
-    def init_time_and_field(self, DLL, filename = "", z_i = 0, r_i = 0, E = None, t = None):
+    @dll_wrapper
+    def init_time_and_field(self, filename = "", z_i = 0, r_i = 0, E = None, t = None):
         """
         Initializes field and temporal grid from custom arrays or from an hdf5 archive.
 
         Parameters:
         -----------
-        DLL: TDSE_DLL class
-            TDSE_DLL instance.
         filename: str, optional, default {""}
             HDF5 filename.
         z_i: int, optional, default {0}
@@ -360,20 +373,15 @@ class inputs_def(Structure):
             Nt = len(tgrid)
             self.Efield.Nt = Nt
             ### Init temporal grid
-            DLL.set_time_and_field(self.ptr, tgrid, field, Nt)
-            #self.Efield.tgrid = ctypes_arr_ptr(c_double, Nt, tgrid)
-            #self.Efield.Field = ctypes_arr_ptr(c_double, Nt, field)
+            _DLL.set_time_and_field(self.ptr, tgrid, field, Nt)
+
             f.close()
 
         else:
             Nt = len(t)
             assert(Nt == len(E))
             self.Efield.Nt = Nt
-            DLL.set_time_and_field(self.ptr, t, E, Nt)
-            #DLL.set_arr_vals(self.Efield.tgrid, ctypes_arr_ptr(c_double, Nt, t), Nt)
-            #DLL.set_arr_vals(self.Efield.Field, ctypes_arr_ptr(c_double, Nt, E), Nt)
-            #self.Efield.tgrid = ctypes_arr_ptr(c_double, Nt, t)
-            #self.Efield.Field = ctypes_arr_ptr(c_double, Nt, E)
+            _DLL.set_time_and_field(self.ptr, t, E, Nt)
 
     def save_to_hdf5(self, filename):
         """
