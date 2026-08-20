@@ -1,9 +1,9 @@
 /**
  * @file structures.h
  * @brief Header containing structures and their methods used throughout the code.
- * 
+ *
  * @copyright Copyright (c) 2023
- * 
+ *
  */
 #ifndef STRUCTURES
 #define STRUCTURES
@@ -34,7 +34,7 @@ typedef struct Efield_var {
 
 /**
  * @brief Microscopic target specification
- * 
+ *
  */
 typedef struct trg_def{
 	// Parameter of the soft core potential
@@ -43,7 +43,7 @@ typedef struct trg_def{
 
 /**
  * @brief the specification of the absorbing boundaries
- * 
+ *
  */
 typedef struct absorber_def{
 	// Structure defining the absorber of the wavefunction on the boundaries
@@ -54,7 +54,7 @@ typedef struct absorber_def{
 
 /**
  * @brief Auxiliary structures for drivers of I/O
- * 
+ *
  */
 typedef struct analy_def{
 	// time spacing for writing the wavefunction
@@ -65,7 +65,7 @@ typedef struct analy_def{
 
 /**
  * @brief Auxiliary structures for drivers of I/O
- * 
+ *
  */
 typedef struct output_print_def{
 	int Efield;
@@ -84,9 +84,9 @@ typedef struct output_print_def{
 
 /**
  * @brief Input structure
- * 
+ *
  * @details Full specification of the input parameters for the TDSE computation.
- * 
+ *
  */
 typedef struct inputs_def {
 	// Target info
@@ -117,10 +117,10 @@ typedef struct inputs_def {
 	// Integration limit for the ionization computation, note: 2 works fine with the lenth gauge and strong fields
 	double x_int;
 	// Specifies output dataset
-	struct analy_def analy;	
+	struct analy_def analy;
 	// Switches (1 = yes)
 	int InterpByDTorNT;
-	int Ntinterp; 
+	int Ntinterp;
 	// I/O printing structure
 	struct output_print_def Print;
 	// Precision of the ground state energy
@@ -130,7 +130,7 @@ typedef struct inputs_def {
 	struct absorber_def absorber;
 } inputs_def;
 
-typedef struct outputs_def{ 
+typedef struct outputs_def{
 	// Temporal grid
 	double *tgrid;
 	// Electric field
@@ -152,7 +152,7 @@ typedef struct outputs_def{
 	// Expectation value of x
 	double *expval;
 	// Number of temporal gridpoints
-	int Nt; 
+	int Nt;
 	// Number of frequency gridpoints
 	int Nomega;
 	// Wavefunction in time t
@@ -163,7 +163,7 @@ typedef struct outputs_def{
 output_print_def Initialise_Printing_struct(void);
 void outputs_destructor(outputs_def *);
 void inputs_destructor(inputs_def *);
-void free_mtrx(double ** buf, int N_rows);
+void free_mtrx(double *** buf, int N_rows);
 output_print_def Initialise_Printing_struct(void);
 output_print_def Set_all_prints(void);
 

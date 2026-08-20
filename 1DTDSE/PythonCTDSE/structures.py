@@ -753,9 +753,7 @@ class outputs_def(Structure):
 
             if self._has_wavefunction:
                 if self.psi:
-                    _DLL.free_mtrx(self.psi, self._len_wavefunction)
-                else:
-                    print("already freed")
+                    _DLL.free_mtrx(byref(self.psi), self._len_wavefunction)
 
             _DLL.DLL.outputs_destructor(self.ptr)
             self._freed = True

@@ -1,15 +1,15 @@
 /**
  * @file structures.c
  * @brief Contains methods operating over defined structures.
- * 
+ *
  * @copyright Copyright (c) 2023
- * 
+ *
  */
 #include "structures.h"
 
 /**
  * @brief Frees up the memory of the output struct.
- * 
+ *
  * @param outputs Output structure.
  */
 void outputs_destructor(outputs_def *outputs)
@@ -28,7 +28,7 @@ void outputs_destructor(outputs_def *outputs)
 
 	free((*outputs).PopTot);
 	(*outputs).PopTot = NULL;
-	
+
 	free((*outputs).FEfield);
 	(*outputs).FEfield = NULL;
 
@@ -40,19 +40,19 @@ void outputs_destructor(outputs_def *outputs)
 
 	free((*outputs).FsourcetermM2);
 	(*outputs).FsourcetermM2 = NULL;
-	
+
 	free((*outputs).PopInt);
 	(*outputs).PopInt = NULL;
-	
+
 	free((*outputs).expval);
 	(*outputs).expval = NULL;
 }
 /**
  * @brief Frees up the memory of the input struct.
- * 
+ *
  * @param in Input structure.
  */
-void inputs_destructor(inputs_def *in) 
+void inputs_destructor(inputs_def *in)
 {
 	free((*in).psi0);
 	(*in).psi0 = NULL;
@@ -62,32 +62,38 @@ void inputs_destructor(inputs_def *in)
 
 	free((*in).Efield.tgrid);
 	(*in).Efield.tgrid = NULL;
-	
+
 	free((*in).Efield.Field);
 	(*in).Efield.Field = NULL;
 }
 
 /**
  * @brief Frees C matrix.
- * 
+ *
  * @param buf Buffer matrix for deletion.
  * @param N_rows Number of rows in the matrix.
  */
-void free_mtrx(double ** buf, int N_rows) {
-	int i;
-	for (i = 0; i < N_rows; i++) {
-		free(buf[i]);
-		buf[i] = NULL;
-	}
-	free(buf);
-	buf = NULL;
+void free_mtrx(double *** buf, int N_rows) {
+	if (!buf || !*buf) {
+        return;
+    }
 
+    double **mtrx = *buf;
+
+    for (int i = 0; i < N_rows; i++) {
+        free(mtrx[i]);
+        mtrx[i] = NULL;
+    }
+
+    free(mtrx);
+
+    *buf = NULL;
 }
 
 /**
  * @brief Returns printing structure for HDF5 writing and sets all prints to 1.
- * 
- * @return output_print_def 
+ *
+ * @return output_print_def
  */
 output_print_def Set_all_prints(void)
 {
@@ -110,8 +116,8 @@ output_print_def Set_all_prints(void)
 
 /**
  * @brief Returns printing structure for HDF5 writing and sets all prints to 0.
- * 
- * @return output_print_def 
+ *
+ * @return output_print_def
  */
 output_print_def Initialise_Printing_struct(void)
 {

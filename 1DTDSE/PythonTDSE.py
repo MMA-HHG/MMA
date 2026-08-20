@@ -158,7 +158,7 @@ class TDSE_DLL:
         res = gabor(signal, c_double(dt), c_int(N), c_int(N_freq), c_int(N_G),
                     c_double(t_min), c_double(t_max), c_double(a))
         gabor_res = ctype_mtrx_to_numpy(res, N_G, N_freq)
-        self.free_mtrx(res, N_G)
+        self.free_mtrx(byref(res), N_G)
         return np.linspace(t_min, t_max, N_G), omegas[omega_range], np.transpose(gabor_res)
 
     def free_mtrx(self, buffer_ptr, N_rows):
@@ -173,7 +173,7 @@ class TDSE_DLL:
             Number of rows in the 2-D array
         """
         self.DLL.free_mtrx.restype = None
-        self.DLL.free_mtrx.argtypes = [POINTER(POINTER(c_double)), c_int]
+        self.DLL.free_mtrx.argtypes = [POINTER(POINTER(POINTER(c_double))), c_int]
         self.DLL.free_mtrx(buffer_ptr, c_int(N_rows))
 
     def free_arr(self, buffer_ptr):
@@ -186,7 +186,7 @@ class TDSE_DLL:
             Pointer to the buffer to be freed
         """
         self.DLL.free_arr.restype = None
-        self.DLL.free_arr.argtypes = [POINTER(c_double)]
+        self.DLL.free_arr.argtypes = [POINTER(POINTER(c_double))]
         self.DLL.free_arr(buffer_ptr)
 
     def free_outputs(self, out_ptr):

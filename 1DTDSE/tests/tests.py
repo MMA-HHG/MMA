@@ -53,7 +53,9 @@ class TestTDSE(unittest.TestCase):
         assert cls.output._has_wavefunction
         assert len(cls.wavefunction) == cls.output._len_wavefunction
 
-        #cls.DLL.free_mtrx(cls.output.psi, len(cls.wavefunction))
+        cls.DLL.free_mtrx(byref(cls.output.psi), len(cls.wavefunction))
+
+        assert not bool(cls.output.psi)
 
     def test_inputs(self):
         ### Load data from the HDF5 archive
