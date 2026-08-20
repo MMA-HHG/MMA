@@ -13,12 +13,19 @@ from PythonCTDSE.constants import *
 import MMA_administration as MMA
 import functools
 import warnings
+import enum
 
+# Set DLL into global scope
 _DLL = None
 
 def set_dll(dll):
     global _DLL
     _DLL = dll
+
+# Helper methods
+class Precision(enum.Enum):
+    DOUBLE = b"d"
+    SINGLE = b"s"
 
 class NotInitializedError(RuntimeError):
     pass
@@ -37,7 +44,6 @@ def delete_wrapper(func):
         return func(self)
 
     return wrapper
-
 
 ### Define structures
 
@@ -202,8 +208,7 @@ class inputs_def(Structure):
             self.trg.a = c_double(f["TDSE_inputs/trg_a"][()])
             self.CV = c_double(f["TDSE_inputs/CV_criterion_of_GS"][()])
             self.gauge = c_int(f["TDSE_inputs/gauge_type"][()])
-            precision = 'd'
-            self.precision = precision.encode('utf-8')
+            self.precision = Precision.DOUBLE.value
 
             try:
                 x_grid = np.array(f["TDSE_inputs/x_grid"][()])
@@ -240,7 +245,7 @@ class inputs_def(Structure):
                             writewft = 0,
                             tprint = 10.,
                             x_int = 2.,
-                            precision = np.bytes_('d'),
+                            precision = Precision.DOUBLE,
                             absorber ={'type'  : 1,
                                        'x_cap' : 50., # a.u.
                                        'alpha' : 0.001}
@@ -291,7 +296,7 @@ class inputs_def(Structure):
         self.trg.a = c_double(trg_a)
         self.CV = c_double(CV)
         self.gauge = c_int(gauge)
-        self.precision = precision
+        self.precision = precision.value
         if absorber['type']==0:
             self.absorber.type  = c_int(0)
         elif absorber['type']==1:
