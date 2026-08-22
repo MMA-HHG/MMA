@@ -15,6 +15,9 @@ import functools
 import warnings
 import enum
 
+from version import _version
+major, minor, patch = _version
+
 # Set DLL into global scope
 _DLL = None
 
@@ -34,9 +37,12 @@ def delete_wrapper(func):
     @functools.wraps(func)
     def wrapper(self, *args):
         if args:
+            if not (major == 1 and minor < 2):
+                raise AttributeError("Extra argument DLL.")
+
             warnings.warn(
                 "Delete no longer requires DLL as an argument. "
-                "This will be removed in future versions. ",
+                "This will be removed in version >= 1.2.0. ",
                 category=DeprecationWarning,
                 stacklevel=2
             )
@@ -49,9 +55,12 @@ def dll_wrapper(func):
     @functools.wraps(func)
     def wrapper(self, *args, **kwargs):
         if args:
+            if not (major == 1 and minor < 2):
+                raise AttributeError("Extra argument DLL.")
+
             warnings.warn(
                 f"Method {func} no longer requires DLL as an argument. "
-                "This will be removed in future versions. ",
+                "This will be removed in version >= 1.2.0. ",
                 category=DeprecationWarning,
                 stacklevel=2
             )

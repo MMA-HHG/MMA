@@ -22,3 +22,7 @@ msg.tmp
 .venv
 venv
 build
+CMakeFiles
+*.cmake
+CMakeCache.txt
+Makefile
