@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.13)
 
 
 project(TDSE)
-enable_language(C)      
+enable_language(C)
 
 message("Compiler: ${CMAKE_C_COMPILER}")
 message("Compiler ID: ${CMAKE_C_COMPILER_ID}")
@@ -22,7 +22,7 @@ elseif(${CMAKE_C_COMPILER_ID} MATCHES GNU)
 elseif(${CMAKE_C_COMPILER_ID} MATCHES AppleClang)
     find_library(fftw3 fftw3)
     #set(CMAKE_Fortran_FLAGS "-O0")
-    set(FFTW_LIBS fftw3 fftw3_mpi)
+    set(FFTW_LIBS fftw3)
 else()
     message(FATAL_ERROR "Unsupported C compiler: ${CMAKE_C_COMPILER}")
 endif()
@@ -44,8 +44,8 @@ set(SOURCE_STRIDE sources/constants.c
     sources/tools_fftw3.c sources/structures.c sources/tools.c
     sources/prop.c sources/singleTDSE.c sources/single_stride.c)
 
-set(SOURCE_DLL sources/constants.c sources/tools_algorithmic.c 
-	sources/tridiag.c sources/tools_fftw3.c sources/structures.c 
+set(SOURCE_DLL sources/constants.c sources/tools_algorithmic.c
+	sources/tridiag.c sources/tools_fftw3.c sources/structures.c
 	sources/tools.c sources/prop.c sources/singleTDSE.c)
 
 set(TDSE_STRIDE TDSE_stride.e)
