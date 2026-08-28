@@ -23,44 +23,22 @@ Tadeáš Němec
 * [***Subscribe for news!***](https://bit.ly/HHG-code-updates
 )
 * The code is provided as it is with open source. We cannot provide guarantee or take responsibility for its usage.
-* We are a small developer's group and our primary occupation is science. We would be grateful to discuss the usage of the code. However, we cannot provide a commerce-level full-scale support at the instant.
+* We are a small developer's group and our primary occupation is science. We would be grateful to discuss the usage of the code. However, we cannot provide a commerce-level full-scale support at the instant. 
 * We would be grateful for your feedback!
 * We are working on more advanced siblings of the codes (3D-vectorial pulse propagation, 3D-TDSE) that are not a part of the first release. Please contact authors for possible collaborations if you need the more advanced features.
 
-## Table of contents
-- [Modular multiscale approach (MMA) for HHG modelling](#modular-multiscale-approach-mma-for-hhg-modelling)
-  - [Table of contents](#table-of-contents)
-  - [Installations](#installations)
-    - [**Recommended way** - Reference Docker installation](#recommended-way---reference-docker-installation)
-    - [**Advanced** - Custom installations](#advanced---custom-installations)
-      - [Installation steps](#installation-steps)
-    - [HPC installation using Modules environment](#hpc-installation-using-modules-environment)
-    - [CUPRAD installation](#cuprad-installation)
-      - [Note: building only the pre-processor](#note-building-only-the-pre-processor)
-    - [CTDSE (+ the dynamic library) installation](#ctdse--the-dynamic-library-installation)
-    - [Hankel](#hankel)
-  - [Running the code](#running-the-code)
-  - [HDF5 data organisation](#hdf5-data-organisation)
-  - [Inputs](#inputs)
-    - [Global](#global)
-    - [CUPRAD](#cuprad)
-    - [CTDSE](#ctdse)
-    - [Hankel](#hankel-1)
 
-
-<a id="installations"></a>
 ## Installations
 Both `CUPRAD` and `CTDSE` are compiled from the source. Hankel is implemented in Python and together with the other Pythonic procedures and scripting around the model rely on setting up the environment variables.
 <!--- We head for RC1, use virtual environment, pip, etc. in future releases by default --->
 
-We consider two usages os the code. First, [we provide full local conteinerised insallation within a Docker image](#recommended-way---reference-docker-installation). This approach is recommended to get familiar with the code and some smaller tasks. To upsacale the work, it is necessary to use HPC, this installation is usually machine specific and [we provide some a general overview of the used libraries, which shall together with the reference local container facilitate the usage of the code](#advanced---custom-installations).
+We consider two usages os the code. First, [we provide full local conteinerised insallation within a Docker image](#reference-docker-installation-and-running-the-code). This approach is recommended to get familiar with the code and some smaller tasks. To upsacale the work, it is necessary to use HPC, this installation is usually machine specific and [we provide some a general overview of the used libraries, which shall together with the reference local container facilitate the usage of the code](#custom-installations). 
 
 In both cases, this repository is cloned by `git clone git@github.com:MMA-HHG/MMA.git` or `git clone https://github.com/MMA-HHG/MMA.git`.
 
-The first option uses the Docker image. It is a direct multiplatform user-oriented way to obtain the executable model. This can be used for running the model locally. Moreover, this can be used as a direct reference for compiling the code the second way: directly from the source. This option might be neccessary for deploying the code on HPC clusters, develpoment, …
+The first option uses the Docker image. It is a direct multiplatform user-oriented way to obtain the executable model. This can be used for running the model locally. Moreover, this can be used as a direct reference for compiling the code the second way: directly from the source. This option might be neccessary for deploying the code on HPC clusters, develpoment, …  
 
-<a id="recommended-way---reference-docker-installation"></a>
-### **Recommended way** - Reference Docker installation
+## Reference Docker installation and running the code
 
 The code can be accessed through Docker. Docker prepares the software environment, while the MMA repository is mounted into the container. The native executables are compiled automatically when the container is started for the first time. You can [**go directly to the first-installation commands.**](#install-direct)
 
@@ -78,7 +56,7 @@ The code can be accessed through Docker. Docker prepares the software environmen
         docker build -t mma .
 
     The option `-t mma` specifies the name of the Docker image, i.e. in this case the name of the image is `mma`.
-
+    
     *It is recommended to use [WSL in Windows](https://learn.microsoft.com/en-us/windows/wsl/install). Without WSL, it might be necessary to replace [Dockerfile](./Dockerfile) by the [Dockerfile for Windows](./docker/Dockerfile_Windows) due to a different character set.*
 
 4) Start the container. Choose `CONTAINER_NAME`, for example `mma-c1`. The same name is also used as the container hostname, so the terminal prompt is easier to read.
@@ -131,241 +109,12 @@ To return to the container later:
 docker start -ai mma-c1
 ```
 
-<a id="advanced---custom-installations"></a>
-### **Advanced** - Custom installations
-Here we provide a more detailed guide for the installation, this is intended for running on HPC clusters and developers. From our experience, each HPC cluster can use a different approaches, here can be found [some examples for different machines](./Modules/load_modules.sh). However, some interaction with HPC admin team could be necessary for compiling the code properly. The following specifications toghether with the reference DOcker installation shall serve as a guide to facilitate these deployments.
 
-This is the list of requirements:
-* **CUPRAD**: MPI, FFTW3, parallel HDF5 (with Fortran support and HL libraries), CMake
-* **CTDSE**: FFTW3, MPI, serial HDF5, CMake (MPI & HDF5 are not needed for the dynamic library), Python with h5py
-* **Hankel**: numpy, scipy, h5py, multiprocessing + some usual Python libraries
-
-We have not found any particular requirements for the versions of the libraries, and the code was successfully build using intel, GNU and AppleClang compilers. Alas some specific flags and settings are required for different compilers as discussed below.
-
-Note that intel encapsulates FFTW3 into the [Math Kernel Library](https://en.wikipedia.org/wiki/Math_Kernel_Library).
-
-#### Installation steps
-This guide assumes the user has clean installation of Linux (e.g. Ubuntu with [gcc](https://ubuntu.com/developers/docs/howto/gcc-setup/)), MacOS (with [XCode Command Line Tools](https://developer.apple.com/documentation/xcode/installing-the-command-line-tools) and [Homebrew](https://brew.sh)), or WSL subsystem on Windows with Ubuntu. Due to specific requirements for the dependencies, we recommend following this guide, and use default system paths for installing the dependencies.
-
-To build the full MMA bundle locally from scratch with dependencies (using autotools and CMake), follow these steps:
-
-1. Install the dependencies (skip if already acquired):
-   - **Fortran Lang**:
-
-      Ubuntu:
-      ```bash
-      apt update && sudo apt install gfortran
-      ```
-      Mac:
-      ```bash
-      brew install gfortran
-      ```
-   - **MPI** ([Official guide](https://docs.open-mpi.org/en/v5.0.x/installing-open-mpi/quickstart.html))
-      ```bash
-      # Choose default download path
-      prefix=~/Downloads
-
-      # Download MPI - choose distribution here: https://www.open-mpi.org/software/ompi/v5.0/
-      curl -L -o ${prefix}/openmpi-5.0.10.tar.gz "https://download.open-mpi.org/release/open-mpi/v5.0/openmpi-5.0.10.tar.gz"
-
-      # unpack
-      tar xvf ${prefix}/openmpi-5.0.10.tar.gz -C ${prefix}
-      cd ${prefix}/openmpi-5.0.10
-
-      # configure installation:
-      #  - we keep the default system path for installation
-      #  - default path installation requires superuser (sudo)
-      #  - in case of missing admin rights, add flag `-prefix=/custom/path`
-      ./configure 2>&1 | tee config.out
-
-      # Compile using 4 cores
-      make -j4
-      sudo make install
-      ```
-   - **HDF5 Parallel** ([official guide](https://github.com/HDFGroup/hdf5/blob/develop/docs/README_HPC.md)):
-
-      Universal guide:
-      ```bash
-      prefix=~/Downloads
-
-      # Download HDF5 - choose distribution here: https://github.com/HDFGroup/hdf5/releases
-      curl -L -o ${prefix}/hdf5-2.2.0.tar.gz "https://github.com/HDFGroup/hdf5/releases/download/2.2.0/hdf5-2.2.0.tar.gz"
-
-      # unpack
-      tar xvf ${prefix}/hdf5-2.2.0.tar.gz -C ${prefix}
-      cd ${prefix}/hdf5-2.2.0
-
-      # configure installation:
-      cmake -DCMAKE_BUILD_TYPE=Release \
-        -DHDF5_ENABLE_PARALLEL=ON \
-        -DBUILD_SHARED_LIBS=ON \
-        -DHDF5_BUILD_FORTRAN=ON \
-        -DHDF5_BUILD_HL_LIB=ON \
-        ..
-
-      # Compile and install
-      cmake --build . --config Release
-      sudo cmake --install .
-      ```
-
-      Simplified Ubuntu 22.04 approach:
-      ```bash
-      sudo apt install libhdf5-dev hdf5-helpers
-      ```
-   - **FFTW3** (GNU version, [official guide](https://www.fftw.org/fftw2_doc/fftw_6.html)):
-      ```bash
-      # Choose default download path
-      prefix=~/Downloads
-
-      # Download MPI - choose distribution here: https://www.open-mpi.org/software/ompi/v5.0/
-      curl -L -o ${prefix}/fftw-3.3.11.tar.gz "http://www.fftw.org/fftw-3.3.11.tar.gz"
-
-      # unpack
-      tar xvf ${prefix}/fftw-3.3.11.tar.gz -C ${prefix}
-      cd ${prefix}/fftw-3.3.11
-
-      # configure installation:
-      #  - we need to enable shared flag for dynamic linking of the library
-      ./configure --enable-shared 2>&1 | tee config.out
-
-      # Compile using 4 cores
-      make -j4
-      sudo make install
-      ```
-   - **CMake**:
-
-      Ubuntu:
-      ```bash
-      apt update && sudo apt install cmake
-      ```
-      Mac:
-      ```
-      brew install cmake
-      ```
-
-   - **Python3**:
-
-      Ubuntu:
-      ```bash
-      # for best compatibility we recommend Python >= 3.12
-      apt update && sudo apt install python@3.14
-      ```
-
-      Mac:
-      ```bash
-      brew install python@3.14
-      ```
-
-   - Git:
-
-      Ubuntu:
-      ```bash
-      apt update && sudo apt install git
-      ```
-      Mac:
-      ```bash
-      brew install git
-      ```
-
-2. Build the MMA code:
-    ```bash
-    # set git repository path
-    prefix=/path/to/repository
-    cd "${prefix}"
-
-    # clone the repository
-    git clone https://github.com/MMA-HHG/MMA.git
-    cd MMA
-
-    # prepare build
-    mkdir build
-    cd build
-
-    # CMake and build
-    # - specify compilers with mpi wrappers
-    # - specify HDF5 path - by default in /usr/local/HDF_Group
-    cmake .. \
-      -DCMAKE_C_COMPILER=mpicc \
-      -DCMAKE_Fortran_COMPILER=mpifort \
-      -DCMAKE_PREFIX_PATH=/usr/local/HDF_Group/HDF5/2.2.0
-
-    # build
-    make
-    ```
-
-3. Build Python virtual environment
-    ```bash
-    python -m venv venv
-    source venv/bin/activate
-
-    # install required Python modules
-    pip install -r requirements.txt
-    ```
-
-### HPC installation using Modules environment
-When used locally on a personal computer, the libraries (FFTW3, CMake, …) are typically installed by a user, see [previous section](#advanced---custom-installations). Installing the code on the HPC infrastructure usually requires loading dependencies using pre-installed modules.
-
-[The modules](https://hpc-wiki.info/hpc/Modules) provide all the necessary libraries for the code when using a computational cluster. The script [`Modules/load_modules.sh`](./Modules/load_modules.sh) is used to load all the modules. This function are supposed to be added into the environemnt (e.g. by sourcing the script in `.bash_aliases` as done above). There is a list of modules for various computational clusters specified by the variable `$HPC`. Another supercomputer (or compilation option intel/GNU/...) should be added there.
-
-There are two `bash` functions `load_modules` and `load_python_modules`. The former is activated when running *CUPRAD* and *CTDSE*, while the latter is used for all Pythonic operations around the code. (The reason for this duality is that Python might need to load a compiler itself for some libraries, typically on intel.)
-
-If everything is set well, the following CMakes are wrapped in the master `CMakeList.txt` (the compilers tested on some machines and currently supported are GNU and Intel). Here is the recipe to install the code from its root directory.
-
-1) Run `load_modules`. [This can be verified by](https://hpc-wiki.info/hpc/Modules#:~:text=%24-,module%20list,-Currently%20Loaded%20Modulefiles) `module list`.
-    * If the machine does not using modules, this step is replaced by installing the necessary libraries and setting up the environment.
-2) Prepare Makefile using `cmake` by running `cmake ..` in the `build` directory. We encountered CMake sometimes struggling to identify the proper MPI-Fortran compiler on several machines (the error is raised in the next step). There are more ways to hint CMake to find the compilers:
-    * By providing environment variables with the compilers: `export CC=mpicc` and `export FC=mpifort` (GNU); `export CC=mpiicc` and `export FC=mpiifort` (Intel).
-    * Controlling CMake directly during its execution `cmake -D CMAKE_Fortran_COMPILER=mpifort ..` (GNU) or `cmake -D CMAKE_Fortran_COMPILER=mpiifort ..` (intel). This resolved the issue when we encountered it.
-    * The CMake configuration can be manually adjusted using `ccmake`, see [link 1](https://cmake.org/cmake/help/latest/manual/ccmake.1.html) and [link 2](https://stackoverflow.com/a/1224652).
-    * Consider to run the compilation of the respective codes separately in the case problems occur.
-3) Compile the code from the CMake-generated `Makefile` by running `make code` in the root directory.
-
-
-Below are recipes for compilling the codes separately.
-
-### CUPRAD installation
-All the source files are located in `CUPRAD/sources`. The CMake recipe is in `CUPRAD/CMakeLists.txt`. The code is supposedly built in `CUPRAD/build`.
-There is the recipe for compilation (each point contains several notes about possible difficulties):
-
-1) Run `load_modules`. [This can be verified by](https://hpc-wiki.info/hpc/Modules#:~:text=%24-,module%20list,-Currently%20Loaded%20Modulefiles) `module list`.
-    * If the machine does not using modules, this step is replaced by installing the necessary libraries and setting up the environment.
-2) Prepare Makefile using `cmake` by running `cmake ..` in the `build` directory.
-    * We encountered CMake struggling to identify the proper MPI-Fortran compiler on several machines. CMake can be hinted to use the desired compiler by `cmake -D CMAKE_Fortran_COMPILER=mpifort ..` (GNU) or `cmake -D CMAKE_Fortran_COMPILER=mpiifort ..` (intel). This resolved the issue when we encountered it.
-    * (Intel:) The FFTW3 library might not be found within the MKL and might be needed to link manually by adding it into the environment: ```export CPATH=${CPATH}:${MKLROOT}/include/fftw``` (the location of fftw is not consistent across MKL versions and `fftw` needs to be located within `$MKLROOT$`).
-    * The CMake configuration can be manually adjusted using `ccmake`, see [link 1](https://cmake.org/cmake/help/latest/manual/ccmake.1.html) and [link 2](https://stackoverflow.com/a/1224652).
-3) Compile the code from the CMake-generated `Makefile` by running `make` in the `build` directory.
-
-
-#### Note: building only the pre-processor
-The pre-processor can built without MPI and parallel HDF5 (serial HDF5 is needed). The cmake should enter this option if no MPI is found.
-
-### CTDSE (+ the dynamic library) installation
-All the source files are located in `1DTDSE/sources`. The CMake recipe is in `1DTDSE/CMakeLists.txt`. This recipe installs both the code and the interactive CTDSE library; if MPI is not present, only the dynamic library is installed. The code is supposedly built in `1DTDSE/build`.
-There is the recipe for compilation:
-
-1) Run `load_modules` or install the libraries if used on a personal computer.
-    * The extension of the library may depend on your platform: `libsingleTDSE.so`, `libsingleTDSE.dynlib`, `libsingleTDSE.dll`, …
-    * The fftw3 library needs to be installed as a shared library! See [link 1](https://www.fftw.org/fftw2_doc/fftw_6.html#:~:text=Note%20especially%20%2D%2Dhelp%20to%20list%20all%20flags%20and%20%2D%2Denable%2Dshared%20to%20create%20shared%2C%20rather%20than%20static%2C%20libraries.%20configure%20also%20accepts%20a%20few%20FFTW%2Dspecific%20flags%2C%20particularly), [link 2](https://stackoverflow.com/a/45327358).
-2) Prepare Makefile using `cmake` by running `cmake ..` in the `build` directory.
-    * The specification of the compiler might be neded similarly to CUPRAD: `cmake -D CMAKE_C_COMPILER=mpicc ..` or `cmake -D CMAKE_C_COMPILER=mpiicc ..`
-    * (Intel:) The FFTW3 library might not be found within the MKL and might be needed to link manually by adding it into the environment: ```export CPATH=${CPATH}:${MKLROOT}/include/fftw``` (the location of fftw is not consistent across MKL versions and `fftw` needs to be located within `$MKLROOT$`).
-3) Compile the code by running `make` in the `build` directory.
-4) Check that the `$PYTHONPATH` includes `1DTDSE/post_processing`, so the Pythonic scripting around the module works.
-
-### Hankel
-This module becomes available by [including it into the `$PYTHONPATH`](#setting-the-paths).
-
-## Running the code
+## Execution pipeline
 
 The model consists of three main jobs: 1) CUPRAD for the laser pulse propagation; 2) TDSE for the microscopic response; and 3) the Hankel transform for the far-field XUV distribution. There are some further auxiliary steps in the pipeline. **[This jupyter tutorial is desinged to guide the first execution of the code.](./jupyter_examples/mma_basics/teach_me_mma.ipynb)** The guide to open this tutorial though a jupyter server is shown by the command `teach-me-mma` from the Docker terminal. You can [**go directly to the pipeline.**](#run-direct)
 
 The pipeline consists.
-
-0) Sourcing the installation and run paths:
-    ```bash
-    # Root git path of MMA
-    source ./set_env_vars.sh
-    ```
 
 1) CUPRAD pre-processor (`$CUPRAD_BUILD/make_start.e`)
 
@@ -427,12 +176,130 @@ Here `INPUT.h5` should be replaced by the prepared input file.
 
 It is possible to run the process manually. However, computational clusters use jobs and queues for scheduling them. [Here](./multiscale/scripts/README.md) we discuss an example of this pipeline.
 
+## Custom installations
+Here we provide a more detailed guide for the installation, this is intended for running on HPC clusters and developers. From our experience, each HPC cluster can use a different approaches, here can be found [some examples for different machines](./Modules/load_modules.sh). However, some interaction with HPC admin team could be necessary for compiling the code properly. The following specifications toghether with the reference DOcker installation shall serve as a guide to facilitate these deployments.
+
+This is the list of requirements:
+* **CUPRAD**: MPI, FFTW3, parallel HDF5, CMake
+* **CTDSE**: FFTW3, MPI, serial HDF5, CMake (MPI & HDF5 are not needed for the dynamic library), Python with h5py
+    * Python ctypes library for the interactive CTDSE
+* **Hankel**: numpy, scipy, h5py, multiprocessing + some usual Python libraries
+
+We have not found any particular requirements for the versions of the libraries, and the code was successfully build using intel, GNU and AppleClang compilers. Alas some specific flags and settings are required for different compilers as discussed below.
+
+Note that intel encapsulates FFTW3 into the [Math Kernel Library](https://en.wikipedia.org/wiki/Math_Kernel_Library).
+
+
+
+<a id="setting-the-paths"></a>
+### Setting the paths, installing libraries and modules
+Here is the list of paths for running the model. The only customised path is the `$GIT_PATH`, which points to the parent directory of different git repositories used in the model. All the other paths are set relatively ot this path. Additioanlly to the paths, there are also bash functions for loading the necessary modules.
+
+
+#### Paths
+``` bash
+export GIT_PATH=/users/xxx # This is the only path that needs to be customised
+
+# These paths are relative to the GIT_PATH
+export MMA_PATH=$GIT_PATH/MMA
+export PYTHONPATH=$PYTHONPATH:$MMA_PATH/shared_python
+
+export CUPRAD_HOME=$MMA_PATH/CUPRAD
+export CUPRAD_BUILD=$MMA_PATH/CUPRAD/build
+export CUPRAD_SCRIPTS=$MMA_PATH/CUPRAD/scripts
+export CUPRAD_PYTHON=$MMA_PATH/CUPRAD/python
+export PYTHONPATH=$PYTHONPATH:$CUPRAD_PYTHON
+
+export TDSE_1D_HOME=$MMA_PATH/1DTDSE
+export TDSE_1D_PYTHON=$MMA_PATH/1DTDSE/python
+export TDSE_1D_SCRIPTS=$MMA_PATH/1DTDSE/scripts
+export TDSE_1D_SLURM=$MMA_PATH/1DTDSE/slurm
+export TDSE_1D_BUILD=$MMA_PATH/1DTDSE/build
+export PYTHONPATH=$PYTHONPATH:$TDSE_1D_HOME
+
+export HANKEL_HOME=$MMA_PATH/Hankel
+
+export MULTISCALE_HOME=$MMA_PATH
+export MULTISCALE_SCRIPTS=$MMA_PATH/multiscale/scripts
+
+export FSPA_PATH=$MMA_PATH/FSPA
+
+export MULTISCALE_WORK_DIR=/mnt/d/data/work_dir
+
+source $MMA_PATH/Modules/load_modules.sh
+```
+
+
+#### Modules and libraries
+When used locally on a personal computer, the libraries (FFTW3, CMake, …) are typically installed by a user. If using the code or a part of it, the corresponding libraries must be installed before. (Sharing needs to be enebled for FFTW3, see details below for the dyamic-library CTDSE.)
+
+[The modules](https://hpc-wiki.info/hpc/Modules) provide all the necessary libraries for the code when using a computational cluster. The script [`Modules/load_modules.sh`](./Modules/load_modules.sh) is used to load all the modules. This function are supposed to be added into the environemnt (e.g. by sourcing the script in `.bash_aliases` as done above). There is a list of modules for various computational clusters specified by the variable `$HPC`. Another supercomputer (or compilation option intel/GNU/...) should be added there.
+
+There are two `bash` functions `load_modules` and `load_python_modules`. The former is activated when running *CUPRAD* and *CTDSE*, while the latter is used for all Pythonic operations around the code. (The reason for this duality is that Python might need to load a compiler itself for some libraries, typically on intel.) 
+
+### Installing both CUPRAD and CTDSE
+If everything is set well, the following CMakes are wrapped in the master `CMakeList.txt` (the compilers tested on some machines and currently supported are GNU and Intel). Here is the recipe to install the code from its root directory.
+
+1) Run `load_modules`. [This can be verified by](https://hpc-wiki.info/hpc/Modules#:~:text=%24-,module%20list,-Currently%20Loaded%20Modulefiles) `module list`.
+    * If the machine does not using modules, this step is replaced by installing the necessary libraries and setting up the environment.
+2) Prepare Makefile using `cmake` by running `cmake .` in the `build` directory. We encountered CMake sometimes struggling to identify the proper MPI-Fortran compiler on several machines (the error is raised in the next step). There are more ways to hint CMake to find the compilers:
+    * By providing environment variables with the compilers: `export CC=mpicc` and `export FC=mpifort` (GNU); `export CC=mpiicc` and `export FC=mpiifort` (Intel).
+    * Controlling CMake directly during its execution `cmake -D CMAKE_Fortran_COMPILER=mpifort ..` (GNU) or `cmake -D CMAKE_Fortran_COMPILER=mpiifort ..` (intel). This resolved the issue when we encountered it.
+    * The CMake configuration can be manually adjusted using `ccmake`, see [link 1](https://cmake.org/cmake/help/latest/manual/ccmake.1.html) and [link 2](https://stackoverflow.com/a/1224652).
+    * Consider to run the compilation of the respective codes separately in the case problems occur.
+3) Compile the code from the CMake-generated `Makefile` by running `make code` in the root directory.
+
+
+Below are recipes for compilling the codes separately.
+
+
+### CUPRAD
+All the source files are located in `CUPRAD/sources`. The CMake recipe is in `CUPRAD/CMakeLists.txt`. The code is supposedly built in `CUPRAD/build`.
+There is the recipe for compilation (each point contains several notes about possible difficulties):
+
+1) Run `load_modules`. [This can be verified by](https://hpc-wiki.info/hpc/Modules#:~:text=%24-,module%20list,-Currently%20Loaded%20Modulefiles) `module list`.
+    * If the machine does not using modules, this step is replaced by installing the necessary libraries and setting up the environment.
+2) Prepare Makefile using `cmake` by running `cmake ..` in the `build` directory.
+    * We encountered CMake struggling to identify the proper MPI-Fortran compiler on several machines. CMake can be hinted to use the desired compiler by `cmake -D CMAKE_Fortran_COMPILER=mpifort ..` (GNU) or `cmake -D CMAKE_Fortran_COMPILER=mpiifort ..` (intel). This resolved the issue when we encountered it.
+    * (Intel:) The FFTW3 library might not be found within the MKL and might be needed to link manually by adding it into the environment: ```export CPATH=${CPATH}:${MKLROOT}/include/fftw``` (the location of fftw is not consistent across MKL versions and `fftw` needs to be located within `$MKLROOT$`).
+    * The CMake configuration can be manually adjusted using `ccmake`, see [link 1](https://cmake.org/cmake/help/latest/manual/ccmake.1.html) and [link 2](https://stackoverflow.com/a/1224652).
+3) Compile the code from the CMake-generated `Makefile` by running `make` in the `build` directory.
+
+
+#### Note: building only the pre-processor
+The pre-processor can built without MPI and parallel HDF5 (serial HDF5 is needed). The cmake should enter this option if no MPI is found.
+
+### CTDSE (+ the dynamic library)
+All the source files are located in `1DTDSE/sources`. The CMake recipe is in `1DTDSE/CMakeLists.txt`. This recipe installs both the code and the interactive CTDSE library; if MPI is not present, only the dynamic library is installed. The code is supposedly built in `1DTDSE/build`.
+There is the recipe for compilation:
+
+1) Run `load_modules` or install the libraries if used on a personal computer.
+    * The extension of the library may depend on your platform: `libsingleTDSE.so`, `libsingleTDSE.dynlib`, `libsingleTDSE.dll`, …
+    * The fftw3 library needs to be installed as a shared library! See [link 1](https://www.fftw.org/fftw2_doc/fftw_6.html#:~:text=Note%20especially%20%2D%2Dhelp%20to%20list%20all%20flags%20and%20%2D%2Denable%2Dshared%20to%20create%20shared%2C%20rather%20than%20static%2C%20libraries.%20configure%20also%20accepts%20a%20few%20FFTW%2Dspecific%20flags%2C%20particularly), [link 2](https://stackoverflow.com/a/45327358).
+2) Prepare Makefile using `cmake` by running `cmake ..` in the `build` directory.
+    * The specification of the compiler might be neded similarly to CUPRAD: `cmake -D CMAKE_C_COMPILER=mpicc ..` or `cmake -D CMAKE_C_COMPILER=mpiicc ..`
+    * (Intel:) The FFTW3 library might not be found within the MKL and might be needed to link manually by adding it into the environment: ```export CPATH=${CPATH}:${MKLROOT}/include/fftw``` (the location of fftw is not consistent across MKL versions and `fftw` needs to be located within `$MKLROOT$`).
+3) Compile the code by running `make` in the `build` directory.
+4) Check that the `$PYTHONPATH` includes `1DTDSE/post_processing`, so the Pythonic scripting around the module works.
+
+#### Local installation of the dynamic library on Ubuntu 22.04 (using WSL)
+Here is an example of installing the interactive CTDSE library on Ubuntu 22.04 as a part of [The Windows Subsystem for Linux (WSL)](https://learn.microsoft.com/en-us/windows/wsl/install). This option is convenient also for Windows users because WSL is also accessible directly from the Windows environment (for example by using VSCode).
+
+* The following prerequisities are needed: ``sudo apt-get install build-essential``, ``sudo apt-get install libhdf5-dev``, `` sudo apt-get install hdf5-helpers``.
+* The fftw3 library needs to be installed as a shared library! See [link 1](https://www.fftw.org/fftw2_doc/fftw_6.html#:~:text=Note%20especially%20%2D%2Dhelp%20to%20list%20all%20flags%20and%20%2D%2Denable%2Dshared%20to%20create%20shared%2C%20rather%20than%20static%2C%20libraries.%20configure%20also%20accepts%20a%20few%20FFTW%2Dspecific%20flags%2C%20particularly), [link 2](https://stackoverflow.com/a/45327358).
+* `cmake` may have problems with `h5cc` wrapper (it worked with v3.15.7).
+* Install using the previous recipe.
+
+The dynamic library is then available, see [this example of a jupyter notebook integrating CTDSE](jupyter_examples/interactive_TDSE/analytic_chirped_pulse.ipynb).
+
+### Hankel
+This module becomes available by [including it into the `$PYTHONPATH`](#setting-the-paths).
 
 ## HDF5 data organisation
 All the inputs and outputs are stored in an HDF5 archive grouping together I/O for the different modules. The structure is flexible and defined in the *namelists*: [Python](shared_python/MMA_administration.py), [C](1DTDSE/sources/h5namelist.h), [Fortran](CUPRAD/sources/global_variables.f90).
 
 ## Inputs
-Here is the exhaustive list of all the parameters. The bold **`parameters`** are obligatory to run the whole model with sourcing the default material constants. The other `parameters` are optional. If an optional parameter is present, it has priority.
+Here is the exhaustive list of all the parameters. The bold **`parameters`** are obligatory to run the whole model with sourcing the default material constants. The other `parameters` are optional. If an optional parameter is present, it has priority. 
 
 ### Global
 The global inputs are stored in the `global_inputs` groups, they might be used by more than one module.
@@ -452,16 +319,16 @@ The input parameters of CUPRAD are stored in `CUPRAD/inputs` group. The default 
 * **laser**
   * **`laser_wavelength`**: The central wavelength, $\lambda$, of the driving field.
   * **beam geometries and the entry intensity**: (It is obligatory to use one of the sets.)
-    * Reference Gaussian beam: One option to specify the geometry of the beam is *the reference Gaussian beam*.
+    * Reference Gaussian beam: One option to specify the geometry of the beam is *the reference Gaussian beam*. 
       * `laser_focus_beamwaist_Gaussian`: The beamwaist in the focus.
       * `laser_focus_position_Gaussian`: The position of the focus relative to the entry of the medium.
       * `laser_focus_intensity_Gaussian`: The peak intensity in the focus.
-    * Specify the beam directly at the entry plane:
+    * Specify the beam directly at the entry plane: 
       * `laser_beamwaist_entry`: The beam radius at the entry plane.
       * `laser_focus_position_Gaussian`: The focal point of a virtual lens placed at the entry plane. (It imprints the according curvature in the entry plane.)
       * `laser_intensity_entry` or `laser_energy` or `laser_ratio_pin_pcr`
         * `laser_intensity_entry`: Peak intensity at the entrry plane.
-        * `laser_energy`: The total energy in the laser pulse.
+        * `laser_energy`: The total energy in the laser pulse. 
         * `laser_ratio_pin_pcr`: The peak intensity is inferred from the critical power $P_{\text{cr}}=\lambda^2/(2\pi n_2(p))$, where $n_2(p)$ is the non-linear refractive index charactersing the Kerr effect, at a given pressure $p$. The relation with the peak intensity $I_0$ is: $P_{\text{in}}/P_{\text{cr}}=n_2(p)I_0 (\pi w(z)/\lambda)^2$, where $P_{\text{in}}=\pi I_0 w^2(z)/2$. (This value is related with the possible beam collapse due to Kerr self-focusing, [see Sec. 3.1 here](https://iopscience.iop.org/article/10.1088/0034-4885/70/10/R03).)
   * **pulse duration specifications**: The pulse duration is specified by **either of these variables**.
     * `laser_pulse_duration_in_1_e_Efield`: The lenght of the pulse measured as the interval where the electric field amplitude exceeds $\mathcal{E}_{\text{max}}/\mathrm{e}$.
@@ -481,8 +348,8 @@ The input parameters of CUPRAD are stored in `CUPRAD/inputs` group. The default 
   * `Kerr_ionised_atoms_relative_Kerr_response`: The response of the ions relative to the neutrals, it equals $n_2^{\text{(ions)}}/n_2^{\text{(neutrals)}}$.
   * `Kerr_chi5_coefficient`: The fifth-order nonlinearity coefficient for Kerr effect, indicating the strength of the nonlinear response in a medium.
   * `Kerr_type_of_delayed_kerr_response`: The option to include delayed Kerr effect according to [Section 2.2 here](https://iopscience.iop.org/article/10.1088/0034-4885/70/10/R03). 1 -- instantaneous Kerr only (default); 2 -- instantaneous Kerr + simplified Raman response; 3 -- instantaneous Kerr + full intrapulse Raman response.
-  * `Kerr_ratio_of_delayed_kerr_xdk`: Ratio $0\le x_{dK}\le 1$ of delayed Kerr (Raman) contribution; only active for `Kerr_type_of_delayed_kerr_response` = 2 or 3.
-  * `Kerr_time_of_delayed_kerr_tdk`: Dipole dephasing time of Raman response in fs; only active for `Kerr_type_of_delayed_kerr_response` = 2 or 3.
+  * `Kerr_ratio_of_delayed_kerr_xdk`: Ratio $0\le x_{dK}\le 1$ of delayed Kerr (Raman) contribution; only active for `Kerr_type_of_delayed_kerr_response` = 2 or 3.  
+  * `Kerr_time_of_delayed_kerr_tdk`: Dipole dephasing time of Raman response in fs; only active for `Kerr_type_of_delayed_kerr_response` = 2 or 3.  
   * `Kerr_frequency_in_delayed_kerr_wr`: Raman frequency in 1/fs; only active for `Kerr_type_of_delayed_kerr_response` = 3.
   * `dispersion_type_of_dispersion_law`: (DEPRECATED): Switch to select the dispersion law for neutrals. It is recomended to use the `gas_preset` to select it.
   * `ionization_ionization_potential_of_neutral_molecules`: The ionization potential of neutral molecules, indicating the energy required to ionize a molecule.
@@ -559,5 +426,3 @@ Flags `print_xxx` define whether a given output is stored.
 * **`XUV_table_type_dispersion`**: The tables in the XUV range used for the absorption ([`NIST`](https://physics.nist.gov/PhysRefData/FFast/html/form.html) and [`Henke`](https://henke.lbl.gov/optical_constants/asf.html) are available in the code.)
 * **`store_cumulative_result`**: Option to keep the cumulative integral along $z$.
 * **`Nthreads`**: The number of threads used by the multiprocessing.
-
-
