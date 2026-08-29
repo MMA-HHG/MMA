@@ -1,19 +1,15 @@
 ### This shell scripts sets all the necessary env variables
 
-### To run this script make sure you made the script executable using ```chmod``` 
+### To run this script make sure you made the script executable using ```chmod```
 ### command and run with the command ```source ./set_env_vars.sh``` or simply as
 ### ```. ./set_env_vars.sh```.
 
 ### Default path with directories - should contain all the necessary git repos
-export GIT_PATH=/gpfs/home/tnemec
+export MMA_PATH="$(git rev-parse --show-toplevel)"
 
 export HPC=Curta
 
-export UNIV_INPUT_PATH=$GIT_PATH/universal_input
-
-export MMA_PATH=$GIT_PATH/CUPRAD_TDSE_Hankel
-
-export PYTHONPATH=$PYTHONPATH:$GIT_PATH/python_modules:$MMA_PATH/shared_python
+export PYTHONPATH=$PYTHONPATH:$MMA_PATH/shared_python:$MMA_PATH/CUPRAD/python
 
 export CUPRAD_HOME=$MMA_PATH/CUPRAD
 
@@ -43,4 +39,8 @@ export MULTISCALE_HOME=$MMA_PATH
 
 export MULTISCALE_SCRIPTS=$MMA_PATH/multiscale/scripts
 
-source $MMA_PATH/Modules/load_modules.sh
+export MULTISCALE_WORK_DIR=$MMA_PATH/work_dir
+
+if [[ $(module > /dev/null 2>&1) ]]; then
+    source $MMA_PATH/Modules/load_modules.sh
+fi

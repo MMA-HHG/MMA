@@ -2,7 +2,7 @@
 cmake_minimum_required(VERSION 3.5)
 
 project(cuprad)
-enable_language(Fortran)      
+enable_language(Fortran)
 
 message("Compiler: ${CMAKE_Fortran_COMPILER}")
 message("Compiler ID: ${CMAKE_Fortran_COMPILER_ID}")
@@ -18,7 +18,7 @@ if(${CMAKE_Fortran_COMPILER_ID} MATCHES Intel)
 elseif(${CMAKE_Fortran_COMPILER_ID} MATCHES GNU)
     find_library(fftw3 fftw3)
     set(CMAKE_Fortran_FLAGS "-O3 -Wall -std=gnu -fcheck=all,no-array-temps -Wno-compare-reals -fbacktrace -ffixed-line-length-none -ffree-line-length-none -g")
-    set(FFTW_LIBS fftw3 fftw3_mpi)
+    set(FFTW_LIBS fftw3)
     set(FFTW_LIBS_SERIAL fftw3)
 else()
     message(FATAL_ERROR "Unsupported Fortran compiler: ${CMAKE_Fortran_COMPILER}")
@@ -34,15 +34,15 @@ find_package(MPI)
 if(MPI_FOUND)
     set(PROPAGATION cuprad.e)
     set(S_PROPAGATION sources/constants.f90 sources/linked_list_module.f90 sources/mpi_stuff.f90
-        sources/hdf5_helper_serial.f90 sources/hdf5_helper.f90 sources/array_helper.f90 
-        sources/global_variables.f90 sources/pre_ionised.f90 sources/density_mod.f90 sources/code_ionisation.f90 
-        sources/fft_rk.f90 sources/finalize.f90 sources/firststep.f90 sources/longstep_rk.f90 
+        sources/hdf5_helper_serial.f90 sources/hdf5_helper.f90 sources/array_helper.f90
+        sources/global_variables.f90 sources/pre_ionised.f90 sources/density_mod.f90 sources/code_ionisation.f90
+        sources/fft_rk.f90 sources/finalize.f90 sources/firststep.f90 sources/longstep_rk.f90
         sources/output.f90 sources/cuprad.f90)
 endif()
 
 ### Preprocessor - preparation of 'results.h5' file
 set(MAKE_START make_start.e)
-set(S_MAKE_START sources/constants.f90 sources/hdf5_helper_serial.f90 
+set(S_MAKE_START sources/constants.f90 sources/hdf5_helper_serial.f90
     sources/linked_list_module.f90 sources/global_variables.f90 sources/write_start.f90
     sources/calc_start.f90 sources/normalisation.f90 sources/write_listing.f90
     sources/default_inputs.f90 sources/make_start.f90)

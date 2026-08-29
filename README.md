@@ -426,5 +426,3 @@ Flags `print_xxx` define whether a given output is stored.
 * **`XUV_table_type_dispersion`**: The tables in the XUV range used for the absorption ([`NIST`](https://physics.nist.gov/PhysRefData/FFast/html/form.html) and [`Henke`](https://henke.lbl.gov/optical_constants/asf.html) are available in the code.)
 * **`store_cumulative_result`**: Option to keep the cumulative integral along $z$.
 * **`Nthreads`**: The number of threads used by the multiprocessing.
-
-
