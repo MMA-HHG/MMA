@@ -27,6 +27,13 @@ endif()
 find_package(HDF5 REQUIRED COMPONENTS Fortran HL)
 find_package(MPI)
 
+# (Hot-fix): This additional fftw3 specification is required by https://metavo.metacentrum.cz/ so far
+if("$ENV{HPC}" STREQUAL "Metacentrum")
+    find_package(FFTW3 REQUIRED)
+    include_directories(${FFTW3_INCLUDE_DIRS})
+    link_directories(${FFTW3_LIBRARY_DIRS})
+endif()
+
 
 ### Define variables
 ### ================

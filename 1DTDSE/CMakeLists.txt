@@ -18,7 +18,14 @@ elseif(${CMAKE_C_COMPILER_ID} MATCHES GNU)
     find_library(fftw3 fftw3)
     #set(CMAKE_Fortran_FLAGS "-O0")
     #set(FFTW_LIBS fftw3 fftw3_mpi)
-    set(FFTW_LIBS fftw3)
+    # (Hot-fix): This additional fftw3 specification is required by https://metavo.metacentrum.cz/ so far
+    if(NOT "$ENV{HPC}" STREQUAL "Metacentrum")
+        set(FFTW_LIBS fftw3)
+    else()
+        find_package(FFTW3 REQUIRED)
+        include_directories(${FFTW3_INCLUDE_DIRS})
+        link_directories(${FFTW3_LIBRARY_DIRS})
+    endif()  
 elseif(${CMAKE_C_COMPILER_ID} MATCHES AppleClang)
     find_library(fftw3 fftw3)
     #set(CMAKE_Fortran_FLAGS "-O0")
@@ -36,8 +43,6 @@ endif()
 find_package(HDF5 REQUIRED COMPONENTS C HL)
 find_package(MPI)
 
-
-
 ### Dynamic library & single TDSE
 set(SOURCE_STRIDE sources/constants.c
     sources/tools_algorithmic.c sources/tools_hdf5.c sources/tridiag.c
@@ -54,7 +59,12 @@ set(TDSE_LIB singleTDSE)
 
 ### Single TDSE
 add_executable(${TDSE_STRIDE} ${SOURCE_STRIDE})
-target_link_libraries(${TDSE_STRIDE} -lm -ldl ${FFTW_LIBS} ${HDF5_LIBRARIES})
+# (Hot-fix): This additional fftw3 specification is required by https://metavo.metacentrum.cz/ so far
+if(NOT "$ENV{HPC}" STREQUAL "Metacentrum")
+    target_link_libraries(${TDSE_STRIDE} -lm -ldl ${FFTW_LIBS} ${HDF5_LIBRARIES})
+else()
+    target_link_libraries(${TDSE_STRIDE} -lfftw3 -lm -ldl ${FFTW_LIBS} ${HDF5_LIBRARIES})
+endif()  
 target_include_directories(${TDSE_STRIDE} PRIVATE ${HDF5_INCLUDE_DIRS})
 
 ### Dynamic library
@@ -80,7 +90,12 @@ if(MPI_FOUND)
 
     ### Parallel TDSE
     add_executable(${TDSE} ${SOURCE})
-    target_link_libraries(${TDSE} mpi ${FFTW_LIBS} ${HDF5_LIBRARIES})
+    # (Hot-fix): This additional fftw3 specification is required by https://metavo.metacentrum.cz/ so far
+    if(NOT "$ENV{HPC}" STREQUAL "Metacentrum")
+        target_link_libraries(${TDSE} mpi ${FFTW_LIBS} ${HDF5_LIBRARIES})
+    else()
+        target_link_libraries(${TDSE} mpi -lfftw3 -lm -ldl ${FFTW_LIBS} ${HDF5_LIBRARIES})
+    endif()    
     target_include_directories(${TDSE} PRIVATE ${HDF5_INCLUDE_DIRS})
 
 else()
