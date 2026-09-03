@@ -3,7 +3,7 @@ Python CTDSE
 ============
 
 Python CTDSE provides the Python interface for executing the 1D-TDSE C code (CTDSE).
-This module contains the functions for executing the CTDSE and the C-accelerated 
+This module contains the functions for executing the CTDSE and the C-accelerated
 analysis functions.
 """
 
@@ -13,7 +13,6 @@ from PythonCTDSE.plotting import *
 from PythonCTDSE.structures import *
 from typing import Any
 import numpy as np
-
 
 class TDSE_DLL:
     """
@@ -44,6 +43,8 @@ class TDSE_DLL:
             Path to the dynamic library.
         """
         self.DLL = CDLL(path_to_DLL)
+        # Set DLL into global scope
+        set_dll(self)
 
     def init_GS(self, inputs):
         """
@@ -54,6 +55,13 @@ class TDSE_DLL:
         inputs: inputs_def
             Input structure
         """
+        if inputs._python_owned:
+            raise ValueError(
+                "Input structure with initialized fields from Python cannot "
+                "be used for GS computation! Do not use loaded inputs for C "
+                "routines. "
+            )
+
         ### Find ground state and init grids
         init_grid = self.DLL.Initialise_grid_and_ground_state
         init_grid.restype = None
@@ -66,9 +74,9 @@ class TDSE_DLL:
 
         Parameters:
         -----------
-        inputs: 
+        inputs:
             Ctypes inputs structure
-        outputs: 
+        outputs:
             Ctypes outputs structure
         """
         ### Do the propagation
@@ -76,6 +84,14 @@ class TDSE_DLL:
         TDSE.restype = None
         TDSE.argtypes = [POINTER(inputs_def), POINTER(outputs_def)]
         TDSE(inputs.ptr, outputs.ptr)
+
+        outputs._has_wavefunction = inputs.analy.writewft == 1
+
+        if outputs._has_wavefunction:
+            steps_per_dt = np.floor(inputs.analy.tprint/(outputs.tgrid[1]-outputs.tgrid[0]))
+            size = int(outputs.Nt/steps_per_dt)
+
+            outputs._len_wavefunction = size
 
     def compute_PES(self, inputs, psi, E_start = -0.6, num_E = 10000, epsilon = 5e-4, Estep = 5e-4):
         """
@@ -140,10 +156,10 @@ class TDSE_DLL:
         N_freq = len(omegas[omega_range])
         if ((type(signal) == list) or (type(signal) == np.ndarray)):
             signal = ctypes_arr_ptr(c_double, len(signal), signal)
-        res = gabor(signal, c_double(dt), c_int(N), c_int(N_freq), c_int(N_G), 
+        res = gabor(signal, c_double(dt), c_int(N), c_int(N_freq), c_int(N_G),
                     c_double(t_min), c_double(t_max), c_double(a))
         gabor_res = ctype_mtrx_to_numpy(res, N_G, N_freq)
-        self.free_mtrx(res, N_G)
+        self.free_mtrx(byref(res), N_G)
         return np.linspace(t_min, t_max, N_G), omegas[omega_range], np.transpose(gabor_res)
 
     def free_mtrx(self, buffer_ptr, N_rows):
@@ -158,7 +174,7 @@ class TDSE_DLL:
             Number of rows in the 2-D array
         """
         self.DLL.free_mtrx.restype = None
-        self.DLL.free_mtrx.argtypes = [POINTER(POINTER(c_double)), c_int]
+        self.DLL.free_mtrx.argtypes = [POINTER(POINTER(POINTER(c_double))), c_int]
         self.DLL.free_mtrx(buffer_ptr, c_int(N_rows))
 
     def free_arr(self, buffer_ptr):
@@ -171,7 +187,7 @@ class TDSE_DLL:
             Pointer to the buffer to be freed
         """
         self.DLL.free_arr.restype = None
-        self.DLL.free_arr.argtypes = [POINTER(c_double)]
+        self.DLL.free_arr.argtypes = [POINTER(POINTER(c_double))]
         self.DLL.free_arr(buffer_ptr)
 
     def free_outputs(self, out_ptr):

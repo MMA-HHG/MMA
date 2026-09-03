@@ -9,6 +9,7 @@ class TestTDSE(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.DLL = TDSE_DLL(DLL_path)
+
         cls.inputs = inputs_def()
         cls.inputs.init_default_inputs(trg_a=1., CV = 1e-15, num_r=8000)
         ### Field amplitude
@@ -43,20 +44,26 @@ class TestTDSE(unittest.TestCase):
 
         ### Define outputs
         cls.output = outputs_def()
-        
+
         ### Compute TDSE
         cls.DLL.call1DTDSE(cls.inputs, cls.output)
 
         cls.wavefunction = cls.output.get_wavefunction(cls.inputs, grids=False)
 
-        cls.DLL.free_mtrx(cls.output.psi, len(cls.wavefunction))
-        
+        assert cls.output._has_wavefunction
+        assert len(cls.wavefunction) == cls.output._len_wavefunction
+
+        cls.DLL.free_mtrx(byref(cls.output.psi), len(cls.wavefunction))
+
+        assert not bool(cls.output.psi)
 
     def test_inputs(self):
         ### Load data from the HDF5 archive
         inputs = inputs_def()
-        inputs.init_inputs("ionization.h5")
-        
+        inputs.load_from_hdf5("tests/ionization.h5")
+
+        self.assertTrue(inputs._python_owned)
+
         ### Check x_grid
         self.assertTrue(np.allclose(inputs.get_xgrid(), self.inputs.get_xgrid()))
         ### Check GS
@@ -68,8 +75,10 @@ class TestTDSE(unittest.TestCase):
         ### Load data from the HDF5 archive
         inputs = inputs_def()
         output = outputs_def()
-        inputs.init_inputs("ionization.h5")
-        output.load_from_hdf5("ionization.h5")
+        inputs.load_from_hdf5("tests/ionization.h5")
+        output.load_from_hdf5("tests/ionization.h5")
+
+        self.assertTrue(output._python_owned)
 
         ### Check output length
         self.assertEqual(len(output.get_sourceterm()), len(self.output.get_sourceterm()))
@@ -89,10 +98,8 @@ class TestTDSE(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        cls.inputs.delete(cls.DLL)
-        cls.output.delete(cls.DLL)
+        pass
 
-        
 if __name__ == '__main__':
     ap = argparse.ArgumentParser()
     ap.add_argument("-d", "--dll", required=True, help="Path do the C-TDSE DLL.")
