@@ -26,3 +26,8 @@ CMakeFiles
 *.cmake
 CMakeCache.txt
 Makefile
+
+# Allow reference files in make_start test data
+!CUPRAD/tests/data/make_start/STOP
+!CUPRAD/tests/data/make_start/listing
+!CUPRAD/tests/data/make_start/msg.tmp

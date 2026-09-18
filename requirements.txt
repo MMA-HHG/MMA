@@ -10,4 +10,5 @@ ipywidgets
 ipympl
 jupyterlab-h5web
 variable-inspector
+pytest
 git+https://github.com/vabekjan/universal_input.git@pipable#egg=create_universal_HDF5
