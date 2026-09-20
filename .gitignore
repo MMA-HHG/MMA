@@ -31,3 +31,6 @@ Makefile
 !CUPRAD/tests/data/make_start/STOP
 !CUPRAD/tests/data/make_start/listing
 !CUPRAD/tests/data/make_start/msg.tmp
+
+# Large test Hankel input files
+!Hankel/tests/data/results.h5
