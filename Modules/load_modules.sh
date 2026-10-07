@@ -48,6 +48,15 @@ Karolina_modules() {
 }
 export -f Karolina_modules
 
+Barbora2_modules() {
+    module purge
+    module load HDF5/1.14.6-gompi-2025b
+    module load FFTW/3.3.10-GCC-14.3.0
+    export FC=mpifort
+    export CC=mpicc
+}
+export -f Barbora2_modules
+
 
 ### Python modules
 Curta_python_modules() {
@@ -99,6 +108,9 @@ load_modules() {
     elif [ "$HPC" == "Karolina" ]
     then
         Karolina_modules
+    elif [ "$HPC" == "Barbora2" ]
+    then
+        Barbora2_modules
     fi
 
 }

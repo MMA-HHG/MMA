@@ -59,8 +59,7 @@ set(TDSE_LIB singleTDSE)
 
 ### Single TDSE
 add_executable(${TDSE_STRIDE} ${SOURCE_STRIDE})
-# (Hot-fix): This additional fftw3 specification is required by https://metavo.metacentrum.cz/ so far
-if(NOT "$ENV{HPC}" STREQUAL "Metacentrum")
+if(NOT "$ENV{HPC}" STREQUAL "Metacentrum") # (Hot-fix): This additional fftw3 specification is required by https://metavo.metacentrum.cz/ so far
     target_link_libraries(${TDSE_STRIDE} -lm -ldl ${FFTW_LIBS} ${HDF5_LIBRARIES})
 else()
     target_link_libraries(${TDSE_STRIDE} -lfftw3 -lm -ldl ${FFTW_LIBS} ${HDF5_LIBRARIES})
@@ -90,8 +89,7 @@ if(MPI_FOUND)
 
     ### Parallel TDSE
     add_executable(${TDSE} ${SOURCE})
-    # (Hot-fix): This additional fftw3 specification is required by https://metavo.metacentrum.cz/ so far
-    if(NOT "$ENV{HPC}" STREQUAL "Metacentrum")
+    if(NOT ("$ENV{HPC}" STREQUAL "Metacentrum" OR "$ENV{HPC}" STREQUAL "Barbora2")) # (Hot-fix): This additional fftw3 specification is required by https://metavo.metacentrum.cz/ so far; or Barbora NG https://www.it4i.cz/en/infrastructure/barbora-ng
         target_link_libraries(${TDSE} mpi ${FFTW_LIBS} ${HDF5_LIBRARIES})
     else()
         target_link_libraries(${TDSE} mpi -lfftw3 -lm -ldl ${FFTW_LIBS} ${HDF5_LIBRARIES})
