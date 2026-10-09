@@ -8,4 +8,4 @@ if [[ -z ${DLL_PATH} ]]; then
     exit 1
 fi
 
-python3 tests/tests.py -d ${DLL_PATH}
+python3 tests/tests.py -l ${DLL_PATH}

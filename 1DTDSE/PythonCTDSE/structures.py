@@ -6,19 +6,21 @@ This module contains the C-compatible structures definitions for the Python-C bi
 """
 
 
-from PythonCTDSE.ctypes_helper import *
 from typing import Any
 import h5py
 from PythonCTDSE.constants import *
+from PythonCTDSE.errors import InitializedStructureError, NotInitializedError
+from PythonCTDSE.ctypes_helper import *
 import MMA_administration as MMA
 import functools
 import warnings
 import enum
+import logging
+from ctypes import *
 
 from version import _version
 major, minor, patch = _version
 
-# Set DLL into global scope
 _DLL = None
 
 def set_dll(dll):
@@ -29,9 +31,6 @@ def set_dll(dll):
 class Precision(enum.Enum):
     DOUBLE = b"d"
     SINGLE = b"s"
-
-class NotInitializedError(RuntimeError):
-    pass
 
 def delete_wrapper(func):
     @functools.wraps(func)
@@ -71,6 +70,12 @@ def dll_wrapper(func):
 
 ### Define structures
 
+def reconstruct_structure(cls, state):
+    """Protocol for reconstructing pickled ctypes structures in __reduce__"""
+    obj = cls.__new__(cls)
+    obj.__setstate__(state)
+    return obj
+
 ### Field structure
 class Efield_var(Structure):
     _fields_ = [
@@ -86,10 +91,57 @@ class Efield_var(Structure):
         ("nc", c_int)
     ]
 
+    def __setattr__(self, name, value):
+        if name in ("tgrid", "Field") and value is not None:
+            if isinstance(value, (np.ndarray, list, tuple)):
+                value = ctypes_arr_ptr(c_double, len(value), value)
+            self.__dict__[f"_{name}_arr"] = value
+        super().__setattr__(name, value)
+
+    def __getstate__(self):
+        state = {}
+        for field, ftype in self._fields_:
+            if ftype == POINTER(c_double):
+                ptr = getattr(self, field)
+                if ptr and self.Nt > 0:
+                    state[field] = ctype_arr_to_numpy(ptr, self.Nt)
+                else:
+                    state[field] = None
+            else:
+                state[field] = getattr(self, field)
+        return state
+
+    def __setstate__(self, state):
+        self.__init__()
+        for field, ftype in self._fields_:
+            val = state[field]
+            if ftype == POINTER(c_double):
+                if val is not None:
+                    arr = ctypes_arr_ptr(c_double, len(val), val)
+                    self.__dict__[f"_{field}_arr"] = arr
+                    super().__setattr__(field, arr)
+                else:
+                    super().__setattr__(field, None)
+            else:
+                super().__setattr__(field, val)
+
+    def __reduce__(self):
+        return (reconstruct_structure, (self.__class__, self.__getstate__()))
+
 class trg_def(Structure):
     _fields_ = [
         ("a", c_double)
     ]
+
+    def __getstate__(self):
+        return {"a": self.a}
+
+    def __setstate__(self, state):
+        self.__init__()
+        self.a = state["a"]
+
+    def __reduce__(self):
+        return (reconstruct_structure, (self.__class__, self.__getstate__()))
 
 class absorber_def(Structure):
     _fields_ = [
@@ -98,11 +150,41 @@ class absorber_def(Structure):
         ("x_cap", c_double)
     ]
 
+    def __getstate__(self):
+        return {
+            "type": self.type,
+            "alpha": self.alpha,
+            "x_cap": self.x_cap
+        }
+
+    def __setstate__(self, state):
+        self.__init__()
+        self.type = state["type"]
+        self.alpha = state["alpha"]
+        self.x_cap = state["x_cap"]
+
+    def __reduce__(self):
+        return (reconstruct_structure, (self.__class__, self.__getstate__()))
+
 class analy_def(Structure):
     _fields_ = [
         ("tprint", c_double),
         ("writewft", c_int)
     ]
+
+    def __getstate__(self):
+        return {
+            "tprint": self.tprint,
+            "writewft": self.writewft
+        }
+
+    def __setstate__(self, state):
+        self.__init__()
+        self.tprint = state["tprint"]
+        self.writewft = state["writewft"]
+
+    def __reduce__(self):
+        return (reconstruct_structure, (self.__class__, self.__getstate__()))
 
 class output_print_def(Structure):
     _fields_ = [
@@ -118,6 +200,17 @@ class output_print_def(Structure):
         ("PopInt", c_int),
         ("expval_x", c_int)
     ]
+
+    def __getstate__(self):
+        return {field: getattr(self, field) for field, _ in self._fields_}
+
+    def __setstate__(self, state):
+        self.__init__()
+        for field, val in state.items():
+            setattr(self, field, val)
+
+    def __reduce__(self):
+        return (reconstruct_structure, (self.__class__, self.__getstate__()))
 
 class inputs_def(Structure):
     """
@@ -171,13 +264,68 @@ class inputs_def(Structure):
         super().__init__(*args, **kw)
 
         if not _DLL:
-            raise NotInitializedError(
-                "Python TDSE DLL has not been initialized yet! "
-                "Create an instance of TDSE_DLL class first."
-            )
+            raise NotInitializedError
 
         self._freed = False
         self._python_owned = False
+        self._DLL = _DLL
+
+    def __setattr__(self, name, value):
+        if name in ("psi0", "x") and value is not None:
+            if isinstance(value, (np.ndarray, list, tuple)):
+                value = ctypes_arr_ptr(c_double, len(value), value)
+            self.__dict__[f"_{name}_arr"] = value
+        super().__setattr__(name, value)
+
+    def __getstate__(self):
+        state = {
+            "_freed": self._freed,
+            "_python_owned": self._python_owned,
+        }
+        for field, ftype in self._fields_:
+            if issubclass(ftype, Structure):
+                state[field] = getattr(self, field).__getstate__()
+            elif ftype == POINTER(c_double):
+                ptr = getattr(self, field)
+                if ptr:
+                    if field == "psi0":
+                        size = 2 * (self.num_r + 1)
+                    elif field == "x":
+                        size = self.num_r + 1
+                    else:
+                        size = 0
+                    state[field] = ctype_arr_to_numpy(ptr, size) if size > 0 else None
+                else:
+                    state[field] = None
+            elif ftype == c_char * 2:
+                state[field] = self.precision
+            else:
+                state[field] = getattr(self, field)
+        return state
+
+    def __setstate__(self, state):
+        super().__init__()
+        self._freed = state.get("_freed", False)
+        self._python_owned = True
+
+        for field, ftype in self._fields_:
+            val = state[field]
+            if issubclass(ftype, Structure):
+                getattr(self, field).__setstate__(val)
+            elif ftype == POINTER(c_double):
+                if val is not None:
+                    arr = ctypes_arr_ptr(c_double, len(val), val)
+                    self.__dict__[f"_{field}_arr"] = arr
+                    super().__setattr__(field, arr)
+                else:
+                    super().__setattr__(field, None)
+            elif ftype == c_char * 2:
+                self.precision = val
+            else:
+                super().__setattr__(field, val)
+
+    def __reduce__(self):
+        return (reconstruct_structure, (self.__class__, self.__getstate__()))
 
     _fields_ = [
         ("trg", trg_def),
@@ -335,7 +483,7 @@ class inputs_def(Structure):
         """
         Sets all prints to HDF5 to 1.
         """
-        set_prints = _DLL.DLL.Set_all_prints
+        set_prints = self._DLL.DLL.Set_all_prints
         set_prints.restype = output_print_def
         self.Print = set_prints()
 
@@ -357,6 +505,9 @@ class inputs_def(Structure):
         t: optional, default {None}
             Time array.
         """
+        if self._python_owned or self.Efield.Field:
+            raise InitializedStructureError
+
         if (filename != "") and (E is None or t is None):
             f = h5py.File(filename, "r")
             field_shape = f[MMA.paths["CUPRAD_outputs"]+"/output_field"].shape
@@ -382,7 +533,7 @@ class inputs_def(Structure):
             Nt = len(tgrid)
             self.Efield.Nt = Nt
             ### Init temporal grid
-            _DLL.set_time_and_field(self.ptr, tgrid, field, Nt)
+            self._DLL.set_time_and_field(self.ptr, tgrid, field, Nt)
 
             f.close()
 
@@ -390,7 +541,7 @@ class inputs_def(Structure):
             Nt = len(t)
             assert(Nt == len(E))
             self.Efield.Nt = Nt
-            _DLL.set_time_and_field(self.ptr, t, E, Nt)
+            self._DLL.set_time_and_field(self.ptr, t, E, Nt)
 
     def save_to_hdf5(self, filename):
         """
@@ -482,10 +633,16 @@ class inputs_def(Structure):
         """
         if not self._freed:
             if self._python_owned:
+                for field, ftype in self._fields_:
+                    if ftype == POINTER(c_double):
+                        setattr(self, field, None)
+                        self.__dict__.pop(f"_{field}_arr", None)
+                self._freed = True
                 return
 
-            _DLL.free_inputs(self.ptr)
+            self._DLL.free_inputs(self.ptr)
             self._freed = True
+            logging.debug(f"Instance {self} deleted.")
 
     def __del__(self):
         if not self._freed:
@@ -535,15 +692,98 @@ class outputs_def(Structure):
         super().__init__(*args, **kw)
 
         if not _DLL:
-            raise NotInitializedError(
-                "Python TDSE DLL has not been initialized yet! "
-                "Create an instance of TDSE_DLL class first."
-            )
+            raise NotInitializedError
 
         self._freed = False
         self._python_owned = False
         self._has_wavefunction = False
         self._len_wavefunction = 0
+        self._DLL = _DLL
+
+    def __setattr__(self, name, value):
+        if name in ("tgrid", "Efield", "sourceterm", "omegagrid", "FEfield",
+                    "Fsourceterm", "FEfieldM2", "FsourcetermM2", "PopTot",
+                    "PopInt", "expval") and value is not None:
+            if isinstance(value, (np.ndarray, list, tuple)):
+                value = ctypes_arr_ptr(c_double, len(value), value)
+            self.__dict__[f"_{name}_arr"] = value
+        elif name == "psi" and value is not None:
+            if isinstance(value, (np.ndarray, list, tuple)):
+                val_np = np.asarray(value)
+                shape = val_np.shape
+                value = ctypes_mtrx_ptr(c_double, shape, val_np)
+                self.__dict__["_psi_shape"] = shape
+                self.__dict__["_len_wavefunction"] = shape[0]
+                self.__dict__["_psi_col_size"] = shape[1]
+                self.__dict__["_has_wavefunction"] = True
+            self.__dict__["_psi_arr"] = value
+        super().__setattr__(name, value)
+
+    def __getstate__(self):
+        state = {
+            "_freed": self._freed,
+            "_python_owned": self._python_owned,
+            "_has_wavefunction": self._has_wavefunction,
+            "_len_wavefunction": getattr(self, "_len_wavefunction", 0),
+            "_psi_col_size": getattr(self, "_psi_col_size", 0),
+            "_DLL": self._DLL
+        }
+        for field, ftype in self._fields_:
+            if ftype == POINTER(c_double):
+                ptr = getattr(self, field)
+                if ptr:
+                    if field in ("tgrid", "Efield", "sourceterm", "PopTot", "PopInt", "expval"):
+                        size = self.Nt
+                    elif field in ("omegagrid", "FEfieldM2", "FsourcetermM2"):
+                        size = self.Nomega
+                    elif field in ("FEfield", "Fsourceterm"):
+                        size = 2 * self.Nomega
+                    else:
+                        size = 0
+                    state[field] = ctype_arr_to_numpy(ptr, size) if size > 0 else None
+                else:
+                    state[field] = None
+            elif ftype == POINTER(POINTER(c_double)):
+                ptr = getattr(self, field)
+                if ptr and getattr(self, "_has_wavefunction", False) and getattr(self, "_len_wavefunction", 0) > 0 and getattr(self, "_psi_col_size", 0) > 0:
+                    state[field] = ctype_mtrx_to_numpy(ptr, self._len_wavefunction, self._psi_col_size)
+                else:
+                    state[field] = None
+            else:
+                state[field] = getattr(self, field)
+        return state
+
+    def __setstate__(self, state):
+        super().__init__()
+        self._freed = state.get("_freed", False)
+        self._python_owned = True
+        self._has_wavefunction = state.get("_has_wavefunction", False)
+        self._len_wavefunction = state.get("_len_wavefunction", 0)
+        self._psi_col_size = state.get("_psi_col_size", 0)
+        self._DLL = state.get("_DLL")
+
+        for field, ftype in self._fields_:
+            val = state[field]
+            if ftype == POINTER(c_double):
+                if val is not None:
+                    arr = ctypes_arr_ptr(c_double, len(val), val)
+                    self.__dict__[f"_{field}_arr"] = arr
+                    super().__setattr__(field, arr)
+                else:
+                    super().__setattr__(field, None)
+            elif ftype == POINTER(POINTER(c_double)):
+                if val is not None:
+                    shape = val.shape
+                    arr = ctypes_mtrx_ptr(c_double, shape, val)
+                    self.__dict__[f"_{field}_arr"] = arr
+                    super().__setattr__(field, arr)
+                else:
+                    super().__setattr__(field, None)
+            else:
+                super().__setattr__(field, val)
+
+    def __reduce__(self):
+        return (reconstruct_structure, (self.__class__, self.__getstate__()))
 
     _fields_ = [
         ("tgrid", POINTER(c_double)),
@@ -659,6 +899,9 @@ class outputs_def(Structure):
                                           for i in range(len(psi_re))])
 
                 self.psi = ctypes_mtrx_ptr(c_double, psi.shape, psi)
+                self._has_wavefunction = True
+                self._len_wavefunction = psi.shape[0]
+                self._psi_col_size = psi.shape[1]
             except KeyError:
                 pass
 
@@ -766,14 +1009,23 @@ class outputs_def(Structure):
         """
         if not self._freed:
             if self._python_owned:
+                for field, ftype in self._fields_:
+                    if ftype == POINTER(c_double):
+                        setattr(self, field, None)
+                        self.__dict__.pop(f"_{field}_arr", None)
+                    elif ftype == POINTER(POINTER(c_double)):
+                        setattr(self, field, None)
+                        self.__dict__.pop(f"_{field}_arr", None)
+                self._freed = True
                 return
 
             if self._has_wavefunction:
                 if self.psi:
-                    _DLL.free_mtrx(byref(self.psi), self._len_wavefunction)
+                    self._DLL.free_mtrx(byref(self.psi), self._len_wavefunction)
 
-            _DLL.DLL.outputs_destructor(self.ptr)
+            self._DLL.DLL.outputs_destructor(self.ptr)
             self._freed = True
+            logging.debug(f"Instance {self} deleted.")
 
     def __del__(self):
         if not self._freed:
