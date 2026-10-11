@@ -1,0 +1,82 @@
+    NUMERICAL PARAMETERS
+number of processors                               4
+number of points in t                              256
+number of points in r                              256
+length of window for t, normalized to t_p          4.0028E+00
+length of window for r, normalized to w_0          4.0000E+00
+step width in time                                 1.5636E-01 fs
+x-step width                                       3.1250E-01 mum
+physical distance of propagation                   4.0000E-05 m
+physical output distance for matlab files          1.0000E-05 m
+radius for diagnostics                             1.0000E-01 mm
+physical first stepwidth (code might reduce it)    1.0000E-02 mm
+number of absorber points in time                 16
+phase threshold for increasing delta_z             8.0000E-04
+phase threshold for decreasing delta_z             2.0000E-03
+output distance in z-steps for plasma-channel     100
+approx runtime in hours                            5.0000E+00
+
+    PHYSICAL PARAMETERS
+wavelenght lambda0                                 8.0000E-05 cm
+beamwaist                                          2.0000E-03 cm
+focal length in the medium (0 = no lense)          0.0000E+00 cm
+lense parameter exp(-L((x/w0)^2+(y/w0)^2))         0.0000E+00
+pulse duration                                     1.0000E+01 fs
+chirp parameter exp(-C(t/t_p)^2)                   0.0000E+00
+ratio Pin/Pcr                                      5.1594E-03
+field noise spatial (amplitude)                     0 %
+SuperGaussian-in-space                             1
+field noise temporal (amplitude)                    0 %
+SuperGaussian-in-time                              1
+field noise (amplitude)                             0 %
+pressure                                           1.0000E-01 bar
+refractive index at lambda0                        1.0000E+00
+dispersion for argon, Dalgarno and Kingston
+Kerr coefficient                                   1.0400E-20 cm2/W
+Only instantaneous Kerr response
+chi5 coefficient                                   0.0000E+00 cm4/W2
+critical plasma density                            1.7420E+21 cm-3
+effective density of neutral molecules             2.7000E+18 cm-3
+physical initial electron density                  0.0000E+00 cm-3
+gap potential for ionization of oxygen molecules   1.5760E+01 eV
+gap potential for ionization of oxygen molecules   5.7916E-01 au
+PPT                                                3
+residue charge                                     1.0000E+00
+angular momentum                                   1
+Operators T, T^-1 included
+electron collision time                            1.9000E+03 fs
+cross section for inverse bremsstrahlung           1.0078E-20 cm2
+rec. coefficient (linear) for MPI e                0.0000E+00 fs-1
+recombination coefficent (quadratic)               0.0000E+00 fs-1cm3
+photon energy                                      5.6954E-02 au
+Number of photons for n-photon absoprtion          0
+The n-photon absorption cross-section              0.0000E+00 s-1cm2N/WN
+Density of absorbent molecules                     0.0000E+00 cm-3
+
+    CARACTERISTIC VALUES
+Rayleigh length                                    1.5708E-01 cm
+critical power                                     9.7939E+10 W
+central wave number in vacuum                      7.8540E+04 cm-1
+
+    ADIMMENSIONNED COEFFICIENTS
+adimmensionned distance of propagation             6.3660E-03
+adimmensionned output distance matlab files        1.5915E-03
+adimmensionned first stepwidth                     1.5915E-03
+adimensionned central wavenumber in the medium     4.9351E+04
+adimensionned inverse group velocity               2.0960E+03
+adimmensionned coefficient for Kerr effect         1.0000E+00
+adimmensionned coefficient for chi5 effect         0.0000E+00
+adimmensionned coefficient for losses due to AI    2.2353E-04
+adimmensionned coefficient for plasma defocusing   1.0000E+00
+adimmensionned initial electron density            0.0000E+00
+adimmensionned avalanche coefficient               7.7874E-02
+adimmensionned recombination coefficient           0.0000E+00
+adimensionned recombination coefficient (quadrati  0.0000E+00
+adimmensionned inverse density of neutral molecul  2.6148E-02
+adimensioned radius for diagnostics                5.0000E+00
+adimensionned central frequency                    2.3546E+01
+adimensionned central frequency of the box         2.0249E+02
+adimensionned nonlinear losses coefficient         0.0000E+00
+adimensionned coeff. for excited moelcules         0.0000E+00
+
+index distribution taken from file 0              
