@@ -263,6 +263,12 @@ def make_start_data_dir():
 
 
 @pytest.fixture(scope="session")
+def cuprad_data_dir():
+    """Fixture providing path to the permanent CUPRAD reference data directory."""
+    return CUPRAD_DATA_DIR
+
+
+@pytest.fixture(scope="session")
 def input_h5():
     """Fixture ensuring the notebook inputs file is generated in CUPRAD/tests/data/INPUT.h5."""
     os.makedirs(DATA_DIR, exist_ok=True)
