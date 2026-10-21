@@ -3,7 +3,8 @@
 The execution of the whole model is done through [***the pipeline***](../../README.md#execution-pipeline). Here is a collection of scripts used to orchestrate the pipeline within the [SLURM scheduler](https://hpc-wiki.info/hpc/SLURM).
 
 ***Important notes:***
-* Each computational cluster might have different requirements for the slurm commands depending on their architecture (partitions, resource management, constraints such a number of tasks, etc.). These scripts shall be then taken as templates and adapted for the particular environments according to documentations of the machine.
+* Each computational cluster might have different requirements for the slurm commands depending on their architecture (partitions, resource management, constraints such a number of tasks, etc.). These scripts shall be then taken as templates and adapted for the particular environments according to documentations of the machine or guidance by the respective support team. There are some known issues:
+  * The scaling of the parallel TDSE calculation could be blocked by the split of the workload within the allocated computation resources, it might help to control the core binding, see this **[issue](https://github.com/MMA-HHG/MMA/issues/16)**.
 * Each simulation must be executed in its own directory because there are some auxiliary temporary files withthe same names created. After the simulations are done, everything is stored in the hdf5 archive. The results might be then organised afterwards.
 * Each job requires [the same modules](../../README.md#modules-and-libraries) as the corresponing binary. It is assumed to be done through environment functions [`../../Modules/load_modules.sh`](../../Modules/load_modules.sh).
 
