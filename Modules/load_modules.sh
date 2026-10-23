@@ -94,7 +94,7 @@ export -f Karolina_python_modules
 Barbora2_python_modules() {
     module purge
     module load h5py
-    module load multiprocessing
+    module load multiprocess
 }
 export -f Barbora2_python_modules
 
