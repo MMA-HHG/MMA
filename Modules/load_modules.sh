@@ -91,6 +91,13 @@ Karolina_python_modules() {
 }
 export -f Karolina_python_modules
 
+Barbora2_python_modules() {
+    module purge
+    module load h5py
+    module load multiprocessing
+}
+export -f Barbora2_python_modules
+
 ### Load cmake, MPI, HDF5, FFTW/MKL
 load_modules() {
     if [ "$HPC" == "Curta" ] 
@@ -132,6 +139,9 @@ load_python_modules() {
     elif [ "$HPC" == "Karolina" ]
     then
         Karolina_python_modules
+    elif [ "$HPC" == "Barbora2" ]
+    then
+        Barbora2_python_modules
     fi
 
 
