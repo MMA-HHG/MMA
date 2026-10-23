@@ -104,7 +104,7 @@ PROGRAM cuprad
         ! Check if time limit for the calculation reached
         !deltatime = time() - starttime
         CALL MPI_BCAST(deltatime,1,MPI_REAL,0,MPI_COMM_WORLD,ierr)
-        IF (deltatime.GE.limit_s) EXIT
+        ! IF (deltatime.GE.limit_s) EXIT
         !     IF (my_rank.EQ.0) CALL TREMAIN(TREM)
         !     CALL MPI_BCAST(TREM,1,MPI_DOUBLE_PRECISION,0,MPI_COMM_WORLD,ierr)
         !     IF (TREM.LE.3600) EXIT     
