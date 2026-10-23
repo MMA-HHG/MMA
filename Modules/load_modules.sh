@@ -92,7 +92,7 @@ Karolina_python_modules() {
 export -f Karolina_python_modules
 
 Barbora2_python_modules() {
-    module use /mnt/proj3/open-34-87/modules/mma_python/modules/all
+    module use /mnt/proj3/open-34-87/modules/mma_python/modules/all # this path needs to be specified to point to the installation of the modules
     module purge
     module load h5py
     module load multiprocess
