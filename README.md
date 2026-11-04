@@ -10,6 +10,7 @@ This repository contains the sources for the [**Modular Multiscale Approach (MMA
 The model provides a full solution to treat HHG in gaseous media: the laser pulse propagation, the single-atom response, and the XUV propagation. The design of the code is modular and each of the respective modules can be used independently for its own purposes without requiring the other modules. The assumtions in the model are the linear polarisation and cyllindrical symmetry in the macroscopic propagation. (We are working on extensions of the approach, see notes below.)
 
 [**An installation guide is below**](#installations), followed by [the description of input parameters](#inputs), a general overview is available in [**the pre-print**](https://arxiv.org/pdf/2507.04115). [***YouTube tutorials***](https://youtube.com/playlist?list=PLhgkvMYpHD8gA1C3FM_GB24HNYNsBGxQe&feature=shared) for the main operations are available. If you have difficulties with code, please [***raise an Issue***](https://github.com/MMA-HHG/MMA/issues) or [***start a Disscusion***](https://github.com/MMA-HHG/MMA/discussions) or contact us. The compiled version of the code is accessible through [***CodeOcean capsule***](https://codeocean.com/capsule/6775529/tree). Different modes of the operation of the code are provided in [***the jupyter tutorials***](./jupyter_examples/). The reference datasets for these demos are available [here](https://elibeamlines-my.sharepoint.com/:f:/g/personal/jan_vabek_eli-beams_eu/EpgdhQS_bQROnTYpj6y0zgYBTvz_sSh3WMQDiWgy9YgXfw?e=WnnpgR). The respective directories provide more technical details about the codes: [CUPRAD](./CUPRAD/), [1D-TDSE](./1DTDSE/README.md) and [the Hankel transform](./Hankel/).
+[**An installation guide is below**](#installations), followed by [**running unit tests**](#running-tests) and [the description of input parameters](#inputs), a general overview is available in [**the pre-print**](https://arxiv.org/pdf/2507.04115). [***YouTube tutorials***](https://youtube.com/playlist?list=PLhgkvMYpHD8gA1C3FM_GB24HNYNsBGxQe&feature=shared) for the main operations are available. If you have difficulties with code, please [***raise an Issue***](https://github.com/MMA-HHG/MMA/issues) or [***start a Disscusion***](https://github.com/MMA-HHG/MMA/discussions) or contact us. The compiled version of the code is accessible through [***CodeOcean capsule***](https://codeocean.com/capsule/6775529/tree). Different modes of the operation of the code are provided in [***the jupyter tutorials***](./jupyter_examples/). The reference datasets for these demos are available [here](https://elibeamlines-my.sharepoint.com/:f:/g/personal/jan_vabek_eli-beams_eu/EpgdhQS_bQROnTYpj6y0zgYBTvz_sSh3WMQDiWgy9YgXfw?e=WnnpgR). The respective directories provide more technical details about the codes: [CUPRAD](./CUPRAD/), [1D-TDSE](./1DTDSE/README.md) and [the Hankel transform](./Hankel/).
 
 The last point to address is the execution of the code. If used locally, CUPRAD and TDSE are standard MPI applications and Hankel a Pythonic module. Once running on HPC clusters, a scheduler is involved. The code is then executed as [a pipeline of the different modules](#execution-pipeline).
 
@@ -23,7 +24,7 @@ Tadeáš Němec
 * [***Subscribe for news!***](https://bit.ly/HHG-code-updates
 )
 * The code is provided as it is with open source. We cannot provide guarantee or take responsibility for its usage.
-* We are a small developer's group and our primary occupation is science. We would be grateful to discuss the usage of the code. However, we cannot provide a commerce-level full-scale support at the instant. 
+* We are a small developer's group and our primary occupation is science. We would be grateful to discuss the usage of the code. However, we cannot provide a commerce-level full-scale support at the instant.
 * We would be grateful for your feedback!
 * We are working on more advanced siblings of the codes (3D-vectorial pulse propagation, 3D-TDSE) that are not a part of the first release. Please contact authors for possible collaborations if you need the more advanced features.
 
@@ -32,11 +33,11 @@ Tadeáš Němec
 Both `CUPRAD` and `CTDSE` are compiled from the source. Hankel is implemented in Python and together with the other Pythonic procedures and scripting around the model rely on setting up the environment variables.
 <!--- We head for RC1, use virtual environment, pip, etc. in future releases by default --->
 
-We consider two usages os the code. First, [we provide full local conteinerised insallation within a Docker image](#reference-docker-installation-and-running-the-code). This approach is recommended to get familiar with the code and some smaller tasks. To upsacale the work, it is necessary to use HPC, this installation is usually machine specific and [we provide some a general overview of the used libraries, which shall together with the reference local container facilitate the usage of the code](#custom-installations). 
+We consider two usages os the code. First, [we provide full local conteinerised insallation within a Docker image](#reference-docker-installation-and-running-the-code). This approach is recommended to get familiar with the code and some smaller tasks. To upsacale the work, it is necessary to use HPC, this installation is usually machine specific and [we provide some a general overview of the used libraries, which shall together with the reference local container facilitate the usage of the code](#custom-installations).
 
 In both cases, this repository is cloned by `git clone git@github.com:MMA-HHG/MMA.git` or `git clone https://github.com/MMA-HHG/MMA.git`.
 
-The first option uses the Docker image. It is a direct multiplatform user-oriented way to obtain the executable model. This can be used for running the model locally. Moreover, this can be used as a direct reference for compiling the code the second way: directly from the source. This option might be neccessary for deploying the code on HPC clusters, develpoment, …  
+The first option uses the Docker image. It is a direct multiplatform user-oriented way to obtain the executable model. This can be used for running the model locally. Moreover, this can be used as a direct reference for compiling the code the second way: directly from the source. This option might be neccessary for deploying the code on HPC clusters, develpoment, …
 
 ## Reference Docker installation and running the code
 
@@ -56,7 +57,7 @@ The code can be accessed through Docker. Docker prepares the software environmen
         docker build -t mma .
 
     The option `-t mma` specifies the name of the Docker image, i.e. in this case the name of the image is `mma`.
-    
+
     *It is recommended to use [WSL in Windows](https://learn.microsoft.com/en-us/windows/wsl/install). Without WSL, it might be necessary to replace [Dockerfile](./Dockerfile) by the [Dockerfile for Windows](./docker/Dockerfile_Windows) due to a different character set.*
 
 4) Start the container. Choose `CONTAINER_NAME`, for example `mma-c1`. The same name is also used as the container hostname, so the terminal prompt is easier to read.
@@ -235,7 +236,7 @@ When used locally on a personal computer, the libraries (FFTW3, CMake, …) are 
 
 [The modules](https://hpc-wiki.info/hpc/Modules) provide all the necessary libraries for the code when using a computational cluster. The script [`Modules/load_modules.sh`](./Modules/load_modules.sh) is used to load all the modules. This function are supposed to be added into the environemnt (e.g. by sourcing the script in `.bash_aliases` as done above). There is a list of modules for various computational clusters specified by the variable `$HPC`. Another supercomputer (or compilation option intel/GNU/...) should be added there.
 
-There are two `bash` functions `load_modules` and `load_python_modules`. The former is activated when running *CUPRAD* and *CTDSE*, while the latter is used for all Pythonic operations around the code. (The reason for this duality is that Python might need to load a compiler itself for some libraries, typically on intel.) 
+There are two `bash` functions `load_modules` and `load_python_modules`. The former is activated when running *CUPRAD* and *CTDSE*, while the latter is used for all Pythonic operations around the code. (The reason for this duality is that Python might need to load a compiler itself for some libraries, typically on intel.)
 
 ### Installing both CUPRAD and CTDSE
 If everything is set well, the following CMakes are wrapped in the master `CMakeList.txt` (the compilers tested on some machines and currently supported are GNU and Intel). Here is the recipe to install the code from its root directory.
@@ -295,11 +296,60 @@ The dynamic library is then available, see [this example of a jupyter notebook i
 ### Hankel
 This module becomes available by [including it into the `$PYTHONPATH`](#setting-the-paths).
 
+<a id="running-tests"></a>
+## Running unit tests
+MMA provides a unified test suite based on [pytest](https://docs.pytest.org/) covering all three computational modules (`CUPRAD`, `1DTDSE`, and `Hankel`).
+
+### Running the entire test suite
+From the root directory of the repository, execute:
+
+```bash
+pytest -v
+```
+
+By default, the test suite looks for compiled binaries and libraries in the standard build directories (`CUPRAD/build` and `1DTDSE/build`, or the environment variables `$CUPRAD_BUILD` and `$TDSE_1D_BUILD`).
+
+### Custom build and library paths
+When binaries or dynamic libraries are located in custom paths (e.g. within a root `build/` directory or on macOS), specify them via command-line options:
+
+* `--cuprad-build <path>`: Path to the CUPRAD build directory containing `cuprad.e` and `make_start.e`.
+* `--tdse-build <path>`: Path to the 1DTDSE build directory or compiled dynamic library.
+* `--tdse-dll <path>`: Explicit path to the CTDSE dynamic library (`libsingleTDSE.so` / `libsingleTDSE.dylib`). Not needed if `--tdse-build` path already contains the required dynamic library.
+
+**Example (build path in root):**
+```bash
+pytest --tdse-build build/1DTDSE/build --cuprad-build build/CUPRAD/build -v
+```
+
+### Running module-specific tests
+You can run tests for each module individually:
+
+```bash
+# CUPRAD tests (dataformat & MPI validation)
+pytest CUPRAD/tests -v
+
+# Hankel transform tests
+pytest Hankel/tests -v
+
+# 1DTDSE tests
+pytest 1DTDSE/tests --tdse-dll path/to/libsingleTDSE.so -v
+```
+
+### Test markers
+* **Skip MPI tests:** If MPI runners (`mpirun`/`mpiexec`) or compiled binaries are not available, deselect MPI-dependent tests:
+  ```bash
+  pytest -m "not mpi" -v
+  ```
+* **Skip slow tests:**
+  ```bash
+  pytest -m "not slow" -v
+  ```
+
 ## HDF5 data organisation
 All the inputs and outputs are stored in an HDF5 archive grouping together I/O for the different modules. The structure is flexible and defined in the *namelists*: [Python](shared_python/MMA_administration.py), [C](1DTDSE/sources/h5namelist.h), [Fortran](CUPRAD/sources/global_variables.f90).
 
 ## Inputs
-Here is the exhaustive list of all the parameters. The bold **`parameters`** are obligatory to run the whole model with sourcing the default material constants. The other `parameters` are optional. If an optional parameter is present, it has priority. 
+Here is the exhaustive list of all the parameters. The bold **`parameters`** are obligatory to run the whole model with sourcing the default material constants. The other `parameters` are optional. If an optional parameter is present, it has priority.
 
 ### Global
 The global inputs are stored in the `global_inputs` groups, they might be used by more than one module.
@@ -319,16 +369,16 @@ The input parameters of CUPRAD are stored in `CUPRAD/inputs` group. The default 
 * **laser**
   * **`laser_wavelength`**: The central wavelength, $\lambda$, of the driving field.
   * **beam geometries and the entry intensity**: (It is obligatory to use one of the sets.)
-    * Reference Gaussian beam: One option to specify the geometry of the beam is *the reference Gaussian beam*. 
+    * Reference Gaussian beam: One option to specify the geometry of the beam is *the reference Gaussian beam*.
       * `laser_focus_beamwaist_Gaussian`: The beamwaist in the focus.
       * `laser_focus_position_Gaussian`: The position of the focus relative to the entry of the medium.
       * `laser_focus_intensity_Gaussian`: The peak intensity in the focus.
-    * Specify the beam directly at the entry plane: 
+    * Specify the beam directly at the entry plane:
       * `laser_beamwaist_entry`: The beam radius at the entry plane.
       * `laser_focus_position_Gaussian`: The focal point of a virtual lens placed at the entry plane. (It imprints the according curvature in the entry plane.)
       * `laser_intensity_entry` or `laser_energy` or `laser_ratio_pin_pcr`
         * `laser_intensity_entry`: Peak intensity at the entrry plane.
-        * `laser_energy`: The total energy in the laser pulse. 
+        * `laser_energy`: The total energy in the laser pulse.
         * `laser_ratio_pin_pcr`: The peak intensity is inferred from the critical power $P_{\text{cr}}=\lambda^2/(2\pi n_2(p))$, where $n_2(p)$ is the non-linear refractive index charactersing the Kerr effect, at a given pressure $p$. The relation with the peak intensity $I_0$ is: $P_{\text{in}}/P_{\text{cr}}=n_2(p)I_0 (\pi w(z)/\lambda)^2$, where $P_{\text{in}}=\pi I_0 w^2(z)/2$. (This value is related with the possible beam collapse due to Kerr self-focusing, [see Sec. 3.1 here](https://iopscience.iop.org/article/10.1088/0034-4885/70/10/R03).)
   * **pulse duration specifications**: The pulse duration is specified by **either of these variables**.
     * `laser_pulse_duration_in_1_e_Efield`: The lenght of the pulse measured as the interval where the electric field amplitude exceeds $\mathcal{E}_{\text{max}}/\mathrm{e}$.
@@ -348,8 +398,8 @@ The input parameters of CUPRAD are stored in `CUPRAD/inputs` group. The default 
   * `Kerr_ionised_atoms_relative_Kerr_response`: The response of the ions relative to the neutrals, it equals $n_2^{\text{(ions)}}/n_2^{\text{(neutrals)}}$.
   * `Kerr_chi5_coefficient`: The fifth-order nonlinearity coefficient for Kerr effect, indicating the strength of the nonlinear response in a medium.
   * `Kerr_type_of_delayed_kerr_response`: The option to include delayed Kerr effect according to [Section 2.2 here](https://iopscience.iop.org/article/10.1088/0034-4885/70/10/R03). 1 -- instantaneous Kerr only (default); 2 -- instantaneous Kerr + simplified Raman response; 3 -- instantaneous Kerr + full intrapulse Raman response.
-  * `Kerr_ratio_of_delayed_kerr_xdk`: Ratio $0\le x_{dK}\le 1$ of delayed Kerr (Raman) contribution; only active for `Kerr_type_of_delayed_kerr_response` = 2 or 3.  
-  * `Kerr_time_of_delayed_kerr_tdk`: Dipole dephasing time of Raman response in fs; only active for `Kerr_type_of_delayed_kerr_response` = 2 or 3.  
+  * `Kerr_ratio_of_delayed_kerr_xdk`: Ratio $0\le x_{dK}\le 1$ of delayed Kerr (Raman) contribution; only active for `Kerr_type_of_delayed_kerr_response` = 2 or 3.
+  * `Kerr_time_of_delayed_kerr_tdk`: Dipole dephasing time of Raman response in fs; only active for `Kerr_type_of_delayed_kerr_response` = 2 or 3.
   * `Kerr_frequency_in_delayed_kerr_wr`: Raman frequency in 1/fs; only active for `Kerr_type_of_delayed_kerr_response` = 3.
   * `dispersion_type_of_dispersion_law`: (DEPRECATED): Switch to select the dispersion law for neutrals. It is recomended to use the `gas_preset` to select it.
   * `ionization_ionization_potential_of_neutral_molecules`: The ionization potential of neutral molecules, indicating the energy required to ionize a molecule.

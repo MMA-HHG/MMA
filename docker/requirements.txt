@@ -4,6 +4,7 @@ scipy==1.11.3
 h5py==3.10.0
 matplotlib==3.8.3
 multiprocess==0.70.17
+pytest>=8.0.0
 
 # Jupyter interface
 jupyter==1.0.0
