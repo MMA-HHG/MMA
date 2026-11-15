@@ -109,8 +109,27 @@ run_auto_build_if_needed() {
         || die "Build finished, but one or more expected executables are missing."
 }
 
+install_requested_agents() {
+    # Optional AI coding agents chosen at container start: docker run -e AI_AGENTS=claude ...
+    # mma-agents skips agents that are already installed. See docker/agents/README.md.
+    if [[ -n "${AI_AGENTS:-}" ]]; then
+        mma-agents install "${AI_AGENTS}" \
+            || die "Requested AI agent installation failed; see the messages above." \
+                   "To start without agents, omit AI_AGENTS or set AI_AGENTS=none."
+    elif [[ -n "${MMA_AGENTS_IMAGE:-}" ]]; then
+        # The image's own selection (--build-arg AI_AGENTS=...): re-applied offline, so that,
+        # for example, a pinned version keeps its update setting in a reused volume.
+        mma-agents install "${MMA_AGENTS_IMAGE}" >/dev/null \
+            || echo "[entrypoint:warning] Could not re-apply the image's AI agent settings; see above." >&2
+    fi
+}
+
 set_num_proc_default
+install_requested_agents
 run_auto_build_if_needed
+
+# Ensure the working directory used by the MMA basics tutorial exists.
+mkdir -p "${MULTISCALE_WORK_DIR:-/MMA/work_dir}/mma_basics" 2>/dev/null || true
 
 # Default command if the user did not provide one.
 if [[ "$#" -eq 0 ]]; then
@@ -118,6 +137,3 @@ if [[ "$#" -eq 0 ]]; then
 fi
 
 exec "$@"
-
-# Ensure the working directory used by the MMA basics tutorial exists.
-mkdir -p "${MULTISCALE_WORK_DIR:-/MMA/work_dir}/mma_basics"

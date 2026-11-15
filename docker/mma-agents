@@ -1,0 +1,137 @@
+#!/usr/bin/env bash
+# mma-agents: install optional AI coding agents into the MMA container.
+#
+# The same command runs at build time (Dockerfile, --build-arg AI_AGENTS=...) and at
+# container start (entrypoint, docker run -e AI_AGENTS=...). Each supported agent is one
+# recipe, docker/agents/<name>.sh; the recipe contract is in docker/agents/README.md.
+set -euo pipefail
+
+recipes_dir="${MMA_AGENTS_RECIPES:-/opt/mma/agents}"
+export MMA_AGENTS_STATE="${MMA_AGENTS_STATE:-${HOME}/.mma-agents}"
+project_root="${MMA_PATH:-/MMA}"
+
+name_re='^[a-z0-9]+(-[a-z0-9]+)*$'
+version_re='^[A-Za-z0-9][A-Za-z0-9._-]*$'
+
+die() {
+    local line
+    for line in "$@"; do
+        echo "[mma-agents:error] ${line}" >&2
+    done
+    exit 1
+}
+
+usage() {
+    cat <<'USAGE'
+Usage:
+  mma-agents install AGENT[@VERSION][,AGENT[@VERSION]...]
+  mma-agents list
+
+Installs optional AI coding agents into this container, one recipe per agent.
+Without @VERSION, the agent's current release is installed; subsequent updates
+are agent-specific. With @VERSION, that version is installed and kept.
+The same list can be given at build time (--build-arg AI_AGENTS=...) or at
+container start (docker run -e AI_AGENTS=...). An empty list or "none" does nothing.
+
+Recipes, and how to add an agent: docker/agents/README.md in the MMA repository.
+USAGE
+}
+
+supported_agents() {
+    local recipe
+    for recipe in "${recipes_dir}"/*.sh; do
+        [[ -f "${recipe}" ]] && basename "${recipe}" .sh
+    done
+}
+
+list_agents() {
+    local agent found=0
+    for agent in $(supported_agents); do
+        echo "${agent}"
+        found=1
+    done
+    (( found )) || echo "No agent recipes found in ${recipes_dir}."
+}
+
+# Run a recipe without depending on its line endings (Windows checkouts may add CR)
+# and without giving it the script as standard input.
+run_recipe() {
+    bash <(sed 's/\r$//' "${recipes_dir}/$1.sh") "$2"
+}
+
+prepare() {
+    mkdir -p "${MMA_AGENTS_STATE}" "${HOME}/.local/bin"
+
+    # Git in the bind-mounted repository, whose owner may differ from the container user.
+    if ! git config --global --get-all safe.directory 2>/dev/null | grep -qxF "${project_root}"; then
+        git config --global --add safe.directory "${project_root}"
+    fi
+
+    case ":${PATH}:" in
+        *":${HOME}/.local/bin:"*) ;;
+        *) echo "[mma-agents:warning] ${HOME}/.local/bin is not on PATH; agent commands may not be found." >&2 ;;
+    esac
+}
+
+install_agents() {
+    local item name version
+    local -a items names=() versions=()
+
+    # Entries are separated by commas or spaces.
+    read -ra items <<< "${1//,/ }"
+
+    # Validate the whole list before installing anything, so a typo fails fast.
+    for item in "${items[@]}"; do
+        [[ "${item}" == "none" ]] && continue
+        name="${item%%@*}"
+        version=""
+        if [[ "${item}" == *@* ]]; then
+            version="${item#*@}"
+            [[ "${version}" =~ ${version_re} ]] \
+                || die "Invalid version in '${item}'; expected AGENT@VERSION, for example claude@stable."
+        fi
+        [[ "${name}" =~ ${name_re} ]] \
+            || die "Invalid agent name '${name}'; use lowercase letters, digits and single hyphens."
+        if [[ ! -f "${recipes_dir}/${name}.sh" ]]; then
+            die "Unknown AI agent: ${name}" \
+                "Supported agents: $(supported_agents | paste -sd ' ' -)" \
+                "To add one, create docker/agents/${name}.sh as described in docker/agents/README.md."
+        fi
+        if [[ " ${names[*]} " == *" ${name} "* ]]; then
+            die "Agent '${name}' is listed more than once."
+        fi
+        names+=("${name}")
+        versions+=("${version}")
+    done
+
+    (( ${#names[@]} )) || return 0
+
+    [[ "$(id -u)" -ne 0 ]] \
+        || die "Run mma-agents as the container user, not as root: agents install into the user's home."
+
+    prepare
+
+    local i
+    for i in "${!names[@]}"; do
+        name="${names[i]}"
+        version="${versions[i]}"
+        echo "[mma-agents] ${name}${version:+@${version}}"
+        run_recipe "${name}" "${version}" || die "Installing ${name} failed; see the messages above."
+    done
+}
+
+case "${1:-}" in
+    install)
+        install_agents "${2:-}"
+        ;;
+    list)
+        list_agents
+        ;;
+    -h|--help|help)
+        usage
+        ;;
+    *)
+        usage >&2
+        exit 2
+        ;;
+esac
