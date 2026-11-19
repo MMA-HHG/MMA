@@ -257,32 +257,30 @@ CUPRAD_REF_INPUT_PATH = os.path.join(CUPRAD_DATA_DIR, "INPUT.h5")
 
 
 @pytest.fixture(scope="session")
-def make_start_data_dir():
+def make_start_data_dir(ensure_dataset_path):
     """Fixture providing path to the permanent make_start pre-processed data directory."""
-    return MAKE_START_DATA_DIR
+    return ensure_dataset_path(MAKE_START_DATA_DIR)
 
 
 @pytest.fixture(scope="session")
-def cuprad_data_dir():
+def cuprad_data_dir(ensure_dataset_path):
     """Fixture providing path to the permanent CUPRAD reference data directory."""
+    if os.path.lexists(CUPRAD_REF_INPUT_PATH):
+        ensure_dataset_path(CUPRAD_REF_INPUT_PATH)
     return CUPRAD_DATA_DIR
 
 
 @pytest.fixture(scope="session")
-def input_h5():
+def input_h5(ensure_dataset_path):
     """Fixture ensuring the notebook inputs file is generated in CUPRAD/tests/data/INPUT.h5."""
     os.makedirs(DATA_DIR, exist_ok=True)
-    if not os.path.exists(INPUT_PATH):
-        prepare_input(INPUT_PATH)
+    if os.path.lexists(INPUT_PATH):
+        return ensure_dataset_path(INPUT_PATH)
+    prepare_input(INPUT_PATH)
     return INPUT_PATH
 
 
 @pytest.fixture
-def reference_results_h5():
+def reference_results_h5(ensure_dataset_path):
     """Fixture pointing to the designated reference results file"""
-    if os.path.exists(CUPRAD_REF_INPUT_PATH):
-        return CUPRAD_REF_INPUT_PATH
-
-    pytest.skip(
-        f"Reference CUPRAD file not found at {CUPRAD_REF_INPUT_PATH}."
-    )
+    return ensure_dataset_path(CUPRAD_REF_INPUT_PATH)

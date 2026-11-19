@@ -24,17 +24,13 @@ def hankel_data_dir():
 
 
 @pytest.fixture(scope="session")
-def hankel_input_h5():
+def hankel_input_h5(ensure_dataset_path):
     """Path to Hankel input dataset (from teach_me_mma.ipynb pipeline)."""
-    if os.path.exists(HANKEL_INPUT_PATH):
-        return HANKEL_INPUT_PATH
-    pytest.skip(f"Hankel input file not found at {HANKEL_INPUT_PATH}")
+    return ensure_dataset_path(HANKEL_INPUT_PATH)
 
 
 @pytest.fixture(scope="session")
-def hankel_ref_h5():
+def hankel_ref_h5(ensure_dataset_path):
     """Path to Hankel reference output file."""
-    if os.path.exists(HANKEL_REF_PATH):
-        return HANKEL_REF_PATH
-    pytest.skip(f"Hankel reference output file not found at {HANKEL_REF_PATH}")
+    return ensure_dataset_path(HANKEL_REF_PATH)
 

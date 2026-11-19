@@ -108,6 +108,7 @@ def validate_cuprad_output(h5_source, edge_decay_ratio=0.05, verbose=True):
         return report
 
 
+@pytest.mark.dataset
 def test_make_start_execution(tmp_path, cuprad_build_dir, input_h5, make_start_data_dir):
     """Test running make_start.e with a copy of INPUT.h5 in an isolated temporary directory,
     and verify that all expected output files match the contents of make_start reference directory.
@@ -118,7 +119,7 @@ def test_make_start_execution(tmp_path, cuprad_build_dir, input_h5, make_start_d
 
     # Copy INPUT.h5 into the temporary working directory (leaves original data/INPUT.h5 untouched)
     target_input = tmp_path / "INPUT.h5"
-    shutil.copy2(input_h5, target_input)
+    shutil.copyfile(input_h5, target_input)
 
     # Run make_start.e passing INPUT.h5 via standard input
     try:
@@ -193,6 +194,7 @@ def test_make_start_execution(tmp_path, cuprad_build_dir, input_h5, make_start_d
 
 
 @pytest.mark.mpi
+@pytest.mark.dataset
 def test_cuprad_mpi_execution(tmp_path, cuprad_build_dir, make_start_data_dir, cuprad_data_dir):
     """Test running cuprad.e via MPI with a copy of make_start reference directory,
     and validate the resulting output file using validate_cuprad_output and reference comparison.
@@ -228,7 +230,7 @@ def test_cuprad_mpi_execution(tmp_path, cuprad_build_dir, make_start_data_dir, c
         if os.path.isdir(src_path):
             shutil.copytree(src_path, dst_path)
         else:
-            shutil.copy2(src_path, dst_path)
+            shutil.copyfile(src_path, dst_path)
 
     # Run cuprad.e under MPI
     cmd = [mpirun_bin, "-n", str(num_cores), cuprad_bin]

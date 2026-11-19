@@ -335,7 +335,43 @@ pytest Hankel/tests -v
 pytest 1DTDSE/tests --tdse-dll path/to/libsingleTDSE.so -v
 ```
 
+### Test datasets (`git-annex` and EOSC DataRepo)
+The `.h5` and `.dat` test reference datasets under `1DTDSE/tests/data/`, `CUPRAD/tests/data/`, and `Hankel/tests/data/` are managed via [`git-annex`](https://git-annex.branchable.com/) and hosted on the public read-only [EOSC DataRepo](https://datarepo.eosc.cz/datasets/records/39arw-t9a93) (DOI: `10.48700/39arw-t9a93`).
+
+By default, running `pytest` (`--datasets=auto`) automatically fetches any missing annexed datasets required by the selected tests via `git annex get`. Use `--datasets` or test markers to control dataset fetching and selection:
+
+* **Auto-download required datasets (default):**
+  ```bash
+  pytest -v
+  ```
+* **Skip dataset-backed tests (self-contained unit tests only, no downloads):**
+  ```bash
+  pytest --datasets=skip -v
+  # or using pytest markers:
+  pytest -m "not dataset" -v
+  ```
+* **Offline / local-only mode (never downloads; skips tests whose datasets are not present locally):**
+  ```bash
+  pytest --datasets=local -v
+  ```
+* **Run only dataset-backed tests:**
+  ```bash
+  pytest -m dataset -v
+  ```
+
+You can also manage datasets manually with `git-annex`:
+```bash
+git annex get 1DTDSE/tests/data CUPRAD/tests/data Hankel/tests/data    # download all test data
+git annex drop 1DTDSE/tests/data CUPRAD/tests/data Hankel/tests/data   # drop local copies to free space
+git annex whereis 1DTDSE/tests/data CUPRAD/tests/data Hankel/tests/data # inspect remote URLs
+```
+When pushing commits to GitHub, remember to push both your code branch and the `git-annex` metadata branch (e.g., `git push origin <branch> git-annex`).
+
 ### Test markers
+* **Skip dataset tests:** Deselect tests requiring annexed reference datasets:
+  ```bash
+  pytest -m "not dataset" -v
+  ```
 * **Skip MPI tests:** If MPI runners (`mpirun`/`mpiexec`) or compiled binaries are not available, deselect MPI-dependent tests:
   ```bash
   pytest -m "not mpi" -v

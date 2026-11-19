@@ -98,6 +98,7 @@ def validate_hankel_output(h5_source, verbose=True):
         return report
 
 
+@pytest.mark.dataset
 def test_hankel_reference_data_integrity(hankel_ref_h5):
     """Validate that the permanent reference file results_Hankel.h5 passes all structural and physical checks."""
     report = validate_hankel_output(hankel_ref_h5, verbose=False)
@@ -107,6 +108,7 @@ def test_hankel_reference_data_integrity(hankel_ref_h5):
     assert report["peak_intensity"] > 0.0
 
 
+@pytest.mark.dataset
 def test_hankel_input_integrity(hankel_input_h5):
     """Verify that results.h5 contains all required inputs and TDSE dipole outputs for Hankel transform."""
     with h5py.File(hankel_input_h5, "r") as f:
@@ -134,6 +136,7 @@ def test_hankel_input_integrity(hankel_input_h5):
 
 
 @pytest.mark.slow
+@pytest.mark.dataset
 def test_hankel_computation_matches_reference(hankel_input_h5, hankel_ref_h5):
     """Compute Hankel transform directly from input file and verify numerical equivalence with reference output."""
     omega_au2SI = mn.ConvertPhoton(1.0, "omegaau", "omegaSI")

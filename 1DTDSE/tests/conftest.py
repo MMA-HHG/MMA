@@ -23,12 +23,12 @@ def tdse_data_dir():
 
 
 @pytest.fixture(scope="session")
-def ionization_h5():
+def ionization_h5(ensure_dataset_path):
     """Return path to ionization.h5 reference dataset."""
-    if os.path.exists(IONIZATION_H5):
-        return IONIZATION_H5
+    if os.path.lexists(IONIZATION_H5):
+        return ensure_dataset_path(IONIZATION_H5)
     fallback = os.path.join(current_dir, "ionization.h5")
-    if os.path.exists(fallback):
-        return fallback
-    raise FileNotFoundError(f"Reference ionization.h5 not found at {IONIZATION_H5} or {fallback}")
+    if os.path.lexists(fallback):
+        return ensure_dataset_path(fallback)
+    pytest.skip(f"Reference ionization.h5 not found at {IONIZATION_H5} or {fallback}")
 

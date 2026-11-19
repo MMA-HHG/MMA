@@ -90,6 +90,7 @@ def tdse_sim(tdse_dll_path):
     )
 
 
+@pytest.mark.dataset
 def test_inputs(tdse_sim, ionization_h5):
     """Verify input grid, ground state wavefunction, and initial energy against reference."""
     ### Load data from the HDF5 archive
@@ -106,6 +107,7 @@ def test_inputs(tdse_sim, ionization_h5):
     assert np.isclose(inputs.Einit, tdse_sim.inputs.Einit)
 
 
+@pytest.mark.dataset
 def test_outputs(tdse_sim, ionization_h5):
     """Verify TDSE computed outputs against reference archive."""
     # Wavefunction assertions from baseline simulation

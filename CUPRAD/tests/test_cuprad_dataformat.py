@@ -110,6 +110,7 @@ def test_notebook_analysis_helpers(synthetic_cuprad_h5):
         assert np.all(cutoffs >= 1.0)
 
 
+@pytest.mark.dataset
 def test_notebook_inputs_creation(input_h5):
     """Test that input_h5 fixture accurately prepares teach_me_mma.ipynb input schema."""
     with h5py.File(input_h5, "r") as f:
@@ -127,6 +128,7 @@ def test_notebook_inputs_creation(input_h5):
         assert f[MMA.paths["Hankel_inputs"] + "/distance_FF"][()] == 1.0
 
 
+@pytest.mark.dataset
 def test_notebook_reference_results_loading(reference_results_h5):
     """Test loading the user's reference CUPRAD simulation results when placed in CUPRAD/tests/data/."""
     with h5py.File(reference_results_h5, "r") as f:
