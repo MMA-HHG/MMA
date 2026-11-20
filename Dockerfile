@@ -54,6 +54,9 @@ RUN apt-get update \
         python3-setuptools \
         python3-wheel \
         git \
+        netbase \
+        curl \
+        libmagic-mgc \
         ffmpeg \
         bash-completion \
         sudo \
@@ -106,6 +109,8 @@ RUN chmod +x \
 
 USER ${USERNAME}
 WORKDIR ${MMA_PATH}
+
+RUN git config --global --add safe.directory "${MMA_PATH}"
 
 # Prepare tutorial JupyterLab workspaces for the default container user.
 # JupyterLab stores workspaces in the user's profile, so this must run
