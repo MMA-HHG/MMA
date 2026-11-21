@@ -65,4 +65,8 @@ RUN pip3 install -U --no-cache-dir \
     multiprocess==0.70.17 \
     pytest>=8.0.0 \
     git-annex>=10.0 \
-    git+https://github.com/vabekjan/universal_input.git@pipable#egg=create_universal_HDF5 
+    git+https://github.com/vabekjan/universal_input.git@pipable#egg=create_universal_HDF5
+
+RUN git config --global --add safe.directory "${MSM_PATH}" \
+    && git config --global user.name "MMA User" \
+    && git config --global user.email "mma@localhost" 
