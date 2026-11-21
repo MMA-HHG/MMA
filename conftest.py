@@ -4,6 +4,7 @@ import os
 import shutil
 import subprocess
 import sys
+import time
 import pytest
 
 _REPO_ROOT = os.path.dirname(os.path.abspath(__file__))
@@ -125,23 +126,30 @@ def fetch_annex_files(rel_paths: list[str]) -> None:
     )
     sys.stderr.flush()
 
-    res = subprocess.run(
-        ["git", "-C", _REPO_ROOT, "-c", f"safe.directory={_REPO_ROOT}", "annex", "get", "--", *rel_paths],
-        capture_output=True,
-        text=True,
-        env=_git_env_with_fallback_identity(),
-    )
-    if res.returncode != 0:
-        raise pytest.UsageError(
-            "Failed to download missing test datasets with `git annex get`.\n"
-            f"Files: {', '.join(rel_paths)}\n"
-            f"Stdout:\n{res.stdout}\n"
-            f"Stderr:\n{res.stderr}\n"
-            "Check network access or ensure the `git-annex` branch is fetched "
-            "(`git fetch origin git-annex`), or run with `--datasets=local`, "
-            "`--datasets=skip`, or `-m \"not dataset\"`."
+    env = _git_env_with_fallback_identity()
+    # Retry transient HTTP 500 errors from EOSC DataRepo; git-annex skips files already fetched.
+    for attempt in range(3):
+        res = subprocess.run(
+            ["git", "-C", _REPO_ROOT, "-c", f"safe.directory={_REPO_ROOT}", "annex", "get", "--", *rel_paths],
+            capture_output=True,
+            text=True,
+            env=env,
         )
+        if res.returncode == 0:
+            return
+        if attempt < 2:
+            time.sleep(2)
 
+    raise pytest.UsageError(
+        "Failed to download missing test datasets with `git annex get`.\n"
+        f"Files: {', '.join(rel_paths)}\n"
+        f"Stdout:\n{res.stdout}\n"
+        f"Stderr:\n{res.stderr}\n"
+        "Check network access or ensure the `git-annex` branch is fetched "
+        "(`git fetch origin git-annex`), or run with `--datasets=local`, "
+        "`--datasets=skip`, or `-m \"not dataset\"`. "
+        "Optionally re-run the `git-annex get .` command again"
+    )
 
 def pytest_collection_modifyitems(config, items):
     """Deselect @pytest.mark.dataset tests when --datasets=skip is active."""
