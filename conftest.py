@@ -4,6 +4,7 @@ import os
 import shutil
 import subprocess
 import sys
+import time
 import pytest
 
 _REPO_ROOT = os.path.dirname(os.path.abspath(__file__))
@@ -73,6 +74,36 @@ def find_unfetched_annex_files(paths) -> list[str]:
     return sorted(set(missing))
 
 
+def _git_env_with_fallback_identity() -> dict[str, str]:
+    """Return process env with fallback Git author/committer identity if unset."""
+    env = os.environ.copy()
+    has_name = bool(env.get("GIT_AUTHOR_NAME") or env.get("GIT_COMMITTER_NAME"))
+    has_email = bool(env.get("GIT_AUTHOR_EMAIL") or env.get("GIT_COMMITTER_EMAIL"))
+
+    if not has_name:
+        res = subprocess.run(
+            ["git", "-C", _REPO_ROOT, "-c", f"safe.directory={_REPO_ROOT}", "config", "--get", "user.name"],
+            capture_output=True,
+            text=True,
+        )
+        has_name = res.returncode == 0 and bool(res.stdout.strip())
+    if not has_email:
+        res = subprocess.run(
+            ["git", "-C", _REPO_ROOT, "-c", f"safe.directory={_REPO_ROOT}", "config", "--get", "user.email"],
+            capture_output=True,
+            text=True,
+        )
+        has_email = res.returncode == 0 and bool(res.stdout.strip())
+
+    if not has_name:
+        env["GIT_AUTHOR_NAME"] = "MMA Test Runner"
+        env["GIT_COMMITTER_NAME"] = "MMA Test Runner"
+    if not has_email:
+        env["GIT_AUTHOR_EMAIL"] = "mma-tests@localhost"
+        env["GIT_COMMITTER_EMAIL"] = "mma-tests@localhost"
+    return env
+
+
 def fetch_annex_files(rel_paths: list[str]) -> None:
     """Download missing git-annex files from configured remotes."""
     if not rel_paths:
@@ -95,22 +126,30 @@ def fetch_annex_files(rel_paths: list[str]) -> None:
     )
     sys.stderr.flush()
 
-    res = subprocess.run(
-        ["git", "-C", _REPO_ROOT, "-c", f"safe.directory={_REPO_ROOT}", "annex", "get", "--", *rel_paths],
-        capture_output=True,
-        text=True,
-    )
-    if res.returncode != 0:
-        raise pytest.UsageError(
-            "Failed to download missing test datasets with `git annex get`.\n"
-            f"Files: {', '.join(rel_paths)}\n"
-            f"Stdout:\n{res.stdout}\n"
-            f"Stderr:\n{res.stderr}\n"
-            "Check network access or ensure the `git-annex` branch is fetched "
-            "(`git fetch origin git-annex`), or run with `--datasets=local`, "
-            "`--datasets=skip`, or `-m \"not dataset\"`."
+    env = _git_env_with_fallback_identity()
+    # Retry transient HTTP 500 errors from EOSC DataRepo; git-annex skips files already fetched.
+    for attempt in range(3):
+        res = subprocess.run(
+            ["git", "-C", _REPO_ROOT, "-c", f"safe.directory={_REPO_ROOT}", "annex", "get", "--", *rel_paths],
+            capture_output=True,
+            text=True,
+            env=env,
         )
+        if res.returncode == 0:
+            return
+        if attempt < 2:
+            time.sleep(2)
 
+    raise pytest.UsageError(
+        "Failed to download missing test datasets with `git annex get`.\n"
+        f"Files: {', '.join(rel_paths)}\n"
+        f"Stdout:\n{res.stdout}\n"
+        f"Stderr:\n{res.stderr}\n"
+        "Check network access or ensure the `git-annex` branch is fetched "
+        "(`git fetch origin git-annex`), or run with `--datasets=local`, "
+        "`--datasets=skip`, or `-m \"not dataset\"`. "
+        "Optionally re-run the `git-annex get .` command again"
+    )
 
 def pytest_collection_modifyitems(config, items):
     """Deselect @pytest.mark.dataset tests when --datasets=skip is active."""

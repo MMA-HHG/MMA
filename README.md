@@ -367,6 +367,8 @@ git annex whereis 1DTDSE/tests/data CUPRAD/tests/data Hankel/tests/data # inspec
 ```
 When pushing commits to GitHub, remember to push both your code branch and the `git-annex` metadata branch (e.g., `git push origin <branch> git-annex`).
 
+> **Note:** Running `git annex get` manually outside Docker requires `git config user.name` and `user.email` to be set (already preconfigured in the Docker image, and `pytest` supplies a fallback automatically). If you make regular Git commits from inside the Docker container, override `user.name` and `user.email` with your own identity first.
+
 ### Test markers
 * **Skip dataset tests:** Deselect tests requiring annexed reference datasets:
   ```bash
