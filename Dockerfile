@@ -110,7 +110,9 @@ RUN chmod +x \
 USER ${USERNAME}
 WORKDIR ${MMA_PATH}
 
-RUN git config --global --add safe.directory "${MMA_PATH}"
+RUN git config --global --add safe.directory "${MMA_PATH}" \
+    && git config --global user.name "MMA User" \
+    && git config --global user.email "mma@localhost"
 
 # Prepare tutorial JupyterLab workspaces for the default container user.
 # JupyterLab stores workspaces in the user's profile, so this must run

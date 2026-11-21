@@ -73,6 +73,36 @@ def find_unfetched_annex_files(paths) -> list[str]:
     return sorted(set(missing))
 
 
+def _git_env_with_fallback_identity() -> dict[str, str]:
+    """Return process env with fallback Git author/committer identity if unset."""
+    env = os.environ.copy()
+    has_name = bool(env.get("GIT_AUTHOR_NAME") or env.get("GIT_COMMITTER_NAME"))
+    has_email = bool(env.get("GIT_AUTHOR_EMAIL") or env.get("GIT_COMMITTER_EMAIL"))
+
+    if not has_name:
+        res = subprocess.run(
+            ["git", "-C", _REPO_ROOT, "-c", f"safe.directory={_REPO_ROOT}", "config", "--get", "user.name"],
+            capture_output=True,
+            text=True,
+        )
+        has_name = res.returncode == 0 and bool(res.stdout.strip())
+    if not has_email:
+        res = subprocess.run(
+            ["git", "-C", _REPO_ROOT, "-c", f"safe.directory={_REPO_ROOT}", "config", "--get", "user.email"],
+            capture_output=True,
+            text=True,
+        )
+        has_email = res.returncode == 0 and bool(res.stdout.strip())
+
+    if not has_name:
+        env["GIT_AUTHOR_NAME"] = "MMA Test Runner"
+        env["GIT_COMMITTER_NAME"] = "MMA Test Runner"
+    if not has_email:
+        env["GIT_AUTHOR_EMAIL"] = "mma-tests@localhost"
+        env["GIT_COMMITTER_EMAIL"] = "mma-tests@localhost"
+    return env
+
+
 def fetch_annex_files(rel_paths: list[str]) -> None:
     """Download missing git-annex files from configured remotes."""
     if not rel_paths:
@@ -99,6 +129,7 @@ def fetch_annex_files(rel_paths: list[str]) -> None:
         ["git", "-C", _REPO_ROOT, "-c", f"safe.directory={_REPO_ROOT}", "annex", "get", "--", *rel_paths],
         capture_output=True,
         text=True,
+        env=_git_env_with_fallback_identity(),
     )
     if res.returncode != 0:
         raise pytest.UsageError(
