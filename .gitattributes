@@ -1,0 +1,11 @@
+# git-annex configuration for MMA test datasets
+# Read-only remote dataset repository (EOSC DataRepo):
+#   https://datarepo.eosc.cz/datasets/records/39arw-t9a93
+#   DOI: 10.48700/39arw-t9a93
+#
+# By default, keep all repository files (including non-test .h5 lookup tables)
+# in regular Git; only manage .h5 and .dat files under module tests/ directories
+# with git-annex.
+* annex.largefiles=nothing
+*/tests/**/*.h5 annex.largefiles=anything annex.backend=SHA256E
+*/tests/**/*.dat annex.largefiles=anything annex.backend=SHA256E
