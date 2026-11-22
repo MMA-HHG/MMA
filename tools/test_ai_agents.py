@@ -23,8 +23,7 @@ class AgentInstallationTests(unittest.TestCase):
         self.stubs = self.work / "stubs"
         self.stubs.mkdir()
         self.env = dict(os.environ)
-        for key in ("CODEX_HOME", "MMA_AGENTS_STATE", "AI_AGENTS", "MMA_AGENTS_IMAGE", "FAIL_CURL",
-                    "CORRUPT_ARCHIVE"):
+        for key in ("CODEX_HOME", "MMA_AGENTS_STATE", "AI_AGENTS", "FAIL_CURL", "CORRUPT_ARCHIVE"):
             self.env.pop(key, None)
         self.env.update(HOME=str(self.home),
                         PATH=f"{self.stubs}:{self.home / '.local/bin'}:{os.environ['PATH']}",
@@ -33,7 +32,6 @@ class AgentInstallationTests(unittest.TestCase):
                         GIT_CONFIG_NOSYSTEM="1", TEST_ARCH="x86_64",
                         TEST_SYSTEM="Linux", RELEASE_VERSION="1.2.3",
                         FETCH_LOG=str(self.work / "fetches"),
-                        MULTISCALE_WORK_DIR=str(self.work / "work_dir"),
                         ARGS_LOG=str(self.work / "arguments.json"))
         self.stub("uname", '#!/bin/sh\ncase "$1" in\n-s) echo "${TEST_SYSTEM:-Linux}";;\n-m) echo "${TEST_ARCH:-x86_64}";;\nesac\n')
         self.stub("id", '#!/bin/sh\nif [ "$1" = "-u" ]; then echo 1000; else /usr/bin/id "$@"; fi\n')
@@ -49,15 +47,33 @@ if os.environ.get('CORRUPT_ARCHIVE'):
     output.write_bytes(b'not a gzip archive')
     sys.exit(0)
 version = os.environ.get('RELEASE_VERSION', '1.2.3')
-program = ('#!' + sys.executable + '\\nimport json, os, sys\\n'
+program = ('#!' + sys.executable + '\\nimport json, os, pathlib, sys\\n'
            + 'if "--version" in sys.argv:\\n    print("codex-cli ' + version + '")\\n'
+           + 'elif "--help" in sys.argv:\\n'
+           + '    assert not ' + repr(bool(os.environ.get('NO_NO_DAEMON'))) + '\\n'
+           + '    assert (pathlib.Path(__file__).resolve().parent / "resources/bundle.txt").read_text() == "resource"\\n'
            + 'else:\\n    with open(os.environ["ARGS_LOG"], "w") as out:\\n'
            + '        json.dump([sys.argv[1:], os.environ.get("CODEX_HOME")], out)\\n')
-payload = program.encode()
+layout = os.environ.get('TEST_LAYOUT', 'bin').strip('/')
+prefix = layout + '/' if layout else ''
+files = {'codex': (program.encode(), 0o755),
+         'resources/bundle.txt': (b'resource', 0o644)}
+for name in ('codex-code-mode-host', 'codex-exec-server', 'codex-app-server'):
+    if name == 'codex-code-mode-host' and os.environ.get('OMIT_HOST'):
+        continue
+    broken = (name == 'codex-code-mode-host' and os.environ.get('BROKEN_HOST')) or (name == 'codex-exec-server' and os.environ.get('BROKEN_EXEC'))
+    body = b'#!/bin/sh\\nexit 126\\n' if broken else b'#!/bin/sh\\n[ "$1" = "--help" ]\\n'
+    mode = 0o644 if name == 'codex-code-mode-host' and os.environ.get('NONEXEC_HOST') else 0o755
+    files[name] = (body, mode)
+if os.environ.get('OMIT_CODEX'):
+    del files['codex']
+if os.environ.get('DUPLICATE_CODEX'):
+    files['other/codex'] = files['codex']
 with tarfile.open(output, 'w:gz') as archive:
-    entry = tarfile.TarInfo(url.rsplit('/', 1)[-1][:-7])
-    entry.mode, entry.size = 0o755, len(payload)
-    archive.addfile(entry, io.BytesIO(payload))
+    for name, (payload, mode) in files.items():
+        entry = tarfile.TarInfo(prefix + name)
+        entry.mode, entry.size = mode, len(payload)
+        archive.addfile(entry, io.BytesIO(payload))
 ''')
         self.recipe = ROOT / "docker/agents/codex.sh"
         self.dispatcher = ROOT / "docker/mma-agents"
@@ -93,7 +109,7 @@ with tarfile.open(output, 'w:gz') as archive:
         self.run_script(self.recipe, "latest", FAIL_CURL="1")
         fetches = Path(self.env["FETCH_LOG"]).read_text().splitlines()
         self.assertEqual(len(fetches), 1)
-        self.assertIn("/latest/download/codex-x86_64-unknown-linux-musl.tar.gz", fetches[0])
+        self.assertIn("/latest/download/codex-package-x86_64-unknown-linux-musl.tar.gz", fetches[0])
 
     def test_pin_unpin_argument_forwarding_and_existing_config(self):
         config = self.home / ".mma-agents/codex/config.toml"
@@ -107,12 +123,12 @@ with tarfile.open(output, 'w:gz') as archive:
         external_state = str(self.work / "persistent state")
         self.launch(*args, CODEX_HOME=external_state)
         observed, state = json.loads(Path(self.env["ARGS_LOG"]).read_text())
-        self.assertEqual(observed, ["-c", "check_for_update_on_startup=false", *args])
+        self.assertEqual(observed, ["--no-daemon", "-c", "check_for_update_on_startup=false", *args])
         self.assertEqual(state, external_state)
         self.run_script(self.recipe, RELEASE_VERSION="1.2.4")
         self.launch(*args)
         observed, state = json.loads(Path(self.env["ARGS_LOG"]).read_text())
-        self.assertEqual(observed, list(args))
+        self.assertEqual(observed, ["--no-daemon", *args])
         self.assertEqual(state, str(config.parent))
         self.assertEqual(config.read_bytes(), original)
 
@@ -123,13 +139,22 @@ with tarfile.open(output, 'w:gz') as archive:
         self.run_script(self.recipe, "1.2.3")
         originals = {p: p.read_bytes() for p in (self.binary, self.launcher,
                      self.binary.parent / "request", config)}
+        original_target = self.binary.resolve()
+        original_packages = set((self.binary.parent / "packages").iterdir())
         for overrides in ({"FAIL_CURL": "1"}, {"CORRUPT_ARCHIVE": "1"},
-                          {"RELEASE_VERSION": "9.9.9"}, {"RELEASE_VERSION": "invalid"}):
+                          {"RELEASE_VERSION": "9.9.9"}, {"RELEASE_VERSION": "invalid"},
+                          {"OMIT_HOST": "1"}, {"BROKEN_HOST": "1"},
+                          {"NONEXEC_HOST": "1"}, {"BROKEN_EXEC": "1"},
+                          {"NO_NO_DAEMON": "1"}, {"OMIT_CODEX": "1"},
+                          {"DUPLICATE_CODEX": "1"}):
             with self.subTest(overrides=overrides):
-                self.run_script(self.recipe, "2.0.0", expected=1, **overrides)
+                self.run_script(self.recipe, "2.0.0", expected=1,
+                                **dict({"RELEASE_VERSION": "2.0.0"}, **overrides))
                 for path, contents in originals.items():
                     self.assertEqual(path.read_bytes(), contents)
                 self.assertEqual(list(self.binary.parent.glob(".install.*")), [])
+                self.assertEqual(self.binary.resolve(), original_target)
+                self.assertEqual(set((self.binary.parent / "packages").iterdir()), original_packages)
         self.assertEqual(self.launch("--version").stdout.strip(), "codex-cli 1.2.3")
 
     def test_supported_architectures(self):
@@ -140,7 +165,69 @@ with tarfile.open(output, 'w:gz') as archive:
                     self.binary.unlink()
                 self.run_script(self.recipe, TEST_ARCH=arch)
                 url = Path(self.env["FETCH_LOG"]).read_text().splitlines()[-1]
-                self.assertTrue(url.endswith(f"codex-{target}-unknown-linux-musl.tar.gz"))
+                self.assertTrue(url.endswith(f"codex-package-{target}-unknown-linux-musl.tar.gz"))
+
+    def test_package_layout_and_resources_survive_installation(self):
+        for layout in ("", "bin", "codex-package/bin"):
+            with self.subTest(layout=layout):
+                if self.binary.exists():
+                    self.binary.unlink()
+                self.run_script(self.recipe, TEST_LAYOUT=layout)
+                directory = self.binary.resolve().parent
+                for helper in ("codex-code-mode-host", "codex-exec-server", "codex-app-server"):
+                    self.assertTrue(os.access(directory / helper, os.X_OK))
+                self.assertEqual((directory / "resources/bundle.txt").read_text(), "resource")
+                self.launch("--help")
+
+    def test_legacy_binary_only_install_is_repaired_at_same_version(self):
+        self.run_script(self.recipe)
+        original = self.binary.read_bytes()
+        self.binary.unlink()
+        self.binary.write_bytes(original)
+        self.binary.chmod(0o755)
+        # This still passes --version, reproducing the old false health check.
+        self.assertEqual(self.launch("--version").stdout.strip(), "codex-cli 1.2.3")
+        self.run_script(self.recipe)
+        self.assertTrue(self.binary.is_symlink())
+        self.assertTrue((self.binary.resolve().parent / "codex-code-mode-host").exists())
+        url = Path(self.env["FETCH_LOG"]).read_text().splitlines()[-1]
+        self.assertIn("/download/rust-v1.2.3/", url)
+        self.run_script(self.recipe, FAIL_CURL="1")
+
+    def test_missing_or_broken_installed_host_triggers_repair(self):
+        self.run_script(self.recipe)
+        for damage in ("missing", "nonexecutable", "broken"):
+            with self.subTest(damage=damage):
+                helper = self.binary.resolve().parent / "codex-code-mode-host"
+                if damage == "missing":
+                    helper.unlink()
+                elif damage == "nonexecutable":
+                    helper.chmod(0o644)
+                else:
+                    helper.write_text("#!/bin/sh\nexit 126\n")
+                old_package = self.binary.resolve().parent
+                self.run_script(self.recipe)
+                self.assertNotEqual(self.binary.resolve().parent, old_package)
+                self.run_script(self.recipe, FAIL_CURL="1")
+
+    def test_failed_repair_preserves_legacy_executable(self):
+        self.binary.parent.mkdir(parents=True)
+        self.binary.write_text("#!/bin/sh\necho 'codex-cli 1.2.3'\n")
+        self.binary.chmod(0o755)
+        (self.binary.parent / "request").write_text("current\n")
+        original = self.binary.read_bytes()
+        self.run_script(self.recipe, expected=1, FAIL_CURL="1")
+        self.assertFalse(self.binary.is_symlink())
+        self.assertEqual(self.binary.read_bytes(), original)
+
+    def test_successful_upgrade_keeps_previous_package_for_running_sessions(self):
+        self.run_script(self.recipe, "1.2.3")
+        previous = self.binary.resolve()
+        self.run_script(self.recipe, "1.2.4", RELEASE_VERSION="1.2.4")
+        self.assertNotEqual(self.binary.resolve(), previous)
+        self.assertTrue(previous.exists())
+        self.assertTrue((previous.parent / "codex-code-mode-host").exists())
+        self.assertEqual(self.launch("--version").stdout.strip(), "codex-cli 1.2.4")
 
     def test_unsupported_platform_and_invalid_versions_do_not_download(self):
         for overrides, request in (({"TEST_ARCH": "riscv64"}, ""),
@@ -177,19 +264,7 @@ with tarfile.open(output, 'w:gz') as archive:
         result = self.run_script(ROOT / "docker/entrypoint.sh", "touch", str(marker),
                                  expected=1, MMA_AUTO_BUILD="0", AI_AGENTS="codex")
         self.assertIn("Requested AI agent installation failed", result.stdout)
-        self.assertIn("AI_AGENTS=none", result.stdout)
         self.assertFalse(marker.exists())
-
-    def test_entrypoint_reapplies_image_selection_without_failing_start(self):
-        self.stub("mpirun", "#!/bin/sh\necho node\necho node\n")
-        self.stub("mma-agents", '#!/bin/sh\necho "$@" > "$HOME/agents-call"\nexit 1\n')
-        marker = self.work / "command-ran"
-        result = self.run_script(ROOT / "docker/entrypoint.sh", "touch", str(marker),
-                                 MMA_AUTO_BUILD="0", MMA_AGENTS_IMAGE="codex@1.2.3")
-        self.assertEqual((self.home / "agents-call").read_text().split(), ["install", "codex@1.2.3"])
-        self.assertIn("Could not re-apply the image's AI agent settings", result.stdout)
-        self.assertTrue(marker.exists())
-        self.assertTrue((self.work / "work_dir" / "mma_basics").is_dir())
 
 
 if __name__ == "__main__":

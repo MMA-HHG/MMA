@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 # Recipe: Codex CLI. Contract: docker/agents/README.md.
-# OpenAI documents standalone release binaries at https://github.com/openai/codex#quickstart.
+# Install OpenAI's complete codex-package release, not the single-binary asset.
 # No Node.js, npm, root privileges or shell start-up changes are needed.
-# Runs without the shared background server; requires support for --no-daemon.
+# Preserve the package layout and run without the shared background server.
 set -euo pipefail
 
 request="${1:-}"
-export CODEX_HOME="${CODEX_HOME:-${MMA_AGENTS_STATE:-${HOME}/.mma-agents}/codex}"
+codex_state="${CODEX_HOME:-${MMA_AGENTS_STATE:-${HOME}/.mma-agents}/codex}"
 install_dir="${HOME}/.local/share/mma-agents/codex"
 binary="${install_dir}/codex"
 launcher="${HOME}/.local/bin/codex"
@@ -37,14 +37,30 @@ installed_version() {
     "$1" --version 2>/dev/null | awk 'NR == 1 && $1 == "codex-cli" { print $2 }' || true
 }
 
-# Keep version policy beside the executable, outside the mounted credentials volume.
-# The launcher leaves config.toml, credentials, model and permission settings untouched.
+# Helpers are resolved beside the real executable, not the public symlink.
+# These checks do not sign in, call a model, or change user configuration.
+package_works() {
+    local executable directory helper
+    executable="$(readlink -f "$1")" || return 1
+    directory="$(dirname "${executable}")"
+    [[ -x "${executable}" && -x "${directory}/codex-code-mode-host" ]] || return 1
+    "${executable}" --no-daemon --help >/dev/null 2>&1 || return 1
+    "${directory}/codex-code-mode-host" --help >/dev/null 2>&1 || return 1
+    for helper in codex-exec-server codex-app-server; do
+        if [[ -e "${directory}/${helper}" ]]; then
+            [[ -x "${directory}/${helper}" ]] || return 1
+            "${directory}/${helper}" --help >/dev/null 2>&1 || return 1
+        fi
+    done
+}
+
+# Keep version policy outside the credentials volume. Retain --no-daemon
+# and forward user arguments without editing config.toml or credentials.
 write_launcher() {
     {
         printf '#!/usr/bin/env bash\nset -euo pipefail\n'
         printf 'export CODEX_HOME="${CODEX_HOME:-${MMA_AGENTS_STATE:-${HOME}/.mma-agents}/codex}"\n'
-        # Run the single executable without the shared background server.
-        printf 'exec %q --no-daemon ' "${binary}"
+        printf 'exec "$(readlink -f %q)" --no-daemon ' "${binary}"
         if (( pinned )); then
             printf '%s ' '-c' 'check_for_update_on_startup=false'
         fi
@@ -54,41 +70,78 @@ write_launcher() {
     mv -f "${launcher}.tmp" "${launcher}"
 }
 
-mkdir -p "${CODEX_HOME}" "${install_dir}" "$(dirname "${launcher}")"
+mkdir -p "${codex_state}" "${install_dir}/packages" "$(dirname "${launcher}")"
 current="$(installed_version "${binary}")"
-if [[ -n "${current}" && "$(cat "${request_file}" 2>/dev/null || true)" == "${wanted}" ]] \
-        && { (( ! pinned )) || [[ "${current}" == "${request}" ]]; }; then
+if [[ "${current}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ \
+        && -L "${binary}" \
+        && "$(cat "${request_file}" 2>/dev/null || true)" == "${wanted}" ]] \
+        && { (( ! pinned )) || [[ "${current}" == "${request}" ]]; } \
+        && package_works "${binary}"; then
     write_launcher
-    say "Codex CLI ${current} is already installed (${wanted})."
+    say "Codex CLI ${current} and its helpers are already installed (${wanted})."
     exit 0
 fi
 
 command -v curl >/dev/null || fail "curl is missing from the image."
 command -v tar >/dev/null || fail "tar is missing from the image."
-asset="codex-${target}"
+asset="codex-package-${target}.tar.gz"
 release_url=https://github.com/openai/codex/releases
+
+# Repair an incomplete unchanged request at its existing version.
+# A repair must not silently become a CLI upgrade.
 if (( pinned )); then
-    release_url+="/download/rust-v${request}"
+    release_version="${request}"
+elif [[ "${current}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ \
+        && "$(cat "${request_file}" 2>/dev/null || true)" == "${wanted}" ]]; then
+    release_version="${current}"
+else
+    release_version=""
+fi
+if [[ -n "${release_version}" ]]; then
+    release_url+="/download/rust-v${release_version}"
 else
     release_url+="/latest/download"
 fi
 
-# Download and validate before replacing a working installation.
 stage="$(mktemp -d "${install_dir}/.install.XXXXXX")"
-trap 'rm -rf "${stage}"' EXIT
-say "Installing Codex CLI (${wanted}) from OpenAI's standalone release."
+release_dir=""
+activated=0
+cleanup() {
+    rm -rf "${stage}"
+    if (( ! activated )) && [[ -n "${release_dir}" ]]; then
+        rm -rf "${release_dir}"
+    fi
+}
+trap cleanup EXIT
+mkdir "${stage}/package"
+say "Installing the complete Codex CLI package (${release_version:-latest stable})."
 curl -fsSL --retry 3 --connect-timeout 20 --max-time 600 \
-    "${release_url}/${asset}.tar.gz" -o "${stage}/codex.tar.gz" \
-    || fail "Download failed; check network access and the requested release."
-tar -xzf "${stage}/codex.tar.gz" -C "${stage}" -- "${asset}" \
-    || fail "The release archive does not contain ${asset}."
-current="$(installed_version "${stage}/${asset}")"
+    "${release_url}/${asset}" -o "${stage}/codex.tar.gz" \
+    || fail "Package download failed; check network access and release availability."
+tar -xzf "${stage}/codex.tar.gz" -C "${stage}/package" --no-same-owner \
+    || fail "Cannot extract the Codex package."
+
+# Accept a flat package, or an enclosing directory and/or bin/.
+# Preserve the entire tree, including resources and executable permissions.
+mapfile -t executables < <(find "${stage}/package" -type f -name codex -print)
+(( ${#executables[@]} == 1 )) \
+    || fail "Expected exactly one executable named codex in ${asset}."
+entry="${executables[0]}"
+current="$(installed_version "${entry}")"
 [[ "${current}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] \
-    || fail "The downloaded executable reports no valid stable Codex CLI version."
-(( ! pinned )) || [[ "${current}" == "${request}" ]] \
-    || fail "Requested ${request}, but the downloaded executable reports ${current}."
-chmod 0755 "${stage}/${asset}"
-mv -f "${stage}/${asset}" "${binary}"
+    || fail "The package reports no valid stable Codex CLI version."
+[[ -z "${release_version}" || "${current}" == "${release_version}" ]] \
+    || fail "Requested ${release_version}, but the package reports ${current}."
+package_works "${entry}" \
+    || fail "Package check failed: codex must support --no-daemon and its code-mode host must run."
+entry_relative="${entry#"${stage}/package/"}"
+
+# Validate before switching. Keep old packages so running sessions retain helpers.
+release_dir="${install_dir}/packages/${current}-${target}-${stage##*.}"
+mv "${stage}/package" "${release_dir}"
+ln -s "${release_dir}/${entry_relative}" "${stage}/codex"
+mv -Tf "${stage}/codex" "${binary}"
+activated=1
 write_launcher
 printf '%s\n' "${wanted}" > "${request_file}"
-say "Installed Codex CLI ${current} (${wanted}); no login or permission settings were changed."
+say "Installed Codex CLI ${current} with its complete package (${wanted})."

@@ -71,8 +71,9 @@ None yet. Contributed workflows and skills (status `community` or `experimental`
 
 ## Repository rules
 
+- When looking for a worked example or starting point for an MMA task, check `jupyter_examples/` first. Use the relevant documentation and source to verify that the example fits the request and current interfaces.
 - Before editing a core module during an operation or analysis task, stop and state the transition to core development, the reason and the expected numerical impact; then follow [modify-core](docs/ai/workflows/modify-core.md).
-- Commits follow [CONTRIBUTING.md](CONTRIBUTING.md): a `Numerical-impact:` trailer on commits that change core-module code, and an `Assisted-by:` trailer on AI-assisted commits. Never add `Signed-off-by` lines on anyone's behalf.
+- Before proposing a commit message or creating a commit, read the commit and AI-assistance sections of [CONTRIBUTING.md](CONTRIBUTING.md). Follow its separation and trailer rules, including one `Assisted-by:` trailer per contributing agent and model. Never add `Signed-off-by` lines on anyone's behalf.
 - Reference data and test tolerances change only in their own commit, with a justification, and never just to make a failing test pass.
 - Departures from the model or approach described in the CPC paper are recorded in `docs/deviations-from-paper.md`; detailed analyses belong in the module READMEs or the source.
 - Generated signposts are never edited by hand: `CLAUDE.md`, `.claude/`, `.cursor/`, `.gemini/`, `.github/instructions/`, the nested `AGENTS.md` files in core modules and the workflow signpost skills. Run `python3 tools/ai_signposts.py` instead.
