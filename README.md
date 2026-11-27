@@ -65,6 +65,8 @@ The code can be accessed through Docker. Docker prepares the software environmen
 
    The repository is mounted into `/MMA`, so the compiled executables remain available in the parent filesystem. If port `8888` is already used on the  parent machine, change only the first number, for example `-p 8889:8888`.
 
+   <a id="optional-ai-agents"></a>*AI coding agents are optional and not needed to run MMA. To add one to the container (Claude Code, Codex CLI or Antigravity CLI), see [docker/agents/README.md](docker/agents/README.md).*
+
 5) JupyterLab can be started inside the container by:
 
         mma-jupyter
@@ -80,7 +82,7 @@ The code can be accessed through Docker. Docker prepares the software environmen
 
         docker start -ai CONTAINER_NAME
 
-In short, the installation is:
+**In short, the installation is:**
 <a id="install-direct"></a>
 ```bash
 git clone git@github.com:MMA-HHG/MMA.git
@@ -89,6 +91,8 @@ cd MMA
 docker build -t mma .
 docker run --name mma-c1 --hostname mma-c1 -v .:/MMA -w /MMA -p 8888:8888 -it mma
 ```
+
+*AI coding agents are optional; to add one, see [the note in step 4](#optional-ai-agents).*
 
 Inside the container, start JupyterLab by:
 
@@ -108,8 +112,6 @@ To return to the container later:
 ```bash
 docker start -ai mma-c1
 ```
-
-*AI coding agents are optional and not needed to run MMA. To add one to the container (Claude Code, Codex CLI or Antigravity CLI), see [docker/agents/README.md](docker/agents/README.md).*
 
 
 ## Execution pipeline
