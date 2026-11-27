@@ -129,4 +129,6 @@ Run `python3 ai/tests/test_ai_agents.py` for offline tests of installation selec
 version handling, failure propagation and launcher behaviour. These tests use
 small fake release archives; they do not test a real Codex download or login.
 Validate both Docker build paths and authentication in an actual Docker environment
-before calling the integration tested end to end.
+before calling the integration tested end to end. `pytest ai -v` runs these tests as
+well, together with the structural checks of the AI support; MMA's default test run
+does not include them.
