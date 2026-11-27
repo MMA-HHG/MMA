@@ -7,7 +7,7 @@ Use this summary to verify MMA's documentation and AI-support files. It condense
 1. **One router.** `AGENTS.md` is the only file every agent loads. The tracks (Operation, Applications, Core development) are headings in it. It stays under about 150 lines.
 2. **Entities.** Workflows are routes, skills are procedures, knowledge is authoritative human documentation, records are dated observations, module contracts describe the interfaces of core modules, and signposts are generated pointers. Definitions: handbook, section 2.
 3. **One source per fact.** Every fact has one authoritative home, given by the ownership map (handbook, section 12). Other files summarise in at most a sentence and link to it.
-4. **Links run one way**, from AI-support files into authoritative documents. The only exception is the README section on the AI support, which points to `AGENTS.md`, the handbook and `docker/agents/README.md`.
+4. **Links run one way**, from AI-support files into authoritative documents. The only exception is the note on optional AI agents in the Docker section of `README.md`, which points to `docker/agents/README.md`.
 5. **Numerical core.** Every module with defined inputs, calculations and outputs: today CUPRAD, CTDSE (`1DTDSE/`) and Hankel, plus the shared namelists that define their inputs and outputs. The core block of `.github/CODEOWNERS` is the authoritative list.
 6. **Autonomy and traceability.** The user chooses how autonomously an agent works. Traceability is required at every level of autonomy: the `Numerical-impact:` and `Assisted-by:` trailers and the pull-request fields defined in `CONTRIBUTING.md`.
 7. **Openness.** Users and developers may add entities of every kind, on their own responsibility. The scopes are maintained, contributed (`community`, `experimental`) and personal. Every repository skill carries the `mma-` prefix and personal skills must not use it; other files of the package, such as container commands, may use the prefix too.
@@ -44,7 +44,7 @@ For each changed document or statement, answer:
 | M7 | Is extension described as open, with the responsibility for contributed and personal entities stated? |
 | M8 | Does the text address its audience: humans in READMEs; agents in `AGENTS.md`, workflows and skills? |
 | M9 | Do statements about agents and their file names match `docs/ai/signposts.yml` and the handbook, section 10, and does any claim that an agent finds MMA's files rest on the verification table there? |
-| M10 | If the README section on the AI support changed: is it short, does it say that autonomy is the user's choice, that AI-assisted work is traced and that anyone can extend the AI support, and does it point humans to the handbook, agents to `AGENTS.md` and Docker users to `docker/agents/README.md`? |
+| M10 | If the README note on optional AI agents or the section "How agents work with MMA" in `docker/agents/README.md` changed: is the note still one short note that says agents are optional and points to `docker/agents/README.md`, and does that section say that autonomy is the user's choice, that AI-assisted work is traced and that anyone can extend the AI support, pointing agents to `AGENTS.md` and humans to the handbook? |
 
 ## D. Classification and report
 

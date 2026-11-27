@@ -110,6 +110,8 @@ To return to the container later:
 docker start -ai mma-c1
 ```
 
+*AI coding agents are optional and not needed to run MMA. To add one to the container (Claude Code, Codex CLI or Antigravity CLI), see [docker/agents/README.md](docker/agents/README.md).*
+
 
 ## Execution pipeline
 

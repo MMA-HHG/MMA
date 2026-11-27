@@ -9,7 +9,7 @@ Conventions version: 2 (see the [changelog](#14-changelog)).
 - **Provider independence.** Everything is plain Markdown in two open formats: [AGENTS.md](https://agents.md) for instructions and [Agent Skills](https://agentskills.io/specification) for skills. Agent-specific files are generated signposts that point to these.
 - **One authoritative source per fact.** Other files summarise in at most a sentence and link to it; the [ownership map](#12-ownership-map) says which file owns which fact.
 - **Layers of knowledge.** The CPC paper introduces MMA's core philosophy and physical model, as of version v1.1.0. Decisive analyses and details live in the lower layers, the module READMEs and the source, which are authoritative for them.
-- **Links run one way.** AI-support files link into authoritative documentation, never the reverse. The one exception is a short section in `README.md` that introduces the AI support: it says that autonomy is the user's choice, that AI-assisted work is traced and that anyone can extend the AI support, and it points humans here, agents to `AGENTS.md` and Docker users to `docker/agents/README.md`.
+- **Links run one way.** AI-support files link into authoritative documentation, never the reverse. The one exception is a short note in the Docker section of `README.md`: it says that AI agents are optional and points to `docker/agents/README.md`. That file's section "How agents work with MMA" says that autonomy is the user's choice, that AI-assisted work is traced and that anyone can extend the AI support, and it points agents to `AGENTS.md` and humans here.
 - **Autonomy is the user's choice.** Traceability is a property of commits and pull requests, defined in [CONTRIBUTING.md](../../CONTRIBUTING.md), and holds at every level of autonomy.
 - **Open by design.** The shipped entities are templates and intended uses, not a closed set. Users and developers are invited to add entities of every kind, on their own responsibility.
 - **Deterministic checks gate; judgement advises.** CI runs only reproducible checks. AI-assisted reviews produce findings for humans.
@@ -197,4 +197,5 @@ These entities are planned but do not exist yet; their names are reserved.
   - The AI-support scripts and their tests moved from the former tools directory to `ai/`. The planned environment wrapper is reserved in `environment/` ([section 13](#13-planned-entities)).
   - Antigravity CLI joined the supported agents ([section 10](#10-signposts-and-supported-agents)), with a recipe in `docker/agents/`.
   - Every AI-assisted commit carries a `Numerical-impact:` trailer, `none` when results cannot change ([CONTRIBUTING.md](../../CONTRIBUTING.md)).
+  - `README.md` mentions the optional AI agents in one note in its Docker section; the introduction to the AI support is in `docker/agents/README.md` ([section 1](#1-principles)).
 - **Version 1** (2026-11-15): initial conventions.

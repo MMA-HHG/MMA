@@ -1,6 +1,13 @@
 # AI coding agents in the Docker image
 
-The MMA Docker image can contain AI coding agents, such as Claude Code, Codex CLI and Antigravity CLI, which then work in the mounted repository together with MMA's AI support. Agents are optional: without the options below, the image is the one described in [README.md, Reference Docker installation](../../README.md#reference-docker-installation-and-running-the-code). This file describes how to use the agents and how to add or maintain a recipe for one.
+The MMA Docker image can contain AI coding agents: Claude Code, Codex CLI and Antigravity CLI. They work in the mounted repository together with MMA's AI support. Agents are optional: MMA builds, runs and is tested without them, and without the options below, the image is the one described in [README.md, Reference Docker installation](../../README.md#reference-docker-installation-and-running-the-code). This file describes how agents work with MMA, how to use them in the container and how to add or maintain a recipe for one.
+
+## How agents work with MMA
+
+- **Entry point.** Agents start from [AGENTS.md](../../AGENTS.md), which routes them to MMA's workflows and skills. It and the skills in `.agents/skills/` are where the agents installed here look for them, Claude Code through the generated `CLAUDE.md`; section 10 of the handbook records which discovery has been verified.
+- **Autonomy is your choice.** You decide inside the agent how freely it edits files and runs commands; see [Autonomy and isolation](#autonomy-and-isolation). Unless you authorise them in advance, agents ask before the consequential actions listed in `AGENTS.md`, such as pushing or deleting simulation data.
+- **AI-assisted work is traced.** Every AI-assisted commit carries `Assisted-by:` and `Numerical-impact:` trailers, and pull requests state the degree of assistance, as defined in [CONTRIBUTING.md](../../CONTRIBUTING.md).
+- **Open to extension.** Anyone can add skills, workflows, records or agent recipes, on their own responsibility. The conventions are in the AI-support handbook, [docs/ai/README.md](../../docs/ai/README.md).
 
 ## Using an agent
 
