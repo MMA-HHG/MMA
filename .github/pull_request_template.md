@@ -23,7 +23,7 @@
 
 - AI assistance:
 - Agents and models (as in the `Assisted-by` trailers):
-- Summary of the prompts or session:
+- Summary of the prompts or session (a summary, not a link to the session):
 - Parts affected by AI assistance:
 - How those parts were checked:
 

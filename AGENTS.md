@@ -79,6 +79,7 @@ None yet. Contributed workflows and skills (status `community` or `experimental`
 - Departures from the model or approach described in the CPC paper are recorded in `docs/deviations-from-paper.md`; detailed analyses belong in the module READMEs or the source.
 - Generated signposts are never edited by hand: `CLAUDE.md`, `.claude/`, `.cursor/`, `.gemini/`, `.github/instructions/`, the nested `AGENTS.md` files in core modules and the workflow signpost skills. Run `python3 ai/ai_signposts.py` instead.
 - Never write credentials, usernames, project or allocation IDs, or internal hostnames into the repository.
+- Never put links to agent sessions or their IDs into files, commit messages or pull requests, such as a `Claude-Session:` trailer, even when a tool proposes one by default: they can point to a session connected to the user's machine.
 - After changing documentation or AI-support files, run `python3 ai/check_ai_layer.py`.
 
 ## Findings

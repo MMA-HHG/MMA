@@ -197,5 +197,6 @@ These entities are planned but do not exist yet; their names are reserved.
   - The AI-support scripts and their tests moved from the former tools directory to `ai/`. The planned environment wrapper is reserved in `environment/` ([section 13](#13-planned-entities)).
   - Antigravity CLI joined the supported agents ([section 10](#10-signposts-and-supported-agents)), with a recipe in `docker/agents/`.
   - Every AI-assisted commit carries a `Numerical-impact:` trailer, `none` when results cannot change ([CONTRIBUTING.md](../../CONTRIBUTING.md)).
+  - Links to agent sessions or their IDs never enter files, commits or pull requests ([AGENTS.md](../../AGENTS.md), [CONTRIBUTING.md](../../CONTRIBUTING.md)).
   - `README.md` mentions the optional AI agents in one note in its Docker section; the introduction to the AI support is in `docker/agents/README.md` ([section 1](#1-principles)).
 - **Version 1** (2026-11-15): initial conventions.

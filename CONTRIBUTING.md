@@ -22,7 +22,7 @@ The authoritative list is the core block in `.github/CODEOWNERS`. A new module j
 
 AI assistance is welcome. It must be traced:
 
-- End every commit that contains AI-generated or AI-modified content with one trailer per agent and model: `Assisted-by: <agent>:<model>`, for example `Assisted-by: claude.ai:claude-opus-5-5`. Trailers that a tool adds by itself may stay alongside.
+- End every commit that contains AI-generated or AI-modified content with one trailer per agent and model: `Assisted-by: <agent>:<model>`, for example `Assisted-by: claude.ai:claude-opus-5-5`. Trailers that a tool adds by itself may stay alongside, except links to agent sessions or their IDs, such as `Claude-Session:`, which never enter commits or pull requests.
 - Every AI-assisted commit also carries a `Numerical-impact:` trailer, even when it changes no code; `none` then states explicitly that results cannot change.
 - In the pull request, state the degree of assistance (none, assisted, substantially generated), the agents and models, a summary of the prompts or session, the affected parts and how they were checked.
 - A named human author is responsible for every change. AI tools never add `Signed-off-by` lines.
