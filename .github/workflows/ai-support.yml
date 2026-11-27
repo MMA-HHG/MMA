@@ -19,6 +19,6 @@ jobs:
       - name: Install PyYAML
         run: python -m pip install pyyaml
       - name: Check AI-support structure and signposts
-        run: python tools/check_ai_layer.py
+        run: python ai/check_ai_layer.py
       - name: Check optional agent installer behaviour (offline)
-        run: python tools/test_ai_agents.py
+        run: python ai/tests/test_ai_agents.py

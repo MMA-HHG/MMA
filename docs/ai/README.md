@@ -2,7 +2,7 @@
 
 This handbook defines how MMA supports AI agents: which kinds of files exist, where they live, how they are named and checked, and how anyone can extend them. It is the authoritative source for these conventions. Agents enter through [AGENTS.md](../../AGENTS.md); humans start here.
 
-Conventions version: 1 (see the [changelog](#14-changelog)).
+Conventions version: 2 (see the [changelog](#14-changelog)).
 
 ## 1. Principles
 
@@ -48,8 +48,9 @@ docs/ai/signposts.yml            signpost manifest
 docs/ai/local/                   personal entities, ignored by Git
 docs/deviations-from-paper.md    departures from the published version
 docker/agents/                   optional AI agents in the Docker image: use and recipes
-tools/ai_signposts.py            generates and verifies signposts
-tools/check_ai_layer.py          structural checks
+ai/ai_signposts.py               generates and verifies signposts
+ai/check_ai_layer.py             structural checks
+ai/tests/                        tests of the AI support, such as the offline installer tests
 ```
 
 Generated signposts live at each agent's standard paths, listed in [section 10](#10-signposts-and-supported-agents).
@@ -102,7 +103,7 @@ Precedence between scopes differs from agent to agent. Do not rely on it: use di
 2. Copy the template, choose a name ([section 4](#4-naming)) and fill in the metadata ([section 5](#5-metadata-and-status)).
 3. Link to authoritative documents instead of restating them.
 4. For a workflow or skill meant for others, add one line to the Routing section of `AGENTS.md`; contributed entities go under "Contributed entities".
-5. Run `python3 tools/ai_signposts.py`, then `python3 tools/check_ai_layer.py`, and fix every error.
+5. Run `python3 ai/ai_signposts.py`, then `python3 ai/check_ai_layer.py`, and fix every error.
 6. Open a pull request following [CONTRIBUTING.md](../../CONTRIBUTING.md), or keep the entity personal.
 
 ## 9. Proposing a new entity type
@@ -112,13 +113,13 @@ Open a pull request that adds all of the following, so that the new type is as w
 1. a row in the entity model ([section 2](#2-entity-model));
 2. a template in `docs/ai/templates/`;
 3. its location and naming rule;
-4. how agents discover it, including any new signpost kind in `tools/ai_signposts.py`;
-5. its structural check in `tools/check_ai_layer.py`;
+4. how agents discover it, including any new signpost kind in `ai/ai_signposts.py`;
+5. its structural check in `ai/check_ai_layer.py`;
 6. an entry in the [changelog](#14-changelog).
 
 ## 10. Signposts and supported agents
 
-Signposts let each agent find MMA's entities at the paths it already knows. They are generated from `docs/ai/signposts.yml` by `tools/ai_signposts.py` and contain no content of their own: an import line, a link or a one-line pointer. Never edit them by hand; CI fails when they drift from the manifest.
+Signposts let each agent find MMA's entities at the paths it already knows. They are generated from `docs/ai/signposts.yml` by `ai/ai_signposts.py` and contain no content of their own: an import line, a link or a one-line pointer. Never edit them by hand; CI fails when they drift from the manifest.
 
 Tier 1 agents get generated signposts from the project. Consistent files do not prove that an agent loads them; the verification table below records what was actually observed.
 
@@ -153,7 +154,7 @@ Known caveats:
 
 ## 11. Verification
 
-- **Structural checks.** `python3 tools/check_ai_layer.py` checks skills, workflows, `AGENTS.md`, links and anchors, skill references, signposts, the core block and records. CI runs it on every pull request. With `--with-readme` it also checks the links, anchors and skill references in `README.md`, reporting findings there as warnings.
+- **Structural checks.** `python3 ai/check_ai_layer.py` checks skills, workflows, `AGENTS.md`, links and anchors, skill references, signposts, the core block and records. CI runs it on every pull request. With `--with-readme` it also checks the links, anchors and skill references in `README.md`, reporting findings there as warnings.
 - **Semantic checks.** The skill `mma-documentation-consistency` and its verification summary, `.agents/skills/mma-documentation-consistency/references/verification-summary.md`. Their findings are advisory.
 
 ## 12. Ownership map
@@ -186,8 +187,10 @@ These entities are planned but do not exist yet; their names are reserved.
 | `mma-numerical-validation` | Skill | Reduced reference cases and a comparison script |
 | `mma-extend-ai` | Skill | Templates that have been used in practice |
 | `mma-doxygen-compliance` | Skill | Doxygen conventions and a pilot module |
-| `tools/mma-env.sh` | Tool | A wrapper that re-creates the environment in non-interactive shells |
+| `environment/mma-env.sh` | Tool | A wrapper that re-creates the environment in non-interactive shells |
 
 ## 14. Changelog
 
+- **Version 2** (2026-11-27):
+  - The AI-support scripts and their tests moved from the former tools directory to `ai/`. The planned environment wrapper is reserved in `environment/` ([section 13](#13-planned-entities)).
 - **Version 1** (2026-11-15): initial conventions.

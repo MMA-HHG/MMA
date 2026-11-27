@@ -19,5 +19,5 @@ variable-inspector==1.3.0
 # MMA input helper
 git+https://github.com/vabekjan/universal_input.git@pipable#egg=create_universal_HDF5
 
-# AI-support tools (tools/ai_signposts.py, tools/check_ai_layer.py)
+# AI-support tools (ai/ai_signposts.py, ai/check_ai_layer.py)
 PyYAML==6.0.2

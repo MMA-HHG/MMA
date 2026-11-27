@@ -31,5 +31,5 @@
 
 - [ ] Commits carry the trailers required by `CONTRIBUTING.md`
 - [ ] Reference data and tolerances are unchanged, or changed in a separate, justified commit
-- [ ] `python3 tools/check_ai_layer.py` passes when documentation or AI-support files changed
+- [ ] `python3 ai/check_ai_layer.py` passes when documentation or AI-support files changed
 - [ ] A human author takes responsibility for every change

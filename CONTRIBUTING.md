@@ -31,4 +31,4 @@ AI assistance is welcome. It must be traced:
 - Use the pull-request template; it asks for the numerical impact, the evidence and the AI assistance.
 - Changes to core modules are reviewed by their owners, as listed in `.github/CODEOWNERS`.
 - Departures from the model or approach described in the published CPC paper are recorded in `docs/deviations-from-paper.md`; detailed analyses go into the module READMEs or the source.
-- Before opening a pull request that touches documentation or AI-support files, run `python3 tools/check_ai_layer.py`.
+- Before opening a pull request that touches documentation or AI-support files, run `python3 ai/check_ai_layer.py`.

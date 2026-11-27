@@ -2,7 +2,7 @@
 """Structural checks for MMA's AI support (docs/ai/README.md, section 11).
 
 Usage:
-    python3 tools/check_ai_layer.py [--with-readme] [--root PATH]
+    python3 ai/check_ai_layer.py [--with-readme] [--root PATH]
 
 Checks S1-S8 are listed in
 .agents/skills/mma-documentation-consistency/references/verification-summary.md.
@@ -388,7 +388,7 @@ def main(argv=None):
     parser.add_argument("--with-readme", action="store_true",
                         help="also check README.md; its findings are reported as warnings")
     parser.add_argument("--root", type=Path, default=signposts.repo_root(),
-                        help="repository root (default: the parent of tools/)")
+                        help="repository root (default: the parent of ai/)")
     args = parser.parse_args(argv)
     root = args.root.resolve()
     report = Report()

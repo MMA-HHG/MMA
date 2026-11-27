@@ -14,7 +14,7 @@ Two kinds of checks complement each other. Structural checks are deterministic a
 ## Procedure
 
 1. **Scope.** List the changed files, for example with `git diff --name-only` against the base branch, and the documents that describe them. The ownership map in `docs/ai/README.md` says which document owns which fact.
-2. **Structural checks.** Run `python3 tools/check_ai_layer.py`, adding `--with-readme` when `README.md` changed. Report errors and warnings verbatim. Never fix generated signposts by hand; run `python3 tools/ai_signposts.py`.
+2. **Structural checks.** Run `python3 ai/check_ai_layer.py`, adding `--with-readme` when `README.md` changed. Report errors and warnings verbatim. Never fix generated signposts by hand; run `python3 ai/ai_signposts.py`.
 3. **Semantic checks.** Work through section C of `references/verification-summary.md` for each changed statement. Compare the statement with its authoritative source, not with another summary.
 4. **Classify** every finding as one of:
    - *inconsistency*: the statement contradicts its source; propose a fix;

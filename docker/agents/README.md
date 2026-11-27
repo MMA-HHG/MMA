@@ -125,7 +125,7 @@ A recipe `docker/agents/<name>.sh` must:
 
 ### Installation checks
 
-Run `python3 tools/test_ai_agents.py` for offline tests of installation selection,
+Run `python3 ai/tests/test_ai_agents.py` for offline tests of installation selection,
 version handling, failure propagation and launcher behaviour. These tests use
 small fake release archives; they do not test a real Codex download or login.
 Validate both Docker build paths and authentication in an actual Docker environment

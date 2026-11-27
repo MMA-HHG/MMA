@@ -37,6 +37,7 @@ MMA (Modular Multiscale Approach) models high-harmonic generation in gases with 
 | `Dockerfile` | Reference environment | [README.md, Installations](README.md#installations) |
 | `docker/agents/` | Optional AI agents in the Docker image: use and recipes | `docker/agents/README.md` |
 | `docs/ai/` | AI support: handbook, workflows, templates, records | `docs/ai/README.md` |
+| `ai/` | AI-support scripts: signpost generator, structural checks and their tests | `docs/ai/README.md` |
 | `.agents/skills/` | Skills in the Agent Skills format | Each skill's `SKILL.md` |
 
 The core modules are listed in the core block of `.github/CODEOWNERS`. Inputs are documented in [README.md, Inputs](README.md#inputs), the execution order in [README.md, Execution pipeline](README.md#execution-pipeline).
@@ -76,9 +77,9 @@ None yet. Contributed workflows and skills (status `community` or `experimental`
 - Before proposing a commit message or creating a commit, read the commit and AI-assistance sections of [CONTRIBUTING.md](CONTRIBUTING.md). Follow its separation and trailer rules, including one `Assisted-by:` trailer per contributing agent and model. Never add `Signed-off-by` lines on anyone's behalf.
 - Reference data and test tolerances change only in their own commit, with a justification, and never just to make a failing test pass.
 - Departures from the model or approach described in the CPC paper are recorded in `docs/deviations-from-paper.md`; detailed analyses belong in the module READMEs or the source.
-- Generated signposts are never edited by hand: `CLAUDE.md`, `.claude/`, `.cursor/`, `.gemini/`, `.github/instructions/`, the nested `AGENTS.md` files in core modules and the workflow signpost skills. Run `python3 tools/ai_signposts.py` instead.
+- Generated signposts are never edited by hand: `CLAUDE.md`, `.claude/`, `.cursor/`, `.gemini/`, `.github/instructions/`, the nested `AGENTS.md` files in core modules and the workflow signpost skills. Run `python3 ai/ai_signposts.py` instead.
 - Never write credentials, usernames, project or allocation IDs, or internal hostnames into the repository.
-- After changing documentation or AI-support files, run `python3 tools/check_ai_layer.py`.
+- After changing documentation or AI-support files, run `python3 ai/check_ai_layer.py`.
 
 ## Findings
 

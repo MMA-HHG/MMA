@@ -16,7 +16,7 @@ Use this summary to verify MMA's documentation and AI-support files. It condense
 
 ## B. Structural checks
 
-Run `python3 tools/check_ai_layer.py`, adding `--with-readme` when `README.md` changed, and report its output verbatim.
+Run `python3 ai/check_ai_layer.py`, adding `--with-readme` when `README.md` changed, and report its output verbatim.
 
 | ID | What it checks |
 | --- | --- |

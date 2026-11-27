@@ -7,7 +7,7 @@
 # README.md and CITATION.cff.
 #
 # The block between "mma-core-begin" and "mma-core-end" is the authoritative list
-# of MMA's core modules (see CONTRIBUTING.md). tools/ai_signposts.py reads it, so
+# of MMA's core modules (see CONTRIBUTING.md). ai/ai_signposts.py reads it, so
 # keep one path per line inside the block. Every line needs an owner: a path
 # listed without one has no code owner at all.
 

@@ -1,5 +1,5 @@
 # Template for a Tier 2 signpost entry. Copy it into the "signposts" list of
-# docs/ai/signposts.yml, adapt it, then run: python3 tools/ai_signposts.py
+# docs/ai/signposts.yml, adapt it, then run: python3 ai/ai_signposts.py
 #
 # A pointer-file signpost holds no content: it only tells the agent to read the target.
 # Add "frontmatter" when the agent needs YAML front matter to pick the file up.
