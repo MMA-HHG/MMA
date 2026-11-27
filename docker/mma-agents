@@ -29,7 +29,8 @@ Usage:
 
 Installs optional AI coding agents into this container, one recipe per agent.
 Without @VERSION, the agent's current release is installed; subsequent updates
-are agent-specific. With @VERSION, that version is installed and kept.
+are agent-specific. With @VERSION, that version is installed and kept, as far as
+the vendor's installer allows (see the agent's section in docker/agents/README.md).
 The same list can be given at build time (--build-arg AI_AGENTS=...) or at
 container start (docker run -e AI_AGENTS=...). An empty list or "none" does nothing.
 

@@ -157,7 +157,7 @@ Known caveats:
 
 - **Structural checks.** `python3 ai/check_ai_layer.py` checks skills, workflows, `AGENTS.md`, links and anchors, skill references, signposts, the core block and records. CI runs it on every pull request. With `--with-readme` it also checks the links, anchors and skill references in `README.md`, reporting findings there as warnings.
 - **Semantic checks.** The skill `mma-documentation-consistency` and its verification summary, `.agents/skills/mma-documentation-consistency/references/verification-summary.md`. Their findings are advisory.
-- **Tests.** `ai/tests/` holds the tests of the AI support. `python3 ai/tests/test_ai_agents.py` tests the agent recipes in `docker/agents/` offline; CI runs it. Like the AI support, these tests are optional: `pytest ai -v` runs them together with the structural checks, while MMA's default test run covers the core modules only.
+- **Tests.** `ai/tests/` holds the tests of the AI support. `python3 ai/tests/test_ai_agents.py` tests the Codex CLI and Antigravity CLI recipes in `docker/agents/`, the `mma-agents` dispatcher and the entrypoint offline; CI runs it. Like the AI support, these tests are optional: `pytest ai -v` runs them together with the structural checks, while MMA's default test run covers the core modules only.
 
 ## 12. Ownership map
 

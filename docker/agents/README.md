@@ -4,7 +4,7 @@ The MMA Docker image can contain AI coding agents: Claude Code, Codex CLI and An
 
 ## How agents work with MMA
 
-- **Entry point.** Agents start from [AGENTS.md](../../AGENTS.md), which routes them to MMA's workflows and skills. It and the skills in `.agents/skills/` are where the agents installed here look for them, Claude Code through the generated `CLAUDE.md`; section 10 of the handbook records which discovery has been verified.
+- **Entry point.** Agents start from [AGENTS.md](../../AGENTS.md), which routes them to MMA's workflows and skills. It and the skills in `.agents/skills/` are where the agents installed here look for them, Claude Code through the generated `CLAUDE.md` and the pointer skills in `.claude/skills/`; section 10 of the handbook records which discovery has been verified.
 - **Autonomy is your choice.** You decide inside the agent how freely it edits files and runs commands; see [Autonomy and isolation](#autonomy-and-isolation). Unless you authorise them in advance, agents ask before the consequential actions listed in `AGENTS.md`, such as pushing or deleting simulation data.
 - **AI-assisted work is traced.** Every AI-assisted commit carries `Assisted-by:` and `Numerical-impact:` trailers, and pull requests state the degree of assistance, as defined in [CONTRIBUTING.md](../../CONTRIBUTING.md).
 - **Open to extension.** Anyone can add skills, workflows, records or agent recipes, on their own responsibility. The conventions are in the AI-support handbook, [docs/ai/README.md](../../docs/ai/README.md).
@@ -88,9 +88,10 @@ A recipe `docker/agents/<name>.sh` must:
        MMA_AGENTS_RECIPES=/MMA/docker/agents mma-agents install <name>
 
    Run it twice: the second run must report that nothing needed doing, without network access.
-3. Add offline tests to `ai/tests/test_ai_agents.py` that replace the vendor download with a fake, as the tests of the existing recipes do, and run `python3 ai/tests/test_ai_agents.py`.
+3. Add offline tests to `ai/tests/test_ai_agents.py` that replace the vendor download with a fake, as the existing tests do, and run `python3 ai/tests/test_ai_agents.py`.
 4. Build with `--build-arg AI_AGENTS=<name>` and start a container with `-e AI_AGENTS=<name>` from the plain image; both must give a working `--version` of the agent's command.
 5. A recipe only installs the agent. Whether the agent finds `AGENTS.md` and the skills by itself, or needs a signpost, is decided in the AI-support handbook, `docs/ai/README.md`, section 10.
+6. Name the agent where the agents are listed: the introduction of this file and the note on optional AI agents in [README.md, Reference Docker installation](../../README.md#reference-docker-installation-and-running-the-code).
 
 ## Claude Code (`claude.sh`)
 
@@ -143,7 +144,7 @@ A recipe `docker/agents/<name>.sh` must:
 - Before the installer runs, an existing installation waits in `~/.local/share/mma-agents/antigravity.previous`. It is put back if the installation fails or is interrupted, for example with `Ctrl+C`, and at the latest by the next run if the container was stopped meanwhile.
 - The Antigravity CLI keeps its settings, logs and conversations in `~/.gemini/antigravity-cli` and offers no setting or variable to move them. The recipe therefore makes that path a link to `~/.mma-agents/antigravity`, so that the state volume keeps them, as item 6 of the recipe contract allows in this case. State found at the old path moves into the volume, unless the volume already holds state; then it is set aside as `~/.gemini/antigravity-cli.before-mma-agents.<date>`. A link pointing elsewhere is redirected to the volume, with a message. Other files in `~/.gemini`, such as personal skills in `~/.gemini/config/skills`, are not kept; mount them separately if you need them.
 - Sign-in: the CLI keeps its login in the operating system's keyring (Secret Service over D-Bus on Linux), which the container lacks. Whether it then falls back to a file in its state directory, which the volume would keep, has not been verified. Google documents two alternatives: a Gemini API key in `GEMINI_API_KEY`, used when `settings.json` sets `"modelProvider": "gemini"`, and Application Default Credentials with `AGY_ADC_AUTH=true`; see [Antigravity's authentication guide](https://antigravity.google/docs/install/). The recipe sets neither.
-- The Antigravity CLI reads `AGENTS.md` and the skills in `.agents/skills/` directly, from its working directory and the folders above it up to the repository root (see [its discovery rules](https://antigravity.google/docs/customization-discovery/)). Start it in `/MMA` for work spanning modules; started in a module directory, it also reads that module's `AGENTS.md`.
+- According to [Google's discovery rules](https://antigravity.google/docs/customization-discovery/), the Antigravity CLI reads `AGENTS.md` and the skills in `.agents/skills/` directly, from its working directory and the folders above it up to the repository root; this is not yet verified in MMA (handbook, section 10). Start it in `/MMA` for work spanning modules; started in a module directory, it also reads that module's `AGENTS.md`.
 - Tested on 2026-11-27 with Antigravity CLI 1.5.18 in a running MMA container, with a separate home directory: installation, offline repeat, keeping and releasing a version, the refusal of unavailable versions, and `Ctrl+C` during the download. Image builds with `--build-arg AI_AGENTS=antigravity` and sign-in have not been tested.
 
 ## Installation checks

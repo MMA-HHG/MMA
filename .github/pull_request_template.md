@@ -6,7 +6,7 @@
 
 - [ ] Changes a core module (CUPRAD, CTDSE in `1DTDSE/`, Hankel) or the shared namelist
 - [ ] Documentation only
-- [ ] AI-support files (`AGENTS.md`, `docs/ai/`, `.agents/skills/`, signposts)
+- [ ] AI-support files (`AGENTS.md`, `docs/ai/`, `ai/`, `.agents/skills/`, `docker/agents/`, signposts)
 
 ## Numerical impact
 
