@@ -4,9 +4,11 @@
 import json
 import os
 from pathlib import Path
+import signal
 import subprocess
 import sys
 import tempfile
+import time
 import unittest
 
 
@@ -291,6 +293,7 @@ if [ -f "$target" ]; then
     exit 0
 fi
 [ -z "${FAIL_INSTALL:-}" ] || { echo "installer failure" >&2; exit 1; }
+[ -z "${SLOW_INSTALL:-}" ] || sleep 30
 mkdir -p "$HOME/.local/bin"
 cat > "$target" <<EOF
 #!PYTHON
@@ -325,8 +328,12 @@ shutil.copyfile(os.environ['FAKE_INSTALLER'], args[args.index('-o') + 1])
         self.recipe = ROOT / "docker/agents/antigravity.sh"
         self.command = self.home / ".local/bin/agy"
         self.kept = self.home / ".local/share/mma-agents/antigravity/agy"
+        self.previous = self.home / ".local/share/mma-agents/antigravity.previous"
         self.cli_state = self.home / ".gemini/antigravity-cli"
         self.state = self.home / ".mma-agents/antigravity"
+
+    def asides(self):
+        return sorted(self.cli_state.parent.glob("antigravity-cli.before-mma-agents.*"))
 
     def agy(self, *args, **overrides):
         result = subprocess.run([str(self.command), *args],
@@ -391,6 +398,7 @@ shutil.copyfile(os.environ['FAKE_INSTALLER'], args[args.index('-o') + 1])
         for path, contents in originals.items():
             self.assertEqual(path.read_bytes(), contents)
         self.assertEqual(self.bin_entries(), ["agy"])
+        self.assertFalse(self.previous.exists())
         return result
 
     def test_unavailable_version_or_failed_installer_changes_nothing(self):
@@ -404,6 +412,40 @@ shutil.copyfile(os.environ['FAKE_INSTALLER'], args[args.index('-o') + 1])
         self.assert_unchanged_after_failure("1.5.19", RELEASE_VERSION="1.5.20")
         self.assertTrue(self.is_launcher())
         self.assertEqual(self.version(), "1.5.18")
+
+    def test_version_older_than_the_installed_one_fails_offline(self):
+        self.run_script(self.recipe, RELEASE_VERSION="1.5.19")
+        result = self.assert_unchanged_after_failure("1.5.18", FAIL_CURL="1")
+        self.assertIn("1.5.19 is installed", result.stdout)
+        self.assertEqual(len(self.fetches()), 1)
+
+    def test_interrupted_installation_is_restored(self):
+        self.run_script(self.recipe)
+        original = self.command.read_bytes()
+        process = subprocess.Popen(["bash", str(self.recipe), "1.6.0"], start_new_session=True,
+                                   env=dict(self.env, SLOW_INSTALL="1", RELEASE_VERSION="1.6.0"),
+                                   stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        self.addCleanup(lambda: process.poll() is None and process.kill())
+        for _ in range(200):
+            if self.previous.exists():
+                break
+            time.sleep(0.05)
+        self.assertTrue(self.previous.exists(), "the recipe never set the installation aside")
+        os.killpg(process.pid, signal.SIGINT)  # as Ctrl-C does
+        self.assertNotEqual(process.wait(timeout=20), 0)
+        self.assertEqual(self.command.read_bytes(), original)
+        self.assertFalse(self.previous.exists())
+        self.assertEqual(self.bin_entries(), ["agy"])
+
+    def test_installation_left_aside_by_a_killed_run_is_restored(self):
+        self.run_script(self.recipe)
+        original = self.command.read_bytes()
+        self.previous.parent.mkdir(parents=True, exist_ok=True)
+        self.command.rename(self.previous)
+        result = self.run_script(self.recipe, FAIL_CURL="1")
+        self.assertIn("Restored the installation", result.stdout)
+        self.assertEqual(self.command.read_bytes(), original)
+        self.assertFalse(self.previous.exists())
 
     def test_broken_installation_is_reinstalled(self):
         self.run_script(self.recipe)
@@ -422,12 +464,24 @@ shutil.copyfile(os.environ['FAKE_INSTALLER'], args[args.index('-o') + 1])
     def test_state_in_the_volume_wins_and_other_state_is_set_aside(self):
         self.state.mkdir(parents=True)
         (self.state / "settings.json").write_text("volume\n")
-        self.cli_state.mkdir(parents=True)
-        (self.cli_state / "settings.json").write_text("container\n")
-        self.run_script(self.recipe)
-        self.assertEqual((self.cli_state / "settings.json").read_text(), "volume\n")
-        aside = self.cli_state.with_name("antigravity-cli.before-mma-agents")
-        self.assertEqual((aside / "settings.json").read_text(), "container\n")
+        for attempt in (1, 2):  # a repeated conflict must not stop the recipe
+            self.cli_state.mkdir(parents=True)
+            (self.cli_state / "settings.json").write_text(f"container {attempt}\n")
+            self.run_script(self.recipe)
+            self.assertEqual((self.cli_state / "settings.json").read_text(), "volume\n")
+            self.assertEqual(len(self.asides()), attempt)
+            self.cli_state.unlink()
+        self.assertEqual(sorted((a / "settings.json").read_text() for a in self.asides()),
+                         ["container 1\n", "container 2\n"])
+
+    def test_link_to_another_location_is_redirected(self):
+        elsewhere = self.work / "elsewhere"
+        elsewhere.mkdir()
+        self.cli_state.parent.mkdir(parents=True)
+        self.cli_state.symlink_to(elsewhere)
+        result = self.run_script(self.recipe)
+        self.assertIn(f"pointed to {elsewhere}", result.stdout)
+        self.assertEqual(self.cli_state.resolve(), self.state.resolve())
 
     def test_invalid_requests_change_nothing(self):
         for request in ("stable", "1.5", "../bad", "1.5.18-beta"):

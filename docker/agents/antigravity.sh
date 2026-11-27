@@ -15,6 +15,9 @@ cli_state="${HOME}/.gemini/antigravity-cli"
 command="${HOME}/.local/bin/agy"
 keep_dir="${HOME}/.local/share/mma-agents/antigravity"
 kept="${keep_dir}/agy"
+# An existing installation waits here, off PATH, while the installer runs.
+previous="${HOME}/.local/share/mma-agents/antigravity.previous"
+work=""
 marker="# mma-agents:antigravity launcher"
 installer_url="https://antigravity.google/cli/install.sh"
 
@@ -32,8 +35,10 @@ esac
 # no setting to move them; a link puts them into the agents' state volume.
 link_state() {
     mkdir -p "${state_dir}" "$(dirname "${cli_state}")"
+    local aside
     if [[ -L "${cli_state}" ]]; then
         [[ "$(readlink "${cli_state}")" == "${state_dir}" ]] && return 0
+        say "${cli_state} pointed to $(readlink "${cli_state}"); it now points to ${state_dir}."
         rm -f "${cli_state}"
     elif [[ -d "${cli_state}" ]]; then
         if [[ -z "$(ls -A "${state_dir}")" ]]; then
@@ -41,12 +46,12 @@ link_state() {
             mv "${cli_state}" "${state_dir}"
             say "Moved the existing ${cli_state} into ${state_dir}."
         else
-            [[ ! -e "${cli_state}.before-mma-agents" ]] \
-                || fail "${cli_state} and ${state_dir} both hold state, and" \
-                        "${cli_state}.before-mma-agents exists; resolve this by hand."
-            mv "${cli_state}" "${cli_state}.before-mma-agents"
-            say "Kept the state in ${state_dir}; the existing ${cli_state}" \
-                "is now ${cli_state}.before-mma-agents."
+            aside="${cli_state}.before-mma-agents.$(date +%Y%m%d-%H%M%S)"
+            if [[ -e "${aside}" ]]; then
+                aside="${aside}.$$"
+            fi
+            mv "${cli_state}" "${aside}"
+            say "Kept the state in ${state_dir}; the existing ${cli_state} is now ${aside}."
         fi
     elif [[ -e "${cli_state}" ]]; then
         fail "${cli_state} is neither a directory nor a link; move it away and retry."
@@ -99,54 +104,74 @@ release_version() {
     rm -rf "${keep_dir}"
 }
 
+exists() { [[ -e "$1" || -L "$1" ]]; }
+
+# Put back the installation that was set aside: after a failure or an interruption
+# (exit trap), or at the next run if the previous one was killed outright.
+restore_previous() {
+    rm -f "${command}"
+    if exists "${previous}"; then
+        mv -f "${previous}" "${command}"
+    fi
+    if [[ -n "${work}" ]]; then
+        rm -rf "${work}"
+    fi
+}
+
+# True if version $1 is newer than version $2.
+newer() {
+    [[ "$1" != "$2" && "$(printf '%s\n%s\n' "$1" "$2" | sort -V | tail -n 1)" == "$1" ]]
+}
+
 # The installer offers only the current release and does nothing while agy exists, so
 # an existing installation is set aside first and restored if anything fails.
 install_current() {
+    local version
     command -v curl >/dev/null \
         || fail "curl is missing from the image; it belongs in the Dockerfile's package list."
-    mkdir -p "$(dirname "${command}")"
-    local work backup="" version
+    mkdir -p "$(dirname "${command}")" "$(dirname "${previous}")"
     work="$(mktemp -d)"
-    if [[ -e "${command}" || -L "${command}" ]]; then
-        backup="$(mktemp "${command}.previous.XXXXXX")"
-        mv -f "${command}" "${backup}"
+    if exists "${command}"; then
+        mv -f "${command}" "${previous}"
     fi
-    restore() {
-        rm -f "${command}"
-        if [[ -n "${backup}" ]]; then
-            mv -f "${backup}" "${command}"
-        fi
-        rm -rf "${work}"
-    }
+    trap restore_previous EXIT
+    trap 'exit 130' INT
+    trap 'exit 143' TERM
+    trap 'exit 129' HUP
 
     say "Installing the current Antigravity CLI release with Google's installer."
-    if ! curl -fsSL --retry 3 --connect-timeout 20 "${installer_url}" -o "${work}/install.sh"; then
-        restore
-        fail "Downloading the installer failed; check network access."
-    fi
-    if ! bash "${work}/install.sh"; then
-        restore
-        fail "The installer failed; see its messages above."
-    fi
+    curl -fsSL --retry 3 --connect-timeout 20 "${installer_url}" -o "${work}/install.sh" \
+        || fail "Downloading the installer failed; check network access."
+    # As with the documented "curl | bash", the installer gets no terminal input.
+    bash "${work}/install.sh" < /dev/null \
+        || fail "The installer failed; see its messages above."
     version="$(version_of "${command}")"
-    if [[ -z "${version}" ]]; then
-        restore
-        fail "The installer finished, but ${command} reports no version."
-    fi
+    [[ -n "${version}" ]] \
+        || fail "The installer finished, but ${command} reports no version."
     if (( pinned )) && [[ "${version}" != "${request}" ]]; then
-        restore
         fail "Antigravity CLI ${request} is not available: the installer offers only the" \
              "current release, ${version}. Request 'antigravity' or 'antigravity@${version}'."
     fi
-    if [[ -n "${backup}" ]]; then
-        rm -f "${backup}"
-    fi
+
+    trap - EXIT INT TERM HUP
+    rm -f "${previous}"
     rm -rf "${work}"
+    work=""
     installed="${version}"
 }
 
 link_state
+if exists "${previous}"; then
+    restore_previous
+    say "Restored the installation that an interrupted run had set aside."
+fi
 installed="$(version_of "$(executable)")"
+# The CLI only updates forwards, so a version older than the installed one is no longer
+# the current release and cannot be installed; this needs no download to tell.
+if (( pinned )) && [[ -n "${installed}" ]] && newer "${installed}" "${request}"; then
+    fail "Antigravity CLI ${request} is not available: ${installed} is installed, and the" \
+         "installer offers only the current release. Request 'antigravity' or 'antigravity@${installed}'."
+fi
 action="is already installed"
 if [[ -z "${installed}" ]] || { (( pinned )) && [[ "${installed}" != "${request}" ]]; }; then
     install_current
