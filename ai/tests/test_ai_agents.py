@@ -13,7 +13,9 @@ import unittest
 ROOT = Path(__file__).resolve().parents[2]
 
 
-class AgentInstallationTests(unittest.TestCase):
+class InstallerTestCase(unittest.TestCase):
+    """A temporary home, stubbed system commands and a helper to run the scripts."""
+
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp.cleanup)
@@ -23,7 +25,8 @@ class AgentInstallationTests(unittest.TestCase):
         self.stubs = self.work / "stubs"
         self.stubs.mkdir()
         self.env = dict(os.environ)
-        for key in ("CODEX_HOME", "MMA_AGENTS_STATE", "AI_AGENTS", "FAIL_CURL", "CORRUPT_ARCHIVE"):
+        for key in ("CODEX_HOME", "MMA_AGENTS_STATE", "AI_AGENTS", "FAIL_CURL", "CORRUPT_ARCHIVE",
+                    "AGY_CLI_DISABLE_AUTO_UPDATE", "FAIL_INSTALL"):
             self.env.pop(key, None)
         self.env.update(HOME=str(self.home),
                         PATH=f"{self.stubs}:{self.home / '.local/bin'}:{os.environ['PATH']}",
@@ -35,6 +38,33 @@ class AgentInstallationTests(unittest.TestCase):
                         ARGS_LOG=str(self.work / "arguments.json"))
         self.stub("uname", '#!/bin/sh\ncase "$1" in\n-s) echo "${TEST_SYSTEM:-Linux}";;\n-m) echo "${TEST_ARCH:-x86_64}";;\nesac\n')
         self.stub("id", '#!/bin/sh\nif [ "$1" = "-u" ]; then echo 1000; else /usr/bin/id "$@"; fi\n')
+        self.dispatcher = ROOT / "docker/mma-agents"
+
+    def stub(self, name, body):
+        path = self.stubs / name
+        path.write_text(body)
+        path.chmod(0o755)
+
+    def run_script(self, script, *args, expected=0, **overrides):
+        result = subprocess.run(["bash", str(script), *args],
+                                env=dict(self.env, **overrides), text=True,
+                                stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        if expected == 0:
+            self.assertEqual(result.returncode, 0, result.stdout)
+        else:
+            self.assertNotEqual(result.returncode, 0, result.stdout)
+        return result
+
+    def fetches(self):
+        log = Path(self.env["FETCH_LOG"])
+        return log.read_text().splitlines() if log.exists() else []
+
+
+class AgentInstallationTests(InstallerTestCase):
+    """Codex CLI recipe, the mma-agents dispatcher and the entrypoint."""
+
+    def setUp(self):
+        super().setUp()
         self.stub("curl", f"#!{sys.executable}\n" + '''import io, os, pathlib, sys, tarfile
 args = sys.argv[1:]
 url = next(a for a in args if a.endswith('.tar.gz'))
@@ -76,24 +106,8 @@ with tarfile.open(output, 'w:gz') as archive:
         archive.addfile(entry, io.BytesIO(payload))
 ''')
         self.recipe = ROOT / "docker/agents/codex.sh"
-        self.dispatcher = ROOT / "docker/mma-agents"
         self.launcher = self.home / ".local/bin/codex"
         self.binary = self.home / ".local/share/mma-agents/codex/codex"
-
-    def stub(self, name, body):
-        path = self.stubs / name
-        path.write_text(body)
-        path.chmod(0o755)
-
-    def run_script(self, script, *args, expected=0, **overrides):
-        result = subprocess.run(["bash", str(script), *args],
-                                env=dict(self.env, **overrides), text=True,
-                                stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-        if expected == 0:
-            self.assertEqual(result.returncode, 0, result.stdout)
-        else:
-            self.assertNotEqual(result.returncode, 0, result.stdout)
-        return result
 
     def launch(self, *args, **overrides):
         result = subprocess.run([str(self.launcher), *args],
@@ -242,7 +256,7 @@ with tarfile.open(output, 'w:gz') as archive:
         self.run_script(self.dispatcher, "install", "none")
         self.assertFalse((self.home / ".mma-agents").exists())
         self.assertEqual(self.run_script(self.dispatcher, "list").stdout.split(),
-                         ["claude", "codex"])
+                         ["antigravity", "claude", "codex"])
         for selection in ("codex,unknown", "codex,codex", "codex@", "../codex"):
             with self.subTest(selection=selection):
                 self.run_script(self.dispatcher, "install", selection, expected=1)
@@ -265,6 +279,167 @@ with tarfile.open(output, 'w:gz') as archive:
                                  expected=1, MMA_AUTO_BUILD="0", AI_AGENTS="codex")
         self.assertIn("Requested AI agent installation failed", result.stdout)
         self.assertFalse(marker.exists())
+
+
+# Imitates Google's installer: it does nothing while agy exists and otherwise installs the
+# current release, RELEASE_VERSION, into ~/.local/bin. "agy --version" prints the bare version.
+AGY_INSTALLER = r'''#!/bin/bash
+set -euo pipefail
+target="$HOME/.local/bin/agy"
+if [ -f "$target" ]; then
+    echo "Notice: 'agy' is already installed at $target."
+    exit 0
+fi
+[ -z "${FAIL_INSTALL:-}" ] || { echo "installer failure" >&2; exit 1; }
+mkdir -p "$HOME/.local/bin"
+cat > "$target" <<EOF
+#!PYTHON
+import json, os, sys
+if sys.argv[1:] == ["--version"]:
+    print("${RELEASE_VERSION:-1.5.18}")
+else:
+    with open(os.environ["ARGS_LOG"], "w") as out:
+        json.dump([sys.argv[1:], os.environ.get("AGY_CLI_DISABLE_AUTO_UPDATE")], out)
+EOF
+chmod +x "$target"
+'''
+
+
+class AntigravityInstallationTests(InstallerTestCase):
+    """Antigravity CLI recipe: Google's installer is replaced by AGY_INSTALLER."""
+
+    def setUp(self):
+        super().setUp()
+        installer = self.work / "fake-install.sh"
+        installer.write_text(AGY_INSTALLER.replace("PYTHON", sys.executable))
+        self.env.update(FAKE_INSTALLER=str(installer), RELEASE_VERSION="1.5.18")
+        self.stub("curl", f"#!{sys.executable}\n" + '''import os, pathlib, shutil, sys
+args = sys.argv[1:]
+url = next(a for a in args if a.startswith('https://'))
+with open(os.environ['FETCH_LOG'], 'a') as log:
+    log.write(url + '\\n')
+if os.environ.get('FAIL_CURL'):
+    sys.exit(22)
+shutil.copyfile(os.environ['FAKE_INSTALLER'], args[args.index('-o') + 1])
+''')
+        self.recipe = ROOT / "docker/agents/antigravity.sh"
+        self.command = self.home / ".local/bin/agy"
+        self.kept = self.home / ".local/share/mma-agents/antigravity/agy"
+        self.cli_state = self.home / ".gemini/antigravity-cli"
+        self.state = self.home / ".mma-agents/antigravity"
+
+    def agy(self, *args, **overrides):
+        result = subprocess.run([str(self.command), *args],
+                                env=dict(self.env, **overrides), text=True,
+                                stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        self.assertEqual(result.returncode, 0, result.stdout)
+        return result
+
+    def version(self):
+        return self.agy("--version").stdout.strip()
+
+    def is_launcher(self):
+        return b"mma-agents:antigravity launcher" in self.command.read_bytes()[:512]
+
+    def bin_entries(self):
+        return sorted(p.name for p in self.command.parent.iterdir())
+
+    def test_current_install_offline_repeat_and_state_link(self):
+        self.run_script(self.recipe)
+        self.assertEqual(self.version(), "1.5.18")
+        self.assertFalse(self.is_launcher())
+        self.assertTrue(self.cli_state.is_symlink())
+        self.assertEqual(self.cli_state.resolve(), self.state.resolve())
+        # A satisfied request stays offline, also after a newer release: the CLI updates itself.
+        self.run_script(self.recipe, FAIL_CURL="1")
+        self.run_script(self.recipe, "latest", FAIL_CURL="1", RELEASE_VERSION="1.5.19")
+        self.assertEqual(self.fetches(), ["https://antigravity.google/cli/install.sh"])
+
+    def test_keep_and_release_the_installed_version_offline(self):
+        self.run_script(self.recipe)
+        args = ("a prompt with spaces", "--", "$literal")
+        for _ in range(2):
+            self.run_script(self.recipe, "1.5.18", FAIL_CURL="1", RELEASE_VERSION="1.5.19")
+        self.assertTrue(self.is_launcher())
+        self.assertEqual(self.version(), "1.5.18")
+        self.agy(*args)
+        self.assertEqual(json.loads(Path(self.env["ARGS_LOG"]).read_text()), [list(args), "true"])
+        self.run_script(self.recipe, FAIL_CURL="1")
+        self.assertFalse(self.is_launcher())
+        self.assertFalse(self.kept.parent.exists())
+        self.agy(*args)
+        self.assertEqual(json.loads(Path(self.env["ARGS_LOG"]).read_text()), [list(args), None])
+        self.assertEqual(len(self.fetches()), 1)
+
+    def test_keep_the_current_release_on_a_fresh_install(self):
+        self.run_script(self.recipe, "1.5.18")
+        self.assertTrue(self.is_launcher())
+        self.assertEqual(self.version(), "1.5.18")
+        self.run_script(self.recipe, "1.5.18", FAIL_CURL="1")
+        self.assertEqual(self.bin_entries(), ["agy"])
+
+    def test_change_of_the_kept_version_to_the_current_release(self):
+        self.run_script(self.recipe, "1.5.18")
+        self.run_script(self.recipe, "1.5.19", RELEASE_VERSION="1.5.19")
+        self.assertTrue(self.is_launcher())
+        self.assertEqual(self.version(), "1.5.19")
+        self.assertEqual(self.bin_entries(), ["agy"])
+
+    def assert_unchanged_after_failure(self, request, **overrides):
+        originals = {p: p.read_bytes() for p in (self.command, self.kept) if p.exists()}
+        result = self.run_script(self.recipe, request, expected=1, **overrides)
+        for path, contents in originals.items():
+            self.assertEqual(path.read_bytes(), contents)
+        self.assertEqual(self.bin_entries(), ["agy"])
+        return result
+
+    def test_unavailable_version_or_failed_installer_changes_nothing(self):
+        self.run_script(self.recipe)
+        result = self.assert_unchanged_after_failure("1.6.0", RELEASE_VERSION="1.5.19")
+        self.assertIn("only the current release, 1.5.19", result.stdout)
+        self.assert_unchanged_after_failure("1.6.0", FAIL_CURL="1")
+        self.assert_unchanged_after_failure("1.6.0", FAIL_INSTALL="1")
+        self.assertEqual(self.version(), "1.5.18")
+        self.run_script(self.recipe, "1.5.18")
+        self.assert_unchanged_after_failure("1.5.19", RELEASE_VERSION="1.5.20")
+        self.assertTrue(self.is_launcher())
+        self.assertEqual(self.version(), "1.5.18")
+
+    def test_broken_installation_is_reinstalled(self):
+        self.run_script(self.recipe)
+        self.command.write_text("#!/bin/sh\nexit 1\n")
+        self.run_script(self.recipe)
+        self.assertEqual(self.version(), "1.5.18")
+        self.assertEqual(len(self.fetches()), 2)
+
+    def test_existing_state_moves_into_the_volume(self):
+        self.cli_state.mkdir(parents=True)
+        (self.cli_state / "settings.json").write_text("container\n")
+        self.run_script(self.recipe)
+        self.assertTrue(self.cli_state.is_symlink())
+        self.assertEqual((self.state / "settings.json").read_text(), "container\n")
+
+    def test_state_in_the_volume_wins_and_other_state_is_set_aside(self):
+        self.state.mkdir(parents=True)
+        (self.state / "settings.json").write_text("volume\n")
+        self.cli_state.mkdir(parents=True)
+        (self.cli_state / "settings.json").write_text("container\n")
+        self.run_script(self.recipe)
+        self.assertEqual((self.cli_state / "settings.json").read_text(), "volume\n")
+        aside = self.cli_state.with_name("antigravity-cli.before-mma-agents")
+        self.assertEqual((aside / "settings.json").read_text(), "container\n")
+
+    def test_invalid_requests_change_nothing(self):
+        for request in ("stable", "1.5", "../bad", "1.5.18-beta"):
+            with self.subTest(request=request):
+                self.run_script(self.recipe, request, expected=1)
+        self.assertEqual(self.fetches(), [])
+        self.assertFalse((self.home / ".gemini").exists())
+
+    def test_dispatcher_installs_antigravity(self):
+        self.run_script(self.dispatcher, "install", "antigravity@1.5.18")
+        self.assertTrue(self.is_launcher())
+        self.assertEqual(self.version(), "1.5.18")
 
 
 if __name__ == "__main__":

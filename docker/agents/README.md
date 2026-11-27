@@ -1,6 +1,6 @@
 # AI coding agents in the Docker image
 
-The MMA Docker image can contain AI coding agents, such as Codex CLI and Claude Code, which then work in the mounted repository together with MMA's AI support. Agents are optional: without the options below, the image is the one described in [README.md, Reference Docker installation](../../README.md#reference-docker-installation-and-running-the-code). This file describes how to use the agents and how to add or maintain a recipe for one.
+The MMA Docker image can contain AI coding agents, such as Claude Code, Codex CLI and Antigravity CLI, which then work in the mounted repository together with MMA's AI support. Agents are optional: without the options below, the image is the one described in [README.md, Reference Docker installation](../../README.md#reference-docker-installation-and-running-the-code). This file describes how to use the agents and how to add or maintain a recipe for one.
 
 ## Using an agent
 
@@ -12,12 +12,13 @@ docker run --name CONTAINER_NAME --hostname CONTAINER_NAME -v .:/MMA -w /MMA -p 
     -v mma-agents:/home/active_electron/.mma-agents -e AI_AGENTS=claude,codex -it mma
 ```
 
-The first start downloads the selected agents, so it needs internet access; `-e AI_AGENTS=claude` or `-e AI_AGENTS=codex` installs only one of them. The volume `mma-agents` keeps logins and settings for later containers; replace the home path if you build with a different `USERNAME`. `docker start -ai CONTAINER_NAME` restarts the same container with everything in place, without downloading again.
+The first start downloads the selected agents, so it needs internet access; `-e AI_AGENTS=claude`, `-e AI_AGENTS=codex` or `-e AI_AGENTS=antigravity` installs only one of them. The volume `mma-agents` keeps logins and settings for later containers; replace the home path if you build with a different `USERNAME`. `docker start -ai CONTAINER_NAME` restarts the same container with everything in place, without downloading again.
 
 In the container, start an agent in `/MMA` from the main shell or a JupyterLab terminal, and sign in:
 
 - Claude Code: run `claude` and follow the sign-in prompt.
 - Codex CLI: run `codex login --device-auth`, then `codex`. Device-code login avoids a browser callback into the container. It must be enabled for your OpenAI account or workspace; otherwise use another method from [OpenAI's authentication documentation](https://developers.openai.com/codex/auth/).
+- Antigravity CLI: run `agy` and choose a sign-in method. The container has no keyring for the login; see [Antigravity CLI](#antigravity-cli-antigravitysh) below.
 
 Shells opened with `docker exec` lack the variables that the entrypoint sets. Neither the image nor the repository contains credentials, and there is no sign-in during an image build.
 
@@ -29,7 +30,7 @@ docker build --build-arg AI_AGENTS=claude,codex -t mma-ai .
 
 The same options apply when you build from `docker/Dockerfile_Windows`.
 
-`AI_AGENTS` takes one agent or a comma-separated list. Without a version, an agent's current release is installed; subsequent update behaviour is agent-specific (see below). An entry may also name a version, such as `codex@X.Y.Z` or `claude@X.Y.Z`. The recipe then verifies that version and suppresses automatic update checks or updates as appropriate for that agent. For Claude Code, `claude@stable` and `claude@latest` choose a release channel instead. Inside a container, `mma-agents list` shows the supported agents, and `mma-agents install claude@X.Y.Z` installs an agent or changes its version. An unknown name or a failed requested installation stops the build or container start with an error. To start a container without agents, omit `AI_AGENTS` or set it to `none`.
+`AI_AGENTS` takes one agent or a comma-separated list. Without a version, an agent's current release is installed; subsequent update behaviour is agent-specific (see below). An entry may also name a version, such as `codex@X.Y.Z` or `claude@X.Y.Z`. The recipe then verifies that version and suppresses automatic update checks or updates as appropriate for that agent. For Claude Code, `claude@stable` and `claude@latest` choose a release channel instead. For Antigravity CLI, whose installer offers only the current release, `antigravity@X.Y.Z` keeps a version that is installed or current. Inside a container, `mma-agents list` shows the supported agents, and `mma-agents install claude@X.Y.Z` installs an agent or changes its version. An unknown name or a failed requested installation stops the build or container start with an error. To start a container without agents, omit `AI_AGENTS` or set it to `none`.
 
 ### Git
 
@@ -68,7 +69,7 @@ A recipe `docker/agents/<name>.sh` must:
 3. **Work without root.** It runs as the container user, at build time or at container start, possibly where `sudo` is unavailable. Install under `$HOME` only; never call `sudo` or a system package manager. It must not rely on its own file location.
 4. **Be idempotent and offline when there is nothing to do.** If the request is already satisfied, exit successfully without network access; the entrypoint runs recipes on every container start while `AI_AGENTS` is set.
 5. **Put its command on `PATH` for every shell**, in `~/.local/bin`, which the image adds to `PATH`; prefer the command exactly as the vendor's installer leaves it. If the agent needs an environment variable, for example to find its state, add one `ENV` line to the agents block of both Dockerfiles; it is inert while the agent is absent. Never use shell start-up files, so that `docker exec` and non-interactive shells behave the same.
-6. **Keep the agent's login and settings** in `$MMA_AGENTS_STATE/<name>`, through the agent's own setting or environment variable. One optional volume then keeps every agent's login. Document any user resources, such as personal skills, that use another location.
+6. **Keep the agent's login and settings** in `$MMA_AGENTS_STATE/<name>`, through the agent's own setting or environment variable; only where the agent offers neither, through a link from its fixed location, documented in the agent's section. One optional volume then keeps every agent's login. Document any user resources, such as personal skills, that use another location.
 7. **Stay neutral.** No credentials or API keys, no permission or autonomy settings, no MCP servers: the user decides these at run time.
 8. **Use the vendor's documented installation method**, check the result with the agent's `--version`, prefix its messages with `[mma-agents:<name>]` and exit non-zero on failure.
 
@@ -80,8 +81,9 @@ A recipe `docker/agents/<name>.sh` must:
        MMA_AGENTS_RECIPES=/MMA/docker/agents mma-agents install <name>
 
    Run it twice: the second run must report that nothing needed doing, without network access.
-3. Build with `--build-arg AI_AGENTS=<name>` and start a container with `-e AI_AGENTS=<name>` from the plain image; both must give a working `<name> --version`.
-4. A recipe only installs the agent. Whether the agent finds `AGENTS.md` and the skills by itself, or needs a signpost, is decided in the AI-support handbook, `docs/ai/README.md`, section 10.
+3. Add offline tests to `ai/tests/test_ai_agents.py` that replace the vendor download with a fake, as the tests of the existing recipes do, and run `python3 ai/tests/test_ai_agents.py`.
+4. Build with `--build-arg AI_AGENTS=<name>` and start a container with `-e AI_AGENTS=<name>` from the plain image; both must give a working `--version` of the agent's command.
+5. A recipe only installs the agent. Whether the agent finds `AGENTS.md` and the skills by itself, or needs a signpost, is decided in the AI-support handbook, `docs/ai/README.md`, section 10.
 
 ## Claude Code (`claude.sh`)
 
@@ -123,12 +125,16 @@ A recipe `docker/agents/<name>.sh` must:
   user's control. See [Codex authentication](https://developers.openai.com/codex/auth/)
   and [configuration](https://developers.openai.com/codex/config-reference/).
 
-### Installation checks
+## Antigravity CLI (`antigravity.sh`)
 
-Run `python3 ai/tests/test_ai_agents.py` for offline tests of installation selection,
-version handling, failure propagation and launcher behaviour. These tests use
-small fake release archives; they do not test a real Codex download or login.
-Validate both Docker build paths and authentication in an actual Docker environment
-before calling the integration tested end to end. `pytest ai -v` runs these tests as
-well, together with the structural checks of the AI support; MMA's default test run
-does not include them.
+- Installed with Google's installer, `curl -fsSL https://antigravity.google/cli/install.sh | bash`, as on [Antigravity's download page](https://antigravity.google/download/). The command is `agy`, which the installer leaves in `~/.local/bin`. The installer also adds `~/.local/bin` to `PATH` in `~/.bashrc` and `~/.profile`; the image has it on `PATH` already, so these lines change nothing, and the recipe does not rely on them. The executable is large, about 270 MB, which matters when it is built into an image.
+- `antigravity` and `antigravity@latest` install the current release, which then updates itself in the background, as the Antigravity CLI intends. Repeating a satisfied request stays offline.
+- `antigravity@X.Y.Z` keeps that version. Google's installer offers only the current release, so X.Y.Z must already be installed or be the current release; otherwise the recipe stops, names the current release and leaves the installation unchanged. The kept executable moves to `~/.local/share/mma-agents/antigravity/`, and a small launcher in `~/.local/bin/agy` sets the documented `AGY_CLI_DISABLE_AUTO_UPDATE=true`. A later unversioned request restores the installer's layout, offline, and background updates resume. An image built with `antigravity@X.Y.Z` keeps that version in every container started from it.
+- The Antigravity CLI keeps its settings, logs and conversations in `~/.gemini/antigravity-cli` and offers no setting or variable to move them. The recipe therefore makes that path a link to `~/.mma-agents/antigravity`, so that the state volume keeps them, as item 6 of the recipe contract allows in this case. State found at the old path moves into the volume, unless the volume already holds state; then it is set aside as `~/.gemini/antigravity-cli.before-mma-agents`. Other files in `~/.gemini`, such as personal skills in `~/.gemini/config/skills`, are not kept; mount them separately if you need them.
+- Sign-in: the CLI keeps its login in the operating system's keyring (Secret Service over D-Bus on Linux), which the container lacks. Whether it then falls back to a file in its state directory, which the volume would keep, has not been verified. Google documents two alternatives: a Gemini API key in `GEMINI_API_KEY`, used when `settings.json` sets `"modelProvider": "gemini"`, and Application Default Credentials with `AGY_ADC_AUTH=true`; see [Antigravity's authentication guide](https://antigravity.google/docs/install/). The recipe sets neither.
+- The Antigravity CLI reads `AGENTS.md` and the skills in `.agents/skills/` directly, from its working directory and the folders above it up to the repository root (see [its discovery rules](https://antigravity.google/docs/customization-discovery/)). Start it in `/MMA` for work spanning modules; started in a module directory, it also reads that module's `AGENTS.md`.
+- Tested on 2026-11-27 with Antigravity CLI 1.5.18 in a running MMA container, with a separate home directory: installation, offline repeat, keeping and releasing a version, and the refusal of an unavailable version. Image builds with `--build-arg AI_AGENTS=antigravity` and sign-in have not been tested.
+
+## Installation checks
+
+Run `python3 ai/tests/test_ai_agents.py` for offline tests of the Codex CLI and Antigravity CLI recipes, the `mma-agents` dispatcher and the entrypoint: installation selection, version handling, failure propagation, launcher behaviour and, for Antigravity CLI, the state link. The tests replace vendor downloads with small fakes, such as release archives and installer scripts; they test neither real downloads nor sign-in. Validate both Docker build paths and sign-in in an actual Docker environment before calling an integration tested end to end. `pytest ai -v` runs these tests as well, together with the structural checks of the AI support; MMA's default test run does not include them.

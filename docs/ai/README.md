@@ -123,12 +123,12 @@ Signposts let each agent find MMA's entities at the paths it already knows. They
 
 Tier 1 agents get generated signposts from the project. Consistent files do not prove that an agent loads them; the verification table below records what was actually observed.
 
-| Entity | Canonical | Claude Code | Codex | GitHub Copilot | Gemini CLI | Cursor |
-| --- | --- | --- | --- | --- | --- | --- |
-| Router | `AGENTS.md` | `CLAUDE.md` imports it | Native | Native | `.gemini/settings.json` lists it | Native |
-| Skills | `.agents/skills/` | Pointer skills in `.claude/skills/` | Native | Native | Native | Native |
-| Workflows | `docs/ai/workflows/` | Signpost skills | Signpost skills | Signpost skills | Signpost skills | Signpost skills |
-| Core-module rule | `AGENTS.md` | `.claude/rules/mma-numerical-core.md` | Nested `AGENTS.md` in each module | `.github/instructions/mma-numerical-core.instructions.md` | Nested `AGENTS.md` in each module | `.cursor/rules/mma-numerical-core.mdc` |
+| Entity | Canonical | Claude Code | Codex | GitHub Copilot | Gemini CLI | Cursor | Antigravity CLI |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Router | `AGENTS.md` | `CLAUDE.md` imports it | Native | Native | `.gemini/settings.json` lists it | Native | Native |
+| Skills | `.agents/skills/` | Pointer skills in `.claude/skills/` | Native | Native | Native | Native | Native |
+| Workflows | `docs/ai/workflows/` | Signpost skills | Signpost skills | Signpost skills | Signpost skills | Signpost skills | Signpost skills |
+| Core-module rule | `AGENTS.md` | `.claude/rules/mma-numerical-core.md` | Nested `AGENTS.md` in each module | `.github/instructions/mma-numerical-core.instructions.md` | Nested `AGENTS.md` in each module | `.cursor/rules/mma-numerical-core.mdc` | Nested `AGENTS.md` in each module |
 
 For Claude Code, the generator also writes `.claude/.gitignore`, so that the files that Claude Code may create there for a single user, its local settings and worktrees, stay out of Git.
 
@@ -141,6 +141,7 @@ Verified discovery, recorded after testing an agent against this repository:
 | GitHub Copilot | not yet tested | | | |
 | Gemini CLI | not yet tested | | | |
 | Cursor | not yet tested | | | |
+| Antigravity CLI | not yet tested | | | |
 
 Tier 2 is open to everyone: add an entry of kind `pointer-file` to the manifest (template: `docs/ai/templates/signpost-entry.yml`), mark it `community` and say how you tested it. The project does not test Tier 2 signposts.
 
@@ -150,7 +151,7 @@ Known caveats:
 
 - GitHub Copilot reads both `.claude/skills/` and `.agents/skills/` and may list a skill twice.
 - Claude Code reads `CLAUDE.md` instead of `AGENTS.md` when both exist, so the generated `CLAUDE.md` holds only the import line. GitHub Copilot also reads `CLAUDE.md`; the import adds no content of its own.
-- Codex builds its initial instruction chain from the repository root to its working directory. Keep cross-module rules in the root `AGENTS.md`; nested files provide local reminders. Launch Codex in the repository root for work spanning modules.
+- Codex builds its initial instruction chain from the repository root to its working directory, and Antigravity CLI reads the `AGENTS.md` files from its working directory up to the repository root, not those below it. Keep cross-module rules in the root `AGENTS.md`; nested files provide local reminders. Launch these agents in the repository root for work spanning modules.
 
 ## 11. Verification
 
@@ -194,4 +195,5 @@ These entities are planned but do not exist yet; their names are reserved.
 
 - **Version 2** (2026-11-27):
   - The AI-support scripts and their tests moved from the former tools directory to `ai/`. The planned environment wrapper is reserved in `environment/` ([section 13](#13-planned-entities)).
+  - Antigravity CLI joined the supported agents ([section 10](#10-signposts-and-supported-agents)), with a recipe in `docker/agents/`.
 - **Version 1** (2026-11-15): initial conventions.

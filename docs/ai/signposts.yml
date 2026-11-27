@@ -56,7 +56,7 @@ signposts:
     format: cursor-rule     # globs: front matter
     path: .cursor/rules/mma-numerical-core.mdc
 
-  - agent: codex, gemini-cli
+  - agent: codex, gemini-cli, antigravity-cli
     tier: 1
     kind: nested-agents     # a short AGENTS.md in every core-module directory of .github/CODEOWNERS
     file: AGENTS.md
