@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+# mma-test: run MMA's test suite from the repository root, as "pytest -v".
+# Further arguments are passed on to pytest. Pytest is the tool behind this command;
+# use it directly for more options (README.md, section "Running unit tests").
+set -euo pipefail
+
+project_root="${MMA_PATH:-/MMA}"
+
+if [[ ! -f "${project_root}/pytest.ini" ]]; then
+    echo "[mma-test:error] ${project_root} does not look like the MMA project root." >&2
+    echo "[mma-test:error] Expected file not found: ${project_root}/pytest.ini" >&2
+    exit 1
+fi
+
+cd "${project_root}"
+
+echo "[mma-test] Running pytest -v in ${project_root}."
+exec python3 -m pytest -v "$@"

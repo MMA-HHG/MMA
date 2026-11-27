@@ -94,6 +94,7 @@ RUN groupadd --gid "${USER_GID}" "${USERNAME}" \
 COPY docker/entrypoint.sh /usr/local/bin/mma-entrypoint
 COPY docker/mma-build /usr/local/bin/mma-build
 COPY docker/mma-jupyter /usr/local/bin/mma-jupyter
+COPY docker/mma-test /usr/local/bin/mma-test
 
 # Install tutorial launcher commands and prepared JupyterLab workspaces.
 COPY docker/teach-me-common /usr/local/bin/teach-me-common
@@ -109,6 +110,7 @@ RUN chmod +x \
         /usr/local/bin/mma-entrypoint \
         /usr/local/bin/mma-build \
         /usr/local/bin/mma-jupyter \
+        /usr/local/bin/mma-test \
         /usr/local/bin/teach-me-common \
         /usr/local/bin/teach-me-mma \
         /usr/local/bin/teach-me-tdse \

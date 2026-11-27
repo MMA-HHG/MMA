@@ -301,11 +301,13 @@ This module becomes available by [including it into the `$PYTHONPATH`](#setting-
 MMA provides a unified test suite based on [pytest](https://docs.pytest.org/) covering all three computational modules (`CUPRAD`, `1DTDSE`, and `Hankel`).
 
 ### Running the entire test suite
-From the root directory of the repository, execute:
+In the Docker container, the whole test suite runs with:
 
 ```bash
-pytest -v
+mma-test
 ```
+
+`mma-test` is a shortcut that runs pytest from the repository root, as `pytest -v`. Pytest is the tool behind it: for more options, use pytest directly from the repository root, as in the examples below. Outside the container, run `pytest -v` from the repository root instead of `mma-test`.
 
 By default, the test suite looks for compiled binaries and libraries in the standard build directories (`CUPRAD/build` and `1DTDSE/build`, or the environment variables `$CUPRAD_BUILD` and `$TDSE_1D_BUILD`).
 
@@ -338,7 +340,7 @@ pytest 1DTDSE/tests --tdse-dll path/to/libsingleTDSE.so -v
 ### Test datasets (`git-annex` and EOSC DataRepo)
 The `.h5` and `.dat` test reference datasets under `1DTDSE/tests/data/`, `CUPRAD/tests/data/`, and `Hankel/tests/data/` are managed via [`git-annex`](https://git-annex.branchable.com/) and hosted on the public read-only [EOSC DataRepo](https://datarepo.eosc.cz/datasets/records/39arw-t9a93) (DOI: `10.48700/39arw-t9a93`).
 
-By default, running `pytest` (`--datasets=auto`) automatically fetches any missing annexed datasets required by the selected tests via `git annex get`. Use `--datasets` or test markers to control dataset fetching and selection:
+By default, running `mma-test` or `pytest` (`--datasets=auto`) automatically fetches any missing annexed datasets required by the selected tests via `git annex get`. Use `--datasets` or test markers to control dataset fetching and selection:
 
 * **Auto-download required datasets (default):**
   ```bash
