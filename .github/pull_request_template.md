@@ -10,7 +10,7 @@
 
 ## Numerical impact
 
-<!-- Core changes only. Use none, roundoff or intended, matching the Numerical-impact trailers of the commits (see CONTRIBUTING.md). -->
+<!-- Required for core changes and for AI-assisted pull requests. Use none, roundoff or intended, matching the Numerical-impact trailers of the commits (see CONTRIBUTING.md). -->
 
 - Impact:
 - Evidence (tests and examples run, machine, compiler, MPI, results):
