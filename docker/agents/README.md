@@ -102,10 +102,12 @@ A recipe `docker/agents/<name>.sh` must:
 
 ## Codex CLI (`codex.sh`)
 
-- Installed without root from the Linux standalone binaries in
+- Installed without root from the complete Linux `codex-package` archives in
   [OpenAI's releases](https://github.com/openai/codex/releases), as documented in
-  [OpenAI's repository](https://github.com/openai/codex#quickstart). Linux x86-64
-  and ARM64 are supported, including containers built with the Windows Dockerfile.
+  [OpenAI's repository](https://github.com/openai/codex#quickstart). The whole
+  package is kept, so the helper executables next to `codex` are available; the
+  recipe checks them before it switches to a new package. Linux x86-64 and ARM64
+  are supported, including containers built with the Windows Dockerfile.
   No Node.js or npm dependency is added to the scientific image.
 - `codex` and `codex@latest` install the latest stable release on first use.
   Repeating a satisfied request stays offline and keeps the installed version.
