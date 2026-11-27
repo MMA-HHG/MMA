@@ -36,10 +36,12 @@ ENV CC=mpicc
 ENV FC=mpifort
 ENV SHELL=/bin/bash
 
-# System dependencies for native code, Python, Jupyter, and development.
+# System dependencies for native code, Python, Jupyter, and development;
+# curl is also used by the optional AI-agent recipes (docker/agents/).
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         ca-certificates \
+        curl \
         build-essential \
         gcc \
         gfortran \
@@ -92,6 +94,7 @@ RUN groupadd --gid "${USER_GID}" "${USERNAME}" \
 COPY docker/entrypoint.sh /usr/local/bin/mma-entrypoint
 COPY docker/mma-build /usr/local/bin/mma-build
 COPY docker/mma-jupyter /usr/local/bin/mma-jupyter
+COPY docker/mma-test /usr/local/bin/mma-test
 
 # Install tutorial launcher commands and prepared JupyterLab workspaces.
 COPY docker/teach-me-common /usr/local/bin/teach-me-common
@@ -99,13 +102,19 @@ COPY docker/teach-me-mma /usr/local/bin/teach-me-mma
 COPY docker/teach-me-tdse /usr/local/bin/teach-me-tdse
 COPY docker/tutorial_workspaces /opt/mma/tutorial_workspaces
 
+# Optional AI coding agents: helper command and one recipe per agent (docker/agents/README.md).
+COPY docker/mma-agents /usr/local/bin/mma-agents
+COPY docker/agents /opt/mma/agents
+
 RUN chmod +x \
         /usr/local/bin/mma-entrypoint \
         /usr/local/bin/mma-build \
         /usr/local/bin/mma-jupyter \
+        /usr/local/bin/mma-test \
         /usr/local/bin/teach-me-common \
         /usr/local/bin/teach-me-mma \
-        /usr/local/bin/teach-me-tdse
+        /usr/local/bin/teach-me-tdse \
+        /usr/local/bin/mma-agents
 
 USER ${USERNAME}
 WORKDIR ${MMA_PATH}
@@ -124,6 +133,26 @@ RUN jupyter lab workspaces import \
     && jupyter lab workspaces import \
         --name teach-me-tdse \
         /opt/mma/tutorial_workspaces/teach-me-tdse.json
+
+# Optional AI coding agents (docker/agents/README.md), installed at build time with
+#   docker build --build-arg AI_AGENTS=claude -t mma-claude .
+# or at container start with: docker run -e AI_AGENTS=claude ... (see the entrypoint).
+# Agents install into ~/.local/bin and keep logins and settings in ~/.mma-agents. That
+# directory is created here, and not empty, so that a named volume mounted on it
+# inherits its owner.
+ENV PATH=/home/${USERNAME}/.local/bin:${PATH}
+# Claude Code keeps its login and settings in ~/.mma-agents/claude; this variable
+# is inert while Claude Code is not installed.
+ENV CLAUDE_CONFIG_DIR=/home/${USERNAME}/.mma-agents/claude
+# Codex stores its login, settings and sessions here; inert while absent.
+ENV CODEX_HOME=/home/${USERNAME}/.mma-agents/codex
+RUN mkdir -p /home/${USERNAME}/.mma-agents \
+    && echo "Logins and settings of AI coding agents; see docker/agents/README.md." \
+        > /home/${USERNAME}/.mma-agents/README
+ARG AI_AGENTS=""
+RUN mma-agents install "${AI_AGENTS}"
+# The entrypoint re-applies this selection at every start without AI_AGENTS.
+ENV MMA_AGENTS_IMAGE="${AI_AGENTS}"
 
 ENTRYPOINT ["mma-entrypoint"]
 CMD ["bash"]

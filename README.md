@@ -9,7 +9,6 @@ This repository contains the sources for the [**Modular Multiscale Approach (MMA
 
 The model provides a full solution to treat HHG in gaseous media: the laser pulse propagation, the single-atom response, and the XUV propagation. The design of the code is modular and each of the respective modules can be used independently for its own purposes without requiring the other modules. The assumtions in the model are the linear polarisation and cyllindrical symmetry in the macroscopic propagation. (We are working on extensions of the approach, see notes below.)
 
-[**An installation guide is below**](#installations), followed by [the description of input parameters](#inputs), a general overview is available in [**the pre-print**](https://arxiv.org/pdf/2507.04115). [***YouTube tutorials***](https://youtube.com/playlist?list=PLhgkvMYpHD8gA1C3FM_GB24HNYNsBGxQe&feature=shared) for the main operations are available. If you have difficulties with code, please [***raise an Issue***](https://github.com/MMA-HHG/MMA/issues) or [***start a Disscusion***](https://github.com/MMA-HHG/MMA/discussions) or contact us. The compiled version of the code is accessible through [***CodeOcean capsule***](https://codeocean.com/capsule/6775529/tree). Different modes of the operation of the code are provided in [***the jupyter tutorials***](./jupyter_examples/). The reference datasets for these demos are available [here](https://elibeamlines-my.sharepoint.com/:f:/g/personal/jan_vabek_eli-beams_eu/EpgdhQS_bQROnTYpj6y0zgYBTvz_sSh3WMQDiWgy9YgXfw?e=WnnpgR). The respective directories provide more technical details about the codes: [CUPRAD](./CUPRAD/), [1D-TDSE](./1DTDSE/README.md) and [the Hankel transform](./Hankel/).
 [**An installation guide is below**](#installations), followed by [**running unit tests**](#running-tests) and [the description of input parameters](#inputs), a general overview is available in [**the pre-print**](https://arxiv.org/pdf/2507.04115). [***YouTube tutorials***](https://youtube.com/playlist?list=PLhgkvMYpHD8gA1C3FM_GB24HNYNsBGxQe&feature=shared) for the main operations are available. If you have difficulties with code, please [***raise an Issue***](https://github.com/MMA-HHG/MMA/issues) or [***start a Disscusion***](https://github.com/MMA-HHG/MMA/discussions) or contact us. The compiled version of the code is accessible through [***CodeOcean capsule***](https://codeocean.com/capsule/6775529/tree). Different modes of the operation of the code are provided in [***the jupyter tutorials***](./jupyter_examples/). The reference datasets for these demos are available [here](https://elibeamlines-my.sharepoint.com/:f:/g/personal/jan_vabek_eli-beams_eu/EpgdhQS_bQROnTYpj6y0zgYBTvz_sSh3WMQDiWgy9YgXfw?e=WnnpgR). The respective directories provide more technical details about the codes: [CUPRAD](./CUPRAD/), [1D-TDSE](./1DTDSE/README.md) and [the Hankel transform](./Hankel/).
 
 The last point to address is the execution of the code. If used locally, CUPRAD and TDSE are standard MPI applications and Hankel a Pythonic module. Once running on HPC clusters, a scheduler is involved. The code is then executed as [a pipeline of the different modules](#execution-pipeline).
@@ -66,6 +65,8 @@ The code can be accessed through Docker. Docker prepares the software environmen
 
    The repository is mounted into `/MMA`, so the compiled executables remain available in the parent filesystem. If port `8888` is already used on the  parent machine, change only the first number, for example `-p 8889:8888`.
 
+   <a id="optional-ai-agents"></a>*AI coding agents are optional and not needed to run MMA. To add one to the container (Claude Code, Codex CLI or Antigravity CLI), see [docker/agents/README.md](docker/agents/README.md).*
+
 5) JupyterLab can be started inside the container by:
 
         mma-jupyter
@@ -81,7 +82,7 @@ The code can be accessed through Docker. Docker prepares the software environmen
 
         docker start -ai CONTAINER_NAME
 
-In short, the installation is:
+**In short, the installation is:**
 <a id="install-direct"></a>
 ```bash
 git clone git@github.com:MMA-HHG/MMA.git
@@ -90,6 +91,8 @@ cd MMA
 docker build -t mma .
 docker run --name mma-c1 --hostname mma-c1 -v .:/MMA -w /MMA -p 8888:8888 -it mma
 ```
+
+*AI coding agents are optional; to add one, see [the note in step 4](#optional-ai-agents).*
 
 Inside the container, start JupyterLab by:
 
@@ -301,11 +304,13 @@ This module becomes available by [including it into the `$PYTHONPATH`](#setting-
 MMA provides a unified test suite based on [pytest](https://docs.pytest.org/) covering all three computational modules (`CUPRAD`, `1DTDSE`, and `Hankel`).
 
 ### Running the entire test suite
-From the root directory of the repository, execute:
+In the Docker container, the whole test suite runs with:
 
 ```bash
-pytest -v
+mma-test
 ```
+
+`mma-test` is a shortcut that runs pytest from the repository root, as `pytest -v`. Pytest is the tool behind it: for more options, use pytest directly from the repository root, as in the examples below. Outside the container, run `pytest -v` from the repository root instead of `mma-test`.
 
 By default, the test suite looks for compiled binaries and libraries in the standard build directories (`CUPRAD/build` and `1DTDSE/build`, or the environment variables `$CUPRAD_BUILD` and `$TDSE_1D_BUILD`).
 
@@ -338,7 +343,7 @@ pytest 1DTDSE/tests --tdse-dll path/to/libsingleTDSE.so -v
 ### Test datasets (`git-annex` and EOSC DataRepo)
 The `.h5` and `.dat` test reference datasets under `1DTDSE/tests/data/`, `CUPRAD/tests/data/`, and `Hankel/tests/data/` are managed via [`git-annex`](https://git-annex.branchable.com/) and hosted on the public read-only [EOSC DataRepo](https://datarepo.eosc.cz/datasets/records/39arw-t9a93) (DOI: `10.48700/39arw-t9a93`).
 
-By default, running `pytest` (`--datasets=auto`) automatically fetches any missing annexed datasets required by the selected tests via `git annex get`. Use `--datasets` or test markers to control dataset fetching and selection:
+By default, running `mma-test` or `pytest` (`--datasets=auto`) automatically fetches any missing annexed datasets required by the selected tests via `git annex get`. Use `--datasets` or test markers to control dataset fetching and selection:
 
 * **Auto-download required datasets (default):**
   ```bash
